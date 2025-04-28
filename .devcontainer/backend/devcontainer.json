@@ -1,0 +1,62 @@
+{
+  "name": "Backend Container",
+  "dockerComposeFile": [
+    "../../docker-compose.yml",
+    "../../docker-compose.devcontainer.yml"
+  ],
+  "service": "backend",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [
+    8000
+  ],
+  "postCreateCommand": [
+    "/workspace/.devcontainer/backend/create.sh"
+  ],
+  "postStartCommand": [
+    "/workspace/.devcontainer/backend/start.sh"
+  ],
+  "containerEnv": {
+    "PYTHONASYNCIODEBUG": "1",
+    "PYTHONUNBUFFERED": "True",
+    "UV_LINK_MODE": "copy",
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv"
+  },
+  "containerUser": "vscode",
+  "updateRemoteUserUID": true,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff",
+        "ms-python.pylint",
+        "ms-python.vscode-pylance",
+        "visualstudioexptteam.vscodeintellicode",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode",
+        "GitHub.vscode-pull-request-github",
+        "GitHub.copilot"
+      ],
+      "settings": {
+        "remote.autoForwardPorts": false,
+        "python.experiments.optOutFrom": [
+          "pythonTestAdapter"
+        ],
+        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
+        "python.pythonPath": "/home/vscode/.venv/bin/python",
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.testing.pytestArgs": [
+          "--no-cov"
+        ],
+        "pylint.importStrategy": "fromEnvironment",
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "files.trimTrailingWhitespace": true,
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        }
+      }
+    }
+  }
+}

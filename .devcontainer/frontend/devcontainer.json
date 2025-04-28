@@ -1,0 +1,43 @@
+{
+  "name": "Frontend Container",
+  "dockerComposeFile": [
+    "../../docker-compose.yml",
+    "../../docker-compose.devcontainer.yml"
+  ],
+  "service": "frontend",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [
+    5173
+  ],
+  "postCreateCommand": [
+    "/workspace/.devcontainer/frontend/create.sh"
+  ],
+  "postStartCommand": [
+    "/workspace/.devcontainer/frontend/start.sh"
+  ],
+  "containerUser": "vscode",
+  "updateRemoteUserUID": true,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "visualstudioexptteam.vscodeintellicode",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode",
+        "GitHub.vscode-pull-request-github",
+        "GitHub.copilot"
+      ],
+      "settings": {
+        "remote.autoForwardPorts": false,
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "files.trimTrailingWhitespace": true,
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        }
+      }
+    }
+  }
+}

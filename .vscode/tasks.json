@@ -1,0 +1,46 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "frontend",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "problemMatcher": [],
+      "label": "frontend",
+      "detail": "react-scripts start"
+    },
+    {
+      "label": "db-migrate",
+      "type": "shell",
+      "command": "/home/vscode/.venv/bin/python -m alembic upgrade head",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "group": "build",
+      "detail": "Exécute les migrations Alembic pour initialiser/mettre à jour la base de données"
+    },
+    {
+      "label": "db-init",
+      "type": "shell",
+      "command": "mkdir -p data/ && /home/vscode/.venv/bin/python -m alembic revision --autogenerate -m 'Initial migration' && /home/vscode/.venv/bin/python -m alembic upgrade head",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "group": "build",
+      "detail": "Initialise la base de données avec une migration initiale"
+    }
+  ]
+}
