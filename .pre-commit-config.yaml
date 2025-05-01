@@ -1,0 +1,79 @@
+---
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-json
+        exclude: (.vscode|.devcontainer)
+      - id: no-commit-to-branch
+        args:
+          - --branch=main
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.10.7
+    hooks:
+      - id: uv-lock
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.4
+    hooks:
+      - id: ruff
+        args:
+          - --fix
+      - id: ruff-format
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=OT
+          - --skip=./.*,*.csv,*.json,*.ambr,*.lock,*/migrations/*.py,*/fixtures/*.yaml,locale/**/*.po
+          - --quiet-level=2
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+
+  - repo: local
+    hooks:
+      - id: django-makemessages
+        name: django-makemessages
+        entry: uv run manage.py makemessages --all --no-obsolete
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: django-compilemessages
+        name: django-compilemessages
+        entry: uv run manage.py compilemessages
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # - repo: https://github.com/mondeja/pre-commit-po-hooks
+  #   rev: v1.7.3
+  # waiting for https://github.com/mondeja/pre-commit-po-hooks/pull/27
+  - repo: https://github.com/mounirmesselmeni/pre-commit-po-hooks
+    rev: master
+    hooks:
+      - id: obsolete-messages
+      - id: untranslated-messages
+      - id: fuzzy-messages
+      - id: remove-django-translators
+      - id: max-lines
+        args: ["10000"]
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: env ENV_FILE=./.env.dev uv run pytest .
+        exclude: ^migrations
+        language: system
+        types: [python]
+
+  - repo: https://github.com/crate-ci/committed
+    rev: v1.1.11
+    hooks:
+      - id: committed
+        stages: [commit-msg]

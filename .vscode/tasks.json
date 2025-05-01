@@ -1,0 +1,221 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Django Make Migrations",
+      "type": "shell",
+      "detail": "Make migrations for django app.",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "manage.py",
+        "makemigrations"
+      ],
+      // just skip prompt for matchers
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+    },
+    {
+      "label": "Django Migrate",
+      "type": "shell",
+      "detail": "Apply migrations for whole django project.",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "manage.py",
+        "migrate",
+      ],
+      // just skip prompt for matchers
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      // Run "Django Make Migrations" first if you need to generate new migrations
+    },
+    {
+      "label": "Pytest",
+      "type": "shell",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "-m",
+        "pytest"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": [],
+      "env": {
+        "ENV_FILE": "${workspaceFolder}/.env.dev",
+      }
+    },
+    {
+      "label": "Pytest (changed tests only)",
+      "type": "shell",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "-m",
+        "pytest",
+        "--picked"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": [],
+      "env": {
+        "ENV_FILE": "${workspaceFolder}/.env.dev",
+      }
+    },
+    {
+      "label": "Code Coverage",
+      "detail": "Generate code coverage report.",
+      "type": "shell",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "-m",
+        "pytest",
+        "--cov",
+        "--cov-report",
+        "term-missing",
+        "--durations-min=1",
+        "--durations=0"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "env": {
+        "ENV_FILE": "${workspaceFolder}/.env.dev"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Ruff",
+      "type": "shell",
+      "command": "uvx isort . && uvx ruff format && uvx ruff check --fix",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pylint",
+      "type": "shell",
+      "command": "uvx pylint glad --output-format=colorized --disable=R0903",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install requirements",
+      "type": "shell",
+      "detail": "Create/reuse venv and sync frozen dependencies.",
+      "command": "uv venv --allow-existing && uv sync --frozen",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "close": true
+      },
+      "options": {
+        "env": {
+          "VIRTUAL_ENV": "${workspaceFolder}/.venv"
+        }
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "Upgrade dependencies",
+      "type": "shell",
+      "detail": "Upgrade all dependencies and update the lockfile.",
+      "command": "uv sync --upgrade",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "options": {
+        "env": {
+          "VIRTUAL_ENV": "${workspaceFolder}/.venv"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Activate Python Environment",
+      "type": "shell",
+      "command": "echo 'Python environment activated'",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "close": true
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "Reset test database",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/reset-db.sh",
+      "args": [
+        "${command:python.interpreterPath}"
+      ],
+      "options": {
+        "env": {
+          "DJANGO_SUPERUSER_PASSWORD": "admin",
+          "DJANGO_SUPERUSER_USERNAME": "admin",
+          "DJANGO_SUPERUSER_EMAIL": "admin@site.com"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true,
+        "close": true,
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Django Makemessages",
+      "type": "shell",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "manage.py",
+        "makemessages",
+        "--all",
+        "--no-obsolete"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "detail": "Generate Django translation files."
+    },
+    {
+      "label": "Django Compilemessages",
+      "type": "shell",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "manage.py",
+        "compilemessages",
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "detail": "Compile Django translation files.",
+      "dependsOn": [
+        "Django Makemessages"
+      ]
+    }
+  ]
+}

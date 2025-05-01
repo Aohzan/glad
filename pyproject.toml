@@ -1,0 +1,49 @@
+[project]
+name = "glad"
+version = "0.0.0"
+description = "Web app to follow its investments and properties"
+
+authors = [{ name = "Aohzan", email = "aohzan@gmail.com" }]
+maintainers = [{ name = "Aohzan", email = "aohzan@gmail.com" }]
+
+readme = "README.md"
+requires-python = ">=3.14"
+license = { file = "LICENSE.md" }
+
+dependencies = [
+    "django>=6",
+    "dotenv>=0.9.9",
+    "python-dotenv>=1.1.0",
+    "uvicorn>=0.35.0",
+    "psycopg[binary]>=3.1.18", # PostgreSQL adapter
+    "whitenoise>=6.9.0",
+    "dateparser>=1.2.2",
+    "django-money>=3.5.4",
+]
+
+[dependency-groups]
+dev = [
+    "beautifulsoup4>=4.13.4",
+    "pre-commit>=4.2.0",
+    "pylint>=3.3.6",
+    "pylint-django>=2.6.1",
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.1",
+    "pytest-django>=4.11.1",
+    "ruff>=0.11.7",
+]
+
+[tool.semantic_release.branches.main]
+match = "main"
+
+[tool.semantic_release.branches.pull-request-preview]
+match = ".+"
+prerelease = true
+prerelease_token = "rc"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "glad.settings"
+
+[tool.pylint]
+load-plugins = ["pylint_django"]
+django-settings-module = "glad.settings"
