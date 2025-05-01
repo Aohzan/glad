@@ -1,0 +1,50 @@
+<h2>Welcome to {{ user.username }}'s Financial Dashboard</h2>
+
+<p>Total accounts value: {{ user.userprofile.household.total_accounts_value }}</p>
+<p>Total properties value: {{ user.userprofile.household.total_properties_value }}</p>
+<b><b>Total net worth: {{ user.userprofile.household.total_net_worth }}</b></p>
+
+    <h3>Accounts</h3>
+
+    {% if accounts %}
+    <table>
+        <tr>
+            <th>Category</th>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Balance</th>
+        </tr>
+        {% for account in accounts %}
+        <tr>
+            <td>{{ account.subcategory.get_category_display }}</td>
+            <td>{{ account.subcategory.name }}</td>
+            <td>{{ account.name }}</td>
+            <td>{{ account.current_balance }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No accounts.</p>
+    {% endif %}
+
+    <h3>Properties</h3>
+    {% if properties %}
+    <table>
+        <tr>
+            <th>Category</th>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Value</th>
+        </tr>
+        {% for property in properties %}
+        <tr>
+            <td>{{ property.subcategory.get_category_display }}</td>
+            <td>{{ property.subcategory.code }}</td>
+            <td>{{ property.name }}</td>
+            <td>{{ property.current_value }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No properties.</p>
+    {% endif %}
