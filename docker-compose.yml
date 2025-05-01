@@ -1,0 +1,5 @@
+services:
+  backend:
+    command: sleep infinity # TODO
+  frontend:
+    command: sleep infinity # TODO

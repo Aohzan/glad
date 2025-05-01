@@ -1,0 +1,9 @@
+{
+  "python.testing.pytestPath": "/home/vscode/.venv/bin/pytest",
+  "python.testing.pytestArgs": [
+    "backend"
+  ],
+  "python.testing.pytestEnabled": true,
+  "pylint.importStrategy": "fromEnvironment",
+  "python.testing.unittestEnabled": false
+}

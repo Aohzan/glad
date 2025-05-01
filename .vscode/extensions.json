@@ -1,0 +1,27 @@
+{
+  "recommendations": [
+    "charliermarsh.ruff",
+    "codezombiech.gitignore",
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "exiasr.hadolint",
+    "foxundermoon.shell-format",
+    "GitHub.copilot",
+    "GitHub.vscode-pull-request-github",
+    "kevinrose.vsc-python-indent",
+    "mosapride.zenkaku",
+    "ms-azuretools.vscode-docker",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-vscode-remote.remote-containers",
+    "njpwerner.autodocstring",
+    "oderwat.indent-rainbow",
+    "pkief.material-icon-theme",
+    "redhat.vscode-yaml",
+    "shardulm94.trailing-spaces",
+    "tamasfe.even-better-toml",
+    "usernamehw.errorlens",
+    "visualstudioexptteam.vscodeintellicode",
+    "yzhang.markdown-all-in-one"
+  ]
+}
