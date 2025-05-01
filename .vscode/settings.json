@@ -1,0 +1,12 @@
+{
+    "python.testing.pytestArgs": [
+        "."
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "pylint.args": [
+        "--load-plugins",
+        "pylint_django",
+        "--django-settings-module=glad.settings"
+    ],
+}

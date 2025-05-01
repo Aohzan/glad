@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<h2>Welcome to {{ user.username }}'s Financial Dashboard</h2>
+
+<p><strong>Total Saving Accounts Balance:</strong> {{ total_saving_accounts_balance }}</p>
+<p><strong>Total Investment Accounts Balance:</strong> {{ total_investment_accounts_balance }}</p>
+<p><strong>Total Properties Value:</strong> {{ total_properties_value }}</p>
+<p><strong>Total Net Worth:</strong> {{ net_worth }}</p>
+
+{% else %}
+<p>You are not logged in.</p>
+{% endif %}
+{% endblock %}

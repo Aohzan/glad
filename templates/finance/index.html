@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Finance{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'finance:index' %}">Batch update</a> |
+</div>
+<form method="get" action="" style="margin-bottom: 20px;">
+    <label for="days">Show balance progression for the last:</label>
+    <input type="number" id="days" name="days" min="1" value="{{ request.GET.days|default:30 }}"
+        onchange="this.form.submit()" />
+</form>
+<h3>Investment accounts</h3>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Value</th>
+        <th>Progression</th>
+    </tr>
+    {% for account in investment_accounts %}
+    <tr>
+        <td>{{ account.model.name }}</td>
+        <td>{{ account.model.current_value }}</td>
+        <td class="progression {{ account.progression.css_class }}">
+            <span>{{ account.progression.progression }}%</span>
+            (<span>{{ account.progression.difference }}</span>)
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h3>Saving</h3>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Balance</th>
+        <th>Progression</th>
+    </tr>
+    {% for account in savings_accounts %}
+    <tr>
+        <td>{{ account.model.name }}</td>
+        <td>{{ account.model.current_balance }} {{ account.model.currency }}</td>
+        <td class="progression {{ account.progression.css_class }}">
+            <span>{{ account.progression.progression }}%</span>
+            (<span>{{ account.progression.difference }}</span> {{ account.model.currency }})
+        </td>
+    </tr>
+    {% endfor %}
+
+    {% endblock %}

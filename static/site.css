@@ -1,0 +1,26 @@
+table,
+th,
+td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.progression {
+  font-weight: 500;
+}
+
+.progression.positive span:before {
+  content: "\002B";
+}
+
+.progression.positive {
+  color: green;
+}
+
+.progression.negative {
+  color: red;
+}
