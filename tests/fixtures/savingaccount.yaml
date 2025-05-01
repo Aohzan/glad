@@ -1,0 +1,159 @@
+- model: finance.savingaccount
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_type_id: 1
+    name: Livret A
+    owner: Mister
+    institution: Credit Agricole
+    is_active: true
+    opening_date: 2020-01-01
+    initial_balance: 10000
+    initial_balance_currency: EUR
+    initial_balance_date: 2024-01-01
+- model: finance.savingaccountbalance
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_id: 1
+    balance: 10000
+    balance_currency: EUR
+    balance_date: 2024-01-01
+- model: finance.savingaccountbalance
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_id: 1
+    balance: 11000
+    balance_currency: EUR
+    balance_date: 2025-01-01
+- model: finance.savingaccount
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_type_id: 2
+    name: LDDS
+    owner: Mister
+    institution: Credit Agricole
+    is_active: true
+    opening_date: 2020-01-01
+    initial_balance: 12000
+    initial_balance_currency: EUR
+    initial_balance_date: 2025-01-01
+- model: finance.savingaccountbalance
+  pk: 3
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_id: 2
+    balance: 12000
+    balance_currency: EUR
+    balance_date: 2025-01-01
+- model: finance.savingaccount
+  pk: 3
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_type_id: 1
+    name: Livret A
+    owner: Madame
+    institution: BoursoBank
+    is_active: true
+    opening_date: 2020-01-01
+    initial_balance: 22950
+    initial_balance_currency: EUR
+    initial_balance_date: 2025-01-01
+- model: finance.savingaccountbalance
+  pk: 4
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_id: 3
+    balance: 22950
+    balance_currency: EUR
+    balance_date: 2025-01-01
+- model: finance.savingaccountbalance
+  pk: 5
+  fields:
+    created_at: 2024-04-01 00:00:00.000000+00:00
+    updated_at: 2024-04-01 00:00:00.000000+00:00
+    account_id: 1
+    balance: 10300
+    balance_currency: EUR
+    balance_date: 2024-04-01
+- model: finance.savingaccountbalance
+  pk: 6
+  fields:
+    created_at: 2024-07-01 00:00:00.000000+00:00
+    updated_at: 2024-07-01 00:00:00.000000+00:00
+    account_id: 1
+    balance: 10600
+    balance_currency: EUR
+    balance_date: 2024-07-01
+- model: finance.savingaccountbalance
+  pk: 7
+  fields:
+    created_at: 2024-10-01 00:00:00.000000+00:00
+    updated_at: 2024-10-01 00:00:00.000000+00:00
+    account_id: 1
+    balance: 10900
+    balance_currency: EUR
+    balance_date: 2024-10-01
+- model: finance.savingaccountbalance
+  pk: 8
+  fields:
+    created_at: 2024-04-01 00:00:00.000000+00:00
+    updated_at: 2024-04-01 00:00:00.000000+00:00
+    account_id: 2
+    balance: 12200
+    balance_currency: EUR
+    balance_date: 2024-04-01
+- model: finance.savingaccountbalance
+  pk: 9
+  fields:
+    created_at: 2024-07-01 00:00:00.000000+00:00
+    updated_at: 2024-07-01 00:00:00.000000+00:00
+    account_id: 2
+    balance: 12400
+    balance_currency: EUR
+    balance_date: 2024-07-01
+- model: finance.savingaccountbalance
+  pk: 10
+  fields:
+    created_at: 2024-10-01 00:00:00.000000+00:00
+    updated_at: 2024-10-01 00:00:00.000000+00:00
+    account_id: 2
+    balance: 12600
+    balance_currency: EUR
+    balance_date: 2024-10-01
+- model: finance.savingaccountbalance
+  pk: 11
+  fields:
+    created_at: 2024-04-01 00:00:00.000000+00:00
+    updated_at: 2024-04-01 00:00:00.000000+00:00
+    account_id: 3
+    balance: 23250
+    balance_currency: EUR
+    balance_date: 2024-04-01
+- model: finance.savingaccountbalance
+  pk: 12
+  fields:
+    created_at: 2024-07-01 00:00:00.000000+00:00
+    updated_at: 2024-07-01 00:00:00.000000+00:00
+    account_id: 3
+    balance: 23550
+    balance_currency: EUR
+    balance_date: 2024-07-01
+- model: finance.savingaccountbalance
+  pk: 13
+  fields:
+    created_at: 2024-10-01 00:00:00.000000+00:00
+    updated_at: 2024-10-01 00:00:00.000000+00:00
+    account_id: 3
+    balance: 23850
+    balance_currency: EUR
+    balance_date: 2024-10-01

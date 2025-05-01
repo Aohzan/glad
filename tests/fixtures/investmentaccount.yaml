@@ -1,0 +1,400 @@
+- model: finance.investmentaccount
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_type_id: 1
+    name: PEA
+    owner: Commun
+    institution: Bourse Direct
+    is_active: true
+    opening_date: 2023-05-01
+    initial_cash_balance: 0
+    initial_cash_balance_currency: EUR
+    initial_cash_balance_date: 2023-05-01
+- model: finance.investmentaccountholding
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_id: 1
+    name: MSCI World
+    code: DCAM
+    is_active: true
+    initial_quantity: 10
+    initial_value: 3401
+    initial_value_currency: EUR
+    initial_valuation_date: 2023-05-05
+- model: finance.investmentaccountholdinghistory
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 1
+    value: 3450
+    value_currency: EUR
+    quantity: 10
+    valuation_date: 2023-07-10
+- model: finance.investmentaccountholdinghistory
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 1
+    value: 3500
+    value_currency: EUR
+    quantity: 10
+    valuation_date: 2023-10-10
+- model: finance.investmentaccountholding
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_id: 1
+    name: CAC40
+    code: CAC
+    is_active: true
+    initial_quantity: 5
+    initial_value: 3500
+    initial_value_currency: EUR
+    initial_valuation_date: 2023-05-05
+- model: finance.investmentaccountholdinghistory
+  pk: 3
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3500
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2024-06-15
+- model: finance.investmentaccountholdinghistory
+  pk: 4
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3400
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2024-07-15
+- model: finance.investmentaccountholdinghistory
+  pk: 5
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3450
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2024-08-15
+- model: finance.investmentaccountholdinghistory
+  pk: 6
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3550
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2024-09-15
+- model: finance.investmentaccountholdinghistory
+  pk: 7
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3600
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2024-10-15
+- model: finance.investmentaccountholdinghistory
+  pk: 8
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3550
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2024-11-15
+- model: finance.investmentaccountholdinghistory
+  pk: 9
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3500
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2024-12-15
+- model: finance.investmentaccountholdinghistory
+  pk: 10
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3650
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2025-01-15
+- model: finance.investmentaccountholdinghistory
+  pk: 11
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3700
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2025-03-15
+- model: finance.investmentaccountholdinghistory
+  pk: 12
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 2
+    value: 3650
+    value_currency: EUR
+    quantity: 5
+    valuation_date: 2025-06-10
+- model: finance.investmentaccount
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_type_id: 1
+    name: CTO
+    owner: Commun
+    institution: Bourse Direct
+    is_active: true
+    opening_date: 2023-05-01
+    initial_cash_balance: 0
+    initial_cash_balance_currency: EUR
+    initial_cash_balance_date: 2023-05-01
+- model: finance.investmentaccountholding
+  pk: 3
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_id: 2
+    name: Apple
+    code: AAPL
+    is_active: true
+    initial_quantity: 3
+    initial_value: 500
+    initial_value_currency: USD
+    initial_valuation_date: 2023-05-05
+- model: finance.investmentaccountholding
+  pk: 4
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    account_id: 2
+    name: Nvidia
+    code: NVDA
+    is_active: true
+    initial_quantity: 2
+    initial_value: 700
+    initial_value_currency: USD
+    initial_valuation_date: 2023-05-05
+- model: finance.investmentaccountholdinghistory
+  pk: 13
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 500
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2024-06-15
+- model: finance.investmentaccountholdinghistory
+  pk: 14
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 520
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2024-07-15
+- model: finance.investmentaccountholdinghistory
+  pk: 15
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 510
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2024-08-15
+- model: finance.investmentaccountholdinghistory
+  pk: 16
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 530
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2024-09-15
+- model: finance.investmentaccountholdinghistory
+  pk: 17
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 540
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2024-10-15
+- model: finance.investmentaccountholdinghistory
+  pk: 18
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 530
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2024-11-15
+- model: finance.investmentaccountholdinghistory
+  pk: 19
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 525
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2024-12-15
+- model: finance.investmentaccountholdinghistory
+  pk: 20
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 550
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2025-01-15
+- model: finance.investmentaccountholdinghistory
+  pk: 21
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 560
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2025-03-15
+- model: finance.investmentaccountholdinghistory
+  pk: 22
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 3
+    value: 555
+    value_currency: USD
+    quantity: 3
+    valuation_date: 2025-06-10
+- model: finance.investmentaccountholdinghistory
+  pk: 23
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 700
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2024-06-15
+- model: finance.investmentaccountholdinghistory
+  pk: 24
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 720
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2024-07-15
+- model: finance.investmentaccountholdinghistory
+  pk: 25
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 710
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2024-08-15
+- model: finance.investmentaccountholdinghistory
+  pk: 26
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 730
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2024-09-15
+- model: finance.investmentaccountholdinghistory
+  pk: 27
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 740
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2024-10-15
+- model: finance.investmentaccountholdinghistory
+  pk: 28
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 735
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2024-11-15
+- model: finance.investmentaccountholdinghistory
+  pk: 29
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 730
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2024-12-15
+- model: finance.investmentaccountholdinghistory
+  pk: 30
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 750
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2025-01-15
+- model: finance.investmentaccountholdinghistory
+  pk: 31
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 760
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2025-03-15
+- model: finance.investmentaccountholdinghistory
+  pk: 32
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    holding_id: 4
+    value: 755
+    value_currency: USD
+    quantity: 2
+    valuation_date: 2025-06-10
