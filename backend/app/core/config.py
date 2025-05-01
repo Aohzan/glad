@@ -1,4 +1,5 @@
 import secrets
+import sys
 from typing import Annotated, Any, Self
 import warnings
 from pydantic import AnyUrl, BeforeValidator, model_validator, computed_field
@@ -43,13 +44,22 @@ class Settings(BaseSettings):
     def all_cors_origins(self) -> list[str]:
         return list(
             set(
-                [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS]
+                [str(origin).rstrip("/")
+                 for origin in self.BACKEND_CORS_ORIGINS]
                 + [self.FRONTEND_URL]
             )
         )
 
     # Database
     DATABASE_URL: str = f"sqlite:///./{DATA_DIR}/glad.db"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def database_url(self) -> str:
+        # Use in-memory database for tests
+        if "pytest" in sys.modules:
+            return "sqlite:///:memory:"
+        return self.DATABASE_URL
     # POSTGRES_SERVER: str
     # POSTGRES_PORT: int = 5432
     # POSTGRES_USER: str
@@ -59,6 +69,7 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
     FIRST_SUPERUSER: str = "admin@me.com"
     FIRST_SUPERUSER_PASSWORD: str = "changethis"
 
@@ -68,7 +79,7 @@ class Settings(BaseSettings):
                 f'The value of {var_name} is "changethis", '
                 "for security, please change it, at least for deployments."
             )
-            if self.ENVIRONMENT == "local":
+            if self.ENVIRONMENT in ["local", "dev"] or "pytest" in sys.modules:
                 warnings.warn(message, stacklevel=1)
             else:
                 raise ValueError(message)

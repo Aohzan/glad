@@ -1,7 +1,9 @@
 {
+  "python.testing.pytestPath": "/home/vscode/.venv/bin/pytest",
   "python.testing.pytestArgs": [
-    "--no-cov"
+    "backend"
   ],
-  "python.testing.pytestEnabled": false,
-  "pylint.importStrategy": "fromEnvironment"
+  "python.testing.pytestEnabled": true,
+  "pylint.importStrategy": "fromEnvironment",
+  "python.testing.unittestEnabled": false
 }

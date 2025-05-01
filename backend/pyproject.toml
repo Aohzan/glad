@@ -28,6 +28,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "pre-commit>=4.2.0",
     "pycodestyle>=2.13.0",
     "pydocstyle>=6.3.0",

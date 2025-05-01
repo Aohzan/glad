@@ -11,7 +11,7 @@ from app.models import User, UserCreate
 
 _LOGGER = logging.getLogger(__name__)
 
-engine = create_engine(str(settings.DATABASE_URL))
+engine = create_engine(str(settings.database_url))
 
 
 # make sure all SQLModel models are imported (app.models) before initializing DB
