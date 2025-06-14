@@ -1,0 +1,133 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Django Make Migrations",
+      "type": "shell",
+      "detail": "Make migrations for django app.",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "manage.py",
+        "makemigrations"
+      ],
+      // just skip prompt for matchers
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+    },
+    {
+      "label": "Django Migrate",
+      "type": "shell",
+      "detail": "Apply migrations for whole django project.",
+      "command": "${config:python.defaultInterpreterPath}",
+      "args": [
+        "manage.py",
+        "migrate",
+      ],
+      // just skip prompt for matchers
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+    },
+    {
+      "label": "Pytest",
+      "type": "shell",
+      "command": "pytest --timeout=10 tests",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pytest (changed tests only)",
+      "type": "shell",
+      "command": "pytest --timeout=10 --picked",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Ruff",
+      "type": "shell",
+      "command": "uvx ruff format && uvx ruff check --fix",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pylint",
+      "type": "shell",
+      "command": "pylint glad --output-format=colorized --disable=R0903",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Code Coverage",
+      "detail": "Generate code coverage report.",
+      "type": "shell",
+      "command": "pytest --cov --cov-report term-missing --durations-min=1 --durations=0",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install all requirements",
+      "type": "shell",
+      "command": "uv sync --frozen --active",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": [],
+    },
+    {
+      "type": "shell",
+      "label": "dummy-task to not get the 'Select the build task to run'-popup",
+      "command": "exit",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "isBackground": true,
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "panel": "shared",
+      }
+    },
+    {
+      "label": "Reset test database",
+      "type": "shell",
+      "command": "${workspaceFolder}/.devcontainer/reset-db.sh",
+      "args": [
+        "${command:python.interpreterPath}"
+      ],
+      "options": {
+        "env": {
+          "DJANGO_SUPERUSER_PASSWORD": "admin",
+          "DJANGO_SUPERUSER_USERNAME": "admin",
+          "DJANGO_SUPERUSER_EMAIL": "admin@site.com"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true,
+        "close": true,
+      },
+      "problemMatcher": []
+    }
+  ]
+}

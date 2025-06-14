@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load djmoney %}
+
+{% block title %}Finance{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'finance:index' %}">Batch update</a> |
+</div>
+<form method="get" action="" style="margin-bottom: 20px;">
+    <label for="id_days">Show balance progression for the last:</label>
+    {{ form.days }}
+    <small class="text-muted">{{ form.days.help_text }}</small>
+    <script>
+        document.getElementById('id_days').addEventListener('change', function () {
+            this.form.submit();
+        });
+    </script>
+</form>
+<h3>Investment accounts</h3>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Owner</th>
+        <th>Value</th>
+        <th>Progression</th>
+    </tr>
+    {% for account in investment_accounts %}
+    <tr>
+        <td>{{ account.model.name }}</td>
+        <td>{{ account.model.owner }}</td>
+        <td>{% money_localize account.model.current_value %}</td>
+        <td class="progression {{ account.progression.css_class }}">
+            <span>{{ account.progression.progression }}%</span>
+            (<span>{% money_localize account.progression.difference %}</span>)
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<h3>Saving</h3>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Owner</th>
+        <th>Balance</th>
+        <th>Progression</th>
+    </tr>
+    {% for account in savings_accounts %}
+    <tr>
+        <td>{{ account.model.name }}</td>
+        <td>{{ account.model.owner }}</td>
+        <td>{% money_localize account.model.current_balance %}</td>
+        <td class="progression {{ account.progression.css_class }}">
+            <span>{{ account.progression.progression }}%</span>
+            (<span>{% money_localize account.progression.difference %}</span>)
+        </td>
+    </tr>
+    {% endfor %}
+
+    {% endblock %}

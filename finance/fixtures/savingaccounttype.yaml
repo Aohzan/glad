@@ -1,0 +1,28 @@
+- model: finance.savingaccounttype
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    name: Compte courant
+    code: CPT
+- model: finance.savingaccounttype
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    name: Livret A
+    code: LA
+- model: finance.savingaccounttype
+  pk: 3
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    name: Livret jeune
+    code: LJ
+- model: finance.savingaccounttype
+  pk: 4
+  fields:
+    created_at: 2025-01-01 00:00:00.000000+00:00
+    updated_at: 2025-01-01 00:00:00.000000+00:00
+    name: Livret Développement Durable et Solidaire
+    code: LDDS

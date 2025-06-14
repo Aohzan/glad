@@ -1,0 +1,57 @@
+{
+  "name": "Devcontainer",
+  "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
+  "postCreateCommand": [
+    ".devcontainer/create.sh"
+  ],
+  "forwardPorts": [
+    "8000:8000"
+  ],
+  "containerEnv": {
+    "PYTHONASYNCIODEBUG": "1",
+    "PYTHONUNBUFFERED": "True",
+    "UV_LINK_MODE": "copy",
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv"
+  },
+  "runArgs": [
+    "--userns=keep-id:uid=1000,gid=1000"
+  ],
+  "containerUser": "vscode",
+  "updateRemoteUserUID": true,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff",
+        "ms-python.pylint",
+        "ms-python.vscode-pylance",
+        "visualstudioexptteam.vscodeintellicode",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode",
+        "GitHub.vscode-pull-request-github",
+        "GitHub.copilot"
+      ],
+      "settings": {
+        "remote.autoForwardPorts": false,
+        "python.experiments.optOutFrom": [
+          "pythonTestAdapter"
+        ],
+        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
+        "python.pythonPath": "/home/vscode/.venv/bin/python",
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.testing.pytestArgs": [
+          "--no-cov"
+        ],
+        "pylint.importStrategy": "fromEnvironment",
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "files.trimTrailingWhitespace": true,
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        }
+      }
+    }
+  }
+}

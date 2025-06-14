@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load djmoney %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<h2>Welcome to {{ user.username }}'s Financial Dashboard</h2>
+
+{% if total_saving_accounts_balance == 0 %}
+<p><strong>Total Saving Accounts Balance:</strong> No saving account exists for now.</p>
+{% else %}
+<p><strong>Total Saving Accounts Balance:</strong> {% money_localize total_saving_accounts_balance %}</p>
+{% endif %}
+
+{% if total_investment_accounts_balance == 0 %}
+<p><strong>Total Investment Accounts Balance:</strong> No investment account exists for now.</p>
+{% else %}
+<p><strong>Total Investment Accounts Balance:</strong> {% money_localize total_investment_accounts_balance %}</p>
+{% endif %}
+
+{% if total_properties_value == 0 %}
+<p><strong>Total Properties Value:</strong> No property exists for now.</p>
+{% else %}
+<p><strong>Total Properties Value:</strong> {% money_localize total_properties_value %}</p>
+{% endif %}
+
+{% if net_worth == 0 %}
+<p><strong>Total Net Worth:</strong> No net worth calculated for now.</p>
+{% else %}
+<p><strong>Total Net Worth:</strong> {% money_localize net_worth %}</p>
+{% endif %}
+
+{% else %}
+<p>You are not logged in.</p>
+{% endif %}
+{% endblock %}
