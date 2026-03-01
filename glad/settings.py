@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import logging
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
@@ -36,13 +37,20 @@ if ENVIRONMENT == "production" and DEBUG:
         "Please set DEBUG to False for production."
     )
 
+# APP_URL is the canonical public URL of the app (e.g. https://myapp.example.com).
+# All URL-derived settings fall back to it; each can still be overridden individually.
+_app_url = os.environ.get("APP_URL", "").rstrip("/")
+_app_url_parsed = urlparse(_app_url) if _app_url else None
+_app_hostname = _app_url_parsed.hostname if _app_url_parsed else None
+
 ALLOWED_HOSTS = [x.strip() for x in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
 # https://github.com/adamchainz/django-cors-headers
-if os.environ.get("CORS_ALLOWED_ORIGINS"):
-    CORS_ALLOWED_ORIGINS = [
-        x.strip() for x in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
-    ]
+_cors_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
+if _cors_env:
+    CORS_ALLOWED_ORIGINS = [x.strip() for x in _cors_env.split(",")]
+elif _app_url:
+    CORS_ALLOWED_ORIGINS = [_app_url]
 
 # https://docs.djangoproject.com/en/5.0/topics/http/sessions/#settings
 SESSION_COOKIE_HTTPONLY = True
@@ -53,8 +61,11 @@ SESSION_COOKIE_SECURE = bool(
 # https://docs.djangoproject.com/en/5.0/ref/csrf/#settings
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "False").lower() == "true"
-CSRF_TRUSTED_ORIGINS = list(
-    filter(None, os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(","))
+_csrf_env = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = (
+    list(filter(None, _csrf_env.split(",")))
+    if _csrf_env
+    else ([_app_url] if _app_url else [])
 )
 
 # Application definition
@@ -101,6 +112,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "accounts.context_processors.app_lock",
             ],
         },
     },
@@ -179,6 +191,10 @@ LOCALE_PATHS = [os.path.join(BASE_DIR, "locale")]
 USE_TZ = False
 
 DEFAULT_CURRENCY = "EUR"
+
+# WebAuthn settings: explicit env vars take priority, then APP_URL, then per-request.
+WEBAUTHN_ORIGIN = os.getenv("WEBAUTHN_ORIGIN") or _app_url or None
+WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID") or _app_hostname or None
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

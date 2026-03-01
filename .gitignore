@@ -9,3 +9,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Generated test fixtures (regenerated dynamically by scripts/generate_fixtures.py)
+tests/fixtures/*.yaml

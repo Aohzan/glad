@@ -6,7 +6,7 @@ python_path="$1"
 
 echo "Remove old database and migrations"
 rm -fv data/glad.db
-rm -fv */migrations/00*.py
+# rm -fv */migrations/00*.py
 echo
 echo "Recreate database and apply migrations"
 $python_path manage.py makemigrations
@@ -14,6 +14,9 @@ $python_path manage.py migrate
 echo
 echo "Create superuser"
 $python_path manage.py createsuperuser --noinput
+echo
+echo "Generate dynamic test fixtures"
+$python_path scripts/generate_fixtures.py
 echo
 echo "Load initial data"
 $python_path manage.py loaddata finance/fixtures/*.yaml

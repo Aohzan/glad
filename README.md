@@ -6,23 +6,41 @@ Glad is a web app to follow its investments and properties, principally based on
 
 ## Features
 
-* Finance
-  * Savings accounts
-  * Investment accounts
-* Properties
-  * Real estate (in progress)
-  * Rental properties (in progress)
-  * SCPI (in progress)
-  * Load (TODO)
+- Finance
+  - Savings accounts
+  - Investment accounts
+- Properties
+  - Real estate (in progress)
+  - Rental properties (in progress)
+  - SCPI (in progress)
+  - Load (TODO)
 
 ### Web application
 
-* Multi-language support
-* Multi-currency support
-* Dark mode
-* Responsive design
+- Multi-language support
+- Multi-currency support
+- Dark mode
+- Responsive design
+- Passwordless authentication with passkeys (WebAuthn)
 
 ## Configuration
+
+### Docker Compose
+
+```yaml
+services:
+  glad:
+    image: ghcr.io/aohzan/glad:latest
+    container_name: glad
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    volumes:
+      - /opt/glad:/app/data
+    environment:
+      SECRET_KEY: "xxxxxxxxx"
+      APP_URL: "https://glad.my.domain"
+```
 
 ### Database
 
