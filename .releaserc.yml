@@ -1,9 +1,9 @@
+---
 plugins:
   [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    "@semantic-release/changelog",
-    "@semantic-release-uv",
+    ["@flexperto/semantic-release-changelog", {"branches": "^(main)$"}],
     [
       "@semantic-release/git",
       {
@@ -11,6 +11,7 @@ plugins:
         "message": "chore(semantic-release): release ${nextRelease.version}",
       },
     ],
+    "@semantic-release/github",
   ]
 branches:
   - name: main

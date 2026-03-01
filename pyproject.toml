@@ -21,6 +21,9 @@ dependencies = [
     "django-money>=3.5.4",
 ]
 
+[project.optional-dependencies]
+build = ["uv>=0.7"]
+
 [dependency-groups]
 dev = [
     "beautifulsoup4>=4.13.4",
@@ -32,6 +35,14 @@ dev = [
     "pytest-django>=4.11.1",
     "ruff>=0.11.7",
 ]
+
+[tool.semantic_release]
+build_command = """
+    python -m pip install -e '.[build]'
+    uv lock --upgrade-package "$PACKAGE_NAME"
+    git add uv.lock
+    uv build
+"""
 
 [tool.semantic_release.branches.main]
 match = "main"
