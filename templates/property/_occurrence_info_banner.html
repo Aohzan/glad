@@ -1,0 +1,9 @@
+{% load i18n %}
+<div class="alert {{ alert_class }} d-flex align-items-center gap-2 mb-4">
+  <i class="bi bi-arrow-repeat fs-5"></i>
+  <div>
+    <strong>{{ occurrence_date|date:"d/m/Y" }}</strong>
+    &mdash;
+    <span class="text-body-secondary">{{ entry }}</span>
+  </div>
+</div>

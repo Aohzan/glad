@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% if deposit %}{% translate "Edit saving deposit" %}{% else %}{% translate "New saving deposit" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+
+  {% translate "Edit saving deposit" as edit_title %}
+  {% translate "New saving deposit" as new_title %}
+  {% url 'finance:saving_detail' account.pk as back_url %}
+  {% include "finance/_edit_page_header.html" with is_edit=deposit edit_title=edit_title new_title=new_title back_url=back_url back_label=account %}
+
+  {% url 'finance:saving_detail' account.pk as cancel_url %}
+  {% translate "Update account value" as update_account_label %}
+  {% include "finance/_edit_deposit_card.html" with update_account_field=form.update_account_value update_account_label=update_account_label cancel_url=cancel_url %}
+
+</div>
+{% endblock %}

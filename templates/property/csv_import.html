@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+  {{ property.name }} – {% translate 'Import CSV' %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="mb-3">
+    <a href="{% url 'property:detail' property.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>{% translate 'Back to property' %}
+    </a>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title mb-0">{% translate 'Import transactions from CSV' %} — {{ property.name }}</h3>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        {% translate 'Upload a CSV file containing your transactions. You will be able to review the data before confirming the import.' %}
+      </div>
+
+      <form method="post" action="{% url 'property:csv_import' property.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% include "_form_field.html" with field=form.csv_file %}
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-arrow-right me-1"></i>{% translate 'Next' %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h4 class="card-title mb-0">{% translate 'CSV Format' %}</h4>
+    </div>
+    <div class="card-body">
+      <p>{% translate 'Your CSV file must contain the following columns (first row = header):' %}</p>
+
+      <table class="table table-sm table-bordered mb-4">
+        <thead class="table-light">
+          <tr>
+            <th>{% translate 'Column' %}</th>
+            <th>{% translate 'Required' %}</th>
+            <th>{% translate 'Description' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>date</code></td>
+            <td><span class="badge bg-danger">{% translate 'Yes' %}</span></td>
+            <td>{% translate 'Transaction date (any parseable format, e.g. 2024-01-15)' %}</td>
+          </tr>
+          <tr>
+            <td><code>amount</code></td>
+            <td><span class="badge bg-danger">{% translate 'Yes' %}</span></td>
+            <td>{% translate 'Amount — positive for income, negative for expense (e.g. 800.00 or -150.50)' %}</td>
+          </tr>
+          <tr>
+            <td><code>category</code></td>
+            <td><span class="badge bg-danger">{% translate 'Yes' %}</span></td>
+            <td>{% translate 'Category identifier (see table below)' %}</td>
+          </tr>
+          <tr>
+            <td><code>description</code></td>
+            <td><span class="badge bg-danger">{% translate 'Yes' %}</span></td>
+            <td>{% translate 'Short description of the transaction' %}</td>
+          </tr>
+          <tr>
+            <td><code>notes</code></td>
+            <td><span class="badge bg-secondary">{% translate 'No' %}</span></td>
+            <td>{% translate 'Additional notes (optional)' %}</td>
+          </tr>
+          <tr>
+            <td><code>reference_period</code></td>
+            <td><span class="badge bg-secondary">{% translate 'No' %}</span></td>
+            <td>{% translate 'Accounting reference period date (optional)' %}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h5>{% translate 'Valid category values' %}</h5>
+      {% translate 'Value (use in CSV)' as value_header %}
+      {% include "property/_valid_categories_table.html" with table_class="table table-sm table-bordered" value_header=value_header %}
+
+      <div class="alert alert-warning mt-3" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {% translate 'The flow type (income or expense) is automatically determined by the sign of the amount. Income categories require a positive amount; expense categories require a negative amount.' %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

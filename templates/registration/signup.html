@@ -1,0 +1,13 @@
+{% extends "registration/base_auth_form.html" %}
+{% load i18n %}
+
+{% block auth_title %}{% translate "Sign up" %}{% endblock %}
+{% block auth_heading %}{% translate "Sign up" %}{% endblock %}
+
+{% block auth_fields %}
+          {% include "registration/_form_field.html" with field=form.username %}
+          {% include "registration/_form_field.html" with field=form.password1 %}
+          {% include "registration/_form_field.html" with field=form.password2 %}
+{% endblock %}
+
+{% block auth_submit %}{% translate "Sign up" %}{% endblock %}

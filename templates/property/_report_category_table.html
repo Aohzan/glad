@@ -1,0 +1,34 @@
+{% load i18n %}
+<div class="col-12 col-lg-6">
+  <div class="card h-100">
+    <div class="card-header fw-semibold {{ header_class }}">
+      <i class="bi {{ header_icon }} me-1"></i>{{ section_title }}
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% translate "Category" %}</th>
+            <th class="text-end">{% translate "Amount" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report.by_category %}
+            {% if row.flow_type == flow_type %}
+            <tr>
+              <td>{{ row.label }}</td>
+              <td class="text-end {{ amount_class }}">{{ row.total|floatformat:2 }} €</td>
+            </tr>
+            {% endif %}
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-light fw-bold">
+          <tr>
+            <td>{% translate "Total" %}</td>
+            <td class="text-end {{ amount_class }}">{{ section_total|floatformat:2 }} €</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>

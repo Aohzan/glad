@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load i18n format_money %}
+
+{% block title %}
+  {% translate 'Finance - Update all accounts' %}
+{% endblock %}
+
+{% block content %}
+  <div class="card card-finance mb-4">
+    <div class="card-header">
+      <h3 class="card-title mb-0">{% translate 'Update all your accounts' %}</h3>
+    </div>
+    <div class="card-body">
+      <form method="post" action="{% url 'finance:update' %}">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <label for="{{ form.new_values_date.id_for_label }}" class="form-label">
+              {{ form.new_values_date.label }}
+            </label>
+            <div>{{ form.new_values_date }}</div>
+            {% if form.new_values_date.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.new_values_date.errors }}
+              </div>
+            {% endif %}
+            <small class="text-muted">{{ form.new_values_date.help_text }}</small>
+          </div>
+        </div>
+
+        <!-- Saving accounts -->
+        {{ saving_accounts_formset.management_form }}
+        {% if saving_accounts_formset.non_form_errors %}
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {{ saving_accounts_formset.non_form_errors }}
+          </div>
+        {% endif %}
+
+        <div class="mb-4">
+          <div class="bg-secondary text-white px-3 py-2 rounded mb-2 fw-bold">
+            <i class="bi bi-piggy-bank me-1"></i>{% translate 'Saving accounts' %}
+          </div>
+          {% for form in saving_accounts_formset %}
+            {% include "finance/_account_update_row.html" with account_name_suffix=form.initial.account_name %}
+          {% endfor %}
+        </div>
+
+        <!-- Investment accounts -->
+        <div class="mb-3">
+          <div class="bg-secondary text-white px-3 py-2 rounded mb-2 fw-bold">
+            <i class="bi bi-graph-up me-1"></i>{% translate 'Investment accounts' %}
+          </div>
+          {% for account_name, formsets_by_type in investment_accounts_formsets.items %}
+            <div class="mb-3">
+              <div class="bg-body-secondary px-3 py-2 rounded mb-2 fw-semibold">
+                <i class="bi bi-bank me-1"></i>{{ account_name }}
+              </div>
+
+              <!-- Cash -->
+              {% with formset=formsets_by_type.cash %}
+                {{ formset.management_form }}
+                {% if formset.non_form_errors %}
+                  <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ formset.non_form_errors }}
+                  </div>
+                {% endif %}
+                {% translate 'Cash' as cash_label %}
+                {% for form in formset %}
+                  {% include "finance/_account_update_row.html" with account_name_suffix=cash_label %}
+                {% endfor %}
+              {% endwith %}
+
+              <!-- Holdings -->
+              {% with formset=formsets_by_type.holdings %}
+                {{ formset.management_form }}
+                {% if formset.non_form_errors %}
+                  <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ formset.non_form_errors }}
+                  </div>
+                {% endif %}
+                {% for form in formset %}
+                  {% include "finance/_holding_update_row.html" %}
+                {% endfor %}
+              {% endwith %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle me-1"></i>{% translate 'Valider' %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('input[name$="new_value"], input[name$="new_quantity"]').forEach(function(input) {
+        input.addEventListener('focus', function() {
+          input.select();
+          const row = this.closest('[data-update-row]');
+          if (row) {
+            const checkbox = row.querySelector('input[name$="update_account"]');
+            if (checkbox) checkbox.checked = true;
+          }
+        });
+        input.addEventListener('input', function() {
+          this.value = this.value.replace(/[^0-9.,]/g, '');
+        });
+      });
+    });
+  </script>
+{% endblock %}

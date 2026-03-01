@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}
+  {% translate 'Finance - Export CSV' %}
+{% endblock %}
+
+{% block extra_head %}
+<link href="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+  <!-- Tom Select CSS -->
+  <div class="card card-finance mb-4">
+    <div class="card-header">
+      <h3 class="card-title mb-0">{% translate 'Export data to CSV' %}</h3>
+    </div>
+    <div class="card-body">
+      <form method="post" action="{% url 'finance:csv_export' %}">
+        {% csrf_token %}
+
+        {% include "_form_field.html" with field=form.csv_type %}
+
+        <div class="mb-3">
+          <label for="{{ form.accounts.id_for_label }}" class="form-label">
+            {{ form.accounts.label }}
+          </label>
+          <select id="{{ form.accounts.id_for_label }}" name="accounts" multiple class="form-select">
+            {% for group, accounts in form.account_groups.items %}
+              <optgroup label="{{ group }}">
+                {% for value, label in accounts %}
+                  <option value="{{ value }}" data-type="{{ group|lower }}">{{ label }}</option>
+                {% endfor %}
+              </optgroup>
+            {% endfor %}
+          </select>
+          {% if form.accounts.errors %}
+            <div class="invalid-feedback d-block">
+              {{ form.accounts.errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-download me-1"></i>{% translate 'Export' %}
+          </button>
+          <a href="{% url 'finance:index' %}" class="btn btn-secondary ms-2">
+            <i class="bi bi-arrow-left me-1"></i>{% translate 'Back' %}
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Collect all options before MultiSelect initialization
+    var allAccountOptions = [];
+    document.querySelectorAll('#{{ form.accounts.id_for_label }} option').forEach(function(opt) {
+      var parent = opt.parentElement;
+      var group = parent.tagName.toLowerCase() === 'optgroup' ? parent.getAttribute('label') : '';
+      allAccountOptions.push({value: opt.value, text: opt.text, group: group});
+    });
+    var select = new MultiSelect('#{{ form.accounts.id_for_label }}', {
+      placeholder: '{% translate "Select accounts" %}',
+      search: true,
+      selectAll: true,
+      listAll: false,
+      closeListOnItemSelect: false,
+      required: true,
+    });
+    var typeMap = {
+      'saving_value': 'saving',
+      'investment_cash': 'investment',
+      'investment_holding': 'investment'
+    };
+    var csvTypeSelect = document.getElementById('{{ form.csv_type.auto_id }}');
+    function filterAccounts() {
+      var selectedType = typeMap[csvTypeSelect.value];
+      var filtered = allAccountOptions.filter(function(opt) {
+        return opt.value.split('-')[0] === selectedType;
+      });
+      select.data = filtered;
+      select.refresh();
+    }
+    csvTypeSelect.addEventListener('change', filterAccounts);
+    filterAccounts(); // initial
+  });
+  </script>
+{% endblock %}

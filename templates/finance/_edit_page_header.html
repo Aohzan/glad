@@ -1,0 +1,13 @@
+{% load i18n %}
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ back_label }}
+  </a>
+  <h1 class="h4 mb-0 ms-1">
+    {% if is_edit %}
+      <i class="bi bi-pencil me-1"></i>{{ edit_title }}
+    {% else %}
+      <i class="bi bi-plus-circle me-1"></i>{{ new_title }}
+    {% endif %}
+  </h1>
+</div>

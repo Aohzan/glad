@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block content %}
+<p>{% blocktrans count counter=queryset|length %}Are you sure you want to update the date for this item?{% plural %}Are you sure you want to update the date for these {{ counter }} items?{% endblocktrans %}</p>
+
+<form action="" method="post">
+    {% csrf_token %}
+
+    <div class="form-group mb-3">
+        <label for="id_{{ date_field_name }}" class="form-label">{{ date_field_label }}:</label>
+        <input type="datetime-local"
+               name="{{ date_field_name }}"
+               id="id_{{ date_field_name }}"
+               class="form-control"
+               value="{{ now|date:'Y-m-d\TH:i' }}"
+               required>
+    </div>
+
+    {% for obj in queryset %}
+        <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}">
+    {% endfor %}
+
+    <input type="hidden" name="action" value="{{ action_name }}">
+
+    <div class="mt-3">
+        <button type="submit" name="apply" class="btn btn-primary">{% trans "Update" %}</button>
+        <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+    </div>
+</form>
+
+<h2>{% trans "Items to be updated:" %}</h2>
+<ul>
+    {% for obj in queryset %}
+        <li>{{ obj }}</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

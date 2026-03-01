@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load i18n format_money static %}
+
+{% block title %}{% translate "SCPI Investments" %}{% endblock %}
+
+{% block extra_head %}
+  <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {# ── Header ──────────────────────────────────────────────────────────────── #}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="bi bi-building-check me-2 text-primary"></i>{% translate "SCPI" %}</h1>
+    <div class="d-flex gap-2">
+      <a href="{% url 'property:scpi_new' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-building me-1"></i>{% translate "Add SCPI" %}
+      </a>
+    </div>
+  </div>
+
+  {# ── KPI strip ───────────────────────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-4">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
+            <i class="bi bi-cash-coin me-1"></i>{% translate "Total invested" %}
+          </p>
+          <p class="fs-4 fw-bold mb-0">{{ global_total_invested|format_money|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-4">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
+            <i class="bi bi-tag me-1"></i>{% translate "Estimated resale" %}
+          </p>
+          <p class="fs-4 fw-bold mb-0">{{ global_total_resale|format_money|default:"—" }}</p>
+          {% if global_gain_pct is not None %}
+          <p class="small mb-0 {% if global_gain_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {% if global_gain_pct >= 0 %}+{% endif %}{{ global_gain_pct }}%
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-4">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
+            <i class="bi bi-cash-stack me-1"></i>{% translate "Total dividends" %}
+          </p>
+          <p class="fs-4 fw-bold mb-0">{{ global_total_dividends|format_money|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-4">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
+            <i class="bi bi-percent me-1"></i>{% translate "Avg. net yield" %}
+          </p>
+          <p class="fs-4 fw-bold mb-0">{{ global_net_rentability }}%</p>
+          <p class="small text-body-secondary mb-0">{% translate "Last 12 months / invested" %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Fund cards ──────────────────────────────────────────────────────────── #}
+  {% for item in fund_data %}
+  {% with fund=item.fund %}
+  <div class="card shadow-sm rounded-4 mb-4">
+    <div class="card-header border-0 d-flex justify-content-between align-items-center">
+      <div>
+        <i class="bi bi-building me-2 text-primary"></i>{{ fund }}
+        {% if fund.management_company %}
+        <span class="text-body-secondary small ms-2">{{ fund.management_company }}</span>
+        {% endif %}
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <a href="{% url 'property:scpi_fund_detail' scpi_pk=fund.pk %}" class="text-decoration-none btn btn-sm btn-outline-secondary">
+          <i class="bi bi-eye me-1"></i>{% translate "View" %}
+        </a>
+      </div>
+    </div>
+
+    {# ── Fund KPIs ──────────────────────────────────────────────────────────── #}
+    <div class="card-body border-bottom">
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Total invested" %}</p>
+          <p class="fs-5 fw-bold mb-0">{{ item.total_invested|format_money|default:"—" }}</p>
+        </div>
+        <div class="col-6 col-md-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Estimated resale" %}</p>
+          <p class="fs-5 fw-bold mb-0">{{ item.total_resale|format_money|default:"—" }}</p>
+          {% if item.gain_pct is not None %}
+          <p class="small mb-0 {% if item.gain_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {% if item.gain_pct >= 0 %}+{% endif %}{{ item.gain_pct }}%
+            {% translate "vs invested" %}
+          </p>
+          {% endif %}
+        </div>
+        <div class="col-6 col-md-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Total dividends" %}</p>
+          <p class="fs-5 fw-bold mb-0">{{ item.total_dividends|format_money|default:"—" }}</p>
+        </div>
+        <div class="col-6 col-md-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Net yield" %}</p>
+          <p class="fs-5 fw-bold mb-0">{{ item.net_rentability }}%</p>
+          <p class="small text-body-secondary mb-0">{% translate "Last 12 months" %}</p>
+        </div>
+        <div class="col-6 col-md-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Growth / year" %}</p>
+          <p class="fs-5 fw-bold mb-0 {% if item.growth_rentability >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {% if item.growth_rentability > 0 %}+{% endif %}{{ item.growth_rentability }}%
+          </p>
+          <p class="small text-body-secondary mb-0">{% translate "Annualized" %}</p>
+        </div>
+      </div>
+    </div>
+
+    {# ── Fund chart ─────────────────────────────────────────────────────────── #}
+    {% comment %} TODO fix {% endcomment %}
+    {% comment %} {% if item.chart_months != "[]" %}
+    <div class="card-body">
+      <div id="scpi-chart-{{ fund.pk }}" style="height: 220px;"></div>
+    </div>
+    {% endif %} {% endcomment %}
+
+    {# ── Delete modal ───────────────────────────────────────────────────────── #}
+    {% url 'property:scpi_delete' scpi_pk=fund.pk as del_scpi_url %}
+    {% include "property/_delete_modal.html" with modal_id="deleteScpi"|add:fund.pk|stringformat:"s" delete_url=del_scpi_url modal_title=_("Delete SCPI fund") confirm_text=_("Are you sure? This will also delete all related investments and dividends.") %}
+  </div>
+  {% endwith %}
+  {% empty %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-1"></i>
+    {% translate "No SCPI funds yet." %}
+    <a href="{% url 'property:scpi_new' %}">{% translate "Add your first SCPI fund." %}</a>
+  </div>
+  {% endfor %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  function getCurrentTheme() {
+    return document.documentElement.getAttribute('data-bs-theme') || 'light';
+  }
+
+  var fundCharts = [
+    {% for item in fund_data %}
+    {
+      id: "scpi-chart-{{ item.fund.pk }}",
+      dates: {{ item.chart_months|safe }},
+      prices: {{ item.chart_invested_monthly|safe }},
+      divAmounts: {{ item.chart_dividend_monthly|safe }},
+      recurrence: "{{ item.fund.dividend_recurrence }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  fundCharts.forEach(function(fd) {
+    var el = document.getElementById(fd.id);
+    if (!el) return;
+    if (!fd.dates.length && !fd.divAmounts.length) return;
+
+    var series = [];
+    if (fd.prices.length) {
+      series.push({ name: '{% translate "Invested" %}', type: 'line', data: fd.prices });
+    }
+    if (fd.divAmounts.length) {
+      series.push({ name: '{% translate "Dividends" %}', type: 'bar', data: fd.divAmounts });
+    }
+
+    var categories = fd.dates;
+
+    var options = {
+      chart: { type: 'line', height: 220, background: 'transparent', toolbar: { show: false }, animations: { enabled: false } },
+      theme: { mode: getCurrentTheme() },
+      series: series,
+      stroke: { curve: 'smooth', width: [2, 0] },
+      fill: { opacity: [1, 0.8] },
+      colors: ['#60a5fa', '#34d399'],
+      dataLabels: { enabled: false },
+      xaxis: { categories: categories, labels: { style: { fontSize: '10px' } } },
+      yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString(); }, style: { fontSize: '10px' } } },
+      tooltip: { theme: getCurrentTheme() },
+      grid: { borderColor: getCurrentTheme() === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
+      legend: { position: 'top', fontSize: '11px' },
+      plotOptions: { bar: { columnWidth: fd.recurrence === 'monthly' ? '80%' : fd.recurrence === 'quarterly' ? '70%' : '60%', borderRadius: 2 } }
+    };
+    new ApexCharts(el, options).render();
+  });
+})();
+</script>
+{% endblock %}

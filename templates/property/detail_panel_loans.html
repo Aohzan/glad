@@ -1,0 +1,700 @@
+{% load i18n format_money %}
+
+<form method="post" action="{% url 'property:loans' property.pk %}" novalidate>
+  {% csrf_token %}
+
+  {# ── Loans amortization chart ── #}
+  {% if loans_with_totals %}
+  <div class="card mb-3">
+    <div class="card-header py-2">
+      <h6 class="mb-0"><i class="bi bi-bar-chart-line me-1"></i>{% translate "Amortization schedule" %}</h6>
+    </div>
+    <div class="card-body p-2">
+      <div id="loan-amortization-chart" style="height: 300px;"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Loans table ── #}
+  {% if loans_with_totals %}
+  <div class="card mb-3">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+      <h6 class="mb-0"><i class="bi bi-bank me-1"></i>{% translate "Loans" %}</h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>{% translate "Name" %}</th>
+              <th>{% translate "Lender" %}</th>
+              <th>{% translate "Start" %}</th>
+              <th>{% translate "End" %}</th>
+              <th class="text-end">{% translate "Original amount" %}</th>
+              <th class="text-end">{% translate "Monthly payment" %}</th>
+              <th class="text-end">{% translate "Rate" %}</th>
+              <th class="text-end">{% translate "Duration" %}</th>
+              <th class="text-end">{% translate "Total cost" %}</th>
+              <th class="text-end">{% translate "Remaining" %}</th>
+              <th class="text-end">{% translate "Edit" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in loans_with_totals %}
+            <tr>
+              <td>
+                {{ item.loan.name|default:"—" }}
+                {% if item.loan.amortization_entries.exists %}
+                  <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;"><i class="bi bi-table"></i></span>
+                {% endif %}
+              </td>
+              <td>{{ item.loan.lender|default:"—" }}
+                {% if item.loan.bank_reference %}
+                  <span class="text-body-secondary small d-block">{{ item.loan.bank_reference }}</span>
+                {% endif %}
+              </td>
+              <td>{{ item.loan.start_date }}</td>
+              <td>{{ item.loan.end_date }}</td>
+              <td class="text-end">{{ item.loan.original_amount|format_money }}</td>
+              <td class="text-end">
+                {% if item.loan.monthly_payment %}
+                  {{ item.loan.monthly_payment|format_money }}
+                  {% if item.loan.insurance %}
+                    <span class="text-body-secondary small d-block">+ {{ item.loan.insurance|format_money }} {% translate "ins." %}</span>
+                  {% endif %}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td class="text-end">
+                {% if item.loan.interest_rate %}{{ item.loan.interest_rate|floatformat:2 }} %{% else %}—{% endif %}
+              </td>
+              <td class="text-end">
+                {% if item.duration_months %}
+                  {{ item.duration_months }} {% translate "mo." %}
+                  <span class="text-body-secondary small d-block">({% widthratio item.duration_months 12 1 %} {% translate "yr" %})</span>
+                {% else %}—{% endif %}
+              </td>
+              <td class="text-end fw-semibold">
+                {% if item.total_cost is not None %}
+                  {% if item.total_repaid is not None %}
+                    <span class="text-body-secondary small d-block">{{ item.total_repaid|format_money }}</span>
+                  {% endif %}
+                {% else %}—{% endif %}
+              </td>
+              <td class="text-end fw-semibold">
+                {% if item.remaining_balance is not None %}
+                  {% if item.remaining_balance.amount == 0 %}
+                    <span class="text-success">{{ item.remaining_balance|format_money }}</span>
+                  {% elif item.loan.start_date > today %}
+                    <span class="text-danger">{{ item.remaining_balance|format_money }}</span>
+                  {% else %}
+                    <span class="text-warning">{{ item.remaining_balance|format_money }}</span>
+                  {% endif %}
+                {% else %}—{% endif %}
+              </td>
+              <td class="text-end">
+                <div class="d-flex gap-1 justify-content-end">
+                  <button type="button" class="btn btn-sm btn-outline-secondary loan-expand-btn"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#loan-form-collapse-{{ item.loan.pk }}"
+                          aria-expanded="false"
+                          title="{% translate "Edit loan" %}">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr class="loan-collapse-row p-0">
+              <td colspan="11" class="p-0 border-0">
+                <div class="collapse" id="loan-form-collapse-{{ item.loan.pk }}">
+                  {# inline form rendered below in loan_forms_with_schedules loop #}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {{ loan_formset.management_form }}
+
+  {% if loan_formset.non_form_errors %}
+    <div class="alert alert-danger">
+      {{ loan_formset.non_form_errors }}
+    </div>
+  {% endif %}
+
+  {# ── Loan forms (existing + new) ── #}
+  <div id="loan-formset">
+    {% for loan_entry in loan_forms_with_schedules %}
+      {% with form=loan_entry.form %}
+
+      {% if form.instance.pk %}
+        {# Existing loan: render inside its collapse div (injected via JS below) #}
+        <div class="loan-form-body d-none" data-loan-pk="{{ form.instance.pk }}">
+      {% else %}
+        {# New loan: rendered via the "Add a loan" collapse #}
+        <div class="loan-form-body">
+      {% endif %}
+
+        <div class="loan-form border rounded p-3 mb-3{% if not form.instance.pk %} new-loan-form{% endif %}">
+          {{ form.id }}
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">
+              {% if form.instance.pk %}
+                {% translate "Loan" %} #{{ forloop.counter }}
+              {% else %}
+                {% translate "Add a loan" %}
+              {% endif %}
+            </h6>
+            {% if form.instance.pk %}
+              <div class="form-check">
+                {{ form.DELETE }}
+                <label class="form-check-label text-danger" for="{{ form.DELETE.id_for_label }}">
+                  <i class="bi bi-trash"></i> {% translate "Delete" %}
+                </label>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+              {{ form.name }}
+              {% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.lender.id_for_label }}" class="form-label">{{ form.lender.label }}</label>
+              {{ form.lender }}
+              {% if form.lender.errors %}<div class="invalid-feedback d-block">{{ form.lender.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.bank_reference.id_for_label }}" class="form-label">{{ form.bank_reference.label }}</label>
+              {{ form.bank_reference }}
+              {% if form.bank_reference.help_text %}<div class="form-text">{{ form.bank_reference.help_text }}</div>{% endif %}
+              {% if form.bank_reference.errors %}<div class="invalid-feedback d-block">{{ form.bank_reference.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                {{ form.start_date.label }}
+                {% if form.start_date.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              {{ form.start_date }}
+              {% if form.start_date.errors %}<div class="invalid-feedback d-block">{{ form.start_date.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.first_payment_date.id_for_label }}" class="form-label">
+                {{ form.first_payment_date.label }}
+              </label>
+              {{ form.first_payment_date }}
+              {% if form.first_payment_date.help_text %}<div class="form-text">{{ form.first_payment_date.help_text }}</div>{% endif %}
+              {% if form.first_payment_date.errors %}<div class="invalid-feedback d-block">{{ form.first_payment_date.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.duration_months.id_for_label }}" class="form-label">
+                {{ form.duration_months.label }}
+                {% if form.duration_months.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              <div class="input-group">
+                {{ form.duration_months }}
+                <span class="input-group-text loan-years-display"></span>
+              </div>
+              {% if form.duration_months.help_text %}<div class="form-text">{{ form.duration_months.help_text }}</div>{% endif %}
+              {% if form.duration_months.errors %}<div class="invalid-feedback d-block">{{ form.duration_months.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.original_amount.id_for_label }}" class="form-label">
+                {{ form.original_amount.label }}
+                {% if form.original_amount.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              {{ form.original_amount }}
+              {% if form.original_amount.errors %}<div class="invalid-feedback d-block">{{ form.original_amount.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.interest_rate.id_for_label }}" class="form-label">
+                {{ form.interest_rate.label }}
+                {% if form.interest_rate.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              <div class="input-group">
+                {{ form.interest_rate }}
+                <span class="input-group-text">%</span>
+              </div>
+              {% if form.interest_rate.errors %}<div class="invalid-feedback d-block">{{ form.interest_rate.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.insurance_rate.id_for_label }}" class="form-label">{{ form.insurance_rate.label }}</label>
+              <div class="input-group">
+                {{ form.insurance_rate }}
+                <span class="input-group-text">%</span>
+              </div>
+              {% if form.insurance_rate.errors %}<div class="invalid-feedback d-block">{{ form.insurance_rate.errors.0 }}</div>{% endif %}
+            </div>
+
+            {# Loan cost preview #}
+            <div class="col-12">
+              <div class="loan-preview alert alert-info py-2 mb-0 d-none">
+                <small>
+                  <span class="loan-preview-monthly">
+                    <i class="bi bi-calculator"></i>
+                    {% translate "Estimated monthly payment" %}: <strong class="loan-preview-total">—</strong>
+                    <span class="loan-preview-detail text-body-secondary ms-2"></span>
+                    <span class="ms-3 text-body-secondary">|</span>
+                  </span>
+                  <span class="ms-2">{% translate "Total repaid" %}: <strong class="loan-preview-total-repaid">—</strong></span>
+                </small>
+              </div>
+            </div>
+          </div>
+
+          {# ── Amortization table ── #}
+          {% if form.instance.pk %}
+          <div class="mt-3 border-top pt-3">
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+              <h6 class="mb-0 text-body-secondary">{% translate "Amortization table" %}</h6>
+              {% if form.instance.amortization_entries.exists %}
+                <span class="badge bg-success-subtle text-success">{{ form.instance.amortization_entries.count }} {% translate "entries" %}</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary">{% translate "Auto-calculated" %}</span>
+              {% endif %}
+
+              {# Import CSV — submitted via fetch to avoid nested-form issue #}
+              <span class="d-inline">
+                <input type="file" name="csv_file" accept=".csv,.txt"
+                       class="d-none js-amort-csv-input" id="csv-input-{{ form.instance.pk }}"
+                       data-import-url="{% url 'property:loan_amortization_import' pk=property.pk loan_pk=form.instance.pk %}">
+                <label for="csv-input-{{ form.instance.pk }}" class="btn btn-sm btn-outline-primary" role="button">
+                  <i class="bi bi-upload me-1"></i>{% translate "Import CSV" %} <i class="bi bi-info" tooltip="true" title="{% translate "CSV format:" %} date,capital,interest,other,remaining"></i>
+                </label>
+              </span>
+
+              {# Generate auto — fetch POST to avoid nested-form issue #}
+              <button type="button" class="btn btn-sm btn-outline-secondary js-amort-generate"
+                      data-url="{% url 'property:loan_amortization_generate' pk=property.pk loan_pk=form.instance.pk %}">
+                <i class="bi bi-calculator me-1"></i>{% translate "Generate auto" %}
+              </button>
+
+              {% if form.instance.amortization_entries.exists %}
+              {# Clear — fetch POST to avoid nested-form issue #}
+              <button type="button" class="btn btn-sm btn-outline-danger js-amort-clear"
+                      data-url="{% url 'property:loan_amortization_clear' pk=property.pk loan_pk=form.instance.pk %}"
+                      data-confirm="{% translate "Clear the amortization table?" %}">
+                <i class="bi bi-trash me-1"></i>{% translate "Clear" %}
+              </button>
+              {% endif %}
+            </div>
+
+            {% if form.instance.amortization_entries.exists %}
+            <div style="max-height:300px;overflow-y:auto;">
+              <table class="table table-sm table-striped table-bordered mb-0" style="font-size:.8rem;">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th>{% translate "Date" %}</th>
+                    <th class="text-end">{% translate "Capital" %}</th>
+                    <th class="text-end">{% translate "Interest" %}</th>
+                    <th class="text-end">{% translate "Remaining" %}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for entry in form.instance.amortization_entries.all %}
+                  <tr>
+                    <td>{{ entry.date|date:"d/m/Y" }}</td>
+                    <td class="text-end">{{ entry.capital.amount|floatformat:2 }}</td>
+                    <td class="text-end">{{ entry.interest.amount|floatformat:2 }}</td>
+                    <td class="text-end fw-semibold">{{ entry.remaining_balance_amount.amount|floatformat:2 }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+        </div>{# end .loan-form #}
+      </div>{# end .loan-form-body #}
+    {% endwith %}
+    {% endfor %}
+  </div>{# end #loan-formset #}
+
+  {# ── Add a new loan (collapsed by default) ── #}
+  <div class="mb-3">
+    <button type="button" class="btn btn-outline-primary btn-sm"
+            data-bs-toggle="collapse"
+            data-bs-target="#new-loan-collapse"
+            aria-expanded="false">
+      <i class="bi bi-plus-circle me-1"></i>{% translate "Add a loan" %}
+    </button>
+    <div class="collapse mt-3" id="new-loan-collapse">
+      {# The "extra=1" new-loan form body is rendered here by JS below #}
+    </div>
+  </div>
+
+  {# ── Form actions ── #}
+  <div class="d-flex gap-2 justify-content-end">
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-check-lg"></i> {% translate "Save loans" %}
+    </button>
+  </div>
+
+</form>
+
+{# ── Bank statements (outside main form to allow standalone delete forms) ── #}
+<style>
+.loan-form {
+  background-color: var(--bs-secondary-bg);
+}
+.loan-form.deleted-loan {
+  opacity: 0.5;
+  background-color: var(--bs-danger-bg-subtle);
+}
+.loan-collapse-row td {
+  padding: 0 !important;
+  border: 0 !important;
+}
+</style>
+
+<script>
+(function() {
+  // ── Generic fetch POST helper ─────────────────────────────────────────────
+  function fetchPost(url) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin'
+    });
+  }
+
+  const errMsg = '{% translate "An error occurred. Please try again." %}';
+
+  function reloadOnSuccess(url) {
+    return fetchPost(url).then(function(resp) {
+      if (resp.ok || resp.redirected) { window.location.reload(); }
+      else { alert(errMsg); }
+    }).catch(function() { alert(errMsg); });
+  }
+
+  // ── Delete bank statement (fetch POST to avoid nested form) ───────────────
+  // jscpd:ignore-start
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.js-delete-statement');
+    if (!btn) return;
+    e.preventDefault();
+    if (!confirm(btn.dataset.confirm)) return;
+    reloadOnSuccess(btn.dataset.url);
+  });
+  // jscpd:ignore-end
+
+  // ── Generate auto (fetch POST to avoid nested form) ───────────────────────
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.js-amort-generate');
+    if (!btn) return;
+    e.preventDefault();
+    reloadOnSuccess(btn.dataset.url);
+  });
+
+  // ── Clear amortization (fetch POST to avoid nested form) ──────────────────
+  // jscpd:ignore-start
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.js-amort-clear');
+    if (!btn) return;
+    e.preventDefault();
+    if (!confirm(btn.dataset.confirm)) return;
+    reloadOnSuccess(btn.dataset.url);
+  });
+  // jscpd:ignore-end
+
+  // ── Import CSV (dynamic form outside main form to avoid nesting + show messages) ──
+  document.addEventListener('change', function(e) {
+    const input = e.target.closest('.js-amort-csv-input');
+    if (!input || !input.files || !input.files[0]) return;
+    const url = input.dataset.importUrl;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Build a temporary form appended to <body> (not nested inside main form)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.enctype = 'multipart/form-data';
+    form.style.display = 'none';
+
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.name = 'csv_file';
+    // Transfer the selected file using DataTransfer
+    const dt = new DataTransfer();
+    dt.items.add(input.files[0]);
+    fileInput.files = dt.files;
+    form.appendChild(fileInput);
+
+    document.body.appendChild(form);
+    form.submit();
+    // Reset original input so same file can trigger change again
+    input.value = '';
+  });
+})();
+
+(function() {
+  // ── Utilities ──────────────────────────────────────────────────────────────
+
+  function parseDecimal(value) {
+    if (typeof value === 'string') value = value.replace(',', '.');
+    return parseFloat(value);
+  }
+
+  function computeLoanPreview(amount, annualRate, annualInsuranceRate, durationMonths) {
+    if (!amount || amount <= 0 || durationMonths <= 0) return null;
+    const t = annualRate / 100 / 12;
+    let pi;
+    if (t === 0) {
+      pi = amount / durationMonths;
+    } else {
+      const factor = Math.pow(1 + t, durationMonths);
+      pi = amount * t * factor / (factor - 1);
+    }
+    const insurance = annualInsuranceRate > 0 ? (amount * annualInsuranceRate / 100 / 12) : 0;
+    return { pi, insurance, total: pi + insurance };
+  }
+
+  function formatMoney(value) {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value);
+  }
+
+  // ── Loan preview ──────────────────────────────────────────────────────────
+
+  function updateLoanPreview(loanFormEl) {
+    const amountInput = loanFormEl.querySelector('input[id*="original_amount_0"], input[id$="original_amount"]');
+    const rateInput = loanFormEl.querySelector('input[id*="interest_rate"]');
+    const insuranceRateInput = loanFormEl.querySelector('input[id*="insurance_rate"]');
+    const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+    const previewEl = loanFormEl.querySelector('.loan-preview');
+    const previewMonthlyEl = loanFormEl.querySelector('.loan-preview-monthly');
+    const previewTotal = loanFormEl.querySelector('.loan-preview-total');
+    const previewDetail = loanFormEl.querySelector('.loan-preview-detail');
+    const previewTotalRepaid = loanFormEl.querySelector('.loan-preview-total-repaid');
+    if (!previewEl) return;
+
+    const amount = parseDecimal(amountInput ? amountInput.value : 0);
+    const rate = parseDecimal(rateInput ? rateInput.value : 0) || 0;
+    const insuranceRate = parseDecimal(insuranceRateInput ? insuranceRateInput.value : 0) || 0;
+    const duration = parseInt(durationInput ? durationInput.value : 0);
+
+    const result = computeLoanPreview(amount, rate, insuranceRate, duration);
+    if (result) {
+      previewEl.classList.remove('d-none');
+      previewTotal.textContent = formatMoney(result.total);
+      if (insuranceRate > 0) {
+        previewDetail.textContent = '({% translate "principal+interest" %}: ' + formatMoney(result.pi) + ' + {% translate "insurance" %}: ' + formatMoney(result.insurance) + ')';
+      } else {
+        previewDetail.textContent = '';
+      }
+      if (previewTotalRepaid && duration > 0) {
+        previewTotalRepaid.textContent = formatMoney(result.total * duration);
+      }
+    } else {
+      previewEl.classList.add('d-none');
+    }
+  }
+
+  function updateYearsDisplay(loanFormEl) {
+    const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+    const yearsDisplay = loanFormEl.querySelector('.loan-years-display');
+    if (!durationInput || !yearsDisplay) return;
+    const months = parseInt(durationInput.value) || 0;
+    if (months > 0) {
+      const years = Math.floor(months / 12);
+      const rem = months % 12;
+      let label = '';
+      if (years > 0) label += years + ' {% translate "yr" %}';
+      if (rem > 0) label += (label ? ' ' : '') + rem + ' {% translate "mo" %}';
+      yearsDisplay.textContent = label;
+    } else {
+      yearsDisplay.textContent = '';
+    }
+  }
+
+  // ── Wire up each .loan-form ───────────────────────────────────────────────
+
+  function initLoanForm(loanFormEl) {
+    const watchIds = ['original_amount_0', 'original_amount', 'interest_rate', 'insurance_rate', 'duration_months'];
+    loanFormEl.querySelectorAll('input').forEach(input => {
+      const shouldWatch = watchIds.some(id => input.id && input.id.includes(id));
+      if (shouldWatch) {
+        input.addEventListener('input', () => {
+          updateLoanPreview(loanFormEl);
+          if (input.id && input.id.includes('duration_months')) {
+            updateYearsDisplay(loanFormEl);
+          }
+        });
+      }
+    });
+    updateLoanPreview(loanFormEl);
+    updateYearsDisplay(loanFormEl);
+
+    // DELETE checkbox
+    const deleteCheckboxes = loanFormEl.querySelectorAll('input[type="checkbox"][id*="DELETE"]');
+    deleteCheckboxes.forEach(cb => {
+      if (cb.checked) loanFormEl.classList.add('deleted-loan');
+      cb.addEventListener('change', function() {
+        loanFormEl.classList.toggle('deleted-loan', this.checked);
+      });
+    });
+  }
+
+  // ── Move existing loan form bodies into their collapse divs ───────────────
+
+  function mountExistingLoanForms() {
+    document.querySelectorAll('.loan-form-body[data-loan-pk]').forEach(body => {
+      const loanPk = body.dataset.loanPk;
+      const collapseDiv = document.getElementById('loan-form-collapse-' + loanPk);
+      if (collapseDiv) {
+        body.classList.remove('d-none');
+        collapseDiv.appendChild(body);
+      }
+    });
+  }
+
+  // ── Move new loan form body into the "Add a loan" collapse ────────────────
+
+  function mountNewLoanForm() {
+    const newLoanCollapse = document.getElementById('new-loan-collapse');
+    if (!newLoanCollapse) return;
+    document.querySelectorAll('.loan-form-body:not([data-loan-pk])').forEach(body => {
+      newLoanCollapse.appendChild(body);
+    });
+  }
+
+  // ── Bootstrap classes ─────────────────────────────────────────────────────
+
+  function applyBootstrapClasses() {
+    document.querySelectorAll('#loan-formset input:not([type="checkbox"]), #loan-formset select, #loan-formset textarea, #new-loan-collapse input:not([type="checkbox"]), #new-loan-collapse select').forEach(input => {
+      if (!input.classList.contains('form-control') && !input.classList.contains('form-check-input')) {
+        input.classList.add('form-control');
+      }
+    });
+    document.querySelectorAll('#loan-formset input[type="checkbox"], #new-loan-collapse input[type="checkbox"]').forEach(cb => {
+      cb.classList.add('form-check-input');
+    });
+    document.querySelectorAll('#loan-formset select, #new-loan-collapse select').forEach(sel => {
+      sel.classList.remove('form-control');
+      sel.classList.add('form-select');
+    });
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+
+  document.addEventListener('DOMContentLoaded', function() {
+    mountExistingLoanForms();
+    mountNewLoanForm();
+    applyBootstrapClasses();
+
+    document.querySelectorAll('.loan-form').forEach(initLoanForm);
+  });
+})();
+</script>
+
+{% if loans_with_totals %}
+<script>
+(function() {
+  var chartData = {{ loan_chart_data_json|safe }};
+  if (!chartData || !chartData.loans || chartData.loans.length === 0) return;
+
+  var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+  // Stacked bar series (one per loan)
+  var barSeries = chartData.loans.map(function(loan) {
+    return { name: loan.name, type: 'bar', data: loan.data };
+  });
+
+  // Line series for capital and interest totals
+  var lineSeries = [
+    { name: '{% translate "Total capital" %}', type: 'line', data: chartData.total_capital },
+    { name: '{% translate "Total interest" %}', type: 'line', data: chartData.total_interest },
+  ];
+
+  var allSeries = barSeries.concat(lineSeries);
+
+  // Assign types: bars are 'bar', lines are 'line'
+  var yaxis = [
+    {
+      seriesName: barSeries[0].name,
+      labels: { formatter: function(v) { return new Intl.NumberFormat('fr-FR', {style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v); } },
+    }
+  ];
+  // All bar series share the same y-axis (only first defined explicitly)
+  for (var i = 1; i < barSeries.length; i++) {
+    yaxis.push({ seriesName: barSeries[0].name, show: false });
+  }
+  // Line series share same axis but hidden label
+  yaxis.push({ seriesName: '{% translate "Total capital" %}', show: false });
+  yaxis.push({ seriesName: '{% translate "Total interest" %}', show: false });
+
+  var options = {
+    series: allSeries,
+    chart: {
+      type: 'bar',
+      height: 300,
+      stacked: true,
+      toolbar: { show: false },
+      background: 'transparent',
+      animations: { enabled: false },
+    },
+    theme: { mode: isDark ? 'dark' : 'light' },
+    plotOptions: {
+      bar: { columnWidth: '70%' }
+    },
+    stroke: {
+      width: allSeries.map(function(s) { return s.type === 'line' ? 2 : 0; }),
+      curve: 'smooth',
+    },
+    markers: {
+      size: allSeries.map(function(s) { return s.type === 'line' ? 0 : 0; }),
+    },
+    xaxis: {
+      type: 'datetime',
+      labels: {
+        datetimeUTC: false,
+        format: 'MMM yy',
+      },
+    },
+    yaxis: yaxis,
+    legend: { position: 'top' },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      x: { format: 'MMM yyyy' },
+      y: {
+        formatter: function(v) {
+          return new Intl.NumberFormat('fr-FR', {style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
+        }
+      }
+    },
+    dataLabels: { enabled: false },
+    grid: { strokeDashArray: 4 },
+  };
+
+  var chartEl = document.querySelector('#loan-amortization-chart');
+  if (chartEl) {
+    var chart = new ApexCharts(chartEl, options);
+    chart.render();
+
+    // Re-render when tab becomes visible
+    var loansTab = document.getElementById('loans-tab');
+    if (loansTab) {
+      loansTab.addEventListener('shown.bs.tab', function() { chart.render(); });
+    }
+  }
+})();
+</script>
+{% endif %}

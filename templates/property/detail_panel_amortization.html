@@ -1,0 +1,357 @@
+{% load i18n format_money %}
+
+{# ── Initialisation block (shown only when no assets exist) ───────────────── #}
+{% if not has_assets %}
+<div class="card mb-4 border-info">
+  <div class="card-body py-4">
+    <div class="text-center mb-4">
+      <i class="bi bi-box-seam fs-1 text-info mb-3 d-block"></i>
+      <h5 class="mb-2">{% translate "No amortization components yet" %}</h5>
+      <p class="text-body-secondary mb-0">
+        {% translate "Configure the parameters below then click the button to automatically create the standard LMNP depreciation components." %}
+      </p>
+    </div>
+    <form method="post" action="{% url 'property:initialize_amortization' property.pk %}">
+      {% csrf_token %}
+      <div class="row g-3 mb-4">
+
+        {# ── Purchase price (read-only info) ────────────────────────────── #}
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold text-body-secondary small">{% translate "Purchase price" %}</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-house"></i></span>
+            <input type="text" class="form-control" value="{{ property.buying_value.amount|floatformat:0 }}" readonly>
+            <span class="input-group-text">€</span>
+          </div>
+        </div>
+
+        {# ── Land percentage ────────────────────────────────────────────── #}
+        <div class="col-12 col-md-6">
+          <label class="form-label fw-semibold text-body-secondary small" for="id_land_percentage">
+            {{ amortization_init_form.land_percentage.label }}
+          </label>
+          <div class="input-group">
+            {{ amortization_init_form.land_percentage }}
+            <span class="input-group-text">%</span>
+          </div>
+          <div class="form-text">{{ amortization_init_form.land_percentage.help_text }}</div>
+        </div>
+
+        {# ── Acquisition fees ───────────────────────────────────────────── #}
+        <div class="col-12">
+          <label class="form-label fw-semibold text-body-secondary small" for="id_extra_amount">
+            {{ amortization_init_form.extra_amount.label }}
+          </label>
+          {% if acquisition_fees_breakdown %}
+          <div class="mb-2 small text-body-secondary">
+            {% translate "Default value from property record:" %}
+            {% for label, amount in acquisition_fees_breakdown.items %}
+              <span class="badge bg-body-tertiary text-body border me-1">{{ label }}: {{ amount|floatformat:0 }} €</span>
+            {% endfor %}
+            <span class="fw-semibold">= {{ acquisition_fees_total|floatformat:0 }} €</span>
+          </div>
+          {% endif %}
+          <div class="input-group">
+            {{ amortization_init_form.extra_amount }}
+            <span class="input-group-text">€</span>
+          </div>
+          <div class="form-text">{{ amortization_init_form.extra_amount.help_text }}</div>
+        </div>
+
+      </div>
+      <div class="text-center">
+        <button type="submit" class="btn btn-info">
+          <i class="bi bi-magic me-1"></i>{% translate "Initialize default amortization" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if has_assets %}
+{# ── KPI strip ────────────────────────────────────────────────────────────── #}
+<div class="row g-2 mb-4">
+  <div class="col-4 col-md-4">
+    <div class="card border-0 bg-body-secondary h-100">
+      <div class="card-body py-2 px-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">
+          {% translate "Depreciable base" %}
+        </p>
+        <p class="fs-5 fw-bold mb-0">{{ amortization_total_base|floatformat:0 }} €</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-4 col-md-4">
+    <div class="card border-0 bg-body-secondary h-100">
+      <div class="card-body py-2 px-3">
+        <p class="text-uppercase text-primary small fw-semibold mb-1 prop-label">
+          {% translate "Amortized to date" %}
+        </p>
+        <p class="fs-5 fw-bold mb-0 text-primary">{{ amortization_amortized|floatformat:0 }} €</p>
+        {% if amortization_total_base %}
+        <div class="progress mt-1" style="height:4px;">
+          {% widthratio amortization_amortized amortization_total_base 100 as amort_pct %}
+          <div class="progress-bar bg-primary" role="progressbar" style="width:{{ amort_pct }}%"></div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-4 col-md-4">
+    <div class="card border-0 bg-body-secondary h-100">
+      <div class="card-body py-2 px-3">
+        <p class="text-uppercase text-warning small fw-semibold mb-1 prop-label">
+          {% translate "Remaining" %}
+        </p>
+        <p class="fs-5 fw-bold mb-0 text-warning">{{ amortization_remaining|floatformat:0 }} €</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Components table ────────────────────────────────────────────────────── #}
+<div class="card mb-4">
+  <div class="card-header py-2">
+    <h6 class="mb-0">
+      <i class="bi bi-table me-1"></i>{% translate "Amortization components" %}
+    </h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% translate "Label" %}</th>
+            <th>{% translate "Start date" %}</th>
+            <th class="text-end">{% translate "Value" %}</th>
+            <th class="text-center">{% translate "Duration" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in amortization_table %}
+            <tr{% if row.is_complete %} class="text-body-secondary"{% endif %}>
+              <td class="{% if not row.is_complete %}fw-semibold{% else %}fst-italic{% endif %}">
+                {{ row.label }}
+                {% if row.is_initial %}
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis ms-1" style="font-size:.65rem;">{% translate "initial" %}</span>
+                {% endif %}
+                {% if row.is_complete %}
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis ms-1" style="font-size:.65rem;">{% translate "complete" %}</span>
+                {% endif %}
+                {% if row.source_transactions %}
+                  <span class="badge bg-warning-subtle text-warning-emphasis ms-1" style="font-size:.65rem;" title="{% for tx in row.source_transactions %}{{ tx.description }} — {{ tx.entry_date|date:'d/m/Y' }}{% if not forloop.last %}, {% endif %}{% endfor %}">{% translate "capitalized" %}</span>
+                {% endif %}
+              </td>
+              <td class="small">{{ row.beginning_date|date:"d/m/Y" }}</td>
+              <td class="text-end">{{ row.value_total|floatformat:0 }} €</td>
+              <td class="text-center">
+                {% if row.is_depreciable %}
+                  {% blocktranslate count n=row.duration_years %}{{ n }} yr{% plural %}{{ n }} yrs{% endblocktranslate %}
+                  <div class="progress mt-1" style="height:4px;">
+                    <div class="progress-bar {% if row.is_complete %}bg-secondary{% else %}bg-primary{% endif %}"
+                         style="width:{{ row.pct_amortized|floatformat:0 }}%"></div>
+                  </div>
+                  <span class="small text-body-secondary">{{ row.pct_amortized|floatformat:0 }} %</span>
+                {% else %}
+                  <span class="text-body-secondary fst-italic small">{% translate "Non-depreciable" %}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'property:edit_amortization' property.pk row.asset_pk %}"
+                   class="btn btn-xs btn-outline-secondary btn-sm py-0 px-1 me-1">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post"
+                      action="{% url 'property:delete_amortization' property.pk row.asset_pk %}"
+                      class="d-inline"
+                      onsubmit="return confirm('{% translate "Delete this immobilisation?" %}')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-xs btn-outline-danger btn-sm py-0 px-1">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-body-secondary py-3">
+                {% translate "No components found." %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-footer d-flex justify-content-end py-2">
+    <a href="{% url 'property:new_amortization' property.pk %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-plus-circle me-1"></i>{% translate "Add immobilisation" %}
+    </a>
+  </div>
+</div>
+
+{# ── Annual dotation chart ────────────────────────────────────────────────── #}
+<div class="card mb-4">
+  <div class="card-header py-2">
+    <h6 class="mb-0">
+      <i class="bi bi-bar-chart me-1"></i>{% translate "Annual dotation chart" %}
+    </h6>
+  </div>
+  <div class="card-body p-2">
+    <div id="amortization-dotation-chart"></div>
+  </div>
+</div>
+
+{# ── Year-by-year evolution ───────────────────────────────────────────────── #}
+<div class="card">
+  <div class="card-header py-2">
+    <h6 class="mb-0">
+      <i class="bi bi-list-ol me-1"></i>{% translate "Amortization schedule" %}
+    </h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% translate "Year" %}</th>
+            <th class="text-end">{% translate "Amortization" %}</th>
+            <th class="text-end">{% translate "Cumulative" %}</th>
+            <th>{% translate "Progress" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in amortization_schedule %}
+            <tr class="amort-row{% if row.year == amortization_current_year %} table-primary{% endif %}"
+                data-bs-toggle="collapse"
+                data-bs-target="#amort-detail-{{ row.year }}"
+                aria-expanded="false"
+                style="cursor:pointer;">
+              <td>
+                <i class="bi bi-chevron-right amort-chevron me-1 small text-body-secondary"></i>
+                {% if row.year == amortization_current_year %}
+                  <strong>{{ row.year }} ◀</strong>
+                {% else %}
+                  {{ row.year }}
+                {% endif %}
+              </td>
+              <td class="text-end fw-semibold">{{ row.annual_dotation|floatformat:0 }} €</td>
+              <td class="text-end">{{ row.cumulative|floatformat:0 }} €</td>
+              <td style="min-width:140px;">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height:6px;">
+                    <div class="progress-bar bg-primary" style="width:{{ row.pct_complete|floatformat:0 }}%"></div>
+                  </div>
+                  <span class="small text-body-secondary">{{ row.pct_complete|floatformat:1 }} %</span>
+                </div>
+              </td>
+            </tr>
+            <tr id="amort-detail-{{ row.year }}" class="collapse">
+              <td colspan="4" class="p-0 border-0">
+                <div class="px-4 py-2 bg-body-tertiary border-bottom">
+                  <table class="table table-sm mb-0 w-auto">
+                    <tbody>
+                      {% for label, amount in row.per_asset.items %}
+                        <tr>
+                          <td class="text-body-secondary pe-4">{{ label }}</td>
+                          <td class="text-end fw-semibold">{{ amount|floatformat:0 }} €</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="text-center text-body-secondary py-3">
+                {% translate "No data" %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endif %}{# has_assets #}
+
+<script>
+document.querySelectorAll('.amort-row').forEach(function(row) {
+  var target = row.getAttribute('data-bs-target');
+  var detail = document.querySelector(target);
+  if (!detail) return;
+  detail.addEventListener('show.bs.collapse', function() {
+    row.querySelector('.amort-chevron').classList.replace('bi-chevron-right', 'bi-chevron-down');
+  });
+  detail.addEventListener('hide.bs.collapse', function() {
+    row.querySelector('.amort-chevron').classList.replace('bi-chevron-down', 'bi-chevron-right');
+  });
+});
+</script>
+
+{% if has_assets %}
+{{ amortization_asset_series_json|json_script:"amortization-asset-series" }}
+<script>
+(function () {
+  var assetSeries = JSON.parse(document.getElementById('amortization-asset-series').textContent) || [];
+  if (!assetSeries.length) return;
+
+  function getCurrentTheme() {
+    return document.documentElement.getAttribute('data-bs-theme') || 'light';
+  }
+
+  var currentYear = new Date().getFullYear();
+  var defaultYear = currentYear - 1;
+
+  var amortChart = new ApexCharts(document.querySelector('#amortization-dotation-chart'), {
+    chart: {
+      type: 'bar', stacked: true, height: 300,
+      toolbar: { show: true, tools: { download: false, selection: false, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true } },
+      zoom: { enabled: true, type: 'x' },
+      background: 'transparent'
+    },
+    series: assetSeries.map(function(s) {
+      return { name: s.label, data: s.data.map(function(r) { return { x: r.year, y: parseFloat(r.dotation.toFixed(2)) }; }) };
+    }),
+    plotOptions: {
+      bar: {
+        columnWidth: '70%',
+        dataLabels: { position: 'top', total: {
+          enabled: true,
+          style: { fontSize: '11px', fontWeight: 600 },
+          formatter: function(v) { return Math.round(v).toLocaleString('fr-FR') + ' €'; }
+        }}
+      }
+    },
+    dataLabels: { enabled: false },
+    legend: { show: true, position: 'top' },
+    xaxis: {
+      type: 'numeric',
+      min: defaultYear,
+      max: defaultYear + 9,
+      labels: { rotate: -45, style: { fontSize: '11px' }, formatter: function(v) { return Math.round(v); } },
+      tickPlacement: 'on'
+    },
+    yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString() + ' €'; } } },
+    annotations: {
+      xaxis: [{ x: defaultYear, borderColor: '#60a5fa', label: { text: String(defaultYear), style: { color: '#fff', background: '#60a5fa' } } }]
+    },
+    tooltip: {
+      theme: getCurrentTheme(),
+      x: { formatter: function(v) { return Math.round(v); } },
+      y: { formatter: function(v) { return v.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }); } }
+    },
+    theme: { mode: getCurrentTheme() }
+  });
+  amortChart.render();
+
+  // Register for theme updates
+  window._propertyPanelCharts = window._propertyPanelCharts || [];
+  window._propertyPanelCharts.push(amortChart);
+})();
+</script>
+{% endif %}

@@ -1,0 +1,12 @@
+{
+  "format": "markup,javascript,css,python,django",
+  "formats-exts": {
+    "django": "html"
+  },
+  "minTokens": 70,
+  "threshold": 5,
+  "exitCode": 1,
+  "ignore": [
+    "**/migrations/**"
+  ]
+}

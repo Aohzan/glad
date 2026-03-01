@@ -1,0 +1,10 @@
+"""Property configuration."""
+
+from django.apps import AppConfig
+
+
+class PropertyConfig(AppConfig):
+    """Configuration class for the property app."""
+
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "property"

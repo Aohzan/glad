@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+{% load i18n format_money static %}
+
+{% block title %}{{ scpi }} — {% translate "SCPI" %}{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'vendors/simple-datatables/simple-datatables.css' %}">
+  <script src="{% static 'vendors/simple-datatables/simple-datatables.js' %}"></script>
+  <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {# ── Header ──────────────────────────────────────────────────────────────── #}
+  {% url 'property:scpi_list' as back_url %}
+  {% url 'property:scpi_edit' scpi_pk=scpi.pk as edit_url %}
+  {% blocktranslate with scpi_name=scpi asvar page_title %}SCPI — {{ scpi_name }}{% endblocktranslate %}
+  {% include "property/_edit_page_header.html" with back_url=back_url edit_url=edit_url back_label=_("SCPI") page_title=page_title title_icon_class="bi-building-check" %}
+
+  {# ── Fund info band ───────────────────────────────────────────────────────── #}
+  <div class="card shadow-sm rounded-4 mb-4">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-4">
+          <p class="text-body-secondary small mb-0">{% translate "Management company" %}</p>
+          <p class="fw-semibold mb-0">{{ scpi.management_company|default:"—" }}</p>
+        </div>
+        <div class="col-md-2">
+          <p class="text-body-secondary small mb-0">{% translate "Entry fee" %}</p>
+          <p class="fw-semibold mb-0">{% if scpi.entry_fee_rate %}{{ scpi.entry_fee_rate }}%{% else %}—{% endif %}</p>
+        </div>
+        <div class="col-md-2">
+          <p class="text-body-secondary small mb-0">{% translate "Exit fee" %}</p>
+          <p class="fw-semibold mb-0">{% if scpi.exit_fee_rate %}{{ scpi.exit_fee_rate }}%{% else %}—{% endif %}</p>
+        </div>
+        <div class="col-md-2">
+          <p class="text-body-secondary small mb-0">{% translate "Management fee" %}</p>
+          <p class="fw-semibold mb-0">{% if scpi.management_fee_rate %}{{ scpi.management_fee_rate }}%{% else %}—{% endif %}</p>
+        </div>
+        <div class="col-md-2">
+          <p class="text-body-secondary small mb-0">
+            {% translate "Share price" %}
+            <a href="{% url 'property:scpi_share_price_add' scpi_pk=scpi.pk %}" class="btn btn-sm btn-outline-primary ms-2">
+              <i class="bi bi-plus me-1"></i>
+            </a>
+          </p>
+          <p class="fw-semibold mb-0">{{ scpi.current_subscription_value|format_money|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── KPI strip ───────────────────────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+    {# a. Total invested + estimated resell #}
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-4">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Total invested" %}</p>
+          <p class="fs-4 fw-bold mb-0">{{ total_invested|format_money|default:"—" }}</p>
+          {% if total_resale %}
+          <p class="small mb-0 text-body-secondary">
+            {{ total_resale|format_money }}
+            {% if gain_pct is not None %}
+            <span class="{% if gain_pct >= 0 %}text-success{% else %}text-danger{% endif %} fw-semibold">
+              ({% if gain_pct >= 0 %}+{% endif %}{{ gain_pct }}%)
+            </span>
+            {% endif %}
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {# b. Total dividends + last 12 months #}
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-4">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Total dividends" %}</p>
+          <p class="fs-4 fw-bold mb-0">{{ total_dividends|format_money|default:"—" }}</p>
+          {% if last_year_dividends %}
+          <p class="small text-body-secondary mb-0">{% translate "Last 12 mo" %}: {{ last_year_dividends|format_money }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {# c. Total growth rentability + last 12 mo #}
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-4">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Growth / year" %}</p>
+          <p class="fs-4 fw-bold mb-0 {% if growth_rentability >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {% if growth_rentability > 0 %}+{% endif %}{{ growth_rentability }}%
+          </p>
+          <p class="small text-body-secondary mb-0">
+            {% translate "Last 12 mo" %}:
+            <span class="{% if last_12mo_growth_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
+              {% if last_12mo_growth_pct > 0 %}+{% endif %}{{ last_12mo_growth_pct }}%
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+    {# d. Total net rentability + last 12 mo #}
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-4">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Net yield" %}</p>
+          <p class="fs-4 fw-bold mb-0">{{ total_net_rentability }}%</p>
+          <p class="small text-body-secondary mb-0">{% translate "Last 12 mo" %}: {{ net_rentability }}%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Chart ───────────────────────────────────────────────────────────────── #}
+  {% if chart_months != "[]" %}
+  <div class="card shadow-sm rounded-4 mb-4">
+    <div class="card-header border-0">
+      <h2 class="h5 mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>{% translate "Invested & dividends over time" %}</h2>
+    </div>
+    <div class="card-body pt-0">
+      <div id="scpi-fund-chart" style="height: 300px;"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Investments table ───────────────────────────────────────────────────── #}
+  <div class="card shadow-sm rounded-4 mb-4">
+    <div class="card-header border-0 d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0"><i class="bi bi-list-ul me-2 text-primary"></i>{% translate "Investments" %}</h2>
+      <a href="{% url 'property:scpi_investment_new' %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>{% translate "Add investment" %}
+      </a>
+    </div>
+    {% if investment_rows %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% translate "Date" %}</th>
+            <th>{% translate "Shares" %}</th>
+            <th>{% translate "Unit price" %}</th>
+            <th>{% translate "Ownership" %}</th>
+            <th class="text-end">{% translate "Total invested" %}</th>
+            <th class="text-end">{% translate "Estimated resale" %}</th>
+            <th class="text-end">{% translate "Capital gain" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in investment_rows %}
+          {% with inv=row.obj %}
+          <tr>
+            <td>{{ inv.subscription_date }}</td>
+            <td>{{ inv.shares_count }}</td>
+            <td>{{ inv.unit_purchase_price|format_money }}</td>
+            <td>
+              <span class="badge
+                {% if inv.ownership_type == 'full' %}bg-success-subtle text-success-emphasis
+                {% elif inv.ownership_type == 'bare' %}bg-warning-subtle text-warning-emphasis
+                {% else %}bg-info-subtle text-info-emphasis{% endif %}">
+                {{ inv.get_ownership_type_display }}
+              </span>
+            </td>
+            <td class="text-end">{{ row.total_invested|format_money }}</td>
+            <td class="text-end">{{ row.estimated_resale|format_money }}</td>
+            <td class="text-end {% if row.capital_gain.amount >= 0 %}text-success{% else %}text-danger{% endif %}">
+              {{ row.capital_gain|format_money }}
+            </td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <a href="{% url 'property:scpi_investment_edit' investment_pk=inv.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteInv{{ inv.pk }}" title="{% translate 'Delete' %}">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+              {% url 'property:scpi_investment_delete' investment_pk=inv.pk as del_url %}
+              {% include "property/_delete_modal.html" with modal_id="deleteInv"|add:inv.pk|stringformat:"s" delete_url=del_url modal_title=_("Delete investment") confirm_text=_("Are you sure you want to delete this investment?") %}
+            </td>
+          </tr>
+          {% endwith %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body text-body-secondary">
+      {% translate "No investments yet." %}
+      <a href="{% url 'property:scpi_investment_new' %}">{% translate "Add the first investment." %}</a>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Dividends ────────────────────────────────────────────────────────────── #}
+  <div class="card shadow-sm rounded-4">
+    <div class="card-header border-0 d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0">
+        <i class="bi bi-cash-stack me-2 text-primary"></i>{% translate "Dividends" %}
+      </h2>
+      <a href="{% url 'property:scpi_dividend_add' scpi_pk=scpi.pk %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>{% translate "Add dividend" %}
+      </a>
+    </div>
+    <div class="table-responsive">
+      <table id="dividends-table" class="table table-hover align-middle mb-0 w-100">
+        <thead class="table-light">
+          <tr>
+            <th>{% translate "Payment date" %}</th>
+            <th class="text-end">{% translate "Gross amount" %}</th>
+            <th class="text-end">{% translate "Net amount" %}</th>
+            <th>{% translate "Notes" %}</th>
+            <th class="no-sort">{% translate "Actions" %}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ dividends_json|json_script:"dividends-data" }}
+
+<script>
+(function () {
+  var _i18n = {
+    edit:     "{% translate 'Edit' %}",
+    delete:   "{% translate 'Delete' %}",
+    noData:   "{% translate 'No dividends recorded yet.' %}",
+    search:   "{% translate 'Search' %}",
+    confirm:  "{% translate 'Are you sure you want to delete this dividend?' %}",
+  };
+  var scpiPk = {{ scpi.pk }};
+  var currency = "{{ currency }}";
+
+  function formatAmount(value) {
+    if (value === null || value === undefined || value === '') return '—';
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: currency, minimumFractionDigits: 2 }).format(parseFloat(value));
+  }
+
+  var allDividends = JSON.parse(document.getElementById('dividends-data').textContent);
+
+  // Build delete forms in DOM
+  allDividends.forEach(function(div) {
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/property/scpi/' + scpiPk + '/dividend/' + div.id + '/delete/';
+    form.id = 'deleteDiv' + div.id;
+    form.style.display = 'none';
+    form.innerHTML = '<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">';
+    document.body.appendChild(form);
+  });
+
+  var tableRows = allDividends.map(function(div) {
+    return [
+      div.payment_date,
+      div.gross_amount !== null ? div.gross_amount : '',
+      div.net_amount,
+      div.notes,
+      JSON.stringify({ id: div.id }),
+    ];
+  });
+
+  var datatable = new simpleDatatables.DataTable('#dividends-table', {
+    data: { data: tableRows },
+    perPage: 10,
+    perPageSelect: [5, 10, 25, 50],
+    searchable: true,
+    sortable: true,
+    labels: {
+      placeholder: _i18n.search,
+      noRows: _i18n.noData,
+      noResults: _i18n.noData,
+    },
+    columns: [
+      {
+        select: 0, sort: 'desc', type: 'date', format: 'YYYY-MM-DD',
+        render: function(value) {
+          return new Date(value).toLocaleDateString('fr-FR');
+        }
+      },
+      {
+        select: 1, type: 'number', cellClass: 'text-end',
+        render: function(value) { return formatAmount(value || null); }
+      },
+      {
+        select: 2, type: 'number', cellClass: 'text-end fw-semibold',
+        render: function(value) { return formatAmount(value); }
+      },
+      {
+        select: 3, type: 'string',
+        render: function(value) { return value || '\u2014'; }
+      },
+      {
+        select: 4, type: 'string', sortable: false, searchable: false,
+        render: function(value) {
+          var d = JSON.parse(value);
+          var editUrl = '/property/scpi/' + scpiPk + '/dividend/' + d.id + '/edit/';
+          return '<div class="btn-group btn-group-sm">' +
+            '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _i18n.edit + '"><i class="bi bi-pencil"></i></a>' +
+            '<button type="button" class="btn btn-outline-danger" onclick="if(confirm(\'' + _i18n.confirm + '\')) document.getElementById(\'deleteDiv\'+' + d.id + ').submit();" title="' + _i18n.delete + '"><i class="bi bi-trash"></i></button>' +
+            '</div>';
+        }
+      }
+    ]
+  });
+  void datatable;
+
+  {% if chart_months != "[]" %}
+  // ── Chart ───────────────────────────────────────────────────────────────────
+  (function () {
+    function getCurrentTheme() {
+      return document.documentElement.getAttribute('data-bs-theme') || 'light';
+    }
+
+    var chartMonths = {{ chart_months|safe }};
+    var chartInvested = {{ chart_invested_monthly|safe }};
+    var chartDividends = {{ chart_dividend_monthly|safe }};
+
+    var options = {
+      chart: {
+        type: 'line',
+        height: 300,
+        background: 'transparent',
+        toolbar: { show: false },
+        animations: { enabled: true, speed: 600 }
+      },
+      theme: { mode: getCurrentTheme() },
+      series: [
+        { name: '{% translate "Cumulative invested" %}', type: 'line', data: chartInvested },
+        { name: '{% translate "Dividends" %}', type: 'bar', data: chartDividends }
+      ],
+      stroke: { curve: 'stepline', width: [2, 0] },
+      fill: { opacity: [1, 0.85] },
+      colors: ['#60a5fa', '#34d399'],
+      dataLabels: { enabled: false },
+      xaxis: {
+        categories: chartMonths,
+        tickAmount: Math.min(chartMonths.length, 12),
+        labels: {
+          rotate: -30,
+          formatter: function(val) {
+            if (!val) return '';
+            var parts = val.split('-');
+            return parts[1] + '/' + parts[0];
+          }
+        }
+      },
+      yaxis: [
+        {
+          seriesName: '{% translate "Cumulative invested" %}',
+          title: { text: '{% translate "Invested" %} (' + currency + ')' },
+          labels: { formatter: function(v) { return Math.round(v).toLocaleString('fr-FR'); } }
+        },
+        {
+          seriesName: '{% translate "Dividends" %}',
+          opposite: true,
+          title: { text: '{% translate "Dividends" %} (' + currency + ')' },
+          labels: { formatter: function(v) { return Math.round(v).toLocaleString('fr-FR'); } }
+        }
+      ],
+      tooltip: { theme: getCurrentTheme() },
+      grid: { borderColor: getCurrentTheme() === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
+      legend: { position: 'top', fontSize: '11px' },
+      plotOptions: { bar: { columnWidth: '60%', borderRadius: 2 } }
+    };
+    new ApexCharts(document.querySelector('#scpi-fund-chart'), options).render();
+  })();
+  {% endif %}
+})();
+</script>
+{% endblock %}

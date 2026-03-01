@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% block auth_title %}{% endblock %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="text-center {% block auth_heading_mb %}mb-4{% endblock %}">{% block auth_heading %}{% endblock %}</h2>
+        {% block auth_subtext %}{% endblock %}
+
+        {% include "_form_non_field_errors.html" %}
+
+        <form method="post">
+          {% csrf_token %}
+          {% block auth_fields %}{% endblock %}
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">{% block auth_submit %}{% endblock %}</button>
+          </div>
+        </form>
+
+        {% block auth_extra %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

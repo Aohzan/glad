@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Delete occurrence" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 640px;">
+
+  {% url 'property:detail' property.pk as back_url %}
+  {% translate "Delete occurrence" as page_title %}
+  {% include "property/_edit_page_header.html" with back_url=back_url back_label=property.name page_title=page_title title_icon_class="bi-trash text-danger" %}
+
+  {# ── Occurrence info banner ──────────────────────────────────────────────── #}
+  {% include "property/_occurrence_info_banner.html" with alert_class="alert-warning" %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% translate "Delete scope" as card_title %}
+    {% translate "Only the selected date will be removed. The rest of the series is unchanged." as desc_this %}
+    {% translate "The series will end before this date. All occurrences from this date onwards will be removed." as desc_future %}
+    {% translate "The entire recurring entry will be permanently deleted." as desc_all %}
+    {% include "property/_occurrence_scope_selector.html" with card_title=card_title card_mb="mb-4" desc_this=desc_this desc_future=desc_future desc_all=desc_all all_desc_class="text-danger" %}
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash me-1"></i>{% translate "Confirm delete" %}
+      </button>
+      <a href="{% url 'property:detail' property.pk %}#cashflow-panel" class="btn btn-outline-secondary">
+        {% translate "Cancel" %}
+      </a>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

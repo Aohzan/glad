@@ -1,0 +1,151 @@
+{% load i18n format_money %}
+
+{# ── Property information card ─────────────────────────────────────────── #}
+<div class="card shadow-sm rounded-4 mb-3">
+  <div class="card-header border-0 pb-0">
+    <h6 class="section-title mb-0"><i class="bi bi-house me-2 text-primary"></i>{% translate "Property information" %}</h6>
+  </div>
+  <div class="card-body">
+
+    {# ── Key stats row with icon circles ── #}
+    <div class="d-flex gap-3 flex-wrap mb-3">
+      <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:140px">
+        <div class="account-icon-circle" style="background:rgba(13,110,253,.1)">
+          <i class="bi bi-building text-primary"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Type" %}</div>
+          <div class="fw-semibold small">{{ property.get_property_type_display }}</div>
+        </div>
+      </div>
+      {% if property.floor_area %}
+      <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:120px">
+        <div class="account-icon-circle" style="background:rgba(25,135,84,.1)">
+          <i class="bi bi-rulers text-success"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Floor area" %}</div>
+          <div class="fw-semibold small">{{ property.floor_area|floatformat:0 }} m²</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if property.number_of_rooms %}
+      <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:120px">
+        <div class="account-icon-circle" style="background:rgba(111,66,193,.1)">
+          <i class="bi bi-door-open text-purple" style="color:#6f42c1"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Rooms" %}</div>
+          <div class="fw-semibold small">{{ property.number_of_rooms }}</div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:140px">
+        <div class="account-icon-circle" style="background:rgba(255,193,7,.15)">
+          <i class="bi bi-calculator text-warning"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Tax regime" %}</div>
+          <div class="fw-semibold small">
+            {% if property.tax_regime == 'lmnp_reel' %}
+              <span class="badge bg-info-subtle text-info-emphasis">LMNP réel</span>
+            {% else %}
+              {{ property.get_tax_regime_display|default:"—" }}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Address ── #}
+    {% if property.address %}
+    <div class="mb-3">
+      <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Address" %}</p>
+      <p class="mb-0"><i class="bi bi-geo-alt me-1 text-muted"></i>{{ property.address }}</p>
+    </div>
+    {% endif %}
+
+    {# ── Purchase details ── #}
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Buying date" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.buying_date }}</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Buying value" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.buying_value|format_money }}</p>
+        <p class="text-body-secondary small mb-0">{% translate "excl. fees" %}</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Total acquisition cost" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.buying_value_gross|format_money }}</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Cash deposit" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.cash_deposit|format_money }}</p>
+      </div>
+      {% with nf=property.notary_fees af=property.agency_fees of=property.other_fees cf=property.credit_fees %}
+      {% if nf or af or of or cf %}
+      <div class="col-12">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Purchase fees detail" %}</p>
+        <div class="d-flex flex-wrap gap-2">
+          {% if nf %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% translate "Notary" %}: {{ nf|format_money }}</span>{% endif %}
+          {% if af %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% translate "Agency" %}: {{ af|format_money }}</span>{% endif %}
+          {% if of %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% translate "Other" %}: {{ of|format_money }}</span>{% endif %}
+          {% if cf %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% translate "Credit" %}: {{ cf|format_money }}</span>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+      {% endwith %}
+      {% if property.selling_date %}
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Selling date" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.selling_date }}</p>
+      </div>
+      {% endif %}
+      {% if property.selling_value %}
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Selling value" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.selling_value|format_money }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Map ──────────────────────────────────────────────────────────────── #}
+<div class="card shadow-sm rounded-4">
+  <div class="card-header border-0 pb-0">
+    <h6 class="section-title mb-0"><i class="bi bi-map me-2 text-primary"></i>{% translate "Location" %}</h6>
+  </div>
+  <div class="card-body p-0">
+    <div id="property-map" class="rounded-bottom-4" style="height: 320px;"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var propertyAddress = '{{ property.address|default:""|escapejs }}';
+  var map = L.map('property-map', { zoomControl: true, scrollWheelZoom: false }).setView([48.8566, 2.3522], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '\u00a9 OpenStreetMap contributors'
+  }).addTo(map);
+
+  if (propertyAddress) {
+    fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(propertyAddress))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (Array.isArray(data) && data.length > 0) {
+          var lat = parseFloat(data[0].lat);
+          var lon = parseFloat(data[0].lon);
+          map.setView([lat, lon], 15);
+          L.marker([lat, lon]).addTo(map).bindPopup(propertyAddress).openPopup();
+        }
+      })
+      .catch(function() {});
+  }
+  // Force Leaflet to recalculate size after panel is revealed
+  setTimeout(function() { map.invalidateSize(); }, 100);
+})();
+</script>

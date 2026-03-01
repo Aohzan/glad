@@ -1,0 +1,19 @@
+---
+plugins:
+  [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    ["@flexperto/semantic-release-changelog", {"branches": "^(main)$"}],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["*.md", "pyproject.toml", "uv.lock"],
+        "message": "chore(semantic-release): release ${nextRelease.version}",
+      },
+    ],
+    "@semantic-release/github",
+  ]
+branches:
+  - name: main
+  - name: beta
+    prerelease: true

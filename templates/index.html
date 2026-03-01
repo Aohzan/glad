@@ -1,0 +1,686 @@
+{% extends 'base.html' %}
+{% load i18n format_money static %}
+
+{% block title %}{% translate 'Dashboard' %}{% endblock %}
+
+{% block extra_head %}
+<script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
+<style>
+  /* ── Hero banner */
+  .hero-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #1a2744 100%);
+    border-radius: 1rem;
+    color: #fff;
+    overflow: hidden;
+  }
+  .hero-net-worth { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -1px; }
+  .hero-net-worth-extras { font-size: clamp(1rem, 2.5vw, 1.4rem); font-weight: 600; opacity: 0.65; margin-top: 0.15rem; }
+  .hero-stat-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; opacity: .55; }
+  .hero-stat-value { font-size: 1.05rem; font-weight: 700; }
+  .hero-divider { border-color: rgba(255,255,255,.12); margin: .75rem 0; }
+  .hero-chart-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; opacity: .55; color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {# Inline data for JS #}
+  <script>
+    const PROPERTY_PKS = {{ property_pks|safe }};
+    const SCPI_PKS = {{ scpi_pks|safe }};
+    const API = {
+      netWorth:        "{% url 'api_net_worth' %}",
+      patrimonyChart:  (range) => `{% url 'api_patrimony_chart' %}?range=${range}`,
+      recentOps:       "{% url 'api_recent_operations' %}",
+      alerts:          "{% url 'api_alerts' %}",
+      accountsSummary: "{% url 'finance:api_accounts_summary' %}",
+      propertyCard:    (pk) => `/property/${pk}/api/dashboard-card/`,
+      scpiCard:        (pk) => `/property/scpi/${pk}/api/dashboard-card/`,
+    };
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || "";
+    const i18n = {
+      error:       "{% translate 'Could not load data.' %}",
+      income:      "{% translate 'Income' %}",
+      expenses:    "{% translate 'Expenses' %}",
+      net:         "{% translate 'Net' %}",
+      loans:       "{% translate 'Loans' %}",
+      investments: "{% translate 'Investments' %}",
+      savings:     "{% translate 'Savings' %}",
+      properties:  "{% translate 'Properties' %}",
+      scpi:        "{% translate 'SCPI' %}",
+      occupancy:   "{% translate 'Occupancy' %}",
+      rooms:       "{% translate 'rooms' %}",
+      repaid:      "{% translate 'repaid' %}",
+      end:         "{% translate 'End' %}",
+      tenant:      "{% translate 'Tenant' %}",
+      equity:      "{% translate 'equity' %}",
+      gross:       "{% translate 'Gross' %}",
+      acquisition: "{% translate 'Acquisition' %}",
+      days30:      "{% translate '30 days' %}",
+      noOps:       "{% translate 'No recent operations.' %}",
+      evolution:   "{% translate 'Patrimony Evolution' %}",
+      breakdown:   "{% translate 'Breakdown' %}",
+      noAccounts:  "{% translate 'No accounts yet.' %}",
+      addAccount:  "{% translate 'Add your first account' %}",
+      financeUrl:  "{% url 'finance:update' %}",
+      invested:    "{% translate 'Invested' %}",
+      dividends:   "{% translate 'Dividends' %}",
+      yield_:      "{% translate 'Yield' %}",
+      est:         "{% translate 'est.' %}",
+    };
+  </script>
+
+  {# ── Section 1: Hero + Patrimony chart integrated ── #}
+  <section class="mb-4">
+    <div class="hero-banner p-4">
+
+      {# Stats row — skeleton until net worth loads #}
+      <div id="hero-stats">
+        <div class="row g-3 align-items-center placeholder-glow">
+          <div class="col-12 col-md-5">
+            <span class="placeholder d-block mb-2" style="height:2.8rem;width:55%;border-radius:.4rem"></span>
+            <span class="placeholder d-block" style="height:.9rem;width:35%;border-radius:.3rem"></span>
+          </div>
+          <div class="col-12 col-md-7 justify-content-end">
+            <div class="d-flex gap-4">
+              <span class="placeholder d-block" style="height:3rem;width:100%;border-radius:.3rem"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="hero-divider">
+
+      {# Chart area — always visible, fills in when data arrives #}
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="hero-chart-label"><i class="bi bi-graph-up me-1"></i>{% translate 'Patrimony Evolution' %}</span>
+        <div class="btn-group btn-group-sm" id="chart-range-group">
+          <button type="button" class="btn btn-sm" data-range="1">{% translate '1Y' %}</button>
+          <button type="button" class="btn btn-sm" data-range="2">{% translate '2Y' %}</button>
+          <button type="button" class="btn btn-sm" data-range="5">{% translate '5Y' %}</button>
+          <button type="button" class="btn btn-sm" data-range="10">{% translate '10Y' %}</button>
+        </div>
+      </div>
+      <div id="chart-evolution-skeleton" class="placeholder-glow">
+        <span class="placeholder w-100 d-block" style="height:200px;border-radius:.5rem;opacity:.2"></span>
+      </div>
+      <div id="chart-evolution" style="display:none"></div>
+
+    </div>
+  </section>
+
+  {# ── Section 2: Finance summary ── #}
+  <section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title mb-0"><i class="bi bi-wallet2 me-2 text-primary"></i>{% translate 'Finance' %}</h2>
+      <a href="{% url 'finance:index' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-right me-1"></i>{% translate 'View all' %}
+      </a>
+    </div>
+    <div class="row g-3">
+      <div class="col-12 col-lg-4">
+        <div class="card shadow-sm rounded-4 h-100">
+          <div class="card-header border-0 pb-0">
+            <h3 class="section-title mb-0"><i class="bi bi-pie-chart me-2 text-primary"></i>{% translate 'Breakdown' %}</h3>
+          </div>
+          <div class="card-body d-flex align-items-center justify-content-center p-2">
+            <div id="chart-breakdown-skeleton" class="placeholder-glow w-100 text-center" style="min-height:240px">
+              <span class="placeholder d-inline-block rounded-circle" style="width:180px;height:180px;margin-top:30px"></span>
+            </div>
+            <div id="chart-breakdown" class="w-100" style="min-height:240px;display:none"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-8">
+        <div class="row g-3 h-100">
+          {# Investments column #}
+          <div class="col-12 col-md-6">
+            <div class="card shadow-sm rounded-4 h-100">
+              <div class="card-header border-0 pb-0">
+                <h3 class="section-title mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>{% translate 'Investments' %}</h3>
+              </div>
+              <div class="card-body pt-2">
+                <div id="accounts-list-investment" class="accounts-scroll placeholder-glow">
+                  {% include "_account_placeholder_skeleton.html" %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {# Savings column #}
+          <div class="col-12 col-md-6">
+            <div class="card shadow-sm rounded-4 h-100">
+              <div class="card-header border-0 pb-0">
+                <h3 class="section-title mb-0"><i class="bi bi-piggy-bank me-2 text-primary"></i>{% translate 'Savings' %}</h3>
+              </div>
+              <div class="card-body pt-2">
+                <div id="accounts-list-savings" class="accounts-scroll placeholder-glow">
+                  {% include "_account_placeholder_skeleton.html" %}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div id="alerts-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ── Section 3: Properties horizontal scroll ── #}
+  {% if property_pks %}
+  <section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title mb-0"><i class="bi bi-house-door me-2 text-primary"></i>{% translate 'Properties' %}</h2>
+      <a href="{% url 'property:index' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-right me-1"></i>{% translate 'View all' %}
+      </a>
+    </div>
+    <div class="prop-scroll-track" id="properties-grid">
+      {% for pk in property_pks %}
+      {% url 'property:detail' pk=pk as card_url %}
+      {% include "_prop_scroll_item.html" with skeleton_prefix="prop-skeleton" card_prefix="prop-card" pk=pk card_url=card_url %}
+      {% endfor %}
+    </div>
+  </section>
+  {% else %}
+  <section class="mb-4">
+    <div class="card rounded-4 text-center p-5 border-0 shadow-sm">
+      <i class="bi bi-house-add display-4 text-muted mb-3"></i>
+      <p class="mb-3 text-muted">{% translate 'No properties yet.' %}</p>
+      <a href="{% url 'property:create' %}" class="btn btn-primary mx-auto" style="width:fit-content">
+        <i class="bi bi-plus-lg me-1"></i>{% translate 'Add your first property' %}
+      </a>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Section 4: SCPI ── #}
+  {% if scpi_pks %}
+  <section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title mb-0"><i class="bi bi-building me-2 text-primary"></i>{% translate 'SCPI' %}</h2>
+      <a href="{% url 'property:scpi_list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-right me-1"></i>{% translate 'View all' %}
+      </a>
+    </div>
+    <div class="prop-scroll-track" id="scpi-grid">
+      {% for pk in scpi_pks %}
+      {% url 'property:scpi_fund_detail' scpi_pk=pk as card_url %}
+      {% include "_prop_scroll_item.html" with skeleton_prefix="scpi-skeleton" card_prefix="scpi-card" pk=pk card_url=card_url %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Section 5: Recent operations ── #}
+  <section class="mb-4">
+    <div class="card shadow-sm rounded-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="section-title mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>{% translate 'Recent Operations' %}</h2>
+        <a href="{% url 'finance:index' %}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-right me-1"></i>{% translate 'See all' %}
+        </a>
+      </div>
+      <div class="card-body p-0" id="operations-table-wrap">
+        <div class="placeholder-glow p-3">
+          {% for i in "12345" %}
+          <div class="d-flex gap-3 mb-2">
+            <span class="placeholder rounded-circle flex-shrink-0" style="width:36px;height:36px"></span>
+            <span class="placeholder col-5 align-self-center"></span>
+            <span class="placeholder col-3 ms-auto align-self-center"></span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ── Utilities ─────────────────────────────────────────────────────────── */
+function fmt(amount, currency) {
+  try {
+    return new Intl.NumberFormat(document.documentElement.lang || navigator.language, {
+      style: 'currency', currency: currency || 'EUR', maximumFractionDigits: 0
+    }).format(amount);
+  } catch(e) { return amount.toFixed(0); }
+}
+
+function fmtDelta(pct) {
+  const sign = pct > 0 ? '+' : '';
+  const cls  = pct > 0 ? 'text-success' : pct < 0 ? 'text-danger' : 'text-secondary';
+  const icon = pct > 0 ? 'bi-arrow-up-right' : pct < 0 ? 'bi-arrow-down-right' : 'bi-dash';
+  return `<span class="${cls} fw-semibold"><i class="bi ${icon}"></i> ${sign}${pct.toFixed(2)}%</span>`;
+}
+
+function apiFetch(url) {
+  return fetch(url, {
+    credentials: 'same-origin',
+    headers: { 'X-CSRFToken': CSRF, 'Accept': 'application/json' }
+  }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+}
+
+function showError(el, msg) {
+  if (el) el.innerHTML = `<span class="text-muted small p-3 d-block"><i class="bi bi-exclamation-circle me-1"></i>${msg || i18n.error}</span>`;
+}
+
+/* ── Section 1: Hero stats ─────────────────────────────────────────────── */
+function loadHero() {
+  apiFetch(API.netWorth).then(data => {
+    const cur    = data.currency;
+    const prog   = data.global_progression;
+    const extras = Object.entries(data.net_worth_by_currency)
+      .filter(([c]) => c !== cur)
+      .map(([c, v]) => `<span class="me-3">${fmt(v, c)}</span>`)
+      .join('');
+    document.getElementById('hero-stats').innerHTML = `
+      <div class="row g-3 align-items-center">
+        <div class="col-12 col-md-5">
+          <p class="hero-stat-label mb-1">${i18n.investments.toUpperCase()} · ${i18n.savings.toUpperCase()} · ${i18n.properties.toUpperCase()} · ${i18n.scpi.toUpperCase()}</p>
+          <div class="hero-net-worth">${fmt(data.total_net_worth, cur)}</div>
+          ${extras ? `<div class="hero-net-worth-extras">${extras}</div>` : ''}
+          <div class="mt-1">${fmtDelta(prog)} <span class="small opacity-60">${i18n.days30}</span></div>
+        </div>
+        <div class="col-12 col-md-7">
+          <div class="row g-2 text-center justify-content-end">
+            ${data.has_investments ? `<div class="col-md-3 col-sm-6 overflow-auto">
+              <p class="hero-stat-label mb-0"><i class="bi bi-bar-chart-line me-1"></i>${i18n.investments}</p>
+              <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#60a5fa;font-size:.5rem;vertical-align:middle"></i>${fmt(data.total_investments, cur)}</p>
+            </div>` : ''}
+            ${data.has_savings ? `<div class="col-md-3 col-sm-6 overflow-auto">
+              <p class="hero-stat-label mb-0"><i class="bi bi-piggy-bank me-1"></i>${i18n.savings}</p>
+              <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#34d399;font-size:.5rem;vertical-align:middle"></i>${fmt(data.total_savings, cur)}</p>
+            </div>` : ''}
+            ${data.has_properties ? `<div class="col-md-3 col-sm-6 overflow-auto">
+              <p class="hero-stat-label mb-0"><i class="bi bi-house-door me-1"></i>${i18n.properties}</p>
+              <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#fdba74;font-size:.5rem;vertical-align:middle"></i>${fmt(data.total_properties_net, cur)}</p>
+            </div>` : ''}
+            ${data.has_scpi ? `<div class="col-md-3 col-sm-6 overflow-auto">
+              <p class="hero-stat-label mb-0"><i class="bi bi-building me-1"></i>${i18n.scpi}</p>
+              <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#a78bfa;font-size:.5rem;vertical-align:middle"></i>${fmt(data.total_scpi, cur)}</p>
+            </div>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }).catch(() => {
+    showError(document.getElementById('hero-stats'), i18n.error);
+  });
+}
+
+/* ── Section 1: Patrimony chart (inside hero) ──────────────────────────── */
+let chartEvolution = null;
+let chartAllData   = null;
+
+function renderEvolutionChart(data, rangeYear) {
+  const rangeMonths = rangeYear * 12;
+  const total  = data.months.length;
+  const start  = rangeMonths ? Math.max(0, total - rangeMonths) : 0;
+  const months = data.months.slice(start);
+  const hasSCPI = data.scpi && data.scpi.some(v => v > 0);
+  const series = [
+    { name: i18n.investments, data: data.investments.slice(start) },
+    { name: i18n.savings,     data: data.savings.slice(start) },
+    { name: i18n.properties,  data: data.properties_net.slice(start) },
+    ...(hasSCPI ? [{ name: i18n.scpi, data: data.scpi.slice(start) }] : []),
+  ];
+  const options = {
+    chart: {
+      type: 'area', height: 210, background: 'transparent', stacked: true,
+      toolbar: { show: false }, animations: { enabled: true, speed: 600 },
+      foreColor: 'rgba(255,255,255,.6)',
+    },
+    theme: { mode: 'dark' },
+    series,
+    xaxis: {
+      categories: months,
+      labels: { rotate: -30, style: { fontSize: '10px', colors: 'rgba(255,255,255,.5)' } },
+      axisBorder: { color: 'rgba(255,255,255,.1)' },
+      axisTicks: { color: 'rgba(255,255,255,.1)' },
+    },
+    yaxis: { labels: { formatter: v => fmt(v, 'EUR'), style: { colors: 'rgba(255,255,255,.5)', fontSize: '10px' } } },
+    dataLabels: { enabled: false },
+    stroke: { curve: 'smooth', width: 2 },
+    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: .45, opacityTo: .05 } },
+    colors: ['#60a5fa', '#34d399', '#fdba74', '#a78bfa'],
+    tooltip: {
+      theme: 'dark', shared: true, intersect: false,
+      y: { formatter: v => fmt(v, 'EUR') },
+    },
+    grid: { borderColor: 'rgba(255,255,255,.08)', padding: { left: 0, right: 0 } },
+    legend: { show: false },
+  };
+  document.getElementById('chart-evolution-skeleton').style.display = 'none';
+  const container = document.getElementById('chart-evolution');
+  container.style.display = 'block';
+  if (chartEvolution) { chartEvolution.destroy(); }
+  chartEvolution = new ApexCharts(container, options);
+  chartEvolution.render();
+}
+
+function loadPatrimonyChart(range) {
+  const sk = document.getElementById('chart-evolution-skeleton');
+  const cv = document.getElementById('chart-evolution');
+  sk.classList.remove('placeholder-glow');
+  sk.innerHTML = '<div class="d-flex justify-content-center align-items-center" style="height:200px"><div class="spinner-border text-light opacity-50" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+  sk.style.display = 'block';
+  cv.style.display = 'none';
+  apiFetch(API.patrimonyChart(range)).then(data => {
+    chartAllData = data;
+    renderEvolutionChart(data, range);
+  }).catch(() => {
+    const sk = document.getElementById('chart-evolution-skeleton');
+    sk.classList.remove('placeholder-glow');
+    sk.innerHTML = `<span class="text-white opacity-50 small d-block text-center py-4"><i class="bi bi-exclamation-circle me-1"></i>${i18n.error}</span>`;
+  });
+  document.querySelectorAll('#chart-range-group .btn').forEach(btn => {
+    if (btn.getAttribute('data-range') === range) {
+      btn.style.background = 'rgba(1, 1, 1, 0.15)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'rgba(255,255,255,.35)';
+      btn.classList.add('active');
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = 'rgba(255,255,255,.6)';
+      btn.style.borderColor = 'rgba(255,255,255,.2)';
+      btn.classList.remove('active');
+    }
+  });
+}
+
+/* ── Section 2: Finance — breakdown donut ──────────────────────────────── */
+let chartBreakdown = null;
+let accountsData   = [];
+
+function renderBreakdown(data) {
+  const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+  const skEl = document.getElementById('chart-breakdown-skeleton');
+  const bdEl = document.getElementById('chart-breakdown');
+  skEl.style.display = 'none';
+  bdEl.style.display = 'block';
+  if (chartBreakdown) { chartBreakdown.destroy(); }
+  chartBreakdown = new ApexCharts(bdEl, {
+    chart: { type: 'donut', height: 240, background: 'transparent' },
+    theme: { mode: isDark ? 'dark' : 'light' },
+    series: data.breakdown_values,
+    labels: data.breakdown_labels,
+    colors: ['#60a5fa', '#34d399', '#a78bfa', '#fb923c'],
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: isDark ? 'dark' : 'light',
+        type: 'diagonal1',
+        shadeIntensity: 0.4,
+        opacityFrom: 1,
+        opacityTo: 0.75,
+      },
+    },
+    stroke: { width: 0 },
+    legend: { position: 'bottom', fontSize: '11px' },
+    plotOptions: { pie: { donut: { size: '58%' } } },
+    tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: v => fmt(v, 'EUR') } },
+    dataLabels: { enabled: false },
+  });
+  chartBreakdown.render();
+}
+
+/* ── Section 2: Finance — accounts list ────────────────────────────────── */
+function renderAccountCard(a) {
+  const iconBg = { success: '#d1fae5', danger: '#fee2e2', secondary: '#f3f4f6' };
+  const iconBgDark = { success: '#064e3b', danger: '#7f1d1d', secondary: '#1f2937' };
+  const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+  const pctFmt = `${a.progression >= 0 ? '+' : ''}${a.progression.toFixed(2)}%`;
+  const bg = (isDark ? iconBgDark : iconBg)[a.progression_css] || (isDark ? '#1f2937' : '#f3f4f6');
+  const badgeBg = a.progression_css === 'success' ? 'rgba(25,135,84,.15)' :
+                  a.progression_css === 'danger'  ? 'rgba(220,53,69,.15)' : 'rgba(108,117,125,.1)';
+  const badgeColor = a.progression_css === 'success' ? '#198754' :
+                     a.progression_css === 'danger'  ? '#dc3545' : '#6c757d';
+  return `
+  <a href="${a.detail_url}" class="account-card mb-2 d-flex align-items-center gap-3 text-decoration-none text-reset">
+    <div class="account-icon-circle flex-shrink-0" style="background:${bg}">
+      <i class="bi ${a.icon}" style="color:${badgeColor}"></i>
+    </div>
+    <div class="flex-grow-1 overflow-hidden">
+      <div class="d-flex align-items-center gap-1">
+        <div class="fw-semibold text-truncate small">${a.name}</div>
+        ${a.is_favorite ? '<i class="bi bi-star-fill text-warning flex-shrink-0" style="font-size:.65rem"></i>' : ''}
+      </div>
+      <div class="text-muted" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em">${a.owner || ''}</div>
+    </div>
+    <div class="text-end flex-shrink-0">
+      <div class="account-value">${fmt(a.value, 'EUR')}</div>
+      <div class="progression-badge mt-1" style="background:${badgeBg};color:${badgeColor}">
+        <i class="bi ${a.progression >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right'}"></i> ${pctFmt}
+      </div>
+    </div>
+  </a>`;
+}
+
+function renderAccountsList() {
+  const investList = document.getElementById('accounts-list-investment');
+  const savingsList = document.getElementById('accounts-list-savings');
+  const investments = accountsData.filter(a => a.type === 'investment');
+  const savings = accountsData.filter(a => a.type === 'savings');
+
+  const emptyHtml = `
+    <div class="text-center py-4">
+      <i class="bi bi-bank display-6 text-muted mb-2"></i>
+      <p class="text-muted small mb-3">${i18n.noAccounts}</p>
+      <a href="${i18n.financeUrl}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>${i18n.addAccount}
+      </a>
+    </div>`;
+
+  investList.innerHTML = investments.length ? investments.map(renderAccountCard).join('') : emptyHtml;
+  savingsList.innerHTML = savings.length ? savings.map(renderAccountCard).join('') : emptyHtml;
+}
+
+function loadAccountsSummary() {
+  apiFetch(API.accountsSummary).then(data => {
+    accountsData = data.accounts;
+    renderBreakdown(data);
+    renderAccountsList();
+    if (data.alerts && data.alerts.length) {
+      document.getElementById('alerts-list').innerHTML = data.alerts.map(a => `
+        <div class="alert alert-${a.type_css} py-2 px-3 mb-1 small">
+          <i class="bi bi-exclamation-triangle me-1"></i><strong>${a.account}</strong> — ${a.message}
+        </div>`).join('');
+    }
+  }).catch(() => {
+    showError(document.getElementById('accounts-list'), i18n.error);
+    document.getElementById('chart-breakdown-skeleton').classList.remove('placeholder-glow');
+  });
+}
+
+/* ── Section 3: Property cards ─────────────────────────────────────────── */
+const PROP_GRADIENTS = { house: 'prop-gradient-house', building: 'prop-gradient-building', tree: 'prop-gradient-tree' };
+function propGradient(icon) { return PROP_GRADIENTS[icon] || 'prop-gradient-other'; }
+
+function loadPropertyCard(pk) {
+  apiFetch(API.propertyCard(pk)).then(data => {
+    const cur = data.currency;
+    const cf  = data.cashflow_last_month;
+    const netCfCls = cf.net >= 0 ? 'text-success' : 'text-danger';
+    const appCls   = data.appreciation_percent >= 0 ? 'text-success' : 'text-danger';
+
+    const loanBar = data.total_remaining_loans > 0 ? `
+      <div class="mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="small text-muted">${i18n.loans}</span>
+          <span class="small fw-semibold">${data.loan_progress_percent.toFixed(0)}% ${i18n.repaid}</span>
+        </div>
+        <div class="bg-secondary bg-opacity-25 rounded loan-bar">
+          <div class="bg-primary rounded loan-bar" style="width:${Math.min(data.loan_progress_percent,100)}%"></div>
+        </div>
+        ${data.loan_end_date ? `<span class="small text-muted">${i18n.end} ${data.loan_end_date.slice(0,7)}</span>` : ''}
+      </div>` : '';
+
+    const leaseRow = data.active_lease ? `
+      <div class="d-flex justify-content-between align-items-center small py-1">
+        <span class="text-muted"><i class="bi bi-person me-1"></i>${data.active_lease.tenant_name || i18n.tenant}</span>
+        <span class="fw-semibold">${fmt(data.active_lease.total_rent, cur)}<span class="text-muted fw-normal">/mo</span></span>
+      </div>` : '';
+
+    const statsRow = `
+      <div class="d-flex gap-2 text-center small mt-2 pt-2 border-top">
+        <div class="flex-fill">
+          <div class="text-muted" style="font-size:.65rem">${i18n.gross}</div>
+          <div class="fw-semibold" style="font-size:.85rem">${fmt(data.gross_value, cur)}</div>
+        </div>
+        <div class="flex-fill">
+          <div class="text-muted" style="font-size:.65rem">${i18n.acquisition}</div>
+          <div class="fw-semibold" style="font-size:.85rem">${fmt(data.buying_value_gross, cur)}</div>
+        </div>
+        ${data.floor_area ? `<div class="flex-fill"><div class="text-muted" style="font-size:.65rem">m²</div><div class="fw-semibold" style="font-size:.85rem">${data.floor_area}</div></div>` : ''}
+        ${data.number_of_rooms ? `<div class="flex-fill"><div class="text-muted" style="font-size:.65rem">${i18n.rooms}</div><div class="fw-semibold" style="font-size:.85rem">${data.number_of_rooms}</div></div>` : ''}
+      </div>`;
+
+    const card = document.getElementById(`prop-card-${pk}`);
+    card.innerHTML = `
+      <div class="${propGradient(data.icon)} property-card-header">
+        <div class="mb-1">
+          <span class="badge property-type-badge" style="background:rgba(0,0,0,.12)">${data.property_type_display}</span>
+          ${data.is_favorite ? '<i class="bi bi-star-fill text-warning ms-1" style="font-size:.8rem"></i>' : ''}
+        </div>
+        <h3 class="fw-bold mb-0" style="font-size:1.05rem">${data.name}</h3>
+        ${data.address ? `<p class="small mb-0 mt-1 opacity-75">${data.address}</p>` : ''}
+      </div>
+      <div class="card-body pt-3 pb-2">
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+          <div>
+            <span class="fw-bold fs-5">${fmt(data.net_value, cur)}</span>
+            <span class="ms-1 small text-muted">${i18n.equity}</span>
+          </div>
+          <span class="small ${appCls}"><i class="bi bi-graph-up me-1"></i>${data.appreciation_percent >= 0 ? '+' : ''}${data.appreciation_percent.toFixed(1)}%</span>
+        </div>
+        ${loanBar}
+        <div class="cashflow-strip rounded-3 px-2 py-2 mt-2 d-flex justify-content-between small">
+          <div class="text-center">
+            <div class="text-muted" style="font-size:.65rem">${i18n.income}</div>
+            <div class="fw-semibold text-success">+${fmt(cf.income, cur)}</div>
+          </div>
+          <div class="text-center">
+            <div class="text-muted" style="font-size:.65rem">${i18n.expenses}</div>
+            <div class="fw-semibold text-danger">-${fmt(cf.expenses, cur)}</div>
+          </div>
+          <div class="text-center">
+            <div class="text-muted" style="font-size:.65rem">${i18n.net}</div>
+            <div class="fw-semibold ${netCfCls}">${cf.net >= 0 ? '+' : ''}${fmt(cf.net, cur)}</div>
+          </div>
+          ${cf.occupancy_rate < 100 ? `<div class="text-center"><div class="text-muted" style="font-size:.65rem">${i18n.occupancy}</div><div class="fw-semibold">${cf.occupancy_rate.toFixed(0)}%</div></div>` : ''}
+        </div>
+        ${leaseRow}
+        ${statsRow}
+      </div>`;
+    document.getElementById(`prop-skeleton-${pk}`).classList.add('d-none');
+    card.classList.remove('d-none');
+  }).catch(() => {
+    const sk = document.getElementById(`prop-skeleton-${pk}`);
+    sk.classList.remove('placeholder-glow');
+    showError(sk, i18n.error);
+  });
+}
+
+/* ── Section 4: SCPI cards ──────────────────────────────────────────────── */
+function loadScpiCard(pk) {
+  apiFetch(API.scpiCard(pk)).then(data => {
+    const cur = data.currency;
+    const gainCls = data.gain_pct !== null ? (data.gain_pct >= 0 ? 'text-success' : 'text-danger') : '';
+
+    const card = document.getElementById(`scpi-card-${pk}`);
+    card.innerHTML = `
+      <div class="prop-gradient-scpi property-card-header">
+        <div class="mb-1">
+          <span class="badge property-type-badge" style="background:rgba(0,0,0,.12)">SCPI</span>
+        </div>
+        <h3 class="fw-bold mb-0" style="font-size:1.05rem">${data.name}</h3>
+        ${data.management_company ? `<p class="small mb-0 mt-1 opacity-75">${data.management_company}</p>` : ''}
+      </div>
+      <div class="card-body pt-3 pb-2">
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+          <div>
+            <span class="fw-bold fs-5">${data.total_resale !== null ? fmt(data.total_resale, cur) : '—'}</span>
+            <span class="ms-1 small text-muted">${i18n.est}</span>
+          </div>
+          ${data.gain_pct !== null ? `<span class="small ${gainCls}"><i class="bi bi-graph-up me-1"></i>${data.gain_pct >= 0 ? '+' : ''}${data.gain_pct.toFixed(2)}%</span>` : ''}
+        </div>
+        <div class="d-flex gap-2 text-center small mt-2 pt-2 border-top">
+          <div class="flex-fill">
+            <div class="text-muted" style="font-size:.65rem">${i18n.invested}</div>
+            <div class="fw-semibold" style="font-size:.85rem">${data.total_invested !== null ? fmt(data.total_invested, cur) : '—'}</div>
+          </div>
+          <div class="flex-fill">
+            <div class="text-muted" style="font-size:.65rem">${i18n.dividends}</div>
+            <div class="fw-semibold" style="font-size:.85rem">${data.total_dividends !== null ? fmt(data.total_dividends, cur) : '—'}</div>
+          </div>
+          <div class="flex-fill">
+            <div class="text-muted" style="font-size:.65rem">${i18n.yield_}</div>
+            <div class="fw-semibold" style="font-size:.85rem">${data.net_rentability.toFixed(2)}%</div>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById(`scpi-skeleton-${pk}`).classList.add('d-none');
+    card.classList.remove('d-none');
+  }).catch(() => {
+    const sk = document.getElementById(`scpi-skeleton-${pk}`);
+    sk.classList.remove('placeholder-glow');
+    showError(sk, i18n.error);
+  });
+}
+
+/* ── Section 5: Recent operations ──────────────────────────────────────── */
+function loadRecentOps() {
+  apiFetch(API.recentOps).then(data => {
+    const ops = data.operations;
+    if (!ops.length) {
+      document.getElementById('operations-table-wrap').innerHTML =
+        `<p class="text-center text-muted py-4 small">${i18n.noOps}</p>`;
+      return;
+    }
+    document.getElementById('operations-table-wrap').innerHTML = `
+      <div class="list-group list-group-flush rounded-bottom-4">
+        ${ops.map(op => `
+          <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-2">
+            <div class="d-flex align-items-center gap-3">
+              <span class="rounded-circle bg-${op.type_css}-subtle d-flex align-items-center justify-content-center flex-shrink-0" style="width:34px;height:34px">
+                <i class="bi ${op.icon} text-${op.type_css}"></i>
+              </span>
+              <span class="small">${op.label}</span>
+            </div>
+            <div class="text-end">
+              <div class="fw-semibold small">${fmt(op.amount, op.currency)}</div>
+              <div class="text-muted" style="font-size:.7rem">${op.date}</div>
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }).catch(() => {
+    showError(document.getElementById('operations-table-wrap'), i18n.error);
+  });
+}
+
+/* ── Boot: fire all in parallel ─────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadHero();
+  loadPatrimonyChart('1');
+  loadAccountsSummary();
+  loadRecentOps();
+  PROPERTY_PKS.forEach(pk => loadPropertyCard(pk));
+  SCPI_PKS.forEach(pk => loadScpiCard(pk));
+
+  document.getElementById('chart-range-group').addEventListener('click', e => {
+    loadPatrimonyChart(e.target.getAttribute('data-range'));
+  });
+});
+
+/* ── Theme change support ───────────────────────────────────────────────── */
+function updateChartsTheme(themeName) {
+  const isDark = themeName === 'dark';
+  if (chartBreakdown) chartBreakdown.updateOptions({ theme: { mode: isDark ? 'dark' : 'light' }, tooltip: { theme: themeName } });
+  if (accountsData.length) renderAccountsList();
+}
+</script>
+{% endblock %}

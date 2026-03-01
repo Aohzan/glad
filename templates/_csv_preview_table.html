@@ -1,0 +1,21 @@
+{% load i18n %}
+<div class="table-responsive mb-4">
+  <table class="{{ table_class|default:'table table-sm table-striped table-bordered' }}">
+    <thead class="{{ thead_class|default:'table-light' }}">
+      <tr>
+        {% for col in header %}
+          <th>{{ col }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in preview_rows %}
+        <tr>
+          {% for cell in row %}
+            <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

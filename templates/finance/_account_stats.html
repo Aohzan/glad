@@ -1,0 +1,31 @@
+{% load i18n format_money %}
+<div class="row mt-3">
+  <div class="col-md-3">
+    <small class="text-body-secondary">{% translate "Total deposits" %}</small>
+    <div><strong>{{ total_deposits|format_money }}</strong></div>
+  </div>
+  <div class="col-md-3">
+    <small class="text-body-secondary">{% translate "Capital gain" %}</small>
+    <div>
+      <strong class="{% if capital_gain.amount > 0 %}text-success{% elif capital_gain.amount < 0 %}text-danger{% endif %}">
+        {{ capital_gain|format_money }}
+      </strong>
+    </div>
+  </div>
+  {% if progression %}
+  <div class="col-md-6">
+    <small class="text-body-secondary">{% translate "30-day progression" %}</small>
+    <div class="{{ progression.css_class }}">
+      {% if progression.css_class == "up" %}
+        <span class="text-success"><i class="bi bi-arrow-up"></i> {{ progression.net_progression }}%</span>
+        <small class="text-body-secondary">({{ progression.net_difference|format_money }})</small>
+      {% elif progression.css_class == "down" %}
+        <span class="text-danger"><i class="bi bi-arrow-down"></i> {{ progression.net_progression }}%</span>
+        <small class="text-body-secondary">({{ progression.net_difference|format_money }})</small>
+      {% else %}
+        <span class="text-secondary"><i class="bi bi-dash"></i> {{ progression.net_progression }}%</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>

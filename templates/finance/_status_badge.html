@@ -1,0 +1,11 @@
+{% load i18n %}
+<div class="col-md-3">
+  <small class="text-body-secondary">{% translate "Status" %}</small>
+  <div>
+    {% if account.is_active %}
+      <span class="badge bg-success">{% translate "Active" %}</span>
+    {% else %}
+      <span class="badge bg-secondary">{% translate "Closed" %}</span>
+    {% endif %}
+  </div>
+</div>

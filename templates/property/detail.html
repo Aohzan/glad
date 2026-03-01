@@ -1,0 +1,837 @@
+{% extends "base.html" %}
+{% load i18n format_money static l10n %}
+
+{% block title %}
+  {{ property.name }} {% translate "property" %}
+{% endblock %}
+
+{% block extra_head %}
+  <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
+  <link
+    rel="stylesheet"
+    href="{% static 'vendors/leaflet/leaflet.css' %}"
+  >
+  <script src="{% static 'vendors/leaflet/leaflet.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'vendors/simple-datatables/simple-datatables.css' %}">
+  <script src="{% static 'vendors/simple-datatables/simple-datatables.js' %}"></script>
+  <script src="{% static 'vendors/luxon/luxon.min.js' %}"></script>
+  <script src="{% static 'vendors/daterangepicker/daterangepicker.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'vendors/daterangepicker/daterangepicker.min.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {# ── Property header banner ─────────────────────────────────────────────── #}
+  <div class="card shadow-sm rounded-4 overflow-hidden mb-3">
+    <div class="property-card-header prop-gradient-{{ property.icon }}{% if property.icon == 'question-circle' %} prop-gradient-other{% endif %}">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="d-flex align-items-center gap-3">
+          <div class="account-icon-circle" style="background:rgba(0,0,0,.1);font-size:1.4rem">
+            <i class="bi bi-{{ property.icon }}"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge property-type-badge" style="background:rgba(0,0,0,.12)">
+                {{ property.get_property_type_display }}
+              </span>
+              {% if not property.is_active %}
+                <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size:.65rem">{% translate "Inactive" %}</span>
+              {% endif %}
+            </div>
+            <h1 class="mb-0 h4 fw-bold">{{ property.name }}</h1>
+            {% if property.address %}
+              <p class="small mb-0 mt-1 opacity-75">
+                <i class="bi bi-geo-alt me-1"></i>{{ property.address }}
+              </p>
+            {% endif %}
+          </div>
+        </div>
+        <a href="{% url 'property:edit' property.pk %}" class="btn btn-sm" style="background:rgba(0,0,0,.1);color:inherit;border:none">
+          <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {# ── KPI strip ───────────────────────────────────────────────────────────── #}
+  <div class="row g-2 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 bg-body-secondary h-100">
+        <div class="card-body py-2 px-3">
+          <p class="text-uppercase text-primary small fw-semibold mb-1 prop-label">
+            {% translate "Monthly cash flow (12m median)" %}
+            <i class="bi bi-info-circle ms-1 text-body-secondary"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               title="{% blocktranslate %}Median monthly cashflow over the last 12 months: for each month, revenues minus expenses and all loan repayments (interest + principal + insurance). The median value is used to reduce the impact of exceptional months.{% endblocktranslate %}"></i>
+          </p>
+          <p class="fs-5 fw-bold mb-0
+            {% if estimated_monthly_cashflow.amount >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {{ estimated_monthly_cashflow|format_money }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 bg-body-secondary h-100">
+        <div class="card-body py-2 px-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">
+            {% translate "Current value" %}
+          </p>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <p class="fs-5 fw-bold mb-0">{{ current_raw_value|format_money }}</p>
+            {% if value_progression_pct is not None %}
+              <span class="badge {% if value_progression_pct >= 0 %}text-bg-success{% else %}text-bg-danger{% endif %} small"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="{% blocktranslate with current=current_raw_value buying=buying_value_gross %}Progression vs. gross buying price ({{ buying }}): (current value − gross buying price) / gross buying price × 100{% endblocktranslate %}">
+                {% if value_progression_pct >= 0 %}+{% endif %}{{ value_progression_pct|floatformat:1 }}%
+              </span>
+            {% endif %}
+            <div class="btn-group btn-group-sm ms-auto">
+              <button class="btn btn-outline-secondary btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#valueModal" title="{% translate 'Add valuation' %}">
+                <i class="bi bi-plus" style="font-size:.8rem;"></i>
+              </button>
+              <button class="btn btn-outline-secondary btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#valueHistoryModal" title="{% translate 'Value history' %}">
+                <i class="bi bi-clock-history" style="font-size:.8rem;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 bg-body-secondary h-100">
+        <div class="card-body py-2 px-3">
+          <p class="text-uppercase text-success small fw-semibold mb-1 prop-label">
+            {% translate "Net value" %}
+            <i class="bi bi-info-circle ms-1 text-body-secondary"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               title="{% blocktranslate %}Current estimated value minus the total remaining balance on all active loans.{% endblocktranslate %}"></i>
+          </p>
+          <p class="fs-5 fw-bold mb-0">{{ current_net_value|format_money }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 bg-body-secondary h-100">
+        <div class="card-body py-2 px-3">
+          <p class="text-uppercase text-info small fw-semibold mb-1 prop-label">
+            {% translate "Capital repaid" %}
+            <i class="bi bi-info-circle ms-1 text-body-secondary"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               title="{% blocktranslate %}Total principal already repaid across all loans since the start of the investment.{% endblocktranslate %}"></i>
+          </p>
+          <p class="fs-5 fw-bold mb-0">{{ capital_repaid|format_money }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Tabs ────────────────────────────────────────────────────────────────── #}
+  <ul class="nav nav-tabs mb-0" id="propertyTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="info-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#info-panel"
+        type="button"
+        role="tab"
+        aria-controls="info-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-info-circle me-1"></i>{% translate "Info" %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="cashflow-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#cashflow-panel"
+        type="button"
+        role="tab"
+        aria-controls="cashflow-panel"
+        aria-selected="true"
+      >
+        <i class="bi bi-cash-stack me-1"></i>{% translate "Cash flow" %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="balance-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#balance-panel"
+        type="button"
+        role="tab"
+        aria-controls="balance-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-journal-text me-1"></i>{% translate "Balance sheet" %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="leases-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#leases-panel"
+        type="button"
+        role="tab"
+        aria-controls="leases-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-house-door me-1"></i>{% translate "Leases" %}
+        {% if property_leases %}
+          <span class="badge rounded-pill bg-secondary ms-1">{{ property_leases|length }}</span>
+        {% endif %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="mandate-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#mandate-panel"
+        type="button"
+        role="tab"
+        aria-controls="mandate-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-person-badge me-1"></i>{% translate "Mandate" %}
+        {% if property_mandates %}
+          <span class="badge rounded-pill bg-secondary ms-1">{{ property_mandates|length }}</span>
+        {% endif %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="projection-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#projection-panel"
+        type="button"
+        role="tab"
+        aria-controls="projection-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-graph-up-arrow me-1"></i>{% translate "Value & Projection" %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="loans-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#loans-panel"
+        type="button"
+        role="tab"
+        aria-controls="loans-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-bank me-1"></i>{% translate "Loans" %}
+        {% if loans_count %}
+          <span class="badge rounded-pill bg-secondary ms-1">{{ loans_count }}</span>
+        {% endif %}
+      </button>
+    </li>
+    {% if show_amortization_tab %}
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="amortization-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#amortization-panel"
+        type="button"
+        role="tab"
+        aria-controls="amortization-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-calculator me-1"></i>{% translate "Amortissement" %}
+      </button>
+    </li>
+    {% endif %}
+    <li class="nav-item d-none" id="tabs-more-item" role="presentation">
+      <div class="dropdown">
+        <button class="nav-link dropdown-toggle" type="button" id="tabsMoreBtn"
+                data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-three-dots me-1"></i>{% translate "More" %}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" id="tabsMoreMenu" aria-labelledby="tabsMoreBtn"></ul>
+      </div>
+    </li>
+  </ul>
+
+  <div class="tab-content border border-top-0 rounded-bottom p-3 bg-body" id="propertyTabContent">
+
+    {# ── Cash flow tab ──────────────────────────────────────────────────────── #}
+    <div class="tab-pane fade show active" id="cashflow-panel" role="tabpanel" aria-labelledby="cashflow-tab">
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
+    </div>
+
+    {# ── Value & Projection tab ─────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="projection-panel" role="tabpanel" aria-labelledby="projection-tab">
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
+    </div>
+
+    {# ── Balance sheet tab ──────────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="balance-panel" role="tabpanel" aria-labelledby="balance-tab">
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
+    </div>
+
+    {# ── Leases tab ──────────────────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="leases-panel" role="tabpanel" aria-labelledby="leases-tab">
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
+    </div>
+
+    {# ── Mandate tab ─────────────────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="mandate-panel" role="tabpanel" aria-labelledby="mandate-tab">
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
+    </div>
+
+    {# ── Info tab ────────────────────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="info-panel" role="tabpanel" aria-labelledby="info-tab">
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
+    </div>
+
+    {# ── Loans tab ──────────────────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="loans-panel" role="tabpanel" aria-labelledby="loans-tab">
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
+    </div>
+
+    {# ── Amortissement tab (LMNP réel only) ──────────────────────────────── #}
+    {% if show_amortization_tab %}
+    <div class="tab-pane fade" id="amortization-panel" role="tabpanel" aria-labelledby="amortization-tab">
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
+    </div>
+    {% endif %}
+
+</div><!-- end .tab-content -->
+</div><!-- end .container -->
+
+{# ── Modals ──────────────────────────────────────────────────────────────────── #}
+
+<div class="modal fade" id="valueModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="value">
+        <div class="modal-header">
+          <h5 class="modal-title">{% translate "Add property valuation" %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="id_value_0" class="form-label">{% translate "Value" %}</label>
+            {{ value_form.value.subwidgets.0 }}
+          </div>
+          <input type="hidden" name="value_1" value="{{ property.currency }}">
+          <div class="mb-3">
+            <label for="id_valuation_date" class="form-label">{% translate "Valuation date" %}</label>
+            {{ value_form.valuation_date }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
+          <button type="submit" class="btn btn-primary">{% translate "Save" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="entryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" id="entryForm">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="ledger_entry">
+        <div class="modal-header">
+          <h5 class="modal-title" id="entryModalTitle">
+            <i class="bi bi-plus-circle me-2 text-primary"></i>{% translate "Add income / expense" %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          {# ── Row 1: Flow type selector (full width, prominent) ── #}
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              <i class="bi bi-arrow-left-right me-1 text-secondary"></i>{% translate "Type" %}
+            </label>
+            <div class="d-flex gap-2" id="flowTypeToggle">
+              <input type="radio" class="btn-check" name="{{ entry_form.flow_type.html_name }}" id="flowTypeIncome" value="income" autocomplete="off">
+              <label class="btn btn-outline-success flex-fill" for="flowTypeIncome">
+                <i class="bi bi-arrow-down-circle me-1"></i>{% translate "Income" %}
+              </label>
+              <input type="radio" class="btn-check" name="{{ entry_form.flow_type.html_name }}" id="flowTypeExpense" value="expense" autocomplete="off">
+              <label class="btn btn-outline-danger flex-fill" for="flowTypeExpense">
+                <i class="bi bi-arrow-up-circle me-1"></i>{% translate "Expense" %}
+              </label>
+            </div>
+          </div>
+
+          {# ── Remaining fields: shown only once a flow type is selected ── #}
+          <div id="entryFormFields" style="display:none">
+
+          {# ── Row 2: Category + Lease ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ entry_form.management_category.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-tag me-1 text-secondary"></i>{% translate "Category" %}
+              </label>
+              <select name="{{ entry_form.management_category.html_name }}"
+                      id="id_management_category"
+                      class="form-select">
+                <option value="">— {% translate "Select a category" %} —</option>
+                {# Income options — shown when flow_type=income #}
+                <optgroup label="{% translate 'Income' %}" class="mgmt-income-group">
+                  {% for value, label in ledger_income_categories %}
+                  <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </optgroup>
+                {# Expense options — shown when flow_type=expense #}
+                <optgroup label="{% translate 'Expenses' %}" class="mgmt-expense-group">
+                  {% for value, label in ledger_expense_categories %}
+                  <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </optgroup>
+              </select>
+              {% if entry_form.management_category.errors %}<div class="invalid-feedback d-block">{{ entry_form.management_category.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ entry_form.lease.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-file-text me-1 text-secondary"></i>{% translate "Lease" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              <select name="{{ entry_form.lease.html_name }}" id="{{ entry_form.lease.id_for_label }}" class="form-select">
+                <option value="">— {% translate "Select a lease" %} —</option>
+                {% for lease in property_leases %}
+                  <option value="{{ lease.pk }}"
+                          data-rent-amount="{{ lease.rent_amount.amount|unlocalize }}"
+                          data-charges-amount="{{ lease.charges_amount.amount|unlocalize }}">
+                    {{ lease }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if entry_form.lease.errors %}<div class="invalid-feedback d-block">{{ entry_form.lease.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Row 3: Amount + Date ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ entry_form.amount.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-currency-euro me-1 text-secondary"></i>{% translate "Amount" %}
+              </label>
+              {{ entry_form.amount.subwidgets.0 }}
+              {% if entry_form.amount.errors %}<div class="invalid-feedback d-block">{{ entry_form.amount.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ entry_form.entry_date.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-calendar3 me-1 text-secondary"></i>{% translate "Date" %}
+              </label>
+              {{ entry_form.entry_date }}
+              {% if entry_form.entry_date.errors %}<div class="invalid-feedback d-block">{{ entry_form.entry_date.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Row 3b: Reference period ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ entry_form.reference_period.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-calendar-range me-1 text-secondary"></i>{% translate "Reference period" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ entry_form.reference_period }}
+              {% if entry_form.reference_period.errors %}<div class="invalid-feedback d-block">{{ entry_form.reference_period.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Row 4: Description + Third party ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ entry_form.description.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-chat-left-text me-1 text-secondary"></i>{% translate "Description" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ entry_form.description }}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ entry_form.third_party.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-secondary"></i>{% translate "Third party" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ entry_form.third_party }}
+              {% if entry_form.third_party.errors %}<div class="invalid-feedback d-block">{{ entry_form.third_party.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Row 4b: Notes ── #}
+          <div class="mb-3">
+            <label for="{{ entry_form.notes.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-sticky me-1 text-secondary"></i>{% translate "Notes" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ entry_form.notes }}
+            {% if entry_form.notes.errors %}<div class="invalid-feedback d-block">{{ entry_form.notes.errors }}</div>{% endif %}
+          </div>
+
+          {# ── Row 5: Recurrence ── #}
+          <div class="border rounded p-3 bg-body-tertiary">
+            <p class="small fw-semibold text-body-secondary mb-2">
+              <i class="bi bi-arrow-repeat me-1"></i>{% translate "Recurrence" %}
+            </p>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="{{ entry_form.recurrence_type.id_for_label }}" class="form-label small">
+                  {% translate "Frequency" %}
+                </label>
+                {{ entry_form.recurrence_type }}
+              </div>
+              <div class="col-md-6" id="recurrenceEndBlock">
+                <label for="{{ entry_form.recurrence_end_date.id_for_label }}" class="form-label small">
+                  {% translate "End date" %}
+                  <span class="text-body-secondary fw-normal">({% translate "optional" %})</span>
+                </label>
+                {{ entry_form.recurrence_end_date }}
+              </div>
+            </div>
+          </div>
+
+          </div>{# /entryFormFields #}
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
+          <button type="submit" class="btn btn-primary" id="entrySubmitBtn">
+            <i class="bi bi-check-lg me-1"></i>{% translate "Save" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="valueHistoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{% translate "Property value history" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% if property_values %}
+          <div class="table-responsive">
+            <table class="table table-striped align-middle">
+              <thead>
+                <tr>
+                  <th>{% translate "Date" %}</th>
+                  <th>{% translate "Value" %}</th>
+                  <th class="text-end">{% translate "Actions" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pv in property_values %}
+                  <tr>
+                    <td>{{ pv.valuation_date }}</td>
+                    <td>{{ pv.value|format_money }}</td>
+                    <td class="text-end">
+                      {% translate "Are you sure you want to delete this valuation?" as delete_confirmation %}
+                      <form method="post" action="{% url 'property:delete_valuation' property.pk pv.pk %}" class="d-inline" onsubmit="return confirm('{{ delete_confirmation|escapejs }}');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{% translate 'Delete' %}">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-body-secondary text-center mb-0">{% translate "No valuations recorded yet." %}</p>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Close" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Bootstrap tooltips ────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+    new bootstrap.Tooltip(el);
+  });
+});
+
+// ── Tab hash sync ─────────────────────────────────────────────────────────────
+(function () {
+  const tabButtons = document.querySelectorAll('#propertyTabs [data-bs-toggle="tab"]');
+
+  // Update URL hash when a tab is clicked
+  tabButtons.forEach(btn => {
+    btn.addEventListener('shown.bs.tab', function () {
+      history.replaceState(null, '', this.getAttribute('data-bs-target'));
+    });
+  });
+})();
+// ── Hash activation is deferred to end of script so all tab listeners are registered first.
+
+// ── Async panel loading ───────────────────────────────────────────────────────
+const PANEL_URLS = {
+  cashflow:   "{% url 'property:panel_cashflow' property.pk %}",
+  projection: "{% url 'property:panel_projection' property.pk %}",
+  balance:    "{% url 'property:panel_balance' property.pk %}",
+  info:       "{% url 'property:panel_info' property.pk %}",
+  loans:      "{% url 'property:panel_loans' property.pk %}",
+  leases:     "{% url 'property:panel_leases' property.pk %}",
+  mandate:    "{% url 'property:panel_mandate' property.pk %}",
+  {% if show_amortization_tab %}amortization: "{% url 'property:panel_amortization' property.pk %}",{% endif %}
+};
+
+function injectHTML(container, html) {
+  container.innerHTML = html;
+  container.querySelectorAll('script').forEach(function(oldScript) {
+    const newScript = document.createElement('script');
+    Array.from(oldScript.attributes).forEach(function(attr) { newScript.setAttribute(attr.name, attr.value); });
+    newScript.textContent = oldScript.textContent;
+    oldScript.parentNode.replaceChild(newScript, oldScript);
+  });
+}
+
+const loadedPanels = new Set();
+function loadPanel(panelId) {
+  if (loadedPanels.has(panelId) || !PANEL_URLS[panelId]) return;
+  loadedPanels.add(panelId);
+  const container = document.getElementById(panelId + '-panel');
+  if (!container) return;
+  fetch(PANEL_URLS[panelId])
+    .then(function(r) { return r.ok ? r.text() : Promise.reject(r.status); })
+    .then(function(html) { injectHTML(container, html); })
+    .catch(function() {
+      container.innerHTML = '<div class="alert alert-danger m-3">{% translate "Could not load panel." %}</div>';
+    });
+}
+
+// Load default cashflow panel immediately
+document.addEventListener('DOMContentLoaded', function() { loadPanel('cashflow'); });
+
+// Load other panels on first tab click
+document.querySelectorAll('#propertyTabs [data-bs-toggle="tab"]').forEach(function(btn) {
+  btn.addEventListener('shown.bs.tab', function() {
+    const panelId = this.getAttribute('data-bs-target').replace('#', '').replace('-panel', '');
+    loadPanel(panelId);
+  });
+});
+
+function getCurrentTheme() {
+  return document.documentElement.getAttribute('data-bs-theme') || 'light';
+}
+
+function updateChartsTheme(themeName) {
+  (window._propertyPanelCharts || []).forEach(function(c) {
+    if (c) c.updateOptions({ theme: { mode: themeName }, tooltip: { theme: themeName } });
+  });
+}
+
+// ── Activate tab from URL hash (deferred so all listeners are registered) ────
+(function () {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(`#propertyTabs [data-bs-target="${hash}"]`);
+    if (target) {
+      bootstrap.Tab.getOrCreateInstance(target).show();
+    }
+  }
+})();
+
+// ── Entry modal: conditional fields logic ────────────────────────────────────
+(function() {
+  const INCOME_MGMT  = [{% for value, label in ledger_income_categories %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+  const EXPENSE_MGMT = [{% for value, label in ledger_expense_categories %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+
+  // ── Helper: apply optgroup filtering to a management category select ──────
+  function applyMgmtFilter(mgmtSelect, flowType) {
+    if (!mgmtSelect) return;
+    const incomeGroup  = mgmtSelect.querySelector('.mgmt-income-group');
+    const expenseGroup = mgmtSelect.querySelector('.mgmt-expense-group');
+    if (incomeGroup)  incomeGroup.style.display  = (flowType === 'income')  ? '' : 'none';
+    if (expenseGroup) expenseGroup.style.display = (flowType === 'expense') ? '' : 'none';
+    // Reset value if it doesn't match the new flow type
+    const val = mgmtSelect.value;
+    if (flowType === 'income'  && EXPENSE_MGMT.includes(val)) mgmtSelect.value = '';
+    if (flowType === 'expense' && INCOME_MGMT.includes(val))  mgmtSelect.value = '';
+  }
+
+  // ── CREATE modal ──────────────────────────────────────────────────────────
+  const entryModal    = document.getElementById('entryModal');
+  const mgmtSelect    = document.getElementById('id_management_category');
+  const recEndBlock   = document.getElementById('recurrenceEndBlock');
+  const recTypeSelect = document.getElementById('id_recurrence_type');
+  const modalTitle    = document.getElementById('entryModalTitle');
+  const entryFormFields = document.getElementById('entryFormFields');
+
+  function updateCreateModal(flowType) {
+    if (!flowType) return;
+    if (modalTitle) {
+      if (flowType === 'income') {
+        modalTitle.innerHTML = '<i class="bi bi-arrow-down-circle me-2 text-success"></i>{% translate "Add income" %}';
+      } else {
+        modalTitle.innerHTML = '<i class="bi bi-arrow-up-circle me-2 text-danger"></i>{% translate "Add expense" %}';
+      }
+    }
+    applyMgmtFilter(mgmtSelect, flowType);
+    if (entryFormFields) entryFormFields.style.display = '';
+  }
+
+  function updateRecurrenceEnd() {
+    if (!recTypeSelect || !recEndBlock) return;
+    recEndBlock.style.display = (recTypeSelect.value && recTypeSelect.value !== 'none') ? '' : 'none';
+  }
+
+  // ── Auto-fill amount from lease when rent_collected or charges_collected ──
+  const leaseSelect = entryModal ? entryModal.querySelector('select[name="{{ entry_form.lease.html_name }}"]') : null;
+  const amountInput = entryModal ? entryModal.querySelector('input[name="amount_0"]') : null;
+
+  function autoFillAmountFromLease() {
+    if (!leaseSelect || !amountInput || !mgmtSelect) return;
+    const cat = mgmtSelect.value;
+    const leaseOpt = leaseSelect.options[leaseSelect.selectedIndex];
+    if (!leaseOpt || !leaseOpt.value) return;
+    if (cat === 'rent_collected') {
+      amountInput.value = leaseOpt.dataset.rentAmount;
+    } else if (cat === 'charges_collected') {
+      amountInput.value = leaseOpt.dataset.chargesAmount;
+    }
+  }
+
+  if (mgmtSelect) mgmtSelect.addEventListener('change', autoFillAmountFromLease);
+  if (leaseSelect) leaseSelect.addEventListener('change', autoFillAmountFromLease);
+
+  if (entryModal) {
+    // Scope radio listeners to the create modal only
+    entryModal.querySelectorAll('input[name="flow_type"]').forEach(function(radio) {
+      radio.addEventListener('change', function() { updateCreateModal(this.value); });
+    });
+    if (recTypeSelect) recTypeSelect.addEventListener('change', updateRecurrenceEnd);
+
+    entryModal.addEventListener('show.bs.modal', function() {
+      entryModal.querySelectorAll('input[name="flow_type"]').forEach(function(r) { r.checked = false; });
+      if (modalTitle) {
+        modalTitle.innerHTML = '<i class="bi bi-plus-circle me-2 text-primary"></i>{% translate "Add income / expense" %}';
+      }
+      if (mgmtSelect) {
+        const ig = mgmtSelect.querySelector('.mgmt-income-group');
+        const eg = mgmtSelect.querySelector('.mgmt-expense-group');
+        if (ig) ig.style.display = '';
+        if (eg) eg.style.display = '';
+        mgmtSelect.value = '';
+      }
+      if (entryFormFields) entryFormFields.style.display = 'none';
+      updateRecurrenceEnd();
+    });
+
+    // Initial state
+    updateRecurrenceEnd();
+  }
+})();
+
+// ── Tabs overflow → "More" dropdown (mobile) ─────────────────────────────────
+(function () {
+  const ul       = document.getElementById('propertyTabs');
+  const moreItem = document.getElementById('tabs-more-item');
+  const moreMenu = document.getElementById('tabsMoreMenu');
+  const moreBtn  = document.getElementById('tabsMoreBtn');
+  if (!ul || !moreItem) return;
+
+  function checkTabsOverflow() {
+    const allItems = Array.from(ul.querySelectorAll(':scope > li.nav-item:not(#tabs-more-item)'));
+    // Reset: show everything
+    allItems.forEach(function(i) { i.style.display = ''; });
+    moreItem.classList.add('d-none');
+    moreBtn.classList.remove('active');
+    moreMenu.innerHTML = '';
+
+    if (allItems.length === 0) return;
+
+    // Items that wrapped to a second row have a higher offsetTop than the first item
+    const rowTop = allItems[0].getBoundingClientRect().top;
+    const overflowItems = allItems.filter(function(i) {
+      return i.getBoundingClientRect().top > rowTop + 4;
+    });
+
+    if (overflowItems.length === 0) return;
+
+    moreItem.classList.remove('d-none');
+    overflowItems.forEach(function(item) {
+      item.style.display = 'none';
+      const btn = item.querySelector('button');
+      if (!btn) return;
+      const li = document.createElement('li');
+      const a  = document.createElement('a');
+      a.className = 'dropdown-item' + (btn.classList.contains('active') ? ' active' : '');
+      a.href = '#';
+      a.innerHTML = btn.innerHTML;
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        btn.click();
+      });
+      li.appendChild(a);
+      moreMenu.appendChild(li);
+    });
+
+    if (overflowItems.some(function(i) { return i.querySelector('button.active'); })) {
+      moreBtn.classList.add('active');
+    }
+  }
+
+  // Keep dropdown active state in sync when a tab is activated
+  ul.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(btn) {
+    btn.addEventListener('shown.bs.tab', function() {
+      moreMenu.querySelectorAll('.dropdown-item').forEach(function(a) { a.classList.remove('active'); });
+      moreBtn.classList.remove('active');
+      if (btn.style.display === 'none') {
+        const label = btn.textContent.trim();
+        moreMenu.querySelectorAll('.dropdown-item').forEach(function(a) {
+          if (a.textContent.trim() === label) a.classList.add('active');
+        });
+        moreBtn.classList.add('active');
+      }
+    });
+  });
+
+  window.addEventListener('resize', checkTabsOverflow);
+  setTimeout(checkTabsOverflow, 0);
+})();
+</script>
+{% endblock %}
