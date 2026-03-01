@@ -1,0 +1,1175 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-01 20:18+0100\n"
+"PO-Revision-Date: 2025-06-23 12:00+0200\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: base/tests/test_views.py:26 templates/index.html:32
+msgid "Welcome"
+msgstr "Bienvenue"
+
+#: base/views.py:403
+msgid "Value update: "
+msgstr "Mise à jour de valeur : "
+
+#: base/views.py:418
+msgid "Cash update: "
+msgstr "Mise à jour d'espèces : "
+
+#: base/views.py:433
+msgid "Holding update: "
+msgstr "Mise à jour de titres : "
+
+#: finance/admin.py:161 finance/admin.py:187
+msgid "Bulk update valuation date"
+msgstr "Mise à jour groupée de la date d'évaluation"
+
+#: finance/admin.py:170
+#, python-format
+msgid "Successfully updated valuation date for %(count)d items."
+msgstr "Date d'évaluation mise à jour avec succès pour %(count)d éléments."
+
+#: finance/admin.py:189
+msgid "New valuation date"
+msgstr "Nouvelle date d'évaluation"
+
+#: finance/admin.py:209 finance/admin.py:235
+msgid "Bulk update value date"
+msgstr "Mise à jour groupée de la date de valeur"
+
+#: finance/admin.py:218
+#, python-format
+msgid "Successfully updated value date for %(count)d items."
+msgstr "Date de valeur mise à jour avec succès pour %(count)d éléments."
+
+#: finance/admin.py:237
+msgid "New value date"
+msgstr "Nouvelle valeur"
+
+#: finance/forms.py:10
+msgid "Saving Account value"
+msgstr "Valeur du compte d'épargne"
+
+#: finance/forms.py:11 templates/finance/csv_import.html:87
+msgid "Investment Account Cash"
+msgstr "Espèces du compte d'investissement"
+
+#: finance/forms.py:12 templates/finance/csv_import.html:104
+msgid "Investment Account Holding"
+msgstr "Titres du compte d'investissement"
+
+#: finance/forms.py:23
+msgid "Number of days for progression calculation."
+msgstr "Nombre de jours pour calculer la progression"
+
+#: finance/forms.py:29 templates/finance/index.html:35
+msgid "Active accounts only"
+msgstr "Comptes actifs seulement"
+
+#: finance/forms.py:32
+msgid "Show only active accounts in the index view."
+msgstr "Afficher seulement les comptes actifs dans la vue d'index."
+
+#: finance/forms.py:41
+msgid "Date of new values"
+msgstr "Date des nouvelles valeurs"
+
+#: finance/forms.py:63 finance/forms.py:85 finance/forms.py:107
+msgid "Update account"
+msgstr "Mettre à jour le compte"
+
+#: finance/forms.py:71 finance/forms.py:93 finance/forms.py:115
+msgid "New value"
+msgstr "Nouvelle valeur"
+
+#: finance/forms.py:124
+msgid "Current quantity"
+msgstr "Quantité actuelle"
+
+#: finance/forms.py:131
+msgid "New quantity"
+msgstr "Nouvelle quantité"
+
+#: finance/forms.py:142
+msgid "Data type to export"
+msgstr "Type de données à exporter"
+
+#: finance/forms.py:160
+msgid "Accounts to export"
+msgstr "Comptes à exporter"
+
+#: finance/forms.py:166
+msgid "Investment"
+msgstr "Investissement"
+
+#: finance/forms.py:169
+msgid "Saving"
+msgstr "Épargne"
+
+#: finance/forms.py:177
+msgid "Data type to import"
+msgstr "Type de données à importer"
+
+#: finance/forms.py:183
+msgid "CSV File"
+msgstr "Fichier CSV"
+
+#: finance/forms.py:184
+msgid "Please upload a CSV file"
+msgstr "Merci d'envoyer un fichier CSV"
+
+#: finance/forms.py:194
+msgid "Map to account"
+msgstr "Associer au compte"
+
+#: finance/models/investment_account.py:19
+msgid "investment account type"
+msgstr "Type de compte d'investissement"
+
+#: finance/models/investment_account.py:20
+msgid "investment account types"
+msgstr "Types de comptes d'investissement"
+
+#: finance/models/investment_account.py:41
+msgid "investment account"
+msgstr "compte d'investissement"
+
+#: finance/models/investment_account.py:42
+msgid "investment accounts"
+msgstr "comptes d'investissement"
+
+#: finance/models/investment_account.py:56 finance/models/saving_account.py:60
+msgid "Name of the account (optional)"
+msgstr "Nom du compte (optionnel)"
+
+#: finance/models/investment_account.py:62 finance/models/saving_account.py:66
+msgid "Owner of the account (optional)"
+msgstr "Propriétaire du compte (optionnel)"
+
+#: finance/models/investment_account.py:68 finance/models/saving_account.py:72
+msgid "Institution where the account is held (optional)"
+msgstr "Institution où le compte est détenu (optionnel)"
+
+#: finance/models/investment_account.py:107
+#: finance/models/saving_account.py:109
+msgid "at"
+msgstr "chez"
+
+#: finance/models/investment_account.py:109
+#: finance/models/investment_account.py:312
+#: finance/models/saving_account.py:111
+msgid "(closed)"
+msgstr "(clôturé)"
+
+#: finance/models/investment_account.py:212
+msgid "cash value of investment account"
+msgstr "valeur d'espèces du compte d'investissement"
+
+#: finance/models/investment_account.py:213
+msgid "cash values of investment accounts"
+msgstr "valeurs d'espèces des comptes d'investissement"
+
+#: finance/models/investment_account.py:239
+msgid "deposit on investment account"
+msgstr "dépôt sur compte d'investissement"
+
+#: finance/models/investment_account.py:240
+msgid "deposits on investment accounts"
+msgstr "dépôts sur comptes d'investissement"
+
+#: finance/models/investment_account.py:257
+msgid "Add this deposit amount to the account cash value"
+msgstr "Ajouter le montant de ce dépôt au compte espèce"
+
+#: finance/models/investment_account.py:265
+msgid "holding of investment account"
+msgstr "titre de compte d'investissement"
+
+#: finance/models/investment_account.py:266
+msgid "holdings of investment accounts"
+msgstr "titres de comptes d'investissement"
+
+#: finance/models/investment_account.py:280
+msgid "Fees associated with the holding, in percentage"
+msgstr "Frais associés à la part, en pourcentage"
+
+#: finance/models/investment_account.py:286
+msgid "Issuer of the holding"
+msgstr "Émetteur du titre"
+
+#: finance/models/investment_account.py:310
+#, python-brace-format
+msgid "{} in {}."
+msgstr "{} dans {}."
+
+#: finance/models/investment_account.py:382
+msgid "history of holding"
+msgstr "Historique du titre"
+
+#: finance/models/investment_account.py:383
+msgid "history of holdings"
+msgstr "Historique des titres"
+
+#: finance/models/investment_account.py:407
+msgid "Value of the holding share at the moment of valuation"
+msgstr "Valeur de la part du titre au moment de l'évaluation"
+
+#: finance/models/investment_account.py:418
+msgid "Quantity of the holding at the moment of valuation"
+msgstr "Quantité du titre au moment de l'évaluation"
+
+#: finance/models/investment_account.py:426
+msgid ""
+"Amount of cash used for this transaction (will be subtracted from account "
+"cash)"
+msgstr ""
+"Montant de liquidités utilisé pour cette transaction (sera déduit du compte "
+"en espèces)"
+
+#: finance/models/saving_account.py:21
+msgid "saving account type"
+msgstr "type de compte d'épargne"
+
+#: finance/models/saving_account.py:22
+msgid "saving account types"
+msgstr "Types de comptes d'épargne"
+
+#: finance/models/saving_account.py:45
+msgid "saving account"
+msgstr "compte d'épargne"
+
+#: finance/models/saving_account.py:46
+msgid "saving accounts"
+msgstr "comptes d'épargne"
+
+#: finance/models/saving_account.py:79
+msgid "Interest rate in percentage"
+msgstr "Taux d'intérêt en pourcentage"
+
+#: finance/models/saving_account.py:171
+msgid "saving account value"
+msgstr "valeur du compte d'épargne"
+
+#: finance/models/saving_account.py:172
+msgid "History of saving accounts"
+msgstr "Historique des comptes d'épargne"
+
+#: finance/models/saving_account.py:192
+msgid "on"
+msgstr "le"
+
+#: finance/models/saving_account.py:199
+msgid "deposit on saving account"
+msgstr "dépôt sur compte d'épargne"
+
+#: finance/models/saving_account.py:200
+msgid "deposits on saving accounts"
+msgstr "dépôts sur comptes d'épargne"
+
+#: finance/models/saving_account.py:220
+msgid "Add this deposit amount to the account value"
+msgstr "Ajouter le montant de ce dépôt au compte"
+
+#: finance/views/chart_views.py:36
+msgid "Invalid data type"
+msgstr "Données de type invalide"
+
+#: finance/views/chart_views.py:42
+msgid "An error occurred while loading chart data"
+msgstr "Une erreur s'est produite lors du chargement des données de graphique"
+
+#: finance/views/csv_views.py:58
+msgid "No account selected or found for export."
+msgstr "Aucun compte sélectionné ou trouvé pour l'export"
+
+#: finance/views/csv_views.py:129
+msgid "No data to export for selected accounts."
+msgstr "Aucune donnée à exporter pour les comptes sélectionnés."
+
+#: finance/views/csv_views.py:177 finance/views/csv_views.py:205
+#: finance/views/csv_views.py:232
+msgid "CSV file is missing required columns for the selected type."
+msgstr ""
+"Le fichier CSV n'a pas les noms de colonnes requises pour le type "
+"sélectionné."
+
+#: finance/views/csv_views.py:317
+msgid "CSV import session expired. Please try again."
+msgstr "Session d'import de CSV expirée, merci de réessayer"
+
+#: finance/views/csv_views.py:331 finance/views/update_views.py:335
+msgid "Please correct the errors below."
+msgstr "Veuillez corriger les erreurs ci-dessous."
+
+#: finance/views/csv_views.py:379
+msgid "No mapping found for account"
+msgstr "Aucune correspondance trouvée pour le compte"
+
+#: finance/views/csv_views.py:467
+msgid "No mapping found for holding"
+msgstr "Aucune correspondance trouvée pour le titre"
+
+#: finance/views/csv_views.py:505
+msgid "An error occurred during import: "
+msgstr "Une erreur s'est produite pendant l'import : "
+
+#: finance/views/csv_views.py:520
+#, python-brace-format
+msgid "Successfully imported {} records. {} duplicate records were ignored."
+msgstr "{} enregistrements importés avec succès. {} doublons ignorés."
+
+#: finance/views/csv_views.py:526
+#, python-brace-format
+msgid "Successfully imported {} records."
+msgstr "Enregistrements {} importés avec succès."
+
+#: finance/views/csv_views.py:531
+#, python-brace-format
+msgid "No new records imported. {} duplicate records were ignored."
+msgstr "Pas de nouvelle données importées. {} données existantes ignorées."
+
+#: finance/views/csv_views.py:537
+msgid "Errors in rows: "
+msgstr "Erreurs dans les lignes : "
+
+#: finance/views/csv_views.py:541
+#, python-brace-format
+msgid " and {} more errors"
+msgstr " et {} erreurs supplémentaires"
+
+#: finance/views/index_views.py:63 templates/finance/update.html:123
+#: templates/index.html:361
+msgid "Cash"
+msgstr "Espèces"
+
+#: finance/views/update_views.py:228
+#, python-brace-format
+msgid ""
+"Duplicate value ignored for account '{account}': a value of {value} already "
+"exists for the date {date}."
+msgstr ""
+"Valeur en double ignorée pour le compte '{account}' : une valeur de {value} "
+"existe déjà pour la date {date}."
+
+#: finance/views/update_views.py:264
+#, python-brace-format
+msgid ""
+"Duplicate cash value ignored for account '{account}': a value of {value} "
+"already exists for the date {date}."
+msgstr ""
+"Valeur d'espèces en double ignorée pour le compte '{account}' : une valeur "
+"de {value} existe déjà pour la date {date}."
+
+#: finance/views/update_views.py:301
+#, python-brace-format
+msgid ""
+"Duplicate holding value ignored for '{holding}': a value of {value} with "
+"quantity {quantity} already exists for the date {date}."
+msgstr ""
+"Valeur de titre en double ignorée pour '{holding}' : une valeur de {value} "
+"avec une quantité de {quantity} existe déjà pour la date {date}."
+
+#: finance/views/update_views.py:316
+#, python-brace-format
+msgid "{count} account(s) updated successfully."
+msgstr "{count} compte(s) mis à jour avec succès."
+
+#: finance/views/update_views.py:324
+msgid "No updates were made. All values already exist for the selected date."
+msgstr ""
+"Aucune mise à jour effectuée. Toutes les valeurs existent déjà pour la date "
+"sélectionnée."
+
+#: finance/views/update_views.py:330
+msgid "No changes were made."
+msgstr "Aucun changement n'a été effectué."
+
+#: glad/settings.py:174
+msgid "English"
+msgstr "Anglais"
+
+#: glad/settings.py:175
+msgid "French"
+msgstr "Français"
+
+#: property/models.py:22
+msgid "property loan"
+msgstr "prêt immobilier"
+
+#: property/models.py:23
+msgid "property loans"
+msgstr "prêts immobiliers"
+
+#: property/models.py:33
+msgid "Optional name for the loan"
+msgstr "Nom optionnel pour le prêt"
+
+#: property/models.py:36
+msgid "Lender"
+msgstr "Prêteur"
+
+#: property/models.py:38
+msgid "Start Date"
+msgstr "Date de début"
+
+#: property/models.py:39
+msgid "End Date"
+msgstr "Date de fin"
+
+#: property/models.py:44
+msgid "Original Amount"
+msgstr "Montant initial"
+
+#: property/models.py:50
+msgid "Monthly Payment"
+msgstr "Mensualité"
+
+#: property/models.py:57
+msgid "Interest Rate (%)"
+msgstr "Taux d'intérêt (%)"
+
+#: property/models.py:64
+msgid "Insurance Rate (%)"
+msgstr "Taux d'assurance (%)"
+
+#: property/models.py:71
+msgid "Insurance"
+msgstr "Assurance"
+
+#: property/models.py:154
+msgid "House"
+msgstr "Maison"
+
+#: property/models.py:155
+msgid "Apartment"
+msgstr "Appartement"
+
+#: property/models.py:156
+msgid "Condo"
+msgstr "Condo"
+
+#: property/models.py:157
+msgid "Land"
+msgstr "Terrain"
+
+#: property/models.py:158 property/models.py:362 property/models.py:397
+msgid "Other"
+msgstr "Autre"
+
+#: property/models.py:166
+msgid "Property Type"
+msgstr "Type de propriété"
+
+#: property/models.py:175
+msgid "Buying Value"
+msgstr "Valeur d'achat"
+
+#: property/models.py:176
+msgid "The value of the property at the time of purchase."
+msgstr "La valeur de la propriété au moment de l'achat"
+
+#: property/models.py:189
+msgid "Number of shares in the property (if applicable)"
+msgstr "Nombre de part dans la propriété (si applicable)"
+
+#: property/models.py:193
+msgid "Buying Date"
+msgstr "Date d'achat"
+
+#: property/models.py:198
+msgid "Selling Date"
+msgstr "Date de vente"
+
+#: property/models.py:214
+msgid "property"
+msgstr "Propriété"
+
+#: property/models.py:215
+msgid "properties"
+msgstr "Propriétés"
+
+#: property/models.py:339
+msgid "property value"
+msgstr "Valeur de propriété"
+
+#: property/models.py:340
+msgid "property values"
+msgstr "Valeurs de propriétés"
+
+#: property/models.py:360
+msgid "Rent"
+msgstr "Loyer"
+
+#: property/models.py:361
+msgid "Dividend"
+msgstr "Dividendes"
+
+#: property/models.py:368
+msgid "property revenue"
+msgstr "revenu de propriété"
+
+#: property/models.py:369
+msgid "property revenues"
+msgstr "revenus de propriétés"
+
+#: property/models.py:377
+msgid "Revenue type"
+msgstr "Type de revenue"
+
+#: property/models.py:395
+msgid "Maintenance"
+msgstr "Maintenance"
+
+#: property/models.py:396
+msgid "Tax"
+msgstr "Impôt"
+
+#: property/models.py:403
+msgid "property expense"
+msgstr "dépense de propriété"
+
+#: property/models.py:404
+msgid "property expenses"
+msgstr "dépenses de propriétés"
+
+#: property/models.py:412
+msgid "Expense type"
+msgstr "Type de dépense"
+
+#: templates/admin/bulk_update_date.html:5
+#, python-format
+msgid "Are you sure you want to update the date for this item?"
+msgid_plural ""
+"Are you sure you want to update the date for these %(counter)s items?"
+msgstr[0] "Êtes-vous sûr de vouloir mettre à jour la date pour cet élément ?"
+msgstr[1] ""
+"Êtes-vous sûr de vouloir mettre à jour la date pour ces %(counter)s "
+"éléments ?"
+
+#: templates/admin/bulk_update_date.html:27 templates/index.html:363
+msgid "Update"
+msgstr "Mise à jour"
+
+#: templates/admin/bulk_update_date.html:28
+#: templates/finance/csv_mapping.html:76
+msgid "Cancel"
+msgstr "Annuler"
+
+#: templates/admin/bulk_update_date.html:32
+msgid "Items to be updated:"
+msgstr "Éléments à mettre à jour :"
+
+#: templates/base.html:37
+msgid "Home"
+msgstr "Accueil"
+
+#: templates/base.html:43 templates/finance/index.html:5
+msgid "Finance"
+msgstr "Finance"
+
+#: templates/base.html:46
+msgid "Overview"
+msgstr "Vue d'ensemble"
+
+#: templates/base.html:47
+msgid "Update all accounts"
+msgstr "Mettre à jour tous les comptes"
+
+#: templates/base.html:49
+msgid "CSV Import"
+msgstr "Import CSV"
+
+#: templates/base.html:50
+msgid "CSV Export"
+msgstr "Export CSV"
+
+#: templates/base.html:54 templates/index.html:270
+#: templates/property/index.html:14
+msgid "Properties"
+msgstr "Immobilier"
+
+#: templates/base.html:62
+msgid "Administration"
+msgstr "Administration"
+
+#: templates/base.html:68
+msgid "My account"
+msgstr "Mon compte"
+
+#: templates/base.html:71 templates/registration/password_change_form.html:4
+#: templates/registration/password_change_form.html:65
+msgid "Change Password"
+msgstr "Changer le mot de passe"
+
+#: templates/base.html:73
+msgid "Logout"
+msgstr "Déconnexion"
+
+#: templates/base.html:78 templates/registration/login.html:4
+msgid "Login"
+msgstr "Connexion"
+
+#: templates/base.html:81 templates/registration/login.html:54
+#: templates/registration/password_reset_form.html:4
+msgid "Password Reset"
+msgstr "Réinitialisation du mot de passe"
+
+#: templates/base.html:122
+msgid "Toggle dark mode"
+msgstr "Basculer en mode sombre"
+
+#: templates/base.html:138
+msgid "Change"
+msgstr "Changer"
+
+#: templates/finance/csv_export.html:5
+msgid "Finance - Export CSV"
+msgstr "Finance - Export CSV"
+
+#: templates/finance/csv_export.html:13
+msgid "Export data to CSV"
+msgstr "Exporter les données en CSV"
+
+#: templates/finance/csv_export.html:53
+msgid "Export"
+msgstr "Export"
+
+#: templates/finance/csv_export.html:56 templates/finance/csv_import.html:49
+msgid "Back"
+msgstr "Retour"
+
+#: templates/finance/csv_import.html:5
+msgid "Finance - Import CSV"
+msgstr "Finance - Importer un CSV"
+
+#: templates/finance/csv_import.html:11
+msgid "Import data from CSV"
+msgstr "Importer les données depuis un CSV"
+
+#: templates/finance/csv_import.html:16
+msgid ""
+"Please upload a CSV file with your data. You will be able to map the columns "
+"in the next step."
+msgstr ""
+"Veuillez télécharger un fichier CSV contenant vos données. Vous pourrez "
+"associer les colonnes à l'étape suivante."
+
+#: templates/finance/csv_import.html:52
+msgid "Next"
+msgstr "Suivant"
+
+#: templates/finance/csv_import.html:61
+msgid "CSV Format Guidelines"
+msgstr "Guide de formattage du CSV"
+
+#: templates/finance/csv_import.html:64
+msgid "Your CSV file should contain the following columns:"
+msgstr "Votre fichier CSV doit contenir les colonnes suivantes :"
+
+#: templates/finance/csv_import.html:70
+msgid "Saving Account Value"
+msgstr "Valeur du compte d'épargne"
+
+#: templates/finance/csv_import.html:76
+msgid "account: The name of the saving account"
+msgstr "compte : Le nom du compte d'épargne"
+
+#: templates/finance/csv_import.html:77
+msgid "value: The value amount"
+msgstr "valeur : Le montant de la valeur"
+
+#: templates/finance/csv_import.html:78 templates/finance/csv_import.html:95
+msgid "date: The date of the value"
+msgstr "date : La date de la valeur"
+
+#: templates/finance/csv_import.html:93
+msgid "account: The name of the investment account"
+msgstr "compte : Le nom du compte d'investissement"
+
+#: templates/finance/csv_import.html:94
+msgid "value: The cash value amount"
+msgstr "valeur : Le montant d'espèces"
+
+#: templates/finance/csv_import.html:110
+msgid "account: The name of the account"
+msgstr "compte : Le nom du compte"
+
+#: templates/finance/csv_import.html:111
+msgid "holding: The name of the holding"
+msgstr "titre : Le nom du titre"
+
+#: templates/finance/csv_import.html:112
+msgid "value: The value of the holding"
+msgstr "valeur : La valeur du titre"
+
+#: templates/finance/csv_import.html:113
+msgid "quantity: The quantity of the holding"
+msgstr "quantity: Quantité de parts"
+
+#: templates/finance/csv_import.html:114
+msgid "date: The date of the valuation"
+msgstr "date : La date de l'évaluation"
+
+#: templates/finance/csv_mapping.html:5
+msgid "Finance - CSV data mapping"
+msgstr "Finance - Association des données CSV"
+
+#: templates/finance/csv_mapping.html:11
+msgid "CSV data mapping"
+msgstr "Association des données CSV"
+
+#: templates/finance/csv_mapping.html:14
+msgid "CSV Preview"
+msgstr "Aperçu du CSV"
+
+#: templates/finance/csv_mapping.html:40
+msgid "Account Mapping"
+msgstr "Association des comptes"
+
+#: templates/finance/csv_mapping.html:43
+msgid ""
+"Please map each account name from your CSV file to an actual account in the "
+"system."
+msgstr ""
+"Veuillez associer chaque nom de compte de votre fichier CSV à un compte "
+"existant dans le système."
+
+#: templates/finance/csv_mapping.html:50
+msgid "CSV Account Name"
+msgstr "Nom de compte CSV"
+
+#: templates/finance/csv_mapping.html:51
+msgid "Account/Holding"
+msgstr "Compte/Titre"
+
+#: templates/finance/csv_mapping.html:79
+msgid "Import data"
+msgstr "Importer les données"
+
+#: templates/finance/index.html:25
+msgid "Show value progression for the last"
+msgstr "Afficher la progression du solde pour les derniers"
+
+#: templates/finance/index.html:28
+msgid "days"
+msgstr "jours"
+
+#: templates/finance/index.html:107
+msgid "Collapse All"
+msgstr "Réduire tous"
+
+#: templates/finance/index.html:110 templates/finance/index.html:125
+msgid "Expand All"
+msgstr "Développer tous"
+
+#: templates/finance/index.html:121 templates/finance/update.html:90
+msgid "Investment accounts"
+msgstr "Comptes d'investissement"
+
+#: templates/finance/index.html:133 templates/finance/index.html:250
+#: templates/index.html:280 templates/property/index.html:51
+msgid "Name"
+msgstr "Nom"
+
+#: templates/finance/index.html:134 templates/finance/index.html:251
+msgid "Value"
+msgstr "Valeur"
+
+#: templates/finance/index.html:135 templates/finance/index.html:252
+msgid "Net progression"
+msgstr "Progression nette"
+
+#: templates/finance/index.html:135 templates/finance/index.html:252
+msgid "Gross"
+msgstr "Brut"
+
+#: templates/finance/index.html:176 templates/finance/index.html:216
+#: templates/finance/index.html:290
+msgid "Show chart"
+msgstr "Afficher le graph"
+
+#: templates/finance/index.html:224
+msgid "No holdings found for this account."
+msgstr "Aucun titre trouvé pour ce compte."
+
+#: templates/finance/index.html:242 templates/finance/update.html:49
+msgid "Saving accounts"
+msgstr "Comptes d'épargne"
+
+#: templates/finance/index.html:306
+msgid "Price History"
+msgstr "Historique des prix"
+
+#: templates/finance/index.html:313
+msgid "Loading..."
+msgstr "Chargement…"
+
+#: templates/finance/index.html:361
+msgid "Investment Account History"
+msgstr "Historique du compte d'investissement"
+
+#: templates/finance/index.html:363
+msgid "Saving Account History"
+msgstr "Historique du compte d'épargne"
+
+#: templates/finance/index.html:365
+msgid "Holding History"
+msgstr "Historique des titres"
+
+#: templates/finance/index.html:384 templates/finance/index.html:389
+msgid "Failed to load chart data"
+msgstr "Echec du chargement des données du chart"
+
+#: templates/finance/index.html:405
+msgid "Values"
+msgstr "Valeurs"
+
+#: templates/finance/index.html:416
+msgid "Deposits"
+msgstr "Dépôts"
+
+#: templates/finance/index.html:428 templates/finance/index.html:485
+msgid "Quantities"
+msgstr "Quantités"
+
+#: templates/finance/update.html:5
+msgid "Finance - Update all accounts"
+msgstr "Finance - Mettre à jour tous les comptes"
+
+#: templates/finance/update.html:11
+msgid "Update all your accounts"
+msgstr "Mettre à jour tous vos comptes"
+
+#: templates/finance/update.html:73 templates/finance/update.html:128
+#: templates/finance/update.html:172
+msgid "Currently:"
+msgstr "Actuellement :"
+
+#: templates/finance/update.html:181
+msgid "Current qty:"
+msgstr "Quantité actuelle :"
+
+#: templates/finance/update.html:200
+msgid "Valider"
+msgstr "Valider"
+
+#: templates/index.html:5
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#: templates/index.html:32
+msgid "on your dashboard!"
+msgstr "sur votre tableau de bord !"
+
+#: templates/index.html:35
+msgid "Please log in to access your financial dashboard."
+msgstr ""
+"Veuillez vous connecter pour accéder à votre tableau de bord financier."
+
+#: templates/index.html:44
+msgid "Total Net Worth"
+msgstr "Valeur nette totale"
+
+#: templates/index.html:48 templates/index.html:62 templates/index.html:76
+#: templates/index.html:91
+msgid "Main currency"
+msgstr "Devise principale"
+
+#: templates/index.html:58
+msgid "Total Investments"
+msgstr "Total des investissements"
+
+#: templates/index.html:72
+msgid "Total Savings"
+msgstr "Total de l'épargne"
+
+#: templates/index.html:86
+msgid "Total Properties"
+msgstr "Total des propriétés"
+
+#: templates/index.html:88
+msgid "Gross:"
+msgstr "Brut :"
+
+#: templates/index.html:104
+msgid "Global Progression"
+msgstr "Progression globale"
+
+#: templates/index.html:110
+msgid "Last 30 days"
+msgstr "30 derniers jours"
+
+#: templates/index.html:119
+msgid "Net Worth by Currency"
+msgstr "Valeur nette par devise"
+
+#: templates/index.html:144
+msgid "Alerts"
+msgstr "Alertes"
+
+#: templates/index.html:168
+msgid "No alerts at this time."
+msgstr "Aucune alerte pour le moment."
+
+#: templates/index.html:180
+msgid "Patrimony Evolution"
+msgstr "Évolution du patrimoine"
+
+#: templates/index.html:195
+msgid "Accounts Breakdown"
+msgstr "Répartition des comptes"
+
+#: templates/index.html:201
+msgid "Donut View"
+msgstr "Vue en anneau"
+
+#: templates/index.html:202
+msgid "Pie View"
+msgstr "Vue en camembert"
+
+#: templates/index.html:204
+msgid "Show Percentages"
+msgstr "Afficher les pourcentages"
+
+#: templates/index.html:220
+msgid "Accounts Progression"
+msgstr "Progression des comptes"
+
+#: templates/index.html:222
+msgid "All"
+msgstr "Tous"
+
+#: templates/index.html:223 templates/index.html:437 templates/index.html:601
+msgid "Investments"
+msgstr "Investissements"
+
+#: templates/index.html:224 templates/index.html:441 templates/index.html:605
+msgid "Savings"
+msgstr "Épargnes"
+
+#: templates/index.html:272
+msgid "View All"
+msgstr "Voir tout"
+
+#: templates/index.html:281 templates/property/index.html:52
+msgid "Type"
+msgstr "Type"
+
+#: templates/index.html:282 templates/property/index.html:106
+#: templates/property/index.html:152
+msgid "Net Value"
+msgstr "Valeur nette"
+
+#: templates/index.html:283
+msgid "Initial Value"
+msgstr "Valeur initiale"
+
+#: templates/index.html:284 templates/property/index.html:56
+msgid "Progression"
+msgstr "Progression"
+
+#: templates/index.html:309
+msgid "No properties found."
+msgstr "Aucune propriété trouvée."
+
+#: templates/index.html:325
+msgid "Latest Operations"
+msgstr "Dernières opérations"
+
+#: templates/index.html:327 templates/index.html:727
+msgid "Refresh"
+msgstr "Actualiser"
+
+#: templates/index.html:335
+msgid "Operation"
+msgstr "Opération"
+
+#: templates/index.html:336
+msgid "Amount"
+msgstr "Montant"
+
+#: templates/index.html:337
+msgid "Date"
+msgstr "Date"
+
+#: templates/index.html:338
+msgid "Status"
+msgstr "Statut"
+
+#: templates/index.html:357
+msgid "Deposit"
+msgstr "Dépôt"
+
+#: templates/index.html:359
+msgid "Withdrawal"
+msgstr "Retrait"
+
+#: templates/index.html:370
+msgid "No recent operations."
+msgstr "Aucune opération récente."
+
+#: templates/index.html:445 templates/index.html:609
+msgid "Properties Net"
+msgstr "Immobilier net"
+
+#: templates/index.html:449 templates/index.html:613
+msgid "Properties Loans"
+msgstr "Prêts immobiliers"
+
+#: templates/index.html:735
+msgid "Notification"
+msgstr "Notification"
+
+#: templates/index.html:736
+msgid "Just now"
+msgstr "À l'instant"
+
+#: templates/index.html:740
+msgid "Operations refreshed successfully!"
+msgstr "Opérations actualisées avec succès !"
+
+#: templates/logout.html:5
+msgid "Logout?"
+msgstr "Se déconnecter ?"
+
+#: templates/logout.html:10
+msgid "Are you sure you want to logout?"
+msgstr "Voulez-vous vraiment vous déconnecter ?"
+
+#: templates/logout.html:15
+msgid "Yes"
+msgstr "Oui"
+
+#: templates/logout.html:16
+msgid "No"
+msgstr "Non"
+
+#: templates/property/index.html:5
+msgid "Property"
+msgstr "Propriété"
+
+#: templates/property/index.html:20
+msgid "Total Properties Value Evolution"
+msgstr "Évolution de la valeur totale des propriétés"
+
+#: templates/property/index.html:42 templates/property/index.html:291
+#: templates/property/index.html:310
+msgid "Show inactive properties"
+msgstr "Afficher les propriétés inactives"
+
+#: templates/property/index.html:53
+msgid "Current value"
+msgstr "Valeur"
+
+#: templates/property/index.html:54
+msgid "Net value"
+msgstr "Valeur nette"
+
+#: templates/property/index.html:55
+msgid "Loans"
+msgstr "Prêts"
+
+#: templates/property/index.html:74
+msgid "No property found"
+msgstr "Aucune propriété trouvée"
+
+#: templates/property/index.html:103 templates/property/index.html:148
+msgid "Gross Value"
+msgstr "Valeur brute"
+
+#: templates/property/index.html:283
+msgid "Hide inactive properties"
+msgstr "Masquer les propriétés inactives"
+
+#: templates/registration/login.html:11 templates/registration/login.html:49
+msgid "Log In"
+msgstr "Connexion"
+
+#: templates/registration/password_change_done.html:4
+msgid "Password Changed"
+msgstr "Mot de passe modifié"
+
+#: templates/registration/password_change_done.html:7
+msgid "Password Successfully Changed"
+msgstr "Mot de passe modifié avec succès"
+
+#: templates/registration/password_change_done.html:8
+msgid "Your password has been successfully updated."
+msgstr "Votre mot de passe a été mis à jour avec succès."
+
+#: templates/registration/password_change_done.html:9
+#: templates/registration/password_reset_done.html:10
+msgid "Return to Login"
+msgstr "Retour à la connexion"
+
+#: templates/registration/password_change_form.html:11
+msgid "Change Your Password"
+msgstr "Changez votre mot de passe"
+
+#: templates/registration/password_change_form.html:12
+msgid "Please enter your old password and your new password below."
+msgstr ""
+"Veuillez saisir votre ancien mot de passe et votre nouveau mot de passe ci-"
+"dessous."
+
+#: templates/registration/password_change_form.html:70
+#: templates/registration/password_reset_confirm.html:58
+#: templates/registration/password_reset_form.html:43
+msgid "Back to Login"
+msgstr "Retour à la connexion"
+
+#: templates/registration/password_reset_confirm.html:4
+msgid "Set New Password"
+msgstr "Définir un nouveau mot de passe"
+
+#: templates/registration/password_reset_confirm.html:11
+msgid "Set a New Password"
+msgstr "Définissez un nouveau mot de passe"
+
+#: templates/registration/password_reset_confirm.html:12
+msgid "Please enter your new password below."
+msgstr "Veuillez saisir votre nouveau mot de passe ci-dessous."
+
+#: templates/registration/password_reset_confirm.html:53
+msgid "Reset Password"
+msgstr "Réinitialiser le mot de passe"
+
+#: templates/registration/password_reset_done.html:4
+msgid "Password Reset Done"
+msgstr "Réinitialisation du mot de passe terminée"
+
+#: templates/registration/password_reset_done.html:7
+msgid "Password Reset Successful"
+msgstr "Réinitialisation du mot de passe réussie"
+
+#: templates/registration/password_reset_form.html:11
+msgid "Reset Your Password"
+msgstr "Réinitialisez votre mot de passe"
+
+#: templates/registration/password_reset_form.html:12
+msgid ""
+"Enter your email address below, and we'll send you instructions to reset "
+"your password."
+msgstr ""
+"Entrez votre adresse e-mail ci-dessous et nous vous enverrons les "
+"instructions pour réinitialiser votre mot de passe."
+
+#: templates/registration/password_reset_form.html:38
+msgid "Send Reset Email"
+msgstr "Envoyer l'e-mail de réinitialisation"
+
+#: templates/registration/signup.html:4 templates/registration/signup.html:11
+#: templates/registration/signup.html:70
+msgid "Sign up"
+msgstr "Créer un compte"

@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load i18n format_money %}
+
+{% block title %}
+  {% translate 'Finance - Update all accounts' %}
+{% endblock %}
+
+{% block content %}
+  <div class="card card-finance mb-4">
+    <div class="card-header">
+      <h3 class="card-title mb-0">{% translate 'Update all your accounts' %}</h3>
+    </div>
+    <div class="card-body">
+      <form method="post" action="{% url 'finance:update' %}">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <label for="{{ form.new_values_date.id_for_label }}" class="form-label">
+              {{ form.new_values_date.label }}
+            </label>
+            <div>{{ form.new_values_date }}</div>
+            {% if form.new_values_date.errors %}
+              <div class="invalid-feedback d-block">
+                {{ form.new_values_date.errors }}
+              </div>
+            {% endif %}
+            <small class="text-muted">{{ form.new_values_date.help_text }}</small>
+          </div>
+        </div>
+
+        <!-- Saving accounts -->
+        {{ saving_accounts_formset.management_form }}
+        {% if saving_accounts_formset.non_form_errors %}
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {{ saving_accounts_formset.non_form_errors }}
+          </div>
+        {% endif %}
+
+        <div class="mb-4">
+          <div class="bg-secondary text-white px-3 py-2 rounded mb-2 fw-bold">
+            <i class="bi bi-piggy-bank me-1"></i>{% translate 'Saving accounts' %}
+          </div>
+          {% for form in saving_accounts_formset %}
+            <div class="border rounded px-3 py-2 mb-2 {% if form.errors %}border-danger bg-danger-subtle{% endif %}" data-update-row>
+              {{ form.account_id }}
+              {% if form.non_field_errors %}
+                <div class="text-danger small mb-1">
+                  <i class="bi bi-exclamation-triangle me-1"></i>{{ form.non_field_errors }}
+                </div>
+              {% endif %}
+              <div class="d-flex align-items-start gap-3">
+                <div class="form-check mt-2 flex-shrink-0">
+                  {{ form.update_account }}
+                  {% if form.update_account.errors %}
+                    <div class="text-danger small">{{ form.update_account.errors }}</div>
+                  {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold mb-2">
+                    {{ form.account_name }}{{ form.initial.account_name }}
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-12 col-sm-6 col-md-4">
+                      <div class="small text-muted mb-1">
+                        {{ form.current_value }}{% translate 'Currently:' %} {{ form.initial.current_value_display | format_money }}
+                      </div>
+                      {{ form.new_value }}
+                      {% if form.new_value.errors %}
+                        <div class="invalid-feedback d-block">{{ form.new_value.errors }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Investment accounts -->
+        <div class="mb-3">
+          <div class="bg-secondary text-white px-3 py-2 rounded mb-2 fw-bold">
+            <i class="bi bi-graph-up me-1"></i>{% translate 'Investment accounts' %}
+          </div>
+          {% for account_name, formsets_by_type in investment_accounts_formsets.items %}
+            <div class="mb-3">
+              <div class="bg-body-secondary px-3 py-2 rounded mb-2 fw-semibold">
+                <i class="bi bi-bank me-1"></i>{{ account_name }}
+              </div>
+
+              <!-- Cash -->
+              {% with formset=formsets_by_type.cash %}
+                {{ formset.management_form }}
+                {% if formset.non_form_errors %}
+                  <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ formset.non_form_errors }}
+                  </div>
+                {% endif %}
+                {% for form in formset %}
+                  <div class="border rounded px-3 py-2 mb-2 {% if form.errors %}border-danger bg-danger-subtle{% endif %}" data-update-row>
+                    {{ form.account_id }}
+                    {% if form.non_field_errors %}
+                      <div class="text-danger small mb-1">
+                        <i class="bi bi-exclamation-triangle me-1"></i>{{ form.non_field_errors }}
+                      </div>
+                    {% endif %}
+                    <div class="d-flex align-items-start gap-3">
+                      <div class="form-check mt-2 flex-shrink-0">
+                        {{ form.update_account }}
+                        {% if form.update_account.errors %}
+                          <div class="text-danger small">{{ form.update_account.errors }}</div>
+                        {% endif %}
+                      </div>
+                      <div class="flex-grow-1">
+                        <div class="fw-semibold mb-2">
+                          {{ form.account_name }}{% translate 'Cash' %}
+                        </div>
+                        <div class="row g-2">
+                          <div class="col-12 col-sm-6 col-md-4">
+                            <div class="small text-muted mb-1">
+                              {{ form.current_value }}{% translate 'Currently:' %} {{ form.initial.current_value_display | format_money }}
+                            </div>
+                            {{ form.new_value }}
+                            {% if form.new_value.errors %}
+                              <div class="invalid-feedback d-block">{{ form.new_value.errors }}</div>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% endwith %}
+
+              <!-- Holdings -->
+              {% with formset=formsets_by_type.holdings %}
+                {{ formset.management_form }}
+                {% if formset.non_form_errors %}
+                  <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ formset.non_form_errors }}
+                  </div>
+                {% endif %}
+                {% for form in formset %}
+                  <div class="border rounded px-3 py-2 mb-2 {% if form.errors %}border-danger bg-danger-subtle{% endif %}" data-update-row>
+                    {{ form.holding_id }}
+                    {% if form.non_field_errors %}
+                      <div class="text-danger small mb-1">
+                        <i class="bi bi-exclamation-triangle me-1"></i>{{ form.non_field_errors }}
+                      </div>
+                    {% endif %}
+                    <div class="d-flex align-items-start gap-3">
+                      <div class="form-check mt-2 flex-shrink-0">
+                        {{ form.update_account }}
+                        {% if form.update_account.errors %}
+                          <div class="text-danger small">{{ form.update_account.errors }}</div>
+                        {% endif %}
+                      </div>
+                      <div class="flex-grow-1">
+                        <div class="fw-semibold mb-2">
+                          {{ form.holding_name }}{{ form.initial.holding_name }}
+                        </div>
+                        <div class="row g-2">
+                          <div class="col-6 col-md-4">
+                            <div class="small text-muted mb-1">
+                              {{ form.current_value }}{% translate 'Currently:' %} {{ form.initial.current_value_display | format_money }}
+                            </div>
+                            {{ form.new_value }}
+                            {% if form.new_value.errors %}
+                              <div class="invalid-feedback d-block">{{ form.new_value.errors }}</div>
+                            {% endif %}
+                          </div>
+                          <div class="col-6 col-md-4">
+                            <div class="small text-muted mb-1">
+                              {{ form.current_quantity }}{% translate 'Current qty:' %} {{ form.initial.current_quantity }}
+                            </div>
+                            {{ form.new_quantity }}
+                            {% if form.new_quantity.errors %}
+                              <div class="invalid-feedback d-block">{{ form.new_quantity.errors }}</div>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% endwith %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle me-1"></i>{% translate 'Valider' %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('input[name$="new_value"], input[name$="new_quantity"]').forEach(function(input) {
+        input.addEventListener('focus', function() {
+          const row = this.closest('[data-update-row]');
+          if (row) {
+            const checkbox = row.querySelector('input[name$="update_account"]');
+            if (checkbox) checkbox.checked = true;
+          }
+        });
+      });
+    });
+  </script>
+{% endblock %}

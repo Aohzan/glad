@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}
+  {% translate 'Property' %}
+{% endblock %}
+
+{% block extra_head %}
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">{% translate 'Properties' %}</h1>
+
+    <div class="row g-4 mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>{% translate 'Total Properties Value Evolution' %}</h5>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-secondary active" id="btn-1y">1Y</button>
+              <button type="button" class="btn btn-outline-secondary" id="btn-2y">2Y</button>
+              <button type="button" class="btn btn-outline-secondary" id="btn-5y">5Y</button>
+              <button type="button" class="btn btn-outline-secondary" id="btn-10y">10Y</button>
+              <button type="button" class="btn btn-outline-secondary" id="btn-20y">20Y</button>
+              <button type="button" class="btn btn-outline-secondary" id="btn-all">All</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="chart-properties-evolution" style="height: 300px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggle button for inactive properties -->
+    {% if inactive_properties_count > 0 %}
+      <div class="mb-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="toggle-inactive-btn" onclick="toggleInactiveProperties()">
+          <i class="bi bi-eye-slash me-1"></i>
+          <span id="toggle-text">{% translate 'Show inactive properties' %} ({{ inactive_properties_count }})</span>
+        </button>
+      </div>
+    {% endif %}
+
+    <div class="table-responsive">
+      <table class="table table-finance table-striped table-hover">
+        <thead>
+            <tr>
+                <th>{% translate "Name" %}</th>
+                <th>{% translate "Type" %}</th>
+                <th>{% translate "Current value" %}</th>
+                <th>{% translate "Net value" %}</th>
+                <th>{% translate "Loans" %}</th>
+                <th>{% translate "Progression" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prop in properties %}
+            <tr class="{% if not prop.model.is_active %}inactive-property{% endif %}">
+                <td>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ prop.model.address }}">
+                        {{ prop.model.name }}
+                    </span>
+                </td>
+                <td>{{ prop.model.get_property_type_display }}</td>
+                <td>{{ prop.gross_value | format_money }}</td>
+                <td>{{ prop.net_value | format_money }}</td>
+                <td>{{ prop.loans_count }}</td>
+                <td><span class="{{ prop.progression.css_class }}">{{ prop.progression.progression }}%</span> <small>{{ prop.progression.difference | format_money }}</small></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">{% translate "No property found" %}.</td></tr>
+            {% endfor %}
+        </tbody>
+      </table>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Function to get current theme
+function getCurrentTheme() {
+  return document.documentElement.getAttribute('data-bs-theme') || 'light';
+}
+
+// Store all data for filtering
+var allPropertiesMonths = {{ properties_months|safe }};
+var allPropertiesGrossEvolution = {{ properties_gross_evolution|safe }};
+var allPropertiesNetEvolution = {{ properties_net_evolution|safe }};
+
+var optionsPropertiesEvolution = {
+  chart: {
+    type: 'line',
+    height: 300,
+    background: 'transparent'
+  },
+  theme: {
+    mode: getCurrentTheme()
+  },
+  series: [{
+    name: '{% translate "Gross Value" %}',
+    data: allPropertiesGrossEvolution
+  }, {
+    name: '{% translate "Net Value" %}',
+    data: allPropertiesNetEvolution
+  }],
+  xaxis: { categories: allPropertiesMonths },
+  yaxis: {
+    labels: {
+      formatter: function (val) {
+        return Math.round(val).toLocaleString();
+      }
+    }
+  },
+  tooltip: {
+    theme: getCurrentTheme(),
+    y: {
+      formatter: function (val) {
+        return Math.round(val).toLocaleString();
+      }
+    }
+  },
+  colors: ['#0d6efd', '#20c997'],
+  grid: {
+    borderColor: getCurrentTheme() === 'dark' ? '#444' : '#e0e0e0'
+  }
+};
+var chartPropertiesEvolution = new ApexCharts(document.querySelector("#chart-properties-evolution"), optionsPropertiesEvolution);
+chartPropertiesEvolution.render();
+
+// Function to update chart with date range
+function updatePropertiesChartRange(monthsToShow) {
+  const startIdx = monthsToShow ? allPropertiesMonths.length - monthsToShow : 0;
+  const endIdx = allPropertiesMonths.length;
+
+  const filteredMonths = allPropertiesMonths.slice(startIdx, endIdx);
+  const filteredGrossEvolution = allPropertiesGrossEvolution.slice(startIdx, endIdx);
+  const filteredNetEvolution = allPropertiesNetEvolution.slice(startIdx, endIdx);
+
+  chartPropertiesEvolution.updateOptions({
+    xaxis: {
+      categories: filteredMonths
+    },
+    series: [
+      {
+        name: '{% translate "Gross Value" %}',
+        data: filteredGrossEvolution
+      },
+      {
+        name: '{% translate "Net Value" %}',
+        data: filteredNetEvolution
+      }
+    ]
+  });
+}
+
+// Set up button handlers
+document.getElementById('btn-1y').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('btn-2y').classList.remove('active');
+  document.getElementById('btn-5y').classList.remove('active');
+  document.getElementById('btn-10y').classList.remove('active');
+  document.getElementById('btn-20y').classList.remove('active');
+  document.getElementById('btn-all').classList.remove('active');
+  updatePropertiesChartRange(12); // Show 12 months (1 year)
+});
+
+document.getElementById('btn-2y').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('btn-1y').classList.remove('active');
+  document.getElementById('btn-5y').classList.remove('active');
+  document.getElementById('btn-10y').classList.remove('active');
+  document.getElementById('btn-20y').classList.remove('active');
+  document.getElementById('btn-all').classList.remove('active');
+  updatePropertiesChartRange(24); // Show 24 months (2 years)
+});
+
+document.getElementById('btn-5y').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('btn-1y').classList.remove('active');
+  document.getElementById('btn-2y').classList.remove('active');
+  document.getElementById('btn-10y').classList.remove('active');
+  document.getElementById('btn-20y').classList.remove('active');
+  document.getElementById('btn-all').classList.remove('active');
+  updatePropertiesChartRange(60); // Show 60 months (5 years)
+});
+
+document.getElementById('btn-10y').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('btn-1y').classList.remove('active');
+  document.getElementById('btn-2y').classList.remove('active');
+  document.getElementById('btn-5y').classList.remove('active');
+  document.getElementById('btn-20y').classList.remove('active');
+  document.getElementById('btn-all').classList.remove('active');
+  updatePropertiesChartRange(120); // Show 120 months (10 years)
+});
+
+document.getElementById('btn-20y').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('btn-1y').classList.remove('active');
+  document.getElementById('btn-2y').classList.remove('active');
+  document.getElementById('btn-5y').classList.remove('active');
+  document.getElementById('btn-10y').classList.remove('active');
+  document.getElementById('btn-all').classList.remove('active');
+  updatePropertiesChartRange(240); // Show 240 months (20 years)
+});
+
+document.getElementById('btn-all').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('btn-1y').classList.remove('active');
+  document.getElementById('btn-2y').classList.remove('active');
+  document.getElementById('btn-5y').classList.remove('active');
+  document.getElementById('btn-10y').classList.remove('active');
+  document.getElementById('btn-20y').classList.remove('active');
+  updatePropertiesChartRange(null); // Show all data
+});
+
+// Initialize with 1 year view and hidden inactive properties
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    updatePropertiesChartRange(12); // Show 1 year by default
+    initializeInactiveProperties(); // Hide inactive properties by default
+
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }, 100); // Small delay to ensure chart is rendered
+});
+
+// Function to update charts theme - called from base.html
+function updateChartsTheme(themeName) {
+  const isDark = themeName === 'dark';
+  const themeOptions = {
+    theme: {
+      mode: isDark ? 'dark' : 'light'
+    },
+    chart: {
+      background: 'transparent'
+    },
+    tooltip: {
+      theme: isDark ? 'dark' : 'light',
+      y: {
+        formatter: function (val) {
+          return Math.round(val).toLocaleString();
+        }
+      }
+    },
+    grid: {
+      borderColor: isDark ? '#444' : '#e0e0e0'
+    },
+    yaxis: {
+      labels: {
+        formatter: function (val) {
+          return Math.round(val).toLocaleString();
+        }
+      }
+    }
+  };
+
+  if (chartPropertiesEvolution) {
+    chartPropertiesEvolution.updateOptions(themeOptions);
+  }
+}
+
+// Function to toggle inactive properties visibility
+let inactivePropertiesHidden = true; // Start with hidden by default
+
+function toggleInactiveProperties() {
+  const inactiveRows = document.querySelectorAll('.inactive-property');
+  const toggleBtn = document.getElementById('toggle-inactive-btn');
+  const toggleText = document.getElementById('toggle-text');
+  const toggleIcon = toggleBtn.querySelector('i');
+
+  if (inactivePropertiesHidden) {
+    // Show inactive properties
+    inactiveRows.forEach(row => {
+      row.classList.remove('d-none');
+    });
+    toggleText.textContent = '{% translate "Hide inactive properties" %}';
+    toggleIcon.className = 'bi bi-eye me-1';
+    inactivePropertiesHidden = false;
+  } else {
+    // Hide inactive properties
+    inactiveRows.forEach(row => {
+      row.classList.add('d-none');
+    });
+    toggleText.textContent = '{% translate "Show inactive properties" %}';
+    toggleIcon.className = 'bi bi-eye-slash me-1';
+    inactivePropertiesHidden = true;
+  }
+}
+
+// Initialize inactive properties as hidden when page loads
+function initializeInactiveProperties() {
+  const inactiveRows = document.querySelectorAll('.inactive-property');
+  const toggleText = document.getElementById('toggle-text');
+  const toggleBtn = document.getElementById('toggle-inactive-btn');
+  const toggleIcon = toggleBtn.querySelector('i');
+
+  // Hide inactive properties by default
+  inactiveRows.forEach(row => {
+    row.classList.add('d-none');
+  });
+
+  // Set button text and icon for "show" state
+  toggleText.textContent = '{% translate "Show inactive properties" %}';
+  toggleIcon.className = 'bi bi-eye-slash me-1';
+}
+</script>
+{% endblock %}

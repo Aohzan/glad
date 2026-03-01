@@ -1,0 +1,43 @@
+---
+- model: finance.investmentaccounttype
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Plan d'épargne en actions
+    code: PEA
+- model: finance.investmentaccounttype
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Assurance vie
+    code: AV
+- model: finance.investmentaccounttype
+  pk: 3
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Compte titre ordinaire
+    code: CTO
+- model: finance.investmentaccounttype
+  pk: 4
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Compte épargne retraite
+    code: PER
+- model: finance.investmentaccounttype
+  pk: 5
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Plan d'épargne en actions PME
+    code: PEA-PME
+- model: finance.investmentaccounttype
+  pk: 6
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Plan d'épargne interentreprises
+    code: PEI

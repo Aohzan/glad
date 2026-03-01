@@ -1,0 +1,157 @@
+---
+- model: finance.savingaccount
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    account_type_id: 2
+    name: Livret A
+    owner: Mister
+    institution: Credit Agricole
+    is_active: true
+    opening_date: 2020-01-01
+    opening_value: 10000
+    opening_value_currency: EUR
+- model: finance.savingaccountvalue
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    account_id: 1
+    value: 10000
+    value_currency: EUR
+    value_date: 2024-01-01
+- model: finance.savingaccountvalue
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    account_id: 1
+    value: 11000
+    value_currency: EUR
+    value_date: 2025-01-01
+- model: finance.savingaccount
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    account_type_id: 4
+    name: LDDS
+    owner: Mister
+    institution: Credit Agricole
+    is_active: true
+    opening_date: 2020-01-01
+    opening_value: 12000
+    opening_value_currency: EUR
+- model: finance.savingaccountvalue
+  pk: 3
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    account_id: 2
+    value: 12000
+    value_currency: EUR
+    value_date: 2025-01-01
+- model: finance.savingaccount
+  pk: 3
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    account_type_id: 2
+    name: Livret A
+    owner: Madame
+    institution: BoursoBank
+    is_active: true
+    opening_date: 2020-01-01
+    opening_value: 22950
+    opening_value_currency: EUR
+- model: finance.savingaccountvalue
+  pk: 4
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    account_id: 3
+    value: 22950
+    value_currency: EUR
+    value_date: 2025-01-01
+- model: finance.savingaccountvalue
+  pk: 5
+  fields:
+    created_at: 2024-04-01 00:00:00.000000
+    updated_at: 2024-04-01 00:00:00.000000
+    account_id: 1
+    value: 10300
+    value_currency: EUR
+    value_date: 2024-04-01
+- model: finance.savingaccountvalue
+  pk: 6
+  fields:
+    created_at: 2024-07-01 00:00:00.000000
+    updated_at: 2024-07-01 00:00:00.000000
+    account_id: 1
+    value: 10600
+    value_currency: EUR
+    value_date: 2024-07-01
+- model: finance.savingaccountvalue
+  pk: 7
+  fields:
+    created_at: 2024-10-01 00:00:00.000000
+    updated_at: 2024-10-01 00:00:00.000000
+    account_id: 1
+    value: 10900
+    value_currency: EUR
+    value_date: 2024-10-01
+- model: finance.savingaccountvalue
+  pk: 8
+  fields:
+    created_at: 2024-04-01 00:00:00.000000
+    updated_at: 2024-04-01 00:00:00.000000
+    account_id: 2
+    value: 12200
+    value_currency: EUR
+    value_date: 2024-04-01
+- model: finance.savingaccountvalue
+  pk: 9
+  fields:
+    created_at: 2024-07-01 00:00:00.000000
+    updated_at: 2024-07-01 00:00:00.000000
+    account_id: 2
+    value: 12400
+    value_currency: EUR
+    value_date: 2024-07-01
+- model: finance.savingaccountvalue
+  pk: 10
+  fields:
+    created_at: 2024-10-01 00:00:00.000000
+    updated_at: 2024-10-01 00:00:00.000000
+    account_id: 2
+    value: 12600
+    value_currency: EUR
+    value_date: 2024-10-01
+- model: finance.savingaccountvalue
+  pk: 11
+  fields:
+    created_at: 2024-04-01 00:00:00.000000
+    updated_at: 2024-04-01 00:00:00.000000
+    account_id: 3
+    value: 23250
+    value_currency: EUR
+    value_date: 2024-04-01
+- model: finance.savingaccountvalue
+  pk: 12
+  fields:
+    created_at: 2024-07-01 00:00:00.000000
+    updated_at: 2024-07-01 00:00:00.000000
+    account_id: 3
+    value: 23550
+    value_currency: EUR
+    value_date: 2024-07-01
+- model: finance.savingaccountvalue
+  pk: 13
+  fields:
+    created_at: 2024-10-01 00:00:00.000000
+    updated_at: 2024-10-01 00:00:00.000000
+    account_id: 3
+    value: 23850
+    value_currency: EUR
+    value_date: 2024-10-01

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% translate 'Logout?' %}
+{% endblock %}
+
+{% block content %}
+<div class="logout-wrapper text-center">
+      <p class="logout-message">{% translate "Are you sure you want to logout?" %}</p>
+
+      <form class="logout-form" action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <div class="logout-actions">
+          <button type="submit" class="btn btn-primary logout-yes">{% translate "Yes" %}</button>
+          <a class="btn btn-outline-secondary logout-no" href="{% url 'index' %}">{% translate "No" %}</a>
+        </div>
+      </form>
+</div>
+{% endblock %}

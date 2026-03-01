@@ -1,0 +1,18 @@
+plugins:
+  [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "@semantic-release-uv",
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["*.md", "pyproject.toml", "uv.lock"],
+        "message": "chore(semantic-release): release ${nextRelease.version}",
+      },
+    ],
+  ]
+branches:
+  - name: main
+  - name: beta
+    prerelease: true

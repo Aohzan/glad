@@ -1,0 +1,564 @@
+{% extends 'base.html' %}
+{% load i18n format_money %}
+
+{% block title %}
+  {% translate 'Finance' %}
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>
+{% endblock %}
+
+{% block content %}
+  <div class="card card-finance mb-4">
+    <div class="card-body">
+      <!-- Display non-field errors -->
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <form method="get" action="" class="row g-3 align-items-center">
+        <div class="mb-6">
+          <label for="id_days" class="form-label">{% translate 'Show value progression for the last' %}</label>
+          <div class="input-group">
+            {{ form.days }}
+            <span class="input-group-text">{% translate "days"%}</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <div class="form-check">
+            {{ form.active_only }}
+            <label class="form-check-label" for="{{ form.active_only.id_for_label }}">
+              {% translate 'Active accounts only' %}
+            </label>
+          </div>
+          {% if form.active_only.errors %}
+            <div class="invalid-feedback d-block">
+              {{ form.active_only.errors }}
+            </div>
+          {% endif %}
+        </div>
+      </form>
+      <script>
+        document.getElementById('id_days').addEventListener('change', function () {
+          this.form.submit()
+        })
+
+        document.getElementById('{{ form.active_only.id_for_label }}').addEventListener('change', function () {
+          this.form.submit()
+        })
+
+        // Handle chevron rotation for collapsible rows
+        document.addEventListener('DOMContentLoaded', function() {
+          const collapseElements = document.querySelectorAll('[id^="investment-account-"]');
+          const toggleButton = document.getElementById('toggleAllAccounts');
+          const toggleIcon = toggleButton.querySelector('i');
+          const toggleText = toggleButton.querySelector('.toggle-text');
+          let allExpanded = false;
+
+          // Handle individual collapse events
+          collapseElements.forEach(function(element) {
+            element.addEventListener('show.bs.collapse', function() {
+              const chevron = document.querySelector(`[data-target="#${element.id}"]`);
+              if (chevron) {
+                chevron.classList.remove('bi-chevron-right');
+                chevron.classList.add('bi-chevron-down');
+              }
+              updateToggleButton();
+            });
+
+            element.addEventListener('hide.bs.collapse', function() {
+              const chevron = document.querySelector(`[data-target="#${element.id}"]`);
+              if (chevron) {
+                chevron.classList.remove('bi-chevron-down');
+                chevron.classList.add('bi-chevron-right');
+              }
+              updateToggleButton();
+            });
+          });
+
+          // Handle toggle all button
+          toggleButton.addEventListener('click', function() {
+            if (allExpanded) {
+              // Collapse all
+              collapseElements.forEach(function(element) {
+                const collapse = new bootstrap.Collapse(element, { show: false });
+                collapse.hide();
+              });
+            } else {
+              // Expand all
+              collapseElements.forEach(function(element) {
+                const collapse = new bootstrap.Collapse(element, { show: false });
+                collapse.show();
+              });
+            }
+          });
+
+          // Update toggle button state
+          function updateToggleButton() {
+            const expandedCount = document.querySelectorAll('[id^="investment-account-"].show').length;
+            allExpanded = expandedCount === collapseElements.length && collapseElements.length > 0;
+
+            if (allExpanded) {
+              toggleIcon.className = 'bi bi-arrows-collapse me-1';
+              toggleText.textContent = '{% translate "Collapse All" %}';
+            } else {
+              toggleIcon.className = 'bi bi-arrows-expand me-1';
+              toggleText.textContent = '{% translate "Expand All" %}';
+            }
+          }
+        });
+      </script>
+    </div>
+  </div>
+  <div class="card card-finance mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h3 class="card-title mb-0">
+        <i class="bi bi-cash-coin me-2"></i>
+        {% translate 'Investment accounts' %}
+      </h3>
+      <button type="button" class="btn btn-outline-secondary btn-sm" id="toggleAllAccounts">
+        <i class="bi bi-arrows-expand me-1"></i>
+        <span class="toggle-text">{% translate 'Expand All' %}</span>
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-finance table-striped">
+          <thead>
+            <tr>
+              <th>{% translate 'Name' %}</th>
+              <th>{% translate 'Value' %}</th>
+              <th>{% translate 'Net progression' %} ({% translate 'Gross' %})</th>
+              <th width="50"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for account in investment_accounts %}
+              <tr data-bs-toggle="collapse" data-bs-target="#investment-account-{{ account.model.id }}" aria-expanded="false" aria-controls="investment-account-{{ account.model.id }}">
+                <td>
+                  <i class="bi bi-chevron-right chevron-toggle me-2" data-target="#investment-account-{{ account.model.id }}"></i>
+                  {{ account.model }}
+                </td>
+                <td>
+                  <strong>{{ account.model.current_value | format_money }}</strong>
+                </td>
+                <td class="progression {{ account.progression.css_class }}">
+                  <div class="progression-value">
+                    {% if account.progression.css_class == "up" %}
+                      <div class="text-success">
+                        <i class="bi bi-arrow-up"></i>
+                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
+                      </div>
+                    {% elif account.progression.css_class == "down" %}
+                      <div class="text-danger">
+                        <i class="bi bi-arrow-down"></i>
+                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
+                      </div>
+                    {% else %}
+                      <div class="text-secondary">
+                        <i class="bi bi-dash"></i>
+                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div><small><strong>{{ account.progression.net_difference | format_money }}</strong> <em>({{ account.progression.gross_difference | format_money }})</em></small></div>
+                </td>
+                <td>
+                  <i class="bi bi-bar-chart-line chart-icon text-muted"
+                     data-bs-toggle="tooltip"
+                     data-bs-placement="left"
+                     data-type="investment_account"
+                     data-id="{{ account.model.id }}"
+                     title="{% translate 'Show chart' %}"
+                     style="cursor: pointer;"></i>
+                </td>
+              </tr>
+              <tr class="collapse" id="investment-account-{{ account.model.id }}">
+                <td colspan="4">
+                  <table class="table table-sm table-hover table-borderless mb-0">
+                    <tbody>
+                      {% for entry in account.subentries %}
+                        <tr>
+                          <td>
+                            <i class="bi {% if entry.id != "cash" %}bi-graph-up{% else %}bi-cash{% endif %} me-2 text-muted"></i>
+                            {{ entry.name }}
+                          </td>
+                          <td>{{ entry.value | format_money }}</td>
+                          <td class="progression {{ entry.progression.css_class }}">
+                            {% if entry.progression.css_class == "up" %}
+                              <div class="text-success">
+                                <i class="bi bi-arrow-up"></i>
+                                <strong>{{ entry.progression.net_progression }}%</strong> <small><em>({{ entry.progression.gross_progression }}%)</em></small>
+                              </div>
+                            {% elif entry.progression.css_class == "down" %}
+                              <div class="text-danger">
+                                <i class="bi bi-arrow-down"></i>
+                                <strong>{{ entry.progression.net_progression }}%</strong> <small><em>({{ entry.progression.gross_progression }}%)</em></small>
+                              </div>
+                            {% else %}
+                              <div class="text-secondary">
+                                <i class="bi bi-dash"></i>
+                                <strong>{{ entry.progression.net_progression }}%</strong> <small><em>({{ entry.progression.gross_progression }}%)</em></small>
+                              </div>
+                            {% endif %}
+                          </td>
+                          <td>
+                            {% if entry.id != "cash" %}
+                            <i class="bi bi-bar-chart-line chart-icon text-muted"
+                               data-bs-toggle="tooltip"
+                               data-bs-placement="left"
+                               data-type="holding"
+                               data-id="{{ entry.id }}"
+                               title="{% translate 'Show chart' %}"
+                               style="cursor: pointer;"></i>
+                            {% endif %}
+                          </td>
+                        </tr>
+                      {% empty %}
+                        <tr>
+                          <td colspan="4" class="text-center">
+                            <em>{% translate 'No holdings found for this account.' %}</em>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card card-finance mb-4">
+    <div class="card-header">
+      <h3 class="card-title mb-0">
+        <i class="bi bi-piggy-bank me-2"></i>
+        {% translate 'Saving accounts' %}
+      </h3>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-finance table-striped table-hover">
+          <thead>
+            <tr>
+              <th>{% translate 'Name' %}</th>
+              <th>{% translate 'Value' %}</th>
+              <th>{% translate 'Net progression' %} ({% translate 'Gross' %})</th>
+              <th width="50"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for account in savings_accounts %}
+              <tr>
+                <td>{{ account.model }}</td>
+                <td>
+                  <strong>{{ account.model.current_value | format_money }}</strong>
+                </td>
+                <td class="progression {{ account.progression.css_class }}">
+                  <div class="progression-value">
+                    {% if account.progression.css_class == "up" %}
+                      <div class="text-success">
+                        <i class="bi bi-arrow-up"></i>
+                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
+                      </div>
+                    {% elif account.progression.css_class == "down" %}
+                      <div class="text-danger">
+                        <i class="bi bi-arrow-down"></i>
+                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
+                      </div>
+                    {% else %}
+                      <div class="text-secondary">
+                        <i class="bi bi-dash"></i>
+                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div><small><strong>{{ account.progression.net_difference | format_money }}</strong> <em>({{ account.progression.gross_difference | format_money }})</em></small></div>
+                </td>
+                <td>
+                  <i class="bi bi-bar-chart-line chart-icon text-muted"
+                     data-bs-toggle="tooltip"
+                     data-bs-placement="left"
+                     data-type="saving_account"
+                     data-id="{{ account.model.id }}"
+                     title="{% translate 'Show chart' %}"
+                     style="cursor: pointer;"></i>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Modal -->
+  <div class="modal fade" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="chartModalLabel">{% translate 'Price History' %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="chartContainer" style="height: 400px;"></div>
+          <div id="chartLoading" class="text-center p-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">{% translate 'Loading...' %}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Set up chart data URL base
+    const CHART_DATA_URL_BASE = '{% url "finance:index" %}chart-data';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize tooltips
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+
+      // Chart modal and ApexCharts functionality
+      const chartModal = new bootstrap.Modal(document.getElementById('chartModal'));
+      const chartContainer = document.getElementById('chartContainer');
+      const chartLoading = document.getElementById('chartLoading');
+      const chartModalLabel = document.getElementById('chartModalLabel');
+      let currentChart = null;
+
+      // Handle chart icon clicks
+      document.querySelectorAll('.chart-icon').forEach(function(icon) {
+        icon.addEventListener('click', function(e) {
+          e.stopPropagation(); // Prevent row collapse toggle
+
+          const type = this.getAttribute('data-type');
+          const id = this.getAttribute('data-id');
+
+          // Show modal and loading state
+          chartModal.show();
+          chartLoading.style.display = 'block';
+          chartContainer.style.display = 'none';
+
+          // Clear any existing chart immediately
+          if (currentChart) {
+            currentChart.destroy();
+            currentChart = null;
+          }
+          chartContainer.innerHTML = ''; // Clear container content
+
+          // Set modal title based on type
+          if (type === 'investment_account') {
+            chartModalLabel.textContent = "{% translate "Investment Account History" %}";
+          } else if (type === 'saving_account') {
+            chartModalLabel.textContent = "{% translate "Saving Account History" %}";
+          } else if (type === 'holding') {
+            chartModalLabel.textContent = "{% translate "Holding History" %}";
+          }
+
+          // Load chart data
+          loadChartData(type, id);
+        });
+      });
+
+      function loadChartData(type, id) {
+        // Construct the URL for the AJAX request
+        const url = `${CHART_DATA_URL_BASE}/${type}/${id}/`;
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              chartModalLabel.textContent = chartModalLabel.textContent + ` - ${data.name}`;
+              renderChart(data);
+            } else {
+              showError(data.error || '{% translate "Failed to load chart data" %}');
+            }
+          })
+          .catch(error => {
+            console.error('Error loading chart data:', error);
+            showError('{% translate "Failed to load chart data" %}');
+          });
+      }
+
+      function renderChart(data) {
+        // Hide loading, show chart container
+        chartLoading.style.display = 'none';
+        chartContainer.style.display = 'block';
+
+        // Destroy existing chart if any
+        if (currentChart) {
+          currentChart.destroy();
+        }
+
+        // Prepare chart options
+        const series = [{
+          name: '{% translate "Values" %}',
+          type: 'line',
+          data: data.values.map(item => ({
+            x: new Date(item.date).getTime(),
+            y: parseFloat(item.value)
+          }))
+        }];
+
+        // Add deposits series only if data.deposits exists
+        if (data.deposits) {
+          series.push({
+            name: '{% translate "Deposits" %}',
+            type: 'column',
+            data: data.deposits.map(item => ({
+              x: new Date(item.date).getTime(),
+              y: parseFloat(item.value)
+            }))
+          });
+        }
+
+        // Add quantity series only if data.quantities exists
+        if (data.quantities) {
+          series.push({
+            name: '{% translate "Quantities" %}',
+            type: 'line',
+            yAxisIndex: 1,
+            data: data.quantities.map(item => ({
+              x: new Date(item.date).getTime(),
+              y: parseFloat(item.quantity)
+            }))
+          });
+        }
+
+        const options = {
+          series: series,
+          chart: {
+            type: 'line',
+            height: 400,
+            toolbar: {
+              show: true
+            }
+          },
+          dataLabels: {
+            enabled: false
+          },
+          stroke: {
+            curve: data.quantities ? ['smooth', 'stepline'] : ['smooth', 'smooth'],
+            width: data.quantities ? [1, 5] : [1, 1]
+          },
+          xaxis: {
+            type: 'datetime',
+            labels: {
+              format: 'dd/MM/yy'
+            }
+          },
+          yaxis: data.quantities ? [{
+            labels: {
+              style: {
+                colors: '#0d6efd'
+              },
+              formatter: function (val) {
+                return new Intl.NumberFormat(navigator.language || 'en-US', {
+                  style: 'currency',
+                  currency: '{{ currency_code|default:"EUR" }}'
+                }).format(val);
+              }
+            },
+            axisBorder: {
+              show: false
+            }
+          }, {
+            opposite: true,
+            min: 0,
+            showForNullSeries: false,
+            labels: {
+              style: {
+                colors: '#198754'
+              },
+            },
+            title: {
+              text: '{% translate "Quantities" %}',
+              style: {
+                color: '#198754'
+              }
+            },
+            axisBorder: {
+              show: false
+            }
+          }] : {
+            labels: {
+              style: {
+                colors: '#0d6efd'
+              },
+              formatter: function (val) {
+                return new Intl.NumberFormat(navigator.language || 'en-US', {
+                  style: 'currency',
+                  currency: '{{ currency_code|default:"EUR" }}'
+                }).format(val);
+              }
+            },
+            axisBorder: {
+              show: false
+            },
+            showForNullSeries: false
+          },
+          tooltip: {
+            x: {
+              format: 'dd/MM/yyyy'
+            },
+            y: data.quantities ? [{
+              formatter: function (val) {
+                return new Intl.NumberFormat(navigator.language || 'en-US', {
+                  style: 'currency',
+                  currency: '{{ currency_code|default:"EUR" }}'
+                }).format(val);
+              }
+            }, {
+              formatter: function (val) {
+                return val.toFixed(2);
+              }
+            }] : {
+              formatter: function (val) {
+                return new Intl.NumberFormat(navigator.language || 'en-US', {
+                  style: 'currency',
+                  currency: '{{ currency_code|default:"EUR" }}'
+                }).format(val);
+              }
+            }
+          },
+          grid: {
+            show: true
+          },
+          colors: ['#0d6efd', '#198754']
+        };
+
+        // Create and render chart
+        currentChart = new ApexCharts(chartContainer, options);
+        currentChart.render();
+      }
+
+      function showError(message) {
+        chartLoading.style.display = 'none';
+        chartContainer.style.display = 'block';
+
+        // Destroy any existing chart before showing error
+        if (currentChart) {
+          currentChart.destroy();
+          currentChart = null;
+        }
+
+        chartContainer.innerHTML = `
+          <div class="alert alert-danger text-center" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            ${message}
+          </div>
+        `;
+      }
+    });
+  </script>
+{% endblock %}
