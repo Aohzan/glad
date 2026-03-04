@@ -7,13 +7,43 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-01 20:18+0100\n"
+"POT-Creation-Date: 2026-03-04 22:43+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: accounts/models.py:20
+msgid "App lock enabled"
+msgstr "Verrouillage de l'application activé"
+
+#: accounts/models.py:21
+msgid "Ask for authentication when reopening the app after inactivity."
+msgstr ""
+"Demander une authentification à la réouverture de l'application après "
+"inactivité."
+
+#: accounts/models.py:25
+msgid "User profile"
+msgstr "Profil utilisateur"
+
+#: accounts/models.py:26
+msgid "User profiles"
+msgstr "Profils utilisateur"
+
+#: accounts/models.py:52
+msgid "Passkey credential"
+msgstr "Identification via passkey"
+
+#: accounts/models.py:53
+msgid "Passkey credentials"
+msgstr "Identification via passkey"
+
+#: accounts/views.py:68
+msgid "Password updated successfully."
+msgstr "Mise à jour du mot de passe réussie"
 
 #: base/tests/test_views.py:26 templates/index.html:32
 msgid "Welcome"
@@ -395,11 +425,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:174
+#: glad/settings.py:186
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:175
+#: glad/settings.py:187
 msgid "French"
 msgstr "Français"
 
@@ -547,6 +577,124 @@ msgstr "dépenses de propriétés"
 msgid "Expense type"
 msgstr "Type de dépense"
 
+#: templates/accounts/settings.html:4 templates/accounts/settings.html:9
+#: templates/base.html:72
+msgid "Settings"
+msgstr "Paramètres"
+
+#: templates/accounts/settings.html:13
+msgid "Security"
+msgstr "Sécurité"
+
+#: templates/accounts/settings.html:18 templates/base.html:365
+msgid "Password"
+msgstr "Mot de passe"
+
+#: templates/accounts/settings.html:20
+msgid "Update your password to keep your account secure."
+msgstr "Mettez à jour votre mot de passe pour garder votre compte sécurisé."
+
+#: templates/accounts/settings.html:27 templates/accounts/settings.html:76
+msgid "Change Password"
+msgstr "Changer le mot de passe"
+
+#: templates/accounts/settings.html:84
+msgid "Passkey"
+msgstr "Passkey"
+
+#: templates/accounts/settings.html:86
+msgid ""
+"Register a passkey so you can log in with fingerprint or face recognition."
+msgstr ""
+"Enregistrer une passkey pour se connecter via empreinte ou reconnaissance "
+"faciale."
+
+#: templates/accounts/settings.html:89
+msgid "You can replace your passkey at any time."
+msgstr "Vous pouvez remplacer votre passkey n'importe quand."
+
+#: templates/accounts/settings.html:94 templates/accounts/settings.html:178
+msgid "Register passkey"
+msgstr "Enregistrer la passkey"
+
+#: templates/accounts/settings.html:97
+msgid "Remove passkey"
+msgstr "Supprimer la passkey"
+
+#: templates/accounts/settings.html:105
+msgid "App Lock"
+msgstr "Verrouillage de l'application"
+
+#: templates/accounts/settings.html:107
+msgid ""
+"When enabled, you must authenticate with your passkey or password each time "
+"you reopen the app after a period of inactivity."
+msgstr ""
+"Lorsqu'il est activé, vous devez vous authentifier avec votre clé d'accès ou "
+"votre mot de passe à chaque réouverture de l'application après une période "
+"d'inactivité."
+
+#: templates/accounts/settings.html:114
+msgid "Register a passkey first to use app lock."
+msgstr "Enregistrez d'abord une clé d'accès pour utiliser le verrouillage."
+
+#: templates/accounts/settings.html:177
+msgid "Replace passkey"
+msgstr "Remplacer la passkey"
+
+#: templates/accounts/settings.html:184
+msgid "Passkey registered."
+msgstr "Passkey enregistrée."
+
+#: templates/accounts/settings.html:186
+msgid "No passkey registered yet."
+msgstr "Pas de passkey enregistré actuellement."
+
+#: templates/accounts/settings.html:195 templates/base.html:537
+#: templates/registration/login.html:115
+msgid "Passkeys are not supported on this browser."
+msgstr "Les passkeys ne sont pas prises en charge sur ce navigateur."
+
+#: templates/accounts/settings.html:247
+msgid "Passkey registered successfully."
+msgstr "Passkey enregistrée avec succès."
+
+#: templates/accounts/settings.html:252
+msgid "Passkey registration was cancelled."
+msgstr "L'enregistrement de la passkey a été annulé."
+
+#: templates/accounts/settings.html:254
+msgid "Failed to get registration options from server."
+msgstr "Échec de récupération des options d'enregistrement depuis le serveur."
+
+#: templates/accounts/settings.html:256 templates/registration/login.html:181
+msgid "Failed to verify passkey with server."
+msgstr "Échec de vérification de la passkey avec le serveur."
+
+#: templates/accounts/settings.html:258
+msgid "Failed to register passkey:"
+msgstr "Échec d'enregistrement de la passkey :"
+
+#: templates/accounts/settings.html:277
+msgid "Passkey removed."
+msgstr "Passkey supprimée."
+
+#: templates/accounts/settings.html:280
+msgid "Failed to remove passkey."
+msgstr "Échec de suppression de la passkey."
+
+#: templates/accounts/settings.html:304
+msgid "App lock enabled."
+msgstr "Verrouillage de l'application activé."
+
+#: templates/accounts/settings.html:305
+msgid "App lock disabled."
+msgstr "Verrouillage de l'application désactivé."
+
+#: templates/accounts/settings.html:312
+msgid "Failed to update app lock setting."
+msgstr "Échec de la mise à jour du verrouillage de l'application."
+
 #: templates/admin/bulk_update_date.html:5
 #, python-format
 msgid "Are you sure you want to update the date for this item?"
@@ -570,68 +718,133 @@ msgstr "Annuler"
 msgid "Items to be updated:"
 msgstr "Éléments à mettre à jour :"
 
-#: templates/base.html:37
+#: templates/base.html:38
 msgid "Home"
 msgstr "Accueil"
 
-#: templates/base.html:43 templates/finance/index.html:5
+#: templates/base.html:44 templates/finance/index.html:5
 msgid "Finance"
 msgstr "Finance"
 
-#: templates/base.html:46
+#: templates/base.html:47
 msgid "Overview"
 msgstr "Vue d'ensemble"
 
-#: templates/base.html:47
+#: templates/base.html:48
 msgid "Update all accounts"
 msgstr "Mettre à jour tous les comptes"
 
-#: templates/base.html:49
+#: templates/base.html:50
 msgid "CSV Import"
 msgstr "Import CSV"
 
-#: templates/base.html:50
+#: templates/base.html:51
 msgid "CSV Export"
 msgstr "Export CSV"
 
-#: templates/base.html:54 templates/index.html:270
+#: templates/base.html:55 templates/index.html:270
 #: templates/property/index.html:14
 msgid "Properties"
 msgstr "Immobilier"
 
-#: templates/base.html:62
+#: templates/base.html:63
 msgid "Administration"
 msgstr "Administration"
 
-#: templates/base.html:68
+#: templates/base.html:69
 msgid "My account"
 msgstr "Mon compte"
 
-#: templates/base.html:71 templates/registration/password_change_form.html:4
-#: templates/registration/password_change_form.html:65
-msgid "Change Password"
-msgstr "Changer le mot de passe"
-
-#: templates/base.html:73
+#: templates/base.html:74
 msgid "Logout"
 msgstr "Déconnexion"
 
-#: templates/base.html:78 templates/registration/login.html:4
+#: templates/base.html:79 templates/registration/login.html:4
 msgid "Login"
 msgstr "Connexion"
 
-#: templates/base.html:81 templates/registration/login.html:54
+#: templates/base.html:82 templates/registration/login.html:61
 #: templates/registration/password_reset_form.html:4
 msgid "Password Reset"
 msgstr "Réinitialisation du mot de passe"
 
-#: templates/base.html:122
+#: templates/base.html:123
 msgid "Toggle dark mode"
 msgstr "Basculer en mode sombre"
 
-#: templates/base.html:138
+#: templates/base.html:139
 msgid "Change"
 msgstr "Changer"
+
+#: templates/base.html:347
+msgid "App locked"
+msgstr "Application verrouillée"
+
+#: templates/base.html:351
+msgid "App Locked"
+msgstr "Application verrouillée"
+
+#: templates/base.html:352
+msgid "Authenticate to continue."
+msgstr "Authentifiez-vous pour continuer."
+
+#: templates/base.html:356
+msgid "Unlock with passkey"
+msgstr "Déverrouiller avec la clé d'accès"
+
+#: templates/base.html:360
+msgid "Unlock with password"
+msgstr "Déverrouiller avec le mot de passe"
+
+#: templates/base.html:370
+msgid "Unlock"
+msgstr "Déverrouiller"
+
+#: templates/base.html:386
+msgid "Enable App Lock?"
+msgstr "Activer le verrouillage de l'application ?"
+
+#: templates/base.html:390
+msgid ""
+"Would you like the app to lock automatically after a period of inactivity? "
+"You can then unlock it with your passkey (fingerprint / face) or your "
+"password."
+msgstr ""
+"Souhaitez-vous que l'application se verrouille automatiquement après une "
+"période d'inactivité ? Vous pourrez la déverrouiller avec votre clé d'accès "
+"(empreinte / visage) ou votre mot de passe."
+
+#: templates/base.html:391
+msgid "You can change this at any time in Settings → Security."
+msgstr "Vous pouvez modifier cela à tout moment dans Paramètres → Sécurité."
+
+#: templates/base.html:395
+msgid "No, thanks"
+msgstr "Non, merci"
+
+#: templates/base.html:398
+msgid "Enable App Lock"
+msgstr "Activer le verrouillage"
+
+#: templates/base.html:578
+msgid "Passkey verification was cancelled."
+msgstr "La vérification de la clé d'accès a été annulée."
+
+#: templates/base.html:580
+msgid "Passkey verification failed."
+msgstr "La vérification de la clé d'accès a échoué."
+
+#: templates/base.html:593
+msgid "Please enter your password."
+msgstr "Veuillez entrer votre mot de passe."
+
+#: templates/base.html:605
+msgid "Incorrect password."
+msgstr "Mot de passe incorrect."
+
+#: templates/base.html:611
+msgid "Failed to verify password."
+msgstr "Échec de la vérification du mot de passe."
 
 #: templates/finance/csv_export.html:5
 msgid "Finance - Export CSV"
@@ -1096,38 +1309,22 @@ msgstr "Masquer les propriétés inactives"
 msgid "Log In"
 msgstr "Connexion"
 
-#: templates/registration/password_change_done.html:4
-msgid "Password Changed"
-msgstr "Mot de passe modifié"
+#: templates/registration/login.html:55
+msgid "Log in with passkey"
+msgstr "Se connecter avec une passkey"
 
-#: templates/registration/password_change_done.html:7
-msgid "Password Successfully Changed"
-msgstr "Mot de passe modifié avec succès"
+#: templates/registration/login.html:177
+msgid "Passkey login was cancelled."
+msgstr "La connexion avec passkey a été annulée."
 
-#: templates/registration/password_change_done.html:8
-msgid "Your password has been successfully updated."
-msgstr "Votre mot de passe a été mis à jour avec succès."
-
-#: templates/registration/password_change_done.html:9
-#: templates/registration/password_reset_done.html:10
-msgid "Return to Login"
-msgstr "Retour à la connexion"
-
-#: templates/registration/password_change_form.html:11
-msgid "Change Your Password"
-msgstr "Changez votre mot de passe"
-
-#: templates/registration/password_change_form.html:12
-msgid "Please enter your old password and your new password below."
+#: templates/registration/login.html:179
+msgid "Failed to get authentication options from server."
 msgstr ""
-"Veuillez saisir votre ancien mot de passe et votre nouveau mot de passe ci-"
-"dessous."
+"Échec de récupération des options d'authentification depuis le serveur."
 
-#: templates/registration/password_change_form.html:70
-#: templates/registration/password_reset_confirm.html:58
-#: templates/registration/password_reset_form.html:43
-msgid "Back to Login"
-msgstr "Retour à la connexion"
+#: templates/registration/login.html:183
+msgid "Passkey login failed:"
+msgstr "La connexion avec passkey a échoué :"
 
 #: templates/registration/password_reset_confirm.html:4
 msgid "Set New Password"
@@ -1145,6 +1342,11 @@ msgstr "Veuillez saisir votre nouveau mot de passe ci-dessous."
 msgid "Reset Password"
 msgstr "Réinitialiser le mot de passe"
 
+#: templates/registration/password_reset_confirm.html:58
+#: templates/registration/password_reset_form.html:43
+msgid "Back to Login"
+msgstr "Retour à la connexion"
+
 #: templates/registration/password_reset_done.html:4
 msgid "Password Reset Done"
 msgstr "Réinitialisation du mot de passe terminée"
@@ -1152,6 +1354,10 @@ msgstr "Réinitialisation du mot de passe terminée"
 #: templates/registration/password_reset_done.html:7
 msgid "Password Reset Successful"
 msgstr "Réinitialisation du mot de passe réussie"
+
+#: templates/registration/password_reset_done.html:10
+msgid "Return to Login"
+msgstr "Retour à la connexion"
 
 #: templates/registration/password_reset_form.html:11
 msgid "Reset Your Password"

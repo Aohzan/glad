@@ -19,6 +19,7 @@ dependencies = [
     "whitenoise>=6.9.0",
     "dateparser>=1.2.2",
     "django-money>=3.5.4",
+    "webauthn>=2.1.0",
 ]
 
 [project.optional-dependencies]

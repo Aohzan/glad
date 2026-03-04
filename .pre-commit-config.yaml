@@ -28,7 +28,7 @@ repos:
       - id: codespell
         args:
           - --ignore-words-list=OT
-          - --skip=./.*,*.csv,*.json,*.ambr,*.lock,*/migrations/*.py,*/fixtures/*.yaml,locale/**/*.po
+          - --skip=./.*,*.csv,*.json,*.ambr,*.lock,*/migrations/*.py,*/fixtures/*.yaml,scripts/generate_fixtures.py,locale/**/*.po
           - --quiet-level=2
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.38.0
