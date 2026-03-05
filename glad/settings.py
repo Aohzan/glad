@@ -43,7 +43,12 @@ _app_url = os.environ.get("APP_URL", "").rstrip("/")
 _app_url_parsed = urlparse(_app_url) if _app_url else None
 _app_hostname = _app_url_parsed.hostname if _app_url_parsed else None
 
-ALLOWED_HOSTS = [x.strip() for x in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
+# Only set ALLOWED_HOSTS if explicitly configured in environment
+ALLOWED_HOSTS = (
+    [x.strip() for x in os.environ.get("ALLOWED_HOSTS", "").split(",")]
+    if os.environ.get("ALLOWED_HOSTS")
+    else []
+)
 
 # https://github.com/adamchainz/django-cors-headers
 _cors_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
@@ -96,7 +101,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
@@ -141,7 +145,8 @@ if os.getenv("DB") == "postgres":
             "HOST": os.getenv("DB_HOST"),
             "PORT": os.getenv("DB_PORT", "5432"),
             "OPTIONS": {
-                "sslmode": os.getenv("DB_SSL_MODE", "prefer"),
+                "sslmode": "prefer",
+                "connect_timeout": 10,
             },
         }
     }
@@ -214,6 +219,24 @@ WHITENOISE_ROOT = os.path.join(BASE_DIR, "static", "glad", "root")
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Security Headers
+# https://docs.djangoproject.com/en/6.0/ref/middleware/#http-strict-transport-security
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = "DENY"
+    SECURE_CONTENT_SECURITY_POLICY = {
+        "default-src": ("'self'",),
+        "script-src": ("'self'",),
+        "style-src": ("'self'", "'unsafe-inline'"),
+        "img-src": ("'self'", "data:"),
+        "font-src": ("'self'",),
+        "connect-src": ("'self'",),
+    }
 
 # Logging configuration
 # https://docs.djangoproject.com/en/5.2/topics/logging/

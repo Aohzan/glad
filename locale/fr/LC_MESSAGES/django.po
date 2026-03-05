@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-04 22:43+0100\n"
+"POT-Creation-Date: 2026-03-05 20:34+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -41,9 +41,13 @@ msgstr "Identification via passkey"
 msgid "Passkey credentials"
 msgstr "Identification via passkey"
 
-#: accounts/views.py:68
+#: accounts/views.py:65
 msgid "Password updated successfully."
 msgstr "Mise à jour du mot de passe réussie"
+
+#: accounts/views.py:267
+msgid "Passkey removed successfully."
+msgstr "Passkey supprimé avec succès."
 
 #: base/tests/test_views.py:26 templates/index.html:32
 msgid "Welcome"
@@ -319,61 +323,65 @@ msgstr "Données de type invalide"
 msgid "An error occurred while loading chart data"
 msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 
-#: finance/views/csv_views.py:58
+#: finance/views/csv_views.py:51 finance/views/csv_views.py:63
+msgid "Some accounts could not be found."
+msgstr "Certains comptes n'ont pas été trouvés."
+
+#: finance/views/csv_views.py:66
 msgid "No account selected or found for export."
 msgstr "Aucun compte sélectionné ou trouvé pour l'export"
 
-#: finance/views/csv_views.py:129
+#: finance/views/csv_views.py:137
 msgid "No data to export for selected accounts."
 msgstr "Aucune donnée à exporter pour les comptes sélectionnés."
 
-#: finance/views/csv_views.py:177 finance/views/csv_views.py:205
-#: finance/views/csv_views.py:232
+#: finance/views/csv_views.py:185 finance/views/csv_views.py:213
+#: finance/views/csv_views.py:240
 msgid "CSV file is missing required columns for the selected type."
 msgstr ""
 "Le fichier CSV n'a pas les noms de colonnes requises pour le type "
 "sélectionné."
 
-#: finance/views/csv_views.py:317
+#: finance/views/csv_views.py:325
 msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
-#: finance/views/csv_views.py:331 finance/views/update_views.py:335
+#: finance/views/csv_views.py:339 finance/views/update_views.py:335
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
 
-#: finance/views/csv_views.py:379
+#: finance/views/csv_views.py:387
 msgid "No mapping found for account"
 msgstr "Aucune correspondance trouvée pour le compte"
 
-#: finance/views/csv_views.py:467
+#: finance/views/csv_views.py:475
 msgid "No mapping found for holding"
 msgstr "Aucune correspondance trouvée pour le titre"
 
-#: finance/views/csv_views.py:505
+#: finance/views/csv_views.py:513
 msgid "An error occurred during import: "
 msgstr "Une erreur s'est produite pendant l'import : "
 
-#: finance/views/csv_views.py:520
+#: finance/views/csv_views.py:528
 #, python-brace-format
 msgid "Successfully imported {} records. {} duplicate records were ignored."
 msgstr "{} enregistrements importés avec succès. {} doublons ignorés."
 
-#: finance/views/csv_views.py:526
+#: finance/views/csv_views.py:534
 #, python-brace-format
 msgid "Successfully imported {} records."
 msgstr "Enregistrements {} importés avec succès."
 
-#: finance/views/csv_views.py:531
+#: finance/views/csv_views.py:539
 #, python-brace-format
 msgid "No new records imported. {} duplicate records were ignored."
 msgstr "Pas de nouvelle données importées. {} données existantes ignorées."
 
-#: finance/views/csv_views.py:537
+#: finance/views/csv_views.py:545
 msgid "Errors in rows: "
 msgstr "Erreurs dans les lignes : "
 
-#: finance/views/csv_views.py:541
+#: finance/views/csv_views.py:549
 #, python-brace-format
 msgid " and {} more errors"
 msgstr " et {} erreurs supplémentaires"
@@ -425,11 +433,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:186
+#: glad/settings.py:191
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:187
+#: glad/settings.py:192
 msgid "French"
 msgstr "Français"
 

@@ -1,18 +1,21 @@
 """Views for the accounts app."""
 
 import json
+import logging
+import time
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, update_session_auth_hash
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_not_required, login_required
-from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
-from django.views.generic import CreateView, FormView, TemplateView
+from django.views.generic import FormView, TemplateView
 from webauthn import (
     generate_authentication_options,
     generate_registration_options,
@@ -35,13 +38,7 @@ from webauthn.helpers.structs import (
 
 from .models import PasskeyCredential, UserProfile
 
-
-class SignUpView(CreateView):
-    """View for user registration."""
-
-    form_class = UserCreationForm
-    success_url = reverse_lazy("login")
-    template_name = "registration/signup.html"
+_LOGGER = logging.getLogger(__name__)
 
 
 class LogoutConfirmView(TemplateView):
@@ -125,7 +122,7 @@ def passkey_register_options(request):
             user_name=request.user.username,
             user_display_name=request.user.get_full_name() or request.user.username,
             authenticator_selection=AuthenticatorSelectionCriteria(
-                resident_key=ResidentKeyRequirement.PREFERRED,
+                resident_key=ResidentKeyRequirement.REQUIRED,
                 user_verification=UserVerificationRequirement.REQUIRED,
             ),
             attestation=AttestationConveyancePreference.NONE,
@@ -134,8 +131,9 @@ def passkey_register_options(request):
         _store_challenge(request, "passkey_register_challenge", options.challenge)
         return JsonResponse(json.loads(options_to_json(options)))
     except Exception as e:
+        _LOGGER.error(f"Failed to generate passkey register options: {e}")
         return JsonResponse(
-            {"success": False, "error": f"Failed to generate options: {str(e)}"},
+            {"success": False, "error": "registration_failed"},
             status=500,
         )
 
@@ -148,7 +146,7 @@ def passkey_register_complete(request):
         challenge = _load_challenge(request, "passkey_register_challenge")
         if not challenge:
             return JsonResponse(
-                {"success": False, "error": "missing_challenge"}, status=400
+                {"success": False, "error": "invalid_request"}, status=400
             )
 
         payload = json.loads(request.body or "{}")
@@ -172,8 +170,13 @@ def passkey_register_complete(request):
 
         request.session.pop("passkey_register_challenge", None)
         return JsonResponse({"success": True})
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+        _LOGGER.error(f"Passkey registration failed: {e}")
+        return JsonResponse(
+            {"success": False, "error": "registration_failed"}, status=400
+        )
 
 
 @login_not_required
@@ -188,8 +191,9 @@ def passkey_auth_options(request):
         _store_challenge(request, "passkey_auth_challenge", options.challenge)
         return JsonResponse(json.loads(options_to_json(options)))
     except Exception as e:
+        _LOGGER.error(f"Failed to generate passkey auth options: {e}")
         return JsonResponse(
-            {"success": False, "error": f"Failed to generate options: {str(e)}"},
+            {"success": False, "error": "authentication_failed"},
             status=500,
         )
 
@@ -202,7 +206,7 @@ def passkey_auth_complete(request):
         challenge = _load_challenge(request, "passkey_auth_challenge")
         if not challenge:
             return JsonResponse(
-                {"success": False, "error": "missing_challenge"}, status=400
+                {"success": False, "error": "invalid_request"}, status=400
             )
 
         payload = json.loads(request.body or "{}")
@@ -215,7 +219,7 @@ def passkey_auth_complete(request):
         )
         if not stored:
             return JsonResponse(
-                {"success": False, "error": "unknown_credential"}, status=400
+                {"success": False, "error": "invalid_request"}, status=400
             )
 
         verification = verify_authentication_response(
@@ -233,16 +237,44 @@ def passkey_auth_complete(request):
         request.session.pop("passkey_auth_challenge", None)
         login(request, stored.user)
         return JsonResponse({"success": True})
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+        _LOGGER.error(f"Passkey authentication failed: {e}")
+        return JsonResponse(
+            {"success": False, "error": "authentication_failed"}, status=400
+        )
 
 
 @login_required
 @require_POST
 def passkey_delete(request):
-    """Remove the stored passkey for the current user."""
-    PasskeyCredential.objects.filter(user=request.user).delete()
-    return JsonResponse({"success": True})
+    """Remove the stored passkey for the current user after password verification."""
+    try:
+        data = json.loads(request.body or "{}")
+        password = data.get("password", "")
+
+        # Require password confirmation for this sensitive operation
+        if not request.user.check_password(password):
+            return JsonResponse(
+                {"success": False, "error": "invalid_password"},
+                status=400,
+            )
+
+        deleted, _ = PasskeyCredential.objects.filter(user=request.user).delete()
+
+        if deleted:
+            messages.success(request, _("Passkey removed successfully."))
+
+        return JsonResponse({"success": True})
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
+    except Exception as e:
+        _LOGGER.error(f"Passkey deletion failed: {e}")
+        return JsonResponse(
+            {"success": False, "error": "deletion_failed"},
+            status=400,
+        )
 
 
 @login_required
@@ -254,7 +286,7 @@ def toggle_app_lock(request):
         enabled = data.get("enabled")
         if enabled is None:
             return JsonResponse(
-                {"success": False, "error": "missing_enabled"}, status=400
+                {"success": False, "error": "invalid_request"}, status=400
             )
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
         profile.app_lock_enabled = bool(enabled)
@@ -262,22 +294,47 @@ def toggle_app_lock(request):
         return JsonResponse(
             {"success": True, "app_lock_enabled": profile.app_lock_enabled}
         )
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+        _LOGGER.error(f"App lock toggle failed: {e}")
+        return JsonResponse({"success": False, "error": "toggle_failed"}, status=400)
 
 
 @login_required
 @require_POST
 def password_verify(request):
-    """Verify the current user's password (used by the app lock screen)."""
+    """Verify the current user's password (used by the app lock screen) with rate limiting."""
+    # Rate limiting: max 5 attempts per minute
+    cache_key = f"password_verify_{request.user.id}"
+    attempts = cache.get(cache_key, 0)
+
+    if attempts >= 5:
+        return JsonResponse(
+            {"success": False, "error": "too_many_attempts"},
+            status=429,
+        )
+
     try:
         data = json.loads(request.body or "{}")
         password = data.get("password", "")
-        if request.user.check_password(password):
-            return JsonResponse({"success": True})
-        return JsonResponse({"success": False, "error": "invalid_password"}, status=400)
+
+        if not request.user.check_password(password):
+            cache.set(cache_key, attempts + 1, 60)  # 1 minute cooldown
+            return JsonResponse(
+                {"success": False, "error": "invalid_password"}, status=400
+            )
+
+        cache.delete(cache_key)
+        return JsonResponse({"success": True})
+    except json.JSONDecodeError:
+        cache.set(cache_key, attempts + 1, 60)
+        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+        _LOGGER.error(f"Password verification error: {e}")
+        return JsonResponse(
+            {"success": False, "error": "verification_failed"}, status=400
+        )
 
 
 @login_required
@@ -292,8 +349,9 @@ def passkey_verify_options(request):
         _store_challenge(request, "passkey_verify_challenge", options.challenge)
         return JsonResponse(json.loads(options_to_json(options)))
     except Exception as e:
+        _LOGGER.error(f"Failed to generate passkey verify options: {e}")
         return JsonResponse(
-            {"success": False, "error": f"Failed to generate options: {str(e)}"},
+            {"success": False, "error": "verification_failed"},
             status=500,
         )
 
@@ -302,11 +360,25 @@ def passkey_verify_options(request):
 @require_POST
 def passkey_verify_complete(request):
     """Verify a WebAuthn assertion for the lock screen without re-authenticating."""
+    # Validate server-side session timeout (5 minutes)
+    last_activity = request.session.get("_last_activity")
+    session_timeout = 5 * 60  # 5 minutes in seconds
+
+    if last_activity:
+        elapsed = time.time() - last_activity
+        if elapsed > session_timeout:
+            logout(request)
+            return JsonResponse(
+                {"success": False, "error": "session_timeout"}, status=401
+            )
+
+    request.session["_last_activity"] = time.time()
+
     try:
         challenge = _load_challenge(request, "passkey_verify_challenge")
         if not challenge:
             return JsonResponse(
-                {"success": False, "error": "missing_challenge"}, status=400
+                {"success": False, "error": "invalid_request"}, status=400
             )
 
         payload = json.loads(request.body or "{}")
@@ -319,7 +391,7 @@ def passkey_verify_complete(request):
         )
         if not stored:
             return JsonResponse(
-                {"success": False, "error": "unknown_credential"}, status=400
+                {"success": False, "error": "invalid_request"}, status=400
             )
 
         verification = verify_authentication_response(
@@ -336,5 +408,10 @@ def passkey_verify_complete(request):
 
         request.session.pop("passkey_verify_challenge", None)
         return JsonResponse({"success": True})
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
     except Exception as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+        _LOGGER.error(f"Passkey verification failed: {e}")
+        return JsonResponse(
+            {"success": False, "error": "verification_failed"}, status=400
+        )

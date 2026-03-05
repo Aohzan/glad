@@ -5,7 +5,6 @@ from django.urls import path
 from .views import (
     LogoutConfirmView,
     SettingsView,
-    SignUpView,
     passkey_auth_complete,
     passkey_auth_options,
     passkey_delete,
@@ -20,7 +19,6 @@ from .views import (
 app_name = "accounts"
 
 urlpatterns = [
-    path("signup/", SignUpView.as_view(), name="signup"),
     path("logout_confirm/", LogoutConfirmView.as_view(), name="logout_confirm"),
     path("settings/", SettingsView.as_view(), name="settings"),
     path(

@@ -41,19 +41,27 @@ def csv_export(request):
                     if value.startswith("investment-"):
                         pk = value.split("-", 1)[1]
                         try:
-                            account = InvestmentAccount.objects.filter(pk=pk).first()
-                            if account:
-                                accounts.append(account)
-                        except Exception:
-                            pass
+                            account = InvestmentAccount.objects.get(pk=pk)
+                            accounts.append(account)
+                        except InvestmentAccount.DoesNotExist, ValueError:
+                            _LOGGER.warning(
+                                f"Account {pk} not found or invalid for user {request.user}"
+                            )
+                            messages.warning(
+                                request, _("Some accounts could not be found.")
+                            )
                     elif value.startswith("saving-"):
                         pk = value.split("-", 1)[1]
                         try:
-                            account = SavingAccount.objects.filter(pk=pk).first()
-                            if account:
-                                accounts.append(account)
-                        except Exception:
-                            pass
+                            account = SavingAccount.objects.get(pk=pk)
+                            accounts.append(account)
+                        except SavingAccount.DoesNotExist, ValueError:
+                            _LOGGER.warning(
+                                f"Account {pk} not found or invalid for user {request.user}"
+                            )
+                            messages.warning(
+                                request, _("Some accounts could not be found.")
+                            )
             if not accounts:
                 messages.error(request, _("No account selected or found for export."))
                 return render(request, "finance/csv_export.html", {"form": form})
