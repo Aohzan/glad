@@ -7,6 +7,12 @@ wheels/
 *.egg-info
 .ruff_cache/
 
+# Test and coverage files
+.coverage
+.coverage.*
+.pytest_cache/
+htmlcov/
+
 # Virtual environments
 .venv
 

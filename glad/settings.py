@@ -45,7 +45,7 @@ _app_hostname = _app_url_parsed.hostname if _app_url_parsed else None
 
 # Only set ALLOWED_HOSTS if explicitly configured in environment
 ALLOWED_HOSTS = (
-    [x.strip() for x in os.environ.get("ALLOWED_HOSTS", "").split(",")]
+    [x.strip() for x in os.environ["ALLOWED_HOSTS"].split(",")]
     if os.environ.get("ALLOWED_HOSTS")
     else []
 )
