@@ -16,6 +16,12 @@ from tests.conftest import (
     user_client,
 )
 
+# Import finance fixtures to make them available
+from finance.tests.conftest import (
+    investment_account_type,
+    saving_account_type,
+)
+
 # Re-export all fixtures from the central conftest.py
 __all__ = [
     "ADMIN_USER",
@@ -27,4 +33,6 @@ __all__ = [
     "client",
     "admin_client",
     "user_client",
+    "saving_account_type",
+    "investment_account_type",
 ]

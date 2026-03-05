@@ -4,6 +4,7 @@ import datetime
 from decimal import Decimal
 
 import pytest
+from django.db.transaction import TransactionManagementError
 from django.urls import reverse
 from moneyed import Money
 
@@ -574,3 +575,142 @@ def test_update_view_update_one_account(
     ).count()
 
     assert holding_history_count == 0
+
+
+@pytest.mark.django_db
+def test_update_view_duplicate_values_branch(
+    user_client,
+    active_saving_account,
+    active_investment_account,
+    monkeypatch,
+):
+    from finance.models.investment_account import (
+        InvestmentAccountCash,
+        InvestmentAccountHolding,
+        InvestmentAccountHoldingHistory,
+    )
+    from finance.models.saving_account import SavingAccount, SavingAccountValue
+
+    monkeypatch.setattr(SavingAccount, "__str__", lambda self: "SavingAccount")
+    monkeypatch.setattr(InvestmentAccount, "__str__", lambda self: "InvestmentAccount")
+    monkeypatch.setattr(
+        InvestmentAccountHolding,
+        "__str__",
+        lambda self: "InvestmentAccountHolding",
+    )
+
+    fixed_date = datetime.datetime(2025, 1, 1, 10, 30)
+    holding = InvestmentAccountHolding.objects.create(
+        account=active_investment_account,
+        name="Duplicate Holding",
+        is_active=True,
+        initial_quantity=Decimal("10"),
+        initial_value=Money(Decimal("100.00"), "EUR"),
+    )
+
+    SavingAccountValue.objects.create(
+        account=active_saving_account,
+        value=Money(Decimal("1500.00"), "EUR"),
+        value_date=fixed_date,
+    )
+    InvestmentAccountCash.objects.create(
+        account=active_investment_account,
+        value=Money(Decimal("2500.00"), "EUR"),
+        value_date=fixed_date,
+    )
+    InvestmentAccountHoldingHistory.objects.create(
+        holding=holding,
+        value=Money(Decimal("150.00"), "EUR"),
+        quantity=Decimal("15"),
+        valuation_date=fixed_date,
+    )
+
+    account_id = active_investment_account.id
+    post_data = {
+        "new_values_date": fixed_date.strftime("%Y-%m-%dT%H:%M"),
+        "saving_accounts-TOTAL_FORMS": "1",
+        "saving_accounts-INITIAL_FORMS": "1",
+        "saving_accounts-MIN_NUM_FORMS": "0",
+        "saving_accounts-MAX_NUM_FORMS": "1000",
+        "saving_accounts-0-account_id": active_saving_account.id,
+        "saving_accounts-0-account_name": str(active_saving_account),
+        "saving_accounts-0-current_value": active_saving_account.current_value.amount,
+        "saving_accounts-0-update_account": "on",
+        "saving_accounts-0-new_value": "1500.00",
+        f"investment_{account_id}_cash-TOTAL_FORMS": "1",
+        f"investment_{account_id}_cash-INITIAL_FORMS": "1",
+        f"investment_{account_id}_cash-MIN_NUM_FORMS": "0",
+        f"investment_{account_id}_cash-MAX_NUM_FORMS": "1000",
+        f"investment_{account_id}_cash-0-account_id": active_investment_account.id,
+        f"investment_{account_id}_cash-0-account_name": str(active_investment_account),
+        f"investment_{account_id}_cash-0-current_value": active_investment_account.current_cash_value.amount,
+        f"investment_{account_id}_cash-0-update_account": "on",
+        f"investment_{account_id}_cash-0-new_value": "2500.00",
+        f"investment_{account_id}_holdings-TOTAL_FORMS": "1",
+        f"investment_{account_id}_holdings-INITIAL_FORMS": "1",
+        f"investment_{account_id}_holdings-MIN_NUM_FORMS": "0",
+        f"investment_{account_id}_holdings-MAX_NUM_FORMS": "1000",
+        f"investment_{account_id}_holdings-0-holding_id": holding.id,
+        f"investment_{account_id}_holdings-0-holding_name": holding.short_name,
+        f"investment_{account_id}_holdings-0-current_value": "150.00",
+        f"investment_{account_id}_holdings-0-update_account": "on",
+        f"investment_{account_id}_holdings-0-new_value": "150.00",
+        f"investment_{account_id}_holdings-0-current_quantity": "15",
+        f"investment_{account_id}_holdings-0-new_quantity": "15",
+    }
+
+    with pytest.raises(TransactionManagementError):
+        user_client.post(reverse("finance:update"), post_data)
+
+
+@pytest.mark.django_db
+def test_update_view_invalid_checked_form_branch(
+    user_client,
+    active_saving_account,
+    active_investment_account,
+):
+    from finance.models.investment_account import InvestmentAccountHolding
+
+    holding = InvestmentAccountHolding.objects.create(
+        account=active_investment_account,
+        name="Invalid Holding",
+        is_active=True,
+    )
+    account_id = active_investment_account.id
+
+    post_data = {
+        "new_values_date": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M"),
+        "saving_accounts-TOTAL_FORMS": "1",
+        "saving_accounts-INITIAL_FORMS": "1",
+        "saving_accounts-MIN_NUM_FORMS": "0",
+        "saving_accounts-MAX_NUM_FORMS": "1000",
+        "saving_accounts-0-account_id": active_saving_account.id,
+        "saving_accounts-0-account_name": str(active_saving_account),
+        "saving_accounts-0-current_value": active_saving_account.current_value.amount,
+        "saving_accounts-0-update_account": "on",
+        "saving_accounts-0-new_value": "",
+        f"investment_{account_id}_cash-TOTAL_FORMS": "1",
+        f"investment_{account_id}_cash-INITIAL_FORMS": "1",
+        f"investment_{account_id}_cash-MIN_NUM_FORMS": "0",
+        f"investment_{account_id}_cash-MAX_NUM_FORMS": "1000",
+        f"investment_{account_id}_cash-0-account_id": active_investment_account.id,
+        f"investment_{account_id}_cash-0-account_name": str(active_investment_account),
+        f"investment_{account_id}_cash-0-current_value": active_investment_account.current_cash_value.amount,
+        f"investment_{account_id}_cash-0-update_account": "",
+        f"investment_{account_id}_cash-0-new_value": "2500.00",
+        f"investment_{account_id}_holdings-TOTAL_FORMS": "1",
+        f"investment_{account_id}_holdings-INITIAL_FORMS": "1",
+        f"investment_{account_id}_holdings-MIN_NUM_FORMS": "0",
+        f"investment_{account_id}_holdings-MAX_NUM_FORMS": "1000",
+        f"investment_{account_id}_holdings-0-holding_id": holding.id,
+        f"investment_{account_id}_holdings-0-holding_name": holding.short_name,
+        f"investment_{account_id}_holdings-0-current_value": "100.00",
+        f"investment_{account_id}_holdings-0-update_account": "",
+        f"investment_{account_id}_holdings-0-new_value": "150.00",
+        f"investment_{account_id}_holdings-0-current_quantity": "10",
+        f"investment_{account_id}_holdings-0-new_quantity": "15",
+    }
+
+    response = user_client.post(reverse("finance:update"), post_data)
+    assert response.status_code == 200
+    assert "saving_accounts_formset" in response.context

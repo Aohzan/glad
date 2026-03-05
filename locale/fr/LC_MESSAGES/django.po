@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-05 21:14+0100\n"
+"POT-Creation-Date: 2026-03-05 22:43+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -49,7 +49,7 @@ msgstr "Mise à jour du mot de passe réussie"
 msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
-#: base/tests/test_views.py:26 templates/index.html:32
+#: base/tests/test_views.py:37 templates/index.html:32
 msgid "Welcome"
 msgstr "Bienvenue"
 
