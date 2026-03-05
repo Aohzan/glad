@@ -3,11 +3,12 @@
 import csv
 import io
 import logging
+from typing import cast
 
 import dateparser
 from django.contrib import messages
 from django.db import IntegrityError, transaction
-from django.forms import formset_factory
+from django.forms import ChoiceField, formset_factory
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
@@ -293,9 +294,10 @@ def csv_import(request):
             )
             # Set choices for each form
             for form in account_formset:
-                form.fields["app_account_id"].choices = [
-                    ("", "--- Choose the account ---")
-                ] + app_account_choices
+                field = cast(ChoiceField, form.fields["app_account_id"])
+                field.choices = [("", "--- Choose the account ---")] + (
+                    app_account_choices
+                )
 
             # Create a context dictionary
             context = {
@@ -331,9 +333,8 @@ def csv_import_confirm(request):
 
         # Set choices for each form in the formset
         for form in account_formset:
-            form.fields["app_account_id"].choices = [
-                ("", "--- Choose the account ---")
-            ] + app_account_choices
+            field = cast(ChoiceField, form.fields["app_account_id"])
+            field.choices = [("", "--- Choose the account ---")] + (app_account_choices)
 
         if not account_formset.is_valid():
             messages.error(request, _("Please correct the errors below."))

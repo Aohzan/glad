@@ -1,6 +1,7 @@
 """Tests for finance utils."""
 
 from decimal import Decimal
+from typing import Any, cast
 
 from django.test import TestCase
 from moneyed import Money
@@ -99,13 +100,17 @@ class AccountProgressionTestCase(TestCase):
     def test_invalid_input_types(self):
         """Test that invalid input types raise TypeError."""
         with self.assertRaises(TypeError):
-            AccountProgression("not_money", Money(100, "EUR"))
+            AccountProgression(cast(Any, "not_money"), Money(100, "EUR"))
 
         with self.assertRaises(TypeError):
-            AccountProgression(Money(100, "EUR"), "not_money")
+            AccountProgression(Money(100, "EUR"), cast(Any, "not_money"))
 
         with self.assertRaises(TypeError):
-            AccountProgression(Money(100, "EUR"), Money(100, "EUR"), "not_money")
+            AccountProgression(
+                Money(100, "EUR"),
+                Money(100, "EUR"),
+                cast(Any, "not_money"),
+            )
 
     def test_string_representation(self):
         """Test string representation of AccountProgression."""

@@ -106,7 +106,9 @@ class PropertyLoan(BaseModel):
             or as_of_date < self.start_date
             or self.end_date is None
         ):
-            return self.original_amount
+            return Money(
+                self.original_amount.amount, str(self.original_amount.currency)
+            )
 
         if as_of_date >= self.end_date:
             return Money(0, str(self.original_amount.currency))
@@ -144,6 +146,8 @@ class PropertyLoan(BaseModel):
 
 class Property(BaseModel):
     """Model representing a property."""
+
+    property_values: models.Manager["PropertyValue"]
 
     HOUSE = "HO"
     APARTMENT = "AP"
@@ -219,7 +223,7 @@ class Property(BaseModel):
         """Get the currency of the property."""
         # Access currency safely
         if hasattr(self.buying_value, "currency"):
-            return self.buying_value.currency
+            return str(self.buying_value.currency)
         return settings.DEFAULT_CURRENCY
 
     def get_value(self, max_date: datetime.datetime | None = None) -> Money:
@@ -326,7 +330,10 @@ class Property(BaseModel):
             )
         return PropertyProgression(
             current_value=self.get_value(),
-            old_value=self.buying_value_gross or self.buying_value,
+            old_value=Money(
+                (self.buying_value_gross or self.buying_value).amount,
+                str((self.buying_value_gross or self.buying_value).currency),
+            ),
         )
 
 

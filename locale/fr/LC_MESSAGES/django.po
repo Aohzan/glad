@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-05 20:34+0100\n"
+"POT-Creation-Date: 2026-03-05 21:14+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -65,29 +65,29 @@ msgstr "Mise à jour d'espèces : "
 msgid "Holding update: "
 msgstr "Mise à jour de titres : "
 
-#: finance/admin.py:161 finance/admin.py:187
+#: finance/admin.py:162 finance/admin.py:188
 msgid "Bulk update valuation date"
 msgstr "Mise à jour groupée de la date d'évaluation"
 
-#: finance/admin.py:170
+#: finance/admin.py:171
 #, python-format
 msgid "Successfully updated valuation date for %(count)d items."
 msgstr "Date d'évaluation mise à jour avec succès pour %(count)d éléments."
 
-#: finance/admin.py:189
+#: finance/admin.py:190
 msgid "New valuation date"
 msgstr "Nouvelle date d'évaluation"
 
-#: finance/admin.py:209 finance/admin.py:235
+#: finance/admin.py:210 finance/admin.py:236
 msgid "Bulk update value date"
 msgstr "Mise à jour groupée de la date de valeur"
 
-#: finance/admin.py:218
+#: finance/admin.py:219
 #, python-format
 msgid "Successfully updated value date for %(count)d items."
 msgstr "Date de valeur mise à jour avec succès pour %(count)d éléments."
 
-#: finance/admin.py:237
+#: finance/admin.py:238
 msgid "New value date"
 msgstr "Nouvelle valeur"
 
@@ -175,95 +175,95 @@ msgstr "Type de compte d'investissement"
 msgid "investment account types"
 msgstr "Types de comptes d'investissement"
 
-#: finance/models/investment_account.py:41
+#: finance/models/investment_account.py:43
 msgid "investment account"
 msgstr "compte d'investissement"
 
-#: finance/models/investment_account.py:42
+#: finance/models/investment_account.py:44
 msgid "investment accounts"
 msgstr "comptes d'investissement"
 
-#: finance/models/investment_account.py:56 finance/models/saving_account.py:60
+#: finance/models/investment_account.py:58 finance/models/saving_account.py:62
 msgid "Name of the account (optional)"
 msgstr "Nom du compte (optionnel)"
 
-#: finance/models/investment_account.py:62 finance/models/saving_account.py:66
+#: finance/models/investment_account.py:64 finance/models/saving_account.py:68
 msgid "Owner of the account (optional)"
 msgstr "Propriétaire du compte (optionnel)"
 
-#: finance/models/investment_account.py:68 finance/models/saving_account.py:72
+#: finance/models/investment_account.py:70 finance/models/saving_account.py:74
 msgid "Institution where the account is held (optional)"
 msgstr "Institution où le compte est détenu (optionnel)"
 
-#: finance/models/investment_account.py:107
-#: finance/models/saving_account.py:109
+#: finance/models/investment_account.py:109
+#: finance/models/saving_account.py:111
 msgid "at"
 msgstr "chez"
 
-#: finance/models/investment_account.py:109
-#: finance/models/investment_account.py:312
-#: finance/models/saving_account.py:111
+#: finance/models/investment_account.py:111
+#: finance/models/investment_account.py:316
+#: finance/models/saving_account.py:113
 msgid "(closed)"
 msgstr "(clôturé)"
 
-#: finance/models/investment_account.py:212
+#: finance/models/investment_account.py:216
 msgid "cash value of investment account"
 msgstr "valeur d'espèces du compte d'investissement"
 
-#: finance/models/investment_account.py:213
+#: finance/models/investment_account.py:217
 msgid "cash values of investment accounts"
 msgstr "valeurs d'espèces des comptes d'investissement"
 
-#: finance/models/investment_account.py:239
+#: finance/models/investment_account.py:243
 msgid "deposit on investment account"
 msgstr "dépôt sur compte d'investissement"
 
-#: finance/models/investment_account.py:240
+#: finance/models/investment_account.py:244
 msgid "deposits on investment accounts"
 msgstr "dépôts sur comptes d'investissement"
 
-#: finance/models/investment_account.py:257
+#: finance/models/investment_account.py:261
 msgid "Add this deposit amount to the account cash value"
 msgstr "Ajouter le montant de ce dépôt au compte espèce"
 
-#: finance/models/investment_account.py:265
+#: finance/models/investment_account.py:269
 msgid "holding of investment account"
 msgstr "titre de compte d'investissement"
 
-#: finance/models/investment_account.py:266
+#: finance/models/investment_account.py:270
 msgid "holdings of investment accounts"
 msgstr "titres de comptes d'investissement"
 
-#: finance/models/investment_account.py:280
+#: finance/models/investment_account.py:284
 msgid "Fees associated with the holding, in percentage"
 msgstr "Frais associés à la part, en pourcentage"
 
-#: finance/models/investment_account.py:286
+#: finance/models/investment_account.py:290
 msgid "Issuer of the holding"
 msgstr "Émetteur du titre"
 
-#: finance/models/investment_account.py:310
+#: finance/models/investment_account.py:314
 #, python-brace-format
 msgid "{} in {}."
 msgstr "{} dans {}."
 
-#: finance/models/investment_account.py:382
+#: finance/models/investment_account.py:386
 msgid "history of holding"
 msgstr "Historique du titre"
 
-#: finance/models/investment_account.py:383
+#: finance/models/investment_account.py:387
 msgid "history of holdings"
 msgstr "Historique des titres"
 
-#: finance/models/investment_account.py:407
+#: finance/models/investment_account.py:411
 msgid "Value of the holding share at the moment of valuation"
 msgstr "Valeur de la part du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:418
+#: finance/models/investment_account.py:422
 msgid "Quantity of the holding at the moment of valuation"
 msgstr "Quantité du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:426
+#: finance/models/investment_account.py:430
 msgid ""
 "Amount of cash used for this transaction (will be subtracted from account "
 "cash)"
@@ -279,39 +279,39 @@ msgstr "type de compte d'épargne"
 msgid "saving account types"
 msgstr "Types de comptes d'épargne"
 
-#: finance/models/saving_account.py:45
+#: finance/models/saving_account.py:47
 msgid "saving account"
 msgstr "compte d'épargne"
 
-#: finance/models/saving_account.py:46
+#: finance/models/saving_account.py:48
 msgid "saving accounts"
 msgstr "comptes d'épargne"
 
-#: finance/models/saving_account.py:79
+#: finance/models/saving_account.py:81
 msgid "Interest rate in percentage"
 msgstr "Taux d'intérêt en pourcentage"
 
-#: finance/models/saving_account.py:171
+#: finance/models/saving_account.py:173
 msgid "saving account value"
 msgstr "valeur du compte d'épargne"
 
-#: finance/models/saving_account.py:172
+#: finance/models/saving_account.py:174
 msgid "History of saving accounts"
 msgstr "Historique des comptes d'épargne"
 
-#: finance/models/saving_account.py:192
+#: finance/models/saving_account.py:194
 msgid "on"
 msgstr "le"
 
-#: finance/models/saving_account.py:199
+#: finance/models/saving_account.py:201
 msgid "deposit on saving account"
 msgstr "dépôt sur compte d'épargne"
 
-#: finance/models/saving_account.py:200
+#: finance/models/saving_account.py:202
 msgid "deposits on saving accounts"
 msgstr "dépôts sur comptes d'épargne"
 
-#: finance/models/saving_account.py:220
+#: finance/models/saving_account.py:222
 msgid "Add this deposit amount to the account value"
 msgstr "Ajouter le montant de ce dépôt au compte"
 
@@ -323,65 +323,65 @@ msgstr "Données de type invalide"
 msgid "An error occurred while loading chart data"
 msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 
-#: finance/views/csv_views.py:51 finance/views/csv_views.py:63
+#: finance/views/csv_views.py:52 finance/views/csv_views.py:64
 msgid "Some accounts could not be found."
 msgstr "Certains comptes n'ont pas été trouvés."
 
-#: finance/views/csv_views.py:66
+#: finance/views/csv_views.py:67
 msgid "No account selected or found for export."
 msgstr "Aucun compte sélectionné ou trouvé pour l'export"
 
-#: finance/views/csv_views.py:137
+#: finance/views/csv_views.py:138
 msgid "No data to export for selected accounts."
 msgstr "Aucune donnée à exporter pour les comptes sélectionnés."
 
-#: finance/views/csv_views.py:185 finance/views/csv_views.py:213
-#: finance/views/csv_views.py:240
+#: finance/views/csv_views.py:186 finance/views/csv_views.py:214
+#: finance/views/csv_views.py:241
 msgid "CSV file is missing required columns for the selected type."
 msgstr ""
 "Le fichier CSV n'a pas les noms de colonnes requises pour le type "
 "sélectionné."
 
-#: finance/views/csv_views.py:325
+#: finance/views/csv_views.py:327
 msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
-#: finance/views/csv_views.py:339 finance/views/update_views.py:335
+#: finance/views/csv_views.py:340 finance/views/update_views.py:335
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
 
-#: finance/views/csv_views.py:387
+#: finance/views/csv_views.py:388
 msgid "No mapping found for account"
 msgstr "Aucune correspondance trouvée pour le compte"
 
-#: finance/views/csv_views.py:475
+#: finance/views/csv_views.py:476
 msgid "No mapping found for holding"
 msgstr "Aucune correspondance trouvée pour le titre"
 
-#: finance/views/csv_views.py:513
+#: finance/views/csv_views.py:514
 msgid "An error occurred during import: "
 msgstr "Une erreur s'est produite pendant l'import : "
 
-#: finance/views/csv_views.py:528
+#: finance/views/csv_views.py:529
 #, python-brace-format
 msgid "Successfully imported {} records. {} duplicate records were ignored."
 msgstr "{} enregistrements importés avec succès. {} doublons ignorés."
 
-#: finance/views/csv_views.py:534
+#: finance/views/csv_views.py:535
 #, python-brace-format
 msgid "Successfully imported {} records."
 msgstr "Enregistrements {} importés avec succès."
 
-#: finance/views/csv_views.py:539
+#: finance/views/csv_views.py:540
 #, python-brace-format
 msgid "No new records imported. {} duplicate records were ignored."
 msgstr "Pas de nouvelle données importées. {} données existantes ignorées."
 
-#: finance/views/csv_views.py:545
+#: finance/views/csv_views.py:546
 msgid "Errors in rows: "
 msgstr "Erreurs dans les lignes : "
 
-#: finance/views/csv_views.py:549
+#: finance/views/csv_views.py:550
 #, python-brace-format
 msgid " and {} more errors"
 msgstr " et {} erreurs supplémentaires"
@@ -485,103 +485,103 @@ msgstr "Taux d'assurance (%)"
 msgid "Insurance"
 msgstr "Assurance"
 
-#: property/models.py:154
+#: property/models.py:158
 msgid "House"
 msgstr "Maison"
 
-#: property/models.py:155
+#: property/models.py:159
 msgid "Apartment"
 msgstr "Appartement"
 
-#: property/models.py:156
+#: property/models.py:160
 msgid "Condo"
 msgstr "Condo"
 
-#: property/models.py:157
+#: property/models.py:161
 msgid "Land"
 msgstr "Terrain"
 
-#: property/models.py:158 property/models.py:362 property/models.py:397
+#: property/models.py:162 property/models.py:369 property/models.py:404
 msgid "Other"
 msgstr "Autre"
 
-#: property/models.py:166
+#: property/models.py:170
 msgid "Property Type"
 msgstr "Type de propriété"
 
-#: property/models.py:175
+#: property/models.py:179
 msgid "Buying Value"
 msgstr "Valeur d'achat"
 
-#: property/models.py:176
+#: property/models.py:180
 msgid "The value of the property at the time of purchase."
 msgstr "La valeur de la propriété au moment de l'achat"
 
-#: property/models.py:189
+#: property/models.py:193
 msgid "Number of shares in the property (if applicable)"
 msgstr "Nombre de part dans la propriété (si applicable)"
 
-#: property/models.py:193
+#: property/models.py:197
 msgid "Buying Date"
 msgstr "Date d'achat"
 
-#: property/models.py:198
+#: property/models.py:202
 msgid "Selling Date"
 msgstr "Date de vente"
 
-#: property/models.py:214
+#: property/models.py:218
 msgid "property"
 msgstr "Propriété"
 
-#: property/models.py:215
+#: property/models.py:219
 msgid "properties"
 msgstr "Propriétés"
 
-#: property/models.py:339
+#: property/models.py:346
 msgid "property value"
 msgstr "Valeur de propriété"
 
-#: property/models.py:340
+#: property/models.py:347
 msgid "property values"
 msgstr "Valeurs de propriétés"
 
-#: property/models.py:360
+#: property/models.py:367
 msgid "Rent"
 msgstr "Loyer"
 
-#: property/models.py:361
+#: property/models.py:368
 msgid "Dividend"
 msgstr "Dividendes"
 
-#: property/models.py:368
+#: property/models.py:375
 msgid "property revenue"
 msgstr "revenu de propriété"
 
-#: property/models.py:369
+#: property/models.py:376
 msgid "property revenues"
 msgstr "revenus de propriétés"
 
-#: property/models.py:377
+#: property/models.py:384
 msgid "Revenue type"
 msgstr "Type de revenue"
 
-#: property/models.py:395
+#: property/models.py:402
 msgid "Maintenance"
 msgstr "Maintenance"
 
-#: property/models.py:396
+#: property/models.py:403
 msgid "Tax"
 msgstr "Impôt"
 
-#: property/models.py:403
+#: property/models.py:410
 msgid "property expense"
 msgstr "dépense de propriété"
 
-#: property/models.py:404
+#: property/models.py:411
 msgid "property expenses"
 msgstr "dépenses de propriétés"
 
-#: property/models.py:412
+#: property/models.py:419
 msgid "Expense type"
 msgstr "Type de dépense"
 

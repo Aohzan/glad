@@ -2,6 +2,7 @@
 
 from django.contrib import admin
 from django.contrib import messages
+from django.contrib.admin import helpers
 from django.utils.translation import gettext_lazy as _
 
 from finance.models.investment_account import (
@@ -181,7 +182,7 @@ class InvestmentAccountHoldingHistoryAdmin(admin.ModelAdmin):
             "admin/bulk_update_date.html",
             {
                 "queryset": queryset,
-                "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
+                "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
                 "opts": self.model._meta,
                 "action_name": "bulk_update_valuation_date",
                 "title": _("Bulk update valuation date"),
@@ -229,7 +230,7 @@ class SavingAccountValueAdmin(admin.ModelAdmin):
             "admin/bulk_update_date.html",
             {
                 "queryset": queryset,
-                "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
+                "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
                 "opts": self.model._meta,
                 "action_name": "bulk_update_value_date",
                 "title": _("Bulk update value date"),

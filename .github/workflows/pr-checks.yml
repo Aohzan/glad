@@ -2,7 +2,7 @@ name: Pull Request Checks
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, beta]
 
 jobs:
   pre-commit-checks:
@@ -28,10 +28,15 @@ jobs:
         env:
           SKIP: pytest,django-compilemessages,django-makemessages
 
-  pytest:
+  tests:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -45,6 +50,11 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Run tests
-        run: uv run pytest
+        run: uv run pytest --cov
         env:
           ENV_FILE: "${{ github.workspace }}/.env.dev"
+
+      - name: Coverage comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}

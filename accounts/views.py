@@ -11,10 +11,10 @@ from django.contrib.auth.decorators import login_not_required, login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
+from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.http import require_POST
 from django.views.generic import FormView, TemplateView
 from webauthn import (
     generate_authentication_options,
@@ -111,7 +111,7 @@ def _load_challenge(request, key):
 
 
 @login_required
-@require_POST
+@require_http_methods(["POST"])
 def passkey_register_options(request):
     """Generate WebAuthn registration options for the current user."""
     try:
@@ -139,7 +139,7 @@ def passkey_register_options(request):
 
 
 @login_required
-@require_POST
+@require_http_methods(["POST"])
 def passkey_register_complete(request):
     """Verify registration and store the passkey for the current user."""
     try:
@@ -180,7 +180,7 @@ def passkey_register_complete(request):
 
 
 @login_not_required
-@require_POST
+@require_http_methods(["POST"])
 def passkey_auth_options(request):
     """Generate WebAuthn authentication options."""
     try:
@@ -199,7 +199,7 @@ def passkey_auth_options(request):
 
 
 @login_not_required
-@require_POST
+@require_http_methods(["POST"])
 def passkey_auth_complete(request):
     """Verify authentication and log the user in using the passkey."""
     try:
@@ -247,7 +247,7 @@ def passkey_auth_complete(request):
 
 
 @login_required
-@require_POST
+@require_http_methods(["POST"])
 def passkey_delete(request):
     """Remove the stored passkey for the current user after password verification."""
     try:
@@ -261,7 +261,7 @@ def passkey_delete(request):
                 status=400,
             )
 
-        deleted, _ = PasskeyCredential.objects.filter(user=request.user).delete()
+        deleted, __ = PasskeyCredential.objects.filter(user=request.user).delete()
 
         if deleted:
             messages.success(request, _("Passkey removed successfully."))
@@ -278,7 +278,7 @@ def passkey_delete(request):
 
 
 @login_required
-@require_POST
+@require_http_methods(["POST"])
 def toggle_app_lock(request):
     """Enable or disable the app lock feature for the current user."""
     try:
@@ -302,7 +302,7 @@ def toggle_app_lock(request):
 
 
 @login_required
-@require_POST
+@require_http_methods(["POST"])
 def password_verify(request):
     """Verify the current user's password (used by the app lock screen) with rate limiting."""
     # Rate limiting: max 5 attempts per minute
@@ -338,7 +338,7 @@ def password_verify(request):
 
 
 @login_required
-@require_POST
+@require_http_methods(["POST"])
 def passkey_verify_options(request):
     """Generate WebAuthn authentication options for the lock screen (already logged in)."""
     try:
@@ -357,7 +357,7 @@ def passkey_verify_options(request):
 
 
 @login_required
-@require_POST
+@require_http_methods(["POST"])
 def passkey_verify_complete(request):
     """Verify a WebAuthn assertion for the lock screen without re-authenticating."""
     # Validate server-side session timeout (5 minutes)

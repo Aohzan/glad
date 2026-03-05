@@ -38,7 +38,8 @@
       "command": "${config:python.defaultInterpreterPath}",
       "args": [
         "-m",
-        "pytest"
+        "pytest",
+        "--cov"
       ],
       "presentation": {
         "reveal": "always",
@@ -47,7 +48,7 @@
       "problemMatcher": [],
       "env": {
         "ENV_FILE": "${workspaceFolder}/.env.dev",
-      }
+      },
     },
     {
       "label": "Pytest (changed tests only)",

@@ -39,6 +39,8 @@ class SavingAccountType(BaseModel):
 class SavingAccount(BaseModel):
     """Saving account has a value."""
 
+    deposits: models.Manager["SavingAccountDeposit"]
+
     class Meta:
         """Meta options for the SavingAccount model."""
 
@@ -92,17 +94,17 @@ class SavingAccount(BaseModel):
     @property
     def currency(self) -> str:
         """Get the currency of the initial value."""
-        return self.opening_value.currency
+        return str(self.opening_value.currency)
 
     def __str__(self) -> str:
         """String representation of the Account model."""
         account_name: str = ""
         if self.name and self.name in [self.account_type.name, self.account_type.code]:
-            account_name = self.name
+            account_name = str(self.name)
         elif self.name:
             account_name = f"{self.account_type.name} {self.name}"
         else:
-            account_name = self.account_type.name
+            account_name = str(self.account_type.name) if self.account_type.name else ""
         if self.owner:
             account_name += f" {self.owner}"
         if self.institution:
@@ -138,7 +140,7 @@ class SavingAccount(BaseModel):
         )
         if last_value:
             return last_value.value
-        return self.opening_value
+        return Money(self.opening_value.amount, str(self.opening_value.currency))
 
     def get_progression(self, days: int) -> AccountProgression:
         """Get the progression of the account over a specific number of days."""
