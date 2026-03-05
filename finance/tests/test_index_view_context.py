@@ -4,7 +4,7 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.http import HttpRequest, QueryDict
+from django.test import RequestFactory
 from django.urls import reverse
 from moneyed import Money
 
@@ -35,10 +35,8 @@ def test_index_view_context_keys(
     mock_render.return_value = MagicMock()
 
     # Create request
-    request = HttpRequest()
+    request = RequestFactory().get("/")
     request.user = user
-    request.method = "GET"
-    request.GET = QueryDict("")
 
     # Call view directly
     view = index
@@ -67,12 +65,8 @@ def test_index_view_custom_days(
     mock_render.return_value = MagicMock()
 
     # Create request with custom days
-    request = HttpRequest()
+    request = RequestFactory().get("/", {"days": "15"})
     request.user = user
-    request.method = "GET"
-    query_dict = QueryDict("", mutable=True)
-    query_dict["days"] = "15"
-    request.GET = query_dict
 
     # Call view directly
     view = index
@@ -97,10 +91,8 @@ def test_index_view_active_accounts_only(
     mock_render.return_value = MagicMock()
 
     # Create request
-    request = HttpRequest()
+    request = RequestFactory().get("/")
     request.user = user
-    request.method = "GET"
-    request.GET = QueryDict("")
 
     # Call view directly
     view = index
@@ -139,10 +131,8 @@ def test_index_view_savings_accounts_structure(
     mock_render.return_value = MagicMock()
 
     # Create request
-    request = HttpRequest()
+    request = RequestFactory().get("/")
     request.user = user
-    request.method = "GET"
-    request.GET = QueryDict("")
 
     # Call view directly
     view = index
@@ -194,10 +184,8 @@ def test_index_view_investment_accounts_structure(
     mock_render.return_value = MagicMock()
 
     # Create request
-    request = HttpRequest()
+    request = RequestFactory().get("/")
     request.user = user
-    request.method = "GET"
-    request.GET = QueryDict("")
 
     # Call view directly
     view = index
@@ -255,13 +243,11 @@ def test_index_view_custom_days_progression(
 
     # Create request with custom days
     custom_days = 15
-    request = HttpRequest()
+    request = RequestFactory().get(
+        "/",
+        {"days": str(custom_days), "active_only": "on"},
+    )
     request.user = user
-    request.method = "GET"
-    query_dict = QueryDict("", mutable=True)
-    query_dict["days"] = str(custom_days)
-    query_dict["active_only"] = "on"  # Ensure active_only=True to use filter() path
-    request.GET = query_dict
 
     # Call view directly
     view = index

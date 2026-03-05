@@ -30,12 +30,14 @@ class InvestmentAccountType(BaseModel):
     def __str__(self) -> str:
         """String representation of the AccountType model."""
         if self.code:
-            return self.code
-        return self.name
+            return str(self.code)
+        return str(self.name)
 
 
 class InvestmentAccount(BaseModel):
     """Investment account has a cash value and multiple holdings."""
+
+    deposits: models.Manager["InvestmentAccountDeposit"]
 
     class Meta:
         verbose_name = _("investment account")
@@ -85,7 +87,7 @@ class InvestmentAccount(BaseModel):
     @property
     def currency(self) -> str:
         """Get the currency of the initial value."""
-        return self.opening_cash_value.currency
+        return str(self.opening_cash_value.currency)
 
     @property
     def current_cash_value(self) -> Money:
@@ -96,7 +98,7 @@ class InvestmentAccount(BaseModel):
         """String representation of the Account model."""
         account_name: str = ""
         if self.name and self.name in [self.account_type.name, self.account_type.code]:
-            account_name = self.name
+            account_name = str(self.name)
         elif self.name:
             account_name = f"{str(self.account_type)} {self.name}"
         else:
@@ -120,7 +122,9 @@ class InvestmentAccount(BaseModel):
         )
         if current_cash_value:
             return current_cash_value.value
-        return self.opening_cash_value
+        return Money(
+            self.opening_cash_value.amount, str(self.opening_cash_value.currency)
+        )
 
     def get_value(
         self, max_date: datetime.datetime | datetime.date | None = None
@@ -147,7 +151,7 @@ class InvestmentAccount(BaseModel):
             cash_value_amount = current_value.value.amount
         else:
             # If no cash value found, use the initial cash value
-            cash_value_amount = self.opening_cash_value.amount
+            cash_value_amount = Decimal(str(self.opening_cash_value.amount))
 
         holdings_value_total: Decimal = Decimal("0")
         holdings = InvestmentAccountHolding.objects.filter(
@@ -300,9 +304,9 @@ class InvestmentAccountHolding(BaseModel):
     def short_name(self) -> str:
         """Get a short name for the holding."""
         if self.code and not self.name:
-            return self.code
+            return str(self.code)
         if self.name and not self.code:
-            return self.name
+            return str(self.name)
         return f"{self.name} ({self.code})"
 
     def __str__(self) -> str:
@@ -339,7 +343,7 @@ class InvestmentAccountHolding(BaseModel):
         )
         if holding_value:
             return holding_value.value.amount
-        return self.initial_value.amount
+        return Decimal(str(self.initial_value.amount))
 
     def get_quantity(
         self, max_date: datetime.datetime | datetime.date | None = None
@@ -357,7 +361,7 @@ class InvestmentAccountHolding(BaseModel):
         )
         if holding_last_value:
             return holding_last_value.quantity
-        return self.initial_quantity
+        return Decimal(str(self.initial_quantity)) if self.initial_quantity else None
 
     def get_progression(self, days: int) -> AccountProgression:
         """Get the progression of the holding over a specific number of days."""

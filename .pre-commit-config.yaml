@@ -1,4 +1,5 @@
 ---
+fail_fast: true
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -65,12 +66,19 @@ repos:
 
   - repo: local
     hooks:
-      - id: pytest
-        name: pytest
-        entry: env ENV_FILE=./.env.dev uv run pytest .
+      - id: ty check
+        name: ty check
+        entry: env ENV_FILE=./.env.dev uv run ty check
         exclude: ^migrations
         language: system
         types: [python]
+      - id: pytest
+        name: pytest
+        entry: env ENV_FILE=./.env.dev uv run pytest --picked --cov
+        exclude: ^migrations
+        language: system
+        types: [python]
+        pass_filenames: false
 
   - repo: https://github.com/crate-ci/committed
     rev: v1.1.11

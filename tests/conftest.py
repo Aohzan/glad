@@ -3,9 +3,12 @@
 import glob
 import os
 
+from typing import cast
+
 import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import UserManager
 from django.core.management import call_command
 from django.test import Client
 
@@ -48,7 +51,8 @@ TEST_PASSWORD = "testpassword"
 @pytest.fixture
 def admin_user():
     """Fixture to create and return a superuser."""
-    new_admin = User.objects.create_superuser(
+    user_manager = cast(UserManager, User.objects)
+    new_admin = user_manager.create_superuser(
         username=ADMIN_USER,
         email="admin@site.com",
         password=ADMIN_PASSWORD,
@@ -59,7 +63,8 @@ def admin_user():
 @pytest.fixture
 def user():
     """Fixture to create and return a regular user."""
-    new_user = User.objects.create_user(
+    user_manager = cast(UserManager, User.objects)
+    new_user = user_manager.create_user(
         username=TEST_USER,
         email="user@site.com",
         password=TEST_PASSWORD,

@@ -3,11 +3,12 @@
 import csv
 import io
 import logging
+from typing import cast
 
 import dateparser
 from django.contrib import messages
 from django.db import IntegrityError, transaction
-from django.forms import formset_factory
+from django.forms import ChoiceField, formset_factory
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
@@ -41,19 +42,27 @@ def csv_export(request):
                     if value.startswith("investment-"):
                         pk = value.split("-", 1)[1]
                         try:
-                            account = InvestmentAccount.objects.filter(pk=pk).first()
-                            if account:
-                                accounts.append(account)
-                        except Exception:
-                            pass
+                            account = InvestmentAccount.objects.get(pk=pk)
+                            accounts.append(account)
+                        except InvestmentAccount.DoesNotExist, ValueError:
+                            _LOGGER.warning(
+                                f"Account {pk} not found or invalid for user {request.user}"
+                            )
+                            messages.warning(
+                                request, _("Some accounts could not be found.")
+                            )
                     elif value.startswith("saving-"):
                         pk = value.split("-", 1)[1]
                         try:
-                            account = SavingAccount.objects.filter(pk=pk).first()
-                            if account:
-                                accounts.append(account)
-                        except Exception:
-                            pass
+                            account = SavingAccount.objects.get(pk=pk)
+                            accounts.append(account)
+                        except SavingAccount.DoesNotExist, ValueError:
+                            _LOGGER.warning(
+                                f"Account {pk} not found or invalid for user {request.user}"
+                            )
+                            messages.warning(
+                                request, _("Some accounts could not be found.")
+                            )
             if not accounts:
                 messages.error(request, _("No account selected or found for export."))
                 return render(request, "finance/csv_export.html", {"form": form})
@@ -285,9 +294,10 @@ def csv_import(request):
             )
             # Set choices for each form
             for form in account_formset:
-                form.fields["app_account_id"].choices = [
-                    ("", "--- Choose the account ---")
-                ] + app_account_choices
+                field = cast(ChoiceField, form.fields["app_account_id"])
+                field.choices = [("", "--- Choose the account ---")] + (
+                    app_account_choices
+                )
 
             # Create a context dictionary
             context = {
@@ -323,9 +333,8 @@ def csv_import_confirm(request):
 
         # Set choices for each form in the formset
         for form in account_formset:
-            form.fields["app_account_id"].choices = [
-                ("", "--- Choose the account ---")
-            ] + app_account_choices
+            field = cast(ChoiceField, form.fields["app_account_id"])
+            field.choices = [("", "--- Choose the account ---")] + (app_account_choices)
 
         if not account_formset.is_valid():
             messages.error(request, _("Please correct the errors below."))

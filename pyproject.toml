@@ -11,7 +11,7 @@ requires-python = ">=3.14"
 license = { file = "LICENSE.md" }
 
 dependencies = [
-    "django>=6",
+    "django>=6.0.3",
     "dotenv>=0.9.9",
     "python-dotenv>=1.1.0",
     "uvicorn>=0.35.0",
@@ -28,13 +28,18 @@ build = ["uv>=0.7"]
 [dependency-groups]
 dev = [
     "beautifulsoup4>=4.13.4",
+    "django-stubs>=5.1.2",
+    "djangorestframework-stubs>=3.15.1",
     "pre-commit>=4.2.0",
     "pylint>=3.3.6",
     "pylint-django>=2.6.1",
     "pytest>=8.3.5",
     "pytest-cov>=6.1.1",
     "pytest-django>=4.11.1",
+    "pytest-picked>=0.5.0",
     "ruff>=0.11.7",
+    "ty>=0.0.20",
+    "types-python-dateutil>=2.9.0",
 ]
 
 [tool.semantic_release]
@@ -56,6 +61,35 @@ prerelease_token = "beta"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "glad.settings"
 
+[tool.coverage.run]
+branch = true
+relative_files = true
+source = ["accounts", "base", "finance", "property"]
+omit = ["*/migrations/*", "*/tests/*", "*/conftest.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
 [tool.pylint]
 load-plugins = ["pylint_django"]
 django-settings-module = "glad.settings"
+
+[tool.pyright]
+include = ["."]
+exclude = ["**/__pycache__", "**/migrations", ".venv", "venv"]
+pythonVersion = "3.14"
+typeCheckingMode = "basic"
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportUnknownParameterType = false
+reportUnknownArgumentType = false

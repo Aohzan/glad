@@ -40,6 +40,7 @@ services:
     environment:
       SECRET_KEY: "xxxxxxxxx"
       APP_URL: "https://glad.my.domain"
+      ALLOWED_HOSTS: "glad.my.domain"
 ```
 
 ### Database
