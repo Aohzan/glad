@@ -13,12 +13,12 @@ class UserProfile(models.Model):
     """Extended profile for the user."""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
-    app_lock_enabled = models.BooleanField(
-        null=True,
-        blank=True,
-        default=None,
-        verbose_name=_("App lock enabled"),
-        help_text=_("Ask for authentication when reopening the app after inactivity."),
+    session_timeout = models.PositiveIntegerField(
+        default=15,
+        verbose_name=_("Session timeout (minutes)"),
+        help_text=_(
+            "Auto-logout after this many minutes of inactivity. Default: 15 minutes."
+        ),
     )
 
     class Meta:

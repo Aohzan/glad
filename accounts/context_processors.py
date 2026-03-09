@@ -3,30 +3,26 @@
 from .models import PasskeyCredential
 
 
-def app_lock(request):
-    """Expose app lock state and passkey status for the base template."""
+def session_config(request):
+    """Expose session timeout configuration for the base template."""
     if not request.user.is_authenticated:
         return {
-            "app_lock_enabled": False,
-            "show_app_lock_prompt": False,
+            "session_timeout": 15,
             "passkey_registered": False,
         }
 
     try:
         profile = request.user.profile
-        enabled = profile.app_lock_enabled
+        timeout = profile.session_timeout
         passkey_registered = PasskeyCredential.objects.filter(
             user=request.user
         ).exists()
         return {
-            "app_lock_enabled": enabled,
-            # None means the user has never been asked → show the one-time prompt
-            "show_app_lock_prompt": enabled is None,
+            "session_timeout": timeout,
             "passkey_registered": passkey_registered,
         }
     except Exception:
         return {
-            "app_lock_enabled": False,
-            "show_app_lock_prompt": False,
+            "session_timeout": 15,
             "passkey_registered": False,
         }

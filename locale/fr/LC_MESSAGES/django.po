@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-05 22:43+0100\n"
+"POT-Creation-Date: 2026-03-09 22:08+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -15,15 +15,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: accounts/models.py:20
-msgid "App lock enabled"
-msgstr "Verrouillage de l'application activé"
+#: accounts/models.py:18
+msgid "Session timeout (minutes)"
+msgstr "Délai d'expiration de session (minutes)"
 
-#: accounts/models.py:21
-msgid "Ask for authentication when reopening the app after inactivity."
+#: accounts/models.py:20
+msgid "Auto-logout after this many minutes of inactivity. Default: 15 minutes."
 msgstr ""
-"Demander une authentification à la réouverture de l'application après "
-"inactivité."
+"Déconnexion automatique après ce nombre de minutes d'inactivité. Par "
+"défaut : 15 minutes."
 
 #: accounts/models.py:25
 msgid "User profile"
@@ -41,11 +41,11 @@ msgstr "Identification via passkey"
 msgid "Passkey credentials"
 msgstr "Identification via passkey"
 
-#: accounts/views.py:65
+#: accounts/views.py:63
 msgid "Password updated successfully."
 msgstr "Mise à jour du mot de passe réussie"
 
-#: accounts/views.py:267
+#: accounts/views.py:265
 msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
@@ -433,11 +433,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:191
+#: glad/settings.py:195
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:192
+#: glad/settings.py:196
 msgid "French"
 msgstr "Français"
 
@@ -594,7 +594,7 @@ msgstr "Paramètres"
 msgid "Security"
 msgstr "Sécurité"
 
-#: templates/accounts/settings.html:18 templates/base.html:365
+#: templates/accounts/settings.html:18
 msgid "Password"
 msgstr "Mot de passe"
 
@@ -621,7 +621,7 @@ msgstr ""
 msgid "You can replace your passkey at any time."
 msgstr "Vous pouvez remplacer votre passkey n'importe quand."
 
-#: templates/accounts/settings.html:94 templates/accounts/settings.html:178
+#: templates/accounts/settings.html:94 templates/accounts/settings.html:183
 msgid "Register passkey"
 msgstr "Enregistrer la passkey"
 
@@ -630,78 +630,78 @@ msgid "Remove passkey"
 msgstr "Supprimer la passkey"
 
 #: templates/accounts/settings.html:105
-msgid "App Lock"
-msgstr "Verrouillage de l'application"
+msgid "Auto-logout"
+msgstr "Déconnexion automatique"
 
 #: templates/accounts/settings.html:107
-msgid ""
-"When enabled, you must authenticate with your passkey or password each time "
-"you reopen the app after a period of inactivity."
+msgid "Automatically log out after a period of inactivity for security."
 msgstr ""
-"Lorsqu'il est activé, vous devez vous authentifier avec votre clé d'accès ou "
-"votre mot de passe à chaque réouverture de l'application après une période "
-"d'inactivité."
+"Déconnecter automatiquement après une période d'inactivité pour des raisons "
+"de sécurité."
 
 #: templates/accounts/settings.html:114
-msgid "Register a passkey first to use app lock."
-msgstr "Enregistrez d'abord une clé d'accès pour utiliser le verrouillage."
+msgid "minutes"
+msgstr "minutes"
 
-#: templates/accounts/settings.html:177
+#: templates/accounts/settings.html:119
+msgid "Save"
+msgstr "Enregistrer"
+
+#: templates/accounts/settings.html:182
 msgid "Replace passkey"
 msgstr "Remplacer la passkey"
 
-#: templates/accounts/settings.html:184
+#: templates/accounts/settings.html:189
 msgid "Passkey registered."
 msgstr "Passkey enregistrée."
 
-#: templates/accounts/settings.html:186
+#: templates/accounts/settings.html:191
 msgid "No passkey registered yet."
 msgstr "Pas de passkey enregistré actuellement."
 
-#: templates/accounts/settings.html:195 templates/base.html:537
-#: templates/registration/login.html:115
+#: templates/accounts/settings.html:200 templates/registration/login.html:115
 msgid "Passkeys are not supported on this browser."
 msgstr "Les passkeys ne sont pas prises en charge sur ce navigateur."
 
-#: templates/accounts/settings.html:247
+#: templates/accounts/settings.html:252
 msgid "Passkey registered successfully."
 msgstr "Passkey enregistrée avec succès."
 
-#: templates/accounts/settings.html:252
+#: templates/accounts/settings.html:257
 msgid "Passkey registration was cancelled."
 msgstr "L'enregistrement de la passkey a été annulé."
 
-#: templates/accounts/settings.html:254
+#: templates/accounts/settings.html:259
 msgid "Failed to get registration options from server."
 msgstr "Échec de récupération des options d'enregistrement depuis le serveur."
 
-#: templates/accounts/settings.html:256 templates/registration/login.html:181
+#: templates/accounts/settings.html:261 templates/registration/login.html:181
 msgid "Failed to verify passkey with server."
 msgstr "Échec de vérification de la passkey avec le serveur."
 
-#: templates/accounts/settings.html:258
+#: templates/accounts/settings.html:263
 msgid "Failed to register passkey:"
 msgstr "Échec d'enregistrement de la passkey :"
 
-#: templates/accounts/settings.html:277
+#: templates/accounts/settings.html:282
 msgid "Passkey removed."
 msgstr "Passkey supprimée."
 
-#: templates/accounts/settings.html:280
+#: templates/accounts/settings.html:285
 msgid "Failed to remove passkey."
 msgstr "Échec de suppression de la passkey."
 
-#: templates/accounts/settings.html:304
-msgid "App lock enabled."
-msgstr "Verrouillage de l'application activé."
+#: templates/accounts/settings.html:302
+msgid "Please enter a value between 5 and 1440 minutes."
+msgstr "Veuillez saisir une valeur comprise entre 5 et 1440 minutes."
 
-#: templates/accounts/settings.html:305
-msgid "App lock disabled."
-msgstr "Verrouillage de l'application désactivé."
+#: templates/accounts/settings.html:315
+msgid "Session timeout updated successfully."
+msgstr "Délai d'expiration de session mis à jour avec succès."
 
-#: templates/accounts/settings.html:312
-msgid "Failed to update app lock setting."
-msgstr "Échec de la mise à jour du verrouillage de l'application."
+#: templates/accounts/settings.html:319
+msgid "Failed to update session timeout."
+msgstr "Échec de la mise à jour du délai d'expiration de session."
 
 #: templates/admin/bulk_update_date.html:5
 #, python-format
@@ -783,76 +783,6 @@ msgstr "Basculer en mode sombre"
 #: templates/base.html:139
 msgid "Change"
 msgstr "Changer"
-
-#: templates/base.html:347
-msgid "App locked"
-msgstr "Application verrouillée"
-
-#: templates/base.html:351
-msgid "App Locked"
-msgstr "Application verrouillée"
-
-#: templates/base.html:352
-msgid "Authenticate to continue."
-msgstr "Authentifiez-vous pour continuer."
-
-#: templates/base.html:356
-msgid "Unlock with passkey"
-msgstr "Déverrouiller avec la clé d'accès"
-
-#: templates/base.html:360
-msgid "Unlock with password"
-msgstr "Déverrouiller avec le mot de passe"
-
-#: templates/base.html:370
-msgid "Unlock"
-msgstr "Déverrouiller"
-
-#: templates/base.html:386
-msgid "Enable App Lock?"
-msgstr "Activer le verrouillage de l'application ?"
-
-#: templates/base.html:390
-msgid ""
-"Would you like the app to lock automatically after a period of inactivity? "
-"You can then unlock it with your passkey (fingerprint / face) or your "
-"password."
-msgstr ""
-"Souhaitez-vous que l'application se verrouille automatiquement après une "
-"période d'inactivité ? Vous pourrez la déverrouiller avec votre clé d'accès "
-"(empreinte / visage) ou votre mot de passe."
-
-#: templates/base.html:391
-msgid "You can change this at any time in Settings → Security."
-msgstr "Vous pouvez modifier cela à tout moment dans Paramètres → Sécurité."
-
-#: templates/base.html:395
-msgid "No, thanks"
-msgstr "Non, merci"
-
-#: templates/base.html:398
-msgid "Enable App Lock"
-msgstr "Activer le verrouillage"
-
-#: templates/base.html:578
-msgid "Passkey verification was cancelled."
-msgstr "La vérification de la clé d'accès a été annulée."
-
-#: templates/base.html:580
-msgid "Passkey verification failed."
-msgstr "La vérification de la clé d'accès a échoué."
-
-#: templates/base.html:593
-msgid "Please enter your password."
-msgstr "Veuillez entrer votre mot de passe."
-
-#: templates/base.html:605
-msgid "Incorrect password."
-msgstr "Mot de passe incorrect."
-
-#: templates/base.html:611
-msgid "Failed to verify password."
-msgstr "Échec de la vérification du mot de passe."
 
 #: templates/finance/csv_export.html:5
 msgid "Finance - Export CSV"

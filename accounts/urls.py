@@ -10,10 +10,7 @@ from .views import (
     passkey_delete,
     passkey_register_complete,
     passkey_register_options,
-    passkey_verify_complete,
-    passkey_verify_options,
-    password_verify,
-    toggle_app_lock,
+    update_session_timeout,
 )
 
 app_name = "accounts"
@@ -47,23 +44,8 @@ urlpatterns = [
         name="passkey_delete",
     ),
     path(
-        "api/passkey/verify/options/",
-        passkey_verify_options,
-        name="passkey_verify_options",
-    ),
-    path(
-        "api/passkey/verify/complete/",
-        passkey_verify_complete,
-        name="passkey_verify_complete",
-    ),
-    path(
-        "api/app-lock/toggle/",
-        toggle_app_lock,
-        name="toggle_app_lock",
-    ),
-    path(
-        "api/password/verify/",
-        password_verify,
-        name="password_verify",
+        "api/session-timeout/update/",
+        update_session_timeout,
+        name="update_session_timeout",
     ),
 ]

@@ -62,6 +62,9 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = bool(
     os.environ.get("SESSION_COOKIE_SECURE", "False").lower() == "true"
 )
+SESSION_COOKIE_AGE = 8 * 60 * 60  # 8 hours max (security for banking app)
+SESSION_SAVE_EVERY_REQUEST = True  # Reset timeout on every activity
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Force logout when closing browser/app
 
 # https://docs.djangoproject.com/en/5.0/ref/csrf/#settings
 CSRF_COOKIE_HTTPONLY = True
@@ -98,6 +101,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "accounts.middleware.SessionTimeoutMiddleware",
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -116,7 +120,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "accounts.context_processors.app_lock",
+                "accounts.context_processors.session_config",
             ],
         },
     },

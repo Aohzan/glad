@@ -6,12 +6,11 @@ from typing import cast
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, AnonymousUser
-from django.core.cache import cache
 from django.test import RequestFactory
 from django.urls import reverse
 
 from accounts import views
-from accounts.context_processors import app_lock
+from accounts.context_processors import session_config
 from accounts.models import PasskeyCredential
 
 
@@ -46,19 +45,18 @@ def test_settings_view_password_change_success(user_client):
 
 
 @pytest.mark.django_db
-def test_app_lock_context_anonymous():
+def test_session_config_context_anonymous():
     request = RequestFactory().get("/")
     request.user = cast(
         AbstractBaseUser | AnonymousUser, SimpleNamespace(is_authenticated=False)
     )
-    context = app_lock(request)
-    assert context["app_lock_enabled"] is False
-    assert context["show_app_lock_prompt"] is False
+    context = session_config(request)
+    assert context["session_timeout"] == 15
     assert context["passkey_registered"] is False
 
 
 @pytest.mark.django_db
-def test_app_lock_context_authenticated_with_passkey(user):
+def test_session_config_context_authenticated_with_passkey(user):
     PasskeyCredential.objects.create(
         user=user,
         credential_id="cred-1",
@@ -68,14 +66,13 @@ def test_app_lock_context_authenticated_with_passkey(user):
     request = RequestFactory().get("/")
     request.user = user
 
-    context = app_lock(request)
-    assert context["app_lock_enabled"] is None
-    assert context["show_app_lock_prompt"] is True
+    context = session_config(request)
+    assert context["session_timeout"] == 15
     assert context["passkey_registered"] is True
 
 
 @pytest.mark.django_db
-def test_app_lock_context_exception_path():
+def test_session_config_context_exception_path():
     class BrokenUser:
         is_authenticated = True
 
@@ -85,16 +82,15 @@ def test_app_lock_context_exception_path():
 
     request = RequestFactory().get("/")
     request.user = cast(AbstractBaseUser | AnonymousUser, BrokenUser())
-    context = app_lock(request)
-    assert context["app_lock_enabled"] is False
-    assert context["show_app_lock_prompt"] is False
+    context = session_config(request)
+    assert context["session_timeout"] == 15
     assert context["passkey_registered"] is False
 
 
 @pytest.mark.django_db
-def test_toggle_app_lock_missing_enabled(user_client):
+def test_update_session_timeout_missing_timeout(user_client):
     response = user_client.post(
-        reverse("accounts:toggle_app_lock"),
+        reverse("accounts:update_session_timeout"),
         data="{}",
         content_type="application/json",
     )
@@ -103,60 +99,27 @@ def test_toggle_app_lock_missing_enabled(user_client):
 
 
 @pytest.mark.django_db
-def test_toggle_app_lock_success(user_client, user):
+def test_update_session_timeout_success(user_client, user):
     response = user_client.post(
-        reverse("accounts:toggle_app_lock"),
-        data='{"enabled": true}',
+        reverse("accounts:update_session_timeout"),
+        data='{"timeout": 25}',
         content_type="application/json",
     )
     user.refresh_from_db()
     assert response.status_code == 200
-    assert response.json()["app_lock_enabled"] is True
-    assert user.profile.app_lock_enabled is True
+    assert response.json()["session_timeout"] == 25
+    assert user.profile.session_timeout == 25
 
 
 @pytest.mark.django_db
-def test_password_verify_success_and_failure(user_client, user):
-    cache_key = f"password_verify_{user.id}"
-    cache.set(cache_key, 4, 60)
-
-    bad = user_client.post(
-        reverse("accounts:password_verify"),
-        data='{"password": "wrong"}',
-        content_type="application/json",
-    )
-    assert bad.status_code == 400
-    assert bad.json()["error"] == "invalid_password"
-    assert cache.get(cache_key) == 5
-
-    blocked = user_client.post(
-        reverse("accounts:password_verify"),
-        data='{"password": "testpassword"}',
-        content_type="application/json",
-    )
-    assert blocked.status_code == 429
-
-    cache.delete(cache_key)
-    ok = user_client.post(
-        reverse("accounts:password_verify"),
-        data='{"password": "testpassword"}',
-        content_type="application/json",
-    )
-    assert ok.status_code == 200
-    assert ok.json()["success"] is True
-
-
-@pytest.mark.django_db
-def test_password_verify_invalid_json_increments_attempts(user_client, user):
-    cache_key = f"password_verify_{user.id}"
+def test_update_session_timeout_invalid_range(user_client):
     response = user_client.post(
-        reverse("accounts:password_verify"),
-        data="{",
+        reverse("accounts:update_session_timeout"),
+        data='{"timeout": 3}',
         content_type="application/json",
     )
     assert response.status_code == 400
-    assert response.json()["error"] == "invalid_request"
-    assert cache.get(cache_key) == 1
+    assert response.json()["error"] == "invalid_range"
 
 
 @pytest.mark.django_db
@@ -359,101 +322,6 @@ def test_passkey_delete_invalid_json(user_client):
     )
     assert response.status_code == 400
     assert response.json()["error"] == "invalid_request"
-
-
-@pytest.mark.django_db
-def test_passkey_verify_options_success_and_error(user_client, monkeypatch):
-    monkeypatch.setattr(
-        "accounts.views.generate_authentication_options",
-        lambda **kwargs: SimpleNamespace(challenge=b"verify-challenge"),
-    )
-    monkeypatch.setattr(
-        "accounts.views.options_to_json",
-        lambda options: '{"challenge":"verify"}',
-    )
-    ok = user_client.post(reverse("accounts:passkey_verify_options"))
-    assert ok.status_code == 200
-
-    def _raise(**kwargs):
-        raise RuntimeError("boom")
-
-    monkeypatch.setattr("accounts.views.generate_authentication_options", _raise)
-    ko = user_client.post(reverse("accounts:passkey_verify_options"))
-    assert ko.status_code == 500
-    assert ko.json()["error"] == "verification_failed"
-
-
-@pytest.mark.django_db
-def test_passkey_verify_complete_session_timeout(user_client):
-    session = user_client.session
-    session["_last_activity"] = 1
-    session.save()
-
-    response = user_client.post(
-        reverse("accounts:passkey_verify_complete"),
-        data="{}",
-        content_type="application/json",
-    )
-    assert response.status_code == 401
-    assert response.json()["error"] == "session_timeout"
-
-
-@pytest.mark.django_db
-def test_passkey_verify_complete_success(user_client, user, monkeypatch):
-    PasskeyCredential.objects.create(
-        user=user,
-        credential_id="cred-verify",
-        public_key="ignored",
-        sign_count=2,
-    )
-    session = user_client.session
-    session["passkey_verify_challenge"] = "challenge"
-    session.save()
-
-    monkeypatch.setattr(
-        "accounts.views.parse_authentication_credential_json",
-        lambda payload: SimpleNamespace(id="cred-verify"),
-    )
-    monkeypatch.setattr("accounts.views.base64url_to_bytes", lambda value: b"pk")
-    monkeypatch.setattr(
-        "accounts.views.verify_authentication_response",
-        lambda **kwargs: SimpleNamespace(new_sign_count=11),
-    )
-
-    response = user_client.post(
-        reverse("accounts:passkey_verify_complete"),
-        data="{}",
-        content_type="application/json",
-    )
-    assert response.status_code == 200
-    assert response.json()["success"] is True
-
-
-@pytest.mark.django_db
-def test_passkey_verify_complete_invalid_paths(user_client, user):
-    no_challenge = user_client.post(
-        reverse("accounts:passkey_verify_complete"),
-        data="{}",
-        content_type="application/json",
-    )
-    assert no_challenge.status_code == 400
-
-    session = user_client.session
-    session["passkey_verify_challenge"] = "challenge"
-    session.save()
-    unknown = user_client.post(
-        reverse("accounts:passkey_verify_complete"),
-        data='{"id":"unknown"}',
-        content_type="application/json",
-    )
-    assert unknown.status_code == 400
-
-    invalid_json = user_client.post(
-        reverse("accounts:passkey_verify_complete"),
-        data="{",
-        content_type="application/json",
-    )
-    assert invalid_json.status_code == 400
 
 
 def test_get_rp_id_helpers_with_request_factory(settings):

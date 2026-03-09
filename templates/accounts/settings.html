@@ -102,19 +102,24 @@
                 <hr>
                 <div class="d-flex align-items-start justify-content-between gap-3">
                     <div>
-                        <h6 class="mb-1">{% translate "App Lock" %}</h6>
+                        <h6 class="mb-1">{% translate "Auto-logout" %}</h6>
                         <p class="text-muted small mb-0">
-                            {% translate "When enabled, you must authenticate with your passkey or password each time you reopen the app after a period of inactivity." %}
+                            {% translate "Automatically log out after a period of inactivity for security." %}
                         </p>
                     </div>
-                    <div class="form-check form-switch ms-3 flex-shrink-0 mt-1">
-                        <input class="form-check-input" type="checkbox" role="switch"
-                            id="app-lock-toggle"
-                            {% if app_lock_enabled %}checked{% endif %}
-                            {% if not passkey_registered %}disabled title="{% translate "Register a passkey first to use app lock." %}"{% endif %}>
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm" style="width: 80px;"
+                            id="session-timeout-input" min="5" max="1440" step="5"
+                            value="{{ session_timeout }}">
+                        <span class="text-muted small">{% translate "minutes" %}</span>
                     </div>
                 </div>
-                <div id="app-lock-status" class="mt-2 small" aria-live="polite"></div>
+                <div class="d-flex justify-content-end mt-2">
+                    <button id="session-timeout-save" class="btn btn-outline-primary btn-sm" type="button">
+                        <i class="bi bi-save me-2"></i>{% translate "Save" %}
+                    </button>
+                </div>
+                <div id="session-timeout-status" class="mt-2 small" aria-live="polite"></div>
             </div>
         </div>
     </div>
@@ -283,36 +288,39 @@
             }
         });
     }
-    // App lock toggle
-    const appLockToggle = document.getElementById('app-lock-toggle');
-    const appLockStatusEl = document.getElementById('app-lock-status');
-    const toggleAppLockUrl = '{% url "accounts:toggle_app_lock" %}';
 
-    if (appLockToggle) {
-        appLockToggle.addEventListener('change', async function () {
-            const enabled = appLockToggle.checked;
-            appLockToggle.disabled = true;
+    // Session timeout
+    const sessionTimeoutInput = document.getElementById('session-timeout-input');
+    const sessionTimeoutSaveBtn = document.getElementById('session-timeout-save');
+    const sessionTimeoutStatusEl = document.getElementById('session-timeout-status');
+    const updateSessionTimeoutUrl = '{% url "accounts:update_session_timeout" %}';
+
+    if (sessionTimeoutSaveBtn && sessionTimeoutInput) {
+        sessionTimeoutSaveBtn.addEventListener('click', async function () {
+            const timeout = parseInt(sessionTimeoutInput.value, 10);
+            if (isNaN(timeout) || timeout < 5 || timeout > 1440) {
+                sessionTimeoutStatusEl.textContent = "{% translate "Please enter a value between 5 and 1440 minutes." %}";
+                sessionTimeoutStatusEl.className = 'mt-2 small text-danger';
+                return;
+            }
+            sessionTimeoutSaveBtn.disabled = true;
             try {
                 const csrfToken = getCsrfToken();
-                const response = await fetch(toggleAppLockUrl, {
+                const response = await fetch(updateSessionTimeoutUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                    body: JSON.stringify({ enabled }),
+                    body: JSON.stringify({ timeout }),
                 });
-                if (!response.ok) throw new Error('toggle_failed');
-                localStorage.setItem('gladAppLock', enabled ? 'true' : 'false');
-                {% translate "App lock enabled." as enabled_msg %}
-                {% translate "App lock disabled." as disabled_msg %}
-                appLockStatusEl.textContent = enabled
-                    ? '{{ enabled_msg|escapejs }}'
-                    : '{{ disabled_msg|escapejs }}';
-                appLockStatusEl.className = 'mt-2 small text-success';
+                if (!response.ok) throw new Error('update_failed');
+                {% translate "Session timeout updated successfully." as msg %}
+                sessionTimeoutStatusEl.textContent = '{{ msg|escapejs }}';
+                sessionTimeoutStatusEl.className = 'mt-2 small text-success';
             } catch (err) {
-                appLockToggle.checked = !enabled; // revert
-                appLockStatusEl.textContent = "{% translate "Failed to update app lock setting." %}";
-                appLockStatusEl.className = 'mt-2 small text-danger';
+                {% translate "Failed to update session timeout." as msg %}
+                sessionTimeoutStatusEl.textContent = '{{ msg|escapejs }}';
+                sessionTimeoutStatusEl.className = 'mt-2 small text-danger';
             } finally {
-                appLockToggle.disabled = false;
+                sessionTimeoutSaveBtn.disabled = false;
             }
         });
     }
