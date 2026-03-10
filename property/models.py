@@ -10,7 +10,7 @@ from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from base.models import BaseModel
-from property.utils import PropertyProgression
+from property.utils import PropertyProgression, generate_recurring_occurrences
 
 
 class PropertyLoan(BaseModel):
@@ -276,12 +276,12 @@ class Property(BaseModel):
             return Money(0, str(self.currency))
 
         # Calculate sum of all loan remaining balances at the specified date
-        total = 0
+        total = Decimal("0")
         for loan in loans:
-            total += float(loan.remaining_balance(as_of_date).amount)
+            total += loan.remaining_balance(as_of_date).amount
 
         # Return as Money with proper currency
-        return Money(Decimal(str(total)), str(self.currency))
+        return Money(total, str(self.currency))
 
     @property
     def total_paid_loans(self) -> Money:
@@ -291,8 +291,8 @@ class Property(BaseModel):
         if not loans.exists():
             return Money(0, str(self.currency))
 
-        total = sum(float(loan.amount_paid().amount) for loan in loans)
-        return Money(Decimal(str(total)), str(self.currency))
+        total = sum((loan.amount_paid().amount for loan in loans), Decimal("0"))
+        return Money(total, str(self.currency))
 
     @property
     def gross_value(self) -> Money:
@@ -369,6 +369,15 @@ class PropertyRevenue(BaseModel):
         (OTHER, _("Other")),
     ]
 
+    NONE = "none"
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
+    RECURRENCE_TYPE_CHOICES = [
+        (NONE, _("None")),
+        (MONTHLY, _("Monthly")),
+        (YEARLY, _("Yearly")),
+    ]
+
     class Meta:
         """Meta options for the PropertyRevenue model."""
 
@@ -377,7 +386,11 @@ class PropertyRevenue(BaseModel):
         ordering = ["-revenue_date"]
 
     revenue = MoneyField(max_digits=10, decimal_places=0, null=False)
-    revenue_date = models.DateField(null=False)
+    revenue_date = models.DateField(
+        null=False,
+        verbose_name=_("Date"),
+        help_text=_("Date of the revenue (or start date for recurring revenues)"),
+    )
     revenue_type = models.CharField(
         max_length=50,
         choices=REVENUE_TYPE_CHOICES,
@@ -390,6 +403,39 @@ class PropertyRevenue(BaseModel):
         on_delete=models.CASCADE,
         null=False,
     )
+
+    # Recurrence fields
+    recurrence_type = models.CharField(
+        max_length=20,
+        choices=RECURRENCE_TYPE_CHOICES,
+        default=NONE,
+        verbose_name=_("Recurrence type"),
+    )
+    recurrence_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Recurrence end date"),
+        help_text=_("End date for recurring revenues (leave empty for indefinite)"),
+    )
+
+    def __str__(self) -> str:
+        """String representation of the PropertyRevenue model."""
+        if self.recurrence_type != self.NONE:
+            return f"{self.property.name} - {self.revenue} ({self.get_recurrence_type_display()})"  # type: ignore[attr-defined]
+        return f"{self.property.name} - {self.revenue} - {self.revenue_date}"
+
+    def generate_occurrences(self, end_date: datetime.date | None = None) -> list[dict]:
+        """Generate all occurrences of this revenue based on recurrence settings."""
+        return generate_recurring_occurrences(
+            start_date=self.revenue_date,
+            amount=self.revenue,
+            recurrence_type=self.recurrence_type,
+            recurrence_none=self.NONE,
+            recurrence_monthly=self.MONTHLY,
+            recurrence_yearly=self.YEARLY,
+            recurrence_end_date=self.recurrence_end_date,
+            end_date=end_date,
+        )
 
 
 class PropertyExpense(BaseModel):
@@ -404,6 +450,15 @@ class PropertyExpense(BaseModel):
         (OTHER, _("Other")),
     ]
 
+    NONE = "none"
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
+    RECURRENCE_TYPE_CHOICES = [
+        (NONE, _("None")),
+        (MONTHLY, _("Monthly")),
+        (YEARLY, _("Yearly")),
+    ]
+
     class Meta:
         """Meta options for the PropertyExpense model."""
 
@@ -412,7 +467,11 @@ class PropertyExpense(BaseModel):
         ordering = ["-expense_date"]
 
     expense = MoneyField(max_digits=10, decimal_places=0, null=False)
-    expense_date = models.DateField(null=False)
+    expense_date = models.DateField(
+        null=False,
+        verbose_name=_("Date"),
+        help_text=_("Date of the expense (or start date for recurring expenses)"),
+    )
     expense_type = models.CharField(
         max_length=50,
         choices=EXPENSE_TYPE_CHOICES,
@@ -426,3 +485,36 @@ class PropertyExpense(BaseModel):
         on_delete=models.CASCADE,
         null=False,
     )
+
+    # Recurrence fields
+    recurrence_type = models.CharField(
+        max_length=20,
+        choices=RECURRENCE_TYPE_CHOICES,
+        default=NONE,
+        verbose_name=_("Recurrence type"),
+    )
+    recurrence_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Recurrence end date"),
+        help_text=_("End date for recurring expenses (leave empty for indefinite)"),
+    )
+
+    def __str__(self) -> str:
+        """String representation of the PropertyExpense model."""
+        if self.recurrence_type != self.NONE:
+            return f"{self.property.name} - {self.expense} ({self.get_recurrence_type_display()})"  # type: ignore[attr-defined]
+        return f"{self.property.name} - {self.expense} - {self.expense_date}"
+
+    def generate_occurrences(self, end_date: datetime.date | None = None) -> list[dict]:
+        """Generate all occurrences of this expense based on recurrence settings."""
+        return generate_recurring_occurrences(
+            start_date=self.expense_date,
+            amount=self.expense,
+            recurrence_type=self.recurrence_type,
+            recurrence_none=self.NONE,
+            recurrence_monthly=self.MONTHLY,
+            recurrence_yearly=self.YEARLY,
+            recurrence_end_date=self.recurrence_end_date,
+            end_date=end_date,
+        )

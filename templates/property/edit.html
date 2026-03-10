@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% translate "Edit" %} - {{ property.name }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1>{% translate "Edit property" %}</h1>
+      <p class="text-body-secondary mb-0">{{ property.name }}</p>
+    </div>
+    <a href="{% url 'property:detail' property.pk %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> {% translate "Back" %}
+    </a>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- Property Details Section -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">{% translate "Property Details" %}</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="{{ property_form.name.id_for_label }}" class="form-label">
+              {{ property_form.name.label }}
+              {% if property_form.name.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ property_form.name }}
+            {% if property_form.name.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label for="{{ property_form.property_type.id_for_label }}" class="form-label">
+              {{ property_form.property_type.label }}
+              {% if property_form.property_type.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ property_form.property_type }}
+            {% if property_form.property_type.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.property_type.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <label for="{{ property_form.address.id_for_label }}" class="form-label">
+              {{ property_form.address.label }}
+            </label>
+            {{ property_form.address }}
+            {% if property_form.address.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.address.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="{{ property_form.buying_value.id_for_label }}" class="form-label">
+              {{ property_form.buying_value.label }}
+              {% if property_form.buying_value.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ property_form.buying_value }}
+            {% if property_form.buying_value.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.buying_value.errors.0 }}</div>
+            {% endif %}
+            {% if property_form.buying_value.help_text %}
+              <div class="form-text">{{ property_form.buying_value.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="{{ property_form.buying_value_gross.id_for_label }}" class="form-label">
+              {{ property_form.buying_value_gross.label }}
+            </label>
+            {{ property_form.buying_value_gross }}
+            {% if property_form.buying_value_gross.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.buying_value_gross.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="{{ property_form.buying_date.id_for_label }}" class="form-label">
+              {{ property_form.buying_date.label }}
+              {% if property_form.buying_date.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ property_form.buying_date }}
+            {% if property_form.buying_date.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.buying_date.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="{{ property_form.shares_count.id_for_label }}" class="form-label">
+              {{ property_form.shares_count.label }}
+            </label>
+            {{ property_form.shares_count }}
+            {% if property_form.shares_count.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.shares_count.errors.0 }}</div>
+            {% endif %}
+            {% if property_form.shares_count.help_text %}
+              <div class="form-text">{{ property_form.shares_count.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="{{ property_form.selling_date.id_for_label }}" class="form-label">
+              {{ property_form.selling_date.label }}
+            </label>
+            {{ property_form.selling_date }}
+            {% if property_form.selling_date.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.selling_date.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="{{ property_form.selling_value.id_for_label }}" class="form-label">
+              {{ property_form.selling_value.label }}
+            </label>
+            {{ property_form.selling_value }}
+            {% if property_form.selling_value.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.selling_value.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <div class="form-check">
+              {{ property_form.is_active }}
+              <label class="form-check-label" for="{{ property_form.is_active.id_for_label }}">
+                {{ property_form.is_active.label }}
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Loans Section -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">{% translate "Property Loans" %}</h5>
+      </div>
+      <div class="card-body">
+        {{ loan_formset.management_form }}
+
+        {% if loan_formset.non_form_errors %}
+          <div class="alert alert-danger">
+            {{ loan_formset.non_form_errors }}
+          </div>
+        {% endif %}
+
+        <div id="loan-formset">
+          {% for form in loan_formset %}
+            <div class="loan-form border rounded p-3 mb-3">
+              {{ form.id }}
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">
+                  {% if form.instance.pk %}
+                    {% translate "Loan" %} #{{ forloop.counter }}
+                  {% else %}
+                    {% translate "New Loan" %}
+                  {% endif %}
+                </h6>
+                {% if form.instance.pk %}
+                  <div class="form-check">
+                    {{ form.DELETE }}
+                    <label class="form-check-label text-danger" for="{{ form.DELETE.id_for_label }}">
+                      <i class="bi bi-trash"></i> {% translate "Delete" %}
+                    </label>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="{{ form.name.id_for_label }}" class="form-label">
+                    {{ form.name.label }}
+                  </label>
+                  {{ form.name }}
+                  {% if form.name.errors %}
+                    <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label for="{{ form.lender.id_for_label }}" class="form-label">
+                    {{ form.lender.label }}
+                  </label>
+                  {{ form.lender }}
+                  {% if form.lender.errors %}
+                    <div class="invalid-feedback d-block">{{ form.lender.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                    {{ form.start_date.label }}
+                    {% if form.start_date.field.required %}<span class="text-danger">*</span>{% endif %}
+                  </label>
+                  {{ form.start_date }}
+                  {% if form.start_date.errors %}
+                    <div class="invalid-feedback d-block">{{ form.start_date.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                    {{ form.end_date.label }}
+                    {% if form.end_date.field.required %}<span class="text-danger">*</span>{% endif %}
+                  </label>
+                  {{ form.end_date }}
+                  {% if form.end_date.errors %}
+                    <div class="invalid-feedback d-block">{{ form.end_date.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label for="{{ form.original_amount.id_for_label }}" class="form-label">
+                    {{ form.original_amount.label }}
+                    {% if form.original_amount.field.required %}<span class="text-danger">*</span>{% endif %}
+                  </label>
+                  {{ form.original_amount }}
+                  {% if form.original_amount.errors %}
+                    <div class="invalid-feedback d-block">{{ form.original_amount.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label for="{{ form.monthly_payment.id_for_label }}" class="form-label">
+                    {{ form.monthly_payment.label }}
+                    {% if form.monthly_payment.field.required %}<span class="text-danger">*</span>{% endif %}
+                  </label>
+                  {{ form.monthly_payment }}
+                  {% if form.monthly_payment.errors %}
+                    <div class="invalid-feedback d-block">{{ form.monthly_payment.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                  <label for="{{ form.interest_rate.id_for_label }}" class="form-label">
+                    {{ form.interest_rate.label }}
+                  </label>
+                  {{ form.interest_rate }}
+                  {% if form.interest_rate.errors %}
+                    <div class="invalid-feedback d-block">{{ form.interest_rate.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                  <label for="{{ form.insurance_rate.id_for_label }}" class="form-label">
+                    {{ form.insurance_rate.label }}
+                  </label>
+                  {{ form.insurance_rate }}
+                  {% if form.insurance_rate.errors %}
+                    <div class="invalid-feedback d-block">{{ form.insurance_rate.errors.0 }}</div>
+                  {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                  <label for="{{ form.insurance.id_for_label }}" class="form-label">
+                    {{ form.insurance.label }}
+                  </label>
+                  {{ form.insurance }}
+                  {% if form.insurance.errors %}
+                    <div class="invalid-feedback d-block">{{ form.insurance.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="d-flex gap-2 justify-content-end">
+      <a href="{% url 'property:detail' property.pk %}" class="btn btn-secondary">
+        {% translate "Cancel" %}
+      </a>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg"></i> {% translate "Save Changes" %}
+      </button>
+    </div>
+  </form>
+</div>
+
+<style>
+.loan-form {
+  background-color: var(--bs-secondary-bg);
+}
+.loan-form:has(input[type="checkbox"][id*="DELETE"]:checked) {
+  opacity: 0.5;
+  background-color: var(--bs-danger-bg-subtle);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Add form-control class to all inputs
+  const inputs = document.querySelectorAll('input:not([type="checkbox"]), select, textarea');
+  inputs.forEach(input => {
+    if (!input.classList.contains('form-control') && !input.classList.contains('form-check-input')) {
+      input.classList.add('form-control');
+    }
+  });
+
+  // Add form-check-input class to checkboxes
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+    checkbox.classList.add('form-check-input');
+  });
+
+  // Add form-select class to selects
+  const selects = document.querySelectorAll('select');
+  selects.forEach(select => {
+    select.classList.remove('form-control');
+    select.classList.add('form-select');
+  });
+});
+</script>
+{% endblock %}

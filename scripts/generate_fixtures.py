@@ -727,6 +727,84 @@ def generate_property() -> str:
     end_date: {ds(LOAN_END)}
     monthly_payment: 600.00
     monthly_payment_currency: EUR
+- model: property.propertyrevenue
+  pk: 1
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    property: 2
+    revenue: 1200.00
+    revenue_currency: EUR
+    revenue_date: {ds(M24)}
+    revenue_type: rent
+    description: Loyer mensuel
+    recurrence_type: monthly
+    recurrence_end_date: null
+- model: property.propertyrevenue
+  pk: 2
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    property: 2
+    revenue: 500.00
+    revenue_currency: EUR
+    revenue_date: {ds(M12)}
+    revenue_type: other
+    description: Remboursement de charges
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyexpense
+  pk: 1
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    property: 2
+    expense: 1200.00
+    expense_currency: EUR
+    expense_date: {ds(M24)}
+    expense_type: tax
+    description: Taxe foncière
+    recurrence_type: yearly
+    recurrence_end_date: null
+- model: property.propertyexpense
+  pk: 2
+  fields:
+    created_at: {dt(M18)}
+    updated_at: {dt(M18)}
+    property: 2
+    expense: 850.00
+    expense_currency: EUR
+    expense_date: {ds(M18)}
+    expense_type: maintenance
+    description: Réparation plomberie
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyexpense
+  pk: 3
+  fields:
+    created_at: {dt(M60)}
+    updated_at: {dt(M60)}
+    property: 1
+    expense: 2500.00
+    expense_currency: EUR
+    expense_date: {ds(M60)}
+    expense_type: tax
+    description: Taxe foncière
+    recurrence_type: yearly
+    recurrence_end_date: null
+- model: property.propertyexpense
+  pk: 4
+  fields:
+    created_at: {dt(M30)}
+    updated_at: {dt(M30)}
+    property: 1
+    expense: 1800.00
+    expense_currency: EUR
+    expense_date: {ds(M30)}
+    expense_type: maintenance
+    description: Rénovation toiture
+    recurrence_type: none
+    recurrence_end_date: null
 """
 
 

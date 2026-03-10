@@ -61,7 +61,9 @@
             <tr class="{% if not prop.model.is_active %}inactive-property{% endif %}">
                 <td>
                     <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ prop.model.address }}">
-                        {{ prop.model.name }}
+                        <a href="{% url 'property:detail' prop.model.pk %}" class="text-decoration-none">
+                          {{ prop.model.name }}
+                        </a>
                     </span>
                 </td>
                 <td>{{ prop.model.get_property_type_display }}</td>
