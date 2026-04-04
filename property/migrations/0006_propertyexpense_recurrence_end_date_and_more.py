@@ -21,16 +21,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="propertyexpense",
-            name="recurrence_start_date",
-            field=models.DateField(
-                blank=True,
-                help_text="Start date for recurring expenses (leave empty for one-time expense)",
-                null=True,
-                verbose_name="Recurrence start date",
-            ),
-        ),
-        migrations.AddField(
-            model_name="propertyexpense",
             name="recurrence_type",
             field=models.CharField(
                 choices=[
@@ -55,16 +45,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="propertyrevenue",
-            name="recurrence_start_date",
-            field=models.DateField(
-                blank=True,
-                help_text="Start date for recurring revenues (leave empty for one-time revenue)",
-                null=True,
-                verbose_name="Recurrence start date",
-            ),
-        ),
-        migrations.AddField(
-            model_name="propertyrevenue",
             name="recurrence_type",
             field=models.CharField(
                 choices=[
@@ -75,6 +55,22 @@ class Migration(migrations.Migration):
                 default="none",
                 max_length=20,
                 verbose_name="Recurrence type",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="propertyexpense",
+            name="expense_date",
+            field=models.DateField(
+                help_text="Date of the expense (or start date for recurring expenses)",
+                verbose_name="Date",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="propertyrevenue",
+            name="revenue_date",
+            field=models.DateField(
+                help_text="Date of the revenue (or start date for recurring revenues)",
+                verbose_name="Date",
             ),
         ),
     ]

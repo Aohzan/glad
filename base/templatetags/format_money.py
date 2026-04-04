@@ -1,7 +1,7 @@
-from moneyed import Money
-from moneyed.l10n import format_money
 from django import template
 from django.utils import translation
+from moneyed import Money
+from moneyed.l10n import format_money
 
 register = template.Library()
 

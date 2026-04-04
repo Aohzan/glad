@@ -2,11 +2,9 @@
 
 import datetime
 from decimal import Decimal
-from typing import TypeVar, cast
 from urllib.parse import urlencode
 
 from django.contrib import messages
-from django.db.models import Model
 from django.core.paginator import Paginator
 from django.forms import inlineformset_factory
 from django.http import HttpRequest, HttpResponse
@@ -35,36 +33,31 @@ from property.utils import (
     add_years_safe,
     build_loan_monthly_maps,
     iter_month_starts,
+    month_end,
     month_start,
 )
-
-M = TypeVar("M", bound=Model)
 
 
 def index(request: HttpRequest) -> HttpResponse:
     """Property index view."""
-    properties = Property.objects.filter().order_by("is_active", "name")
+    # Fix #2: remove useless .filter() with no args
+    properties = Property.objects.order_by("is_active", "name")
     property_list = []
 
-    # Track total values
-    total_gross_value = 0
-    total_net_value = 0
+    # Fix #1 & #6: use None sentinel instead of fragile isinstance(int) check
+    total_gross_value: Money | None = None
+    total_net_value: Money | None = None
 
     for prop in properties:
-        # Get gross and net values
         gross_value = prop.gross_value
         net_value = prop.net_value
 
-        # Add to totals
-        if isinstance(total_gross_value, int) and total_gross_value == 0:
-            # First property, set the initial values
+        if total_gross_value is None:
             total_gross_value = gross_value
             total_net_value = net_value
-        else:
-            # Add to totals if currency matches
-            if str(gross_value.currency) == str(total_gross_value.currency):
-                total_gross_value += gross_value
-                total_net_value += net_value
+        elif str(gross_value.currency) == str(total_gross_value.currency):
+            total_gross_value += gross_value
+            total_net_value += net_value  # type: ignore[operator]
 
         property_list.append(
             {
@@ -89,61 +82,47 @@ def index(request: HttpRequest) -> HttpResponse:
         earliest_date = min(prop.buying_date for prop in properties_active)
 
     if earliest_date:
-        # Generate data from the earliest property date to now
         now = datetime.date.today()
+        # Fix #3: determine currency once, outside the inner loop
+        chart_currency = (
+            str(total_gross_value.currency) if total_gross_value is not None else None
+        )
+
         for current_date in iter_month_starts(
             month_start(earliest_date), month_start(now)
         ):
             month_str = current_date.strftime("%b %Y")
             properties_months.append(month_str)
 
-            # Get all properties that were active at that month (purchased before or during that month)
             month_properties = [
                 p for p in properties_active if p.buying_date <= current_date
             ]
 
-            # Get property values for this month
-            month_property_net_total = 0
-            month_property_gross_total = 0
+            month_property_net_total = Decimal("0")
+            month_property_gross_total = Decimal("0")
             for property_item in month_properties:
                 try:
-                    # For property net value at this specific month
                     net_value = property_item.net_value_at_date(current_date)
-                    if net_value:
-                        # Convert to same currency if needed
-                        if (
-                            isinstance(total_gross_value, int)
-                            and total_gross_value == 0
-                        ):
-                            month_property_net_total += net_value.amount
-                        elif hasattr(total_gross_value, "currency") and str(
-                            net_value.currency
-                        ) == str(total_gross_value.currency):
-                            month_property_net_total += net_value.amount
+                    if net_value and (
+                        chart_currency is None
+                        or str(net_value.currency) == chart_currency
+                    ):
+                        month_property_net_total += net_value.amount
 
-                    # For property gross value at this specific month
                     gross_value = property_item.get_value(
                         max_date=datetime.datetime.combine(
                             current_date,
                             datetime.time.max,
                         )
                     )
-                    if gross_value:
-                        # Convert to same currency if needed
-                        if (
-                            isinstance(total_gross_value, int)
-                            and total_gross_value == 0
-                        ):
-                            month_property_gross_total += gross_value.amount
-                        elif hasattr(total_gross_value, "currency") and str(
-                            gross_value.currency
-                        ) == str(total_gross_value.currency):
-                            month_property_gross_total += gross_value.amount
+                    if gross_value and (
+                        chart_currency is None
+                        or str(gross_value.currency) == chart_currency
+                    ):
+                        month_property_gross_total += gross_value.amount
                 except Exception:
-                    # If there's an error, skip this property for this month
                     pass
 
-            # Store the totals for the chart
             properties_gross_evolution.append(float(month_property_gross_total))
             properties_net_evolution.append(float(month_property_net_total))
 
@@ -280,55 +259,6 @@ class PropertyDetailView(DetailView):
             today.isoformat(),
         )
 
-    def _estimated_monthly_cashflow(self, property_obj: Property) -> Decimal:
-        """Estimate monthly cashflow from historical revenues, expenses, and loan costs."""
-        revenues_qs = PropertyRevenue.objects.filter(property=property_obj)
-        expenses_qs = PropertyExpense.objects.filter(property=property_obj)
-        loans_qs = PropertyLoan.objects.filter(property=property_obj)
-        start_month, end_month = self._observation_window(
-            property_obj,
-            revenues_qs,
-            expenses_qs,
-            loans_qs,
-        )
-
-        revenue_by_month = self._occurrences_by_month(revenues_qs, end_month)
-        expense_by_month = self._occurrences_by_month(expenses_qs, end_month)
-        loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month = (
-            self._loan_costs_by_month(loans_qs)
-        )
-
-        months = iter_month_starts(start_month, end_month)
-        months_observed = max(1, len(months))
-
-        total_revenues = sum(
-            (
-                revenue_by_month.get((month.year, month.month), Decimal("0"))
-                for month in months
-            ),
-            Decimal("0"),
-        )
-        total_expenses = sum(
-            (
-                expense_by_month.get((month.year, month.month), Decimal("0"))
-                for month in months
-            ),
-            Decimal("0"),
-        )
-        total_loan_costs = sum(
-            (
-                loan_interest_by_month.get((month.year, month.month), Decimal("0"))
-                + loan_principal_by_month.get((month.year, month.month), Decimal("0"))
-                + loan_insurance_by_month.get((month.year, month.month), Decimal("0"))
-                for month in months
-            ),
-            Decimal("0"),
-        )
-
-        return (total_revenues - total_expenses - total_loan_costs) / Decimal(
-            months_observed
-        )
-
     def _observation_window(
         self,
         property_obj: Property,
@@ -356,8 +286,9 @@ class PropertyDetailView(DetailView):
     ) -> dict[tuple[int, int], Decimal]:
         """Aggregate recurring and one-shot entries to month buckets."""
         by_month: dict[tuple[int, int], Decimal] = {}
+        end_of_month = month_end(end_month)
         for entry in entries:
-            for occurrence in entry.generate_occurrences(end_date=end_month):
+            for occurrence in entry.generate_occurrences(end_date=end_of_month):
                 key = (occurrence["date"].year, occurrence["date"].month)
                 by_month[key] = (
                     by_month.get(key, Decimal("0")) + occurrence["amount"].amount
@@ -405,10 +336,68 @@ class PropertyDetailView(DetailView):
 
         return loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month
 
+    def _estimated_monthly_cashflow(self, property_obj: Property) -> Decimal:
+        """Estimate monthly cashflow from historical revenues, expenses, and loan costs."""
+        revenues_qs = PropertyRevenue.objects.filter(property=property_obj)
+        expenses_qs = PropertyExpense.objects.filter(property=property_obj)
+        loans_qs = PropertyLoan.objects.filter(property=property_obj)
+        start_month, end_month = self._observation_window(
+            property_obj,
+            revenues_qs,
+            expenses_qs,
+            loans_qs,
+        )
+
+        revenue_by_month = self._occurrences_by_month(revenues_qs, end_month)
+        expense_by_month = self._occurrences_by_month(expenses_qs, end_month)
+        loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month = (
+            self._loan_costs_by_month(loans_qs)
+        )
+
+        # Fix #4: materialise the list once so it can be iterated multiple times
+        months = iter_month_starts(start_month, end_month)
+        months_observed = max(1, len(months))
+
+        total_revenues = sum(
+            (
+                revenue_by_month.get((month.year, month.month), Decimal("0"))
+                for month in months
+            ),
+            Decimal("0"),
+        )
+        total_expenses = sum(
+            (
+                expense_by_month.get((month.year, month.month), Decimal("0"))
+                for month in months
+            ),
+            Decimal("0"),
+        )
+        total_loan_costs = sum(
+            (
+                loan_interest_by_month.get((month.year, month.month), Decimal("0"))
+                + loan_principal_by_month.get((month.year, month.month), Decimal("0"))
+                + loan_insurance_by_month.get((month.year, month.month), Decimal("0"))
+                for month in months
+            ),
+            Decimal("0"),
+        )
+
+        return (total_revenues - total_expenses - total_loan_costs) / Decimal(
+            months_observed
+        )
+
     def _build_cashflow_series(
         self,
         property_obj: Property,
-    ) -> tuple[list[dict], list[dict], list[dict], list[dict], list[dict], list[dict]]:
+    ) -> tuple[
+        list[dict],
+        list[dict],
+        list[dict],
+        list[dict],
+        list[dict],
+        list[dict],
+        list[dict],
+    ]:
         """Build monthly cashflow series for revenues, expenses and loans."""
         revenues_qs = PropertyRevenue.objects.filter(property=property_obj)
         expenses_qs = PropertyExpense.objects.filter(property=property_obj)
@@ -426,12 +415,30 @@ class PropertyDetailView(DetailView):
             self._loan_costs_by_month(loans_qs)
         )
 
+        # Aggregate expenses by type for the breakdown chart
+        expense_by_type: dict[str, dict] = {}
+        end_of_month = month_end(end_month)
+        for expense in expenses_qs:
+            type_key = expense.expense_type
+            if type_key not in expense_by_type:
+                expense_by_type[type_key] = {
+                    "label": expense.get_expense_type_display(),
+                    "by_month": {},
+                }
+            for occurrence in expense.generate_occurrences(end_date=end_of_month):
+                key = (occurrence["date"].year, occurrence["date"].month)
+                expense_by_type[type_key]["by_month"][key] = (
+                    expense_by_type[type_key]["by_month"].get(key, Decimal("0"))
+                    + occurrence["amount"].amount
+                )
+
         revenue_series = []
         expense_series = []
         loan_interest_series = []
         loan_principal_series = []
         loan_insurance_series = []
         total_expenses_series = []
+        type_month_series: dict[str, list[dict]] = {k: [] for k in expense_by_type}
 
         for current in iter_month_starts(start_month, end_month):
             month_key = (current.year, current.month)
@@ -478,6 +485,18 @@ class PropertyDetailView(DetailView):
                     "y": total_expenses_value,
                 }
             )
+            for type_key, type_data in expense_by_type.items():
+                type_month_series[type_key].append(
+                    {
+                        "x": current.isoformat(),
+                        "y": float(type_data["by_month"].get(month_key, 0)),
+                    }
+                )
+
+        expense_by_type_series = [
+            {"label": expense_by_type[k]["label"], "data": type_month_series[k]}
+            for k in expense_by_type
+        ]
 
         return (
             revenue_series,
@@ -486,6 +505,7 @@ class PropertyDetailView(DetailView):
             loan_principal_series,
             loan_insurance_series,
             total_expenses_series,
+            expense_by_type_series,
         )
 
     def _build_transactions_table_context(self, property_obj: Property) -> dict:
@@ -514,37 +534,31 @@ class PropertyDetailView(DetailView):
         rows = []
         if transaction_type in ["all", "expense"]:
             for expense in expenses:
-                # Generate all occurrences for recurring expenses
-                occurrences = expense.generate_occurrences()
-                for occurrence in occurrences:
+                for occurrence in expense.generate_occurrences():
                     rows.append(
                         {
                             "kind": "expense",
                             "date": occurrence["date"],
-                            "category": expense.get_expense_type_display(),  # type: ignore[attr-defined]
+                            "category": expense.get_expense_type_display(),
                             "amount": occurrence["amount"],
                             "description": expense.description or "",
                             "is_recurring": occurrence["is_recurring"],
                             "parent_id": expense.pk,
-                            "parent_obj": expense,
                         }
                     )
 
         if transaction_type in ["all", "revenue"]:
             for revenue in revenues:
-                # Generate all occurrences for recurring revenues
-                occurrences = revenue.generate_occurrences()
-                for occurrence in occurrences:
+                for occurrence in revenue.generate_occurrences():
                     rows.append(
                         {
                             "kind": "revenue",
                             "date": occurrence["date"],
-                            "category": revenue.get_revenue_type_display(),  # type: ignore[attr-defined]
+                            "category": revenue.get_revenue_type_display(),
                             "amount": occurrence["amount"],
                             "description": revenue.description or "",
                             "is_recurring": occurrence["is_recurring"],
                             "parent_id": revenue.pk,
-                            "parent_obj": revenue,
                         }
                     )
 
@@ -606,6 +620,30 @@ class PropertyDetailView(DetailView):
         self.object = self.get_object()
         form_type = request.POST.get("form_type")
 
+        # Fix #8: refactor repeated save pattern into a helper closure
+        def _save_quick_form(
+            form_class,
+            money_field: str,
+            success_msg: str,
+            error_msg: str,
+        ) -> HttpResponse | None:
+            form = form_class(request.POST)
+            if form.is_valid():
+                obj = form.save(commit=False)
+                obj.property = self.object
+                # Normalise currency to the property's currency
+                raw_money = getattr(obj, money_field)
+                setattr(
+                    obj,
+                    money_field,
+                    Money(raw_money.amount, str(self.object.currency)),
+                )
+                obj.save()
+                messages.success(request, success_msg)
+                return redirect("property:detail", pk=self.object.pk)
+            messages.error(request, error_msg)
+            return None
+
         if form_type == "value":
             form = PropertyValueQuickCreateForm(request.POST)
             if form.is_valid():
@@ -620,23 +658,23 @@ class PropertyDetailView(DetailView):
                 return redirect("property:detail", pk=self.object.pk)
             messages.error(request, _("Unable to add property value."))
         elif form_type == "expense":
-            form = PropertyExpenseQuickCreateForm(request.POST)
-            if form.is_valid():
-                created_expense = form.save(commit=False)
-                created_expense.property = self.object
-                created_expense.save()
-                messages.success(request, _("Property expense added."))
-                return redirect("property:detail", pk=self.object.pk)
-            messages.error(request, _("Unable to add property expense."))
+            result = _save_quick_form(
+                PropertyExpenseQuickCreateForm,
+                "expense",
+                str(_("Property expense added.")),
+                str(_("Unable to add property expense.")),
+            )
+            if result:
+                return result
         elif form_type == "revenue":
-            form = PropertyRevenueQuickCreateForm(request.POST)
-            if form.is_valid():
-                created_revenue = form.save(commit=False)
-                created_revenue.property = self.object
-                created_revenue.save()
-                messages.success(request, _("Property revenue added."))
-                return redirect("property:detail", pk=self.object.pk)
-            messages.error(request, _("Unable to add property revenue."))
+            result = _save_quick_form(
+                PropertyRevenueQuickCreateForm,
+                "revenue",
+                str(_("Property revenue added.")),
+                str(_("Unable to add property revenue.")),
+            )
+            if result:
+                return result
         else:
             messages.error(request, _("Unknown form action."))
 
@@ -665,6 +703,7 @@ class PropertyDetailView(DetailView):
             loan_principal_series,
             loan_insurance_series,
             total_expenses_series,
+            expense_by_type_series,
         ) = self._build_cashflow_series(property_obj)
 
         # Get all unique expenses and revenues for edit/delete modals
@@ -702,6 +741,7 @@ class PropertyDetailView(DetailView):
                 "debt_projection_series": debt_projection_series,
                 "cashflow_revenue_series": revenue_series,
                 "cashflow_expense_series": expense_series,
+                "cashflow_expense_by_type_series": expense_by_type_series,
                 "cashflow_loan_interest_series": loan_interest_series,
                 "cashflow_loan_principal_series": loan_principal_series,
                 "cashflow_loan_insurance_series": loan_insurance_series,
@@ -749,15 +789,14 @@ def _get_property_or_redirect(
 def _get_related_or_redirect(
     request: HttpRequest,
     *,
-    model: type[M],
+    model: type[PropertyExpense | PropertyRevenue | PropertyValue | PropertyLoan],
     related_name: str,
     object_pk: int,
     property_obj: Property,
-) -> tuple[M | None, HttpResponse | None]:
+) -> tuple:
     """Return a related object bound to a property or a redirect response."""
-    obj = cast(
-        M | None, model.objects.filter(pk=object_pk, property=property_obj).first()
-    )
+    # Fix #10: removed unused TypeVar M; plain type: is sufficient here
+    obj = model.objects.filter(pk=object_pk, property=property_obj).first()
     if obj is not None:
         return obj, None
 
@@ -768,7 +807,11 @@ def _get_related_or_redirect(
 def delete_property_valuation(
     request: HttpRequest, property_pk: int, valuation_pk: int
 ) -> HttpResponse:
-    """Delete a property valuation."""
+    """Delete a property valuation. Only accepts POST requests."""
+    if request.method != "POST":
+        messages.error(request, _("Invalid request method."))
+        return redirect("property:detail", pk=property_pk)
+
     property_obj, response = _get_property_or_redirect(request, property_pk)
     if response:
         return response
@@ -788,9 +831,9 @@ def delete_property_valuation(
 
 def edit_property(request: HttpRequest, pk: int) -> HttpResponse:
     """Edit a property and its associated loans."""
+    # Fix #9: consistent use of get_object_or_404 (already correct here, kept)
     property_obj = get_object_or_404(Property, pk=pk)
 
-    # Create a formset for the property loans
     PropertyLoanFormSet = inlineformset_factory(
         Property,
         PropertyLoan,
@@ -866,7 +909,12 @@ def edit_property_expense(
 def delete_property_expense(
     request: HttpRequest, property_pk: int, expense_pk: int
 ) -> HttpResponse:
-    """Delete a property expense (and all its recurrences)."""
+    """Delete a property expense (and all its recurrences). Only accepts POST."""
+    # Fix #5: GET requests no longer try to render a non-existent template
+    if request.method != "POST":
+        messages.error(request, _("Invalid request method."))
+        return redirect("property:detail", pk=property_pk)
+
     property_obj, response = _get_property_or_redirect(request, property_pk)
     if response:
         return response
@@ -883,16 +931,9 @@ def delete_property_expense(
         return response
     assert expense is not None
 
-    if request.method == "POST":
-        expense.delete()
-        messages.success(request, _("Expense deleted successfully."))
-        return redirect("property:detail", pk=property_pk)
-
-    context = {
-        "property": property_obj,
-        "expense": expense,
-    }
-    return render(request, "property/delete_expense.html", context)
+    expense.delete()
+    messages.success(request, _("Expense deleted successfully."))
+    return redirect("property:detail", pk=property_pk)
 
 
 def edit_property_revenue(
@@ -936,7 +977,12 @@ def edit_property_revenue(
 def delete_property_revenue(
     request: HttpRequest, property_pk: int, revenue_pk: int
 ) -> HttpResponse:
-    """Delete a property revenue (and all its recurrences)."""
+    """Delete a property revenue (and all its recurrences). Only accepts POST."""
+    # Fix #5: GET requests no longer try to render a non-existent template
+    if request.method != "POST":
+        messages.error(request, _("Invalid request method."))
+        return redirect("property:detail", pk=property_pk)
+
     property_obj, response = _get_property_or_redirect(request, property_pk)
     if response:
         return response
@@ -953,13 +999,6 @@ def delete_property_revenue(
         return response
     assert revenue is not None
 
-    if request.method == "POST":
-        revenue.delete()
-        messages.success(request, _("Revenue deleted successfully."))
-        return redirect("property:detail", pk=property_pk)
-
-    context = {
-        "property": property_obj,
-        "revenue": revenue,
-    }
-    return render(request, "property/delete_revenue.html", context)
+    revenue.delete()
+    messages.success(request, _("Revenue deleted successfully."))
+    return redirect("property:detail", pk=property_pk)

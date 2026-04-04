@@ -4,8 +4,8 @@ import datetime
 from decimal import Decimal
 
 import pytest
-from djmoney.money import Money
 from django.urls import reverse
+from djmoney.money import Money
 
 from finance.models.investment_account import (
     InvestmentAccountDeposit,

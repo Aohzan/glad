@@ -60,11 +60,9 @@
             {% for prop in properties %}
             <tr class="{% if not prop.model.is_active %}inactive-property{% endif %}">
                 <td>
-                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ prop.model.address }}">
-                        <a href="{% url 'property:detail' prop.model.pk %}" class="text-decoration-none">
+                    <a href="{% url 'property:detail' prop.model.pk %}" class="text-decoration-none" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ prop.model.address }}" style="cursor: pointer;">
                           {{ prop.model.name }}
-                        </a>
-                    </span>
+                    </a>
                 </td>
                 <td>{{ prop.model.get_property_type_display }}</td>
                 <td>{{ prop.gross_value | format_money }}</td>
@@ -299,8 +297,9 @@ function toggleInactiveProperties() {
 // Initialize inactive properties as hidden when page loads
 function initializeInactiveProperties() {
   const inactiveRows = document.querySelectorAll('.inactive-property');
-  const toggleText = document.getElementById('toggle-text');
   const toggleBtn = document.getElementById('toggle-inactive-btn');
+  if (!toggleBtn) return;
+  const toggleText = document.getElementById('toggle-text');
   const toggleIcon = toggleBtn.querySelector('i');
 
   // Hide inactive properties by default

@@ -72,7 +72,7 @@ class UpdateSavingAccountAddValueForm(forms.Form):
         max_digits=10,
         decimal_places=2,
         localize=True,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal"}),
     )
 
 
@@ -94,7 +94,7 @@ class UpdateInvestmentCashAddValueForm(forms.Form):
         max_digits=10,
         decimal_places=2,
         localize=True,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal"}),
     )
 
 
@@ -116,7 +116,7 @@ class UpdateInvestmentAccountHoldingAddValueForm(forms.Form):
         max_digits=10,
         decimal_places=2,
         localize=True,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal"}),
     )
     current_quantity = forms.DecimalField(
         max_digits=10,
@@ -130,7 +130,7 @@ class UpdateInvestmentAccountHoldingAddValueForm(forms.Form):
         decimal_places=4,
         label=_("New quantity"),
         localize=True,
-        widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.0001"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal"}),
         required=False,
     )
 

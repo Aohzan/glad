@@ -255,3 +255,123 @@ def test_edit_revenue_unknown_id_uses_generic_not_found_message(user_client):
     assert response.status_code == 302
     messages = [str(message) for message in get_messages(response.wsgi_request)]
     assert "Revenue not found." in messages
+
+
+@pytest.mark.django_db
+def test_delete_property_valuation_requires_post(user_client):
+    """Test that valuation deletion requires POST method to prevent CSRF bypass."""
+    property_obj = Property.objects.create(
+        name="Test Property",
+        property_type=Property.HOUSE,
+        buying_value=Money(300000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=100),
+        is_active=True,
+    )
+    valuation = PropertyValue.objects.create(
+        property=property_obj,
+        value=Money(350000, "EUR"),
+        valuation_date=datetime.date.today(),
+    )
+
+    # GET request should fail and redirect
+    get_response = user_client.get(
+        reverse(
+            "property:delete_valuation",
+            args=[property_obj.pk, valuation.pk],
+        )
+    )
+    assert get_response.status_code == 302
+    assert PropertyValue.objects.filter(pk=valuation.pk).exists()
+
+    # POST request should succeed
+    post_response = user_client.post(
+        reverse(
+            "property:delete_valuation",
+            args=[property_obj.pk, valuation.pk],
+        )
+    )
+    assert post_response.status_code == 302
+    assert not PropertyValue.objects.filter(pk=valuation.pk).exists()
+
+
+@pytest.mark.django_db
+def test_property_quick_create_normalizes_currency(user_client):
+    """Test that quick-create forms normalize Money currency to property currency."""
+    property_obj = Property.objects.create(
+        name="Multi-Currency Property",
+        property_type=Property.APARTMENT,
+        buying_value=Money(150000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=100),
+        is_active=True,
+    )
+
+    # Expense should be normalized to EUR (property currency)
+    expense_response = user_client.post(
+        reverse("property:detail", args=[property_obj.pk]),
+        {
+            "form_type": "expense",
+            "expense_0": "500",
+            "expense_1": "EUR",  # User provides EUR
+            "expense_date": datetime.date.today().isoformat(),
+            "expense_type": PropertyExpense.MAINTENANCE,
+            "description": "Maintenance cost",
+            "recurrence_type": PropertyExpense.NONE,
+        },
+    )
+    assert expense_response.status_code == 302
+    expense = PropertyExpense.objects.filter(property=property_obj).first()
+    assert expense is not None
+    assert str(expense.expense.currency) == "EUR"
+
+    # Revenue should also be normalized to EUR
+    revenue_response = user_client.post(
+        reverse("property:detail", args=[property_obj.pk]),
+        {
+            "form_type": "revenue",
+            "revenue_0": "800",
+            "revenue_1": "EUR",
+            "revenue_date": datetime.date.today().isoformat(),
+            "revenue_type": PropertyRevenue.RENT,
+            "description": "Monthly rental income",
+            "recurrence_type": PropertyRevenue.MONTHLY,
+            "recurrence_end_date": (
+                datetime.date.today() + datetime.timedelta(days=365)
+            ).isoformat(),
+        },
+    )
+    assert revenue_response.status_code == 302
+    revenue = PropertyRevenue.objects.filter(property=property_obj).first()
+    assert revenue is not None
+    assert str(revenue.revenue.currency) == "EUR"
+
+
+@pytest.mark.django_db
+def test_recurring_revenue_generates_occurrences(user_client):
+    """Test that recurring revenues generate occurrences correctly."""
+    property_obj = Property.objects.create(
+        name="Rental Property",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=200),
+        is_active=True,
+    )
+
+    # Create recurring monthly revenue
+    revenue = PropertyRevenue.objects.create(
+        property=property_obj,
+        revenue=Money(1000, "EUR"),
+        revenue_date=datetime.date.today(),
+        revenue_type=PropertyRevenue.RENT,
+        recurrence_type=PropertyRevenue.MONTHLY,
+        recurrence_end_date=datetime.date.today() + datetime.timedelta(days=90),
+    )
+
+    # Generate occurrences for 90 days
+    occurrences = revenue.generate_occurrences(
+        end_date=datetime.date.today() + datetime.timedelta(days=90)
+    )
+
+    # Should generate ~3 occurrences (today + 1 month + 2 months)
+    assert len(occurrences) >= 3
+    assert all(occ["is_recurring"] for occ in occurrences)
+    assert all(occ["amount"] == Money(1000, "EUR") for occ in occurrences)

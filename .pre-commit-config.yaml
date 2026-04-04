@@ -12,18 +12,18 @@ repos:
         args:
           - --branch=main
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.10.7
+    rev: 0.11.3
     hooks:
       - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.4
+    rev: v0.15.9
     hooks:
       - id: ruff
         args:
           - --fix
       - id: ruff-format
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell
         args:
@@ -73,7 +73,7 @@ repos:
         types: [python]
       - id: pytest
         name: pytest
-        entry: env ENV_FILE=./.env.dev uv run pytest --picked --cov || true
+        entry: bash -c 'ENV_FILE=./.env.dev uv run pytest --picked --cov || true'
         exclude: ^migrations
         language: system
         types: [python]

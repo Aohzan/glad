@@ -117,7 +117,7 @@ def test_generate_recurring_occurrences_none_and_monthly_and_invalid_type():
         end_date=datetime.date(2025, 12, 31),
     )
     assert len(invalid_type) == 1
-    assert invalid_type[0]["is_recurring"] is True
+    assert invalid_type[0]["is_recurring"] is False
 
 
 def test_generate_recurring_occurrences_yearly_path():

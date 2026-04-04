@@ -418,10 +418,24 @@ class PropertyRevenue(BaseModel):
         help_text=_("End date for recurring revenues (leave empty for indefinite)"),
     )
 
+    def get_revenue_type_display(self) -> str:
+        """Return the human-readable label for the revenue_type field."""
+        return str(
+            dict(self.REVENUE_TYPE_CHOICES).get(self.revenue_type, self.revenue_type)
+        )
+
+    def get_recurrence_type_display(self) -> str:
+        """Return the human-readable label for the recurrence_type field."""
+        return str(
+            dict(self.RECURRENCE_TYPE_CHOICES).get(
+                self.recurrence_type, self.recurrence_type
+            )
+        )
+
     def __str__(self) -> str:
         """String representation of the PropertyRevenue model."""
         if self.recurrence_type != self.NONE:
-            return f"{self.property.name} - {self.revenue} ({self.get_recurrence_type_display()})"  # type: ignore[attr-defined]
+            return f"{self.property.name} - {self.revenue} ({self.get_recurrence_type_display()})"
         return f"{self.property.name} - {self.revenue} - {self.revenue_date}"
 
     def generate_occurrences(self, end_date: datetime.date | None = None) -> list[dict]:
@@ -442,11 +456,21 @@ class PropertyExpense(BaseModel):
     """Model representing a property expense."""
 
     MAINTENANCE = "maintenance"
+    COOWNERSHIP = "coownership"
+    INSURANCE = "insurance"
+    RENTAL_MGNT = "rental_mgnt"
+    WORKS = "works"
+    BANK_FEES = "bank_fees"
     TAX = "tax"
     OTHER = "other"
     EXPENSE_TYPE_CHOICES = [
         (MAINTENANCE, _("Maintenance")),
-        (TAX, _("Tax")),
+        (COOWNERSHIP, _("Co-ownership fees")),
+        (INSURANCE, _("Insurance")),
+        (RENTAL_MGNT, _("Rental management")),
+        (WORKS, _("Works")),
+        (BANK_FEES, _("Bank fees")),
+        (TAX, _("Property tax")),
         (OTHER, _("Other")),
     ]
 
@@ -500,10 +524,24 @@ class PropertyExpense(BaseModel):
         help_text=_("End date for recurring expenses (leave empty for indefinite)"),
     )
 
+    def get_expense_type_display(self) -> str:
+        """Return the human-readable label for the expense_type field."""
+        return str(
+            dict(self.EXPENSE_TYPE_CHOICES).get(self.expense_type, self.expense_type)
+        )
+
+    def get_recurrence_type_display(self) -> str:
+        """Return the human-readable label for the recurrence_type field."""
+        return str(
+            dict(self.RECURRENCE_TYPE_CHOICES).get(
+                self.recurrence_type, self.recurrence_type
+            )
+        )
+
     def __str__(self) -> str:
         """String representation of the PropertyExpense model."""
         if self.recurrence_type != self.NONE:
-            return f"{self.property.name} - {self.expense} ({self.get_recurrence_type_display()})"  # type: ignore[attr-defined]
+            return f"{self.property.name} - {self.expense} ({self.get_recurrence_type_display()})"
         return f"{self.property.name} - {self.expense} - {self.expense_date}"
 
     def generate_occurrences(self, end_date: datetime.date | None = None) -> list[dict]:

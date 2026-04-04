@@ -16,8 +16,8 @@ from finance.models.investment_account import (
 )
 from finance.models.saving_account import (
     SavingAccount,
-    SavingAccountValue,
     SavingAccountDeposit,
+    SavingAccountValue,
 )
 
 

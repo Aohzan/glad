@@ -210,11 +210,15 @@
     document.addEventListener('DOMContentLoaded', function() {
       document.querySelectorAll('input[name$="new_value"], input[name$="new_quantity"]').forEach(function(input) {
         input.addEventListener('focus', function() {
+          input.select();
           const row = this.closest('[data-update-row]');
           if (row) {
             const checkbox = row.querySelector('input[name$="update_account"]');
             if (checkbox) checkbox.checked = true;
           }
+        });
+        input.addEventListener('input', function() {
+          this.value = this.value.replace(/[^0-9.,]/g, '');
         });
       });
     });

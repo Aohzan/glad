@@ -62,7 +62,7 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = bool(
     os.environ.get("SESSION_COOKIE_SECURE", "False").lower() == "true"
 )
-SESSION_COOKIE_AGE = 8 * 60 * 60  # 8 hours max (security for banking app)
+SESSION_COOKIE_AGE = 8 * 60 * 60  # 8 hours max
 SESSION_SAVE_EVERY_REQUEST = True  # Reset timeout on every activity
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Force logout when closing browser/app
 

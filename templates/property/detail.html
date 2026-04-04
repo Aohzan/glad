@@ -32,168 +32,130 @@
     </a>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-md-6 col-xl-3">
-      <div class="card h-100 border-primary-subtle">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <p class="text-uppercase small fw-semibold text-primary mb-0">{% translate "Current raw value" %}</p>
-            <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#valueModal" title="{% translate 'Add value update' %}">
-                <i class="bi bi-plus"></i>
-              </button>
-              <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#valueHistoryModal" title="{% translate 'Value history' %}">
-                <i class="bi bi-clock-history"></i>
-              </button>
-            </div>
-          </div>
-          <p class="display-6 mb-0">{{ current_raw_value|format_money }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-xl-3">
-      <div class="card h-100 border-success-subtle">
-        <div class="card-body">
-          <p class="text-uppercase small fw-semibold text-success mb-2">{% translate "Current net value" %}</p>
-          <p class="display-6 mb-0">{{ current_net_value|format_money }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-xl-3">
-      <div class="card h-100 border-info-subtle">
-        <div class="card-body">
-          <p class="text-uppercase small fw-semibold text-info mb-2">{% translate "Capital repaid" %}</p>
-          <p class="display-6 mb-0">{{ capital_repaid|format_money }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-6 col-xl-3">
-      <div class="card h-100 border-warning-subtle">
-        <div class="card-body">
-          <p class="text-uppercase small fw-semibold text-warning-emphasis mb-2">{% translate "Estimated monthly cash-flow" %}</p>
-          <p class="display-6 mb-0">{{ estimated_monthly_cashflow|format_money }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4 mb-4">
-    <div class="col-12 col-lg-8">
-      <div class="card h-100">
-        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <h5 class="mb-0">{% translate "History and projection" %}</h5>
-          <form method="get" class="d-flex gap-2 align-items-center">
-            <input
-              id="growth-rate"
-              name="growth_rate"
-              type="number"
-              class="form-control form-control-sm"
-              style="width: 80px;"
-              step="0.1"
-              min="-99"
-              max="100"
-              value="{{ growth_rate_percent|floatformat:2 }}"
-              placeholder="{% translate 'Annual growth rate (%)' %}"
-              title="{% translate 'Annual growth rate (%)' %}"
-            >
-            <span class="text-body-secondary small">%</span>
-            <button type="submit" class="btn btn-sm btn-primary">{% translate "Recalculate" %}</button>
-          </form>
-        </div>
-        <div class="card-body">
-          <div id="property-projection-chart" style="height: 340px;"></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-lg-4">
-      <div class="card h-100">
-        <div class="card-header">
-          <h5 class="mb-0">{% translate "Location" %}</h5>
-        </div>
-        <div class="card-body">
-          <div id="property-map" class="rounded" style="height: 340px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <div class="card h-100">
-        <div class="card-header">
-          <h5 class="mb-0">{% translate "Revenues, expenses and loans" %}</h5>
-        </div>
-        <div class="card-body">
-          <div id="property-cashflow-chart" style="height: 320px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="accordion mb-4" id="projection-accordion">
-    <div class="accordion-item">
-      <h2 class="accordion-header" id="projection-heading">
+  <div class="accordion" id="property-accordion">
+    <div class="accordion-item mb-3 border rounded">
+      <h2 class="accordion-header" id="summary-heading">
         <button
-          class="accordion-button collapsed"
+          class="accordion-button rounded"
           type="button"
           data-bs-toggle="collapse"
-          data-bs-target="#projection-collapse"
-          aria-expanded="false"
-          aria-controls="projection-collapse"
+          data-bs-target="#summary-collapse"
+          aria-expanded="true"
+          aria-controls="summary-collapse"
         >
-          {% translate "Projection details (20 years)" %}
+          <strong>{% translate "Summary" %}</strong>
         </button>
       </h2>
       <div
-        id="projection-collapse"
-        class="accordion-collapse collapse"
-        aria-labelledby="projection-heading"
-        data-bs-parent="#projection-accordion"
+        id="summary-collapse"
+        class="accordion-collapse collapse show"
+        aria-labelledby="summary-heading"
+        data-bs-parent="#property-accordion"
       >
         <div class="accordion-body">
-          <div class="table-responsive">
-            <table class="table table-striped align-middle">
-              <thead>
-                <tr>
-                  <th>{% translate "Horizon" %}</th>
-                  <th>{% translate "Date" %}</th>
-                  <th>{% translate "Projected value" %}</th>
-                  <th>{% translate "Projected debt" %}</th>
-                  <th>{% translate "Projected net value" %}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for point in projection_points %}
-                  <tr>
-                    <td>{{ point.years }} {% translate "years" %}</td>
-                    <td>{{ point.date }}</td>
-                    <td>{{ point.projected_value|format_money }}</td>
-                    <td>{{ point.projected_debt|format_money }}</td>
-                    <td class="fw-semibold">{{ point.projected_net|format_money }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+          <div class="row g-3">
+            <div class="col-12 col-lg-8">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <div class="card h-100 border-primary-subtle">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <p class="text-uppercase small fw-semibold text-primary mb-0">{% translate "Current raw value" %}</p>
+                        <div class="btn-group btn-group-sm">
+                          <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#valueModal" title="{% translate 'Add value update' %}">
+                            <i class="bi bi-plus"></i>
+                          </button>
+                          <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#valueHistoryModal" title="{% translate 'Value history' %}">
+                            <i class="bi bi-clock-history"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <p class="display-6 mb-0">{{ current_raw_value|format_money }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <div class="card h-100 border-success-subtle">
+                    <div class="card-body">
+                      <p class="text-uppercase small fw-semibold text-success mb-2">{% translate "Current net value" %}</p>
+                      <p class="display-6 mb-0">{{ current_net_value|format_money }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <div class="card h-100 border-info-subtle">
+                    <div class="card-body">
+                      <p class="text-uppercase small fw-semibold text-info mb-2">{% translate "Capital repaid" %}</p>
+                      <p class="display-6 mb-0">{{ capital_repaid|format_money }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <div class="card h-100 border-warning-subtle">
+                    <div class="card-body">
+                      <p class="text-uppercase small fw-semibold text-warning-emphasis mb-2">{% translate "Estimated monthly cash-flow" %}</p>
+                      <p class="display-6 mb-0">{{ estimated_monthly_cashflow|format_money }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-4">
+              <div class="card h-100">
+                <div class="card-header">
+                  <h6 class="mb-0">{% translate "Location" %}</h6>
+                </div>
+                <div class="card-body p-2">
+                  <div id="property-map" class="rounded" style="height: 100%; min-height: 240px;"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-      <h5 class="mb-0">{% translate "Transactions" %}</h5>
-      <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#expenseModal">
-          <i class="bi bi-dash-circle me-1"></i>{% translate "Add expense" %}
+    <div class="accordion-item mb-3 border rounded">
+      <h2 class="accordion-header" id="cashflow-heading">
+        <button
+          class="accordion-button collapsed rounded"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#cashflow-collapse"
+          aria-expanded="false"
+          aria-controls="cashflow-collapse"
+        >
+          <strong>{% translate "Cash flow" %}</strong>
         </button>
-        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#revenueModal">
-          <i class="bi bi-plus-circle me-1"></i>{% translate "Add revenue" %}
-        </button>
-      </div>
-    </div>
-    <div class="card-body">
-      <form method="get" class="row g-2 align-items-end mb-3">
+      </h2>
+      <div
+        id="cashflow-collapse"
+        class="accordion-collapse collapse"
+        aria-labelledby="cashflow-heading"
+        data-bs-parent="#property-accordion"
+      >
+        <div class="accordion-body">
+          <div class="mb-2">
+            <h6 class="text-body-secondary small mb-1">{% translate "Monthly overview" %}</h6>
+            <div id="property-cashflow-overview-chart" style="height: 280px;"></div>
+          </div>
+          <div class="mb-4">
+            <h6 class="text-body-secondary small mb-1">{% translate "Expenses breakdown" %}</h6>
+            <div id="property-cashflow-breakdown-chart" style="height: 240px;"></div>
+          </div>
+
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h6 class="mb-0">{% translate "Transactions" %}</h6>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#expenseModal">
+                <i class="bi bi-dash-circle me-1"></i>{% translate "Add expense" %}
+              </button>
+              <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#revenueModal">
+                <i class="bi bi-plus-circle me-1"></i>{% translate "Add revenue" %}
+              </button>
+            </div>
+          </div>
+          <form method="get" class="row g-2 align-items-end mb-3">
         <div class="col-12 col-md-4">
           <label for="transaction-search" class="form-label small mb-1">{% translate "Filter" %}</label>
           <input
@@ -339,9 +301,82 @@
           </ul>
         </nav>
       {% endif %}
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+
+    <div class="accordion-item mb-3 border rounded">
+      <h2 class="accordion-header" id="projection-heading">
+        <button
+          class="accordion-button collapsed rounded"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#projection-collapse"
+          aria-expanded="false"
+          aria-controls="projection-collapse"
+        >
+          <strong>{% translate "Property value history and projection" %}</strong>
+        </button>
+      </h2>
+      <div
+        id="projection-collapse"
+        class="accordion-collapse collapse"
+        aria-labelledby="projection-heading"
+        data-bs-parent="#property-accordion"
+      >
+        <div class="accordion-body">
+          <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-3">
+            <form method="get" class="d-flex gap-2 align-items-center">
+              <input
+                id="growth-rate"
+                name="growth_rate"
+                type="number"
+                class="form-control form-control-sm"
+                style="width: 80px;"
+                step="0.1"
+                min="-99"
+                max="100"
+                value="{{ growth_rate_percent|floatformat:2 }}"
+                placeholder="{% translate 'Annual growth rate (%)' %}"
+                title="{% translate 'Annual growth rate (%)' %}"
+              >
+              <span class="text-body-secondary small">%</span>
+              <button type="submit" class="btn btn-sm btn-primary">{% translate "Recalculate" %}</button>
+            </form>
+          </div>
+          <div class="mb-4">
+            <div id="property-projection-chart" style="height: 340px;"></div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-striped align-middle">
+              <thead>
+                <tr>
+                  <th>{% translate "Horizon" %}</th>
+                  <th>{% translate "Date" %}</th>
+                  <th>{% translate "Projected value" %}</th>
+                  <th>{% translate "Projected debt" %}</th>
+                  <th>{% translate "Projected net value" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for point in projection_points %}
+                  <tr>
+                    <td>{{ point.years }} {% translate "years" %}</td>
+                    <td>{{ point.date }}</td>
+                    <td>{{ point.projected_value|format_money }}</td>
+                    <td>{{ point.projected_debt|format_money }}</td>
+                    <td class="fw-semibold">{{ point.projected_net|format_money }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end #property-accordion -->
+</div><!-- end .container -->
 
 <div class="modal fade" id="valueModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
@@ -441,7 +476,8 @@
                     <td>{{ pv.valuation_date }}</td>
                     <td>{{ pv.value|format_money }}</td>
                     <td class="text-end">
-                      <form method="post" action="{% url 'property:delete_valuation' property.pk pv.pk %}" class="d-inline" onsubmit="return confirm('{% translate "Are you sure you want to delete this valuation?" %}');">
+                      {% translate "Are you sure you want to delete this valuation?" as delete_confirmation %}
+                      <form method="post" action="{% url 'property:delete_valuation' property.pk pv.pk %}" class="d-inline" onsubmit="return confirm('{{ delete_confirmation|escapejs }}');">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-outline-danger" title="{% translate 'Delete' %}">
                           <i class="bi bi-trash"></i>
@@ -583,6 +619,7 @@
 {{ debt_projection_series|json_script:"debt-projection-series" }}
 {{ cashflow_revenue_series|json_script:"cashflow-revenue-series" }}
 {{ cashflow_expense_series|json_script:"cashflow-expense-series" }}
+{{ cashflow_expense_by_type_series|json_script:"cashflow-expense-by-type-series" }}
 {{ cashflow_loan_interest_series|json_script:"cashflow-loan-interest-series" }}
 {{ cashflow_loan_principal_series|json_script:"cashflow-loan-principal-series" }}
 {{ cashflow_loan_insurance_series|json_script:"cashflow-loan-insurance-series" }}
@@ -594,6 +631,7 @@ const valueProjectionSeries = JSON.parse(document.getElementById('value-projecti
 const debtProjectionSeries = JSON.parse(document.getElementById('debt-projection-series').textContent);
 const cashflowRevenueSeries = JSON.parse(document.getElementById('cashflow-revenue-series').textContent);
 const cashflowExpenseSeries = JSON.parse(document.getElementById('cashflow-expense-series').textContent);
+const cashflowExpenseByTypeSeries = JSON.parse(document.getElementById('cashflow-expense-by-type-series').textContent);
 const cashflowLoanInterestSeries = JSON.parse(document.getElementById('cashflow-loan-interest-series').textContent);
 const cashflowLoanPrincipalSeries = JSON.parse(document.getElementById('cashflow-loan-principal-series').textContent);
 const cashflowLoanInsuranceSeries = JSON.parse(document.getElementById('cashflow-loan-insurance-series').textContent);
@@ -604,7 +642,7 @@ function getCurrentTheme() {
   return document.documentElement.getAttribute('data-bs-theme') || 'light';
 }
 
-const chartOptions = {
+const projectionChartOptions = {
   chart: {
     type: 'line',
     height: 340,
@@ -683,95 +721,164 @@ const chartOptions = {
 
 const projectionChart = new ApexCharts(
   document.querySelector('#property-projection-chart'),
-  chartOptions
+  projectionChartOptions
 );
 projectionChart.render();
 
-const cashflowChartOptions = {
+// create a default one year range
+var min = new Date();
+min.setFullYear(min.getFullYear() - 1);
+var defaultRange = new Date().getTime() - min.getTime();
+
+// Build a difference series: revenue - total_expenses, as negative expenses
+const cashflowDifferenceSeries = cashflowRevenueSeries.map(function(rev) {
+  const expPoint = cashflowTotalExpensesSeries.find(function(e) { return e.x === rev.x; });
+  const expValue = expPoint ? expPoint.y : 0;
+  return { x: rev.x, y: rev.y - expValue };
+});
+
+// Negate total expenses so they display below zero
+const cashflowNegatedExpensesSeries = cashflowTotalExpensesSeries.map(function(p) {
+  return { x: p.x, y: -p.y };
+});
+
+// Negate individual expense series for the breakdown chart
+const cashflowNegatedExpenseSeries = cashflowExpenseSeries.map(function(p) { return { x: p.x, y: -p.y }; });
+const cashflowNegatedLoanInterestSeries = cashflowLoanInterestSeries.map(function(p) { return { x: p.x, y: -p.y }; });
+const cashflowNegatedLoanPrincipalSeries = cashflowLoanPrincipalSeries.map(function(p) { return { x: p.x, y: -p.y }; });
+const cashflowNegatedLoanInsuranceSeries = cashflowLoanInsuranceSeries.map(function(p) { return { x: p.x, y: -p.y }; });
+
+// Build per-type expense series for breakdown chart (negated so they display below zero)
+const expenseTypeColorPalette = ['#ffc107', '#e74c3c', '#9b59b6', '#3498db', '#1abc9c', '#e91e63'];
+const cashflowBreakdownExpenseSeries = cashflowExpenseByTypeSeries.map(function(s) {
+  return { name: s.label, data: s.data.map(function(p) { return { x: p.x, y: -p.y }; }) };
+});
+const cashflowBreakdownExpenseColors = cashflowExpenseByTypeSeries.map(function(s, i) {
+  return expenseTypeColorPalette[i % expenseTypeColorPalette.length];
+});
+
+const sharedXaxis = {
+  type: 'datetime',
+  range: defaultRange
+};
+
+const sharedYaxisFormatter = function(value) {
+  return Math.round(value).toLocaleString();
+};
+
+const sharedTooltip = {
+  theme: getCurrentTheme(),
+  x: { format: 'MMM yyyy' },
+  y: { formatter: sharedYaxisFormatter }
+};
+
+const cashflowOverviewChartOptions = {
   chart: {
+    id: 'cashflow-overview',
+    group: 'cashflow',
     type: 'line',
-    height: 320,
+    height: 280,
     stacked: false,
     toolbar: { show: false },
-    background: 'transparent'
+    background: 'transparent',
+    events: {
+      beforeZoom: function(ctx) {
+        ctx.w.config.xaxis.range = undefined;
+      }
+    }
   },
   series: [
     {
       name: '{% translate "Revenues" %}',
       data: cashflowRevenueSeries,
-      type: 'line'
+      type: 'bar'
     },
     {
       name: '{% translate "Total expenses" %}',
-      data: cashflowTotalExpensesSeries,
+      data: cashflowNegatedExpensesSeries,
+      type: 'bar'
+    },
+    {
+      name: '{% translate "Difference" %}',
+      data: cashflowDifferenceSeries,
       type: 'line'
-    },
-    {
-      name: '{% translate "Expenses" %}',
-      data: cashflowExpenseSeries,
-      type: 'bar'
-    },
-    {
-      name: '{% translate "Loan interest" %}',
-      data: cashflowLoanInterestSeries,
-      type: 'bar'
-    },
-    {
-      name: '{% translate "Loan principal" %}',
-      data: cashflowLoanPrincipalSeries,
-      type: 'bar'
-    },
-    {
-      name: '{% translate "Loan insurance" %}',
-      data: cashflowLoanInsuranceSeries,
-      type: 'bar'
     }
   ],
   plotOptions: {
     bar: {
-      columnWidth: '55%',
-      stacked: true
+      columnWidth: '55%'
     }
   },
-  dataLabels: {
-    enabled: false
-  },
+  dataLabels: { enabled: false },
   stroke: {
-    width: [3, 3, 0, 0, 0, 0],
+    width: [0, 0, 2],
     curve: 'smooth'
   },
-  xaxis: {
-    type: 'datetime'
-  },
+  xaxis: sharedXaxis,
   yaxis: {
-    labels: {
-      formatter: function (value) {
-        return Math.round(value).toLocaleString();
-      }
-    }
+    labels: { formatter: sharedYaxisFormatter }
   },
-  colors: ['#198754', '#dc3545', '#ffc107', '#fd7e14', '#0dcaf0', '#20c997'],
-  tooltip: {
-    theme: getCurrentTheme(),
-    x: {
-      format: 'MMM yyyy'
-    },
-    y: {
-      formatter: function (value) {
-        return Math.round(value).toLocaleString();
-      }
-    }
-  },
-  theme: {
-    mode: getCurrentTheme()
-  }
+  colors: ['#198754', '#dc3545', '#0d6efd'],
+  tooltip: sharedTooltip,
+  theme: { mode: getCurrentTheme() }
 };
 
-const cashflowChart = new ApexCharts(
-  document.querySelector('#property-cashflow-chart'),
-  cashflowChartOptions
+const cashflowBreakdownChartOptions = {
+  chart: {
+    id: 'cashflow-breakdown',
+    group: 'cashflow',
+    type: 'bar',
+    height: 240,
+    stacked: true,
+    toolbar: { show: false },
+    background: 'transparent',
+    events: {
+      beforeZoom: function(ctx) {
+        ctx.w.config.xaxis.range = undefined;
+      }
+    }
+  },
+  series: [
+    ...cashflowBreakdownExpenseSeries,
+    {
+      name: '{% translate "Loan interest" %}',
+      data: cashflowNegatedLoanInterestSeries
+    },
+    {
+      name: '{% translate "Loan principal" %}',
+      data: cashflowNegatedLoanPrincipalSeries
+    },
+    {
+      name: '{% translate "Loan insurance" %}',
+      data: cashflowNegatedLoanInsuranceSeries
+    }
+  ],
+  plotOptions: {
+    bar: {
+      columnWidth: '55%'
+    }
+  },
+  dataLabels: { enabled: false },
+  xaxis: sharedXaxis,
+  yaxis: {
+    labels: { formatter: sharedYaxisFormatter }
+  },
+  colors: [...cashflowBreakdownExpenseColors, '#fd7e14', '#0dcaf0', '#20c997'],
+  tooltip: sharedTooltip,
+  theme: { mode: getCurrentTheme() }
+};
+
+const cashflowOverviewChart = new ApexCharts(
+  document.querySelector('#property-cashflow-overview-chart'),
+  cashflowOverviewChartOptions
 );
-cashflowChart.render();
+cashflowOverviewChart.render();
+
+const cashflowBreakdownChart = new ApexCharts(
+  document.querySelector('#property-cashflow-breakdown-chart'),
+  cashflowBreakdownChartOptions
+);
+cashflowBreakdownChart.render();
 
 function updateChartsTheme(themeName) {
   if (projectionChart) {
@@ -780,8 +887,14 @@ function updateChartsTheme(themeName) {
       tooltip: { theme: themeName }
     });
   }
-  if (cashflowChart) {
-    cashflowChart.updateOptions({
+  if (cashflowOverviewChart) {
+    cashflowOverviewChart.updateOptions({
+      theme: { mode: themeName },
+      tooltip: { theme: themeName }
+    });
+  }
+  if (cashflowBreakdownChart) {
+    cashflowBreakdownChart.updateOptions({
       theme: { mode: themeName },
       tooltip: { theme: themeName }
     });

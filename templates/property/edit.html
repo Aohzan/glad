@@ -163,7 +163,7 @@
                   {% if form.instance.pk %}
                     {% translate "Loan" %} #{{ forloop.counter }}
                   {% else %}
-                    {% translate "New Loan" %}
+                    {% translate "Add a loan" %}
                   {% endif %}
                 </h6>
                 {% if form.instance.pk %}
@@ -293,7 +293,7 @@
 .loan-form {
   background-color: var(--bs-secondary-bg);
 }
-.loan-form:has(input[type="checkbox"][id*="DELETE"]:checked) {
+.loan-form.deleted-loan {
   opacity: 0.5;
   background-color: var(--bs-danger-bg-subtle);
 }
@@ -309,18 +309,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Add form-check-input class to checkboxes
-  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach(checkbox => {
-    checkbox.classList.add('form-check-input');
+  // Toggle deleted-loan state on DELETE checkbox change
+  const deleteCheckboxes = document.querySelectorAll('input[type="checkbox"][id*="DELETE"]');
+  deleteCheckboxes.forEach(checkbox => {
+    const loanForm = checkbox.closest('.loan-form');
+    if (loanForm) {
+      // Set initial state
+      if (checkbox.checked) {
+        loanForm.classList.add('deleted-loan');
+      }
+      // Listen for changes
+      checkbox.addEventListener('change', function() {
+        if (this.checked) {
+          loanForm.classList.add('deleted-loan');
+        } else {
+          loanForm.classList.remove('deleted-loan');
+        }
+      });
+    }
   });
+});
 
-  // Add form-select class to selects
-  const selects = document.querySelectorAll('select');
-  selects.forEach(select => {
-    select.classList.remove('form-control');
-    select.classList.add('form-select');
-  });
+// Add form-check-input class to checkboxes
+const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+checkboxes.forEach(checkbox => {
+  checkbox.classList.add('form-check-input');
+});
+
+// Add form-select class to selects
+const selects = document.querySelectorAll('select');
+selects.forEach(select => {
+  select.classList.remove('form-control');
+  select.classList.add('form-select');
 });
 </script>
 {% endblock %}

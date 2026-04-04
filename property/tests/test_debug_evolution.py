@@ -1,6 +1,7 @@
 """Debug test to examine the property evolution issue."""
 
 import datetime
+
 from django.test import TestCase
 from moneyed import Money
 

@@ -4,6 +4,8 @@ This file imports fixtures from the central conftest.py
 to make them available to tests in this directory.
 """
 
+# Import finance fixtures to make them available
+from finance.tests.conftest import investment_account_type, saving_account_type
 from tests.conftest import (
     ADMIN_PASSWORD,
     ADMIN_USER,
@@ -14,12 +16,6 @@ from tests.conftest import (
     client,
     user,
     user_client,
-)
-
-# Import finance fixtures to make them available
-from finance.tests.conftest import (
-    investment_account_type,
-    saving_account_type,
 )
 
 # Re-export all fixtures from the central conftest.py

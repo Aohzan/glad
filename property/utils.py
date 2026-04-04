@@ -1,8 +1,8 @@
 import calendar
 import datetime
-from moneyed import Decimal, Money
-
 from typing import TYPE_CHECKING
+
+from moneyed import Decimal, Money
 
 if TYPE_CHECKING:
     from property.models import Property
@@ -28,6 +28,12 @@ def add_years_safe(base_date: datetime.date, years: int = 1) -> datetime.date:
 def month_start(value: datetime.date) -> datetime.date:
     """Return the first day of the month for a date."""
     return value.replace(day=1)
+
+
+def month_end(value: datetime.date) -> datetime.date:
+    """Return the last day of the month for a date."""
+    last_day = calendar.monthrange(value.year, value.month)[1]
+    return value.replace(day=last_day)
 
 
 def iter_month_starts(
@@ -68,12 +74,19 @@ def generate_recurring_occurrences(
     occurrences = []
     current = start_date
     max_date = end_date or recurrence_end_date or datetime.date.today()
+
+    # Only process recurring types if valid
+    is_valid_recurrence = recurrence_type in (
+        recurrence_monthly,
+        recurrence_yearly,
+    )
+
     while current <= max_date:
         occurrences.append(
             {
                 "date": current,
                 "amount": amount,
-                "is_recurring": True,
+                "is_recurring": is_valid_recurrence,  # Only true for valid recurring types
             }
         )
 
@@ -85,7 +98,17 @@ def generate_recurring_occurrences(
             continue
         break
 
-    return occurrences
+    return (
+        occurrences
+        if occurrences
+        else [
+            {
+                "date": start_date,
+                "amount": amount,
+                "is_recurring": False,
+            }
+        ]
+    )
 
 
 def build_loan_monthly_maps(

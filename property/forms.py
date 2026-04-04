@@ -1,6 +1,7 @@
 """Forms for quick create actions on property dashboard."""
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from property.models import (
     Property,
@@ -18,7 +19,9 @@ class PropertyValueQuickCreateForm(forms.ModelForm):
         model = PropertyValue
         fields = ["value", "valuation_date"]
         widgets = {
-            "valuation_date": forms.DateInput(attrs={"type": "date"}),
+            "valuation_date": forms.DateInput(
+                attrs={"type": "date"}, format="%Y-%m-%d"
+            ),
         }
 
 
@@ -27,9 +30,11 @@ def _date_field(with_class: bool = False) -> forms.DateField:
     if with_class:
         attrs["class"] = "form-control"
     return forms.DateField(
-        widget=forms.DateInput(attrs=attrs),
+        widget=forms.DateInput(attrs=attrs, format="%Y-%m-%d"),
         input_formats=["%Y-%m-%d"],
-        label="Date",
+        label=_(
+            "Date"
+        ),  # This label is overridden in the form classes, kept for consistency
     )
 
 
@@ -39,8 +44,11 @@ def _recurrence_end_field(with_class: bool = False) -> forms.DateField:
         attrs["class"] = "form-control"
     return forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs=attrs),
+        widget=forms.DateInput(attrs=attrs, format="%Y-%m-%d"),
         input_formats=["%Y-%m-%d"],
+        label=_(
+            "Recurrence End Date"
+        ),  # This label is overridden in the form classes, kept for consistency
     )
 
 
@@ -48,9 +56,6 @@ class PropertyExpenseQuickCreateForm(forms.ModelForm):
     """Quick create form for property expenses."""
 
     expense_date = _date_field()
-    expense_date.help_text = (
-        "Date of the expense (or start date for recurring expenses)"
-    )
     recurrence_end_date = _recurrence_end_field()
 
     class Meta:
@@ -69,9 +74,6 @@ class PropertyRevenueQuickCreateForm(forms.ModelForm):
     """Quick create form for property revenues."""
 
     revenue_date = _date_field()
-    revenue_date.help_text = (
-        "Date of the revenue (or start date for recurring revenues)"
-    )
     recurrence_end_date = _recurrence_end_field()
 
     class Meta:
@@ -90,9 +92,6 @@ class PropertyExpenseEditForm(forms.ModelForm):
     """Complete edit form for property expenses."""
 
     expense_date = _date_field(with_class=True)
-    expense_date.help_text = (
-        "Date of the expense (or start date for recurring expenses)"
-    )
     recurrence_end_date = _recurrence_end_field(with_class=True)
 
     class Meta:
@@ -116,9 +115,6 @@ class PropertyRevenueEditForm(forms.ModelForm):
     """Complete edit form for property revenues."""
 
     revenue_date = _date_field(with_class=True)
-    revenue_date.help_text = (
-        "Date of the revenue (or start date for recurring revenues)"
-    )
     recurrence_end_date = _recurrence_end_field(with_class=True)
 
     class Meta:
@@ -156,8 +152,8 @@ class PropertyEditForm(forms.ModelForm):
             "selling_value",
         ]
         widgets = {
-            "buying_date": forms.DateInput(attrs={"type": "date"}),
-            "selling_date": forms.DateInput(attrs={"type": "date"}),
+            "buying_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "selling_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "address": forms.Textarea(attrs={"rows": 2}),
         }
 
@@ -179,6 +175,6 @@ class PropertyLoanForm(forms.ModelForm):
             "insurance",
         ]
         widgets = {
-            "start_date": forms.DateInput(attrs={"type": "date"}),
-            "end_date": forms.DateInput(attrs={"type": "date"}),
+            "start_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "end_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }

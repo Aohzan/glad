@@ -2,7 +2,6 @@
 
 import glob
 import os
-
 from typing import cast
 
 import pytest
