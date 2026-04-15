@@ -14,6 +14,7 @@ from property.utils import (
     add_months_safe,
     add_years_safe,
     build_loan_monthly_maps,
+    calculate_monthly_payment,
     generate_recurring_occurrences,
     iter_month_starts,
     month_start,
@@ -135,6 +136,72 @@ def test_generate_recurring_occurrences_yearly_path():
         datetime.date(2025, 2, 28),
         datetime.date(2026, 2, 28),
     ]
+
+
+def test_calculate_monthly_payment_standard_french_amortization():
+    """Test standard French amortization formula: 200k at 3.5% over 240 months."""
+    monthly_pi, monthly_ins, total = calculate_monthly_payment(
+        original_amount=Decimal("200000"),
+        annual_interest_rate=Decimal("3.5"),
+        annual_insurance_rate=None,
+        duration_months=240,
+    )
+    # Expected ~1159.97
+    assert abs(float(monthly_pi) - 1159.97) < 1.0
+    assert monthly_ins == Decimal("0")
+    assert total == monthly_pi
+
+
+def test_calculate_monthly_payment_with_insurance():
+    """Test monthly payment with insurance rate."""
+    monthly_pi, monthly_ins, total = calculate_monthly_payment(
+        original_amount=Decimal("200000"),
+        annual_interest_rate=Decimal("3.5"),
+        annual_insurance_rate=Decimal("0.36"),
+        duration_months=240,
+    )
+    # Insurance: 200000 * 0.36% / 12 = 60
+    assert abs(float(monthly_ins) - 60.0) < 0.5
+    assert total == monthly_pi + monthly_ins
+
+
+def test_calculate_monthly_payment_zero_interest():
+    """Test monthly payment with zero interest rate."""
+    monthly_pi, monthly_ins, total = calculate_monthly_payment(
+        original_amount=Decimal("24000"),
+        annual_interest_rate=Decimal("0"),
+        annual_insurance_rate=None,
+        duration_months=24,
+    )
+    assert monthly_pi == Decimal("1000.00")
+    assert monthly_ins == Decimal("0")
+    assert total == Decimal("1000.00")
+
+
+def test_calculate_monthly_payment_zero_duration():
+    """Test monthly payment with zero duration returns zeros."""
+    monthly_pi, monthly_ins, total = calculate_monthly_payment(
+        original_amount=Decimal("100000"),
+        annual_interest_rate=Decimal("2.0"),
+        annual_insurance_rate=None,
+        duration_months=0,
+    )
+    assert monthly_pi == Decimal("0")
+    assert monthly_ins == Decimal("0")
+    assert total == Decimal("0")
+
+
+def test_calculate_monthly_payment_negative_duration():
+    """Test monthly payment with negative duration returns zeros."""
+    monthly_pi, monthly_ins, total = calculate_monthly_payment(
+        original_amount=Decimal("100000"),
+        annual_interest_rate=Decimal("2.0"),
+        annual_insurance_rate=None,
+        duration_months=-5,
+    )
+    assert monthly_pi == Decimal("0")
+    assert monthly_ins == Decimal("0")
+    assert total == Decimal("0")
 
 
 def test_build_loan_monthly_maps_handles_interest_and_negative_principal():

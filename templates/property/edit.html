@@ -177,6 +177,7 @@
               </div>
 
               <div class="row g-3">
+                <!-- Name & Lender -->
                 <div class="col-md-6">
                   <label for="{{ form.name.id_for_label }}" class="form-label">
                     {{ form.name.label }}
@@ -197,6 +198,7 @@
                   {% endif %}
                 </div>
 
+                <!-- Start date & Duration -->
                 <div class="col-md-6">
                   <label for="{{ form.start_date.id_for_label }}" class="form-label">
                     {{ form.start_date.label }}
@@ -209,17 +211,24 @@
                 </div>
 
                 <div class="col-md-6">
-                  <label for="{{ form.end_date.id_for_label }}" class="form-label">
-                    {{ form.end_date.label }}
-                    {% if form.end_date.field.required %}<span class="text-danger">*</span>{% endif %}
+                  <label for="{{ form.duration_months.id_for_label }}" class="form-label">
+                    {{ form.duration_months.label }}
+                    {% if form.duration_months.field.required %}<span class="text-danger">*</span>{% endif %}
                   </label>
-                  {{ form.end_date }}
-                  {% if form.end_date.errors %}
-                    <div class="invalid-feedback d-block">{{ form.end_date.errors.0 }}</div>
+                  <div class="input-group">
+                    {{ form.duration_months }}
+                    <span class="input-group-text loan-years-display"></span>
+                  </div>
+                  {% if form.duration_months.help_text %}
+                    <div class="form-text">{{ form.duration_months.help_text }}</div>
+                  {% endif %}
+                  {% if form.duration_months.errors %}
+                    <div class="invalid-feedback d-block">{{ form.duration_months.errors.0 }}</div>
                   {% endif %}
                 </div>
 
-                <div class="col-md-6">
+                <!-- Amount & Interest rate -->
+                <div class="col-md-4">
                   <label for="{{ form.original_amount.id_for_label }}" class="form-label">
                     {{ form.original_amount.label }}
                     {% if form.original_amount.field.required %}<span class="text-danger">*</span>{% endif %}
@@ -230,22 +239,15 @@
                   {% endif %}
                 </div>
 
-                <div class="col-md-6">
-                  <label for="{{ form.monthly_payment.id_for_label }}" class="form-label">
-                    {{ form.monthly_payment.label }}
-                    {% if form.monthly_payment.field.required %}<span class="text-danger">*</span>{% endif %}
-                  </label>
-                  {{ form.monthly_payment }}
-                  {% if form.monthly_payment.errors %}
-                    <div class="invalid-feedback d-block">{{ form.monthly_payment.errors.0 }}</div>
-                  {% endif %}
-                </div>
-
                 <div class="col-md-4">
                   <label for="{{ form.interest_rate.id_for_label }}" class="form-label">
                     {{ form.interest_rate.label }}
+                    {% if form.interest_rate.field.required %}<span class="text-danger">*</span>{% endif %}
                   </label>
-                  {{ form.interest_rate }}
+                  <div class="input-group">
+                    {{ form.interest_rate }}
+                    <span class="input-group-text">%</span>
+                  </div>
                   {% if form.interest_rate.errors %}
                     <div class="invalid-feedback d-block">{{ form.interest_rate.errors.0 }}</div>
                   {% endif %}
@@ -255,20 +257,24 @@
                   <label for="{{ form.insurance_rate.id_for_label }}" class="form-label">
                     {{ form.insurance_rate.label }}
                   </label>
-                  {{ form.insurance_rate }}
+                  <div class="input-group">
+                    {{ form.insurance_rate }}
+                    <span class="input-group-text">%</span>
+                  </div>
                   {% if form.insurance_rate.errors %}
                     <div class="invalid-feedback d-block">{{ form.insurance_rate.errors.0 }}</div>
                   {% endif %}
                 </div>
 
-                <div class="col-md-4">
-                  <label for="{{ form.insurance.id_for_label }}" class="form-label">
-                    {{ form.insurance.label }}
-                  </label>
-                  {{ form.insurance }}
-                  {% if form.insurance.errors %}
-                    <div class="invalid-feedback d-block">{{ form.insurance.errors.0 }}</div>
-                  {% endif %}
+                <!-- Computed monthly payment preview -->
+                <div class="col-12">
+                  <div class="loan-preview alert alert-info py-2 mb-0 d-none">
+                    <small>
+                      <i class="bi bi-calculator"></i>
+                      {% translate "Estimated monthly payment" %}: <strong class="loan-preview-total">—</strong>
+                      <span class="loan-preview-detail text-body-secondary ms-2"></span>
+                    </small>
+                  </div>
                 </div>
               </div>
             </div>
@@ -300,6 +306,75 @@
 </style>
 
 <script>
+/**
+ * French amortization formula: M = C * t(1+t)^n / ((1+t)^n - 1)
+ * Returns { pi, insurance, total } as numbers, or null if inputs are invalid.
+ */
+function computeLoanPreview(amount, annualRate, annualInsuranceRate, durationMonths) {
+  if (!amount || amount <= 0 || durationMonths <= 0) return null;
+  const t = annualRate / 100 / 12;
+  let pi;
+  if (t === 0) {
+    pi = amount / durationMonths;
+  } else {
+    const factor = Math.pow(1 + t, durationMonths);
+    pi = amount * t * factor / (factor - 1);
+  }
+  const insurance = annualInsuranceRate > 0 ? (amount * annualInsuranceRate / 100 / 12) : 0;
+  return { pi: pi, insurance: insurance, total: pi + insurance };
+}
+
+function formatMoney(value) {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value);
+}
+
+function updateLoanPreview(loanFormEl) {
+  const amountInput = loanFormEl.querySelector('input[id*="original_amount_0"], input[id$="original_amount"]');
+  const rateInput = loanFormEl.querySelector('input[id*="interest_rate"]');
+  const insuranceRateInput = loanFormEl.querySelector('input[id*="insurance_rate"]');
+  const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+  const previewEl = loanFormEl.querySelector('.loan-preview');
+  const previewTotal = loanFormEl.querySelector('.loan-preview-total');
+  const previewDetail = loanFormEl.querySelector('.loan-preview-detail');
+
+  if (!previewEl) return;
+
+  const amount = parseFloat(amountInput ? amountInput.value : 0);
+  const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
+  const insuranceRate = parseFloat(insuranceRateInput ? insuranceRateInput.value : 0) || 0;
+  const duration = parseInt(durationInput ? durationInput.value : 0);
+
+  const result = computeLoanPreview(amount, rate, insuranceRate, duration);
+  if (result) {
+    previewEl.classList.remove('d-none');
+    previewTotal.textContent = formatMoney(result.total);
+    if (insuranceRate > 0) {
+      previewDetail.textContent = '({% translate "principal+interest" %}: ' + formatMoney(result.pi) + ' + {% translate "insurance" %}: ' + formatMoney(result.insurance) + ')';
+    } else {
+      previewDetail.textContent = '';
+    }
+  } else {
+    previewEl.classList.add('d-none');
+  }
+}
+
+function updateYearsDisplay(loanFormEl) {
+  const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+  const yearsDisplay = loanFormEl.querySelector('.loan-years-display');
+  if (!durationInput || !yearsDisplay) return;
+  const months = parseInt(durationInput.value) || 0;
+  if (months > 0) {
+    const years = Math.floor(months / 12);
+    const rem = months % 12;
+    let label = '';
+    if (years > 0) label += years + ' {% translate "yr" %}';
+    if (rem > 0) label += (label ? ' ' : '') + rem + ' {% translate "mo" %}';
+    yearsDisplay.textContent = label;
+  } else {
+    yearsDisplay.textContent = '';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Add form-control class to all inputs
   const inputs = document.querySelectorAll('input:not([type="checkbox"]), select, textarea');
@@ -314,19 +389,30 @@ document.addEventListener('DOMContentLoaded', function() {
   deleteCheckboxes.forEach(checkbox => {
     const loanForm = checkbox.closest('.loan-form');
     if (loanForm) {
-      // Set initial state
-      if (checkbox.checked) {
-        loanForm.classList.add('deleted-loan');
-      }
-      // Listen for changes
+      if (checkbox.checked) loanForm.classList.add('deleted-loan');
       checkbox.addEventListener('change', function() {
-        if (this.checked) {
-          loanForm.classList.add('deleted-loan');
-        } else {
-          loanForm.classList.remove('deleted-loan');
-        }
+        loanForm.classList.toggle('deleted-loan', this.checked);
       });
     }
+  });
+
+  // Live preview for each loan form
+  document.querySelectorAll('.loan-form').forEach(loanFormEl => {
+    const watchIds = ['original_amount_0', 'original_amount', 'interest_rate', 'insurance_rate', 'duration_months'];
+    loanFormEl.querySelectorAll('input').forEach(input => {
+      const shouldWatch = watchIds.some(id => input.id && input.id.includes(id));
+      if (shouldWatch) {
+        input.addEventListener('input', () => {
+          updateLoanPreview(loanFormEl);
+          if (input.id && input.id.includes('duration_months')) {
+            updateYearsDisplay(loanFormEl);
+          }
+        });
+      }
+    });
+    // Initial render
+    updateLoanPreview(loanFormEl);
+    updateYearsDisplay(loanFormEl);
   });
 });
 

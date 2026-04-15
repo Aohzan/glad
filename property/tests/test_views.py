@@ -1,4 +1,4 @@
-"""Tests for property index view."""
+"""Tests for property views."""
 
 import datetime
 from decimal import Decimal
@@ -10,9 +10,8 @@ from moneyed import Money
 
 from property.models import (
     Property,
-    PropertyExpense,
+    PropertyLedgerEntry,
     PropertyLoan,
-    PropertyRevenue,
     PropertyValue,
 )
 
@@ -173,7 +172,7 @@ def test_property_detail_post_quick_create_value(user_client):
 
 
 @pytest.mark.django_db
-def test_property_detail_post_quick_create_expense_and_revenue(user_client):
+def test_property_detail_post_quick_create_ledger_entry(user_client):
     property_obj = Property.objects.create(
         name="Rental Building",
         property_type=Property.APARTMENT,
@@ -185,36 +184,40 @@ def test_property_detail_post_quick_create_expense_and_revenue(user_client):
     expense_response = user_client.post(
         reverse("property:detail", args=[property_obj.pk]),
         {
-            "form_type": "expense",
-            "expense_0": "250",
-            "expense_1": "EUR",
-            "expense_date": datetime.date.today().isoformat(),
-            "expense_type": PropertyExpense.TAX,
-            "description": "Monthly tax",
-            "recurrence_type": PropertyExpense.NONE,
+            "form_type": "ledger_entry",
+            "flow_type": PropertyLedgerEntry.FlowType.EXPENSE,
+            "amount_0": "250",
+            "amount_1": "EUR",
+            "entry_date": datetime.date.today().isoformat(),
+            "tax_category": PropertyLedgerEntry.TaxCategory.TAXES,
+            "management_category": PropertyLedgerEntry.ManagementCategory.PROPERTY_TAX,
+            "description": "Taxe foncière",
+            "recurrence_type": "none",
         },
     )
+    assert expense_response.status_code == 302
+    assert PropertyLedgerEntry.objects.filter(property=property_obj).count() == 1
+
     revenue_response = user_client.post(
         reverse("property:detail", args=[property_obj.pk]),
         {
-            "form_type": "revenue",
-            "revenue_0": "1200",
-            "revenue_1": "EUR",
-            "revenue_date": datetime.date.today().isoformat(),
-            "revenue_type": PropertyRevenue.RENT,
-            "description": "Monthly rent",
-            "recurrence_type": PropertyRevenue.NONE,
+            "form_type": "ledger_entry",
+            "flow_type": PropertyLedgerEntry.FlowType.INCOME,
+            "amount_0": "1200",
+            "amount_1": "EUR",
+            "entry_date": datetime.date.today().isoformat(),
+            "tax_category": PropertyLedgerEntry.TaxCategory.RENT,
+            "management_category": PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+            "description": "Loyer mensuel",
+            "recurrence_type": "monthly",
         },
     )
-
-    assert expense_response.status_code == 302
     assert revenue_response.status_code == 302
-    assert PropertyExpense.objects.filter(property=property_obj).count() == 1
-    assert PropertyRevenue.objects.filter(property=property_obj).count() == 1
+    assert PropertyLedgerEntry.objects.filter(property=property_obj).count() == 2
 
 
 @pytest.mark.django_db
-def test_edit_expense_unknown_id_uses_generic_not_found_message(user_client):
+def test_edit_entry_unknown_id_uses_generic_not_found_message(user_client):
     property_obj = Property.objects.create(
         name="Studio",
         property_type=Property.APARTMENT,
@@ -225,41 +228,18 @@ def test_edit_expense_unknown_id_uses_generic_not_found_message(user_client):
 
     response = user_client.get(
         reverse(
-            "property:edit_expense",
+            "property:edit_entry",
             args=[property_obj.pk, 999999],
         )
     )
 
     assert response.status_code == 302
-    messages = [str(message) for message in get_messages(response.wsgi_request)]
-    assert "Expense not found." in messages
-
-
-@pytest.mark.django_db
-def test_edit_revenue_unknown_id_uses_generic_not_found_message(user_client):
-    property_obj = Property.objects.create(
-        name="Villa",
-        property_type=Property.HOUSE,
-        buying_value=Money(350000, "EUR"),
-        buying_date=datetime.date.today() - datetime.timedelta(days=250),
-        is_active=True,
-    )
-
-    response = user_client.get(
-        reverse(
-            "property:edit_revenue",
-            args=[property_obj.pk, 999999],
-        )
-    )
-
-    assert response.status_code == 302
-    messages = [str(message) for message in get_messages(response.wsgi_request)]
-    assert "Revenue not found." in messages
+    msgs = [str(m) for m in get_messages(response.wsgi_request)]
+    assert "Entry not found." in msgs
 
 
 @pytest.mark.django_db
 def test_delete_property_valuation_requires_post(user_client):
-    """Test that valuation deletion requires POST method to prevent CSRF bypass."""
     property_obj = Property.objects.create(
         name="Test Property",
         property_type=Property.HOUSE,
@@ -273,22 +253,14 @@ def test_delete_property_valuation_requires_post(user_client):
         valuation_date=datetime.date.today(),
     )
 
-    # GET request should fail and redirect
     get_response = user_client.get(
-        reverse(
-            "property:delete_valuation",
-            args=[property_obj.pk, valuation.pk],
-        )
+        reverse("property:delete_valuation", args=[property_obj.pk, valuation.pk])
     )
     assert get_response.status_code == 302
     assert PropertyValue.objects.filter(pk=valuation.pk).exists()
 
-    # POST request should succeed
     post_response = user_client.post(
-        reverse(
-            "property:delete_valuation",
-            args=[property_obj.pk, valuation.pk],
-        )
+        reverse("property:delete_valuation", args=[property_obj.pk, valuation.pk])
     )
     assert post_response.status_code == 302
     assert not PropertyValue.objects.filter(pk=valuation.pk).exists()
@@ -296,7 +268,6 @@ def test_delete_property_valuation_requires_post(user_client):
 
 @pytest.mark.django_db
 def test_property_quick_create_normalizes_currency(user_client):
-    """Test that quick-create forms normalize Money currency to property currency."""
     property_obj = Property.objects.create(
         name="Multi-Currency Property",
         property_type=Property.APARTMENT,
@@ -305,49 +276,89 @@ def test_property_quick_create_normalizes_currency(user_client):
         is_active=True,
     )
 
-    # Expense should be normalized to EUR (property currency)
-    expense_response = user_client.post(
+    response = user_client.post(
         reverse("property:detail", args=[property_obj.pk]),
         {
-            "form_type": "expense",
-            "expense_0": "500",
-            "expense_1": "EUR",  # User provides EUR
-            "expense_date": datetime.date.today().isoformat(),
-            "expense_type": PropertyExpense.MAINTENANCE,
+            "form_type": "ledger_entry",
+            "flow_type": PropertyLedgerEntry.FlowType.EXPENSE,
+            "amount_0": "500",
+            "amount_1": "EUR",
+            "entry_date": datetime.date.today().isoformat(),
+            "tax_category": PropertyLedgerEntry.TaxCategory.MAINTENANCE_REPAIRS,
+            "management_category": PropertyLedgerEntry.ManagementCategory.MAINTENANCE,
             "description": "Maintenance cost",
-            "recurrence_type": PropertyExpense.NONE,
+            "recurrence_type": "none",
         },
     )
-    assert expense_response.status_code == 302
-    expense = PropertyExpense.objects.filter(property=property_obj).first()
-    assert expense is not None
-    assert str(expense.expense.currency) == "EUR"
-
-    # Revenue should also be normalized to EUR
-    revenue_response = user_client.post(
-        reverse("property:detail", args=[property_obj.pk]),
-        {
-            "form_type": "revenue",
-            "revenue_0": "800",
-            "revenue_1": "EUR",
-            "revenue_date": datetime.date.today().isoformat(),
-            "revenue_type": PropertyRevenue.RENT,
-            "description": "Monthly rental income",
-            "recurrence_type": PropertyRevenue.MONTHLY,
-            "recurrence_end_date": (
-                datetime.date.today() + datetime.timedelta(days=365)
-            ).isoformat(),
-        },
-    )
-    assert revenue_response.status_code == 302
-    revenue = PropertyRevenue.objects.filter(property=property_obj).first()
-    assert revenue is not None
-    assert str(revenue.revenue.currency) == "EUR"
+    assert response.status_code == 302
+    entry = PropertyLedgerEntry.objects.filter(property=property_obj).first()
+    assert entry is not None
+    assert str(entry.amount.currency) == "EUR"
 
 
 @pytest.mark.django_db
-def test_recurring_revenue_generates_occurrences(user_client):
-    """Test that recurring revenues generate occurrences correctly."""
+def test_property_detail_transactions_json_context(user_client):
+    """Test that the detail view provides transactions_json for DataTables."""
+    property_obj = Property.objects.create(
+        name="JSON Test Property",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=400),
+        is_active=True,
+    )
+    PropertyLedgerEntry.objects.create(
+        property=property_obj,
+        flow_type=PropertyLedgerEntry.FlowType.INCOME,
+        amount=Money(1000, "EUR"),
+        entry_date=datetime.date.today() - datetime.timedelta(days=30),
+        tax_category=PropertyLedgerEntry.TaxCategory.RENT,
+        management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+        description="Loyer",
+        recurrence_type="none",
+    )
+    PropertyLedgerEntry.objects.create(
+        property=property_obj,
+        flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+        amount=Money(150, "EUR"),
+        entry_date=datetime.date.today() - datetime.timedelta(days=10),
+        tax_category=PropertyLedgerEntry.TaxCategory.INSURANCE,
+        management_category=PropertyLedgerEntry.ManagementCategory.INSURANCE,
+        description="Assurance",
+        recurrence_type="none",
+    )
+
+    response = user_client.get(reverse("property:detail", args=[property_obj.pk]))
+
+    assert response.status_code == 200
+    tx_json = response.context["transactions_json"]
+    assert isinstance(tx_json, list)
+    assert len(tx_json) == 2
+
+    # Each row must have the expected keys for DataTables
+    for row in tx_json:
+        assert "date" in row
+        assert "kind" in row
+        assert "category" in row
+        assert "amount" in row
+        assert "description" in row
+        assert "is_recurring" in row
+        assert "parent_id" in row
+
+    # Sorted most-recent first
+    assert tx_json[0]["date"] >= tx_json[1]["date"]
+
+    # Amounts are floats (not Money objects)
+    assert isinstance(tx_json[0]["amount"], float)
+
+    # Dates are ISO strings
+    import re
+
+    assert re.match(r"\d{4}-\d{2}-\d{2}", tx_json[0]["date"])
+
+
+@pytest.mark.django_db
+def test_recurring_ledger_entry_generates_occurrences(user_client):
+    """Test that recurring ledger entries generate occurrences correctly."""
     property_obj = Property.objects.create(
         name="Rental Property",
         property_type=Property.APARTMENT,
@@ -356,22 +367,54 @@ def test_recurring_revenue_generates_occurrences(user_client):
         is_active=True,
     )
 
-    # Create recurring monthly revenue
-    revenue = PropertyRevenue.objects.create(
+    entry = PropertyLedgerEntry.objects.create(
         property=property_obj,
-        revenue=Money(1000, "EUR"),
-        revenue_date=datetime.date.today(),
-        revenue_type=PropertyRevenue.RENT,
-        recurrence_type=PropertyRevenue.MONTHLY,
+        flow_type=PropertyLedgerEntry.FlowType.INCOME,
+        amount=Money(1000, "EUR"),
+        entry_date=datetime.date.today(),
+        tax_category=PropertyLedgerEntry.TaxCategory.RENT,
+        management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+        recurrence_type="monthly",
         recurrence_end_date=datetime.date.today() + datetime.timedelta(days=90),
     )
 
-    # Generate occurrences for 90 days
-    occurrences = revenue.generate_occurrences(
+    occurrences = entry.generate_occurrences(
         end_date=datetime.date.today() + datetime.timedelta(days=90)
     )
 
-    # Should generate ~3 occurrences (today + 1 month + 2 months)
     assert len(occurrences) >= 3
     assert all(occ["is_recurring"] for occ in occurrences)
     assert all(occ["amount"] == Money(1000, "EUR") for occ in occurrences)
+
+
+@pytest.mark.django_db
+def test_delete_ledger_entry_requires_post(user_client):
+    """Test that ledger entry deletion requires POST."""
+    property_obj = Property.objects.create(
+        name="Test Property",
+        property_type=Property.HOUSE,
+        buying_value=Money(250000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=100),
+        is_active=True,
+    )
+    entry = PropertyLedgerEntry.objects.create(
+        property=property_obj,
+        flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+        amount=Money(1200, "EUR"),
+        entry_date=datetime.date.today(),
+        tax_category=PropertyLedgerEntry.TaxCategory.TAXES,
+        management_category=PropertyLedgerEntry.ManagementCategory.PROPERTY_TAX,
+        recurrence_type="none",
+    )
+
+    get_response = user_client.get(
+        reverse("property:delete_entry", args=[property_obj.pk, entry.pk])
+    )
+    assert get_response.status_code == 302
+    assert PropertyLedgerEntry.objects.filter(pk=entry.pk).exists()
+
+    post_response = user_client.post(
+        reverse("property:delete_entry", args=[property_obj.pk, entry.pk])
+    )
+    assert post_response.status_code == 302
+    assert not PropertyLedgerEntry.objects.filter(pk=entry.pk).exists()

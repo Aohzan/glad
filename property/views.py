@@ -2,10 +2,8 @@
 
 import datetime
 from decimal import Decimal
-from urllib.parse import urlencode
 
 from django.contrib import messages
-from django.core.paginator import Paginator
 from django.forms import inlineformset_factory
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -13,21 +11,27 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView
 from moneyed import Money
 
+from property.services.cashflow import build_balance_sheet
 from property.forms import (
+    LeaseForm,
+    ManagementMandateForm,
     PropertyEditForm,
-    PropertyExpenseEditForm,
-    PropertyExpenseQuickCreateForm,
+    PropertyLedgerEntryEditForm,
+    PropertyLedgerEntryQuickCreateForm,
     PropertyLoanForm,
-    PropertyRevenueEditForm,
-    PropertyRevenueQuickCreateForm,
+    PropertyManagerForm,
     PropertyValueQuickCreateForm,
+    TenantForm,
 )
 from property.models import (
+    Lease,
+    ManagementMandate,
     Property,
-    PropertyExpense,
+    PropertyLedgerEntry,
     PropertyLoan,
-    PropertyRevenue,
+    PropertyManager,
     PropertyValue,
+    Tenant,
 )
 from property.utils import (
     add_years_safe,
@@ -40,11 +44,9 @@ from property.utils import (
 
 def index(request: HttpRequest) -> HttpResponse:
     """Property index view."""
-    # Fix #2: remove useless .filter() with no args
     properties = Property.objects.order_by("is_active", "name")
     property_list = []
 
-    # Fix #1 & #6: use None sentinel instead of fragile isinstance(int) check
     total_gross_value: Money | None = None
     total_net_value: Money | None = None
 
@@ -70,20 +72,17 @@ def index(request: HttpRequest) -> HttpResponse:
             }
         )
 
-    # Get data for the chart, both gross and net values
     properties_active = [p for p in properties if p.is_active]
     properties_months = []
     properties_gross_evolution = []
     properties_net_evolution = []
 
-    # Find the earliest property purchase date
     earliest_date = None
     if properties_active:
         earliest_date = min(prop.buying_date for prop in properties_active)
 
     if earliest_date:
         now = datetime.date.today()
-        # Fix #3: determine currency once, outside the inner loop
         chart_currency = (
             str(total_gross_value.currency) if total_gross_value is not None else None
         )
@@ -145,8 +144,77 @@ class PropertyDetailView(DetailView):
     template_name = "property/detail.html"
     context_object_name = "property"
 
+    def _parse_balance_sheet_range(
+        self,
+    ) -> tuple[datetime.date, datetime.date, int, int, int]:
+        """
+        Parse year/month range from GET params.
+
+        Returns (date_from, date_to, year, months_span) where:
+        - date_from  = first day of the start month
+        - date_to    = last day of the end month
+        - year       = reference year (used for display)
+        - months_span = number of months in the range (12 for full year, 1 for single month)
+
+        Default: current civil year (Jan 1 → Dec 31).
+        """
+        today = datetime.date.today()
+        try:
+            year = int(self.request.GET.get("bs_year", today.year))
+        except ValueError, TypeError:
+            year = today.year
+
+        try:
+            months_span = int(self.request.GET.get("bs_months", 12))
+            if months_span not in (1, 3, 6, 12):
+                months_span = 12
+        except ValueError, TypeError:
+            months_span = 12
+
+        try:
+            start_month = int(self.request.GET.get("bs_start_month", 1))
+            if not 1 <= start_month <= 12:
+                start_month = 1
+        except ValueError, TypeError:
+            start_month = 1
+
+        date_from = datetime.date(year, start_month, 1)
+        # Compute end month by adding (months_span - 1) months
+        from property.utils import add_months_safe, month_end
+
+        date_to_start = add_months_safe(date_from, months_span - 1)
+        date_to = month_end(date_to_start)
+
+        return date_from, date_to, year, months_span, start_month
+
+    def _build_balance_sheet_context(self, property_obj: Property) -> dict:
+        """Build balance sheet context for the given property and date range."""
+        date_from, date_to, bs_year, bs_months, bs_start_month = (
+            self._parse_balance_sheet_range()
+        )
+
+        balance_sheet = build_balance_sheet(property_obj, date_from, date_to)
+
+        # Compute prev/next navigation params
+        from property.utils import add_months_safe
+
+        prev_start = add_months_safe(date_from, -bs_months)
+        next_start = add_months_safe(date_from, bs_months)
+
+        return {
+            "balance_sheet": balance_sheet,
+            "bs_date_from": date_from,
+            "bs_date_to": date_to,
+            "bs_year": bs_year,
+            "bs_months": bs_months,
+            "bs_start_month": bs_start_month,
+            "bs_prev_year": prev_start.year,
+            "bs_prev_start_month": prev_start.month,
+            "bs_next_year": next_start.year,
+            "bs_next_start_month": next_start.month,
+        }
+
     def _get_growth_rate(self) -> Decimal:
-        """Return annual growth rate from query string with a safe default."""
         default_rate = Decimal("0.02")
         raw_growth_rate = self.request.GET.get("growth_rate")
         if not raw_growth_rate:
@@ -163,7 +231,6 @@ class PropertyDetailView(DetailView):
             return default_rate
 
     def _build_projection_data(self, property_obj: Property) -> list[dict]:
-        """Build projections for value, debt and net equity over selected horizons."""
         projection_years = list(range(1, 21))
         growth_rate = self._get_growth_rate()
         current_value = property_obj.get_value()
@@ -198,7 +265,6 @@ class PropertyDetailView(DetailView):
         property_obj: Property,
         projections: list[dict],
     ) -> tuple[list[dict], list[dict], list[dict], list[dict], str]:
-        """Build datetime chart series for historical and projected curves."""
         today = datetime.date.today()
         current_value = property_obj.get_value()
         current_debt = property_obj.total_remaining_loans_at_date(today)
@@ -219,16 +285,10 @@ class PropertyDetailView(DetailView):
             )
             historical_debt = property_obj.total_remaining_loans_at_date(chart_date)
             value_history_series.append(
-                {
-                    "x": chart_date.isoformat(),
-                    "y": float(historical_value.amount),
-                }
+                {"x": chart_date.isoformat(), "y": float(historical_value.amount)}
             )
             debt_history_series.append(
-                {
-                    "x": chart_date.isoformat(),
-                    "y": float(historical_debt.amount),
-                }
+                {"x": chart_date.isoformat(), "y": float(historical_debt.amount)}
             )
 
         value_projection_series = [
@@ -239,16 +299,10 @@ class PropertyDetailView(DetailView):
         ]
         for projection in projections:
             value_projection_series.append(
-                {
-                    "x": projection["date"].isoformat(),
-                    "y": projection["value_amount"],
-                }
+                {"x": projection["date"].isoformat(), "y": projection["value_amount"]}
             )
             debt_projection_series.append(
-                {
-                    "x": projection["date"].isoformat(),
-                    "y": projection["debt_amount"],
-                }
+                {"x": projection["date"].isoformat(), "y": projection["debt_amount"]}
             )
 
         return (
@@ -262,20 +316,16 @@ class PropertyDetailView(DetailView):
     def _observation_window(
         self,
         property_obj: Property,
-        revenues_qs,
-        expenses_qs,
+        entries_qs,
         loans_qs,
     ) -> tuple[datetime.date, datetime.date]:
         """Return inclusive first-of-month boundaries for activity calculations."""
         start_date = property_obj.buying_date
-        oldest_revenue = revenues_qs.order_by("revenue_date").first()
-        oldest_expense = expenses_qs.order_by("expense_date").first()
+        oldest_entry = entries_qs.order_by("entry_date").first()
         oldest_loan = loans_qs.order_by("start_date").first()
 
-        if oldest_revenue and oldest_revenue.revenue_date < start_date:
-            start_date = oldest_revenue.revenue_date
-        if oldest_expense and oldest_expense.expense_date < start_date:
-            start_date = oldest_expense.expense_date
+        if oldest_entry and oldest_entry.entry_date < start_date:
+            start_date = oldest_entry.entry_date
         if oldest_loan and oldest_loan.start_date < start_date:
             start_date = oldest_loan.start_date
 
@@ -303,7 +353,6 @@ class PropertyDetailView(DetailView):
         dict[tuple[int, int], Decimal],
         dict[tuple[int, int], Decimal],
     ]:
-        """Aggregate loan costs to month buckets for all loans."""
         loan_interest_by_month: dict[tuple[int, int], Decimal] = {}
         loan_principal_by_month: dict[tuple[int, int], Decimal] = {}
         loan_insurance_by_month: dict[tuple[int, int], Decimal] = {}
@@ -337,15 +386,13 @@ class PropertyDetailView(DetailView):
         return loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month
 
     def _estimated_monthly_cashflow(self, property_obj: Property) -> Decimal:
-        """Estimate monthly cashflow from historical revenues, expenses, and loan costs."""
-        revenues_qs = PropertyRevenue.objects.filter(property=property_obj)
-        expenses_qs = PropertyExpense.objects.filter(property=property_obj)
+        """Estimate average monthly cashflow from ledger entries and loan costs."""
+        entries_qs = PropertyLedgerEntry.objects.filter(property=property_obj)
+        revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
+        expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
         loans_qs = PropertyLoan.objects.filter(property=property_obj)
         start_month, end_month = self._observation_window(
-            property_obj,
-            revenues_qs,
-            expenses_qs,
-            loans_qs,
+            property_obj, entries_qs, loans_qs
         )
 
         revenue_by_month = self._occurrences_by_month(revenues_qs, end_month)
@@ -354,7 +401,6 @@ class PropertyDetailView(DetailView):
             self._loan_costs_by_month(loans_qs)
         )
 
-        # Fix #4: materialise the list once so it can be iterated multiple times
         months = iter_month_starts(start_month, end_month)
         months_observed = max(1, len(months))
 
@@ -398,15 +444,13 @@ class PropertyDetailView(DetailView):
         list[dict],
         list[dict],
     ]:
-        """Build monthly cashflow series for revenues, expenses and loans."""
-        revenues_qs = PropertyRevenue.objects.filter(property=property_obj)
-        expenses_qs = PropertyExpense.objects.filter(property=property_obj)
+        """Build monthly cashflow series from ledger entries and loans."""
+        entries_qs = PropertyLedgerEntry.objects.filter(property=property_obj)
+        revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
+        expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
         loans_qs = PropertyLoan.objects.filter(property=property_obj)
         start_month, end_month = self._observation_window(
-            property_obj,
-            revenues_qs,
-            expenses_qs,
-            loans_qs,
+            property_obj, entries_qs, loans_qs
         )
 
         revenue_by_month = self._occurrences_by_month(revenues_qs, end_month)
@@ -415,20 +459,20 @@ class PropertyDetailView(DetailView):
             self._loan_costs_by_month(loans_qs)
         )
 
-        # Aggregate expenses by type for the breakdown chart
-        expense_by_type: dict[str, dict] = {}
+        # Breakdown of expenses by management_category
+        expense_by_mgmt_cat: dict[str, dict] = {}
         end_of_month = month_end(end_month)
-        for expense in expenses_qs:
-            type_key = expense.expense_type
-            if type_key not in expense_by_type:
-                expense_by_type[type_key] = {
-                    "label": expense.get_expense_type_display(),
+        for entry in expenses_qs:
+            cat_key = entry.management_category
+            if cat_key not in expense_by_mgmt_cat:
+                expense_by_mgmt_cat[cat_key] = {
+                    "label": entry.get_management_category_display(),
                     "by_month": {},
                 }
-            for occurrence in expense.generate_occurrences(end_date=end_of_month):
+            for occurrence in entry.generate_occurrences(end_date=end_of_month):
                 key = (occurrence["date"].year, occurrence["date"].month)
-                expense_by_type[type_key]["by_month"][key] = (
-                    expense_by_type[type_key]["by_month"].get(key, Decimal("0"))
+                expense_by_mgmt_cat[cat_key]["by_month"][key] = (
+                    expense_by_mgmt_cat[cat_key]["by_month"].get(key, Decimal("0"))
                     + occurrence["amount"].amount
                 )
 
@@ -438,7 +482,7 @@ class PropertyDetailView(DetailView):
         loan_principal_series = []
         loan_insurance_series = []
         total_expenses_series = []
-        type_month_series: dict[str, list[dict]] = {k: [] for k in expense_by_type}
+        type_month_series: dict[str, list[dict]] = {k: [] for k in expense_by_mgmt_cat}
 
         for current in iter_month_starts(start_month, end_month):
             month_key = (current.year, current.month)
@@ -462,40 +506,28 @@ class PropertyDetailView(DetailView):
             )
             expense_series.append({"x": current.isoformat(), "y": expense_value})
             loan_interest_series.append(
-                {
-                    "x": current.isoformat(),
-                    "y": loan_interest_value,
-                }
+                {"x": current.isoformat(), "y": loan_interest_value}
             )
             loan_principal_series.append(
-                {
-                    "x": current.isoformat(),
-                    "y": loan_principal_value,
-                }
+                {"x": current.isoformat(), "y": loan_principal_value}
             )
             loan_insurance_series.append(
-                {
-                    "x": current.isoformat(),
-                    "y": loan_insurance_value,
-                }
+                {"x": current.isoformat(), "y": loan_insurance_value}
             )
             total_expenses_series.append(
-                {
-                    "x": current.isoformat(),
-                    "y": total_expenses_value,
-                }
+                {"x": current.isoformat(), "y": total_expenses_value}
             )
-            for type_key, type_data in expense_by_type.items():
-                type_month_series[type_key].append(
+            for cat_key, cat_data in expense_by_mgmt_cat.items():
+                type_month_series[cat_key].append(
                     {
                         "x": current.isoformat(),
-                        "y": float(type_data["by_month"].get(month_key, 0)),
+                        "y": float(cat_data["by_month"].get(month_key, 0)),
                     }
                 )
 
         expense_by_type_series = [
-            {"label": expense_by_type[k]["label"], "data": type_month_series[k]}
-            for k in expense_by_type
+            {"label": expense_by_mgmt_cat[k]["label"], "data": type_month_series[k]}
+            for k in expense_by_mgmt_cat
         ]
 
         return (
@@ -508,141 +540,32 @@ class PropertyDetailView(DetailView):
             expense_by_type_series,
         )
 
-    def _build_transactions_table_context(self, property_obj: Property) -> dict:
-        """Build unified transactions context for expenses and revenues table."""
-        transaction_type = self.request.GET.get("transaction_type", "all")
-        search_query = self.request.GET.get("q", "").strip()
-        sort = self.request.GET.get("sort", "date")
-        order = self.request.GET.get("order", "desc")
-        page_size_raw = self.request.GET.get("page_size", "10")
-
-        allowed_page_sizes = [5, 10, 20, 50]
-        try:
-            page_size = int(page_size_raw)
-        except ValueError:
-            page_size = 10
-        if page_size not in allowed_page_sizes:
-            page_size = 10
-
-        expenses = PropertyExpense.objects.filter(property=property_obj)
-        revenues = PropertyRevenue.objects.filter(property=property_obj)
-
-        if search_query:
-            expenses = expenses.filter(description__icontains=search_query)
-            revenues = revenues.filter(description__icontains=search_query)
-
+    def _build_transactions_json(self, property_obj: Property) -> list[dict]:
+        """Build all expanded transactions as a list of dicts for DataTables."""
+        entries_qs = PropertyLedgerEntry.objects.filter(property=property_obj)
         rows = []
-        if transaction_type in ["all", "expense"]:
-            for expense in expenses:
-                for occurrence in expense.generate_occurrences():
-                    rows.append(
-                        {
-                            "kind": "expense",
-                            "date": occurrence["date"],
-                            "category": expense.get_expense_type_display(),
-                            "amount": occurrence["amount"],
-                            "description": expense.description or "",
-                            "is_recurring": occurrence["is_recurring"],
-                            "parent_id": expense.pk,
-                        }
-                    )
-
-        if transaction_type in ["all", "revenue"]:
-            for revenue in revenues:
-                for occurrence in revenue.generate_occurrences():
-                    rows.append(
-                        {
-                            "kind": "revenue",
-                            "date": occurrence["date"],
-                            "category": revenue.get_revenue_type_display(),
-                            "amount": occurrence["amount"],
-                            "description": revenue.description or "",
-                            "is_recurring": occurrence["is_recurring"],
-                            "parent_id": revenue.pk,
-                        }
-                    )
-
-        sort_key_map = {
-            "date": lambda row: row["date"],
-            "kind": lambda row: row["kind"],
-            "category": lambda row: row["category"].lower(),
-            "amount": lambda row: row["amount"].amount,
-            "description": lambda row: row["description"].lower(),
-        }
-        sort_key = sort_key_map.get(sort, sort_key_map["date"])
-        reverse = order != "asc"
-        rows.sort(key=sort_key, reverse=reverse)
-
-        paginator = Paginator(rows, page_size)
-        page_number = self.request.GET.get("page", "1")
-        page_obj = paginator.get_page(page_number)
-
-        base_query_dict = {
-            "transaction_type": transaction_type,
-            "q": search_query,
-            "sort": sort,
-            "order": order,
-            "page_size": page_size,
-        }
-        base_query_string = urlencode(base_query_dict)
-
-        def _sort_query(column: str) -> str:
-            next_order = "asc"
-            if sort == column and order == "asc":
-                next_order = "desc"
-            query = {
-                "transaction_type": transaction_type,
-                "q": search_query,
-                "sort": column,
-                "order": next_order,
-                "page_size": page_size,
-            }
-            return urlencode(query)
-
-        return {
-            "transactions_page": page_obj,
-            "transaction_type": transaction_type,
-            "transaction_search_query": search_query,
-            "transaction_sort": sort,
-            "transaction_order": order,
-            "transaction_page_size": page_size,
-            "transaction_page_sizes": allowed_page_sizes,
-            "transactions_base_query": base_query_string,
-            "sort_query_date": _sort_query("date"),
-            "sort_query_kind": _sort_query("kind"),
-            "sort_query_category": _sort_query("category"),
-            "sort_query_amount": _sort_query("amount"),
-            "sort_query_description": _sort_query("description"),
-        }
+        for entry in entries_qs:
+            tax_label = entry.get_tax_category_display()
+            for occurrence in entry.generate_occurrences():
+                rows.append(
+                    {
+                        "kind": entry.flow_type,
+                        "date": occurrence["date"].isoformat(),
+                        "category": str(tax_label),
+                        "amount": float(occurrence["amount"].amount),
+                        "description": entry.description or "",
+                        "is_recurring": occurrence["is_recurring"],
+                        "parent_id": entry.pk,
+                    }
+                )
+        # Default sort: most recent first
+        rows.sort(key=lambda r: r["date"], reverse=True)
+        return rows
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Handle quick create forms from dashboard modals."""
         self.object = self.get_object()
         form_type = request.POST.get("form_type")
-
-        # Fix #8: refactor repeated save pattern into a helper closure
-        def _save_quick_form(
-            form_class,
-            money_field: str,
-            success_msg: str,
-            error_msg: str,
-        ) -> HttpResponse | None:
-            form = form_class(request.POST)
-            if form.is_valid():
-                obj = form.save(commit=False)
-                obj.property = self.object
-                # Normalise currency to the property's currency
-                raw_money = getattr(obj, money_field)
-                setattr(
-                    obj,
-                    money_field,
-                    Money(raw_money.amount, str(self.object.currency)),
-                )
-                obj.save()
-                messages.success(request, success_msg)
-                return redirect("property:detail", pk=self.object.pk)
-            messages.error(request, error_msg)
-            return None
 
         if form_type == "value":
             form = PropertyValueQuickCreateForm(request.POST)
@@ -657,31 +580,24 @@ class PropertyDetailView(DetailView):
                 messages.success(request, _("Property value added."))
                 return redirect("property:detail", pk=self.object.pk)
             messages.error(request, _("Unable to add property value."))
-        elif form_type == "expense":
-            result = _save_quick_form(
-                PropertyExpenseQuickCreateForm,
-                "expense",
-                str(_("Property expense added.")),
-                str(_("Unable to add property expense.")),
-            )
-            if result:
-                return result
-        elif form_type == "revenue":
-            result = _save_quick_form(
-                PropertyRevenueQuickCreateForm,
-                "revenue",
-                str(_("Property revenue added.")),
-                str(_("Unable to add property revenue.")),
-            )
-            if result:
-                return result
+
+        elif form_type == "ledger_entry":
+            form = PropertyLedgerEntryQuickCreateForm(request.POST)
+            if form.is_valid():
+                entry = form.save(commit=False)
+                entry.property = self.object
+                entry.amount = Money(entry.amount.amount, str(self.object.currency))
+                entry.save()
+                messages.success(request, _("Entry added."))
+                return redirect("property:detail", pk=self.object.pk)
+            messages.error(request, _("Unable to add entry."))
+
         else:
             messages.error(request, _("Unknown form action."))
 
         return self.get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        """Add dashboard metrics and chart datasets to template context."""
         context = super().get_context_data(**kwargs)
         property_obj = self.object
 
@@ -695,7 +611,7 @@ class PropertyDetailView(DetailView):
             projection_start_date,
         ) = self._build_chart_series(property_obj, projections)
         monthly_cashflow_amount = self._estimated_monthly_cashflow(property_obj)
-        transactions_context = self._build_transactions_table_context(property_obj)
+        transactions_data = self._build_transactions_json(property_obj)
         (
             revenue_series,
             expense_series,
@@ -706,25 +622,16 @@ class PropertyDetailView(DetailView):
             expense_by_type_series,
         ) = self._build_cashflow_series(property_obj)
 
-        # Get all unique expenses and revenues for edit/delete modals
-        expenses = PropertyExpense.objects.filter(property=property_obj)
-        revenues = PropertyRevenue.objects.filter(property=property_obj)
-
-        expenses_with_forms = [
+        entries = PropertyLedgerEntry.objects.filter(property=property_obj)
+        entries_with_forms = [
             {
-                "obj": expense,
-                "edit_form": PropertyExpenseEditForm(instance=expense),
+                "obj": entry,
+                "edit_form": PropertyLedgerEntryEditForm(instance=entry),
             }
-            for expense in expenses
+            for entry in entries
         ]
 
-        revenues_with_forms = [
-            {
-                "obj": revenue,
-                "edit_form": PropertyRevenueEditForm(instance=revenue),
-            }
-            for revenue in revenues
-        ]
+        balance_sheet_context = self._build_balance_sheet_context(property_obj)
 
         context.update(
             {
@@ -754,34 +661,41 @@ class PropertyDetailView(DetailView):
                     monthly_cashflow_amount,
                     str(property_obj.buying_value.currency),
                 ),
+                "entry_form": PropertyLedgerEntryQuickCreateForm(),
                 "value_form": PropertyValueQuickCreateForm(
                     initial={
                         "valuation_date": datetime.date.today(),
                         "value_1": str(property_obj.currency),
                     }
                 ),
-                "expense_form": PropertyExpenseQuickCreateForm(),
-                "revenue_form": PropertyRevenueQuickCreateForm(),
                 "property_values": PropertyValue.objects.filter(
                     property=property_obj
                 ).order_by("-valuation_date"),
-                "expenses_with_forms": expenses_with_forms,
-                "revenues_with_forms": revenues_with_forms,
+                "entries_with_forms": entries_with_forms,
+                "active_leases": Lease.objects.filter(
+                    property=property_obj,
+                    status__in=[Lease.Status.ACTIVE, Lease.Status.NOTICE_PERIOD],
+                ).prefetch_related("tenants"),
+                "active_mandate": ManagementMandate.objects.filter(
+                    property=property_obj, end_date__isnull=True
+                ).first(),
+                "transactions_json": transactions_data,
             }
         )
-        context.update(transactions_context)
+        context.update(balance_sheet_context)
         return context
+
+
+# ─── Helpers ─────────────────────────────────────────────────────────────────
 
 
 def _get_property_or_redirect(
     request: HttpRequest,
     property_pk: int,
 ) -> tuple[Property | None, HttpResponse | None]:
-    """Return a property or a redirect response when not found."""
     property_obj = Property.objects.filter(pk=property_pk).first()
     if property_obj is not None:
         return property_obj, None
-
     messages.error(request, _("Property not found."))
     return None, redirect("property:index")
 
@@ -789,25 +703,24 @@ def _get_property_or_redirect(
 def _get_related_or_redirect(
     request: HttpRequest,
     *,
-    model: type[PropertyExpense | PropertyRevenue | PropertyValue | PropertyLoan],
+    model,
     related_name: str,
     object_pk: int,
     property_obj: Property,
 ) -> tuple:
-    """Return a related object bound to a property or a redirect response."""
-    # Fix #10: removed unused TypeVar M; plain type: is sufficient here
     obj = model.objects.filter(pk=object_pk, property=property_obj).first()
     if obj is not None:
         return obj, None
-
     messages.error(request, _("%(name)s not found.") % {"name": related_name})
     return None, redirect("property:detail", pk=property_obj.pk)
+
+
+# ─── Property valuation ───────────────────────────────────────────────────────
 
 
 def delete_property_valuation(
     request: HttpRequest, property_pk: int, valuation_pk: int
 ) -> HttpResponse:
-    """Delete a property valuation. Only accepts POST requests."""
     if request.method != "POST":
         messages.error(request, _("Invalid request method."))
         return redirect("property:detail", pk=property_pk)
@@ -829,9 +742,11 @@ def delete_property_valuation(
     return redirect("property:detail", pk=property_pk)
 
 
+# ─── Property edit ────────────────────────────────────────────────────────────
+
+
 def edit_property(request: HttpRequest, pk: int) -> HttpResponse:
     """Edit a property and its associated loans."""
-    # Fix #9: consistent use of get_object_or_404 (already correct here, kept)
     property_obj = get_object_or_404(Property, pk=pk)
 
     PropertyLoanFormSet = inlineformset_factory(
@@ -852,10 +767,7 @@ def edit_property(request: HttpRequest, pk: int) -> HttpResponse:
             messages.success(request, _("Property updated successfully."))
             return redirect("property:detail", pk=property_obj.pk)
         else:
-            messages.error(
-                request,
-                _("Please correct the errors below."),
-            )
+            messages.error(request, _("Please correct the errors below."))
     else:
         property_form = PropertyEditForm(instance=property_obj)
         loan_formset = PropertyLoanFormSet(instance=property_obj)
@@ -868,49 +780,51 @@ def edit_property(request: HttpRequest, pk: int) -> HttpResponse:
     return render(request, "property/edit.html", context)
 
 
-def edit_property_expense(
-    request: HttpRequest, property_pk: int, expense_pk: int
+# ─── Ledger entry CRUD ────────────────────────────────────────────────────────
+
+
+def edit_ledger_entry(
+    request: HttpRequest, property_pk: int, entry_pk: int
 ) -> HttpResponse:
-    """Edit a property expense (including recurring settings)."""
+    """Edit a ledger entry (income or expense)."""
     property_obj, response = _get_property_or_redirect(request, property_pk)
     if response:
         return response
     assert property_obj is not None
 
-    expense, response = _get_related_or_redirect(
+    entry, response = _get_related_or_redirect(
         request,
-        model=PropertyExpense,
-        related_name=str(_("Expense")),
-        object_pk=expense_pk,
+        model=PropertyLedgerEntry,
+        related_name=str(_("Entry")),
+        object_pk=entry_pk,
         property_obj=property_obj,
     )
     if response:
         return response
-    assert expense is not None
+    assert entry is not None
 
     if request.method == "POST":
-        form = PropertyExpenseEditForm(request.POST, instance=expense)
+        form = PropertyLedgerEntryEditForm(request.POST, instance=entry)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Expense updated successfully."))
+            messages.success(request, _("Entry updated successfully."))
             return redirect("property:detail", pk=property_pk)
         messages.error(request, _("Please correct the errors below."))
     else:
-        form = PropertyExpenseEditForm(instance=expense)
+        form = PropertyLedgerEntryEditForm(instance=entry)
 
     context = {
         "property": property_obj,
-        "expense": expense,
+        "entry": entry,
         "form": form,
     }
-    return render(request, "property/edit_expense.html", context)
+    return render(request, "property/edit_entry.html", context)
 
 
-def delete_property_expense(
-    request: HttpRequest, property_pk: int, expense_pk: int
+def delete_ledger_entry(
+    request: HttpRequest, property_pk: int, entry_pk: int
 ) -> HttpResponse:
-    """Delete a property expense (and all its recurrences). Only accepts POST."""
-    # Fix #5: GET requests no longer try to render a non-existent template
+    """Delete a ledger entry. Only accepts POST."""
     if request.method != "POST":
         messages.error(request, _("Invalid request method."))
         return redirect("property:detail", pk=property_pk)
@@ -920,85 +834,124 @@ def delete_property_expense(
         return response
     assert property_obj is not None
 
-    expense, response = _get_related_or_redirect(
+    entry, response = _get_related_or_redirect(
         request,
-        model=PropertyExpense,
-        related_name=str(_("Expense")),
-        object_pk=expense_pk,
+        model=PropertyLedgerEntry,
+        related_name=str(_("Entry")),
+        object_pk=entry_pk,
         property_obj=property_obj,
     )
     if response:
         return response
-    assert expense is not None
+    assert entry is not None
 
-    expense.delete()
-    messages.success(request, _("Expense deleted successfully."))
+    entry.delete()
+    messages.success(request, _("Entry deleted successfully."))
     return redirect("property:detail", pk=property_pk)
 
 
-def edit_property_revenue(
-    request: HttpRequest, property_pk: int, revenue_pk: int
-) -> HttpResponse:
-    """Edit a property revenue (including recurring settings)."""
-    property_obj, response = _get_property_or_redirect(request, property_pk)
-    if response:
-        return response
-    assert property_obj is not None
+# ─── Tenant CRUD ──────────────────────────────────────────────────────────────
 
-    revenue, response = _get_related_or_redirect(
-        request,
-        model=PropertyRevenue,
-        related_name=str(_("Revenue")),
-        object_pk=revenue_pk,
-        property_obj=property_obj,
-    )
-    if response:
-        return response
-    assert revenue is not None
+
+def edit_tenant(request: HttpRequest, pk: int) -> HttpResponse:
+    """Create or edit a tenant."""
+    tenant = get_object_or_404(Tenant, pk=pk) if pk else None
 
     if request.method == "POST":
-        form = PropertyRevenueEditForm(request.POST, instance=revenue)
+        form = TenantForm(request.POST, instance=tenant)
         if form.is_valid():
             form.save()
-            messages.success(request, _("Revenue updated successfully."))
+            messages.success(request, _("Tenant saved."))
+            return redirect("property:index")
+        messages.error(request, _("Please correct the errors below."))
+    else:
+        form = TenantForm(instance=tenant)
+
+    return render(
+        request, "property/edit_tenant.html", {"form": form, "tenant": tenant}
+    )
+
+
+# ─── Lease CRUD ───────────────────────────────────────────────────────────────
+
+
+def edit_lease(
+    request: HttpRequest, property_pk: int, lease_pk: int | None = None
+) -> HttpResponse:
+    """Create or edit a lease for a property."""
+    property_obj = get_object_or_404(Property, pk=property_pk)
+    lease = (
+        get_object_or_404(Lease, pk=lease_pk, property=property_obj)
+        if lease_pk
+        else None
+    )
+
+    if request.method == "POST":
+        form = LeaseForm(request.POST, instance=lease)
+        if form.is_valid():
+            created = form.save(commit=False)
+            created.property = property_obj
+            created.save()
+            messages.success(request, _("Lease saved."))
             return redirect("property:detail", pk=property_pk)
         messages.error(request, _("Please correct the errors below."))
     else:
-        form = PropertyRevenueEditForm(instance=revenue)
+        form = LeaseForm(instance=lease)
 
-    context = {
-        "property": property_obj,
-        "revenue": revenue,
-        "form": form,
-    }
-    return render(request, "property/edit_revenue.html", context)
-
-
-def delete_property_revenue(
-    request: HttpRequest, property_pk: int, revenue_pk: int
-) -> HttpResponse:
-    """Delete a property revenue (and all its recurrences). Only accepts POST."""
-    # Fix #5: GET requests no longer try to render a non-existent template
-    if request.method != "POST":
-        messages.error(request, _("Invalid request method."))
-        return redirect("property:detail", pk=property_pk)
-
-    property_obj, response = _get_property_or_redirect(request, property_pk)
-    if response:
-        return response
-    assert property_obj is not None
-
-    revenue, response = _get_related_or_redirect(
+    return render(
         request,
-        model=PropertyRevenue,
-        related_name=str(_("Revenue")),
-        object_pk=revenue_pk,
-        property_obj=property_obj,
+        "property/edit_lease.html",
+        {"property": property_obj, "lease": lease, "form": form},
     )
-    if response:
-        return response
-    assert revenue is not None
 
-    revenue.delete()
-    messages.success(request, _("Revenue deleted successfully."))
-    return redirect("property:detail", pk=property_pk)
+
+# ─── PropertyManager / ManagementMandate CRUD ────────────────────────────────
+
+
+def edit_manager(request: HttpRequest, pk: int | None = None) -> HttpResponse:
+    """Create or edit a property manager."""
+    manager = get_object_or_404(PropertyManager, pk=pk) if pk else None
+
+    if request.method == "POST":
+        form = PropertyManagerForm(request.POST, instance=manager)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Manager saved."))
+            return redirect("property:index")
+        messages.error(request, _("Please correct the errors below."))
+    else:
+        form = PropertyManagerForm(instance=manager)
+
+    return render(
+        request, "property/edit_manager.html", {"form": form, "manager": manager}
+    )
+
+
+def edit_mandate(
+    request: HttpRequest, property_pk: int, mandate_pk: int | None = None
+) -> HttpResponse:
+    """Create or edit a management mandate for a property."""
+    property_obj = get_object_or_404(Property, pk=property_pk)
+    mandate = (
+        get_object_or_404(ManagementMandate, pk=mandate_pk, property=property_obj)
+        if mandate_pk
+        else None
+    )
+
+    if request.method == "POST":
+        form = ManagementMandateForm(request.POST, instance=mandate)
+        if form.is_valid():
+            created = form.save(commit=False)
+            created.property = property_obj
+            created.save()
+            messages.success(request, _("Mandate saved."))
+            return redirect("property:detail", pk=property_pk)
+        messages.error(request, _("Please correct the errors below."))
+    else:
+        form = ManagementMandateForm(instance=mandate)
+
+    return render(
+        request,
+        "property/edit_mandate.html",
+        {"property": property_obj, "mandate": mandate, "form": form},
+    )

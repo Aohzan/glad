@@ -7,32 +7,41 @@ from . import views
 app_name = "property"
 
 urlpatterns = [
+    # Property
     path("", views.index, name="index"),
     path("<int:pk>/", views.PropertyDetailView.as_view(), name="detail"),
     path("<int:pk>/edit/", views.edit_property, name="edit"),
+    # Property valuation
     path(
         "<int:property_pk>/valuation/<int:valuation_pk>/delete/",
         views.delete_property_valuation,
         name="delete_valuation",
     ),
+    # Ledger entries (unified income + expense)
     path(
-        "<int:property_pk>/expense/<int:expense_pk>/edit/",
-        views.edit_property_expense,
-        name="edit_expense",
+        "<int:property_pk>/entry/<int:entry_pk>/edit/",
+        views.edit_ledger_entry,
+        name="edit_entry",
     ),
     path(
-        "<int:property_pk>/expense/<int:expense_pk>/delete/",
-        views.delete_property_expense,
-        name="delete_expense",
+        "<int:property_pk>/entry/<int:entry_pk>/delete/",
+        views.delete_ledger_entry,
+        name="delete_entry",
     ),
+    # Leases
+    path("<int:property_pk>/lease/new/", views.edit_lease, name="new_lease"),
     path(
-        "<int:property_pk>/revenue/<int:revenue_pk>/edit/",
-        views.edit_property_revenue,
-        name="edit_revenue",
+        "<int:property_pk>/lease/<int:lease_pk>/edit/",
+        views.edit_lease,
+        name="edit_lease",
     ),
+    # Managers & mandates
+    path("manager/new/", views.edit_manager, name="new_manager"),
+    path("manager/<int:pk>/edit/", views.edit_manager, name="edit_manager"),
+    path("<int:property_pk>/mandate/new/", views.edit_mandate, name="new_mandate"),
     path(
-        "<int:property_pk>/revenue/<int:revenue_pk>/delete/",
-        views.delete_property_revenue,
-        name="delete_revenue",
+        "<int:property_pk>/mandate/<int:mandate_pk>/edit/",
+        views.edit_mandate,
+        name="edit_mandate",
     ),
 ]

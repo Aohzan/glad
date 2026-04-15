@@ -50,6 +50,19 @@ class PropertyLoanTestCase(TestCase):
         self.assertEqual(self.loan.interest_rate, Decimal("2.5"))
         self.assertEqual(float(self.loan.monthly_payment.amount), 500.0)
 
+    def test_loan_nullable_monthly_payment(self):
+        """Test that monthly_payment can be null."""
+        loan = PropertyLoan.objects.create(
+            property=self.property,
+            name="No Payment Loan",
+            start_date=datetime.date.today(),
+            end_date=datetime.date.today() + datetime.timedelta(days=365),
+            original_amount=Money(50000, "EUR"),
+            interest_rate=Decimal("1.5"),
+        )
+        self.assertIsNone(loan.monthly_payment)
+        self.assertIsNone(loan.insurance)
+
     def test_string_representation(self):
         """Test string representation of PropertyLoan."""
         self.assertEqual(str(self.loan), "Test Property - Test Loan")
@@ -63,6 +76,80 @@ class PropertyLoanTestCase(TestCase):
             monthly_payment=Money(50, "EUR"),
         )
         self.assertTrue(str(unnamed_loan).startswith("Test Property -"))
+
+    def test_get_duration_months(self):
+        """Test get_duration_months method."""
+        loan = PropertyLoan(
+            start_date=datetime.date(2024, 1, 1),
+            end_date=datetime.date(2044, 1, 1),
+        )
+        self.assertEqual(loan.get_duration_months(), 240)
+
+    def test_get_duration_months_none_dates(self):
+        """Test get_duration_months returns 0 when dates are None."""
+        loan = PropertyLoan()
+        self.assertEqual(loan.get_duration_months(), 0)
+
+    def test_compute_monthly_payment(self):
+        """Test compute_monthly_payment sets monthly_payment and insurance."""
+        loan = PropertyLoan(
+            start_date=datetime.date(2024, 1, 1),
+            end_date=datetime.date(2044, 1, 1),  # 240 months
+            original_amount=Money(200000, "EUR"),
+            interest_rate=Decimal("3.5"),
+            insurance_rate=Decimal("0.36"),
+        )
+        loan.compute_monthly_payment()
+        # Standard French amortization: ~1159.97 for 200k at 3.5% over 240 months
+        self.assertIsNotNone(loan.monthly_payment)
+        self.assertAlmostEqual(float(loan.monthly_payment.amount), 1159.97, delta=1.0)
+        # Insurance: 200000 * 0.36% / 12 = 60
+        self.assertIsNotNone(loan.insurance)
+        self.assertAlmostEqual(float(loan.insurance.amount), 60.0, delta=0.5)
+
+    def test_compute_monthly_payment_zero_rate(self):
+        """Test compute_monthly_payment with zero interest rate."""
+        loan = PropertyLoan(
+            start_date=datetime.date(2024, 1, 1),
+            end_date=datetime.date(2026, 1, 1),  # 24 months
+            original_amount=Money(24000, "EUR"),
+            interest_rate=Decimal("0"),
+        )
+        loan.compute_monthly_payment()
+        self.assertIsNotNone(loan.monthly_payment)
+        self.assertAlmostEqual(float(loan.monthly_payment.amount), 1000.0, delta=0.01)
+
+    def test_compute_monthly_payment_no_insurance_rate(self):
+        """Test compute_monthly_payment without insurance rate."""
+        loan = PropertyLoan(
+            start_date=datetime.date(2024, 1, 1),
+            end_date=datetime.date(2044, 1, 1),
+            original_amount=Money(100000, "EUR"),
+            interest_rate=Decimal("2.0"),
+        )
+        loan.compute_monthly_payment()
+        self.assertIsNotNone(loan.monthly_payment)
+        self.assertIsNone(loan.insurance)
+
+    def test_compute_monthly_payment_missing_data(self):
+        """Test compute_monthly_payment does nothing when data is missing."""
+        loan = PropertyLoan(
+            start_date=datetime.date(2024, 1, 1),
+            end_date=datetime.date(2044, 1, 1),
+            original_amount=Money(100000, "EUR"),
+            # No interest_rate
+        )
+        loan.compute_monthly_payment()
+        self.assertIsNone(loan.monthly_payment)
+
+    def test_taeg_rate_with_null_monthly_payment(self):
+        """Test taeg_rate returns 0 when monthly_payment is None."""
+        loan = PropertyLoan(
+            start_date=datetime.date(2024, 1, 1),
+            end_date=datetime.date(2044, 1, 1),
+            original_amount=Money(100000, "EUR"),
+        )
+        self.assertEqual(loan.taeg_rate(), Decimal("0.0"))
 
     def test_remaining_balance_future_loan(self):
         """Test remaining balance for a loan that hasn't started yet."""

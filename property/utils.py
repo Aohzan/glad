@@ -1,8 +1,9 @@
 import calendar
 import datetime
+from decimal import ROUND_HALF_UP, Decimal
 from typing import TYPE_CHECKING
 
-from moneyed import Decimal, Money
+from moneyed import Money
 
 if TYPE_CHECKING:
     from property.models import Property
@@ -109,6 +110,44 @@ def generate_recurring_occurrences(
             }
         ]
     )
+
+
+def calculate_monthly_payment(
+    *,
+    original_amount: Decimal,
+    annual_interest_rate: Decimal,
+    annual_insurance_rate: Decimal | None,
+    duration_months: int,
+) -> tuple[Decimal, Decimal, Decimal]:
+    """Calculate the monthly payment for a loan using the French amortization formula.
+
+    Returns a tuple of (monthly_principal_and_interest, monthly_insurance, total_monthly).
+    When interest_rate is 0, the payment is simply capital / duration.
+    """
+    if duration_months <= 0:
+        return Decimal("0"), Decimal("0"), Decimal("0")
+
+    monthly_rate = (annual_interest_rate / Decimal("100")) / Decimal("12")
+
+    if monthly_rate == Decimal("0"):
+        monthly_pi = (original_amount / Decimal(duration_months)).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+    else:
+        # Standard French amortization: M = C * t(1+t)^n / ((1+t)^n - 1)
+        factor = (Decimal("1") + monthly_rate) ** duration_months
+        monthly_pi = (
+            original_amount * monthly_rate * factor / (factor - Decimal("1"))
+        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    monthly_insurance = Decimal("0")
+    if annual_insurance_rate:
+        monthly_insurance = (
+            original_amount * annual_insurance_rate / Decimal("100") / Decimal("12")
+        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    total_monthly = monthly_pi + monthly_insurance
+    return monthly_pi, monthly_insurance, total_monthly
 
 
 def build_loan_monthly_maps(

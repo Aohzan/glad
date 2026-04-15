@@ -18,365 +18,542 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.3.7/css/dataTables.bootstrap5.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/2.3.7/js/dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/2.3.7/js/dataTables.bootstrap5.min.js"></script>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-start mb-4">
+
+  {# ── Page header ─────────────────────────────────────────────────────────── #}
+  <div class="d-flex justify-content-between align-items-start mb-3">
     <div>
-      <h1 class="mb-1">{{ property.name }}</h1>
-      <p class="text-body-secondary mb-0">{{ property.address|default:_("Address not specified") }}</p>
+      <h1 class="mb-0 h3">{{ property.name }}</h1>
+      <p class="text-body-secondary small mb-0">
+        <i class="bi bi-geo-alt me-1"></i>{{ property.address|default:_("Address not specified") }}
+      </p>
     </div>
-    <a href="{% url 'property:edit' property.pk %}" class="btn btn-outline-primary">
-      <i class="bi bi-pencil"></i> {% translate "Edit" %}
+    <a href="{% url 'property:edit' property.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
     </a>
   </div>
 
-  <div class="accordion" id="property-accordion">
-    <div class="accordion-item mb-3 border rounded">
-      <h2 class="accordion-header" id="summary-heading">
-        <button
-          class="accordion-button rounded"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#summary-collapse"
-          aria-expanded="true"
-          aria-controls="summary-collapse"
-        >
-          <strong>{% translate "Summary" %}</strong>
-        </button>
-      </h2>
-      <div
-        id="summary-collapse"
-        class="accordion-collapse collapse show"
-        aria-labelledby="summary-heading"
-        data-bs-parent="#property-accordion"
-      >
-        <div class="accordion-body">
-          <div class="row g-3">
-            <div class="col-12 col-lg-8">
-              <div class="row g-3">
-                <div class="col-12 col-md-6">
-                  <div class="card h-100 border-primary-subtle">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-start mb-2">
-                        <p class="text-uppercase small fw-semibold text-primary mb-0">{% translate "Current raw value" %}</p>
-                        <div class="btn-group btn-group-sm">
-                          <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#valueModal" title="{% translate 'Add value update' %}">
-                            <i class="bi bi-plus"></i>
-                          </button>
-                          <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#valueHistoryModal" title="{% translate 'Value history' %}">
-                            <i class="bi bi-clock-history"></i>
-                          </button>
-                        </div>
-                      </div>
-                      <p class="display-6 mb-0">{{ current_raw_value|format_money }}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="card h-100 border-success-subtle">
-                    <div class="card-body">
-                      <p class="text-uppercase small fw-semibold text-success mb-2">{% translate "Current net value" %}</p>
-                      <p class="display-6 mb-0">{{ current_net_value|format_money }}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="card h-100 border-info-subtle">
-                    <div class="card-body">
-                      <p class="text-uppercase small fw-semibold text-info mb-2">{% translate "Capital repaid" %}</p>
-                      <p class="display-6 mb-0">{{ capital_repaid|format_money }}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="card h-100 border-warning-subtle">
-                    <div class="card-body">
-                      <p class="text-uppercase small fw-semibold text-warning-emphasis mb-2">{% translate "Estimated monthly cash-flow" %}</p>
-                      <p class="display-6 mb-0">{{ estimated_monthly_cashflow|format_money }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-12 col-lg-4">
-              <div class="card h-100">
-                <div class="card-header">
-                  <h6 class="mb-0">{% translate "Location" %}</h6>
-                </div>
-                <div class="card-body p-2">
-                  <div id="property-map" class="rounded" style="height: 100%; min-height: 240px;"></div>
-                </div>
-              </div>
+  {# ── KPI strip ───────────────────────────────────────────────────────────── #}
+  <div class="row g-2 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 bg-body-secondary h-100">
+        <div class="card-body py-2 px-3">
+          <p class="text-uppercase text-primary small fw-semibold mb-1" style="font-size:.7rem;">
+            {% translate "Monthly cash flow" %}
+          </p>
+          <p class="fs-5 fw-bold mb-0
+            {% if estimated_monthly_cashflow.amount >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {{ estimated_monthly_cashflow|format_money }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 bg-body-secondary h-100">
+        <div class="card-body py-2 px-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">
+            {% translate "Gross value" %}
+          </p>
+          <div class="d-flex align-items-center gap-2">
+            <p class="fs-5 fw-bold mb-0">{{ current_raw_value|format_money }}</p>
+            <div class="btn-group btn-group-sm ms-auto">
+              <button class="btn btn-outline-secondary btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#valueModal" title="{% translate 'Add valuation' %}">
+                <i class="bi bi-plus" style="font-size:.8rem;"></i>
+              </button>
+              <button class="btn btn-outline-secondary btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#valueHistoryModal" title="{% translate 'Value history' %}">
+                <i class="bi bi-clock-history" style="font-size:.8rem;"></i>
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 bg-body-secondary h-100">
+        <div class="card-body py-2 px-3">
+          <p class="text-uppercase text-success small fw-semibold mb-1" style="font-size:.7rem;">
+            {% translate "Net value" %}
+          </p>
+          <p class="fs-5 fw-bold mb-0">{{ current_net_value|format_money }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 bg-body-secondary h-100">
+        <div class="card-body py-2 px-3">
+          <p class="text-uppercase text-info small fw-semibold mb-1" style="font-size:.7rem;">
+            {% translate "Capital repaid" %}
+          </p>
+          <p class="fs-5 fw-bold mb-0">{{ capital_repaid|format_money }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <div class="accordion-item mb-3 border rounded">
-      <h2 class="accordion-header" id="cashflow-heading">
-        <button
-          class="accordion-button collapsed rounded"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#cashflow-collapse"
-          aria-expanded="false"
-          aria-controls="cashflow-collapse"
-        >
-          <strong>{% translate "Cash flow" %}</strong>
-        </button>
-      </h2>
-      <div
-        id="cashflow-collapse"
-        class="accordion-collapse collapse"
-        aria-labelledby="cashflow-heading"
-        data-bs-parent="#property-accordion"
+  {# ── Tabs ────────────────────────────────────────────────────────────────── #}
+  <ul class="nav nav-tabs mb-0" id="propertyTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="cashflow-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#cashflow-panel"
+        type="button"
+        role="tab"
+        aria-controls="cashflow-panel"
+        aria-selected="true"
       >
-        <div class="accordion-body">
-          <div class="mb-2">
-            <h6 class="text-body-secondary small mb-1">{% translate "Monthly overview" %}</h6>
-            <div id="property-cashflow-overview-chart" style="height: 280px;"></div>
-          </div>
-          <div class="mb-4">
-            <h6 class="text-body-secondary small mb-1">{% translate "Expenses breakdown" %}</h6>
-            <div id="property-cashflow-breakdown-chart" style="height: 240px;"></div>
-          </div>
+        <i class="bi bi-cash-stack me-1"></i>{% translate "Cash flow" %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="projection-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#projection-panel"
+        type="button"
+        role="tab"
+        aria-controls="projection-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-graph-up-arrow me-1"></i>{% translate "Value & Projection" %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="balance-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#balance-panel"
+        type="button"
+        role="tab"
+        aria-controls="balance-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-journal-text me-1"></i>{% translate "Balance sheet" %}
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="map-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#map-panel"
+        type="button"
+        role="tab"
+        aria-controls="map-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-map me-1"></i>{% translate "Location" %}
+      </button>
+    </li>
+  </ul>
 
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-            <h6 class="mb-0">{% translate "Transactions" %}</h6>
-            <div class="d-flex gap-2">
-              <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#expenseModal">
-                <i class="bi bi-dash-circle me-1"></i>{% translate "Add expense" %}
-              </button>
-              <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#revenueModal">
-                <i class="bi bi-plus-circle me-1"></i>{% translate "Add revenue" %}
-              </button>
-            </div>
-          </div>
-          <form method="get" class="row g-2 align-items-end mb-3">
-        <div class="col-12 col-md-4">
-          <label for="transaction-search" class="form-label small mb-1">{% translate "Filter" %}</label>
-          <input
-            id="transaction-search"
-            type="text"
-            name="q"
-            value="{{ transaction_search_query }}"
-            class="form-control"
-            placeholder="{% translate 'Search in descriptions' %}"
-          >
+  <div class="tab-content border border-top-0 rounded-bottom p-3 bg-body" id="propertyTabContent">
+
+    {# ── Cash flow tab ──────────────────────────────────────────────────────── #}
+    <div class="tab-pane fade show active" id="cashflow-panel" role="tabpanel" aria-labelledby="cashflow-tab">
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+          <h6 class="text-body-secondary small mb-1">{% translate "Monthly overview" %}</h6>
+          <div id="property-cashflow-overview-chart" style="height: 260px;"></div>
         </div>
-        <div class="col-6 col-md-3">
-          <label for="transaction-type" class="form-label small mb-1">{% translate "Type" %}</label>
-          <select id="transaction-type" name="transaction_type" class="form-select">
-            <option value="all" {% if transaction_type == 'all' %}selected{% endif %}>{% translate "All" %}</option>
-            <option value="expense" {% if transaction_type == 'expense' %}selected{% endif %}>{% translate "Expenses" %}</option>
-            <option value="revenue" {% if transaction_type == 'revenue' %}selected{% endif %}>{% translate "Revenues" %}</option>
-          </select>
+        <div class="col-12 col-lg-6">
+          <h6 class="text-body-secondary small mb-1">{% translate "Expenses breakdown" %}</h6>
+          <div id="property-cashflow-breakdown-chart" style="height: 260px;"></div>
         </div>
-        <div class="col-6 col-md-2">
-          <label for="page-size" class="form-label small mb-1">{% translate "Per page" %}</label>
-          <select id="page-size" name="page_size" class="form-select">
-            {% for size in transaction_page_sizes %}
-              <option value="{{ size }}" {% if transaction_page_size == size %}selected{% endif %}>{{ size }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <input type="hidden" name="sort" value="{{ transaction_sort }}">
-        <input type="hidden" name="order" value="{{ transaction_order }}">
-        <div class="col-12 col-md-3 d-grid">
-          <button type="submit" class="btn btn-primary">{% translate "Apply" %}</button>
-        </div>
-      </form>
+      </div>
+
+      <hr class="my-3">
+
+      {# Transactions table #}
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h6 class="mb-0">{% translate "Transactions" %}</h6>
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#entryModal">
+          <i class="bi bi-plus-circle me-1"></i>{% translate "Add entry" %}
+        </button>
+      </div>
 
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table id="transactions-table" class="table table-hover align-middle mb-0 w-100">
           <thead>
             <tr>
-              <th><a class="link-body-emphasis text-decoration-none" href="?{{ sort_query_date }}">{% translate "Date" %}</a></th>
-              <th><a class="link-body-emphasis text-decoration-none" href="?{{ sort_query_kind }}">{% translate "Kind" %}</a></th>
-              <th><a class="link-body-emphasis text-decoration-none" href="?{{ sort_query_category }}">{% translate "Category" %}</a></th>
-              <th><a class="link-body-emphasis text-decoration-none" href="?{{ sort_query_amount }}">{% translate "Amount" %}</a></th>
-              <th><a class="link-body-emphasis text-decoration-none" href="?{{ sort_query_description }}">{% translate "Description" %}</a></th>
-              <th>{% translate "Actions" %}</th>
+              <th>{% translate "Date" %}</th>
+              <th class="d-none"></th>{# hidden raw kind — used for column search #}
+              <th>{% translate "Kind" %}</th>
+              <th>{% translate "Category" %}</th>
+              <th>{% translate "Amount" %}</th>
+              <th>{% translate "Description" %}</th>
+              <th class="no-sort">{% translate "Actions" %}</th>
             </tr>
           </thead>
           <tbody>
-            {% for tx in transactions_page %}
+            {# Populated by DataTables from embedded JSON #}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# ── Value & Projection tab ─────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="projection-panel" role="tabpanel" aria-labelledby="projection-tab">
+
+      <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-3">
+        <form method="get" class="d-flex gap-2 align-items-center">
+          <label for="growth-rate" class="form-label small mb-0 text-body-secondary">{% translate "Annual growth rate" %}</label>
+          <input
+            id="growth-rate"
+            name="growth_rate"
+            type="number"
+            class="form-control form-control-sm"
+            style="width: 80px;"
+            step="0.1"
+            min="-99"
+            max="100"
+            value="{{ growth_rate_percent|floatformat:2 }}"
+            title="{% translate 'Annual growth rate (%)' %}"
+          >
+          <span class="text-body-secondary small">%</span>
+          <button type="submit" class="btn btn-sm btn-primary">{% translate "Recalculate" %}</button>
+        </form>
+      </div>
+
+      <div class="mb-4">
+        <div id="property-projection-chart" style="height: 340px;"></div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead>
+            <tr>
+              <th>{% translate "Horizon" %}</th>
+              <th>{% translate "Date" %}</th>
+              <th>{% translate "Projected value" %}</th>
+              <th>{% translate "Projected debt" %}</th>
+              <th>{% translate "Projected net value" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for point in projection_points %}
               <tr>
-                <td>
-                  {{ tx.date }}
-                  {% if tx.is_recurring %}
-                    <i class="bi bi-arrow-repeat text-primary" title="{% translate 'Recurring' %}"></i>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if tx.kind == "expense" %}
-                    <span class="badge text-bg-danger-subtle text-danger-emphasis">{% translate "Expense" %}</span>
-                  {% else %}
-                    <span class="badge text-bg-success-subtle text-success-emphasis">{% translate "Revenue" %}</span>
-                  {% endif %}
-                </td>
-                <td>{{ tx.category }}</td>
-                <td>{{ tx.amount|format_money }}</td>
-                <td>{{ tx.description|default:"-" }}</td>
-                <td>
-                  <div class="btn-group btn-group-sm" role="group">
-                    {% if tx.kind == "expense" %}
-                      <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editExpenseModal{{ tx.parent_id }}"
-                        title="{% translate 'Edit' %}"
-                      >
-                        <i class="bi bi-pencil"></i>
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-outline-danger"
-                        data-bs-toggle="modal"
-                        data-bs-target="#deleteExpenseModal{{ tx.parent_id }}"
-                        title="{% translate 'Delete' %}"
-                      >
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    {% else %}
-                      <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editRevenueModal{{ tx.parent_id }}"
-                        title="{% translate 'Edit' %}"
-                      >
-                        <i class="bi bi-pencil"></i>
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-outline-danger"
-                        data-bs-toggle="modal"
-                        data-bs-target="#deleteRevenueModal{{ tx.parent_id }}"
-                        title="{% translate 'Delete' %}"
-                      >
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    {% endif %}
-                  </div>
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="6" class="text-body-secondary text-center py-3">{% translate "No transactions found" %}</td>
+                <td>{{ point.years }} {% translate "years" %}</td>
+                <td>{{ point.date }}</td>
+                <td>{{ point.projected_value|format_money }}</td>
+                <td>{{ point.projected_debt|format_money }}</td>
+                <td class="fw-semibold">{{ point.projected_net|format_money }}</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-
-      {% if transactions_page.paginator.num_pages > 1 %}
-        <nav class="mt-3" aria-label="{% translate 'Transactions pagination' %}">
-          <ul class="pagination pagination-sm mb-0">
-            {% if transactions_page.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?{{ transactions_base_query }}&page={{ transactions_page.previous_page_number }}">{% translate "Previous" %}</a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">{% translate "Previous" %}</span></li>
-            {% endif %}
-
-            <li class="page-item disabled">
-              <span class="page-link">
-                {% blocktranslate with page=transactions_page.number total=transactions_page.paginator.num_pages %}Page {{ page }} of {{ total }}{% endblocktranslate %}
-              </span>
-            </li>
-
-            {% if transactions_page.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="?{{ transactions_base_query }}&page={{ transactions_page.next_page_number }}">{% translate "Next" %}</a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">{% translate "Next" %}</span></li>
-            {% endif %}
-          </ul>
-        </nav>
-      {% endif %}
-        </div>
-      </div>
     </div>
 
-    <div class="accordion-item mb-3 border rounded">
-      <h2 class="accordion-header" id="projection-heading">
-        <button
-          class="accordion-button collapsed rounded"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#projection-collapse"
-          aria-expanded="false"
-          aria-controls="projection-collapse"
-        >
-          <strong>{% translate "Property value history and projection" %}</strong>
-        </button>
-      </h2>
-      <div
-        id="projection-collapse"
-        class="accordion-collapse collapse"
-        aria-labelledby="projection-heading"
-        data-bs-parent="#property-accordion"
-      >
-        <div class="accordion-body">
-          <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-3">
-            <form method="get" class="d-flex gap-2 align-items-center">
-              <input
-                id="growth-rate"
-                name="growth_rate"
-                type="number"
-                class="form-control form-control-sm"
-                style="width: 80px;"
-                step="0.1"
-                min="-99"
-                max="100"
-                value="{{ growth_rate_percent|floatformat:2 }}"
-                placeholder="{% translate 'Annual growth rate (%)' %}"
-                title="{% translate 'Annual growth rate (%)' %}"
-              >
-              <span class="text-body-secondary small">%</span>
-              <button type="submit" class="btn btn-sm btn-primary">{% translate "Recalculate" %}</button>
-            </form>
+    {# ── Balance sheet tab ──────────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="balance-panel" role="tabpanel" aria-labelledby="balance-tab">
+
+      {# ── Date range navigator ─────────────────────────────────────────────── #}
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+
+        {# Prev / label / Next #}
+        <div class="d-flex align-items-center gap-2">
+          <a href="?{% if request.GET.growth_rate %}growth_rate={{ request.GET.growth_rate }}&{% endif %}bs_year={{ bs_prev_year }}&bs_start_month={{ bs_prev_start_month }}&bs_months={{ bs_months }}#balance-panel"
+             class="btn btn-sm btn-outline-secondary" title="{% translate 'Previous period' %}">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+          <span class="fw-semibold">
+            {% if bs_months == 1 %}
+              {{ bs_date_from|date:"F Y" }}
+            {% elif bs_months == 3 %}
+              {{ bs_date_from|date:"M Y" }} – {{ bs_date_to|date:"M Y" }}
+            {% elif bs_months == 6 %}
+              {{ bs_date_from|date:"M Y" }} – {{ bs_date_to|date:"M Y" }}
+            {% else %}
+              {{ bs_date_from|date:"Y" }}
+            {% endif %}
+          </span>
+          <a href="?{% if request.GET.growth_rate %}growth_rate={{ request.GET.growth_rate }}&{% endif %}bs_year={{ bs_next_year }}&bs_start_month={{ bs_next_start_month }}&bs_months={{ bs_months }}#balance-panel"
+             class="btn btn-sm btn-outline-secondary" title="{% translate 'Next period' %}">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </div>
+
+        {# Period selector #}
+        <form method="get" class="d-flex gap-2 align-items-center flex-wrap" id="bsRangeForm">
+          {% if request.GET.growth_rate %}<input type="hidden" name="growth_rate" value="{{ request.GET.growth_rate }}">{% endif %}
+          <input type="hidden" name="bs_year" id="bs_year_input" value="{{ bs_year }}">
+          <input type="hidden" name="bs_start_month" id="bs_start_month_input" value="{{ bs_start_month }}">
+
+          <label class="form-label small mb-0 text-body-secondary">{% translate "Period" %}</label>
+          <select name="bs_months" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+            <option value="1"  {% if bs_months == 1  %}selected{% endif %}>{% translate "Monthly" %}</option>
+            <option value="3"  {% if bs_months == 3  %}selected{% endif %}>{% translate "Quarterly" %}</option>
+            <option value="6"  {% if bs_months == 6  %}selected{% endif %}>{% translate "Half-year" %}</option>
+            <option value="12" {% if bs_months == 12 %}selected{% endif %}>{% translate "Annual" %}</option>
+          </select>
+
+          <label class="form-label small mb-0 text-body-secondary">{% translate "Year" %}</label>
+          <input type="number" name="bs_year" class="form-control form-control-sm" style="width:90px;"
+                 value="{{ bs_year }}" min="2000" max="2099">
+
+          <label class="form-label small mb-0 text-body-secondary">{% translate "Start month" %}</label>
+          <select name="bs_start_month" class="form-select form-select-sm" style="width:auto;">
+            {% for m in "123456789101112"|make_list %}{% endfor %}
+            <option value="1"  {% if bs_start_month == 1  %}selected{% endif %}>{% translate "January" %}</option>
+            <option value="2"  {% if bs_start_month == 2  %}selected{% endif %}>{% translate "February" %}</option>
+            <option value="3"  {% if bs_start_month == 3  %}selected{% endif %}>{% translate "March" %}</option>
+            <option value="4"  {% if bs_start_month == 4  %}selected{% endif %}>{% translate "April" %}</option>
+            <option value="5"  {% if bs_start_month == 5  %}selected{% endif %}>{% translate "May" %}</option>
+            <option value="6"  {% if bs_start_month == 6  %}selected{% endif %}>{% translate "June" %}</option>
+            <option value="7"  {% if bs_start_month == 7  %}selected{% endif %}>{% translate "July" %}</option>
+            <option value="8"  {% if bs_start_month == 8  %}selected{% endif %}>{% translate "August" %}</option>
+            <option value="9"  {% if bs_start_month == 9  %}selected{% endif %}>{% translate "September" %}</option>
+            <option value="10" {% if bs_start_month == 10 %}selected{% endif %}>{% translate "October" %}</option>
+            <option value="11" {% if bs_start_month == 11 %}selected{% endif %}>{% translate "November" %}</option>
+            <option value="12" {% if bs_start_month == 12 %}selected{% endif %}>{% translate "December" %}</option>
+          </select>
+
+          <button type="submit" class="btn btn-sm btn-primary">{% translate "Apply" %}</button>
+        </form>
+      </div>
+
+      {# ── KPI strip ────────────────────────────────────────────────────────── #}
+      <div class="row g-2 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-body-secondary h-100">
+            <div class="card-body py-2 px-3">
+              <p class="text-uppercase text-success small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Total income" %}</p>
+              <p class="fs-5 fw-bold mb-0 text-success">{{ balance_sheet.total_income|format_money_amount:property.currency }}</p>
+            </div>
           </div>
-          <div class="mb-4">
-            <div id="property-projection-chart" style="height: 340px;"></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-body-secondary h-100">
+            <div class="card-body py-2 px-3">
+              <p class="text-uppercase text-danger small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Total expenses" %}</p>
+              <p class="fs-5 fw-bold mb-0 text-danger">{{ balance_sheet.total_expenses|format_money_amount:property.currency }}</p>
+            </div>
           </div>
-          <div class="table-responsive">
-            <table class="table table-striped align-middle">
-              <thead>
-                <tr>
-                  <th>{% translate "Horizon" %}</th>
-                  <th>{% translate "Date" %}</th>
-                  <th>{% translate "Projected value" %}</th>
-                  <th>{% translate "Projected debt" %}</th>
-                  <th>{% translate "Projected net value" %}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for point in projection_points %}
-                  <tr>
-                    <td>{{ point.years }} {% translate "years" %}</td>
-                    <td>{{ point.date }}</td>
-                    <td>{{ point.projected_value|format_money }}</td>
-                    <td>{{ point.projected_debt|format_money }}</td>
-                    <td class="fw-semibold">{{ point.projected_net|format_money }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-body-secondary h-100">
+            <div class="card-body py-2 px-3">
+              <p class="text-uppercase text-warning small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Loan costs" %}</p>
+              <p class="fs-5 fw-bold mb-0">{{ balance_sheet.total_loan_costs|format_money_amount:property.currency }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-body-secondary h-100">
+            <div class="card-body py-2 px-3">
+              <p class="text-uppercase small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Net cashflow" %}</p>
+              <p class="fs-5 fw-bold mb-0
+                {% if balance_sheet.net_cashflow >= 0 %}text-success{% else %}text-danger{% endif %}">
+                {{ balance_sheet.net_cashflow|format_money_amount:property.currency }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
+
+      {# ── Secondary KPIs ───────────────────────────────────────────────────── #}
+      <div class="row g-2 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-body-tertiary h-100">
+            <div class="card-body py-2 px-3">
+              <p class="text-uppercase text-info small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Operating result" %}
+                <span class="text-body-secondary fw-normal" style="font-size:.65rem;">({% translate "excl. principal" %})</span>
+              </p>
+              <p class="fs-6 fw-bold mb-0
+                {% if balance_sheet.net_operating >= 0 %}text-success{% else %}text-danger{% endif %}">
+                {{ balance_sheet.net_operating|format_money_amount:property.currency }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-body-tertiary h-100">
+            <div class="card-body py-2 px-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Occupancy rate" %}</p>
+              <p class="fs-6 fw-bold mb-0">{{ balance_sheet.occupancy_rate|floatformat:0 }} %
+                <span class="text-body-secondary small fw-normal">({{ balance_sheet.months_with_rent }}/{{ balance_sheet.months_count }} {% translate "months" %})</span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-body-tertiary h-100">
+            <div class="card-body py-2 px-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Gross yield (annualised)" %}</p>
+              <p class="fs-6 fw-bold mb-0">
+                {% if balance_sheet.gross_yield_annual is not None %}
+                  {{ balance_sheet.gross_yield_annual|floatformat:2 }} %
+                {% else %}
+                  —
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 bg-body-tertiary h-100">
+            <div class="card-body py-2 px-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Loan interest" %}</p>
+              <p class="fs-6 fw-bold mb-0">{{ balance_sheet.total_loan_interest|format_money_amount:property.currency }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ── Detailed breakdown ───────────────────────────────────────────────── #}
+      <div class="row g-3">
+
+        {# Income #}
+        <div class="col-12 col-lg-4">
+          <div class="card h-100">
+            <div class="card-header py-2 bg-success-subtle">
+              <h6 class="mb-0 text-success-emphasis">
+                <i class="bi bi-arrow-down-circle me-1"></i>{% translate "Income" %}
+              </h6>
+            </div>
+            <div class="card-body p-0">
+              {% if balance_sheet.income_rows %}
+                <table class="table table-sm align-middle mb-0">
+                  <tbody>
+                    {% for row in balance_sheet.income_rows %}
+                      <tr>
+                        <td class="ps-3">{{ row.label }}</td>
+                        <td class="text-end pe-3 fw-semibold">{{ row.amount|format_money_amount:property.currency }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                  <tfoot class="table-success">
+                    <tr>
+                      <th class="ps-3">{% translate "Total" %}</th>
+                      <th class="text-end pe-3">{{ balance_sheet.total_income|format_money_amount:property.currency }}</th>
+                    </tr>
+                  </tfoot>
+                </table>
+              {% else %}
+                <p class="text-body-secondary text-center py-3 mb-0 small">{% translate "No income in this period." %}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {# Expenses #}
+        <div class="col-12 col-lg-4">
+          <div class="card h-100">
+            <div class="card-header py-2 bg-danger-subtle">
+              <h6 class="mb-0 text-danger-emphasis">
+                <i class="bi bi-arrow-up-circle me-1"></i>{% translate "Expenses" %}
+              </h6>
+            </div>
+            <div class="card-body p-0">
+              {% if balance_sheet.expense_rows %}
+                <table class="table table-sm align-middle mb-0">
+                  <tbody>
+                    {% for row in balance_sheet.expense_rows %}
+                      <tr>
+                        <td class="ps-3">{{ row.label }}</td>
+                        <td class="text-end pe-3 fw-semibold">{{ row.amount|format_money_amount:property.currency }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                  <tfoot class="table-danger">
+                    <tr>
+                      <th class="ps-3">{% translate "Total" %}</th>
+                      <th class="text-end pe-3">{{ balance_sheet.total_expenses|format_money_amount:property.currency }}</th>
+                    </tr>
+                  </tfoot>
+                </table>
+              {% else %}
+                <p class="text-body-secondary text-center py-3 mb-0 small">{% translate "No expenses in this period." %}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {# Loan costs #}
+        <div class="col-12 col-lg-4">
+          <div class="card h-100">
+            <div class="card-header py-2 bg-warning-subtle">
+              <h6 class="mb-0 text-warning-emphasis">
+                <i class="bi bi-bank me-1"></i>{% translate "Loan costs" %}
+              </h6>
+            </div>
+            <div class="card-body p-0">
+              {% if balance_sheet.loan_rows %}
+                <table class="table table-sm align-middle mb-0">
+                  <tbody>
+                    {% for row in balance_sheet.loan_rows %}
+                      <tr>
+                        <td class="ps-3">{{ row.label }}</td>
+                        <td class="text-end pe-3 fw-semibold">{{ row.amount|format_money_amount:property.currency }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                  <tfoot class="table-warning">
+                    <tr>
+                      <th class="ps-3">{% translate "Total" %}</th>
+                      <th class="text-end pe-3">{{ balance_sheet.total_loan_costs|format_money_amount:property.currency }}</th>
+                    </tr>
+                  </tfoot>
+                </table>
+              {% else %}
+                <p class="text-body-secondary text-center py-3 mb-0 small">{% translate "No loan costs in this period." %}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end .row breakdown -->
+
+      {# ── Net result summary bar ───────────────────────────────────────────── #}
+      <div class="mt-3 p-3 rounded border
+        {% if balance_sheet.net_cashflow >= 0 %}border-success bg-success-subtle{% else %}border-danger bg-danger-subtle{% endif %}">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <span class="fw-semibold">{% translate "Net cashflow" %}</span>
+            <span class="text-body-secondary small ms-2">
+              ({% translate "income" %} − {% translate "expenses" %} − {% translate "loan costs" %})
+            </span>
+          </div>
+          <span class="fs-5 fw-bold
+            {% if balance_sheet.net_cashflow >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {{ balance_sheet.net_cashflow|format_money_amount:property.currency }}
+          </span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+          <div>
+            <span class="fw-semibold text-body-secondary small">{% translate "Operating result" %}</span>
+            <span class="text-body-secondary small ms-1">({% translate "excl. principal repayment" %})</span>
+          </div>
+          <span class="fw-semibold small
+            {% if balance_sheet.net_operating >= 0 %}text-success{% else %}text-danger{% endif %}">
+            {{ balance_sheet.net_operating|format_money_amount:property.currency }}
+          </span>
+        </div>
+      </div>
+
+    </div><!-- end #balance-panel -->
+
+    {# ── Location tab ───────────────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="map-panel" role="tabpanel" aria-labelledby="map-tab">
+      <div id="property-map" class="rounded" style="height: 360px;"></div>
     </div>
 
-  </div><!-- end #property-accordion -->
+  </div><!-- end .tab-content -->
 </div><!-- end .container -->
+
+{# ── Modals ──────────────────────────────────────────────────────────────────── #}
 
 <div class="modal fade" id="valueModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
@@ -408,44 +585,136 @@
   </div>
 </div>
 
-<div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+<div class="modal fade" id="entryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <form method="post">
+      <form method="post" id="entryForm">
         {% csrf_token %}
-        <input type="hidden" name="form_type" value="expense">
+        <input type="hidden" name="form_type" value="ledger_entry">
         <div class="modal-header">
-          <h5 class="modal-title">{% translate "Add property expense" %}</h5>
+          <h5 class="modal-title" id="entryModalTitle">
+            <i class="bi bi-plus-circle me-2 text-primary"></i>{% translate "Add income / expense" %}
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          {{ expense_form.as_p }}
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-          <button type="submit" class="btn btn-danger">{% translate "Save" %}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
 
-<div class="modal fade" id="revenueModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="form_type" value="revenue">
-        <div class="modal-header">
-          <h5 class="modal-title">{% translate "Add property revenue" %}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          {{ revenue_form.as_p }}
+          {# ── Row 1: Flow type selector (full width, prominent) ── #}
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              <i class="bi bi-arrow-left-right me-1 text-secondary"></i>{% translate "Type" %}
+            </label>
+            <div class="d-flex gap-2" id="flowTypeToggle">
+              <input type="radio" class="btn-check" name="{{ entry_form.flow_type.html_name }}" id="flowTypeIncome" value="income" autocomplete="off">
+              <label class="btn btn-outline-success flex-fill" for="flowTypeIncome">
+                <i class="bi bi-arrow-down-circle me-1"></i>{% translate "Income" %}
+              </label>
+              <input type="radio" class="btn-check" name="{{ entry_form.flow_type.html_name }}" id="flowTypeExpense" value="expense" autocomplete="off">
+              <label class="btn btn-outline-danger flex-fill" for="flowTypeExpense">
+                <i class="bi bi-arrow-up-circle me-1"></i>{% translate "Expense" %}
+              </label>
+            </div>
+          </div>
+
+          {# ── Row 2: Amount + Date ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ entry_form.amount.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-currency-euro me-1 text-secondary"></i>{% translate "Amount" %}
+              </label>
+              {{ entry_form.amount.subwidgets.0 }}
+              {% if entry_form.amount.errors %}<div class="invalid-feedback d-block">{{ entry_form.amount.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ entry_form.entry_date.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-calendar3 me-1 text-secondary"></i>{% translate "Date" %}
+              </label>
+              {{ entry_form.entry_date }}
+              {% if entry_form.entry_date.errors %}<div class="invalid-feedback d-block">{{ entry_form.entry_date.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Row 3: Management category + Tax category (conditional) ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ entry_form.management_category.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-tag me-1 text-secondary"></i>{% translate "Category" %}
+              </label>
+              <select name="{{ entry_form.management_category.html_name }}"
+                      id="id_management_category"
+                      class="form-select">
+                <option value="">— {% translate "Select a category" %} —</option>
+                {# Income options — shown when flow_type=income #}
+                <optgroup label="{% translate 'Income' %}" class="mgmt-income-group">
+                  <option value="rent_collected">{% translate "Rent collected" %}</option>
+                  <option value="charges_collected">{% translate "Charges collected" %}</option>
+                  <option value="deposit_in">{% translate "Deposit received" %}</option>
+                  <option value="manager_reversal">{% translate "Manager reversal" %}</option>
+                </optgroup>
+                {# Expense options — shown when flow_type=expense #}
+                <optgroup label="{% translate 'Expenses' %}" class="mgmt-expense-group">
+                  <option value="maintenance">{% translate "Routine maintenance" %}</option>
+                  <option value="works">{% translate "Works" %}</option>
+                  <option value="insurance">{% translate "Insurance" %}</option>
+                  <option value="coownership">{% translate "Co-ownership fees" %}</option>
+                  <option value="management_fees">{% translate "Management fees" %}</option>
+                  <option value="loan_interest">{% translate "Loan interest" %}</option>
+                  <option value="loan_insurance">{% translate "Loan insurance" %}</option>
+                  <option value="property_tax">{% translate "Property tax" %}</option>
+                  <option value="cfe">{% translate "CFE" %}</option>
+                  <option value="deposit_out">{% translate "Deposit returned" %}</option>
+                  <option value="other">{% translate "Other" %}</option>
+                </optgroup>
+              </select>
+              {% if entry_form.management_category.errors %}<div class="invalid-feedback d-block">{{ entry_form.management_category.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6" id="taxCategoryBlock">
+              <label for="{{ entry_form.tax_category.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-receipt me-1 text-secondary"></i>{% translate "Tax category" %}
+                <span class="badge bg-secondary-subtle text-secondary-emphasis ms-1" style="font-size:.65rem;">LMNP</span>
+              </label>
+              {{ entry_form.tax_category }}
+              {% if entry_form.tax_category.errors %}<div class="invalid-feedback d-block">{{ entry_form.tax_category.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Row 4: Description ── #}
+          <div class="mb-3">
+            <label for="{{ entry_form.description.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-chat-left-text me-1 text-secondary"></i>{% translate "Description" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ entry_form.description }}
+          </div>
+
+          {# ── Row 5: Recurrence ── #}
+          <div class="border rounded p-3 bg-body-tertiary">
+            <p class="small fw-semibold text-body-secondary mb-2">
+              <i class="bi bi-arrow-repeat me-1"></i>{% translate "Recurrence" %}
+            </p>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="{{ entry_form.recurrence_type.id_for_label }}" class="form-label small">
+                  {% translate "Frequency" %}
+                </label>
+                {{ entry_form.recurrence_type }}
+              </div>
+              <div class="col-md-6" id="recurrenceEndBlock">
+                <label for="{{ entry_form.recurrence_end_date.id_for_label }}" class="form-label small">
+                  {% translate "End date" %}
+                  <span class="text-body-secondary fw-normal">({% translate "optional" %})</span>
+                </label>
+                {{ entry_form.recurrence_end_date }}
+              </div>
+            </div>
+          </div>
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-          <button type="submit" class="btn btn-success">{% translate "Save" %}</button>
+          <button type="submit" class="btn btn-primary" id="entrySubmitBtn">
+            <i class="bi bi-check-lg me-1"></i>{% translate "Save" %}
+          </button>
         </div>
       </form>
     </div>
@@ -500,105 +769,220 @@
   </div>
 </div>
 
-<!-- Expense Edit/Delete Modals -->
-{% for item in expenses_with_forms %}
-<div class="modal fade" id="editExpenseModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+{# ── Entry edit/delete modals (one per ledger entry) ─────────────────────────── #}
+{% for item in entries_with_forms %}
+<div class="modal fade" id="editEntryModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <form method="post" action="{% url 'property:edit_expense' property.pk item.obj.pk %}">
+      <form method="post" action="{% url 'property:edit_entry' property.pk item.obj.pk %}">
         {% csrf_token %}
         <div class="modal-header">
-          <h5 class="modal-title">{% translate "Edit expense" %}</h5>
+          <h5 class="modal-title">
+            {% if item.obj.flow_type == "expense" %}
+              <i class="bi bi-arrow-up-circle me-2 text-danger"></i>{% translate "Edit expense" %}
+            {% else %}
+              <i class="bi bi-arrow-down-circle me-2 text-success"></i>{% translate "Edit income" %}
+            {% endif %}
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
+
           {% if item.obj.recurrence_type != 'none' %}
-            <div class="alert alert-info">
-              <i class="bi bi-info-circle"></i> {% translate "This is a recurring expense. Changes will apply to all occurrences." %}
+            <div class="alert alert-info py-2">
+              <i class="bi bi-info-circle me-1"></i> {% translate "This is a recurring entry. Changes will apply to all occurrences." %}
             </div>
           {% endif %}
-          {{ item.edit_form.as_p }}
+
+          {# ── Flow type as btn-check radios ── #}
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              <i class="bi bi-arrow-left-right me-1 text-secondary"></i>{% translate "Type" %}
+            </label>
+            <div class="d-flex gap-2">
+              <input type="radio" class="btn-check"
+                     name="{{ item.edit_form.flow_type.html_name }}"
+                     id="flowTypeIncome{{ item.obj.pk }}"
+                     value="income"
+                     autocomplete="off"
+                     {% if item.obj.flow_type == "income" %}checked{% endif %}>
+              <label class="btn btn-outline-success flex-fill" for="flowTypeIncome{{ item.obj.pk }}">
+                {% translate "Income" %}
+              </label>
+              <input type="radio" class="btn-check"
+                     name="{{ item.edit_form.flow_type.html_name }}"
+                     id="flowTypeExpense{{ item.obj.pk }}"
+                     value="expense"
+                     autocomplete="off"
+                     {% if item.obj.flow_type == "expense" %}checked{% endif %}>
+              <label class="btn btn-outline-danger flex-fill" for="flowTypeExpense{{ item.obj.pk }}">
+                {% translate "Expense" %}
+              </label>
+            </div>
+            {% if item.edit_form.flow_type.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.flow_type.errors }}</div>{% endif %}
+          </div>
+
+          {# ── Amount + Date ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.amount.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-currency-euro me-1 text-secondary"></i>{% translate "Amount" %}
+              </label>
+              {{ item.edit_form.amount }}
+              {% if item.edit_form.amount.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.amount.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.entry_date.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-calendar3 me-1 text-secondary"></i>{% translate "Date" %}
+              </label>
+              {{ item.edit_form.entry_date }}
+              {% if item.edit_form.entry_date.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.entry_date.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Reference period + Lease ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.reference_period.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-calendar-range me-1 text-secondary"></i>{% translate "Reference period" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ item.edit_form.reference_period }}
+              {% if item.edit_form.reference_period.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.reference_period.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.lease.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-file-text me-1 text-secondary"></i>{% translate "Lease" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ item.edit_form.lease }}
+              {% if item.edit_form.lease.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.lease.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Management category + Tax category ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="edit_mgmt_cat_{{ item.obj.pk }}" class="form-label fw-semibold">
+                <i class="bi bi-tag me-1 text-secondary"></i>{% translate "Category" %}
+              </label>
+              <select name="{{ item.edit_form.management_category.html_name }}"
+                      id="edit_mgmt_cat_{{ item.obj.pk }}"
+                      class="form-select edit-mgmt-cat"
+                      data-flow="{{ item.obj.flow_type }}">
+                <option value="">— {% translate "Select a category" %} —</option>
+                <optgroup label="{% translate 'Income' %}" class="mgmt-income-group">
+                  <option value="rent_collected" {% if item.obj.management_category == "rent_collected" %}selected{% endif %}>{% translate "Rent collected" %}</option>
+                  <option value="charges_collected" {% if item.obj.management_category == "charges_collected" %}selected{% endif %}>{% translate "Charges collected" %}</option>
+                  <option value="deposit_in" {% if item.obj.management_category == "deposit_in" %}selected{% endif %}>{% translate "Deposit received" %}</option>
+                  <option value="manager_reversal" {% if item.obj.management_category == "manager_reversal" %}selected{% endif %}>{% translate "Manager reversal" %}</option>
+                </optgroup>
+                <optgroup label="{% translate 'Expenses' %}" class="mgmt-expense-group">
+                  <option value="maintenance" {% if item.obj.management_category == "maintenance" %}selected{% endif %}>{% translate "Routine maintenance" %}</option>
+                  <option value="works" {% if item.obj.management_category == "works" %}selected{% endif %}>{% translate "Works" %}</option>
+                  <option value="insurance" {% if item.obj.management_category == "insurance" %}selected{% endif %}>{% translate "Insurance" %}</option>
+                  <option value="coownership" {% if item.obj.management_category == "coownership" %}selected{% endif %}>{% translate "Co-ownership fees" %}</option>
+                  <option value="management_fees" {% if item.obj.management_category == "management_fees" %}selected{% endif %}>{% translate "Management fees" %}</option>
+                  <option value="loan_interest" {% if item.obj.management_category == "loan_interest" %}selected{% endif %}>{% translate "Loan interest" %}</option>
+                  <option value="loan_insurance" {% if item.obj.management_category == "loan_insurance" %}selected{% endif %}>{% translate "Loan insurance" %}</option>
+                  <option value="property_tax" {% if item.obj.management_category == "property_tax" %}selected{% endif %}>{% translate "Property tax" %}</option>
+                  <option value="cfe" {% if item.obj.management_category == "cfe" %}selected{% endif %}>{% translate "CFE" %}</option>
+                  <option value="deposit_out" {% if item.obj.management_category == "deposit_out" %}selected{% endif %}>{% translate "Deposit returned" %}</option>
+                  <option value="other" {% if item.obj.management_category == "other" %}selected{% endif %}>{% translate "Other" %}</option>
+                </optgroup>
+              </select>
+              {% if item.edit_form.management_category.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.management_category.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6" id="editTaxCategoryBlock{{ item.obj.pk }}">
+              <label for="{{ item.edit_form.tax_category.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-receipt me-1 text-secondary"></i>{% translate "Tax category" %}
+                <span class="badge bg-secondary-subtle text-secondary-emphasis ms-1" style="font-size:.65rem;">LMNP</span>
+              </label>
+              {{ item.edit_form.tax_category }}
+              {% if item.edit_form.tax_category.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.tax_category.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Description + Notes ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.description.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-chat-left-text me-1 text-secondary"></i>{% translate "Description" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ item.edit_form.description }}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.mandate.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-person-badge me-1 text-secondary"></i>{% translate "Management mandate" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ item.edit_form.mandate }}
+              {% if item.edit_form.mandate.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.mandate.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Notes ── #}
+          <div class="mb-3">
+            <label for="{{ item.edit_form.notes.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-sticky me-1 text-secondary"></i>{% translate "Notes" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ item.edit_form.notes }}
+          </div>
+
+          {# ── Recurrence ── #}
+          <div class="border rounded p-3 bg-body-tertiary">
+            <p class="small fw-semibold text-body-secondary mb-2">
+              <i class="bi bi-arrow-repeat me-1"></i>{% translate "Recurrence" %}
+            </p>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="{{ item.edit_form.recurrence_type.id_for_label }}" class="form-label small">
+                  {% translate "Frequency" %}
+                </label>
+                {{ item.edit_form.recurrence_type }}
+              </div>
+              <div class="col-md-6">
+                <label for="{{ item.edit_form.recurrence_end_date.id_for_label }}" class="form-label small">
+                  {% translate "End date" %}
+                  <span class="text-body-secondary fw-normal">({% translate "optional" %})</span>
+                </label>
+                {{ item.edit_form.recurrence_end_date }}
+              </div>
+            </div>
+          </div>
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-          <button type="submit" class="btn btn-primary">{% translate "Save changes" %}</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{% translate "Save changes" %}
+          </button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="deleteExpenseModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="deleteEntryModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form method="post" action="{% url 'property:delete_expense' property.pk item.obj.pk %}">
+      <form method="post" action="{% url 'property:delete_entry' property.pk item.obj.pk %}">
         {% csrf_token %}
         <div class="modal-header">
-          <h5 class="modal-title">{% translate "Delete expense" %}</h5>
+          <h5 class="modal-title">
+            {% if item.obj.flow_type == "expense" %}{% translate "Delete expense" %}{% else %}{% translate "Delete income" %}{% endif %}
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           {% if item.obj.recurrence_type != 'none' %}
             <div class="alert alert-warning">
-              <i class="bi bi-exclamation-triangle"></i> {% translate "This is a recurring expense. All occurrences will be deleted." %}
+              <i class="bi bi-exclamation-triangle"></i> {% translate "This is a recurring entry. All occurrences will be deleted." %}
             </div>
           {% endif %}
-          <p>{% blocktranslate with amount=item.obj.expense|format_money date=item.obj.expense_date %}Are you sure you want to delete the expense of {{ amount }} dated {{ date }}?{% endblocktranslate %}</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-          <button type="submit" class="btn btn-danger">{% translate "Delete" %}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-{% endfor %}
-
-<!-- Revenue Edit/Delete Modals -->
-{% for item in revenues_with_forms %}
-<div class="modal fade" id="editRevenueModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="post" action="{% url 'property:edit_revenue' property.pk item.obj.pk %}">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title">{% translate "Edit revenue" %}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          {% if item.obj.recurrence_type != 'none' %}
-            <div class="alert alert-info">
-              <i class="bi bi-info-circle"></i> {% translate "This is a recurring revenue. Changes will apply to all occurrences." %}
-            </div>
-          {% endif %}
-          {{ item.edit_form.as_p }}
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-          <button type="submit" class="btn btn-primary">{% translate "Save changes" %}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="deleteRevenueModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="post" action="{% url 'property:delete_revenue' property.pk item.obj.pk %}">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title">{% translate "Delete revenue" %}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          {% if item.obj.recurrence_type != 'none' %}
-            <div class="alert alert-warning">
-              <i class="bi bi-exclamation-triangle"></i> {% translate "This is a recurring revenue. All occurrences will be deleted." %}
-            </div>
-          {% endif %}
-          <p>{% blocktranslate with amount=item.obj.revenue|format_money date=item.obj.revenue_date %}Are you sure you want to delete the revenue of {{ amount }} dated {{ date }}?{% endblocktranslate %}</p>
+          <p>{% blocktranslate with amount=item.obj.amount|format_money date=item.obj.entry_date %}Are you sure you want to delete the entry of {{ amount }} dated {{ date }}?{% endblocktranslate %}</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
@@ -613,6 +997,7 @@
 {% endblock %}
 
 {% block scripts %}
+{{ transactions_json|json_script:"transactions-data" }}
 {{ value_history_series|json_script:"value-history-series" }}
 {{ debt_history_series|json_script:"debt-history-series" }}
 {{ value_projection_series|json_script:"value-projection-series" }}
@@ -625,6 +1010,158 @@
 {{ cashflow_loan_insurance_series|json_script:"cashflow-loan-insurance-series" }}
 {{ cashflow_total_expenses_series|json_script:"cashflow-total-expenses-series" }}
 <script>
+// ── Translations for JS ──────────────────────────────────────────────────────
+const i18n = {
+  expense:    "{% translate 'Expense' %}",
+  income:     "{% translate 'Income' %}",
+  recurring:  "{% translate 'Recurring' %}",
+  edit:       "{% translate 'Edit' %}",
+  delete:     "{% translate 'Delete' %}",
+  noData:     "{% translate 'No transactions found' %}",
+  search:     "{% translate 'Search' %}",
+  all:        "{% translate 'All' %}",
+  expenses:   "{% translate 'Expenses' %}",
+  incomes:    "{% translate 'Incomes' %}",
+};
+
+// ── DataTables transaction table ─────────────────────────────────────────────
+const allTransactions = JSON.parse(document.getElementById('transactions-data').textContent);
+
+function formatAmount(amount) {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(amount);
+}
+
+function buildActionButtons(row) {
+  const editTarget  = `#editEntryModal${row.parent_id}`;
+  const delTarget   = `#deleteEntryModal${row.parent_id}`;
+  return `<div class="btn-group btn-group-sm" role="group">
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="${editTarget}" title="${i18n.edit}">
+      <i class="bi bi-pencil"></i>
+    </button>
+    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="${delTarget}" title="${i18n.delete}">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>`;
+}
+
+function buildKindBadge(kind) {
+  if (kind === 'expense') {
+    return `<span class="badge text-bg-danger-subtle text-danger-emphasis"><i class="bi bi-arrow-up-circle me-1"></i>${i18n.expense}</span>`;
+  }
+  return `<span class="badge text-bg-success-subtle text-success-emphasis"><i class="bi bi-arrow-down-circle me-1"></i>${i18n.income}</span>`;
+}
+
+$(document).ready(function () {
+  const table = $('#transactions-table').DataTable({
+    data: allTransactions,
+    order: [[0, 'desc']],
+    pageLength: 10,
+    lengthMenu: [5, 10, 20, 50, 100],
+    language: {
+      search: i18n.search + ':',
+      emptyTable: i18n.noData,
+      zeroRecords: i18n.noData,
+    },
+    columns: [
+      {
+        title: "{% translate 'Date' %}",
+        data: 'date',
+        render: function(data, type) {
+          if (type === 'display') {
+            const d = new Date(data);
+            return d.toLocaleDateString('fr-FR');
+          }
+          return data;
+        }
+      },
+      {
+        // Hidden raw kind column — used for column search filtering
+        title: '',
+        data: 'kind',
+        visible: false,
+        searchable: true,
+      },
+      {
+        // Visible Kind badge column
+        title: "{% translate 'Kind' %}",
+        data: 'kind',
+        render: function(data, type) {
+          if (type === 'display') return buildKindBadge(data);
+          return data;
+        }
+      },
+      {
+        title: "{% translate 'Category' %}",
+        data: 'category',
+      },
+      {
+        title: "{% translate 'Amount' %}",
+        data: 'amount',
+        render: function(data, type) {
+          if (type === 'display') return formatAmount(data);
+          return data;
+        },
+        className: 'text-end'
+      },
+      {
+        title: "{% translate 'Description' %}",
+        data: 'description',
+        defaultContent: '—',
+        render: function(data, type) {
+          if (type === 'display') {
+            let out = data || '—';
+            return out;
+          }
+          return data;
+        }
+      },
+      {
+        title: "{% translate 'Actions' %}",
+        data: null,
+        orderable: false,
+        searchable: false,
+        render: function(data, type, row) {
+          let recurIcon = row.is_recurring
+            ? ` <i class="bi bi-arrow-repeat text-primary ms-1" title="${i18n.recurring}"></i>`
+            : '';
+          return buildActionButtons(row) + recurIcon;
+        }
+      }
+    ],
+    dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+         "<'row'<'col-sm-12'tr>>" +
+         "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    initComplete: function() {
+      const api = this.api();
+
+      // Column 2 (Kind) — select replaces the header title
+      const kindTh = $(api.column(2).header());
+      const kindSelect = $(`<select class="form-select form-select-sm mt-1"><option value="">{% translate 'Kind' %}</option><option value="expense">${i18n.expenses}</option><option value="income">${i18n.incomes}</option></select>`);
+      kindSelect.on('click', function(e) { e.stopPropagation(); });
+      kindSelect.on('change', function() {
+        const val = $(this).val();
+        api.column(1).search(val ? '^' + val + '$' : '', true, false).draw();
+      });
+      kindTh.empty().append(kindSelect);
+
+      // Column 3 (Category) — select with unique values replaces the header title
+      const catCol = api.column(3);
+      const catTh = $(catCol.header());
+      const catSelect = $(`<select class="form-select form-select-sm mt-1"><option value="">{% translate 'Category' %}</option></select>`);
+      catCol.data().unique().sort().each(function(d) {
+        if (d) catSelect.append(`<option value="${$('<span>').text(d).html()}">${$('<span>').text(d).html()}</option>`);
+      });
+      catSelect.on('click', function(e) { e.stopPropagation(); });
+      catSelect.on('change', function() {
+        const val = $(this).val();
+        catCol.search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+      });
+      catTh.empty().append(catSelect);
+    }
+  });
+});
+
+// ── Charts ───────────────────────────────────────────────────────────────────
 const valueHistorySeries = JSON.parse(document.getElementById('value-history-series').textContent);
 const debtHistorySeries = JSON.parse(document.getElementById('debt-history-series').textContent);
 const valueProjectionSeries = JSON.parse(document.getElementById('value-projection-series').textContent);
@@ -650,105 +1187,55 @@ const projectionChartOptions = {
     background: 'transparent'
   },
   series: [
-    {
-      name: '{% translate "Property value (history)" %}',
-      data: valueHistorySeries
-    },
-    {
-      name: '{% translate "Property value (projection)" %}',
-      data: valueProjectionSeries
-    },
-    {
-      name: '{% translate "Debt amortization (history)" %}',
-      data: debtHistorySeries
-    },
-    {
-      name: '{% translate "Debt amortization (projection)" %}',
-      data: debtProjectionSeries
-    }
+    { name: '{% translate "Property value (history)" %}', data: valueHistorySeries },
+    { name: '{% translate "Property value (projection)" %}', data: valueProjectionSeries },
+    { name: '{% translate "Debt amortization (history)" %}', data: debtHistorySeries },
+    { name: '{% translate "Debt amortization (projection)" %}', data: debtProjectionSeries }
   ],
-  xaxis: {
-    type: 'datetime'
-  },
-  dataLabels: {
-    enabled: false
-  },
+  xaxis: { type: 'datetime' },
+  dataLabels: { enabled: false },
   stroke: {
     curve: 'smooth',
     width: [3, 3, 3, 3],
     dashArray: [0, 7, 0, 7]
   },
   colors: ['#0d6efd', '#3d8bfd', '#dc3545', '#f16a7f'],
-  markers: {
-    size: 0
-  },
+  markers: { size: 0 },
   annotations: {
-    xaxis: [
-      {
-        x: new Date(projectionStartDate).getTime(),
-        borderColor: '#6c757d',
-        label: {
-          style: {
-            background: '#6c757d',
-            color: '#fff'
-          }
-        }
-      }
-    ]
+    xaxis: [{
+      x: new Date(projectionStartDate).getTime(),
+      borderColor: '#6c757d',
+      label: { style: { background: '#6c757d', color: '#fff' } }
+    }]
   },
   yaxis: {
-    labels: {
-      formatter: function (value) {
-        return Math.round(value).toLocaleString();
-      }
-    }
+    labels: { formatter: function(v) { return Math.round(v).toLocaleString(); } }
   },
   tooltip: {
     theme: getCurrentTheme(),
-    x: {
-      format: 'dd MMM yyyy'
-    },
-    y: {
-      formatter: function (value) {
-        return Math.round(value).toLocaleString();
-      }
-    }
+    x: { format: 'dd MMM yyyy' },
+    y: { formatter: function(v) { return Math.round(v).toLocaleString(); } }
   },
-  theme: {
-    mode: getCurrentTheme()
-  }
+  theme: { mode: getCurrentTheme() }
 };
 
-const projectionChart = new ApexCharts(
-  document.querySelector('#property-projection-chart'),
-  projectionChartOptions
-);
+const projectionChart = new ApexCharts(document.querySelector('#property-projection-chart'), projectionChartOptions);
 projectionChart.render();
 
-// create a default one year range
 var min = new Date();
 min.setFullYear(min.getFullYear() - 1);
 var defaultRange = new Date().getTime() - min.getTime();
 
-// Build a difference series: revenue - total_expenses, as negative expenses
 const cashflowDifferenceSeries = cashflowRevenueSeries.map(function(rev) {
   const expPoint = cashflowTotalExpensesSeries.find(function(e) { return e.x === rev.x; });
-  const expValue = expPoint ? expPoint.y : 0;
-  return { x: rev.x, y: rev.y - expValue };
+  return { x: rev.x, y: rev.y - (expPoint ? expPoint.y : 0) };
 });
 
-// Negate total expenses so they display below zero
-const cashflowNegatedExpensesSeries = cashflowTotalExpensesSeries.map(function(p) {
-  return { x: p.x, y: -p.y };
-});
-
-// Negate individual expense series for the breakdown chart
-const cashflowNegatedExpenseSeries = cashflowExpenseSeries.map(function(p) { return { x: p.x, y: -p.y }; });
+const cashflowNegatedExpensesSeries = cashflowTotalExpensesSeries.map(function(p) { return { x: p.x, y: -p.y }; });
 const cashflowNegatedLoanInterestSeries = cashflowLoanInterestSeries.map(function(p) { return { x: p.x, y: -p.y }; });
 const cashflowNegatedLoanPrincipalSeries = cashflowLoanPrincipalSeries.map(function(p) { return { x: p.x, y: -p.y }; });
 const cashflowNegatedLoanInsuranceSeries = cashflowLoanInsuranceSeries.map(function(p) { return { x: p.x, y: -p.y }; });
 
-// Build per-type expense series for breakdown chart (negated so they display below zero)
 const expenseTypeColorPalette = ['#ffc107', '#e74c3c', '#9b59b6', '#3498db', '#1abc9c', '#e91e63'];
 const cashflowBreakdownExpenseSeries = cashflowExpenseByTypeSeries.map(function(s) {
   return { name: s.label, data: s.data.map(function(p) { return { x: p.x, y: -p.y }; }) };
@@ -757,15 +1244,8 @@ const cashflowBreakdownExpenseColors = cashflowExpenseByTypeSeries.map(function(
   return expenseTypeColorPalette[i % expenseTypeColorPalette.length];
 });
 
-const sharedXaxis = {
-  type: 'datetime',
-  range: defaultRange
-};
-
-const sharedYaxisFormatter = function(value) {
-  return Math.round(value).toLocaleString();
-};
-
+const sharedXaxis = { type: 'datetime', range: defaultRange };
+const sharedYaxisFormatter = function(v) { return Math.round(v).toLocaleString(); };
 const sharedTooltip = {
   theme: getCurrentTheme(),
   x: { format: 'MMM yyyy' },
@@ -777,47 +1257,22 @@ const cashflowOverviewChartOptions = {
     id: 'cashflow-overview',
     group: 'cashflow',
     type: 'line',
-    height: 280,
+    height: 260,
     stacked: false,
     toolbar: { show: false },
     background: 'transparent',
-    events: {
-      beforeZoom: function(ctx) {
-        ctx.w.config.xaxis.range = undefined;
-      }
-    }
+    events: { beforeZoom: function(ctx) { ctx.w.config.xaxis.range = undefined; } }
   },
   series: [
-    {
-      name: '{% translate "Revenues" %}',
-      data: cashflowRevenueSeries,
-      type: 'bar'
-    },
-    {
-      name: '{% translate "Total expenses" %}',
-      data: cashflowNegatedExpensesSeries,
-      type: 'bar'
-    },
-    {
-      name: '{% translate "Difference" %}',
-      data: cashflowDifferenceSeries,
-      type: 'line'
-    }
+    { name: '{% translate "Incomes" %}', data: cashflowRevenueSeries, type: 'bar' },
+    { name: '{% translate "Total expenses" %}', data: cashflowNegatedExpensesSeries, type: 'bar' },
+    { name: '{% translate "Difference" %}', data: cashflowDifferenceSeries, type: 'line' }
   ],
-  plotOptions: {
-    bar: {
-      columnWidth: '55%'
-    }
-  },
+  plotOptions: { bar: { columnWidth: '55%' } },
   dataLabels: { enabled: false },
-  stroke: {
-    width: [0, 0, 2],
-    curve: 'smooth'
-  },
+  stroke: { width: [0, 0, 2], curve: 'smooth' },
   xaxis: sharedXaxis,
-  yaxis: {
-    labels: { formatter: sharedYaxisFormatter }
-  },
+  yaxis: { labels: { formatter: sharedYaxisFormatter } },
   colors: ['#198754', '#dc3545', '#0d6efd'],
   tooltip: sharedTooltip,
   theme: { mode: getCurrentTheme() }
@@ -828,104 +1283,199 @@ const cashflowBreakdownChartOptions = {
     id: 'cashflow-breakdown',
     group: 'cashflow',
     type: 'bar',
-    height: 240,
+    height: 260,
     stacked: true,
     toolbar: { show: false },
     background: 'transparent',
-    events: {
-      beforeZoom: function(ctx) {
-        ctx.w.config.xaxis.range = undefined;
-      }
-    }
+    events: { beforeZoom: function(ctx) { ctx.w.config.xaxis.range = undefined; } }
   },
   series: [
     ...cashflowBreakdownExpenseSeries,
-    {
-      name: '{% translate "Loan interest" %}',
-      data: cashflowNegatedLoanInterestSeries
-    },
-    {
-      name: '{% translate "Loan principal" %}',
-      data: cashflowNegatedLoanPrincipalSeries
-    },
-    {
-      name: '{% translate "Loan insurance" %}',
-      data: cashflowNegatedLoanInsuranceSeries
-    }
+    { name: '{% translate "Loan interest" %}', data: cashflowNegatedLoanInterestSeries },
+    { name: '{% translate "Loan principal" %}', data: cashflowNegatedLoanPrincipalSeries },
+    { name: '{% translate "Loan insurance" %}', data: cashflowNegatedLoanInsuranceSeries }
   ],
-  plotOptions: {
-    bar: {
-      columnWidth: '55%'
-    }
-  },
+  plotOptions: { bar: { columnWidth: '55%' } },
   dataLabels: { enabled: false },
   xaxis: sharedXaxis,
-  yaxis: {
-    labels: { formatter: sharedYaxisFormatter }
-  },
+  yaxis: { labels: { formatter: sharedYaxisFormatter } },
   colors: [...cashflowBreakdownExpenseColors, '#fd7e14', '#0dcaf0', '#20c997'],
   tooltip: sharedTooltip,
   theme: { mode: getCurrentTheme() }
 };
 
-const cashflowOverviewChart = new ApexCharts(
-  document.querySelector('#property-cashflow-overview-chart'),
-  cashflowOverviewChartOptions
-);
+const cashflowOverviewChart = new ApexCharts(document.querySelector('#property-cashflow-overview-chart'), cashflowOverviewChartOptions);
 cashflowOverviewChart.render();
 
-const cashflowBreakdownChart = new ApexCharts(
-  document.querySelector('#property-cashflow-breakdown-chart'),
-  cashflowBreakdownChartOptions
-);
+const cashflowBreakdownChart = new ApexCharts(document.querySelector('#property-cashflow-breakdown-chart'), cashflowBreakdownChartOptions);
 cashflowBreakdownChart.render();
 
+// Re-render charts when tabs become visible (ApexCharts needs visible container)
+document.getElementById('projection-tab').addEventListener('shown.bs.tab', function() {
+  projectionChart.updateOptions({});
+});
+document.getElementById('cashflow-tab').addEventListener('shown.bs.tab', function() {
+  cashflowOverviewChart.updateOptions({});
+  cashflowBreakdownChart.updateOptions({});
+});
+
 function updateChartsTheme(themeName) {
-  if (projectionChart) {
-    projectionChart.updateOptions({
-      theme: { mode: themeName },
-      tooltip: { theme: themeName }
-    });
-  }
-  if (cashflowOverviewChart) {
-    cashflowOverviewChart.updateOptions({
-      theme: { mode: themeName },
-      tooltip: { theme: themeName }
-    });
-  }
-  if (cashflowBreakdownChart) {
-    cashflowBreakdownChart.updateOptions({
-      theme: { mode: themeName },
-      tooltip: { theme: themeName }
-    });
-  }
+  [projectionChart, cashflowOverviewChart, cashflowBreakdownChart].forEach(function(c) {
+    if (c) c.updateOptions({ theme: { mode: themeName }, tooltip: { theme: themeName } });
+  });
 }
 
-const propertyAddress = '{{ property.address|default:""|escapejs }}';
-const map = L.map('property-map', {
-  zoomControl: true,
-  scrollWheelZoom: false
-}).setView([48.8566, 2.3522], 12);
+// ── Map (lazy-init on tab show) ───────────────────────────────────────────────
+let mapInitialized = false;
+document.getElementById('map-tab').addEventListener('shown.bs.tab', function() {
+  if (mapInitialized) return;
+  mapInitialized = true;
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+  const propertyAddress = '{{ property.address|default:""|escapejs }}';
+  const map = L.map('property-map', { zoomControl: true, scrollWheelZoom: false }).setView([48.8566, 2.3522], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-if (propertyAddress) {
-  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(propertyAddress)}`)
-    .then((response) => response.json())
-    .then((data) => {
-      if (Array.isArray(data) && data.length > 0) {
-        const lat = parseFloat(data[0].lat);
-        const lon = parseFloat(data[0].lon);
-        map.setView([lat, lon], 15);
-        L.marker([lat, lon]).addTo(map).bindPopup(propertyAddress).openPopup();
+  if (propertyAddress) {
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(propertyAddress)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+          map.setView([lat, lon], 15);
+          L.marker([lat, lon]).addTo(map).bindPopup(propertyAddress).openPopup();
+        }
+      })
+      .catch(() => {});
+  }
+  // Force Leaflet to recalculate size after tab reveal
+  setTimeout(function() { map.invalidateSize(); }, 100);
+});
+
+// ── Auto-activate tab from URL hash (e.g. after prev/next navigation) ────────
+(function() {
+  const hash = window.location.hash;
+  if (!hash) return;
+  // Find the tab button whose data-bs-target matches the hash
+  const tabBtn = document.querySelector('[data-bs-target="' + hash + '"]');
+  if (tabBtn) {
+    const tab = new bootstrap.Tab(tabBtn);
+    tab.show();
+    // Scroll to top of tab content so the panel is visible
+    tabBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+})();
+
+// ── Entry modal: conditional fields logic ────────────────────────────────────
+(function() {
+  const INCOME_MGMT  = ['rent_collected', 'charges_collected', 'deposit_in', 'manager_reversal'];
+  const EXPENSE_MGMT = ['maintenance', 'works', 'insurance', 'coownership', 'management_fees',
+                        'loan_interest', 'loan_insurance', 'property_tax', 'cfe', 'deposit_out', 'other'];
+
+  // ── Helper: apply optgroup filtering to a management category select ──────
+  function applyMgmtFilter(mgmtSelect, flowType) {
+    if (!mgmtSelect) return;
+    const incomeGroup  = mgmtSelect.querySelector('.mgmt-income-group');
+    const expenseGroup = mgmtSelect.querySelector('.mgmt-expense-group');
+    if (incomeGroup)  incomeGroup.style.display  = (flowType === 'income')  ? '' : 'none';
+    if (expenseGroup) expenseGroup.style.display = (flowType === 'expense') ? '' : 'none';
+    // Reset value if it doesn't match the new flow type
+    const val = mgmtSelect.value;
+    if (flowType === 'income'  && EXPENSE_MGMT.includes(val)) mgmtSelect.value = '';
+    if (flowType === 'expense' && INCOME_MGMT.includes(val))  mgmtSelect.value = '';
+  }
+
+  // ── CREATE modal ──────────────────────────────────────────────────────────
+  const entryModal    = document.getElementById('entryModal');
+  const taxBlock      = document.getElementById('taxCategoryBlock');
+  const taxSelect     = document.getElementById('id_tax_category');
+  const mgmtSelect    = document.getElementById('id_management_category');
+  const recEndBlock   = document.getElementById('recurrenceEndBlock');
+  const recTypeSelect = document.getElementById('id_recurrence_type');
+  const modalTitle    = document.getElementById('entryModalTitle');
+
+  function updateCreateModal(flowType) {
+    if (!flowType) return;
+    if (modalTitle) {
+      if (flowType === 'income') {
+        modalTitle.innerHTML = '<i class="bi bi-arrow-down-circle me-2 text-success"></i>{% translate "Add income" %}';
+      } else {
+        modalTitle.innerHTML = '<i class="bi bi-arrow-up-circle me-2 text-danger"></i>{% translate "Add expense" %}';
       }
-    })
-    .catch(() => {
-      // Keep default map center on geocoding failure.
+    }
+    if (taxBlock) {
+      taxBlock.style.display = (flowType === 'expense') ? '' : 'none';
+      if (flowType === 'income' && taxSelect) taxSelect.value = '';
+    }
+    applyMgmtFilter(mgmtSelect, flowType);
+  }
+
+  function updateRecurrenceEnd() {
+    if (!recTypeSelect || !recEndBlock) return;
+    recEndBlock.style.display = (recTypeSelect.value && recTypeSelect.value !== 'none') ? '' : 'none';
+  }
+
+  if (entryModal) {
+    // Scope radio listeners to the create modal only
+    entryModal.querySelectorAll('input[name="flow_type"]').forEach(function(radio) {
+      radio.addEventListener('change', function() { updateCreateModal(this.value); });
     });
-}
+    if (recTypeSelect) recTypeSelect.addEventListener('change', updateRecurrenceEnd);
+
+    entryModal.addEventListener('show.bs.modal', function() {
+      entryModal.querySelectorAll('input[name="flow_type"]').forEach(function(r) { r.checked = false; });
+      if (modalTitle) {
+        modalTitle.innerHTML = '<i class="bi bi-plus-circle me-2 text-primary"></i>{% translate "Add income / expense" %}';
+      }
+      if (taxBlock) taxBlock.style.display = 'none';
+      if (mgmtSelect) {
+        const ig = mgmtSelect.querySelector('.mgmt-income-group');
+        const eg = mgmtSelect.querySelector('.mgmt-expense-group');
+        if (ig) ig.style.display = '';
+        if (eg) eg.style.display = '';
+        mgmtSelect.value = '';
+      }
+      updateRecurrenceEnd();
+    });
+
+    // Initial state
+    if (taxBlock) taxBlock.style.display = 'none';
+    updateRecurrenceEnd();
+  }
+
+  // ── EDIT modals: apply filtering on page load and on flow type change ─────
+  document.querySelectorAll('.edit-mgmt-cat').forEach(function(editMgmtSel) {
+    const flowType = editMgmtSel.dataset.flow;
+    // Apply initial optgroup filter based on current flow type
+    applyMgmtFilter(editMgmtSel, flowType);
+
+    // Find the parent modal to scope the radio listeners
+    const parentModal = editMgmtSel.closest('.modal');
+    if (!parentModal) return;
+
+    const pk = parentModal.id.replace('editEntryModal', '');
+    const taxBlockEdit = document.getElementById('editTaxCategoryBlock' + pk);
+
+    // Show/hide tax block based on initial flow type
+    if (taxBlockEdit) {
+      taxBlockEdit.style.display = (flowType === 'expense') ? '' : 'none';
+    }
+
+    // Wire up flow type radio buttons within this edit modal
+    parentModal.querySelectorAll('input[name="flow_type"]').forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        const newFlow = this.value;
+        editMgmtSel.dataset.flow = newFlow;
+        applyMgmtFilter(editMgmtSel, newFlow);
+        if (taxBlockEdit) {
+          taxBlockEdit.style.display = (newFlow === 'expense') ? '' : 'none';
+        }
+      });
+    });
+  });
+})();
 </script>
 {% endblock %}

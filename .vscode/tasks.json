@@ -168,7 +168,7 @@
       "type": "shell",
       "command": "${workspaceFolder}/scripts/reset-db.sh",
       "args": [
-        "${command:python.interpreterPath}"
+        "${config:python.defaultInterpreterPath}"
       ],
       "options": {
         "env": {

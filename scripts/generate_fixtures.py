@@ -89,7 +89,8 @@ LOAN_END = years_ahead(20, M24)
 
 def generate_investmentaccount() -> str:
     """Generate investmentaccount.yaml with dynamic dates."""
-    return f"""---
+    return f"""# generated with scripts/generate_fixtures.py
+---
 - model: finance.investmentaccount
   pk: 1
   fields:
@@ -491,7 +492,8 @@ def generate_investmentaccount() -> str:
 
 def generate_savingaccount() -> str:
     """Generate savingaccount.yaml with dynamic dates."""
-    return f"""---
+    return f"""# generated with scripts/generate_fixtures.py
+---
 - model: finance.savingaccount
   pk: 1
   fields:
@@ -653,7 +655,8 @@ def generate_savingaccount() -> str:
 
 def generate_property() -> str:
     """Generate property.yaml with dynamic dates."""
-    return f"""---
+    return f"""# generated with scripts/generate_fixtures.py
+---
 - model: property.property
   pk: 1
   fields:
@@ -727,82 +730,118 @@ def generate_property() -> str:
     end_date: {ds(LOAN_END)}
     monthly_payment: 600.00
     monthly_payment_currency: EUR
-- model: property.propertyrevenue
+- model: property.propertyledgerentry
   pk: 1
   fields:
     created_at: {dt(M24)}
     updated_at: {dt(M24)}
     property: 2
-    revenue: 1200.00
-    revenue_currency: EUR
-    revenue_date: {ds(M24)}
-    revenue_type: rent
+    lease: null
+    mandate: null
+    flow_type: income
+    amount: 1200.00
+    amount_currency: EUR
+    entry_date: {ds(M24)}
+    reference_period: null
+    tax_category: rent
+    management_category: rent_collected
     description: Loyer mensuel
+    notes: ""
     recurrence_type: monthly
     recurrence_end_date: null
-- model: property.propertyrevenue
+- model: property.propertyledgerentry
   pk: 2
   fields:
     created_at: {dt(M12)}
     updated_at: {dt(M12)}
     property: 2
-    revenue: 500.00
-    revenue_currency: EUR
-    revenue_date: {ds(M12)}
-    revenue_type: other
+    lease: null
+    mandate: null
+    flow_type: income
+    amount: 500.00
+    amount_currency: EUR
+    entry_date: {ds(M12)}
+    reference_period: null
+    tax_category: other_income
+    management_category: other
     description: Remboursement de charges
+    notes: ""
     recurrence_type: none
     recurrence_end_date: null
-- model: property.propertyexpense
-  pk: 1
+- model: property.propertyledgerentry
+  pk: 3
   fields:
     created_at: {dt(M24)}
     updated_at: {dt(M24)}
     property: 2
-    expense: 1200.00
-    expense_currency: EUR
-    expense_date: {ds(M24)}
-    expense_type: tax
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 1200.00
+    amount_currency: EUR
+    entry_date: {ds(M24)}
+    reference_period: null
+    tax_category: taxes
+    management_category: property_tax
     description: Taxe foncière
+    notes: ""
     recurrence_type: yearly
     recurrence_end_date: null
-- model: property.propertyexpense
-  pk: 2
+- model: property.propertyledgerentry
+  pk: 4
   fields:
     created_at: {dt(M18)}
     updated_at: {dt(M18)}
     property: 2
-    expense: 850.00
-    expense_currency: EUR
-    expense_date: {ds(M18)}
-    expense_type: maintenance
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 850.00
+    amount_currency: EUR
+    entry_date: {ds(M18)}
+    reference_period: null
+    tax_category: maintenance_repairs
+    management_category: maintenance
     description: Réparation plomberie
+    notes: ""
     recurrence_type: none
     recurrence_end_date: null
-- model: property.propertyexpense
-  pk: 3
+- model: property.propertyledgerentry
+  pk: 5
   fields:
     created_at: {dt(M60)}
     updated_at: {dt(M60)}
     property: 1
-    expense: 2500.00
-    expense_currency: EUR
-    expense_date: {ds(M60)}
-    expense_type: tax
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 2500.00
+    amount_currency: EUR
+    entry_date: {ds(M60)}
+    reference_period: null
+    tax_category: taxes
+    management_category: property_tax
     description: Taxe foncière
+    notes: ""
     recurrence_type: yearly
     recurrence_end_date: null
-- model: property.propertyexpense
-  pk: 4
+- model: property.propertyledgerentry
+  pk: 6
   fields:
     created_at: {dt(M30)}
     updated_at: {dt(M30)}
     property: 1
-    expense: 1800.00
-    expense_currency: EUR
-    expense_date: {ds(M30)}
-    expense_type: maintenance
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 1800.00
+    amount_currency: EUR
+    entry_date: {ds(M30)}
+    reference_period: null
+    tax_category: maintenance_repairs
+    management_category: maintenance
     description: Rénovation toiture
+    notes: ""
     recurrence_type: none
     recurrence_end_date: null
 """
