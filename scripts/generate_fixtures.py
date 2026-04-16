@@ -79,9 +79,24 @@ M24 = months_ago(24)
 M25 = months_ago(25)
 M28 = months_ago(28)
 M30 = months_ago(30)
+M36 = months_ago(36)
+M48 = months_ago(48)
 M60 = months_ago(60)
+M72 = months_ago(72)
+M84 = months_ago(84)
+M96 = months_ago(96)
 
-LOAN_END = years_ahead(20, M24)
+# Property loan end dates
+LOAN1_END = years_ahead(20, M96)  # Property 1 — 20-year loan started 8 years ago
+LOAN2A_END = years_ahead(
+    10, M48
+)  # Property 2 — smoothed 10-year loan started 4 years ago
+LOAN2B_END = years_ahead(
+    20, M48
+)  # Property 2 — smoothed 20-year loan started 4 years ago
+LOAN3_END = years_ahead(
+    8, M48
+)  # Property 3 — 8-year loan started 4 years ago (ends in ~4y)
 
 
 # === Fixture generators ===
@@ -653,93 +668,655 @@ def generate_savingaccount() -> str:
 """
 
 
-def generate_property() -> str:
-    """Generate property.yaml with dynamic dates."""
+def generate_property() -> str:  # noqa: PLR0915
+    """Generate property.yaml with dynamic dates.
+
+    Properties:
+      1 - Résidence principale (HO): 1 standard 20-year loan, typical owner expenses
+      2 - Appartement locatif Nice (AP): 2 smoothed loans (prêt lisseur, 10y + 20y),
+          active lease, full rental transactions
+      3 - Studio meublé Lyon (AP): 1 short loan ending in ~4 years, active lease,
+          rental transactions with tenant and lease
+      4 - Maison de campagne (HO): no loan, no lease, expenses + punctual Airbnb income
+    """
     return f"""# generated with scripts/generate_fixtures.py
 ---
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 1 — Résidence principale (House, bought 8 years ago)
+#   Loan: 1 standard 20-year mortgage
+# ─────────────────────────────────────────────────────────────────────────────
 - model: property.property
   pk: 1
   fields:
-    created_at: {dt(M60)}
+    created_at: {dt(M96)}
     updated_at: {dt(RECENT)}
     property_type: HO
     name: Résidence principale
     address: 12 rue de la Liberté, 75014 Paris, France
     is_active: true
-    buying_value: 200000.00
+    buying_value: 320000.00
     buying_value_currency: EUR
-    buying_date: {ds(M60)}
+    buying_date: {ds(M96)}
     selling_date: null
+    floor_area: "112.50"
+    is_furnished: false
 - model: property.propertyvalue
   pk: 1
   fields:
-    created_at: {dt(M60)}
-    updated_at: {dt(M60)}
+    created_at: {dt(M96)}
+    updated_at: {dt(M96)}
     property: 1
-    value: 200000.00
-    valuation_date: {ds(M60)}
+    value: 320000.00
+    valuation_date: {ds(M96)}
 - model: property.propertyvalue
   pk: 2
   fields:
-    created_at: {dt(RECENT)}
-    updated_at: {dt(RECENT)}
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
     property: 1
-    value: 250000.00
-    valuation_date: {ds(RECENT)}
-- model: property.property
-  pk: 2
-  fields:
-    created_at: {dt(M24)}
-    updated_at: {dt(RECENT)}
-    property_type: AP
-    name: Appartement locatif
-    address: 8 avenue des Fleurs, 06000 Nice, France
-    is_active: true
-    buying_value: 130000.00
-    buying_value_currency: EUR
-    buying_date: {ds(M24)}
-    selling_date: null
+    value: 345000.00
+    valuation_date: {ds(M48)}
 - model: property.propertyvalue
   pk: 3
   fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    property: 1
+    value: 375000.00
+    valuation_date: {ds(RECENT)}
+# Loan 1 — standard 20-year mortgage at 1.85 %
+- model: property.propertyloan
+  pk: 1
+  fields:
+    created_at: {dt(M96)}
+    updated_at: {dt(M96)}
+    property: 1
+    name: Prêt immobilier principal
+    lender: Crédit Agricole
+    original_amount: 256000
+    original_amount_currency: EUR
+    interest_rate: "1.85"
+    insurance_rate: "0.18"
+    start_date: {ds(M96)}
+    end_date: {ds(LOAN1_END)}
+    monthly_payment: 1285.00
+    monthly_payment_currency: EUR
+    insurance: 38.40
+    insurance_currency: EUR
+# Transactions — Property 1
+- model: property.propertyledgerentry
+  pk: 1
+  fields:
+    created_at: {dt(M96)}
+    updated_at: {dt(M96)}
+    property: 1
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 2800.00
+    amount_currency: EUR
+    entry_date: {ds(M96)}
+    reference_period: null
+    tax_category: taxes
+    management_category: property_tax
+    description: Taxe foncière
+    notes: ""
+    recurrence_type: yearly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 2
+  fields:
+    created_at: {dt(M96)}
+    updated_at: {dt(M96)}
+    property: 1
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 65.00
+    amount_currency: EUR
+    entry_date: {ds(M96)}
+    reference_period: null
+    tax_category: insurance
+    management_category: insurance
+    description: Assurance habitation
+    notes: ""
+    recurrence_type: monthly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 3
+  fields:
+    created_at: {dt(M30)}
+    updated_at: {dt(M30)}
+    property: 1
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 4200.00
+    amount_currency: EUR
+    entry_date: {ds(M30)}
+    reference_period: null
+    tax_category: maintenance_repairs
+    management_category: works
+    description: Rénovation salle de bain
+    notes: "Remplacement baignoire, carrelage et robinetterie"
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 4
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    property: 1
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 850.00
+    amount_currency: EUR
+    entry_date: {ds(M12)}
+    reference_period: null
+    tax_category: maintenance_repairs
+    management_category: maintenance
+    description: Remplacement chaudière
+    notes: ""
+    recurrence_type: none
+    recurrence_end_date: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 2 — Appartement locatif Nice (Apartment, bought 4 years ago)
+#   Loans: 2 smoothed loans (prêt lisseur) — 10-year + 20-year
+#   Lease: active furnished lease with tenant
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.property
+  pk: 2
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(RECENT)}
+    property_type: AP
+    name: Appartement locatif Nice
+    address: 8 avenue des Fleurs, 06000 Nice, France
+    is_active: true
+    buying_value: 185000.00
+    buying_value_currency: EUR
+    buying_date: {ds(M48)}
+    selling_date: null
+    floor_area: "42.00"
+    is_furnished: true
+- model: property.propertyvalue
+  pk: 4
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    value: 185000.00
+    valuation_date: {ds(M48)}
+- model: property.propertyvalue
+  pk: 5
+  fields:
     created_at: {dt(M24)}
     updated_at: {dt(M24)}
     property: 2
-    value: 130000.00
+    value: 190000.00
     valuation_date: {ds(M24)}
 - model: property.propertyvalue
-  pk: 4
+  pk: 6
   fields:
     created_at: {dt(RECENT)}
     updated_at: {dt(RECENT)}
     property: 2
-    value: 130000.00
+    value: 195000.00
     valuation_date: {ds(RECENT)}
+# Loan 2A — smoothed 10-year (PTH LISSEUR)
+#   Schedule total: 1×834.00 + 59×667.00 + 60×666.67 = 834.00 + 39353.00 + 40000.20 ≈ 80000
+#   Tranches: first month higher (setup fee), then two equal halves
+#   sum = 1×834 + 59×667 + 60×666.67 = 834 + 39353 + 40000.20 = 80187.20 → adjust last tranche
+#   Simpler: 1×800 + 119×666.39 + 1×600.59 = 800 + 79300.41 + 600.59 = 80701 → too high
+#   Use: 1×800.00 + 118×666.00 + 1×666.52 = 800 + 78588 + 666.52 = 80054.52 → close
+#   Exact: 1×800.00 + 118×666.00 + 1×612.00 = 800 + 78588 + 612 = 80000
 - model: property.propertyloan
-  pk: 1
+  pk: 2
   fields:
-    created_at: {dt(M24)}
-    updated_at: {dt(M24)}
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
     property: 2
-    lender: Banque Populaire
-    original_amount: 100000.00
+    name: PTH LISSEUR
+    lender: Crédit Mutuel
+    original_amount: 80000
     original_amount_currency: EUR
-    interest_rate: "3.4"
-    insurance_rate: "0.2"
-    start_date: {ds(M24)}
-    end_date: {ds(LOAN_END)}
-    monthly_payment: 600.00
+    interest_rate: "2.95"
+    insurance_rate: null
+    start_date: {ds(M48)}
+    end_date: {ds(LOAN2A_END)}
+    monthly_payment: null
     monthly_payment_currency: EUR
-- model: property.propertyledgerentry
+    insurance: null
+    insurance_currency: EUR
+- model: property.propertyloanschedule
   pk: 1
   fields:
-    created_at: {dt(M24)}
-    updated_at: {dt(M24)}
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    loan: 2
+    order: 1
+    count: 1
+    amount: 800.00
+    amount_currency: EUR
+- model: property.propertyloanschedule
+  pk: 2
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    loan: 2
+    order: 2
+    count: 118
+    amount: 666.00
+    amount_currency: EUR
+- model: property.propertyloanschedule
+  pk: 3
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    loan: 2
+    order: 3
+    count: 1
+    amount: 612.00
+    amount_currency: EUR
+# Loan 2B — smoothed 20-year (PRET TOUT HABITAT FACILIMMO)
+#   Schedule total: 1×1050.00 + 238×437.00 + 1×437.40 = 1050 + 103906 + 437.40 = 105393.40 → adjust
+#   Exact: 1×1050.00 + 238×437.00 + 1×44.00 = 1050 + 103906 + 44 = 105000
+- model: property.propertyloan
+  pk: 3
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    name: PRET TOUT HABITAT FACILIMMO
+    lender: Crédit Mutuel
+    original_amount: 105000
+    original_amount_currency: EUR
+    interest_rate: "3.10"
+    insurance_rate: null
+    start_date: {ds(M48)}
+    end_date: {ds(LOAN2B_END)}
+    monthly_payment: null
+    monthly_payment_currency: EUR
+    insurance: null
+    insurance_currency: EUR
+- model: property.propertyloanschedule
+  pk: 6
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    loan: 3
+    order: 1
+    count: 1
+    amount: 1050.00
+    amount_currency: EUR
+- model: property.propertyloanschedule
+  pk: 7
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    loan: 3
+    order: 2
+    count: 238
+    amount: 437.00
+    amount_currency: EUR
+- model: property.propertyloanschedule
+  pk: 8
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    loan: 3
+    order: 3
+    count: 1
+    amount: 44.00
+    amount_currency: EUR
+# Tenant 1 — Nice apartment
+- model: property.tenant
+  pk: 1
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    first_name: Sophie
+    last_name: Martin
+    email: sophie.martin@example.com
+    phone: "0612345678"
+    notes: ""
+# Lease 1 — Nice apartment (active furnished)
+- model: property.lease
+  pk: 1
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    property: 2
+    lease_type: furnished
+    status: active
+    start_date: {ds(M36)}
+    end_date: null
+    notice_date: null
+    rent_amount: 750.00
+    rent_amount_currency: EUR
+    charges_amount: 80.00
+    charges_amount_currency: EUR
+    deposit_amount: 1500.00
+    deposit_amount_currency: EUR
+    periodicity: monthly
+    irl_indexed: false
+    irl_reference_quarter: ""
+    irl_reference_value: null
+    notes: "Bail meublé 1 an renouvelable"
+- model: property.leasetenant
+  pk: 1
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    lease: 1
+    tenant: 1
+    is_primary: true
+    join_date: null
+    leave_date: null
+# Transactions — Property 2
+- model: property.propertyledgerentry
+  pk: 5
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    property: 2
+    lease: 1
+    mandate: null
+    flow_type: income
+    amount: 1500.00
+    amount_currency: EUR
+    entry_date: {ds(M36)}
+    reference_period: null
+    tax_category: deposit_in
+    management_category: deposit_in
+    description: Dépôt de garantie
+    notes: ""
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 6
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    property: 2
+    lease: 1
+    mandate: null
+    flow_type: income
+    amount: 750.00
+    amount_currency: EUR
+    entry_date: {ds(M36)}
+    reference_period: null
+    tax_category: rent
+    management_category: rent_collected
+    description: Loyer mensuel
+    notes: ""
+    recurrence_type: monthly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 7
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    property: 2
+    lease: 1
+    mandate: null
+    flow_type: income
+    amount: 80.00
+    amount_currency: EUR
+    entry_date: {ds(M36)}
+    reference_period: null
+    tax_category: charges_recovered
+    management_category: charges_collected
+    description: Provision pour charges
+    notes: ""
+    recurrence_type: monthly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 8
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
     property: 2
     lease: null
     mandate: null
+    flow_type: expense
+    amount: 980.00
+    amount_currency: EUR
+    entry_date: {ds(M48)}
+    reference_period: null
+    tax_category: taxes
+    management_category: property_tax
+    description: Taxe foncière
+    notes: ""
+    recurrence_type: yearly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 9
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 145.00
+    amount_currency: EUR
+    entry_date: {ds(M48)}
+    reference_period: null
+    tax_category: other_general_fees
+    management_category: coownership
+    description: Charges de copropriété
+    notes: ""
+    recurrence_type: monthly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 10
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 28.00
+    amount_currency: EUR
+    entry_date: {ds(M48)}
+    reference_period: null
+    tax_category: insurance
+    management_category: insurance
+    description: Assurance propriétaire non-occupant (PNO)
+    notes: ""
+    recurrence_type: monthly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 11
+  fields:
+    created_at: {dt(M18)}
+    updated_at: {dt(M18)}
+    property: 2
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 1250.00
+    amount_currency: EUR
+    entry_date: {ds(M18)}
+    reference_period: null
+    tax_category: maintenance_repairs
+    management_category: maintenance
+    description: Réparation plomberie — fuite salle de bain
+    notes: "Intervention plombier + remplacement joint"
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 12
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    property: 2
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 320.00
+    amount_currency: EUR
+    entry_date: {ds(M12)}
+    reference_period: null
+    tax_category: taxes
+    management_category: cfe
+    description: CFE (Cotisation Foncière des Entreprises)
+    notes: ""
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 13
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    property: 2
+    lease: 1
+    mandate: null
     flow_type: income
-    amount: 1200.00
+    amount: 240.00
+    amount_currency: EUR
+    entry_date: {ds(M6)}
+    reference_period: null
+    tax_category: charges_recovered
+    management_category: charges_collected
+    description: Régularisation charges annuelle
+    notes: "Solde positif en faveur du propriétaire"
+    recurrence_type: none
+    recurrence_end_date: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 3 — Studio meublé Lyon (Apartment, bought 4 years ago)
+#   Loan: 1 standard 8-year loan finishing in ~4 years
+#   Lease: active furnished lease with tenant
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.property
+  pk: 3
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(RECENT)}
+    property_type: AP
+    name: Studio meublé Lyon
+    address: 3 rue Mercière, 69002 Lyon, France
+    is_active: true
+    buying_value: 95000.00
+    buying_value_currency: EUR
+    buying_date: {ds(M48)}
+    selling_date: null
+    floor_area: "22.00"
+    is_furnished: true
+- model: property.propertyvalue
+  pk: 7
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    value: 95000.00
+    valuation_date: {ds(M48)}
+- model: property.propertyvalue
+  pk: 8
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    property: 3
+    value: 102000.00
+    valuation_date: {ds(RECENT)}
+# Loan 3 — standard 8-year loan at 2.40 % (started 4 years ago, ends in ~4 years)
+- model: property.propertyloan
+  pk: 4
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    name: Prêt immobilier studio
+    lender: BNP Paribas
+    original_amount: 72000
+    original_amount_currency: EUR
+    interest_rate: "2.40"
+    insurance_rate: "0.22"
+    start_date: {ds(M48)}
+    end_date: {ds(LOAN3_END)}
+    monthly_payment: 870.00
+    monthly_payment_currency: EUR
+    insurance: 13.20
+    insurance_currency: EUR
+# Tenant 2 — Lyon studio
+- model: property.tenant
+  pk: 2
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    first_name: Lucas
+    last_name: Dupont
+    email: lucas.dupont@example.com
+    phone: "0698765432"
+    notes: ""
+# Lease 2 — Lyon studio (active furnished)
+- model: property.lease
+  pk: 2
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    property: 3
+    lease_type: furnished
+    status: active
+    start_date: {ds(M24)}
+    end_date: null
+    notice_date: null
+    rent_amount: 520.00
+    rent_amount_currency: EUR
+    charges_amount: 50.00
+    charges_amount_currency: EUR
+    deposit_amount: 1040.00
+    deposit_amount_currency: EUR
+    periodicity: monthly
+    irl_indexed: false
+    irl_reference_quarter: ""
+    irl_reference_value: null
+    notes: "Bail meublé étudiant"
+- model: property.leasetenant
+  pk: 2
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    lease: 2
+    tenant: 2
+    is_primary: true
+    join_date: null
+    leave_date: null
+# Transactions — Property 3
+- model: property.propertyledgerentry
+  pk: 14
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    property: 3
+    lease: 2
+    mandate: null
+    flow_type: income
+    amount: 1040.00
+    amount_currency: EUR
+    entry_date: {ds(M24)}
+    reference_period: null
+    tax_category: deposit_in
+    management_category: deposit_in
+    description: Dépôt de garantie
+    notes: ""
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 15
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    property: 3
+    lease: 2
+    mandate: null
+    flow_type: income
+    amount: 520.00
     amount_currency: EUR
     entry_date: {ds(M24)}
     reference_period: null
@@ -750,36 +1327,36 @@ def generate_property() -> str:
     recurrence_type: monthly
     recurrence_end_date: null
 - model: property.propertyledgerentry
-  pk: 2
-  fields:
-    created_at: {dt(M12)}
-    updated_at: {dt(M12)}
-    property: 2
-    lease: null
-    mandate: null
-    flow_type: income
-    amount: 500.00
-    amount_currency: EUR
-    entry_date: {ds(M12)}
-    reference_period: null
-    tax_category: other_income
-    management_category: other
-    description: Remboursement de charges
-    notes: ""
-    recurrence_type: none
-    recurrence_end_date: null
-- model: property.propertyledgerentry
-  pk: 3
+  pk: 16
   fields:
     created_at: {dt(M24)}
     updated_at: {dt(M24)}
-    property: 2
+    property: 3
+    lease: 2
+    mandate: null
+    flow_type: income
+    amount: 50.00
+    amount_currency: EUR
+    entry_date: {ds(M24)}
+    reference_period: null
+    tax_category: charges_recovered
+    management_category: charges_collected
+    description: Provision pour charges
+    notes: ""
+    recurrence_type: monthly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 17
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
     lease: null
     mandate: null
     flow_type: expense
-    amount: 1200.00
+    amount: 420.00
     amount_currency: EUR
-    entry_date: {ds(M24)}
+    entry_date: {ds(M48)}
     reference_period: null
     tax_category: taxes
     management_category: property_tax
@@ -788,36 +1365,119 @@ def generate_property() -> str:
     recurrence_type: yearly
     recurrence_end_date: null
 - model: property.propertyledgerentry
-  pk: 4
+  pk: 18
   fields:
-    created_at: {dt(M18)}
-    updated_at: {dt(M18)}
-    property: 2
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
     lease: null
     mandate: null
     flow_type: expense
-    amount: 850.00
+    amount: 18.00
     amount_currency: EUR
-    entry_date: {ds(M18)}
+    entry_date: {ds(M48)}
     reference_period: null
-    tax_category: maintenance_repairs
-    management_category: maintenance
-    description: Réparation plomberie
+    tax_category: insurance
+    management_category: insurance
+    description: Assurance PNO
+    notes: ""
+    recurrence_type: monthly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 19
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    property: 3
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 185.00
+    amount_currency: EUR
+    entry_date: {ds(M12)}
+    reference_period: null
+    tax_category: taxes
+    management_category: cfe
+    description: CFE
     notes: ""
     recurrence_type: none
     recurrence_end_date: null
 - model: property.propertyledgerentry
-  pk: 5
+  pk: 20
   fields:
-    created_at: {dt(M60)}
-    updated_at: {dt(M60)}
-    property: 1
+    created_at: {dt(M9)}
+    updated_at: {dt(M9)}
+    property: 3
     lease: null
     mandate: null
     flow_type: expense
-    amount: 2500.00
+    amount: 380.00
     amount_currency: EUR
-    entry_date: {ds(M60)}
+    entry_date: {ds(M9)}
+    reference_period: null
+    tax_category: maintenance_repairs
+    management_category: maintenance
+    description: Remplacement électroménager (lave-linge)
+    notes: ""
+    recurrence_type: none
+    recurrence_end_date: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 4 — Maison de campagne (House, bought 6 years ago)
+#   No loan, no lease — punctual Airbnb income + owner expenses
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.property
+  pk: 4
+  fields:
+    created_at: {dt(M72)}
+    updated_at: {dt(RECENT)}
+    property_type: HO
+    name: Maison de campagne
+    address: Le Bourg, 24200 Sarlat-la-Canéda, France
+    is_active: true
+    buying_value: 145000.00
+    buying_value_currency: EUR
+    buying_date: {ds(M72)}
+    selling_date: null
+    floor_area: "95.00"
+    is_furnished: true
+- model: property.propertyvalue
+  pk: 9
+  fields:
+    created_at: {dt(M72)}
+    updated_at: {dt(M72)}
+    property: 4
+    value: 145000.00
+    valuation_date: {ds(M72)}
+- model: property.propertyvalue
+  pk: 10
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    property: 4
+    value: 155000.00
+    valuation_date: {ds(M36)}
+- model: property.propertyvalue
+  pk: 11
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    property: 4
+    value: 162000.00
+    valuation_date: {ds(RECENT)}
+# Transactions — Property 4
+- model: property.propertyledgerentry
+  pk: 21
+  fields:
+    created_at: {dt(M72)}
+    updated_at: {dt(M72)}
+    property: 4
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 1650.00
+    amount_currency: EUR
+    entry_date: {ds(M72)}
     reference_period: null
     tax_category: taxes
     management_category: property_tax
@@ -826,21 +1486,116 @@ def generate_property() -> str:
     recurrence_type: yearly
     recurrence_end_date: null
 - model: property.propertyledgerentry
-  pk: 6
+  pk: 22
   fields:
-    created_at: {dt(M30)}
-    updated_at: {dt(M30)}
-    property: 1
+    created_at: {dt(M72)}
+    updated_at: {dt(M72)}
+    property: 4
     lease: null
     mandate: null
     flow_type: expense
+    amount: 55.00
+    amount_currency: EUR
+    entry_date: {ds(M72)}
+    reference_period: null
+    tax_category: insurance
+    management_category: insurance
+    description: Assurance habitation résidence secondaire
+    notes: ""
+    recurrence_type: monthly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 23
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 4
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 8500.00
+    amount_currency: EUR
+    entry_date: {ds(M48)}
+    reference_period: null
+    tax_category: maintenance_repairs
+    management_category: works
+    description: Rénovation cuisine et terrasse
+    notes: "Travaux réalisés par entreprise locale"
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 24
+  fields:
+    created_at: {dt(M18)}
+    updated_at: {dt(M18)}
+    property: 4
+    lease: null
+    mandate: null
+    flow_type: income
     amount: 1800.00
     amount_currency: EUR
-    entry_date: {ds(M30)}
+    entry_date: {ds(M18)}
+    reference_period: null
+    tax_category: rent
+    management_category: rent_collected
+    description: Location Airbnb — été
+    notes: "Juillet-août, 3 semaines"
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 25
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    property: 4
+    lease: null
+    mandate: null
+    flow_type: income
+    amount: 2100.00
+    amount_currency: EUR
+    entry_date: {ds(M12)}
+    reference_period: null
+    tax_category: rent
+    management_category: rent_collected
+    description: Location Airbnb — été
+    notes: "Juillet-août, 4 semaines"
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 26
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    property: 4
+    lease: null
+    mandate: null
+    flow_type: income
+    amount: 650.00
+    amount_currency: EUR
+    entry_date: {ds(M6)}
+    reference_period: null
+    tax_category: rent
+    management_category: rent_collected
+    description: Location Airbnb — vacances de Noël
+    notes: "2 semaines"
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 27
+  fields:
+    created_at: {dt(M3)}
+    updated_at: {dt(M3)}
+    property: 4
+    lease: null
+    mandate: null
+    flow_type: expense
+    amount: 420.00
+    amount_currency: EUR
+    entry_date: {ds(M3)}
     reference_period: null
     tax_category: maintenance_repairs
     management_category: maintenance
-    description: Rénovation toiture
+    description: Entretien jardin et piscine
     notes: ""
     recurrence_type: none
     recurrence_end_date: null

@@ -95,6 +95,29 @@
           </div>
 
           <div class="col-md-4">
+            <label for="{{ property_form.floor_area.id_for_label }}" class="form-label">
+              {{ property_form.floor_area.label }}
+            </label>
+            <div class="input-group">
+              {{ property_form.floor_area }}
+              <span class="input-group-text">m²</span>
+            </div>
+            {% if property_form.floor_area.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.floor_area.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="{{ property_form.number_of_rooms.id_for_label }}" class="form-label">
+              {{ property_form.number_of_rooms.label }}
+            </label>
+            {{ property_form.number_of_rooms }}
+            {% if property_form.number_of_rooms.errors %}
+              <div class="invalid-feedback d-block">{{ property_form.number_of_rooms.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
             <label for="{{ property_form.shares_count.id_for_label }}" class="form-label">
               {{ property_form.shares_count.label }}
             </label>
@@ -128,11 +151,19 @@
           </div>
 
           <div class="col-12">
-            <div class="form-check">
-              {{ property_form.is_active }}
-              <label class="form-check-label" for="{{ property_form.is_active.id_for_label }}">
-                {{ property_form.is_active.label }}
-              </label>
+            <div class="d-flex gap-4">
+              <div class="form-check">
+                {{ property_form.is_active }}
+                <label class="form-check-label" for="{{ property_form.is_active.id_for_label }}">
+                  {{ property_form.is_active.label }}
+                </label>
+              </div>
+              <div class="form-check">
+                {{ property_form.is_furnished }}
+                <label class="form-check-label" for="{{ property_form.is_furnished.id_for_label }}">
+                  {{ property_form.is_furnished.label }}
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -154,7 +185,8 @@
         {% endif %}
 
         <div id="loan-formset">
-          {% for form in loan_formset %}
+          {% for loan_entry in loan_forms_with_schedules %}
+            {% with form=loan_entry.form schedule_formset=loan_entry.schedule_formset is_smoothed=loan_entry.is_smoothed %}
             <div class="loan-form border rounded p-3 mb-3">
               {{ form.id }}
 
@@ -162,6 +194,9 @@
                 <h6 class="mb-0">
                   {% if form.instance.pk %}
                     {% translate "Loan" %} #{{ forloop.counter }}
+                    {% if form.instance.is_smoothed %}
+                      <span class="badge bg-info ms-2">{% translate "Smoothed loan" %}</span>
+                    {% endif %}
                   {% else %}
                     {% translate "Add a loan" %}
                   {% endif %}
@@ -266,18 +301,143 @@
                   {% endif %}
                 </div>
 
-                <!-- Computed monthly payment preview -->
+                <!-- Loan cost preview -->
                 <div class="col-12">
                   <div class="loan-preview alert alert-info py-2 mb-0 d-none">
                     <small>
-                      <i class="bi bi-calculator"></i>
-                      {% translate "Estimated monthly payment" %}: <strong class="loan-preview-total">—</strong>
-                      <span class="loan-preview-detail text-body-secondary ms-2"></span>
+                      <span class="loan-preview-monthly">
+                        <i class="bi bi-calculator"></i>
+                        {% translate "Estimated monthly payment" %}: <strong class="loan-preview-total">—</strong>
+                        <span class="loan-preview-detail text-body-secondary ms-2"></span>
+                        <span class="ms-3 text-body-secondary">|</span>
+                      </span>
+                      <span class="ms-2">{% translate "Total repaid" %}: <strong class="loan-preview-total-repaid">—</strong></span>
                     </small>
                   </div>
                 </div>
               </div>
+
+              <!-- Payment Schedule (Prêt Lisseur) -->
+              {% if schedule_formset %}
+              <div class="mt-4">
+                {% if is_smoothed %}
+                  {# Already a smoothed loan: show schedule directly #}
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 text-info">
+                      <i class="bi bi-list-ol"></i>
+                      {% translate "Payment schedule (smoothed loan)" %}
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-outline-info add-schedule-row"
+                            data-prefix="{{ schedule_formset.prefix }}">
+                      <i class="bi bi-plus"></i> {% translate "Add tranche" %}
+                    </button>
+                  </div>
+                {% else %}
+                  {# Standard loan: collapsed toggle to add a schedule #}
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#schedule-collapse-{{ schedule_formset.prefix }}"
+                            aria-expanded="false">
+                      <i class="bi bi-list-ol"></i>
+                      {% translate "Add payment schedule (smoothed loan)" %}
+                    </button>
+                  </div>
+                {% endif %}
+
+                <div {% if not is_smoothed %}id="schedule-collapse-{{ schedule_formset.prefix }}" class="collapse"{% endif %}>
+                  {{ schedule_formset.management_form }}
+
+                  {% if schedule_formset.non_form_errors %}
+                    <div class="alert alert-danger py-2">{{ schedule_formset.non_form_errors }}</div>
+                  {% endif %}
+
+                  {% if not is_smoothed %}
+                  <div class="alert alert-warning py-2 mb-2">
+                    <small>
+                      <i class="bi bi-exclamation-triangle"></i>
+                      {% translate "Adding a payment schedule will convert this loan to a smoothed loan (prêt lisseur). The computed monthly payment will be ignored." %}
+                    </small>
+                  </div>
+                  {% endif %}
+
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span></span>
+                    {% if not is_smoothed %}
+                    <button type="button" class="btn btn-sm btn-outline-info add-schedule-row"
+                            data-prefix="{{ schedule_formset.prefix }}">
+                      <i class="bi bi-plus"></i> {% translate "Add tranche" %}
+                    </button>
+                    {% endif %}
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered schedule-table" id="schedule-table-{{ schedule_formset.prefix }}">
+                      <thead class="table-light">
+                        <tr>
+                          <th style="width:80px">{% translate "Order" %}</th>
+                          <th style="width:120px">{% translate "Count" %}</th>
+                          <th>{% translate "Amount" %}</th>
+                          <th style="width:80px">{% translate "Delete" %}</th>
+                        </tr>
+                      </thead>
+                      <tbody id="schedule-body-{{ schedule_formset.prefix }}">
+                        {% for sform in schedule_formset %}
+                          {% if sform.instance.pk or not sform.empty_permitted %}
+                          <tr class="schedule-row{% if sform.instance.pk %} existing-schedule{% endif %}">
+                            <td>
+                              {{ sform.id }}
+                              {{ sform.order }}
+                              {% if sform.order.errors %}
+                                <div class="invalid-feedback d-block">{{ sform.order.errors.0 }}</div>
+                              {% endif %}
+                            </td>
+                            <td>
+                              {{ sform.count }}
+                              {% if sform.count.errors %}
+                                <div class="invalid-feedback d-block">{{ sform.count.errors.0 }}</div>
+                              {% endif %}
+                            </td>
+                            <td>
+                              {{ sform.amount }}
+                              {% if sform.amount.errors %}
+                                <div class="invalid-feedback d-block">{{ sform.amount.errors.0 }}</div>
+                              {% endif %}
+                            </td>
+                            <td class="text-center">
+                              {% if sform.instance.pk %}
+                                {{ sform.DELETE }}
+                              {% endif %}
+                            </td>
+                          </tr>
+                          {% endif %}
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="schedule-summary small mt-2">
+                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                      <span class="schedule-total-count text-muted"></span>
+                      <span class="schedule-total-amount fw-semibold"></span>
+                      <span class="schedule-missing-amount"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% elif not form.instance.pk %}
+              <!-- New loan: offer to add schedule tranches after first save -->
+              <div class="mt-3">
+                <p class="text-muted small mb-1">
+                  <i class="bi bi-info-circle"></i>
+                  {% translate "Save the loan first, then add payment schedule tranches for a smoothed loan (prêt lisseur)." %}
+                </p>
+              </div>
+              {% endif %}
+
             </div>
+            {% endwith %}
           {% endfor %}
         </div>
       </div>
@@ -303,6 +463,9 @@
   opacity: 0.5;
   background-color: var(--bs-danger-bg-subtle);
 }
+.schedule-table td, .schedule-table th {
+  vertical-align: middle;
+}
 </style>
 
 <script>
@@ -310,6 +473,12 @@
  * French amortization formula: M = C * t(1+t)^n / ((1+t)^n - 1)
  * Returns { pi, insurance, total } as numbers, or null if inputs are invalid.
  */
+function parseDecimal(value) {
+  // Handle French locale where comma is used as decimal separator
+  if (typeof value === 'string') value = value.replace(',', '.');
+  return parseFloat(value);
+}
+
 function computeLoanPreview(amount, annualRate, annualInsuranceRate, durationMonths) {
   if (!amount || amount <= 0 || durationMonths <= 0) return null;
   const t = annualRate / 100 / 12;
@@ -334,15 +503,63 @@ function updateLoanPreview(loanFormEl) {
   const insuranceRateInput = loanFormEl.querySelector('input[id*="insurance_rate"]');
   const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
   const previewEl = loanFormEl.querySelector('.loan-preview');
+  const previewMonthlyEl = loanFormEl.querySelector('.loan-preview-monthly');
   const previewTotal = loanFormEl.querySelector('.loan-preview-total');
   const previewDetail = loanFormEl.querySelector('.loan-preview-detail');
+  const previewTotalRepaid = loanFormEl.querySelector('.loan-preview-total-repaid');
 
   if (!previewEl) return;
 
-  const amount = parseFloat(amountInput ? amountInput.value : 0);
-  const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
-  const insuranceRate = parseFloat(insuranceRateInput ? insuranceRateInput.value : 0) || 0;
+  const amount = parseDecimal(amountInput ? amountInput.value : 0);
+  const rate = parseDecimal(rateInput ? rateInput.value : 0) || 0;
+  const insuranceRate = parseDecimal(insuranceRateInput ? insuranceRateInput.value : 0) || 0;
   const duration = parseInt(durationInput ? durationInput.value : 0);
+
+  // Check if this is a smoothed loan (has any active schedule rows, saved or new)
+  const scheduleTable = loanFormEl.querySelector('.schedule-table');
+  const hasActiveScheduleRows = scheduleTable
+    ? (() => {
+        let count = 0;
+        scheduleTable.querySelectorAll('tbody tr.schedule-row').forEach(row => {
+          const deleteCheck = row.querySelector('input[type="checkbox"][id*="DELETE"]');
+          if (!deleteCheck || !deleteCheck.checked) count++;
+        });
+        return count > 0;
+      })()
+    : false;
+
+  if (hasActiveScheduleRows) {
+    // Smoothed loan: hide monthly payment estimate, show total repaid from schedule summary
+    if (previewMonthlyEl) previewMonthlyEl.style.display = 'none';
+    // Total repaid for smoothed loans is computed by updateScheduleSummary() and stored
+    // in .schedule-total-amount — read it back and mirror it here.
+    const scheduleTotalAmountEl = loanFormEl.querySelector('.schedule-total-amount');
+    const scheduleTotalText = scheduleTotalAmountEl ? scheduleTotalAmountEl.textContent : '';
+    // Extract the numeric value from the schedule summary text (set by updateScheduleSummary)
+    // by re-computing from the schedule table rows directly.
+    let smoothedTotal = 0;
+    if (scheduleTable) {
+      scheduleTable.querySelectorAll('tbody tr.schedule-row').forEach(row => {
+        const deleteCheck = row.querySelector('input[type="checkbox"][id*="DELETE"]');
+        if (deleteCheck && deleteCheck.checked) return;
+        const countInput = row.querySelector('input[id*="count"]');
+        const amountRowInput = row.querySelector('input[id*="amount_0"], input[id*="amount"][type="number"]');
+        const count = parseInt(countInput ? countInput.value : 0) || 0;
+        const amt = parseDecimal(amountRowInput ? amountRowInput.value : 0) || 0;
+        smoothedTotal += count * amt;
+      });
+    }
+    if (smoothedTotal > 0) {
+      previewEl.classList.remove('d-none');
+      if (previewTotalRepaid) previewTotalRepaid.textContent = formatMoney(smoothedTotal);
+    } else {
+      previewEl.classList.add('d-none');
+    }
+    return;
+  }
+
+  // Standard loan: show monthly payment estimate and total repaid
+  if (previewMonthlyEl) previewMonthlyEl.style.display = '';
 
   const result = computeLoanPreview(amount, rate, insuranceRate, duration);
   if (result) {
@@ -352,6 +569,10 @@ function updateLoanPreview(loanFormEl) {
       previewDetail.textContent = '({% translate "principal+interest" %}: ' + formatMoney(result.pi) + ' + {% translate "insurance" %}: ' + formatMoney(result.insurance) + ')';
     } else {
       previewDetail.textContent = '';
+    }
+    // Total repaid = monthly total (principal + interest + insurance) × duration
+    if (previewTotalRepaid && duration > 0) {
+      previewTotalRepaid.textContent = formatMoney(result.total * duration);
     }
   } else {
     previewEl.classList.add('d-none');
@@ -373,6 +594,81 @@ function updateYearsDisplay(loanFormEl) {
   } else {
     yearsDisplay.textContent = '';
   }
+}
+
+function updateScheduleSummary(tableEl) {
+  const loanFormEl = tableEl.closest('.loan-form');
+  if (!loanFormEl) return;
+  const countSummaryEl = loanFormEl.querySelector('.schedule-total-count');
+  const amountSummaryEl = loanFormEl.querySelector('.schedule-total-amount');
+  const missingEl = loanFormEl.querySelector('.schedule-missing-amount');
+
+  let totalCount = 0;
+  let totalAmount = 0;
+  tableEl.querySelectorAll('tbody tr.schedule-row').forEach(row => {
+    const deleteCheck = row.querySelector('input[type="checkbox"][id*="DELETE"]');
+    if (deleteCheck && deleteCheck.checked) return;
+    const countInput = row.querySelector('input[id*="count"]');
+    const amountInput = row.querySelector('input[id*="amount_0"], input[id*="amount"][type="number"]');
+    const count = parseInt(countInput ? countInput.value : 0) || 0;
+    const amount = parseDecimal(amountInput ? amountInput.value : 0) || 0;
+    totalCount += count;
+    totalAmount += count * amount;
+  });
+
+  // Count summary
+  if (countSummaryEl) {
+    if (totalCount > 0) {
+      const years = Math.floor(totalCount / 12);
+      const rem = totalCount % 12;
+      let label = totalCount + ' {% translate "payments" %}';
+      if (years > 0 || rem > 0) {
+        label += ' (';
+        if (years > 0) label += years + ' {% translate "yr" %}';
+        if (rem > 0) label += (years > 0 ? ' ' : '') + rem + ' {% translate "mo" %}';
+        label += ')';
+      }
+      countSummaryEl.textContent = '{% translate "Total" %}: ' + label;
+    } else {
+      countSummaryEl.textContent = '';
+    }
+  }
+
+  // Amount summary: total repaid to the bank (principal + interest over the full loan)
+  if (amountSummaryEl) {
+    if (totalAmount > 0) {
+      amountSummaryEl.textContent = '{% translate "Total repaid" %}: ' + formatMoney(totalAmount);
+    } else {
+      amountSummaryEl.textContent = '';
+    }
+  }
+
+  // Completeness check: compare total payment count vs loan duration in months.
+  // The monetary schedule total (sum of all payments) is always greater than the
+  // original capital because it includes interest — comparing them is meaningless.
+  if (missingEl) {
+    const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+    const loanDurationMonths = parseInt(durationInput ? durationInput.value : 0) || 0;
+    if (loanDurationMonths > 0 && totalCount > 0) {
+      const countDiff = loanDurationMonths - totalCount;
+      if (countDiff === 0) {
+        missingEl.className = 'schedule-missing-amount text-success fw-semibold';
+        missingEl.innerHTML = '<i class="bi bi-check-circle"></i> {% translate "Complete" %}';
+      } else if (countDiff > 0) {
+        missingEl.className = 'schedule-missing-amount text-warning fw-semibold';
+        missingEl.innerHTML = '<i class="bi bi-exclamation-triangle"></i> {% translate "Missing" %}: ' + countDiff + ' {% translate "payments" %}';
+      } else {
+        missingEl.className = 'schedule-missing-amount text-danger fw-semibold';
+        missingEl.innerHTML = '<i class="bi bi-exclamation-circle"></i> {% translate "Excess" %}: +' + Math.abs(countDiff) + ' {% translate "payments" %}';
+      }
+    } else {
+      missingEl.className = 'schedule-missing-amount';
+      missingEl.textContent = '';
+    }
+  }
+
+  // Keep the loan preview banner (total repaid) in sync for smoothed loans
+  updateLoanPreview(loanFormEl);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -406,6 +702,9 @@ document.addEventListener('DOMContentLoaded', function() {
           updateLoanPreview(loanFormEl);
           if (input.id && input.id.includes('duration_months')) {
             updateYearsDisplay(loanFormEl);
+            // duration_months affects the Missing/Excess count check in schedule summary
+            const tableEl = loanFormEl.querySelector('.schedule-table');
+            if (tableEl) updateScheduleSummary(tableEl);
           }
         });
       }
@@ -413,6 +712,79 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial render
     updateLoanPreview(loanFormEl);
     updateYearsDisplay(loanFormEl);
+  });
+
+  // Schedule table: live summary update
+  document.querySelectorAll('.schedule-table').forEach(tableEl => {
+    updateScheduleSummary(tableEl);
+    tableEl.addEventListener('input', () => updateScheduleSummary(tableEl));
+    tableEl.addEventListener('change', () => updateScheduleSummary(tableEl));
+  });
+
+  // Add tranche button: add a new empty row and increment TOTAL_FORMS
+  document.querySelectorAll('.add-schedule-row').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const prefix = this.dataset.prefix;
+      const tbody = document.getElementById('schedule-body-' + prefix);
+      const totalFormsInput = document.querySelector('input[name="' + prefix + '-TOTAL_FORMS"]');
+      if (!tbody || !totalFormsInput) return;
+
+      const newIndex = parseInt(totalFormsInput.value);
+
+      // Build a new empty row with a remove button (not a Django DELETE checkbox)
+      const tr = document.createElement('tr');
+      tr.className = 'schedule-row';
+      tr.innerHTML = `
+        <td>
+          <input type="number" name="${prefix}-${newIndex}-order" id="id_${prefix}-${newIndex}-order"
+                 class="form-control" min="1" value="${newIndex + 1}" placeholder="1">
+        </td>
+        <td>
+          <input type="number" name="${prefix}-${newIndex}-count" id="id_${prefix}-${newIndex}-count"
+                 class="form-control" min="1" placeholder="1">
+        </td>
+        <td>
+          <div class="input-group">
+            <input type="number" name="${prefix}-${newIndex}-amount_0" id="id_${prefix}-${newIndex}-amount_0"
+                   class="form-control" step="0.01" min="0" placeholder="0.00">
+            <input type="hidden" name="${prefix}-${newIndex}-amount_1" value="EUR">
+          </div>
+        </td>
+        <td class="text-center">
+          <button type="button" class="btn btn-sm btn-outline-danger remove-new-schedule-row" title="{% translate "Remove" %}">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      totalFormsInput.value = newIndex + 1;
+
+      // Wire up the remove button for this new row
+      tr.querySelector('.remove-new-schedule-row').addEventListener('click', function() {
+        tr.remove();
+        const tableEl = document.getElementById('schedule-table-' + prefix);
+        if (tableEl) updateScheduleSummary(tableEl);
+      });
+
+      const tableEl = document.getElementById('schedule-table-' + prefix);
+      if (tableEl) updateScheduleSummary(tableEl);
+    });
+  });
+
+  // Wire up DELETE checkboxes for existing schedule rows: toggle row style
+  document.querySelectorAll('.schedule-table').forEach(tableEl => {
+    tableEl.querySelectorAll('input[type="checkbox"][id*="DELETE"]').forEach(checkbox => {
+      const row = checkbox.closest('tr.schedule-row');
+      if (!row) return;
+      // Initial state
+      if (checkbox.checked) row.classList.add('table-danger', 'opacity-50');
+      checkbox.addEventListener('change', function() {
+        row.classList.toggle('table-danger', this.checked);
+        row.classList.toggle('opacity-50', this.checked);
+        const tableEl2 = row.closest('.schedule-table');
+        if (tableEl2) updateScheduleSummary(tableEl2);
+      });
+    });
   });
 });
 

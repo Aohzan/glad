@@ -75,14 +75,18 @@ class PropertyLedgerEntry(BaseModel):
         CFE = "cfe", _("CFE")
         OTHER = "other", _("Other")
 
-    NONE = "none"
-    MONTHLY = "monthly"
-    YEARLY = "yearly"
-    RECURRENCE_TYPE_CHOICES = [
-        (NONE, _("None")),
-        (MONTHLY, _("Monthly")),
-        (YEARLY, _("Yearly")),
-    ]
+    class RecurrenceType(models.TextChoices):
+        """Recurrence type for ledger entries."""
+
+        NONE = "none", _("None")
+        MONTHLY = "monthly", _("Monthly")
+        YEARLY = "yearly", _("Yearly")
+
+    # Backward-compatible aliases (used in generate_occurrences and tests)
+    NONE = RecurrenceType.NONE
+    MONTHLY = RecurrenceType.MONTHLY
+    YEARLY = RecurrenceType.YEARLY
+    RECURRENCE_TYPE_CHOICES = RecurrenceType.choices
 
     class Meta:
         verbose_name = _("ledger entry")
@@ -155,8 +159,8 @@ class PropertyLedgerEntry(BaseModel):
     # Recurrence — same pattern as former PropertyRevenue/PropertyExpense
     recurrence_type = models.CharField(
         max_length=20,
-        choices=RECURRENCE_TYPE_CHOICES,
-        default=NONE,
+        choices=RecurrenceType.choices,
+        default=RecurrenceType.NONE,
         verbose_name=_("Recurrence type"),
     )
     recurrence_end_date = models.DateField(
@@ -168,10 +172,10 @@ class PropertyLedgerEntry(BaseModel):
 
     def __str__(self) -> str:
         if self.recurrence_type != self.NONE:
-            return (
-                f"{self.property.name} — {self.amount}"
-                f" ({self.get_recurrence_type_display()})"
+            recurrence_label = dict(self.RecurrenceType.choices).get(
+                self.recurrence_type, self.recurrence_type
             )
+            return f"{self.property.name} — {self.amount} ({recurrence_label})"
         return f"{self.property.name} — {self.amount} — {self.entry_date}"
 
     def clean(self) -> None:
@@ -198,13 +202,6 @@ class PropertyLedgerEntry(BaseModel):
                     )
                     % {"cat": self.tax_category}
                 )
-
-    def get_recurrence_type_display(self) -> str:
-        return str(
-            dict(self.RECURRENCE_TYPE_CHOICES).get(
-                self.recurrence_type, self.recurrence_type
-            )
-        )
 
     def get_tax_category_display(self) -> str:
         return str(

@@ -28,7 +28,7 @@
 <div class="container py-4">
 
   {# ── Page header ─────────────────────────────────────────────────────────── #}
-  <div class="d-flex justify-content-between align-items-start mb-3">
+  <div class="d-flex justify-content-between align-items-start mb-2">
     <div>
       <h1 class="mb-0 h3">{{ property.name }}</h1>
       <p class="text-body-secondary small mb-0">
@@ -40,6 +40,7 @@
     </a>
   </div>
 
+  {# ── Property submenu ─────────────────────────────────────────────────────── #}
   {# ── KPI strip ───────────────────────────────────────────────────────────── #}
   <div class="row g-2 mb-4">
     <div class="col-6 col-md-3">
@@ -144,15 +145,15 @@
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
-        id="map-tab"
+        id="info-tab"
         data-bs-toggle="tab"
-        data-bs-target="#map-panel"
+        data-bs-target="#info-panel"
         type="button"
         role="tab"
-        aria-controls="map-panel"
+        aria-controls="info-panel"
         aria-selected="false"
       >
-        <i class="bi bi-map me-1"></i>{% translate "Location" %}
+        <i class="bi bi-info-circle me-1"></i>{% translate "Info" %}
       </button>
     </li>
   </ul>
@@ -545,9 +546,159 @@
 
     </div><!-- end #balance-panel -->
 
-    {# ── Location tab ───────────────────────────────────────────────────────── #}
-    <div class="tab-pane fade" id="map-panel" role="tabpanel" aria-labelledby="map-tab">
-      <div id="property-map" class="rounded" style="height: 360px;"></div>
+    {# ── Info tab ────────────────────────────────────────────────────────────── #}
+    <div class="tab-pane fade" id="info-panel" role="tabpanel" aria-labelledby="info-tab">
+
+      {# ── Property information card ─────────────────────────────────────────── #}
+      <div class="card mb-3">
+        <div class="card-header py-2">
+          <h6 class="mb-0"><i class="bi bi-house me-1"></i>{% translate "Property information" %}</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6 col-md-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Type" %}</p>
+              <p class="mb-0 fw-semibold">{{ property.get_property_type_display }}</p>
+            </div>
+            <div class="col-6 col-md-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Floor area" %}</p>
+              <p class="mb-0 fw-semibold">
+                {% if property.floor_area %}{{ property.floor_area|floatformat:0 }} m²{% else %}—{% endif %}
+              </p>
+            </div>
+            <div class="col-6 col-md-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Number of rooms" %}</p>
+              <p class="mb-0 fw-semibold">
+                {% if property.number_of_rooms %}{{ property.number_of_rooms }}{% else %}—{% endif %}
+              </p>
+            </div>
+            <div class="col-6 col-md-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Furnished" %}</p>
+              <p class="mb-0 fw-semibold">
+                {% if property.is_furnished %}
+                  <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-check-circle me-1"></i>{% translate "Yes" %}</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis"><i class="bi bi-x-circle me-1"></i>{% translate "No" %}</span>
+                {% endif %}
+              </p>
+            </div>
+            <div class="col-12">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Address" %}</p>
+              <p class="mb-0">{{ property.address|default:"—" }}</p>
+            </div>
+            <div class="col-6 col-md-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Buying date" %}</p>
+              <p class="mb-0 fw-semibold">{{ property.buying_date }}</p>
+            </div>
+            <div class="col-6 col-md-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Buying value" %}</p>
+              <p class="mb-0 fw-semibold">{{ property.buying_value|format_money }}</p>
+            </div>
+            {% if property.buying_value_gross %}
+            <div class="col-6 col-md-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Buying value (gross)" %}</p>
+              <p class="mb-0 fw-semibold">{{ property.buying_value_gross|format_money }}</p>
+            </div>
+            {% endif %}
+            {% if property.selling_date %}
+            <div class="col-6 col-md-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Selling date" %}</p>
+              <p class="mb-0 fw-semibold">{{ property.selling_date }}</p>
+            </div>
+            {% endif %}
+            {% if property.selling_value %}
+            <div class="col-6 col-md-3">
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Selling value" %}</p>
+              <p class="mb-0 fw-semibold">{{ property.selling_value|format_money }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {# ── Loans summary card ────────────────────────────────────────────────── #}
+      {% if loans_with_totals %}
+      <div class="card mb-3">
+        <div class="card-header py-2">
+          <h6 class="mb-0"><i class="bi bi-bank me-1"></i>{% translate "Loan summary" %}</h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{% translate "Name" %}</th>
+                  <th>{% translate "Lender" %}</th>
+                  <th>{% translate "Start" %}</th>
+                  <th>{% translate "End" %}</th>
+                  <th class="text-end">{% translate "Original amount" %}</th>
+                  <th class="text-end">{% translate "Monthly payment" %}</th>
+                  <th class="text-end">{% translate "Rate" %}</th>
+                  <th class="text-end">{% translate "Duration" %}</th>
+                  <th class="text-end">{% translate "Total cost" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in loans_with_totals %}
+                <tr>
+                  <td>
+                    {{ item.loan.name|default:"—" }}
+                    {% if item.is_smoothed %}
+                      <span class="badge bg-info-subtle text-info-emphasis ms-1" style="font-size:.65rem;">{% translate "Smoothed" %}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ item.loan.lender|default:"—" }}</td>
+                  <td>{{ item.loan.start_date }}</td>
+                  <td>{{ item.loan.end_date }}</td>
+                  <td class="text-end">{{ item.loan.original_amount|format_money }}</td>
+                  <td class="text-end">
+                    {% if item.is_smoothed %}
+                      <span class="text-body-secondary small">{% translate "Variable" %}</span>
+                    {% elif item.loan.monthly_payment %}
+                      {{ item.loan.monthly_payment|format_money }}
+                      {% if item.loan.insurance %}
+                        <span class="text-body-secondary small d-block">+ {{ item.loan.insurance|format_money }} {% translate "ins." %}</span>
+                      {% endif %}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if item.loan.interest_rate %}{{ item.loan.interest_rate|floatformat:2 }} %{% else %}—{% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if item.duration_months %}
+                      {{ item.duration_months }} {% translate "mo." %}
+                      <span class="text-body-secondary small d-block">({{ item.duration_months|divisibleby:12|yesno:"," }}{% widthratio item.duration_months 12 1 %} {% translate "yr" %})</span>
+                    {% else %}—{% endif %}
+                  </td>
+                  <td class="text-end fw-semibold">
+                    {% if item.total_cost is not None %}
+                      <span class="text-danger">+ {{ item.total_cost|floatformat:0 }} {{ property.currency }}</span>
+                      {% if item.total_repaid is not None %}
+                        <span class="text-body-secondary small d-block">{% translate "Total repaid" %}: {{ item.total_repaid|floatformat:0 }} {{ property.currency }}</span>
+                      {% endif %}
+                    {% else %}—{% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {# ── Map ──────────────────────────────────────────────────────────────── #}
+      <div class="card">
+        <div class="card-header py-2">
+          <h6 class="mb-0"><i class="bi bi-map me-1"></i>{% translate "Location" %}</h6>
+        </div>
+        <div class="card-body p-0">
+          <div id="property-map" class="rounded-bottom" style="height: 320px;"></div>
+        </div>
+      </div>
+
     </div>
 
   </div><!-- end .tab-content -->
@@ -1000,8 +1151,10 @@
 {{ transactions_json|json_script:"transactions-data" }}
 {{ value_history_series|json_script:"value-history-series" }}
 {{ debt_history_series|json_script:"debt-history-series" }}
+{{ net_history_series|json_script:"net-history-series" }}
 {{ value_projection_series|json_script:"value-projection-series" }}
 {{ debt_projection_series|json_script:"debt-projection-series" }}
+{{ net_projection_series|json_script:"net-projection-series" }}
 {{ cashflow_revenue_series|json_script:"cashflow-revenue-series" }}
 {{ cashflow_expense_series|json_script:"cashflow-expense-series" }}
 {{ cashflow_expense_by_type_series|json_script:"cashflow-expense-by-type-series" }}
@@ -1164,8 +1317,10 @@ $(document).ready(function () {
 // ── Charts ───────────────────────────────────────────────────────────────────
 const valueHistorySeries = JSON.parse(document.getElementById('value-history-series').textContent);
 const debtHistorySeries = JSON.parse(document.getElementById('debt-history-series').textContent);
+const netHistorySeries = JSON.parse(document.getElementById('net-history-series').textContent);
 const valueProjectionSeries = JSON.parse(document.getElementById('value-projection-series').textContent);
 const debtProjectionSeries = JSON.parse(document.getElementById('debt-projection-series').textContent);
+const netProjectionSeries = JSON.parse(document.getElementById('net-projection-series').textContent);
 const cashflowRevenueSeries = JSON.parse(document.getElementById('cashflow-revenue-series').textContent);
 const cashflowExpenseSeries = JSON.parse(document.getElementById('cashflow-expense-series').textContent);
 const cashflowExpenseByTypeSeries = JSON.parse(document.getElementById('cashflow-expense-by-type-series').textContent);
@@ -1190,16 +1345,18 @@ const projectionChartOptions = {
     { name: '{% translate "Property value (history)" %}', data: valueHistorySeries },
     { name: '{% translate "Property value (projection)" %}', data: valueProjectionSeries },
     { name: '{% translate "Debt amortization (history)" %}', data: debtHistorySeries },
-    { name: '{% translate "Debt amortization (projection)" %}', data: debtProjectionSeries }
+    { name: '{% translate "Debt amortization (projection)" %}', data: debtProjectionSeries },
+    { name: '{% translate "Net value (history)" %}', data: netHistorySeries },
+    { name: '{% translate "Net value (projection)" %}', data: netProjectionSeries }
   ],
   xaxis: { type: 'datetime' },
   dataLabels: { enabled: false },
   stroke: {
-    curve: 'smooth',
-    width: [3, 3, 3, 3],
-    dashArray: [0, 7, 0, 7]
+    curve: ['smooth', 'smooth', 'straight', 'straight', 'smooth', 'smooth'],
+    width: [3, 3, 3, 3, 3, 3],
+    dashArray: [0, 7, 0, 7, 0, 7]
   },
-  colors: ['#0d6efd', '#3d8bfd', '#dc3545', '#f16a7f'],
+  colors: ['#0d6efd', '#3d8bfd', '#dc3545', '#f16a7f', '#198754', '#5cb85c'],
   markers: { size: 0 },
   annotations: {
     xaxis: [{
@@ -1300,7 +1457,11 @@ const cashflowBreakdownChartOptions = {
   xaxis: sharedXaxis,
   yaxis: { labels: { formatter: sharedYaxisFormatter } },
   colors: [...cashflowBreakdownExpenseColors, '#fd7e14', '#0dcaf0', '#20c997'],
-  tooltip: sharedTooltip,
+  tooltip: {
+    ...sharedTooltip,
+    shared: true,
+    intersect: false
+  },
   theme: { mode: getCurrentTheme() }
 };
 
@@ -1327,7 +1488,7 @@ function updateChartsTheme(themeName) {
 
 // ── Map (lazy-init on tab show) ───────────────────────────────────────────────
 let mapInitialized = false;
-document.getElementById('map-tab').addEventListener('shown.bs.tab', function() {
+document.getElementById('info-tab').addEventListener('shown.bs.tab', function() {
   if (mapInitialized) return;
   mapInitialized = true;
 

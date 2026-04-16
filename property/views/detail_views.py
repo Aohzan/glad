@@ -1,27 +1,19 @@
-"""Views for the property app."""
+"""Property detail dashboard view."""
 
 import datetime
 from decimal import Decimal
 
 from django.contrib import messages
-from django.forms import inlineformset_factory
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView
 from moneyed import Money
 
-from property.services.cashflow import build_balance_sheet
 from property.forms import (
-    LeaseForm,
-    ManagementMandateForm,
-    PropertyEditForm,
     PropertyLedgerEntryEditForm,
     PropertyLedgerEntryQuickCreateForm,
-    PropertyLoanForm,
-    PropertyManagerForm,
     PropertyValueQuickCreateForm,
-    TenantForm,
 )
 from property.models import (
     Lease,
@@ -29,112 +21,17 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
-    PropertyManager,
     PropertyValue,
-    Tenant,
 )
+from property.services.cashflow import build_balance_sheet
 from property.utils import (
+    add_months_safe,
     add_years_safe,
     build_loan_monthly_maps,
     iter_month_starts,
     month_end,
     month_start,
 )
-
-
-def index(request: HttpRequest) -> HttpResponse:
-    """Property index view."""
-    properties = Property.objects.order_by("is_active", "name")
-    property_list = []
-
-    total_gross_value: Money | None = None
-    total_net_value: Money | None = None
-
-    for prop in properties:
-        gross_value = prop.gross_value
-        net_value = prop.net_value
-
-        if total_gross_value is None:
-            total_gross_value = gross_value
-            total_net_value = net_value
-        elif str(gross_value.currency) == str(total_gross_value.currency):
-            total_gross_value += gross_value
-            total_net_value += net_value  # type: ignore[operator]
-
-        property_list.append(
-            {
-                "model": prop,
-                "current_value": prop.get_value(),
-                "gross_value": gross_value,
-                "net_value": net_value,
-                "loans_count": PropertyLoan.objects.filter(property=prop).count(),
-                "progression": prop.get_progression(),
-            }
-        )
-
-    properties_active = [p for p in properties if p.is_active]
-    properties_months = []
-    properties_gross_evolution = []
-    properties_net_evolution = []
-
-    earliest_date = None
-    if properties_active:
-        earliest_date = min(prop.buying_date for prop in properties_active)
-
-    if earliest_date:
-        now = datetime.date.today()
-        chart_currency = (
-            str(total_gross_value.currency) if total_gross_value is not None else None
-        )
-
-        for current_date in iter_month_starts(
-            month_start(earliest_date), month_start(now)
-        ):
-            month_str = current_date.strftime("%b %Y")
-            properties_months.append(month_str)
-
-            month_properties = [
-                p for p in properties_active if p.buying_date <= current_date
-            ]
-
-            month_property_net_total = Decimal("0")
-            month_property_gross_total = Decimal("0")
-            for property_item in month_properties:
-                try:
-                    net_value = property_item.net_value_at_date(current_date)
-                    if net_value and (
-                        chart_currency is None
-                        or str(net_value.currency) == chart_currency
-                    ):
-                        month_property_net_total += net_value.amount
-
-                    gross_value = property_item.get_value(
-                        max_date=datetime.datetime.combine(
-                            current_date,
-                            datetime.time.max,
-                        )
-                    )
-                    if gross_value and (
-                        chart_currency is None
-                        or str(gross_value.currency) == chart_currency
-                    ):
-                        month_property_gross_total += gross_value.amount
-                except Exception:
-                    pass
-
-            properties_gross_evolution.append(float(month_property_gross_total))
-            properties_net_evolution.append(float(month_property_net_total))
-
-    context = {
-        "properties": property_list,
-        "inactive_properties_count": properties.filter(is_active=False).count(),
-        "total_gross_value": total_gross_value,
-        "total_net_value": total_net_value,
-        "properties_months": properties_months,
-        "properties_gross_evolution": properties_gross_evolution,
-        "properties_net_evolution": properties_net_evolution,
-    }
-    return render(request, "property/index.html", context)
 
 
 class PropertyDetailView(DetailView):
@@ -150,11 +47,12 @@ class PropertyDetailView(DetailView):
         """
         Parse year/month range from GET params.
 
-        Returns (date_from, date_to, year, months_span) where:
-        - date_from  = first day of the start month
-        - date_to    = last day of the end month
-        - year       = reference year (used for display)
+        Returns (date_from, date_to, year, months_span, start_month) where:
+        - date_from   = first day of the start month
+        - date_to     = last day of the end month
+        - year        = reference year (used for display)
         - months_span = number of months in the range (12 for full year, 1 for single month)
+        - start_month = first month of the range (1–12)
 
         Default: current civil year (Jan 1 → Dec 31).
         """
@@ -179,9 +77,6 @@ class PropertyDetailView(DetailView):
             start_month = 1
 
         date_from = datetime.date(year, start_month, 1)
-        # Compute end month by adding (months_span - 1) months
-        from property.utils import add_months_safe, month_end
-
         date_to_start = add_months_safe(date_from, months_span - 1)
         date_to = month_end(date_to_start)
 
@@ -194,9 +89,6 @@ class PropertyDetailView(DetailView):
         )
 
         balance_sheet = build_balance_sheet(property_obj, date_from, date_to)
-
-        # Compute prev/next navigation params
-        from property.utils import add_months_safe
 
         prev_start = add_months_safe(date_from, -bs_months)
         next_start = add_months_safe(date_from, bs_months)
@@ -264,7 +156,9 @@ class PropertyDetailView(DetailView):
         self,
         property_obj: Property,
         projections: list[dict],
-    ) -> tuple[list[dict], list[dict], list[dict], list[dict], str]:
+    ) -> tuple[
+        list[dict], list[dict], list[dict], list[dict], list[dict], list[dict], str
+    ]:
         today = datetime.date.today()
         current_value = property_obj.get_value()
         current_debt = property_obj.total_remaining_loans_at_date(today)
@@ -279,24 +173,33 @@ class PropertyDetailView(DetailView):
 
         value_history_series = []
         debt_history_series = []
+        net_history_series = []
         for chart_date in historical_dates:
             historical_value = property_obj.get_value(
                 max_date=datetime.datetime.combine(chart_date, datetime.time.max),
             )
             historical_debt = property_obj.total_remaining_loans_at_date(chart_date)
+            net_amount = max(
+                Decimal("0"), historical_value.amount - historical_debt.amount
+            )
             value_history_series.append(
                 {"x": chart_date.isoformat(), "y": float(historical_value.amount)}
             )
             debt_history_series.append(
                 {"x": chart_date.isoformat(), "y": float(historical_debt.amount)}
             )
+            net_history_series.append(
+                {"x": chart_date.isoformat(), "y": float(net_amount)}
+            )
 
+        current_net = max(Decimal("0"), current_value.amount - current_debt.amount)
         value_projection_series = [
             {"x": today.isoformat(), "y": float(current_value.amount)}
         ]
         debt_projection_series = [
             {"x": today.isoformat(), "y": float(current_debt.amount)}
         ]
+        net_projection_series = [{"x": today.isoformat(), "y": float(current_net)}]
         for projection in projections:
             value_projection_series.append(
                 {"x": projection["date"].isoformat(), "y": projection["value_amount"]}
@@ -304,12 +207,17 @@ class PropertyDetailView(DetailView):
             debt_projection_series.append(
                 {"x": projection["date"].isoformat(), "y": projection["debt_amount"]}
             )
+            net_projection_series.append(
+                {"x": projection["date"].isoformat(), "y": projection["net_amount"]}
+            )
 
         return (
             value_history_series,
             debt_history_series,
+            net_history_series,
             value_projection_series,
             debt_projection_series,
+            net_projection_series,
             today.isoformat(),
         )
 
@@ -358,16 +266,25 @@ class PropertyDetailView(DetailView):
         loan_insurance_by_month: dict[tuple[int, int], Decimal] = {}
 
         for loan in loans_qs:
+            if loan.monthly_payment is None and not loan.is_smoothed():
+                continue
             insurance_amount = (
                 loan.insurance.amount if loan.insurance is not None else Decimal("0")
+            )
+            payment_sequence = (
+                loan.get_payment_sequence() if loan.is_smoothed() else None
+            )
+            monthly_payment = (
+                None if loan.is_smoothed() else loan.monthly_payment.amount
             )
             interest_map, principal_map, insurance_map = build_loan_monthly_maps(
                 start_date=loan.start_date,
                 end_date=loan.end_date,
                 original_amount=loan.original_amount.amount,
-                monthly_payment=loan.monthly_payment.amount,
+                monthly_payment=monthly_payment,
                 interest_rate=loan.interest_rate,
                 insurance_amount=insurance_amount,
+                payment_sequence=payment_sequence,
             )
 
             for key, value in interest_map.items():
@@ -562,6 +479,41 @@ class PropertyDetailView(DetailView):
         rows.sort(key=lambda r: r["date"], reverse=True)
         return rows
 
+    def _build_loans_context(self, property_obj: Property) -> list[dict]:
+        """Build loan details with computed total cost for the Info tab."""
+        loans = PropertyLoan.objects.filter(property=property_obj).order_by(
+            "start_date"
+        )
+        result = []
+        for loan in loans:
+            duration = loan.get_duration_months()
+            if loan.is_smoothed():
+                payment_sequence = loan.get_payment_sequence()
+                total_repaid = sum(payment_sequence)
+            elif loan.monthly_payment is not None and duration > 0:
+                monthly = loan.monthly_payment.amount
+                insurance = loan.insurance.amount if loan.insurance is not None else 0
+                total_repaid = (monthly + insurance) * duration
+            else:
+                total_repaid = None
+
+            total_cost = (
+                total_repaid - loan.original_amount.amount
+                if total_repaid is not None
+                else None
+            )
+
+            result.append(
+                {
+                    "loan": loan,
+                    "duration_months": duration,
+                    "total_repaid": total_repaid,
+                    "total_cost": total_cost,
+                    "is_smoothed": loan.is_smoothed(),
+                }
+            )
+        return result
+
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Handle quick create forms from dashboard modals."""
         self.object = self.get_object()
@@ -606,8 +558,10 @@ class PropertyDetailView(DetailView):
         (
             value_history_series,
             debt_history_series,
+            net_history_series,
             value_projection_series,
             debt_projection_series,
+            net_projection_series,
             projection_start_date,
         ) = self._build_chart_series(property_obj, projections)
         monthly_cashflow_amount = self._estimated_monthly_cashflow(property_obj)
@@ -644,8 +598,10 @@ class PropertyDetailView(DetailView):
                 "projection_nets": [item["net_amount"] for item in projections],
                 "value_history_series": value_history_series,
                 "debt_history_series": debt_history_series,
+                "net_history_series": net_history_series,
                 "value_projection_series": value_projection_series,
                 "debt_projection_series": debt_projection_series,
+                "net_projection_series": net_projection_series,
                 "cashflow_revenue_series": revenue_series,
                 "cashflow_expense_series": expense_series,
                 "cashflow_expense_by_type_series": expense_by_type_series,
@@ -680,278 +636,11 @@ class PropertyDetailView(DetailView):
                     property=property_obj, end_date__isnull=True
                 ).first(),
                 "transactions_json": transactions_data,
+                "loans_with_totals": self._build_loans_context(property_obj),
+                "all_properties": Property.objects.filter(is_active=True).order_by(
+                    "name"
+                ),
             }
         )
         context.update(balance_sheet_context)
         return context
-
-
-# ─── Helpers ─────────────────────────────────────────────────────────────────
-
-
-def _get_property_or_redirect(
-    request: HttpRequest,
-    property_pk: int,
-) -> tuple[Property | None, HttpResponse | None]:
-    property_obj = Property.objects.filter(pk=property_pk).first()
-    if property_obj is not None:
-        return property_obj, None
-    messages.error(request, _("Property not found."))
-    return None, redirect("property:index")
-
-
-def _get_related_or_redirect(
-    request: HttpRequest,
-    *,
-    model,
-    related_name: str,
-    object_pk: int,
-    property_obj: Property,
-) -> tuple:
-    obj = model.objects.filter(pk=object_pk, property=property_obj).first()
-    if obj is not None:
-        return obj, None
-    messages.error(request, _("%(name)s not found.") % {"name": related_name})
-    return None, redirect("property:detail", pk=property_obj.pk)
-
-
-# ─── Property valuation ───────────────────────────────────────────────────────
-
-
-def delete_property_valuation(
-    request: HttpRequest, property_pk: int, valuation_pk: int
-) -> HttpResponse:
-    if request.method != "POST":
-        messages.error(request, _("Invalid request method."))
-        return redirect("property:detail", pk=property_pk)
-
-    property_obj, response = _get_property_or_redirect(request, property_pk)
-    if response:
-        return response
-    assert property_obj is not None
-
-    valuation = PropertyValue.objects.filter(
-        pk=valuation_pk, property=property_obj
-    ).first()
-    if not valuation:
-        messages.error(request, _("Valuation not found."))
-        return redirect("property:detail", pk=property_pk)
-
-    valuation.delete()
-    messages.success(request, _("Property valuation deleted successfully."))
-    return redirect("property:detail", pk=property_pk)
-
-
-# ─── Property edit ────────────────────────────────────────────────────────────
-
-
-def edit_property(request: HttpRequest, pk: int) -> HttpResponse:
-    """Edit a property and its associated loans."""
-    property_obj = get_object_or_404(Property, pk=pk)
-
-    PropertyLoanFormSet = inlineformset_factory(
-        Property,
-        PropertyLoan,
-        form=PropertyLoanForm,
-        extra=1,
-        can_delete=True,
-    )
-
-    if request.method == "POST":
-        property_form = PropertyEditForm(request.POST, instance=property_obj)
-        loan_formset = PropertyLoanFormSet(request.POST, instance=property_obj)
-
-        if property_form.is_valid() and loan_formset.is_valid():
-            property_form.save()
-            loan_formset.save()
-            messages.success(request, _("Property updated successfully."))
-            return redirect("property:detail", pk=property_obj.pk)
-        else:
-            messages.error(request, _("Please correct the errors below."))
-    else:
-        property_form = PropertyEditForm(instance=property_obj)
-        loan_formset = PropertyLoanFormSet(instance=property_obj)
-
-    context = {
-        "property": property_obj,
-        "property_form": property_form,
-        "loan_formset": loan_formset,
-    }
-    return render(request, "property/edit.html", context)
-
-
-# ─── Ledger entry CRUD ────────────────────────────────────────────────────────
-
-
-def edit_ledger_entry(
-    request: HttpRequest, property_pk: int, entry_pk: int
-) -> HttpResponse:
-    """Edit a ledger entry (income or expense)."""
-    property_obj, response = _get_property_or_redirect(request, property_pk)
-    if response:
-        return response
-    assert property_obj is not None
-
-    entry, response = _get_related_or_redirect(
-        request,
-        model=PropertyLedgerEntry,
-        related_name=str(_("Entry")),
-        object_pk=entry_pk,
-        property_obj=property_obj,
-    )
-    if response:
-        return response
-    assert entry is not None
-
-    if request.method == "POST":
-        form = PropertyLedgerEntryEditForm(request.POST, instance=entry)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Entry updated successfully."))
-            return redirect("property:detail", pk=property_pk)
-        messages.error(request, _("Please correct the errors below."))
-    else:
-        form = PropertyLedgerEntryEditForm(instance=entry)
-
-    context = {
-        "property": property_obj,
-        "entry": entry,
-        "form": form,
-    }
-    return render(request, "property/edit_entry.html", context)
-
-
-def delete_ledger_entry(
-    request: HttpRequest, property_pk: int, entry_pk: int
-) -> HttpResponse:
-    """Delete a ledger entry. Only accepts POST."""
-    if request.method != "POST":
-        messages.error(request, _("Invalid request method."))
-        return redirect("property:detail", pk=property_pk)
-
-    property_obj, response = _get_property_or_redirect(request, property_pk)
-    if response:
-        return response
-    assert property_obj is not None
-
-    entry, response = _get_related_or_redirect(
-        request,
-        model=PropertyLedgerEntry,
-        related_name=str(_("Entry")),
-        object_pk=entry_pk,
-        property_obj=property_obj,
-    )
-    if response:
-        return response
-    assert entry is not None
-
-    entry.delete()
-    messages.success(request, _("Entry deleted successfully."))
-    return redirect("property:detail", pk=property_pk)
-
-
-# ─── Tenant CRUD ──────────────────────────────────────────────────────────────
-
-
-def edit_tenant(request: HttpRequest, pk: int) -> HttpResponse:
-    """Create or edit a tenant."""
-    tenant = get_object_or_404(Tenant, pk=pk) if pk else None
-
-    if request.method == "POST":
-        form = TenantForm(request.POST, instance=tenant)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Tenant saved."))
-            return redirect("property:index")
-        messages.error(request, _("Please correct the errors below."))
-    else:
-        form = TenantForm(instance=tenant)
-
-    return render(
-        request, "property/edit_tenant.html", {"form": form, "tenant": tenant}
-    )
-
-
-# ─── Lease CRUD ───────────────────────────────────────────────────────────────
-
-
-def edit_lease(
-    request: HttpRequest, property_pk: int, lease_pk: int | None = None
-) -> HttpResponse:
-    """Create or edit a lease for a property."""
-    property_obj = get_object_or_404(Property, pk=property_pk)
-    lease = (
-        get_object_or_404(Lease, pk=lease_pk, property=property_obj)
-        if lease_pk
-        else None
-    )
-
-    if request.method == "POST":
-        form = LeaseForm(request.POST, instance=lease)
-        if form.is_valid():
-            created = form.save(commit=False)
-            created.property = property_obj
-            created.save()
-            messages.success(request, _("Lease saved."))
-            return redirect("property:detail", pk=property_pk)
-        messages.error(request, _("Please correct the errors below."))
-    else:
-        form = LeaseForm(instance=lease)
-
-    return render(
-        request,
-        "property/edit_lease.html",
-        {"property": property_obj, "lease": lease, "form": form},
-    )
-
-
-# ─── PropertyManager / ManagementMandate CRUD ────────────────────────────────
-
-
-def edit_manager(request: HttpRequest, pk: int | None = None) -> HttpResponse:
-    """Create or edit a property manager."""
-    manager = get_object_or_404(PropertyManager, pk=pk) if pk else None
-
-    if request.method == "POST":
-        form = PropertyManagerForm(request.POST, instance=manager)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Manager saved."))
-            return redirect("property:index")
-        messages.error(request, _("Please correct the errors below."))
-    else:
-        form = PropertyManagerForm(instance=manager)
-
-    return render(
-        request, "property/edit_manager.html", {"form": form, "manager": manager}
-    )
-
-
-def edit_mandate(
-    request: HttpRequest, property_pk: int, mandate_pk: int | None = None
-) -> HttpResponse:
-    """Create or edit a management mandate for a property."""
-    property_obj = get_object_or_404(Property, pk=property_pk)
-    mandate = (
-        get_object_or_404(ManagementMandate, pk=mandate_pk, property=property_obj)
-        if mandate_pk
-        else None
-    )
-
-    if request.method == "POST":
-        form = ManagementMandateForm(request.POST, instance=mandate)
-        if form.is_valid():
-            created = form.save(commit=False)
-            created.property = property_obj
-            created.save()
-            messages.success(request, _("Mandate saved."))
-            return redirect("property:detail", pk=property_pk)
-        messages.error(request, _("Please correct the errors below."))
-    else:
-        form = ManagementMandateForm(instance=mandate)
-
-    return render(
-        request,
-        "property/edit_mandate.html",
-        {"property": property_obj, "mandate": mandate, "form": form},
-    )

@@ -51,8 +51,27 @@
                                 <li><a class="dropdown-item" href="{% url 'finance:csv_export' %}"><i class="bi bi-file-earmark-arrow-down me-2"></i>{% translate "CSV Export" %}</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'property:index' %}"><i class="bi bi-building me-2"></i>{% translate "Properties" %}</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="propertyDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-building me-2"></i>{% translate "Properties" %}
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="propertyDropdown">
+                                <li><a class="dropdown-item" href="{% url 'property:index' %}"><i class="bi bi-bar-chart-line me-2"></i>{% translate "Overview" %}</a></li>
+                                <li>
+                                    <span class="dropdown-item disabled text-muted">
+                                        <i class="bi bi-calculator me-2"></i>{% translate "Accountability" %}
+                                        <span class="badge bg-secondary ms-1" style="font-size:.6rem;">{% translate "Coming" %}</span>
+                                    </span>
+                                </li>
+                                {% if nav_properties %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">{% translate "My properties" %}</h6></li>
+                                {% for prop in nav_properties %}
+                                <li><a class="dropdown-item" href="{% url 'property:detail' prop.pk %}"><i class="bi bi-{{ prop.icon | default:"building" }} me-2"></i>{{ prop.name }}</a></li>
+                                {% endfor %}
+                                {% endif %}
+                            </ul>
                         </li>
                         {% endif %}
                     </ul>

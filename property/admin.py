@@ -9,6 +9,7 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
+    PropertyLoanSchedule,
     PropertyManager,
     PropertyValue,
     Tenant,
@@ -33,6 +34,14 @@ class PropertyLedgerEntryInline(admin.TabularInline):
         "management_category",
         "description",
     )
+
+
+class PropertyLoanScheduleInline(admin.TabularInline):
+    model = PropertyLoanSchedule
+    extra = 0
+    readonly_fields = ("created_at", "updated_at")
+    fields = ("order", "count", "amount", "created_at", "updated_at")
+    ordering = ("order",)
 
 
 class PropertyLoanInline(admin.TabularInline):
@@ -84,6 +93,7 @@ class PropertyAdmin(admin.ModelAdmin):
 
 @admin.register(PropertyLoan)
 class PropertyLoanAdmin(admin.ModelAdmin):
+    inlines = [PropertyLoanScheduleInline]
     list_display = (
         "property",
         "name",
@@ -92,10 +102,25 @@ class PropertyLoanAdmin(admin.ModelAdmin):
         "original_amount",
         "monthly_payment",
         "remaining_balance",
+        "is_smoothed",
     )
     list_filter = ("property", "start_date")
     search_fields = ("property__name", "name")
-    readonly_fields = ("remaining_balance", "amount_paid", "created_at", "updated_at")
+    readonly_fields = (
+        "remaining_balance",
+        "amount_paid",
+        "is_smoothed",
+        "created_at",
+        "updated_at",
+    )
+
+
+@admin.register(PropertyLoanSchedule)
+class PropertyLoanScheduleAdmin(admin.ModelAdmin):
+    list_display = ("loan", "order", "count", "amount")
+    list_filter = ("loan__property",)
+    search_fields = ("loan__name", "loan__property__name")
+    ordering = ("loan", "order")
 
 
 @admin.register(PropertyLedgerEntry)

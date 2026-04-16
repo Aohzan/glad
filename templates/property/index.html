@@ -64,7 +64,7 @@
                           {{ prop.model.name }}
                     </a>
                 </td>
-                <td>{{ prop.model.get_property_type_display }}</td>
+                <td><i class="bi bi-{{ prop.model.icon }} me-2"></i>{{ prop.model.get_property_type_display }}</td>
                 <td>{{ prop.gross_value | format_money }}</td>
                 <td>{{ prop.net_value | format_money }}</td>
                 <td>{{ prop.loans_count }}</td>

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-15 23:40+0200\n"
+"POT-Creation-Date: 2026-04-16 23:00+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -347,8 +347,9 @@ msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
 #: finance/views/csv_views.py:340 finance/views/update_views.py:335
-#: property/views.py:770 property/views.py:812 property/views.py:866
-#: property/views.py:897 property/views.py:921 property/views.py:949
+#: property/views/crud_views.py:111 property/views/crud_views.py:165
+#: property/views/crud_views.py:208 property/views/crud_views.py:245
+#: property/views/crud_views.py:273 property/views/edit_views.py:74
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
 
@@ -435,149 +436,190 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:195
+#: glad/settings.py:196
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:196
+#: glad/settings.py:197
 msgid "French"
 msgstr "Français"
 
-#: property/forms.py:30 property/models/ledger.py:131 templates/index.html:337
-#: templates/property/detail.html:190 templates/property/detail.html:238
-#: templates/property/detail.html:630 templates/property/detail.html:737
-#: templates/property/detail.html:836 templates/property/detail.html:1067
+#: property/forms.py:31 property/models/ledger.py:135 templates/index.html:337
+#: templates/property/detail.html:191 templates/property/detail.html:239
+#: templates/property/detail.html:781 templates/property/detail.html:888
+#: templates/property/detail.html:987 templates/property/detail.html:1220
 msgid "Date"
 msgstr "Date"
 
-#: property/forms.py:42
+#: property/forms.py:43
 msgid "Recurrence End Date"
 msgstr "Date de fin de récurrence"
 
-#: property/forms.py:111 property/models/ledger.py:137
-#: templates/property/detail.html:847
+#: property/forms.py:112 property/models/ledger.py:141
+#: templates/property/detail.html:998
 msgid "Reference period"
 msgstr "Période de référence"
 
-#: property/forms.py:183
+#: property/forms.py:187
 msgid "Duration (months)"
 msgstr "Durée (mois)"
 
-#: property/forms.py:184
+#: property/forms.py:188
 msgid "e.g. 240 for 20 years"
 msgstr "ex. 240 pour 20 ans"
 
-#: property/models/asset.py:23
+#: property/models/asset.py:25
 msgid "property loan"
 msgstr "prêt immobilier"
 
-#: property/models/asset.py:24
+#: property/models/asset.py:26
 msgid "property loans"
 msgstr "prêts immobiliers"
 
-#: property/models/asset.py:34
+#: property/models/asset.py:36 templates/property/detail.html:631
 msgid "Lender"
 msgstr "Prêteur"
 
-#: property/models/asset.py:36
+#: property/models/asset.py:38
 msgid "Start Date"
 msgstr "Date de début"
 
-#: property/models/asset.py:37
+#: property/models/asset.py:39
 msgid "End Date"
 msgstr "Date de fin"
 
-#: property/models/asset.py:39
+#: property/models/asset.py:41
 msgid "Original Amount"
 msgstr "Montant initial"
 
-#: property/models/asset.py:46
+#: property/models/asset.py:48
 msgid "Monthly Payment"
 msgstr "Mensualité"
 
-#: property/models/asset.py:53
+#: property/models/asset.py:55
 msgid "Interest Rate (%)"
 msgstr "Taux d'intérêt (%)"
 
-#: property/models/asset.py:60
+#: property/models/asset.py:62
 msgid "Insurance Rate (%)"
 msgstr "Taux d'assurance (%)"
 
-#: property/models/asset.py:67
+#: property/models/asset.py:69
 msgid "Monthly Insurance"
 msgstr "Assurance mensuelle"
 
-#: property/models/asset.py:164
+#: property/models/asset.py:234
+msgid "loan schedule tranche"
+msgstr "versement de prêt"
+
+#: property/models/asset.py:235
+msgid "loan schedule tranches"
+msgstr "versements de prêts personnalisé"
+
+#: property/models/asset.py:243 templates/property/edit.html:196
+msgid "Loan"
+msgstr "Prêt"
+
+#: property/models/asset.py:246 templates/property/edit.html:379
+msgid "Order"
+msgstr "Ordre"
+
+#: property/models/asset.py:247
+msgid "Position of this tranche in the payment sequence (1 = first)."
+msgstr "Posititon du versement (1 = premier)"
+
+#: property/models/asset.py:251
+msgid "Number of payments"
+msgstr "Nombre de mensualité"
+
+#: property/models/asset.py:252
+msgid "How many consecutive monthly payments at this amount."
+msgstr "Combien de mensualité consécutives pour ce moement."
+
+#: property/models/asset.py:258
+msgid "Payment amount"
+msgstr "Montant de paiement"
+
+#: property/models/asset.py:259
+msgid "Monthly payment amount for this tranche (principal + interest)."
+msgstr "Mensualité pour ce versement (capital + intérêts)"
+
+#: property/models/asset.py:277
 msgid "House"
 msgstr "Maison"
 
-#: property/models/asset.py:165
+#: property/models/asset.py:278
 msgid "Apartment"
 msgstr "Appartement"
 
-#: property/models/asset.py:166
+#: property/models/asset.py:279
 msgid "Condo"
 msgstr "Condo"
 
-#: property/models/asset.py:167
+#: property/models/asset.py:280
 msgid "Land"
 msgstr "Terrain"
 
-#: property/models/asset.py:168 property/models/lease.py:44
-#: property/models/ledger.py:76 templates/property/detail.html:666
-#: templates/property/detail.html:891
+#: property/models/asset.py:281 property/models/lease.py:44
+#: property/models/ledger.py:76 templates/property/detail.html:817
+#: templates/property/detail.html:1042
 msgid "Other"
 msgstr "Autre"
 
-#: property/models/asset.py:175
+#: property/models/asset.py:288
 msgid "Property Type"
 msgstr "Type de propriété"
 
-#: property/models/asset.py:183
+#: property/models/asset.py:296
 msgid "Buying Value"
 msgstr "Valeur d'achat"
 
-#: property/models/asset.py:184
+#: property/models/asset.py:297
 msgid "The value of the property at the time of purchase."
 msgstr "La valeur de la propriété au moment de l'achat"
 
-#: property/models/asset.py:194
+#: property/models/asset.py:307
 msgid "Number of shares in the property (if applicable)"
 msgstr "Nombre de part dans la propriété (si applicable)"
 
-#: property/models/asset.py:196
+#: property/models/asset.py:309
 msgid "Buying Date"
 msgstr "Date d'achat"
 
-#: property/models/asset.py:198
+#: property/models/asset.py:311
 msgid "Selling Date"
 msgstr "Date de vente"
 
-#: property/models/asset.py:206
+#: property/models/asset.py:319
 msgid "Floor area (m²)"
 msgstr "Surface habitable (m²)"
 
-#: property/models/asset.py:210 property/models/lease.py:41
+#: property/models/asset.py:324 templates/property/detail.html:570
+msgid "Number of rooms"
+msgstr "Nombre de pièces"
+
+#: property/models/asset.py:328 property/models/lease.py:41
+#: templates/property/detail.html:576
 msgid "Furnished"
 msgstr "Meublé"
 
-#: property/models/asset.py:211
+#: property/models/asset.py:329
 msgid "Whether the property is rented furnished (LMNP meublé)."
 msgstr "Si le bien est loué meublé (LMNP meublé)."
 
-#: property/models/asset.py:218
+#: property/models/asset.py:336
 msgid "property"
 msgstr "Propriété"
 
-#: property/models/asset.py:219
+#: property/models/asset.py:337
 msgid "properties"
 msgstr "Propriétés"
 
-#: property/models/asset.py:321
+#: property/models/asset.py:450
 msgid "property value"
 msgstr "Valeur de propriété"
 
-#: property/models/asset.py:322
+#: property/models/asset.py:451
 msgid "property values"
 msgstr "Valeurs de propriétés"
 
@@ -629,12 +671,12 @@ msgstr "Vide"
 msgid "Commercial"
 msgstr "Commercial"
 
-#: property/models/lease.py:47 property/models/ledger.py:83
-#: templates/property/detail.html:296
+#: property/models/lease.py:47 property/models/ledger.py:82
+#: templates/property/detail.html:297
 msgid "Monthly"
 msgstr "Mensuel"
 
-#: property/models/lease.py:48 templates/property/detail.html:297
+#: property/models/lease.py:48 templates/property/detail.html:298
 msgid "Quarterly"
 msgstr "Trimestriel"
 
@@ -646,7 +688,7 @@ msgstr "bail"
 msgid "leases"
 msgstr "baux"
 
-#: property/models/lease.py:59 property/models/ledger.py:101
+#: property/models/lease.py:59 property/models/ledger.py:105
 #: property/models/management.py:57 templates/property/index.html:5
 msgid "Property"
 msgstr "Propriété"
@@ -664,7 +706,7 @@ msgid "Start date"
 msgstr "Date de début"
 
 #: property/models/lease.py:80 property/models/management.py:69
-#: templates/property/detail.html:704 templates/property/detail.html:948
+#: templates/property/detail.html:855 templates/property/detail.html:1099
 msgid "End date"
 msgstr "Date de fin"
 
@@ -741,15 +783,15 @@ msgstr "Date de sortie"
 msgid "Date when this tenant left (colocation partial exit)."
 msgstr "Date de sortie de ce locataire (sortie partielle en colocation)."
 
-#: property/models/ledger.py:27 templates/property/detail.html:423
-#: templates/property/detail.html:610 templates/property/detail.html:648
-#: templates/property/detail.html:810 templates/property/detail.html:874
-#: templates/property/detail.html:1016
+#: property/models/ledger.py:27 templates/property/detail.html:424
+#: templates/property/detail.html:761 templates/property/detail.html:799
+#: templates/property/detail.html:961 templates/property/detail.html:1025
+#: templates/property/detail.html:1169
 msgid "Income"
 msgstr "Revenu"
 
-#: property/models/ledger.py:28 templates/property/detail.html:614
-#: templates/property/detail.html:819 templates/property/detail.html:1015
+#: property/models/ledger.py:28 templates/property/detail.html:765
+#: templates/property/detail.html:970 templates/property/detail.html:1168
 msgid "Expense"
 msgstr "Dépense"
 
@@ -809,152 +851,153 @@ msgstr "Dépôt de garantie restitué"
 msgid "Other non-deductible"
 msgstr "Autres charges non déductibles"
 
-#: property/models/ledger.py:62 templates/property/detail.html:649
-#: templates/property/detail.html:875
+#: property/models/ledger.py:62 templates/property/detail.html:800
+#: templates/property/detail.html:1026
 msgid "Rent collected"
 msgstr "Loyer encaissé"
 
-#: property/models/ledger.py:63 templates/property/detail.html:650
-#: templates/property/detail.html:876
+#: property/models/ledger.py:63 templates/property/detail.html:801
+#: templates/property/detail.html:1027
 msgid "Charges collected"
 msgstr "Charges encaissées"
 
-#: property/models/ledger.py:64 templates/property/detail.html:651
-#: templates/property/detail.html:877
+#: property/models/ledger.py:64 templates/property/detail.html:802
+#: templates/property/detail.html:1028
 msgid "Deposit received"
 msgstr "Dépôt reçu"
 
-#: property/models/ledger.py:65 templates/property/detail.html:665
-#: templates/property/detail.html:890
+#: property/models/ledger.py:65 templates/property/detail.html:816
+#: templates/property/detail.html:1041
 msgid "Deposit returned"
 msgstr "Dépôt restitué"
 
-#: property/models/ledger.py:66 templates/property/detail.html:652
-#: templates/property/detail.html:878
+#: property/models/ledger.py:66 templates/property/detail.html:803
+#: templates/property/detail.html:1029
 msgid "Manager reversal"
 msgstr "Reversement du gestionnaire"
 
-#: property/models/ledger.py:67 templates/property/detail.html:656
-#: templates/property/detail.html:881
+#: property/models/ledger.py:67 templates/property/detail.html:807
+#: templates/property/detail.html:1032
 msgid "Routine maintenance"
 msgstr "Entretien courant"
 
-#: property/models/ledger.py:68 templates/property/detail.html:657
-#: templates/property/detail.html:882
+#: property/models/ledger.py:68 templates/property/detail.html:808
+#: templates/property/detail.html:1033
 msgid "Works"
 msgstr "Travaux"
 
-#: property/models/ledger.py:69 templates/property/detail.html:658
-#: templates/property/detail.html:883
+#: property/models/ledger.py:69 templates/property/detail.html:809
+#: templates/property/detail.html:1034
 msgid "Insurance"
 msgstr "Assurance"
 
-#: property/models/ledger.py:70 templates/property/detail.html:659
-#: templates/property/detail.html:884
+#: property/models/ledger.py:70 templates/property/detail.html:810
+#: templates/property/detail.html:1035
 msgid "Co-ownership fees"
 msgstr "Charges de copropriété"
 
-#: property/models/ledger.py:71 templates/property/detail.html:660
-#: templates/property/detail.html:885
+#: property/models/ledger.py:71 templates/property/detail.html:811
+#: templates/property/detail.html:1036
 msgid "Management fees"
 msgstr "Frais de gestion"
 
-#: property/models/ledger.py:72 property/services/cashflow.py:168
-#: templates/property/detail.html:408 templates/property/detail.html:661
-#: templates/property/detail.html:886 templates/property/detail.html:1294
+#: property/models/ledger.py:72 property/services/cashflow.py:171
+#: templates/property/detail.html:409 templates/property/detail.html:812
+#: templates/property/detail.html:1037 templates/property/detail.html:1451
 msgid "Loan interest"
 msgstr "Intérêts du prêt"
 
-#: property/models/ledger.py:73 property/services/cashflow.py:172
-#: templates/property/detail.html:662 templates/property/detail.html:887
-#: templates/property/detail.html:1296
+#: property/models/ledger.py:73 property/services/cashflow.py:175
+#: templates/property/detail.html:813 templates/property/detail.html:1038
+#: templates/property/detail.html:1453
 msgid "Loan insurance"
 msgstr "Assurance de prêt"
 
-#: property/models/ledger.py:74 templates/property/detail.html:663
-#: templates/property/detail.html:888
+#: property/models/ledger.py:74 templates/property/detail.html:814
+#: templates/property/detail.html:1039
 msgid "Property tax"
 msgstr "Taxe foncière"
 
-#: property/models/ledger.py:75 templates/property/detail.html:664
-#: templates/property/detail.html:889
+#: property/models/ledger.py:75 templates/property/detail.html:815
+#: templates/property/detail.html:1040
 msgid "CFE"
 msgstr "CFE"
 
-#: property/models/ledger.py:82
+#: property/models/ledger.py:81
 msgid "None"
 msgstr "Aucune"
 
-#: property/models/ledger.py:84
+#: property/models/ledger.py:83
 msgid "Yearly"
 msgstr "Annuel"
 
-#: property/models/ledger.py:88
+#: property/models/ledger.py:92
 msgid "ledger entry"
 msgstr "écriture comptable"
 
-#: property/models/ledger.py:89
+#: property/models/ledger.py:93
 msgid "ledger entries"
 msgstr "écritures comptables"
 
-#: property/models/ledger.py:109 templates/property/detail.html:855
+#: property/models/ledger.py:113 templates/property/detail.html:1006
 msgid "Lease"
 msgstr "Bail"
 
-#: property/models/ledger.py:117 templates/property/detail.html:917
+#: property/models/ledger.py:121 templates/property/detail.html:1068
 msgid "Management mandate"
 msgstr "Mandat de gestion"
 
-#: property/models/ledger.py:122
+#: property/models/ledger.py:126
 msgid "Flow type"
 msgstr "Type de flux"
 
-#: property/models/ledger.py:127 templates/index.html:336
-#: templates/property/detail.html:194 templates/property/detail.html:623
-#: templates/property/detail.html:829 templates/property/detail.html:1098
+#: property/models/ledger.py:131 templates/index.html:336
+#: templates/property/detail.html:195 templates/property/detail.html:774
+#: templates/property/detail.html:980 templates/property/detail.html:1251
+#: templates/property/edit.html:381
 msgid "Amount"
 msgstr "Montant"
 
-#: property/models/ledger.py:128
+#: property/models/ledger.py:132
 msgid "Always positive. Use flow_type to indicate income or expense."
 msgstr "Toujours positif. Utiliser flow_type pour indiquer revenu ou dépense."
 
-#: property/models/ledger.py:132
+#: property/models/ledger.py:136
 msgid "Date of the entry (or start date for recurring entries)."
 msgstr "Date de l'écriture (ou date de début pour les écritures récurrentes)."
 
-#: property/models/ledger.py:139
+#: property/models/ledger.py:143
 msgid "The month/period this entry covers, e.g. first day of March 2024."
 msgstr ""
 "Le mois/période que couvre cette écriture, ex. premier jour de mars 2024."
 
-#: property/models/ledger.py:145 templates/property/detail.html:673
-#: templates/property/detail.html:898
+#: property/models/ledger.py:149 templates/property/detail.html:824
+#: templates/property/detail.html:1049
 msgid "Tax category"
 msgstr "Catégorie fiscale"
 
-#: property/models/ledger.py:150
+#: property/models/ledger.py:154
 msgid "Management category"
 msgstr "Catégorie de gestion"
 
-#: property/models/ledger.py:160
+#: property/models/ledger.py:164
 msgid "Recurrence type"
 msgstr "Type de récurrence"
 
-#: property/models/ledger.py:165
+#: property/models/ledger.py:169
 msgid "Recurrence end date"
 msgstr "Date de fin de récurrence"
 
-#: property/models/ledger.py:166
+#: property/models/ledger.py:170
 msgid "End date for recurring entries (leave empty for indefinite)."
 msgstr ""
 "Date de fin pour les écritures récurrentes (laisser vide pour indéfini)."
 
-#: property/models/ledger.py:181
+#: property/models/ledger.py:185
 msgid "Amount must be positive."
 msgstr "Le montant doit être positif."
 
-#: property/models/ledger.py:188
+#: property/models/ledger.py:192
 #, python-format
 msgid ""
 "Tax category '%(cat)s' is not valid for an INCOME entry. Use a revenue "
@@ -963,7 +1006,7 @@ msgstr ""
 "La catégorie fiscale '%(cat)s' n'est pas valide pour une écriture REVENU. "
 "Utiliser une catégorie de revenu ou définir flow_type sur DÉPENSE."
 
-#: property/models/ledger.py:196
+#: property/models/ledger.py:200
 #, python-format
 msgid ""
 "Tax category '%(cat)s' is not valid for an EXPENSE entry. Use an expense "
@@ -982,11 +1025,11 @@ msgstr "gestionnaires immobiliers"
 
 #: property/models/management.py:24 templates/finance/index.html:133
 #: templates/finance/index.html:250 templates/index.html:280
-#: templates/property/index.html:51
+#: templates/property/detail.html:630 templates/property/index.html:51
 msgid "Name"
 msgstr "Nom"
 
-#: property/models/management.py:27
+#: property/models/management.py:27 templates/property/detail.html:586
 msgid "Address"
 msgstr "Adresse"
 
@@ -1038,85 +1081,99 @@ msgstr "Pourcentage du loyer encaissé, ex. 7,50 pour 7,5%."
 msgid "active"
 msgstr "actif"
 
-#: property/services/cashflow.py:177
+#: property/services/cashflow.py:180
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
-#: property/views.py:580
-msgid "Property value added."
-msgstr "Valeur de propriété ajoutée."
-
-#: property/views.py:582
-msgid "Unable to add property value."
-msgstr "Impossible d'ajouter la valeur de propriété."
-
-#: property/views.py:591
-msgid "Entry added."
-msgstr "Écriture ajoutée."
-
-#: property/views.py:593
-msgid "Unable to add entry."
-msgstr "Impossible d'ajouter l'écriture."
-
-#: property/views.py:596
-msgid "Unknown form action."
-msgstr "Action de formulaire inconnue."
-
-#: property/views.py:699
+#: property/views/crud_views.py:36
 msgid "Property not found."
 msgstr "Propriété introuvable."
 
-#: property/views.py:714
+#: property/views/crud_views.py:51
 #, python-format
 msgid "%(name)s not found."
 msgstr "%(name)s introuvable."
 
-#: property/views.py:725 property/views.py:829
+#: property/views/crud_views.py:62 property/views/crud_views.py:128
+#: property/views/crud_views.py:177 property/views/crud_views.py:222
+#: property/views/crud_views.py:289
 msgid "Invalid request method."
 msgstr "Méthode de requête invalide."
 
-#: property/views.py:737
+#: property/views/crud_views.py:74
 msgid "Valuation not found."
 msgstr "Évaluation introuvable."
 
-#: property/views.py:741
+#: property/views/crud_views.py:78
 msgid "Property valuation deleted successfully."
 msgstr "Évaluation de propriété supprimée avec succès."
 
-#: property/views.py:767
-msgid "Property updated successfully."
-msgstr "Propriété mise à jour avec succès."
-
-#: property/views.py:798 property/views.py:840
+#: property/views/crud_views.py:97 property/views/crud_views.py:139
 msgid "Entry"
 msgstr "Écriture"
 
-#: property/views.py:810
+#: property/views/crud_views.py:109
 msgid "Entry updated successfully."
 msgstr "Écriture mise à jour avec succès."
 
-#: property/views.py:849
+#: property/views/crud_views.py:148
 msgid "Entry deleted successfully."
 msgstr "Écriture supprimée avec succès."
 
-#: property/views.py:864
+#: property/views/crud_views.py:163
 msgid "Tenant saved."
 msgstr "Locataire enregistré."
 
-#: property/views.py:895
+#: property/views/crud_views.py:182
+msgid "Tenant deleted successfully."
+msgstr "Locataire supprimée avec succès."
+
+#: property/views/crud_views.py:206
 msgid "Lease saved."
 msgstr "Bail enregistré."
 
-#: property/views.py:919
+#: property/views/crud_views.py:228
+msgid "Lease deleted successfully."
+msgstr "Bail supprimée avec succès."
+
+#: property/views/crud_views.py:243
 msgid "Manager saved."
 msgstr "Gestionnaire enregistré."
 
-#: property/views.py:947
+#: property/views/crud_views.py:271
 msgid "Mandate saved."
 msgstr "Mandat enregistré."
 
+#: property/views/crud_views.py:295
+msgid "Mandate deleted successfully."
+msgstr "Mandat supprimé avec succès."
+
+#: property/views/detail_views.py:532
+msgid "Property value added."
+msgstr "Valeur de propriété ajoutée."
+
+#: property/views/detail_views.py:534
+msgid "Unable to add property value."
+msgstr "Impossible d'ajouter la valeur de propriété."
+
+#: property/views/detail_views.py:543
+msgid "Entry added."
+msgstr "Écriture ajoutée."
+
+#: property/views/detail_views.py:545
+msgid "Unable to add entry."
+msgstr "Impossible d'ajouter l'écriture."
+
+#: property/views/detail_views.py:548
+msgid "Unknown form action."
+msgstr "Action de formulaire inconnue."
+
+#: property/views/edit_views.py:71
+msgid "Property updated successfully."
+msgstr "Propriété mise à jour avec succès."
+
 #: templates/accounts/settings.html:4 templates/accounts/settings.html:9
-#: templates/base.html:72
+#: templates/base.html:91
 msgid "Settings"
 msgstr "Paramètres"
 
@@ -1173,8 +1230,8 @@ msgstr ""
 msgid "minutes"
 msgstr "minutes"
 
-#: templates/accounts/settings.html:119 templates/property/detail.html:581
-#: templates/property/detail.html:716
+#: templates/accounts/settings.html:119 templates/property/detail.html:732
+#: templates/property/detail.html:867
 msgid "Save"
 msgstr "Enregistrer"
 
@@ -1249,9 +1306,9 @@ msgid "Update"
 msgstr "Mise à jour"
 
 #: templates/admin/bulk_update_date.html:28
-#: templates/finance/csv_mapping.html:76 templates/property/detail.html:580
-#: templates/property/detail.html:714 templates/property/detail.html:958
-#: templates/property/detail.html:988 templates/property/edit.html:289
+#: templates/finance/csv_mapping.html:76 templates/property/detail.html:731
+#: templates/property/detail.html:865 templates/property/detail.html:1109
+#: templates/property/detail.html:1139 templates/property/edit.html:449
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -1267,7 +1324,7 @@ msgstr "Accueil"
 msgid "Finance"
 msgstr "Finance"
 
-#: templates/base.html:47
+#: templates/base.html:47 templates/base.html:60
 msgid "Overview"
 msgstr "Vue d'ensemble"
 
@@ -1283,37 +1340,49 @@ msgstr "Import CSV"
 msgid "CSV Export"
 msgstr "Export CSV"
 
-#: templates/base.html:55 templates/index.html:270
+#: templates/base.html:57 templates/index.html:270
 #: templates/property/index.html:14
 msgid "Properties"
 msgstr "Immobilier"
 
 #: templates/base.html:63
+msgid "Accountability"
+msgstr "Comptabilité"
+
+#: templates/base.html:64
+msgid "Coming"
+msgstr "À venir"
+
+#: templates/base.html:69
+msgid "My properties"
+msgstr "Mes biens"
+
+#: templates/base.html:82
 msgid "Administration"
 msgstr "Administration"
 
-#: templates/base.html:69
+#: templates/base.html:88
 msgid "My account"
 msgstr "Mon compte"
 
-#: templates/base.html:74
+#: templates/base.html:93
 msgid "Logout"
 msgstr "Déconnexion"
 
-#: templates/base.html:79 templates/registration/login.html:4
+#: templates/base.html:98 templates/registration/login.html:4
 msgid "Login"
 msgstr "Connexion"
 
-#: templates/base.html:82 templates/registration/login.html:61
+#: templates/base.html:101 templates/registration/login.html:61
 #: templates/registration/password_reset_form.html:4
 msgid "Password Reset"
 msgstr "Réinitialisation du mot de passe"
 
-#: templates/base.html:123
+#: templates/base.html:142
 msgid "Toggle dark mode"
 msgstr "Basculer en mode sombre"
 
-#: templates/base.html:139
+#: templates/base.html:158
 msgid "Change"
 msgstr "Changer"
 
@@ -1463,7 +1532,7 @@ msgid "Investment accounts"
 msgstr "Comptes d'investissement"
 
 #: templates/finance/index.html:134 templates/finance/index.html:251
-#: templates/property/detail.html:570 templates/property/detail.html:738
+#: templates/property/detail.html:721 templates/property/detail.html:889
 msgid "Value"
 msgstr "Valeur"
 
@@ -1627,7 +1696,7 @@ msgstr "Afficher les pourcentages"
 msgid "Accounts Progression"
 msgstr "Progression des comptes"
 
-#: templates/index.html:222 templates/property/detail.html:1022
+#: templates/index.html:222 templates/property/detail.html:1175
 msgid "All"
 msgstr "Tous"
 
@@ -1643,8 +1712,9 @@ msgstr "Épargnes"
 msgid "View All"
 msgstr "Voir tout"
 
-#: templates/index.html:281 templates/property/detail.html:605
-#: templates/property/detail.html:800 templates/property/index.html:52
+#: templates/index.html:281 templates/property/detail.html:560
+#: templates/property/detail.html:756 templates/property/detail.html:951
+#: templates/property/index.html:52
 msgid "Type"
 msgstr "Type"
 
@@ -1717,11 +1787,11 @@ msgstr "Se déconnecter ?"
 msgid "Are you sure you want to logout?"
 msgstr "Voulez-vous vraiment vous déconnecter ?"
 
-#: templates/logout.html:15
+#: templates/logout.html:15 templates/property/detail.html:579
 msgid "Yes"
 msgstr "Oui"
 
-#: templates/logout.html:16
+#: templates/logout.html:16 templates/property/detail.html:581
 msgid "No"
 msgstr "Non"
 
@@ -1729,414 +1799,513 @@ msgstr "Non"
 msgid "Address not specified"
 msgstr "Adresse non spécifiée"
 
-#: templates/property/detail.html:39 templates/property/detail.html:1018
+#: templates/property/detail.html:39 templates/property/detail.html:1171
 #: templates/property/edit.html:5
 msgid "Edit"
 msgstr "Modifier"
 
-#: templates/property/detail.html:49
+#: templates/property/detail.html:50
 msgid "Monthly cash flow"
 msgstr "Flux de trésorerie mensuel"
 
-#: templates/property/detail.html:62
+#: templates/property/detail.html:63
 msgid "Gross value"
 msgstr "Valeur brute"
 
-#: templates/property/detail.html:67
+#: templates/property/detail.html:68
 msgid "Add valuation"
 msgstr "Ajouter une évaluation"
 
-#: templates/property/detail.html:70
+#: templates/property/detail.html:71
 msgid "Value history"
 msgstr "Historique des valeurs"
 
-#: templates/property/detail.html:82 templates/property/index.html:54
+#: templates/property/detail.html:83 templates/property/index.html:54
 msgid "Net value"
 msgstr "Valeur nette"
 
-#: templates/property/detail.html:92
+#: templates/property/detail.html:93
 msgid "Capital repaid"
 msgstr "Capital remboursé"
 
-#: templates/property/detail.html:113
+#: templates/property/detail.html:114
 msgid "Cash flow"
 msgstr "Flux de trésorerie"
 
-#: templates/property/detail.html:127
+#: templates/property/detail.html:128
 msgid "Value & Projection"
 msgstr "Valeur & Projection"
 
-#: templates/property/detail.html:141
+#: templates/property/detail.html:142
 msgid "Balance sheet"
 msgstr "Bilan"
 
-#: templates/property/detail.html:155
-msgid "Location"
-msgstr "Emplacement"
+#: templates/property/detail.html:156
+msgid "Info"
+msgstr "Infos"
 
-#: templates/property/detail.html:167
+#: templates/property/detail.html:168
 msgid "Monthly overview"
 msgstr "Vue mensuelle"
 
-#: templates/property/detail.html:171
+#: templates/property/detail.html:172
 msgid "Expenses breakdown"
 msgstr "Répartition des dépenses"
 
-#: templates/property/detail.html:180
+#: templates/property/detail.html:181
 msgid "Transactions"
 msgstr "Transactions"
 
-#: templates/property/detail.html:182
+#: templates/property/detail.html:183
 msgid "Add entry"
 msgstr "Ajouter une écriture"
 
-#: templates/property/detail.html:192 templates/property/detail.html:1086
-#: templates/property/detail.html:1139
+#: templates/property/detail.html:193 templates/property/detail.html:1239
+#: templates/property/detail.html:1292
 msgid "Kind"
 msgstr "Type"
 
-#: templates/property/detail.html:193 templates/property/detail.html:641
-#: templates/property/detail.html:867 templates/property/detail.html:1094
-#: templates/property/detail.html:1150
+#: templates/property/detail.html:194 templates/property/detail.html:792
+#: templates/property/detail.html:1018 templates/property/detail.html:1247
+#: templates/property/detail.html:1303
 msgid "Category"
 msgstr "Catégorie"
 
-#: templates/property/detail.html:195 templates/property/detail.html:684
-#: templates/property/detail.html:910 templates/property/detail.html:1107
+#: templates/property/detail.html:196 templates/property/detail.html:835
+#: templates/property/detail.html:1061 templates/property/detail.html:1260
 msgid "Description"
 msgstr "Description"
 
-#: templates/property/detail.html:196 templates/property/detail.html:739
-#: templates/property/detail.html:1119
+#: templates/property/detail.html:197 templates/property/detail.html:890
+#: templates/property/detail.html:1272
 msgid "Actions"
 msgstr "Actions"
 
-#: templates/property/detail.html:211
+#: templates/property/detail.html:212
 msgid "Annual growth rate"
 msgstr "Taux de croissance annuel"
 
-#: templates/property/detail.html:222
+#: templates/property/detail.html:223
 #, python-format
 msgid "Annual growth rate (%%)"
 msgstr "Taux de croissance annuel (%%)"
 
-#: templates/property/detail.html:225
+#: templates/property/detail.html:226
 msgid "Recalculate"
 msgstr "Recalculer"
 
-#: templates/property/detail.html:237
+#: templates/property/detail.html:238
 msgid "Horizon"
 msgstr "Horizon"
 
-#: templates/property/detail.html:239
+#: templates/property/detail.html:240
 msgid "Projected value"
 msgstr "Valeur projetée"
 
-#: templates/property/detail.html:240
+#: templates/property/detail.html:241
 msgid "Projected debt"
 msgstr "Dette projetée"
 
-#: templates/property/detail.html:241
+#: templates/property/detail.html:242
 msgid "Projected net value"
 msgstr "Valeur nette projetée"
 
-#: templates/property/detail.html:247
+#: templates/property/detail.html:248
 msgid "years"
 msgstr "ans"
 
-#: templates/property/detail.html:268
+#: templates/property/detail.html:269
 msgid "Previous period"
 msgstr "Période précédente"
 
-#: templates/property/detail.html:283
+#: templates/property/detail.html:284
 msgid "Next period"
 msgstr "Période suivante"
 
-#: templates/property/detail.html:294
+#: templates/property/detail.html:295
 msgid "Period"
 msgstr "Période"
 
-#: templates/property/detail.html:298
+#: templates/property/detail.html:299
 msgid "Half-year"
 msgstr "Semestre"
 
-#: templates/property/detail.html:299
+#: templates/property/detail.html:300
 msgid "Annual"
 msgstr "Annuel"
 
-#: templates/property/detail.html:302
+#: templates/property/detail.html:303
 msgid "Year"
 msgstr "Année"
 
-#: templates/property/detail.html:306
+#: templates/property/detail.html:307
 msgid "Start month"
 msgstr "Mois de début"
 
-#: templates/property/detail.html:309
+#: templates/property/detail.html:310
 msgid "January"
 msgstr "Janvier"
 
-#: templates/property/detail.html:310
+#: templates/property/detail.html:311
 msgid "February"
 msgstr "Février"
 
-#: templates/property/detail.html:311
+#: templates/property/detail.html:312
 msgid "March"
 msgstr "Mars"
 
-#: templates/property/detail.html:312
+#: templates/property/detail.html:313
 msgid "April"
 msgstr "Avril"
 
-#: templates/property/detail.html:313
+#: templates/property/detail.html:314
 msgid "May"
 msgstr "Mai"
 
-#: templates/property/detail.html:314
+#: templates/property/detail.html:315
 msgid "June"
 msgstr "Juin"
 
-#: templates/property/detail.html:315
+#: templates/property/detail.html:316
 msgid "July"
 msgstr "Juillet"
 
-#: templates/property/detail.html:316
+#: templates/property/detail.html:317
 msgid "August"
 msgstr "Août"
 
-#: templates/property/detail.html:317
+#: templates/property/detail.html:318
 msgid "September"
 msgstr "Septembre"
 
-#: templates/property/detail.html:318
+#: templates/property/detail.html:319
 msgid "October"
 msgstr "Octobre"
 
-#: templates/property/detail.html:319
+#: templates/property/detail.html:320
 msgid "November"
 msgstr "Novembre"
 
-#: templates/property/detail.html:320
+#: templates/property/detail.html:321
 msgid "December"
 msgstr "Décembre"
 
-#: templates/property/detail.html:323
+#: templates/property/detail.html:324
 msgid "Apply"
 msgstr "Appliquer"
 
-#: templates/property/detail.html:332
+#: templates/property/detail.html:333
 msgid "Total income"
 msgstr "Revenus totaux"
 
-#: templates/property/detail.html:340 templates/property/detail.html:1268
+#: templates/property/detail.html:341 templates/property/detail.html:1425
 msgid "Total expenses"
 msgstr "Dépenses totales"
 
-#: templates/property/detail.html:348 templates/property/detail.html:489
+#: templates/property/detail.html:349 templates/property/detail.html:490
 msgid "Loan costs"
 msgstr "Coûts de prêt"
 
-#: templates/property/detail.html:356 templates/property/detail.html:524
+#: templates/property/detail.html:357 templates/property/detail.html:525
 msgid "Net cashflow"
 msgstr "Flux de trésorerie net"
 
-#: templates/property/detail.html:371 templates/property/detail.html:536
+#: templates/property/detail.html:372 templates/property/detail.html:537
 msgid "Operating result"
 msgstr "Résultat d'exploitation"
 
-#: templates/property/detail.html:372
+#: templates/property/detail.html:373
 msgid "excl. principal"
 msgstr "hors capital"
 
-#: templates/property/detail.html:384
+#: templates/property/detail.html:385
 msgid "Occupancy rate"
 msgstr "Taux d'occupation"
 
-#: templates/property/detail.html:386
+#: templates/property/detail.html:387
 msgid "months"
 msgstr "mois"
 
-#: templates/property/detail.html:394
+#: templates/property/detail.html:395
 msgid "Gross yield (annualised)"
 msgstr "Rendement brut (annualisé)"
 
-#: templates/property/detail.html:439 templates/property/detail.html:472
-#: templates/property/detail.html:505
+#: templates/property/detail.html:440 templates/property/detail.html:473
+#: templates/property/detail.html:506 templates/property/edit.html:631
 msgid "Total"
 msgstr "Total"
 
-#: templates/property/detail.html:445
+#: templates/property/detail.html:446
 msgid "No income in this period."
 msgstr "Aucun revenu sur cette période."
 
-#: templates/property/detail.html:456 templates/property/detail.html:655
-#: templates/property/detail.html:880 templates/property/detail.html:1023
+#: templates/property/detail.html:457 templates/property/detail.html:806
+#: templates/property/detail.html:1031 templates/property/detail.html:1176
 msgid "Expenses"
 msgstr "Dépenses"
 
-#: templates/property/detail.html:478
+#: templates/property/detail.html:479
 msgid "No expenses in this period."
 msgstr "Aucune dépense sur cette période."
 
-#: templates/property/detail.html:511
+#: templates/property/detail.html:512
 msgid "No loan costs in this period."
 msgstr "Aucun coût de prêt sur cette période."
 
-#: templates/property/detail.html:526
+#: templates/property/detail.html:527
 msgid "income"
 msgstr "revenus"
 
-#: templates/property/detail.html:526
+#: templates/property/detail.html:527
 msgid "expenses"
 msgstr "dépenses"
 
-#: templates/property/detail.html:526
+#: templates/property/detail.html:527
 msgid "loan costs"
 msgstr "coûts de prêt"
 
-#: templates/property/detail.html:537
+#: templates/property/detail.html:538
 msgid "excl. principal repayment"
 msgstr "hors remboursement du capital"
 
-#: templates/property/detail.html:565
+#: templates/property/detail.html:555
+msgid "Property information"
+msgstr "Informations sur le bien"
+
+#: templates/property/detail.html:564
+msgid "Floor area"
+msgstr "Surface habitable"
+
+#: templates/property/detail.html:590
+msgid "Buying date"
+msgstr "Date d'achat"
+
+#: templates/property/detail.html:594
+msgid "Buying value"
+msgstr "Valeur d'achat"
+
+#: templates/property/detail.html:599
+msgid "Buying value (gross)"
+msgstr "Valeur d'achat (brut)"
+
+#: templates/property/detail.html:605
+msgid "Selling date"
+msgstr "Date de vente"
+
+#: templates/property/detail.html:611
+msgid "Selling value"
+msgstr "Valeur de vente"
+
+#: templates/property/detail.html:623
+msgid "Loan summary"
+msgstr "Résumé du prêt"
+
+#: templates/property/detail.html:632
+msgid "Start"
+msgstr "Début"
+
+#: templates/property/detail.html:633
+msgid "End"
+msgstr "Fin"
+
+#: templates/property/detail.html:634
+msgid "Original amount"
+msgstr "Montant initial"
+
+#: templates/property/detail.html:635
+msgid "Monthly payment"
+msgstr "Mensualité"
+
+#: templates/property/detail.html:636
+msgid "Rate"
+msgstr "Taux"
+
+#: templates/property/detail.html:637
+msgid "Duration"
+msgstr "Durée"
+
+#: templates/property/detail.html:638
+msgid "Total cost"
+msgstr "Coût total"
+
+#: templates/property/detail.html:647
+msgid "Smoothed"
+msgstr "Lissé"
+
+#: templates/property/detail.html:656
+msgid "Variable"
+msgstr "Variable"
+
+#: templates/property/detail.html:660
+msgid "ins."
+msgstr "assur."
+
+#: templates/property/detail.html:671
+msgid "mo."
+msgstr "mo."
+
+#: templates/property/detail.html:672 templates/property/edit.html:591
+#: templates/property/edit.html:627
+msgid "yr"
+msgstr "an"
+
+#: templates/property/detail.html:679 templates/property/edit.html:314
+#: templates/property/edit.html:640
+msgid "Total repaid"
+msgstr "Total remboursé"
+
+#: templates/property/detail.html:695
+msgid "Location"
+msgstr "Emplacement"
+
+#: templates/property/detail.html:716
 msgid "Add property valuation"
 msgstr "Ajouter une évaluation de propriété"
 
-#: templates/property/detail.html:575
+#: templates/property/detail.html:726
 msgid "Valuation date"
 msgstr "Date d'évaluation"
 
-#: templates/property/detail.html:596 templates/property/detail.html:1431
+#: templates/property/detail.html:747 templates/property/detail.html:1592
 msgid "Add income / expense"
 msgstr "Ajouter un revenu / une dépense"
 
-#: templates/property/detail.html:646 templates/property/detail.html:873
+#: templates/property/detail.html:797 templates/property/detail.html:1024
 msgid "Select a category"
 msgstr "Sélectionner une catégorie"
 
-#: templates/property/detail.html:685 templates/property/detail.html:705
-#: templates/property/detail.html:848 templates/property/detail.html:856
-#: templates/property/detail.html:911 templates/property/detail.html:918
-#: templates/property/detail.html:929 templates/property/detail.html:949
+#: templates/property/detail.html:836 templates/property/detail.html:856
+#: templates/property/detail.html:999 templates/property/detail.html:1007
+#: templates/property/detail.html:1062 templates/property/detail.html:1069
+#: templates/property/detail.html:1080 templates/property/detail.html:1100
 msgid "optional"
 msgstr "optionnel"
 
-#: templates/property/detail.html:693 templates/property/detail.html:937
+#: templates/property/detail.html:844 templates/property/detail.html:1088
 msgid "Recurrence"
 msgstr "Récurrence"
 
-#: templates/property/detail.html:698 templates/property/detail.html:942
+#: templates/property/detail.html:849 templates/property/detail.html:1093
 msgid "Frequency"
 msgstr "Fréquence"
 
-#: templates/property/detail.html:728
+#: templates/property/detail.html:879
 msgid "Property value history"
 msgstr "Historique des valeurs de propriété"
 
-#: templates/property/detail.html:748
+#: templates/property/detail.html:899
 msgid "Are you sure you want to delete this valuation?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette évaluation ?"
 
-#: templates/property/detail.html:751 templates/property/detail.html:989
-#: templates/property/detail.html:1019 templates/property/edit.html:173
+#: templates/property/detail.html:902 templates/property/detail.html:1140
+#: templates/property/detail.html:1172 templates/property/edit.html:208
+#: templates/property/edit.html:382
 msgid "Delete"
 msgstr "Supprimer"
 
-#: templates/property/detail.html:762
+#: templates/property/detail.html:913
 msgid "No valuations recorded yet."
 msgstr "Aucune évaluation enregistrée pour le moment."
 
-#: templates/property/detail.html:766
+#: templates/property/detail.html:917
 msgid "Close"
 msgstr "Fermer"
 
-#: templates/property/detail.html:782
+#: templates/property/detail.html:933
 msgid "Edit expense"
 msgstr "Modifier la dépense"
 
-#: templates/property/detail.html:784
+#: templates/property/detail.html:935
 msgid "Edit income"
 msgstr "Modifier le revenu"
 
-#: templates/property/detail.html:793
+#: templates/property/detail.html:944
 msgid "This is a recurring entry. Changes will apply to all occurrences."
 msgstr ""
 "Ceci est une écriture récurrente. Les modifications s'appliqueront à toutes "
 "les occurrences."
 
-#: templates/property/detail.html:928
+#: templates/property/detail.html:1079
 msgid "Notes"
 msgstr "Notes"
 
-#: templates/property/detail.html:960
+#: templates/property/detail.html:1111
 msgid "Save changes"
 msgstr "Enregistrer les modifications"
 
-#: templates/property/detail.html:975
+#: templates/property/detail.html:1126
 msgid "Delete expense"
 msgstr "Supprimer la dépense"
 
-#: templates/property/detail.html:975
+#: templates/property/detail.html:1126
 msgid "Delete income"
 msgstr "Supprimer le revenu"
 
-#: templates/property/detail.html:982
+#: templates/property/detail.html:1133
 msgid "This is a recurring entry. All occurrences will be deleted."
 msgstr ""
 "Ceci est une écriture récurrente. Toutes les occurrences seront supprimées."
 
-#: templates/property/detail.html:985
+#: templates/property/detail.html:1136
 #, python-format
 msgid "Are you sure you want to delete the entry of %(amount)s dated %(date)s?"
 msgstr ""
 "Êtes-vous sûr de vouloir supprimer l'écriture de %(amount)s datée du "
 "%(date)s ?"
 
-#: templates/property/detail.html:1017
+#: templates/property/detail.html:1170
 msgid "Recurring"
 msgstr "Récurrent"
 
-#: templates/property/detail.html:1020
+#: templates/property/detail.html:1173
 msgid "No transactions found"
 msgstr "Aucune transaction trouvée"
 
-#: templates/property/detail.html:1021
+#: templates/property/detail.html:1174
 msgid "Search"
 msgstr "Rechercher"
 
-#: templates/property/detail.html:1024 templates/property/detail.html:1267
+#: templates/property/detail.html:1177 templates/property/detail.html:1424
 msgid "Incomes"
 msgstr "Revenus"
 
-#: templates/property/detail.html:1190
+#: templates/property/detail.html:1345
 msgid "Property value (history)"
 msgstr "Valeur de propriété (historique)"
 
-#: templates/property/detail.html:1191
+#: templates/property/detail.html:1346
 msgid "Property value (projection)"
 msgstr "Valeur de propriété (projection)"
 
-#: templates/property/detail.html:1192
+#: templates/property/detail.html:1347
 msgid "Debt amortization (history)"
 msgstr "Amortissement de la dette (historique)"
 
-#: templates/property/detail.html:1193
+#: templates/property/detail.html:1348
 msgid "Debt amortization (projection)"
 msgstr "Amortissement de la dette (projection)"
 
-#: templates/property/detail.html:1269
+#: templates/property/detail.html:1349
+msgid "Net value (history)"
+msgstr "Valeur nette (historique)"
+
+#: templates/property/detail.html:1350
+msgid "Net value (projection)"
+msgstr "Valeur nette (projection)"
+
+#: templates/property/detail.html:1426
 msgid "Difference"
 msgstr "Différence"
 
-#: templates/property/detail.html:1295
+#: templates/property/detail.html:1452
 msgid "Loan principal"
 msgstr "Capital du prêt"
 
-#: templates/property/detail.html:1404
+#: templates/property/detail.html:1565
 msgid "Add income"
 msgstr "Ajouter un revenu"
 
-#: templates/property/detail.html:1406
+#: templates/property/detail.html:1567
 msgid "Add expense"
 msgstr "Ajouter une dépense"
 
@@ -2148,41 +2317,88 @@ msgstr "Modifier la propriété"
 msgid "Property Details"
 msgstr "Détails de la propriété"
 
-#: templates/property/edit.html:145
+#: templates/property/edit.html:176
 msgid "Property Loans"
 msgstr "Prêts immobiliers"
 
-#: templates/property/edit.html:164
-msgid "Loan"
-msgstr "Prêt"
+#: templates/property/edit.html:198
+msgid "Smoothed loan"
+msgstr "Prêt lissé"
 
-#: templates/property/edit.html:166
+#: templates/property/edit.html:201
 msgid "Add a loan"
 msgstr "Ajouter un prêt"
 
-#: templates/property/edit.html:274
+#: templates/property/edit.html:310
 msgid "Estimated monthly payment"
 msgstr "Mensualité estimée"
 
-#: templates/property/edit.html:292
+#: templates/property/edit.html:328
+msgid "Payment schedule (smoothed loan)"
+msgstr "Versements personnalisés (prêt lissé)"
+
+#: templates/property/edit.html:332 templates/property/edit.html:370
+msgid "Add tranche"
+msgstr "Ajouter des versements"
+
+#: templates/property/edit.html:344
+msgid "Add payment schedule (smoothed loan)"
+msgstr "Ajouter des versements personnalisés (prêt lissé)"
+
+#: templates/property/edit.html:360
+msgid ""
+"Adding a payment schedule will convert this loan to a smoothed loan (prêt "
+"lisseur). The computed monthly payment will be ignored."
+msgstr ""
+"L'ajout de versements personnalisés convertira le prêt. La mensualité "
+"calculée sera ignorée."
+
+#: templates/property/edit.html:380
+msgid "Count"
+msgstr "Nombre"
+
+#: templates/property/edit.html:434
+msgid ""
+"Save the loan first, then add payment schedule tranches for a smoothed loan "
+"(prêt lisseur)."
+msgstr "Enregistrer le prêt en premier afin de pouvoir définir un lissement"
+
+#: templates/property/edit.html:452
 msgid "Save Changes"
 msgstr "Enregistrer les modifications"
 
-#: templates/property/edit.html:352
+#: templates/property/edit.html:569
 msgid "principal+interest"
 msgstr "capital+intérêts"
 
-#: templates/property/edit.html:352
+#: templates/property/edit.html:569
 msgid "insurance"
 msgstr "assurance"
 
-#: templates/property/edit.html:370
-msgid "yr"
-msgstr "an"
-
-#: templates/property/edit.html:371
+#: templates/property/edit.html:592 templates/property/edit.html:628
 msgid "mo"
 msgstr "mois"
+
+#: templates/property/edit.html:624 templates/property/edit.html:659
+#: templates/property/edit.html:662
+msgid "payments"
+msgstr "paiements"
+
+#: templates/property/edit.html:656
+msgid "Complete"
+msgstr "Complet"
+
+#: templates/property/edit.html:659
+msgid "Missing"
+msgstr "Manquant"
+
+#: templates/property/edit.html:662
+msgid "Excess"
+msgstr "Excédent"
+
+#: templates/property/edit.html:754
+msgid "Remove"
+msgstr "Supprimer"
 
 #: templates/property/index.html:20
 msgid "Total Properties Value Evolution"

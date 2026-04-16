@@ -28,12 +28,20 @@ urlpatterns = [
         views.delete_ledger_entry,
         name="delete_entry",
     ),
+    # Tenants
+    path("tenant/<int:pk>/edit/", views.edit_tenant, name="edit_tenant"),
+    path("tenant/<int:pk>/delete/", views.delete_tenant, name="delete_tenant"),
     # Leases
     path("<int:property_pk>/lease/new/", views.edit_lease, name="new_lease"),
     path(
         "<int:property_pk>/lease/<int:lease_pk>/edit/",
         views.edit_lease,
         name="edit_lease",
+    ),
+    path(
+        "<int:property_pk>/lease/<int:lease_pk>/delete/",
+        views.delete_lease,
+        name="delete_lease",
     ),
     # Managers & mandates
     path("manager/new/", views.edit_manager, name="new_manager"),
@@ -43,5 +51,10 @@ urlpatterns = [
         "<int:property_pk>/mandate/<int:mandate_pk>/edit/",
         views.edit_mandate,
         name="edit_mandate",
+    ),
+    path(
+        "<int:property_pk>/mandate/<int:mandate_pk>/delete/",
+        views.delete_mandate,
+        name="delete_mandate",
     ),
 ]

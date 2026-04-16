@@ -123,8 +123,8 @@ def test_loan_form_invalid_missing_required_fields():
     assert "start_date" in form.errors
     assert "duration_months" in form.errors
     assert "original_amount" in form.errors
-    # interest_rate is required in the form (needed to compute monthly payment)
-    assert "interest_rate" in form.errors
+    # interest_rate is optional (smoothed loans / prêts lisseurs don't need it)
+    assert "interest_rate" not in form.errors
 
 
 @pytest.mark.django_db

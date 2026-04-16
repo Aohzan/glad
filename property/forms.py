@@ -13,6 +13,7 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
+    PropertyLoanSchedule,
     PropertyManager,
     PropertyValue,
     Tenant,
@@ -154,6 +155,7 @@ class PropertyEditForm(forms.ModelForm):
             "is_active",
             "is_furnished",
             "floor_area",
+            "number_of_rooms",
             "buying_value",
             "buying_value_gross",
             "shares_count",
@@ -171,9 +173,11 @@ class PropertyEditForm(forms.ModelForm):
 class PropertyLoanForm(forms.ModelForm):
     """Form for editing property loan details.
 
-    The monthly_payment and insurance fields are computed automatically from
-    original_amount, interest_rate, insurance_rate and duration_months.
-    Users only need to enter the key loan parameters.
+    For standard loans, monthly_payment and insurance are computed automatically
+    from original_amount, interest_rate, insurance_rate and duration_months.
+
+    For smoothed loans (prêt lisseur), interest_rate is optional and the payment
+    schedule is managed via the PropertyLoanScheduleFormSet.
     """
 
     duration_months = forms.IntegerField(
@@ -202,8 +206,8 @@ class PropertyLoanForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make interest_rate required in the form (needed to compute monthly payment)
-        self.fields["interest_rate"].required = True
+        # interest_rate is optional for smoothed loans
+        self.fields["interest_rate"].required = False
         # Pre-fill duration_months from existing instance
         if self.instance and self.instance.pk:
             duration = self.instance.get_duration_months()
@@ -222,6 +226,8 @@ class PropertyLoanForm(forms.ModelForm):
             # Compute end_date from start_date + duration_months
             cleaned_data["end_date"] = add_months_safe(start_date, duration_months)
 
+        # Only auto-compute monthly_payment for standard (non-smoothed) loans
+        # i.e. when interest_rate is provided and no schedule exists yet
         if original_amount and interest_rate is not None and duration_months:
             monthly_pi, monthly_ins, _ = calculate_monthly_payment(
                 original_amount=original_amount.amount,
@@ -249,6 +255,22 @@ class PropertyLoanForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class PropertyLoanScheduleForm(forms.ModelForm):
+    """Form for a single payment tranche of a smoothed loan (prêt lisseur)."""
+
+    class Meta:
+        model = PropertyLoanSchedule
+        fields = ["order", "count", "amount"]
+        widgets = {
+            "order": forms.NumberInput(
+                attrs={"class": "form-control", "min": "1", "placeholder": "1"}
+            ),
+            "count": forms.NumberInput(
+                attrs={"class": "form-control", "min": "1", "placeholder": "1"}
+            ),
+        }
 
 
 # ─── Lease ────────────────────────────────────────────────────────────────────

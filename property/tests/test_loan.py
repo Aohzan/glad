@@ -178,19 +178,27 @@ class PropertyLoanTestCase(TestCase):
         self.assertEqual(completed_loan.remaining_balance().amount, Decimal("0"))
 
     def test_remaining_balance_active_loan(self):
-        """Test remaining balance for an active loan."""
-        # For the short loan, we expect it to be halfway through its 6-month term
-        # So remaining balance should be around 50% of original amount
+        """Test remaining balance for an active loan.
+
+        The short_loan has no interest_rate, monthly_payment=100, original_amount=10000,
+        6-month term (90 days ago → +90 days), so ~3 months have elapsed.
+        With real amortization and zero interest: balance = 10000 - 3×100 = 9700.
+        """
         remaining = self.short_loan.remaining_balance().amount
-        self.assertGreaterEqual(remaining, Decimal("4000"))  # Lower bound
-        self.assertLessEqual(remaining, Decimal("6000"))  # Upper bound
+        # Real amortization: ~3 months × 100 = 300 paid → ~9700 remaining
+        self.assertGreaterEqual(remaining, Decimal("9500"))  # Lower bound
+        self.assertLessEqual(remaining, Decimal("10000"))  # Upper bound
 
     def test_amount_paid(self):
-        """Test amount paid calculation."""
-        # For the short loan that's halfway through
+        """Test amount paid calculation.
+
+        The short_loan has no interest_rate, monthly_payment=100, original_amount=10000.
+        After ~3 months: paid = ~300 (real amortization, no interest).
+        """
         paid = self.short_loan.amount_paid().amount
-        self.assertGreaterEqual(paid, Decimal("4000"))  # Lower bound
-        self.assertLessEqual(paid, Decimal("6000"))  # Upper bound
+        # Real amortization: ~3 months × 100 = ~300 paid
+        self.assertGreaterEqual(paid, Decimal("0"))  # Lower bound
+        self.assertLessEqual(paid, Decimal("500"))  # Upper bound
 
         # Original amount minus remaining should equal amount paid
         self.assertAlmostEqual(

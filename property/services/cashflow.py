@@ -109,18 +109,21 @@ def build_balance_sheet(
     total_loan_insurance = Decimal("0")
 
     for loan in loans_qs:
+        if loan.monthly_payment is None and not loan.is_smoothed():
+            continue
         insurance_amount = (
             loan.insurance.amount if loan.insurance is not None else Decimal("0")
         )
+        payment_sequence = loan.get_payment_sequence() if loan.is_smoothed() else None
+        monthly_payment = None if loan.is_smoothed() else loan.monthly_payment.amount
         interest_map, principal_map, insurance_map = build_loan_monthly_maps(
             start_date=loan.start_date,
             end_date=loan.end_date,
             original_amount=loan.original_amount.amount,
-            monthly_payment=loan.monthly_payment.amount
-            if loan.monthly_payment
-            else Decimal("0"),
+            monthly_payment=monthly_payment,
             interest_rate=loan.interest_rate,
             insurance_amount=insurance_amount,
+            payment_sequence=payment_sequence,
         )
         for month in iter_month_starts(start_month, end_month):
             key = (month.year, month.month)

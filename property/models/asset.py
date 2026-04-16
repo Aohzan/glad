@@ -1,9 +1,10 @@
-"""Models for property assets: Property, PropertyValue, PropertyLoan."""
+"""Models for property assets: Property, PropertyValue, PropertyLoan, PropertyLoanSchedule."""
 
 import datetime
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
@@ -11,6 +12,7 @@ from moneyed import Money
 
 from base.models import BaseModel
 from property.utils import (
+    add_months_safe,
     PropertyProgression,
     calculate_monthly_payment,
 )  # noqa: F401
@@ -72,6 +74,12 @@ class PropertyLoan(BaseModel):
             return f"{self.property.name} - {self.name}"
         return f"{self.property.name} - {self.original_amount}"
 
+    def is_smoothed(self) -> bool:
+        """Return True if this loan uses a schedule (prêt lisseur)."""
+        if not self.pk:
+            return False
+        return PropertyLoanSchedule.objects.filter(loan=self).exists()
+
     def get_duration_months(self) -> int:
         """Return the loan duration in months."""
         if self.start_date is None or self.end_date is None:
@@ -80,8 +88,33 @@ class PropertyLoan(BaseModel):
             self.end_date.month - self.start_date.month
         )
 
+    def get_payment_sequence(self) -> list[Decimal]:
+        """Return the ordered list of monthly payment amounts for this loan.
+
+        For smoothed loans (prêt lisseur), returns the full sequence derived
+        from the schedules. For standard loans, returns a list of identical
+        monthly_payment values of length get_duration_months().
+        """
+        if self.is_smoothed():
+            sequence: list[Decimal] = []
+            for schedule in PropertyLoanSchedule.objects.filter(loan=self).order_by(
+                "order"
+            ):
+                sequence.extend([schedule.amount.amount] * schedule.count)
+            return sequence
+
+        duration = self.get_duration_months()
+        if self.monthly_payment is None or duration <= 0:
+            return []
+        return [self.monthly_payment.amount] * duration
+
     def compute_monthly_payment(self) -> None:
-        """Compute and store monthly_payment and insurance from rates and duration."""
+        """Compute and store monthly_payment and insurance from rates and duration.
+
+        Only applies to standard (non-smoothed) loans.
+        """
+        if self.is_smoothed():
+            return
         duration = self.get_duration_months()
         if self.original_amount is None or self.interest_rate is None or duration <= 0:
             return
@@ -97,7 +130,12 @@ class PropertyLoan(BaseModel):
             self.insurance = Money(monthly_ins, currency)
 
     def taeg_rate(self) -> Decimal:
-        """Calculate the TAEG of the loan."""
+        """Calculate the TAEG of the loan.
+
+        For smoothed loans, returns 0 (TAEG is not meaningful with variable payments).
+        """
+        if self.is_smoothed():
+            return Decimal("0.0")
         if (
             self.start_date is None
             or self.end_date is None
@@ -118,36 +156,111 @@ class PropertyLoan(BaseModel):
         return Decimal(str(taeg))
 
     def remaining_balance(self, as_of_date: datetime.date | None = None) -> Money:
-        """Calculate the remaining balance on the loan as of a specific date."""
+        """Calculate the remaining balance on the loan as of a specific date.
+
+        For smoothed loans, simulates the real amortization month by month.
+        For standard loans, uses the same real amortization simulation.
+        """
+        from property.utils import build_loan_amortization_balance
+
         if as_of_date is None:
             as_of_date = datetime.date.today()
 
-        if (
-            self.start_date is None
-            or as_of_date < self.start_date
-            or self.end_date is None
-        ):
-            return Money(
-                self.original_amount.amount, str(self.original_amount.currency)
+        currency = str(self.original_amount.currency)
+        payment_sequence = self.get_payment_sequence()
+
+        if self.start_date is None:
+            return Money(self.original_amount.amount, currency)
+
+        if as_of_date < self.start_date:
+            return Money(self.original_amount.amount, currency)
+
+        if payment_sequence:
+            # For smoothed loans, derive the end date from the sequence length.
+            # This avoids incorrect full repayment when stored end_date is stale.
+            schedule_end_date = add_months_safe(self.start_date, len(payment_sequence))
+            if as_of_date >= schedule_end_date:
+                return Money(Decimal("0"), currency)
+        elif self.end_date is not None and as_of_date >= self.end_date:
+            return Money(Decimal("0"), currency)
+
+        if not payment_sequence:
+            if self.end_date is None:
+                return Money(self.original_amount.amount, currency)
+            # Fallback: linear approximation
+            total_months = self.get_duration_months()
+            months_passed = (as_of_date.year - self.start_date.year) * 12 + (
+                as_of_date.month - self.start_date.month
             )
+            months_passed = min(months_passed, total_months)
+            remaining_percentage = 1 - (months_passed / total_months)
+            remaining_amount = float(self.original_amount.amount) * remaining_percentage
+            return Money(Decimal(str(remaining_amount)), currency)
 
-        if as_of_date >= self.end_date:
-            return Money(0, str(self.original_amount.currency))
-
-        total_months = self.get_duration_months()
-        months_passed = (as_of_date.year - self.start_date.year) * 12 + (
+        months_elapsed = (as_of_date.year - self.start_date.year) * 12 + (
             as_of_date.month - self.start_date.month
         )
-        months_passed = min(months_passed, total_months)
+        months_elapsed = min(months_elapsed, len(payment_sequence))
 
-        remaining_percentage = 1 - (months_passed / total_months)
-        remaining_amount = float(self.original_amount.amount) * remaining_percentage
-        return Money(Decimal(str(remaining_amount)), str(self.original_amount.currency))
+        balance = build_loan_amortization_balance(
+            original_amount=self.original_amount.amount,
+            interest_rate=self.interest_rate,
+            payment_sequence=payment_sequence,
+            months_elapsed=months_elapsed,
+        )
+        return Money(max(Decimal("0"), balance), currency)
 
     def amount_paid(self) -> Money:
         """Calculate the amount paid on the loan as of today."""
         paid = self.original_amount.amount - self.remaining_balance().amount
         return Money(paid, str(self.original_amount.currency))
+
+
+class PropertyLoanSchedule(BaseModel):
+    """A single payment tranche in a smoothed loan (prêt lisseur).
+
+    A smoothed loan has N ordered tranches, each specifying how many consecutive
+    monthly payments are made at a given amount.
+
+    Example (PTH LISSEUR):
+        order=1, count=1,   amount=1804.90 EUR
+        order=2, count=118, amount=234.63  EUR
+        order=3, count=1,   amount=234.82  EUR
+        order=4, count=119, amount=724.39  EUR
+        order=5, count=1,   amount=721.72  EUR
+    """
+
+    class Meta:
+        verbose_name = _("loan schedule tranche")
+        verbose_name_plural = _("loan schedule tranches")
+        ordering = ["loan", "order"]
+        unique_together = [("loan", "order")]
+
+    loan = models.ForeignKey(
+        PropertyLoan,
+        related_name="schedules",
+        on_delete=models.CASCADE,
+        verbose_name=_("Loan"),
+    )
+    order = models.PositiveSmallIntegerField(
+        verbose_name=_("Order"),
+        help_text=_("Position of this tranche in the payment sequence (1 = first)."),
+        validators=[MinValueValidator(1)],
+    )
+    count = models.PositiveIntegerField(
+        verbose_name=_("Number of payments"),
+        help_text=_("How many consecutive monthly payments at this amount."),
+        validators=[MinValueValidator(1)],
+    )
+    amount = MoneyField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name=_("Payment amount"),
+        help_text=_("Monthly payment amount for this tranche (principal + interest)."),
+    )
+
+    def __str__(self) -> str:
+        return f"{self.loan} — tranche {self.order}: {self.count}× {self.amount}"
 
 
 class Property(BaseModel):
@@ -205,6 +318,11 @@ class Property(BaseModel):
         blank=True,
         verbose_name=_("Floor area (m²)"),
     )
+    number_of_rooms = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Number of rooms"),
+    )
     is_furnished = models.BooleanField(
         default=True,
         verbose_name=_("Furnished"),
@@ -223,6 +341,17 @@ class Property(BaseModel):
         if hasattr(self.buying_value, "currency"):
             return str(self.buying_value.currency)
         return settings.DEFAULT_CURRENCY
+
+    @property
+    def icon(self) -> str:
+        """Return the icon name corresponding to the property type."""
+        return {
+            self.HOUSE: "house",
+            self.APARTMENT: "building",
+            self.CONDO: "building",
+            self.LAND: "tree",
+            self.OTHER: "question-circle",
+        }.get(self.property_type, "building")
 
     def get_value(self, max_date: datetime.datetime | None = None) -> Money:
         """Get the value of the property at a specific date."""
