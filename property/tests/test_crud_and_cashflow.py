@@ -22,7 +22,6 @@ from property.models import (
 )
 from property.services.cashflow import build_balance_sheet
 
-
 # ─── Shared helpers ───────────────────────────────────────────────────────────
 
 

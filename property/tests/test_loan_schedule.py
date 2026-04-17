@@ -9,7 +9,6 @@ from moneyed import Money
 from property.models import Property, PropertyLoan, PropertyLoanSchedule
 from property.utils import build_loan_amortization_balance, build_loan_monthly_maps
 
-
 # ─── Fixtures ────────────────────────────────────────────────────────────────
 
 

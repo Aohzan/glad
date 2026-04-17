@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-16 23:00+0200\n"
+"POT-Creation-Date: 2026-04-17 13:01+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -347,9 +347,9 @@ msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
 #: finance/views/csv_views.py:340 finance/views/update_views.py:335
-#: property/views/crud_views.py:111 property/views/crud_views.py:165
-#: property/views/crud_views.py:208 property/views/crud_views.py:245
-#: property/views/crud_views.py:273 property/views/edit_views.py:74
+#: property/views/crud_views.py:110 property/views/crud_views.py:164
+#: property/views/crud_views.py:207 property/views/crud_views.py:244
+#: property/views/crud_views.py:272 property/views/edit_views.py:90
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
 
@@ -468,158 +468,158 @@ msgstr "Durée (mois)"
 msgid "e.g. 240 for 20 years"
 msgstr "ex. 240 pour 20 ans"
 
-#: property/models/asset.py:25
+#: property/models/asset.py:22
 msgid "property loan"
 msgstr "prêt immobilier"
 
-#: property/models/asset.py:26
+#: property/models/asset.py:23
 msgid "property loans"
 msgstr "prêts immobiliers"
 
-#: property/models/asset.py:36 templates/property/detail.html:631
+#: property/models/asset.py:33 templates/property/detail.html:631
 msgid "Lender"
 msgstr "Prêteur"
 
-#: property/models/asset.py:38
+#: property/models/asset.py:35
 msgid "Start Date"
 msgstr "Date de début"
 
-#: property/models/asset.py:39
+#: property/models/asset.py:36
 msgid "End Date"
 msgstr "Date de fin"
 
-#: property/models/asset.py:41
+#: property/models/asset.py:38
 msgid "Original Amount"
 msgstr "Montant initial"
 
-#: property/models/asset.py:48
+#: property/models/asset.py:45
 msgid "Monthly Payment"
 msgstr "Mensualité"
 
-#: property/models/asset.py:55
+#: property/models/asset.py:52
 msgid "Interest Rate (%)"
 msgstr "Taux d'intérêt (%)"
 
-#: property/models/asset.py:62
+#: property/models/asset.py:59
 msgid "Insurance Rate (%)"
 msgstr "Taux d'assurance (%)"
 
-#: property/models/asset.py:69
+#: property/models/asset.py:66
 msgid "Monthly Insurance"
 msgstr "Assurance mensuelle"
 
-#: property/models/asset.py:234
+#: property/models/asset.py:231
 msgid "loan schedule tranche"
 msgstr "versement de prêt"
 
-#: property/models/asset.py:235
+#: property/models/asset.py:232
 msgid "loan schedule tranches"
 msgstr "versements de prêts personnalisé"
 
-#: property/models/asset.py:243 templates/property/edit.html:196
+#: property/models/asset.py:240 templates/property/edit.html:196
 msgid "Loan"
 msgstr "Prêt"
 
-#: property/models/asset.py:246 templates/property/edit.html:379
+#: property/models/asset.py:243 templates/property/edit.html:379
 msgid "Order"
 msgstr "Ordre"
 
-#: property/models/asset.py:247
+#: property/models/asset.py:244
 msgid "Position of this tranche in the payment sequence (1 = first)."
 msgstr "Posititon du versement (1 = premier)"
 
-#: property/models/asset.py:251
+#: property/models/asset.py:248
 msgid "Number of payments"
 msgstr "Nombre de mensualité"
 
-#: property/models/asset.py:252
+#: property/models/asset.py:249
 msgid "How many consecutive monthly payments at this amount."
 msgstr "Combien de mensualité consécutives pour ce moement."
 
-#: property/models/asset.py:258
+#: property/models/asset.py:255
 msgid "Payment amount"
 msgstr "Montant de paiement"
 
-#: property/models/asset.py:259
+#: property/models/asset.py:256
 msgid "Monthly payment amount for this tranche (principal + interest)."
 msgstr "Mensualité pour ce versement (capital + intérêts)"
 
-#: property/models/asset.py:277
+#: property/models/asset.py:274
 msgid "House"
 msgstr "Maison"
 
-#: property/models/asset.py:278
+#: property/models/asset.py:275
 msgid "Apartment"
 msgstr "Appartement"
 
-#: property/models/asset.py:279
+#: property/models/asset.py:276
 msgid "Condo"
 msgstr "Condo"
 
-#: property/models/asset.py:280
+#: property/models/asset.py:277
 msgid "Land"
 msgstr "Terrain"
 
-#: property/models/asset.py:281 property/models/lease.py:44
+#: property/models/asset.py:278 property/models/lease.py:44
 #: property/models/ledger.py:76 templates/property/detail.html:817
 #: templates/property/detail.html:1042
 msgid "Other"
 msgstr "Autre"
 
-#: property/models/asset.py:288
+#: property/models/asset.py:285
 msgid "Property Type"
 msgstr "Type de propriété"
 
-#: property/models/asset.py:296
+#: property/models/asset.py:293
 msgid "Buying Value"
 msgstr "Valeur d'achat"
 
-#: property/models/asset.py:297
+#: property/models/asset.py:294
 msgid "The value of the property at the time of purchase."
 msgstr "La valeur de la propriété au moment de l'achat"
 
-#: property/models/asset.py:307
+#: property/models/asset.py:304
 msgid "Number of shares in the property (if applicable)"
 msgstr "Nombre de part dans la propriété (si applicable)"
 
-#: property/models/asset.py:309
+#: property/models/asset.py:306
 msgid "Buying Date"
 msgstr "Date d'achat"
 
-#: property/models/asset.py:311
+#: property/models/asset.py:308
 msgid "Selling Date"
 msgstr "Date de vente"
 
-#: property/models/asset.py:319
+#: property/models/asset.py:316
 msgid "Floor area (m²)"
 msgstr "Surface habitable (m²)"
 
-#: property/models/asset.py:324 templates/property/detail.html:570
+#: property/models/asset.py:321 templates/property/detail.html:570
 msgid "Number of rooms"
 msgstr "Nombre de pièces"
 
-#: property/models/asset.py:328 property/models/lease.py:41
+#: property/models/asset.py:325 property/models/lease.py:41
 #: templates/property/detail.html:576
 msgid "Furnished"
 msgstr "Meublé"
 
-#: property/models/asset.py:329
+#: property/models/asset.py:326
 msgid "Whether the property is rented furnished (LMNP meublé)."
 msgstr "Si le bien est loué meublé (LMNP meublé)."
 
-#: property/models/asset.py:336
+#: property/models/asset.py:333
 msgid "property"
 msgstr "Propriété"
 
-#: property/models/asset.py:337
+#: property/models/asset.py:334
 msgid "properties"
 msgstr "Propriétés"
 
-#: property/models/asset.py:450
+#: property/models/asset.py:447
 msgid "property value"
 msgstr "Valeur de propriété"
 
-#: property/models/asset.py:451
+#: property/models/asset.py:448
 msgid "property values"
 msgstr "Valeurs de propriétés"
 
@@ -1085,66 +1085,66 @@ msgstr "actif"
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
-#: property/views/crud_views.py:36
+#: property/views/crud_views.py:35
 msgid "Property not found."
 msgstr "Propriété introuvable."
 
-#: property/views/crud_views.py:51
+#: property/views/crud_views.py:50
 #, python-format
 msgid "%(name)s not found."
 msgstr "%(name)s introuvable."
 
-#: property/views/crud_views.py:62 property/views/crud_views.py:128
-#: property/views/crud_views.py:177 property/views/crud_views.py:222
-#: property/views/crud_views.py:289
+#: property/views/crud_views.py:61 property/views/crud_views.py:127
+#: property/views/crud_views.py:176 property/views/crud_views.py:221
+#: property/views/crud_views.py:288
 msgid "Invalid request method."
 msgstr "Méthode de requête invalide."
 
-#: property/views/crud_views.py:74
+#: property/views/crud_views.py:73
 msgid "Valuation not found."
 msgstr "Évaluation introuvable."
 
-#: property/views/crud_views.py:78
+#: property/views/crud_views.py:77
 msgid "Property valuation deleted successfully."
 msgstr "Évaluation de propriété supprimée avec succès."
 
-#: property/views/crud_views.py:97 property/views/crud_views.py:139
+#: property/views/crud_views.py:96 property/views/crud_views.py:138
 msgid "Entry"
 msgstr "Écriture"
 
-#: property/views/crud_views.py:109
+#: property/views/crud_views.py:108
 msgid "Entry updated successfully."
 msgstr "Écriture mise à jour avec succès."
 
-#: property/views/crud_views.py:148
+#: property/views/crud_views.py:147
 msgid "Entry deleted successfully."
 msgstr "Écriture supprimée avec succès."
 
-#: property/views/crud_views.py:163
+#: property/views/crud_views.py:162
 msgid "Tenant saved."
 msgstr "Locataire enregistré."
 
-#: property/views/crud_views.py:182
+#: property/views/crud_views.py:181
 msgid "Tenant deleted successfully."
 msgstr "Locataire supprimée avec succès."
 
-#: property/views/crud_views.py:206
+#: property/views/crud_views.py:205
 msgid "Lease saved."
 msgstr "Bail enregistré."
 
-#: property/views/crud_views.py:228
+#: property/views/crud_views.py:227
 msgid "Lease deleted successfully."
 msgstr "Bail supprimée avec succès."
 
-#: property/views/crud_views.py:243
+#: property/views/crud_views.py:242
 msgid "Manager saved."
 msgstr "Gestionnaire enregistré."
 
-#: property/views/crud_views.py:271
+#: property/views/crud_views.py:270
 msgid "Mandate saved."
 msgstr "Mandat enregistré."
 
-#: property/views/crud_views.py:295
+#: property/views/crud_views.py:294
 msgid "Mandate deleted successfully."
 msgstr "Mandat supprimé avec succès."
 
@@ -1168,7 +1168,7 @@ msgstr "Impossible d'ajouter l'écriture."
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 
-#: property/views/edit_views.py:71
+#: property/views/edit_views.py:87
 msgid "Property updated successfully."
 msgstr "Propriété mise à jour avec succès."
 
@@ -1308,7 +1308,7 @@ msgstr "Mise à jour"
 #: templates/admin/bulk_update_date.html:28
 #: templates/finance/csv_mapping.html:76 templates/property/detail.html:731
 #: templates/property/detail.html:865 templates/property/detail.html:1109
-#: templates/property/detail.html:1139 templates/property/edit.html:449
+#: templates/property/detail.html:1139 templates/property/edit.html:451
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -2031,7 +2031,7 @@ msgid "Gross yield (annualised)"
 msgstr "Rendement brut (annualisé)"
 
 #: templates/property/detail.html:440 templates/property/detail.html:473
-#: templates/property/detail.html:506 templates/property/edit.html:631
+#: templates/property/detail.html:506
 msgid "Total"
 msgstr "Total"
 
@@ -2144,13 +2144,12 @@ msgstr "assur."
 msgid "mo."
 msgstr "mo."
 
-#: templates/property/detail.html:672 templates/property/edit.html:591
-#: templates/property/edit.html:627
+#: templates/property/detail.html:672 templates/property/edit.html:593
 msgid "yr"
 msgstr "an"
 
 #: templates/property/detail.html:679 templates/property/edit.html:314
-#: templates/property/edit.html:640
+#: templates/property/edit.html:665
 msgid "Total repaid"
 msgstr "Total remboursé"
 
@@ -2357,46 +2356,37 @@ msgstr ""
 msgid "Count"
 msgstr "Nombre"
 
-#: templates/property/edit.html:434
+#: templates/property/edit.html:436
 msgid ""
 "Save the loan first, then add payment schedule tranches for a smoothed loan "
 "(prêt lisseur)."
 msgstr "Enregistrer le prêt en premier afin de pouvoir définir un lissement"
 
-#: templates/property/edit.html:452
+#: templates/property/edit.html:454
 msgid "Save Changes"
 msgstr "Enregistrer les modifications"
 
-#: templates/property/edit.html:569
+#: templates/property/edit.html:571
 msgid "principal+interest"
 msgstr "capital+intérêts"
 
-#: templates/property/edit.html:569
+#: templates/property/edit.html:571
 msgid "insurance"
 msgstr "assurance"
 
-#: templates/property/edit.html:592 templates/property/edit.html:628
+#: templates/property/edit.html:594
 msgid "mo"
 msgstr "mois"
 
-#: templates/property/edit.html:624 templates/property/edit.html:659
-#: templates/property/edit.html:662
-msgid "payments"
-msgstr "paiements"
+#: templates/property/edit.html:624
+msgid "Total payments"
+msgstr "Total paiements"
 
-#: templates/property/edit.html:656
-msgid "Complete"
-msgstr "Complet"
+#: templates/property/edit.html:686
+msgid "difference of"
+msgstr "différence de"
 
-#: templates/property/edit.html:659
-msgid "Missing"
-msgstr "Manquant"
-
-#: templates/property/edit.html:662
-msgid "Excess"
-msgstr "Excédent"
-
-#: templates/property/edit.html:754
+#: templates/property/edit.html:782
 msgid "Remove"
 msgstr "Supprimer"
 

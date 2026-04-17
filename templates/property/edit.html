@@ -418,10 +418,12 @@
                   </div>
 
                   <div class="schedule-summary small mt-2">
-                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <div class="d-flex flex-wrap gap-1 align-items-center">
                       <span class="schedule-total-count text-muted"></span>
-                      <span class="schedule-total-amount fw-semibold"></span>
-                      <span class="schedule-missing-amount"></span>
+                      <span class="schedule-diff-count"></span>
+                    </div>
+                    <div class="mt-1">
+                      <span class="schedule-total-amount"></span>
                     </div>
                   </div>
                 </div>
@@ -542,8 +544,8 @@ function updateLoanPreview(loanFormEl) {
       scheduleTable.querySelectorAll('tbody tr.schedule-row').forEach(row => {
         const deleteCheck = row.querySelector('input[type="checkbox"][id*="DELETE"]');
         if (deleteCheck && deleteCheck.checked) return;
-        const countInput = row.querySelector('input[id*="count"]');
-        const amountRowInput = row.querySelector('input[id*="amount_0"], input[id*="amount"][type="number"]');
+        const countInput = row.querySelector('input[name$="-count"], input[id*="count"]');
+        const amountRowInput = row.querySelector('input[name$="-amount_0"], input[id*="amount_0"], input[id*="amount"][type="number"]');
         const count = parseInt(countInput ? countInput.value : 0) || 0;
         const amt = parseDecimal(amountRowInput ? amountRowInput.value : 0) || 0;
         smoothedTotal += count * amt;
@@ -551,7 +553,7 @@ function updateLoanPreview(loanFormEl) {
     }
     if (smoothedTotal > 0) {
       previewEl.classList.remove('d-none');
-      if (previewTotalRepaid) previewTotalRepaid.textContent = formatMoney(smoothedTotal);
+      if (previewTotalRepaid) previewTotalRepaid.textContent = formatMoney(Math.round(smoothedTotal));
     } else {
       previewEl.classList.add('d-none');
     }
@@ -601,15 +603,15 @@ function updateScheduleSummary(tableEl) {
   if (!loanFormEl) return;
   const countSummaryEl = loanFormEl.querySelector('.schedule-total-count');
   const amountSummaryEl = loanFormEl.querySelector('.schedule-total-amount');
-  const missingEl = loanFormEl.querySelector('.schedule-missing-amount');
+  const diffCountEl = loanFormEl.querySelector('.schedule-diff-count');
 
   let totalCount = 0;
   let totalAmount = 0;
   tableEl.querySelectorAll('tbody tr.schedule-row').forEach(row => {
     const deleteCheck = row.querySelector('input[type="checkbox"][id*="DELETE"]');
     if (deleteCheck && deleteCheck.checked) return;
-    const countInput = row.querySelector('input[id*="count"]');
-    const amountInput = row.querySelector('input[id*="amount_0"], input[id*="amount"][type="number"]');
+    const countInput = row.querySelector('input[name$="-count"], input[id*="count"]');
+    const amountInput = row.querySelector('input[name$="-amount_0"], input[id*="amount_0"], input[id*="amount"][type="number"]');
     const count = parseInt(countInput ? countInput.value : 0) || 0;
     const amount = parseDecimal(amountInput ? amountInput.value : 0) || 0;
     totalCount += count;
@@ -619,51 +621,73 @@ function updateScheduleSummary(tableEl) {
   // Count summary
   if (countSummaryEl) {
     if (totalCount > 0) {
-      const years = Math.floor(totalCount / 12);
-      const rem = totalCount % 12;
-      let label = totalCount + ' {% translate "payments" %}';
-      if (years > 0 || rem > 0) {
-        label += ' (';
-        if (years > 0) label += years + ' {% translate "yr" %}';
-        if (rem > 0) label += (years > 0 ? ' ' : '') + rem + ' {% translate "mo" %}';
-        label += ')';
-      }
-      countSummaryEl.textContent = '{% translate "Total" %}: ' + label;
+      countSummaryEl.textContent = '{% translate "Total payments" %}: ' + totalCount;
     } else {
       countSummaryEl.textContent = '';
     }
   }
 
-  // Amount summary: total repaid to the bank (principal + interest over the full loan)
+  // Amount summary: total repaid for smoothed loan vs regular loan
   if (amountSummaryEl) {
     if (totalAmount > 0) {
-      amountSummaryEl.textContent = '{% translate "Total repaid" %}: ' + formatMoney(totalAmount);
+      // Get loan parameters to calculate regular loan equivalent
+      const amountInput = loanFormEl.querySelector('input[id*="original_amount_0"], input[id$="original_amount"]');
+      const rateInput = loanFormEl.querySelector('input[id*="interest_rate"]');
+      const insuranceRateInput = loanFormEl.querySelector('input[id*="insurance_rate"]');
+      const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+
+      const amount = parseDecimal(amountInput ? amountInput.value : 0);
+      const rate = parseDecimal(rateInput ? rateInput.value : 0) || 0;
+      const insuranceRate = parseDecimal(insuranceRateInput ? insuranceRateInput.value : 0) || 0;
+      const duration = parseInt(durationInput ? durationInput.value : 0);
+
+      // Calculate regular loan total repaid
+      const regularLoanResult = computeLoanPreview(amount, rate, insuranceRate, duration);
+      const roundedTotal = Math.round(totalAmount);
+      let diffHtml = '';
+
+      if (regularLoanResult && duration > 0) {
+        const regularTotal = Math.round(regularLoanResult.total * duration);
+        const diff = roundedTotal - regularTotal;
+        const diffPct = regularTotal > 0 ? Math.abs(diff) / regularTotal : 0;
+        if (diffPct > 0.05) {
+          const sign = diff > 0 ? '+' : '';
+          diffHtml = ` <span class="fw-semibold text-danger">(<i class="bi bi-exclamation-triangle"></i> ${sign}${formatMoney(diff)} / ${sign}${(diffPct * 100).toFixed(1)}%)</span>`;
+        } else if (diff !== 0) {
+          const sign = diff > 0 ? '+' : '';
+          diffHtml = ` <span class="fw-semibold text-warning">(<i class="bi bi-exclamation-triangle"></i> ${sign}${formatMoney(diff)})</span>`;
+        } else {
+          diffHtml = ` <span class="text-success"><i class="bi bi-check-circle"></i></span>`;
+        }
+      }
+
+      amountSummaryEl.classList.remove('text-success', 'text-warning', 'text-danger', 'text-muted');
+      amountSummaryEl.innerHTML = '<span class="text-muted">{% translate "Total repaid" %}: </span>' + formatMoney(roundedTotal) + diffHtml;
     } else {
-      amountSummaryEl.textContent = '';
+      amountSummaryEl.classList.remove('text-success', 'text-warning', 'text-danger');
+      amountSummaryEl.innerHTML = '';
     }
   }
 
   // Completeness check: compare total payment count vs loan duration in months.
   // The monetary schedule total (sum of all payments) is always greater than the
   // original capital because it includes interest — comparing them is meaningless.
-  if (missingEl) {
+  if (diffCountEl) {
     const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
     const loanDurationMonths = parseInt(durationInput ? durationInput.value : 0) || 0;
     if (loanDurationMonths > 0 && totalCount > 0) {
       const countDiff = loanDurationMonths - totalCount;
+      diffCountEl.classList.remove('text-success', 'text-warning', 'fw-semibold');
       if (countDiff === 0) {
-        missingEl.className = 'schedule-missing-amount text-success fw-semibold';
-        missingEl.innerHTML = '<i class="bi bi-check-circle"></i> {% translate "Complete" %}';
-      } else if (countDiff > 0) {
-        missingEl.className = 'schedule-missing-amount text-warning fw-semibold';
-        missingEl.innerHTML = '<i class="bi bi-exclamation-triangle"></i> {% translate "Missing" %}: ' + countDiff + ' {% translate "payments" %}';
+        diffCountEl.classList.add('text-success', 'fw-semibold');
+        diffCountEl.innerHTML = '<i class="bi bi-check-circle"></i>';
       } else {
-        missingEl.className = 'schedule-missing-amount text-danger fw-semibold';
-        missingEl.innerHTML = '<i class="bi bi-exclamation-circle"></i> {% translate "Excess" %}: +' + Math.abs(countDiff) + ' {% translate "payments" %}';
+        diffCountEl.classList.add('text-warning', 'fw-semibold');
+        diffCountEl.innerHTML = '(<i class="bi bi-exclamation-triangle"></i> {% translate "difference of" %} ' + countDiff + ')';
       }
     } else {
-      missingEl.className = 'schedule-missing-amount';
-      missingEl.textContent = '';
+      diffCountEl.classList.remove('text-success', 'text-warning', 'fw-semibold');
+      diffCountEl.textContent = '';
     }
   }
 
@@ -719,6 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateScheduleSummary(tableEl);
     tableEl.addEventListener('input', () => updateScheduleSummary(tableEl));
     tableEl.addEventListener('change', () => updateScheduleSummary(tableEl));
+    tableEl.addEventListener('keyup', () => updateScheduleSummary(tableEl));
   });
 
   // Add tranche button: add a new empty row and increment TOTAL_FORMS
@@ -730,14 +755,17 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!tbody || !totalFormsInput) return;
 
       const newIndex = parseInt(totalFormsInput.value);
+      const activeRowsCount = tbody.querySelectorAll('tr.schedule-row').length;
+      const nextOrder = activeRowsCount + 1;
 
       // Build a new empty row with a remove button (not a Django DELETE checkbox)
       const tr = document.createElement('tr');
       tr.className = 'schedule-row';
       tr.innerHTML = `
         <td>
+          <input type="hidden" name="${prefix}-${newIndex}-id" id="id_${prefix}-${newIndex}-id">
           <input type="number" name="${prefix}-${newIndex}-order" id="id_${prefix}-${newIndex}-order"
-                 class="form-control" min="1" value="${newIndex + 1}" placeholder="1">
+                 class="form-control" min="1" value="${nextOrder}" placeholder="1">
         </td>
         <td>
           <input type="number" name="${prefix}-${newIndex}-count" id="id_${prefix}-${newIndex}-count"

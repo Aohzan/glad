@@ -1,10 +1,12 @@
 # TODO
 
-## Property / Schedule loans and computed returnal value issues
+## General issues
 
+- The money input forms are shown as two inputs, one for the amount and one for the currency. THere is an issue with bootstrap I think, where both take a full line, so are on two lines. Fix it by using bootstrap input group
 
 ## Property / Accounting
 
+- Create the non existing accounting view
 - Generate a report for one or many properties, with the following data:
   - Total income and expenses for a given period
   - A breakdown of income and expenses by category
