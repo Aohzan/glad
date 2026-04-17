@@ -207,8 +207,9 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # interest_rate is optional for smoothed loans
+        # interest_rate and insurance_rate are optional (default to 0)
         self.fields["interest_rate"].required = False
+        self.fields["insurance_rate"].required = False
         # Pre-fill duration_months from existing instance
         if self.instance and self.instance.pk:
             duration = self.instance.get_duration_months()
@@ -253,6 +254,9 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             instance.monthly_payment = self.cleaned_data["monthly_payment"]
         if "insurance" in self.cleaned_data:
             instance.insurance = self.cleaned_data["insurance"]
+        # insurance_rate defaults to 0 if not provided
+        if instance.insurance_rate is None:
+            instance.insurance_rate = Decimal("0")
         if commit:
             instance.save()
         return instance

@@ -346,7 +346,7 @@
                   </div>
                 {% endif %}
 
-                <div {% if not is_smoothed %}id="schedule-collapse-{{ schedule_formset.prefix }}" class="collapse"{% endif %}>
+                <div {% if not is_smoothed %}id="schedule-collapse-{{ schedule_formset.prefix }}" class="collapse{% if schedule_formset.errors or schedule_formset.non_form_errors %} show{% endif %}"{% endif %}>
                   {{ schedule_formset.management_form }}
 
                   {% if schedule_formset.non_form_errors %}
@@ -384,7 +384,7 @@
                       </thead>
                       <tbody id="schedule-body-{{ schedule_formset.prefix }}">
                         {% for sform in schedule_formset %}
-                          {% if sform.instance.pk or not sform.empty_permitted %}
+                          {% if sform.instance.pk or not sform.empty_permitted or sform.errors %}
                           <tr class="schedule-row{% if sform.instance.pk %} existing-schedule{% endif %}">
                             <td>
                               {{ sform.id }}
@@ -769,7 +769,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </td>
         <td>
           <input type="number" name="${prefix}-${newIndex}-count" id="id_${prefix}-${newIndex}-count"
-                 class="form-control" min="1" placeholder="1">
+                 class="form-control" min="1" placeholder="1" value="1">
         </td>
         <td>
           <div class="input-group">
