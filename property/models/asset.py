@@ -47,16 +47,14 @@ class PropertyLoan(BaseModel):
     interest_rate = models.DecimalField(
         max_digits=5,
         decimal_places=2,
-        null=True,
-        blank=True,
-        verbose_name=_("Interest Rate (%)"),
+        default=Decimal("0.0"),
+        verbose_name=_("Interest Rate"),
     )
     insurance_rate = models.DecimalField(
         max_digits=5,
         decimal_places=2,
-        null=True,
-        blank=True,
-        verbose_name=_("Insurance Rate (%)"),
+        default=Decimal("0.0"),
+        verbose_name=_("Insurance Rate"),
     )
     insurance = MoneyField(
         max_digits=10,

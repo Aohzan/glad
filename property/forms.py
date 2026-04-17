@@ -6,6 +6,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
+from base.forms import MoneyInputGroupMixin
 from property.models import (
     Lease,
     LeaseTenant,
@@ -47,7 +48,7 @@ def _recurrence_end_field(with_class: bool = False) -> forms.DateField:
 # ─── Property value ──────────────────────────────────────────────────────────
 
 
-class PropertyValueQuickCreateForm(forms.ModelForm):
+class PropertyValueQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
     """Quick create form for property value updates."""
 
     class Meta:
@@ -63,7 +64,7 @@ class PropertyValueQuickCreateForm(forms.ModelForm):
 # ─── Ledger entries (unified income + expense) ────────────────────────────────
 
 
-class PropertyLedgerEntryQuickCreateForm(forms.ModelForm):
+class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
     """Quick create form for ledger entries (modal on detail view)."""
 
     entry_date = _date_field(with_class=True)
@@ -98,7 +99,7 @@ class PropertyLedgerEntryQuickCreateForm(forms.ModelForm):
         }
 
 
-class PropertyLedgerEntryEditForm(forms.ModelForm):
+class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
     """Full edit form for ledger entries."""
 
     entry_date = _date_field(with_class=True)
@@ -143,7 +144,7 @@ class PropertyLedgerEntryEditForm(forms.ModelForm):
 # ─── Property ─────────────────────────────────────────────────────────────────
 
 
-class PropertyEditForm(forms.ModelForm):
+class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
     """Form for editing property details."""
 
     class Meta:
@@ -170,7 +171,7 @@ class PropertyEditForm(forms.ModelForm):
         }
 
 
-class PropertyLoanForm(forms.ModelForm):
+class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
     """Form for editing property loan details.
 
     For standard loans, monthly_payment and insurance are computed automatically
@@ -257,7 +258,7 @@ class PropertyLoanForm(forms.ModelForm):
         return instance
 
 
-class PropertyLoanScheduleForm(forms.ModelForm):
+class PropertyLoanScheduleForm(MoneyInputGroupMixin, forms.ModelForm):
     """Form for a single payment tranche of a smoothed loan (prêt lisseur)."""
 
     class Meta:
@@ -276,7 +277,7 @@ class PropertyLoanScheduleForm(forms.ModelForm):
 # ─── Lease ────────────────────────────────────────────────────────────────────
 
 
-class LeaseForm(forms.ModelForm):
+class LeaseForm(MoneyInputGroupMixin, forms.ModelForm):
     """Form for creating and editing a lease."""
 
     class Meta:
@@ -342,7 +343,7 @@ class PropertyManagerForm(forms.ModelForm):
         }
 
 
-class ManagementMandateForm(forms.ModelForm):
+class ManagementMandateForm(MoneyInputGroupMixin, forms.ModelForm):
     """Form for creating and editing a management mandate."""
 
     class Meta:

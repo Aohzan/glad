@@ -2,8 +2,6 @@
 
 ## General issues
 
-- The money input forms are shown as two inputs, one for the amount and one for the currency. THere is an issue with bootstrap I think, where both take a full line, so are on two lines. Fix it by using bootstrap input group
-
 ## Property / Accounting
 
 - Create the non existing accounting view

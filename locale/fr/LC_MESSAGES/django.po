@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-17 13:01+0200\n"
+"POT-Creation-Date: 2026-04-17 14:22+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -444,27 +444,27 @@ msgstr "Anglais"
 msgid "French"
 msgstr "Français"
 
-#: property/forms.py:31 property/models/ledger.py:135 templates/index.html:337
+#: property/forms.py:32 property/models/ledger.py:135 templates/index.html:337
 #: templates/property/detail.html:191 templates/property/detail.html:239
 #: templates/property/detail.html:781 templates/property/detail.html:888
 #: templates/property/detail.html:987 templates/property/detail.html:1220
 msgid "Date"
 msgstr "Date"
 
-#: property/forms.py:43
+#: property/forms.py:44
 msgid "Recurrence End Date"
 msgstr "Date de fin de récurrence"
 
-#: property/forms.py:112 property/models/ledger.py:141
+#: property/forms.py:113 property/models/ledger.py:141
 #: templates/property/detail.html:998
 msgid "Reference period"
 msgstr "Période de référence"
 
-#: property/forms.py:187
+#: property/forms.py:188
 msgid "Duration (months)"
 msgstr "Durée (mois)"
 
-#: property/forms.py:188
+#: property/forms.py:189
 msgid "e.g. 240 for 20 years"
 msgstr "ex. 240 pour 20 ans"
 
@@ -496,130 +496,130 @@ msgstr "Montant initial"
 msgid "Monthly Payment"
 msgstr "Mensualité"
 
-#: property/models/asset.py:52
-msgid "Interest Rate (%)"
-msgstr "Taux d'intérêt (%)"
+#: property/models/asset.py:51
+msgid "Interest Rate"
+msgstr "Taux d'intérêt"
 
-#: property/models/asset.py:59
-msgid "Insurance Rate (%)"
-msgstr "Taux d'assurance (%)"
+#: property/models/asset.py:57
+msgid "Insurance Rate"
+msgstr "Taux d'assurance"
 
-#: property/models/asset.py:66
+#: property/models/asset.py:64
 msgid "Monthly Insurance"
 msgstr "Assurance mensuelle"
 
-#: property/models/asset.py:231
+#: property/models/asset.py:229
 msgid "loan schedule tranche"
 msgstr "versement de prêt"
 
-#: property/models/asset.py:232
+#: property/models/asset.py:230
 msgid "loan schedule tranches"
 msgstr "versements de prêts personnalisé"
 
-#: property/models/asset.py:240 templates/property/edit.html:196
+#: property/models/asset.py:238 templates/property/edit.html:196
 msgid "Loan"
 msgstr "Prêt"
 
-#: property/models/asset.py:243 templates/property/edit.html:379
+#: property/models/asset.py:241 templates/property/edit.html:379
 msgid "Order"
 msgstr "Ordre"
 
-#: property/models/asset.py:244
+#: property/models/asset.py:242
 msgid "Position of this tranche in the payment sequence (1 = first)."
 msgstr "Posititon du versement (1 = premier)"
 
-#: property/models/asset.py:248
+#: property/models/asset.py:246
 msgid "Number of payments"
 msgstr "Nombre de mensualité"
 
-#: property/models/asset.py:249
+#: property/models/asset.py:247
 msgid "How many consecutive monthly payments at this amount."
 msgstr "Combien de mensualité consécutives pour ce moement."
 
-#: property/models/asset.py:255
+#: property/models/asset.py:253
 msgid "Payment amount"
 msgstr "Montant de paiement"
 
-#: property/models/asset.py:256
+#: property/models/asset.py:254
 msgid "Monthly payment amount for this tranche (principal + interest)."
 msgstr "Mensualité pour ce versement (capital + intérêts)"
 
-#: property/models/asset.py:274
+#: property/models/asset.py:272
 msgid "House"
 msgstr "Maison"
 
-#: property/models/asset.py:275
+#: property/models/asset.py:273
 msgid "Apartment"
 msgstr "Appartement"
 
-#: property/models/asset.py:276
+#: property/models/asset.py:274
 msgid "Condo"
 msgstr "Condo"
 
-#: property/models/asset.py:277
+#: property/models/asset.py:275
 msgid "Land"
 msgstr "Terrain"
 
-#: property/models/asset.py:278 property/models/lease.py:44
+#: property/models/asset.py:276 property/models/lease.py:44
 #: property/models/ledger.py:76 templates/property/detail.html:817
 #: templates/property/detail.html:1042
 msgid "Other"
 msgstr "Autre"
 
-#: property/models/asset.py:285
+#: property/models/asset.py:283
 msgid "Property Type"
 msgstr "Type de propriété"
 
-#: property/models/asset.py:293
+#: property/models/asset.py:291
 msgid "Buying Value"
 msgstr "Valeur d'achat"
 
-#: property/models/asset.py:294
+#: property/models/asset.py:292
 msgid "The value of the property at the time of purchase."
 msgstr "La valeur de la propriété au moment de l'achat"
 
-#: property/models/asset.py:304
+#: property/models/asset.py:302
 msgid "Number of shares in the property (if applicable)"
 msgstr "Nombre de part dans la propriété (si applicable)"
 
-#: property/models/asset.py:306
+#: property/models/asset.py:304
 msgid "Buying Date"
 msgstr "Date d'achat"
 
-#: property/models/asset.py:308
+#: property/models/asset.py:306
 msgid "Selling Date"
 msgstr "Date de vente"
 
-#: property/models/asset.py:316
+#: property/models/asset.py:314
 msgid "Floor area (m²)"
 msgstr "Surface habitable (m²)"
 
-#: property/models/asset.py:321 templates/property/detail.html:570
+#: property/models/asset.py:319 templates/property/detail.html:570
 msgid "Number of rooms"
 msgstr "Nombre de pièces"
 
-#: property/models/asset.py:325 property/models/lease.py:41
+#: property/models/asset.py:323 property/models/lease.py:41
 #: templates/property/detail.html:576
 msgid "Furnished"
 msgstr "Meublé"
 
-#: property/models/asset.py:326
+#: property/models/asset.py:324
 msgid "Whether the property is rented furnished (LMNP meublé)."
 msgstr "Si le bien est loué meublé (LMNP meublé)."
 
-#: property/models/asset.py:333
+#: property/models/asset.py:331
 msgid "property"
 msgstr "Propriété"
 
-#: property/models/asset.py:334
+#: property/models/asset.py:332
 msgid "properties"
 msgstr "Propriétés"
 
-#: property/models/asset.py:447
+#: property/models/asset.py:445
 msgid "property value"
 msgstr "Valeur de propriété"
 
-#: property/models/asset.py:448
+#: property/models/asset.py:446
 msgid "property values"
 msgstr "Valeurs de propriétés"
 
