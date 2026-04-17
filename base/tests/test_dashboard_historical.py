@@ -107,10 +107,15 @@ class DashboardHistoricalDataTest(TestCase):
                 ) * 12 + (self.loan.end_date.month - self.loan.start_date.month)
 
                 if months_since_start >= 0 and months_since_start <= total_months:
-                    remaining_percentage = 1 - (months_since_start / total_months)
-                    expected_loan_balance = (
+                    # With no interest rate set, amortization follows fixed
+                    # monthly principal payments (capped at zero balance).
+                    expected_loan_balance = max(
+                        0.0,
                         float(str(self.loan.original_amount.amount))
-                        * remaining_percentage
+                        - (
+                            float(str(self.loan.monthly_payment.amount))
+                            * months_since_start
+                        ),
                     )
                     expected_net_value = (
                         float(str(self.property.buying_value.amount))

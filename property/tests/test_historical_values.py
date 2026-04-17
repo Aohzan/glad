@@ -42,16 +42,13 @@ class PropertyHistoricalValuesTest(TestCase):
 
         # Test at 1 year later (12 months paid)
         one_year_later = self.loan.remaining_balance(datetime.date(2024, 1, 1))
-        # After 12 months of 120 total months, 10% should be paid
-        # Remaining should be 90% of original = 135000
-        expected_remaining = Decimal("150000") * Decimal("0.9")
+        # With zero interest, each monthly payment repays principal directly.
+        expected_remaining = Decimal("150000") - (Decimal("1500") * Decimal("12"))
         self.assertEqual(one_year_later.amount, expected_remaining)
 
         # Test at 5 years later (60 months paid)
         five_years_later = self.loan.remaining_balance(datetime.date(2028, 1, 1))
-        # After 60 months of 120 total months, 50% should be paid
-        # Remaining should be 50% of original = 75000
-        expected_remaining = Decimal("150000") * Decimal("0.5")
+        expected_remaining = Decimal("150000") - (Decimal("1500") * Decimal("60"))
         self.assertEqual(five_years_later.amount, expected_remaining)
 
         # Test at end date
@@ -70,12 +67,12 @@ class PropertyHistoricalValuesTest(TestCase):
 
         # Test at 1 year later
         one_year_net = self.property.net_value_at_date(datetime.date(2024, 1, 1))
-        expected_one_year_net = gross_value - Decimal("135000")  # 65000
+        expected_one_year_net = gross_value - Decimal("132000")
         self.assertEqual(one_year_net.amount, expected_one_year_net)
 
         # Test at 5 years later
         five_years_net = self.property.net_value_at_date(datetime.date(2028, 1, 1))
-        expected_five_years_net = gross_value - Decimal("75000")  # 125000
+        expected_five_years_net = gross_value - Decimal("60000")
         self.assertEqual(five_years_net.amount, expected_five_years_net)
 
         # Test at end date
@@ -93,9 +90,9 @@ class PropertyHistoricalValuesTest(TestCase):
 
         # Test progression over time
         dates_and_expected = [
-            (datetime.date(2024, 1, 1), Decimal("135000")),  # 1 year
-            (datetime.date(2025, 1, 1), Decimal("120000")),  # 2 years
-            (datetime.date(2028, 1, 1), Decimal("75000")),  # 5 years
+            (datetime.date(2024, 1, 1), Decimal("132000")),  # 1 year
+            (datetime.date(2025, 1, 1), Decimal("114000")),  # 2 years
+            (datetime.date(2028, 1, 1), Decimal("60000")),  # 5 years
             (datetime.date(2033, 1, 1), Decimal("0")),  # end
         ]
 

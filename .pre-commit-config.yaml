@@ -73,7 +73,7 @@ repos:
         types: [python]
       - id: pytest
         name: pytest
-        entry: bash -c 'ENV_FILE=./.env.dev uv run pytest --picked --cov || true'
+        entry: bash -c 'ENV_FILE=./.env.dev uv run pytest --picked --cov'
         exclude: ^migrations
         language: system
         types: [python]

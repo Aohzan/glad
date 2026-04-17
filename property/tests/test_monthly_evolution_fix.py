@@ -152,8 +152,14 @@ class MonthlyEvolutionFixTest(TestCase):
                     self.loan.end_date.year - self.loan.start_date.year
                 ) * 12 + (self.loan.end_date.month - self.loan.start_date.month)
 
-                remaining_percentage = 1 - (months_since_start / total_months)
-                expected_loan_balance = 400000 * remaining_percentage
+                self.assertGreater(total_months, 0)
+
+                # With zero interest configured in this fixture, each payment
+                # directly reduces principal.
+                expected_loan_balance = max(
+                    0,
+                    400000 - (2000 * months_since_start),
+                )
                 expected_net_value = 500000 - expected_loan_balance
 
                 # Get actual values
