@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-18 11:30+0200\n"
+"POT-Creation-Date: 2026-04-18 11:45+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -521,11 +521,11 @@ msgstr "versement de prêt"
 msgid "loan schedule tranches"
 msgstr "versements de prêts personnalisé"
 
-#: property/models/asset.py:241 templates/property/detail_panel_loans.html:122
+#: property/models/asset.py:241 templates/property/detail_panel_loans.html:138
 msgid "Loan"
 msgstr "Prêt"
 
-#: property/models/asset.py:244 templates/property/detail_panel_loans.html:272
+#: property/models/asset.py:244 templates/property/detail_panel_loans.html:288
 msgid "Order"
 msgstr "Ordre"
 
@@ -903,7 +903,7 @@ msgstr "Type de flux"
 #: templates/property/detail.html:319 templates/property/detail.html:532
 #: templates/property/detail.html:820
 #: templates/property/detail_panel_cashflow.html:32
-#: templates/property/detail_panel_loans.html:274
+#: templates/property/detail_panel_loans.html:290
 msgid "Amount"
 msgstr "Montant"
 
@@ -1070,23 +1070,23 @@ msgstr "Mandat enregistré."
 msgid "Mandate deleted successfully."
 msgstr "Mandat supprimé avec succès."
 
-#: property/views/detail_views.py:537
+#: property/views/detail_views.py:560
 msgid "Property value added."
 msgstr "Valeur de propriété ajoutée."
 
-#: property/views/detail_views.py:548
+#: property/views/detail_views.py:571
 msgid "Unable to add property value."
 msgstr "Impossible d'ajouter la valeur de propriété."
 
-#: property/views/detail_views.py:561
+#: property/views/detail_views.py:584
 msgid "Entry added."
 msgstr "Écriture ajoutée."
 
-#: property/views/detail_views.py:572
+#: property/views/detail_views.py:595
 msgid "Unable to add entry."
 msgstr "Impossible d'ajouter l'écriture."
 
-#: property/views/detail_views.py:576
+#: property/views/detail_views.py:599
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 
@@ -1766,7 +1766,7 @@ msgstr "Adresse non spécifiée"
 
 #: templates/property/detail.html:39 templates/property/detail.html:740
 #: templates/property/detail_panel_leases.html:29
-#: templates/property/detail_panel_loans.html:26
+#: templates/property/detail_panel_loans.html:27
 #: templates/property/detail_panel_mandate.html:23
 #: templates/property/edit.html:5
 msgid "Edit"
@@ -1906,8 +1906,8 @@ msgstr "Êtes-vous sûr de vouloir supprimer cette évaluation ?"
 #: templates/property/detail.html:741
 #: templates/property/detail_panel_leases.html:32
 #: templates/property/detail_panel_leases.html:92
-#: templates/property/detail_panel_loans.html:134
-#: templates/property/detail_panel_loans.html:275
+#: templates/property/detail_panel_loans.html:150
+#: templates/property/detail_panel_loans.html:291
 #: templates/property/detail_panel_mandate.html:26
 #: templates/property/detail_panel_mandate.html:79
 msgid "Delete"
@@ -2281,60 +2281,64 @@ msgstr "Durée"
 msgid "Total cost"
 msgstr "Coût total"
 
-#: templates/property/detail_panel_loans.html:35
+#: templates/property/detail_panel_loans.html:26
+msgid "Remaining"
+msgstr "Restant"
+
+#: templates/property/detail_panel_loans.html:36
+#: templates/property/detail_panel_loans.html:49
 msgid "Smoothed"
 msgstr "Lissé"
 
-#: templates/property/detail_panel_loans.html:44
-msgid "Variable"
-msgstr "Variable"
+#: templates/property/detail_panel_loans.html:47
+msgid "avg."
+msgstr "moy."
 
-#: templates/property/detail_panel_loans.html:48
+#: templates/property/detail_panel_loans.html:54
 msgid "ins."
 msgstr "assur."
 
-#: templates/property/detail_panel_loans.html:59
+#: templates/property/detail_panel_loans.html:65
 msgid "mo."
 msgstr "mo."
 
-#: templates/property/detail_panel_loans.html:60
-#: templates/property/detail_panel_loans.html:474
+#: templates/property/detail_panel_loans.html:66
+#: templates/property/detail_panel_loans.html:490
 msgid "yr"
 msgstr "an"
 
-#: templates/property/detail_panel_loans.html:67
-#: templates/property/detail_panel_loans.html:209
-#: templates/property/detail_panel_loans.html:532
-msgid "Total repaid"
-msgstr "Total remboursé"
-
-#: templates/property/detail_panel_loans.html:124
+#: templates/property/detail_panel_loans.html:140
 msgid "Smoothed loan"
 msgstr "Prêt lissé"
 
-#: templates/property/detail_panel_loans.html:127
-#: templates/property/detail_panel_loans.html:337
+#: templates/property/detail_panel_loans.html:143
+#: templates/property/detail_panel_loans.html:353
 msgid "Add a loan"
 msgstr "Ajouter un prêt"
 
-#: templates/property/detail_panel_loans.html:205
+#: templates/property/detail_panel_loans.html:221
 msgid "Estimated monthly payment"
 msgstr "Mensualité estimée"
 
-#: templates/property/detail_panel_loans.html:222
+#: templates/property/detail_panel_loans.html:225
+#: templates/property/detail_panel_loans.html:548
+msgid "Total repaid"
+msgstr "Total remboursé"
+
+#: templates/property/detail_panel_loans.html:238
 msgid "Payment schedule (smoothed loan)"
 msgstr "Versements personnalisés (prêt lissé)"
 
-#: templates/property/detail_panel_loans.html:226
-#: templates/property/detail_panel_loans.html:263
+#: templates/property/detail_panel_loans.html:242
+#: templates/property/detail_panel_loans.html:279
 msgid "Add tranche"
 msgstr "Ajouter des versements"
 
-#: templates/property/detail_panel_loans.html:237
+#: templates/property/detail_panel_loans.html:253
 msgid "Add payment schedule (smoothed loan)"
 msgstr "Ajouter des versements personnalisés (prêt lissé)"
 
-#: templates/property/detail_panel_loans.html:253
+#: templates/property/detail_panel_loans.html:269
 msgid ""
 "Adding a payment schedule will convert this loan to a smoothed loan (prêt "
 "lisseur). The computed monthly payment will be ignored."
@@ -2342,41 +2346,41 @@ msgstr ""
 "L'ajout de versements personnalisés convertira le prêt. La mensualité "
 "calculée sera ignorée."
 
-#: templates/property/detail_panel_loans.html:273
+#: templates/property/detail_panel_loans.html:289
 msgid "Count"
 msgstr "Nombre"
 
-#: templates/property/detail_panel_loans.html:320
+#: templates/property/detail_panel_loans.html:336
 msgid ""
 "Save the loan first, then add payment schedule tranches for a smoothed loan "
 "(prêt lisseur)."
 msgstr "Enregistrer le prêt en premier afin de pouvoir définir un lissement"
 
-#: templates/property/detail_panel_loans.html:347
+#: templates/property/detail_panel_loans.html:363
 msgid "Save loans"
 msgstr "Enregistrer les prêts"
 
-#: templates/property/detail_panel_loans.html:453
+#: templates/property/detail_panel_loans.html:469
 msgid "principal+interest"
 msgstr "capital+intérêts"
 
-#: templates/property/detail_panel_loans.html:453
+#: templates/property/detail_panel_loans.html:469
 msgid "insurance"
 msgstr "assurance"
 
-#: templates/property/detail_panel_loans.html:475
+#: templates/property/detail_panel_loans.html:491
 msgid "mo"
 msgstr "mois"
 
-#: templates/property/detail_panel_loans.html:501
+#: templates/property/detail_panel_loans.html:517
 msgid "Total payments"
 msgstr "Total paiements"
 
-#: templates/property/detail_panel_loans.html:550
+#: templates/property/detail_panel_loans.html:566
 msgid "difference of"
 msgstr "différence de"
 
-#: templates/property/detail_panel_loans.html:621
+#: templates/property/detail_panel_loans.html:637
 msgid "Remove"
 msgstr "Supprimer"
 

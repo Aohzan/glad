@@ -464,10 +464,21 @@ class PropertyDetailView(DetailView):
 
     def _build_transactions_json(self, property_obj: Property) -> list[dict]:
         """Build all expanded transactions as a list of dicts for DataTables."""
-        entries_qs = PropertyLedgerEntry.objects.filter(property=property_obj)
+        entries_qs = PropertyLedgerEntry.objects.filter(
+            property=property_obj
+        ).select_related("lease")
         rows = []
         for entry in entries_qs:
             cat_label = entry.get_management_category_display()
+            lease_name = entry.lease.name if entry.lease else ""
+            if lease_name:
+                description = (
+                    f"{entry.description} - {lease_name}"
+                    if entry.description
+                    else lease_name
+                )
+            else:
+                description = entry.description or ""
             for occurrence in entry.generate_occurrences():
                 rows.append(
                     {
@@ -475,7 +486,7 @@ class PropertyDetailView(DetailView):
                         "date": occurrence["date"].isoformat(),
                         "category": str(cat_label),
                         "amount": float(occurrence["amount"].amount),
-                        "description": entry.description or "",
+                        "description": description,
                         "is_recurring": occurrence["is_recurring"],
                         "parent_id": entry.pk,
                     }
@@ -492,22 +503,32 @@ class PropertyDetailView(DetailView):
         result = []
         for loan in loans:
             duration = loan.get_duration_months()
+            avg_monthly_payment = None
             if loan.is_smoothed():
                 payment_sequence = loan.get_payment_sequence()
-                total_repaid = sum(payment_sequence)
+                total_repaid_amount = sum(payment_sequence)
+                total_repaid = Money(total_repaid_amount, loan.original_amount.currency)
+                if payment_sequence:
+                    avg_monthly_payment = Money(
+                        total_repaid_amount / len(payment_sequence),
+                        loan.original_amount.currency,
+                    )
             elif loan.monthly_payment is not None and duration > 0:
                 monthly = loan.monthly_payment.amount
                 insurance = loan.insurance.amount if loan.insurance is not None else 0
-                total_repaid = (monthly + insurance) * duration
+                total_repaid = Money(
+                    (monthly + insurance) * duration, loan.original_amount.currency
+                )
             else:
                 total_repaid = None
 
             total_cost = (
-                total_repaid - loan.original_amount.amount
+                total_repaid.amount - loan.original_amount.amount
                 if total_repaid is not None
                 else None
             )
 
+            remaining = loan.remaining_balance()
             result.append(
                 {
                     "loan": loan,
@@ -515,6 +536,8 @@ class PropertyDetailView(DetailView):
                     "total_repaid": total_repaid,
                     "total_cost": total_cost,
                     "is_smoothed": loan.is_smoothed(),
+                    "avg_monthly_payment": avg_monthly_payment,
+                    "remaining_balance": remaining,
                 }
             )
         return result
@@ -710,6 +733,7 @@ class PropertyDetailView(DetailView):
                 "property_mandates": property_mandates,
                 "transactions_json": transactions_data,
                 "loans_with_totals": self._build_loans_context(property_obj),
+                "today": datetime.date.today(),
                 "loan_formset": self._build_loan_formset(property_obj),
                 "loan_forms_with_schedules": self._build_loan_forms_with_schedules_ctx(
                     property_obj

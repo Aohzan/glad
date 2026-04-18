@@ -23,6 +23,7 @@
               <th class="text-end">{% translate "Rate" %}</th>
               <th class="text-end">{% translate "Duration" %}</th>
               <th class="text-end">{% translate "Total cost" %}</th>
+              <th class="text-end">{% translate "Remaining" %}</th>
               <th class="text-end">{% translate "Edit" %}</th>
             </tr>
           </thead>
@@ -41,7 +42,12 @@
               <td class="text-end">{{ item.loan.original_amount|format_money }}</td>
               <td class="text-end">
                 {% if item.is_smoothed %}
-                  <span class="text-body-secondary small">{% translate "Variable" %}</span>
+                  {% if item.avg_monthly_payment %}
+                    {{ item.avg_monthly_payment|format_money }}
+                    <span class="text-body-secondary small d-block">{% translate "avg." %}</span>
+                  {% else %}
+                    <span class="text-body-secondary small">{% translate "Smoothed" %}</span>
+                  {% endif %}
                 {% elif item.loan.monthly_payment %}
                   {{ item.loan.monthly_payment|format_money }}
                   {% if item.loan.insurance %}
@@ -62,9 +68,19 @@
               </td>
               <td class="text-end fw-semibold">
                 {% if item.total_cost is not None %}
-                  <span class="text-danger">+ {{ item.total_cost|floatformat:0 }} {{ property.currency }}</span>
                   {% if item.total_repaid is not None %}
-                    <span class="text-body-secondary small d-block">{% translate "Total repaid" %}: {{ item.total_repaid|floatformat:0 }} {{ property.currency }}</span>
+                    <span class="text-body-secondary small d-block">{{ item.total_repaid|format_money }}</span>
+                  {% endif %}
+                {% else %}—{% endif %}
+              </td>
+              <td class="text-end fw-semibold">
+                {% if item.remaining_balance is not None %}
+                  {% if item.remaining_balance.amount == 0 %}
+                    <span class="text-success">{{ item.remaining_balance|format_money }}</span>
+                  {% elif item.loan.start_date > today %}
+                    <span class="text-danger">{{ item.remaining_balance|format_money }}</span>
+                  {% else %}
+                    <span class="text-warning">{{ item.remaining_balance|format_money }}</span>
                   {% endif %}
                 {% else %}—{% endif %}
               </td>
@@ -78,7 +94,7 @@
               </td>
             </tr>
             <tr class="loan-collapse-row p-0">
-              <td colspan="10" class="p-0 border-0">
+              <td colspan="11" class="p-0 border-0">
                 <div class="collapse" id="loan-form-collapse-{{ item.loan.pk }}">
                   {# inline form rendered below in loan_forms_with_schedules loop #}
                 </div>
