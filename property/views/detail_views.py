@@ -4,8 +4,8 @@ import datetime
 from decimal import Decimal
 
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView
 from moneyed import Money
@@ -535,7 +535,10 @@ class PropertyDetailView(DetailView):
                 )
                 created_value.save()
                 messages.success(request, _("Property value added."))
-                return redirect("property:detail", pk=self.object.pk)
+                return HttpResponseRedirect(
+                    reverse("property:detail", kwargs={"pk": self.object.pk})
+                    + "#projection-panel"
+                )
             form_errors = "; ".join(
                 f"{field}: {', '.join(str(e) for e in errors)}"
                 for field, errors in form.errors.items()
@@ -556,7 +559,10 @@ class PropertyDetailView(DetailView):
                 entry.amount = Money(entry.amount.amount, str(self.object.currency))
                 entry.save()
                 messages.success(request, _("Entry added."))
-                return redirect("property:detail", pk=self.object.pk)
+                return HttpResponseRedirect(
+                    reverse("property:detail", kwargs={"pk": self.object.pk})
+                    + "#cashflow-panel"
+                )
             form_errors = "; ".join(
                 f"{field}: {', '.join(str(e) for e in errors)}"
                 for field, errors in form.errors.items()

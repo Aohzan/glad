@@ -702,6 +702,36 @@
 {{ cashflow_loan_insurance_series|json_script:"cashflow-loan-insurance-series" }}
 {{ cashflow_total_expenses_series|json_script:"cashflow-total-expenses-series" }}
 <script>
+// ── Tab hash sync ─────────────────────────────────────────────────────────────
+(function () {
+  const tabButtons = document.querySelectorAll('#propertyTabs [data-bs-toggle="tab"]');
+
+  // Activate tab matching URL hash on load
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(`#propertyTabs [data-bs-target="${hash}"]`);
+    if (target) {
+      tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+        const panel = document.querySelector(btn.getAttribute('data-bs-target'));
+        if (panel) { panel.classList.remove('show', 'active'); }
+      });
+      target.classList.add('active');
+      target.setAttribute('aria-selected', 'true');
+      const panel = document.querySelector(hash);
+      if (panel) { panel.classList.add('show', 'active'); }
+    }
+  }
+
+  // Update URL hash when a tab is clicked
+  tabButtons.forEach(btn => {
+    btn.addEventListener('shown.bs.tab', function () {
+      history.replaceState(null, '', this.getAttribute('data-bs-target'));
+    });
+  });
+})();
+
 // ── Translations for JS ──────────────────────────────────────────────────────
 const i18n = {
   expense:    "{% translate 'Expense' %}",

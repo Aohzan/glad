@@ -1,8 +1,9 @@
 """CRUD views for ledger entries, tenants, leases, managers, and mandates."""
 
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from property.forms import (
@@ -71,7 +72,9 @@ def delete_property_valuation(
 
     valuation.delete()
     messages.success(request, _("Property valuation deleted successfully."))
-    return redirect("property:detail", pk=property_pk)
+    return HttpResponseRedirect(
+        reverse("property:detail", kwargs={"pk": property_pk}) + "#projection-panel"
+    )
 
 
 # ─── Ledger entry CRUD ────────────────────────────────────────────────────────
@@ -104,7 +107,10 @@ def edit_ledger_entry(
         if form.is_valid():
             form.save()
             messages.success(request, _("Entry updated successfully."))
-            return redirect("property:detail", pk=property_pk)
+            return HttpResponseRedirect(
+                reverse("property:detail", kwargs={"pk": property_pk})
+                + "#cashflow-panel"
+            )
         messages.error(request, _("Please correct the errors below."))
     else:
         form = PropertyLedgerEntryEditForm(instance=entry, property_obj=property_obj)
@@ -143,7 +149,9 @@ def delete_ledger_entry(
 
     entry.delete()
     messages.success(request, _("Entry deleted successfully."))
-    return redirect("property:detail", pk=property_pk)
+    return HttpResponseRedirect(
+        reverse("property:detail", kwargs={"pk": property_pk}) + "#cashflow-panel"
+    )
 
 
 # ─── Lease CRUD ───────────────────────────────────────────────────────────────
@@ -167,7 +175,9 @@ def edit_lease(
             created.property = property_obj
             created.save()
             messages.success(request, _("Lease saved."))
-            return redirect("property:detail", pk=property_pk)
+            return HttpResponseRedirect(
+                reverse("property:detail", kwargs={"pk": property_pk}) + "#leases-panel"
+            )
         messages.error(request, _("Please correct the errors below."))
     else:
         form = LeaseForm(instance=lease)
@@ -189,7 +199,9 @@ def delete_lease(request: HttpRequest, property_pk: int, lease_pk: int) -> HttpR
     lease = get_object_or_404(Lease, pk=lease_pk, property=property_obj)
     lease.delete()
     messages.success(request, _("Lease deleted successfully."))
-    return redirect("property:detail", pk=property_pk)
+    return HttpResponseRedirect(
+        reverse("property:detail", kwargs={"pk": property_pk}) + "#leases-panel"
+    )
 
 
 # ─── ManagementMandate CRUD ───────────────────────────────────────────────────
@@ -211,7 +223,10 @@ def edit_mandate(
             created.property = property_obj
             created.save()
             messages.success(request, _("Mandate saved."))
-            return redirect("property:detail", pk=property_pk)
+            return HttpResponseRedirect(
+                reverse("property:detail", kwargs={"pk": property_pk})
+                + "#mandate-panel"
+            )
         messages.error(request, _("Please correct the errors below."))
     else:
         form = ManagementMandateForm(instance=mandate)
@@ -235,4 +250,6 @@ def delete_mandate(
     mandate = get_object_or_404(ManagementMandate, pk=mandate_pk, property=property_obj)
     mandate.delete()
     messages.success(request, _("Mandate deleted successfully."))
-    return redirect("property:detail", pk=property_pk)
+    return HttpResponseRedirect(
+        reverse("property:detail", kwargs={"pk": property_pk}) + "#mandate-panel"
+    )
