@@ -3,11 +3,11 @@
 <form method="post" action="{% url 'property:loans' property.pk %}" novalidate>
   {% csrf_token %}
 
-  {# ── Loans summary table ── #}
+  {# ── Loans table ── #}
   {% if loans_with_totals %}
   <div class="card mb-3">
     <div class="card-header py-2 d-flex justify-content-between align-items-center">
-      <h6 class="mb-0"><i class="bi bi-bank me-1"></i>{% translate "Loans summary" %}</h6>
+      <h6 class="mb-0"><i class="bi bi-bank me-1"></i>{% translate "Loans" %}</h6>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">

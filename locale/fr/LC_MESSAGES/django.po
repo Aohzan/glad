@@ -2252,8 +2252,8 @@ msgid "No leases recorded yet."
 msgstr "Aucun bail enregistré pour le moment."
 
 #: templates/property/detail_panel_loans.html:10
-msgid "Loans summary"
-msgstr "Résumé des prêts"
+msgid "Loans"
+msgstr "Emprunts"
 
 #: templates/property/detail_panel_loans.html:19
 msgid "Start"
