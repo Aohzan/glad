@@ -4,15 +4,12 @@ from django.contrib import admin
 
 from property.models import (
     Lease,
-    LeaseTenant,
     ManagementMandate,
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
     PropertyLoanSchedule,
-    PropertyManager,
     PropertyValue,
-    Tenant,
 )
 
 
@@ -30,7 +27,6 @@ class PropertyLedgerEntryInline(admin.TabularInline):
         "flow_type",
         "amount",
         "entry_date",
-        "tax_category",
         "management_category",
         "description",
     )
@@ -130,13 +126,11 @@ class PropertyLedgerEntryAdmin(admin.ModelAdmin):
         "flow_type",
         "amount",
         "entry_date",
-        "tax_category",
         "management_category",
         "description",
     )
     list_filter = (
         "flow_type",
-        "tax_category",
         "management_category",
         "recurrence_type",
     )
@@ -144,20 +138,8 @@ class PropertyLedgerEntryAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-class LeaseTenantInline(admin.TabularInline):
-    model = LeaseTenant
-    extra = 0
-
-
-@admin.register(Tenant)
-class TenantAdmin(admin.ModelAdmin):
-    list_display = ("last_name", "first_name", "email", "phone")
-    search_fields = ("last_name", "first_name", "email")
-
-
 @admin.register(Lease)
 class LeaseAdmin(admin.ModelAdmin):
-    inlines = [LeaseTenantInline]
     list_display = (
         "property",
         "lease_type",
@@ -167,26 +149,20 @@ class LeaseAdmin(admin.ModelAdmin):
         "rent_amount",
     )
     list_filter = ("status", "lease_type", "periodicity")
-    search_fields = ("property__name",)
+    search_fields = ("property__name", "tenant_first_name", "tenant_last_name")
     readonly_fields = ("created_at", "updated_at")
-
-
-@admin.register(PropertyManager)
-class PropertyManagerAdmin(admin.ModelAdmin):
-    list_display = ("name", "email", "phone", "siret")
-    search_fields = ("name", "siret")
 
 
 @admin.register(ManagementMandate)
 class ManagementMandateAdmin(admin.ModelAdmin):
     list_display = (
         "property",
-        "manager",
+        "manager_name",
         "start_date",
         "end_date",
         "fee_type",
         "is_active",
     )
     list_filter = ("fee_type",)
-    search_fields = ("property__name", "manager__name")
+    search_fields = ("property__name", "manager_name")
     readonly_fields = ("is_active", "created_at", "updated_at")

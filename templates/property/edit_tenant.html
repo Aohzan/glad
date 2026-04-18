@@ -1,9 +1,126 @@
 {% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% if tenant %}{% translate "Edit tenant" %}{% else %}{% translate "New tenant" %}{% endif %}
+{% endblock %}
+
 {% block content %}
-<h1>{% if tenant %}Edit Tenant{% else %}New Tenant{% endif %}</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Save</button>
-</form>
+<div class="container py-4" style="max-width: 640px;">
+
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{% url 'property:index' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>{% translate "Properties" %}
+    </a>
+    <h1 class="h4 mb-0 ms-1">
+      {% if tenant %}
+        <i class="bi bi-pencil me-1"></i>{% translate "Edit tenant" %}
+      {% else %}
+        <i class="bi bi-plus-circle me-1"></i>{% translate "New tenant" %}
+      {% endif %}
+    </h1>
+  </div>
+
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle me-1"></i>{% translate "Please correct the errors below." %}
+    </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    {# ── Identity ──────────────────────────────────────────────────────────── #}
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-person me-1"></i>{% translate "Identity" %}</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">
+              {% translate "First name" %}
+            </label>
+            <input type="text" name="{{ form.first_name.html_name }}"
+                   id="{{ form.first_name.id_for_label }}"
+                   class="form-control{% if form.first_name.errors %} is-invalid{% endif %}"
+                   value="{{ form.first_name.value|default:'' }}"
+                   maxlength="100">
+            {% if form.first_name.errors %}<div class="invalid-feedback">{{ form.first_name.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">
+              {% translate "Last name" %}
+            </label>
+            <input type="text" name="{{ form.last_name.html_name }}"
+                   id="{{ form.last_name.id_for_label }}"
+                   class="form-control{% if form.last_name.errors %} is-invalid{% endif %}"
+                   value="{{ form.last_name.value|default:'' }}"
+                   maxlength="100">
+            {% if form.last_name.errors %}<div class="invalid-feedback">{{ form.last_name.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Contact ───────────────────────────────────────────────────────────── #}
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-envelope me-1"></i>{% translate "Contact" %}</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+              {% translate "Email" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            <input type="email" name="{{ form.email.html_name }}"
+                   id="{{ form.email.id_for_label }}"
+                   class="form-control{% if form.email.errors %} is-invalid{% endif %}"
+                   value="{{ form.email.value|default:'' }}">
+            {% if form.email.errors %}<div class="invalid-feedback">{{ form.email.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label for="{{ form.phone.id_for_label }}" class="form-label fw-semibold">
+              {% translate "Phone" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            <input type="text" name="{{ form.phone.html_name }}"
+                   id="{{ form.phone.id_for_label }}"
+                   class="form-control{% if form.phone.errors %} is-invalid{% endif %}"
+                   value="{{ form.phone.value|default:'' }}"
+                   maxlength="30">
+            {% if form.phone.errors %}<div class="invalid-feedback">{{ form.phone.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Notes ─────────────────────────────────────────────────────────────── #}
+    <div class="card mb-4">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-sticky me-1"></i>{% translate "Notes" %}</h6>
+      </div>
+      <div class="card-body">
+        <label for="{{ form.notes.id_for_label }}" class="form-label">
+          {% translate "Notes" %}
+          <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+        </label>
+        {{ form.notes }}
+        {% if form.notes.errors %}<div class="invalid-feedback d-block">{{ form.notes.errors }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>{% translate "Save" %}
+      </button>
+      <a href="{% url 'property:index' %}" class="btn btn-outline-secondary">
+        {% translate "Cancel" %}
+      </a>
+    </div>
+
+  </form>
+</div>
 {% endblock %}

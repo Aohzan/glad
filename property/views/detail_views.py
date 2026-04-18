@@ -32,6 +32,11 @@ from property.utils import (
     month_end,
     month_start,
 )
+from property.views.edit_views import (
+    _build_loan_forms_with_schedules,
+    _make_loan_formset_class,
+    _make_schedule_formset_class,
+)
 
 
 class PropertyDetailView(DetailView):
@@ -462,13 +467,13 @@ class PropertyDetailView(DetailView):
         entries_qs = PropertyLedgerEntry.objects.filter(property=property_obj)
         rows = []
         for entry in entries_qs:
-            tax_label = entry.get_tax_category_display()
+            cat_label = entry.get_management_category_display()
             for occurrence in entry.generate_occurrences():
                 rows.append(
                     {
                         "kind": entry.flow_type,
                         "date": occurrence["date"].isoformat(),
-                        "category": str(tax_label),
+                        "category": str(cat_label),
                         "amount": float(occurrence["amount"].amount),
                         "description": entry.description or "",
                         "is_recurring": occurrence["is_recurring"],
@@ -534,7 +539,9 @@ class PropertyDetailView(DetailView):
             messages.error(request, _("Unable to add property value."))
 
         elif form_type == "ledger_entry":
-            form = PropertyLedgerEntryQuickCreateForm(request.POST)
+            form = PropertyLedgerEntryQuickCreateForm(
+                request.POST, property_obj=self.object
+            )
             if form.is_valid():
                 entry = form.save(commit=False)
                 entry.property = self.object
@@ -548,6 +555,38 @@ class PropertyDetailView(DetailView):
             messages.error(request, _("Unknown form action."))
 
         return self.get(request, *args, **kwargs)
+
+    def _build_loan_formset(self, property_obj: Property):
+        """Build a read-only (GET) loan formset for the Loans tab."""
+        PropertyLoanFormSet = _make_loan_formset_class()
+        ScheduleFormSet = _make_schedule_formset_class()
+        existing_loans = list(PropertyLoan.objects.filter(property=property_obj))
+        loan_formset = PropertyLoanFormSet(instance=property_obj)
+        self._loan_schedule_formsets: dict = {}
+        for loan in existing_loans:
+            prefix = f"schedules_{loan.pk}"
+            self._loan_schedule_formsets[loan.pk] = ScheduleFormSet(
+                instance=loan, prefix=prefix
+            )
+        for form_idx, loan_form in enumerate(loan_formset.forms):
+            if not loan_form.instance.pk:
+                prefix = f"schedules_new_{form_idx}"
+                self._loan_schedule_formsets[f"temp_{form_idx}"] = ScheduleFormSet(
+                    instance=loan_form.instance, prefix=prefix
+                )
+        self._loan_formset_cache = loan_formset
+        return loan_formset
+
+    def _build_loan_forms_with_schedules_ctx(
+        self, property_obj: Property
+    ) -> list[dict]:
+        """Build loan forms paired with schedule formsets (must call after _build_loan_formset)."""
+        loan_formset = getattr(self, "_loan_formset_cache", None)
+        if loan_formset is None:
+            return []
+        return _build_loan_forms_with_schedules(
+            property_obj, loan_formset, self._loan_schedule_formsets
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -580,12 +619,21 @@ class PropertyDetailView(DetailView):
         entries_with_forms = [
             {
                 "obj": entry,
-                "edit_form": PropertyLedgerEntryEditForm(instance=entry),
+                "edit_form": PropertyLedgerEntryEditForm(
+                    instance=entry, property_obj=property_obj
+                ),
             }
             for entry in entries
         ]
 
         balance_sheet_context = self._build_balance_sheet_context(property_obj)
+
+        property_leases = Lease.objects.filter(property=property_obj).order_by(
+            "-start_date"
+        )
+        property_mandates = ManagementMandate.objects.filter(
+            property=property_obj
+        ).order_by("-start_date")
 
         context.update(
             {
@@ -617,7 +665,9 @@ class PropertyDetailView(DetailView):
                     monthly_cashflow_amount,
                     str(property_obj.buying_value.currency),
                 ),
-                "entry_form": PropertyLedgerEntryQuickCreateForm(),
+                "entry_form": PropertyLedgerEntryQuickCreateForm(
+                    property_obj=property_obj
+                ),
                 "value_form": PropertyValueQuickCreateForm(
                     initial={
                         "valuation_date": datetime.date.today(),
@@ -635,8 +685,14 @@ class PropertyDetailView(DetailView):
                 "active_mandate": ManagementMandate.objects.filter(
                     property=property_obj, end_date__isnull=True
                 ).first(),
+                "property_leases": property_leases,
+                "property_mandates": property_mandates,
                 "transactions_json": transactions_data,
                 "loans_with_totals": self._build_loans_context(property_obj),
+                "loan_formset": self._build_loan_formset(property_obj),
+                "loan_forms_with_schedules": self._build_loan_forms_with_schedules_ctx(
+                    property_obj
+                ),
                 "all_properties": Property.objects.filter(is_active=True).order_by(
                     "name"
                 ),

@@ -292,7 +292,14 @@ class Property(BaseModel):
         help_text=_("The value of the property at the time of purchase."),
     )
     buying_value_gross = MoneyField(
-        max_digits=10, decimal_places=0, null=True, blank=True
+        max_digits=10,
+        decimal_places=0,
+        null=True,
+        blank=True,
+        verbose_name=_("Gross Buying Value"),
+        help_text=_(
+            "The gross value of the property at the time of purchase, including notary fees for example."
+        ),
     )
     shares_count = models.DecimalField(
         max_digits=10,

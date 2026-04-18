@@ -1,0 +1,710 @@
+{% load i18n format_money %}
+
+<form method="post" action="{% url 'property:loans' property.pk %}" novalidate>
+  {% csrf_token %}
+
+  {# ── Loan summary table ── #}
+  {% if loans_with_totals %}
+  <div class="card mb-3">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+      <h6 class="mb-0"><i class="bi bi-bank me-1"></i>{% translate "Loan summary" %}</h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>{% translate "Name" %}</th>
+              <th>{% translate "Lender" %}</th>
+              <th>{% translate "Start" %}</th>
+              <th>{% translate "End" %}</th>
+              <th class="text-end">{% translate "Original amount" %}</th>
+              <th class="text-end">{% translate "Monthly payment" %}</th>
+              <th class="text-end">{% translate "Rate" %}</th>
+              <th class="text-end">{% translate "Duration" %}</th>
+              <th class="text-end">{% translate "Total cost" %}</th>
+              <th class="text-end">{% translate "Edit" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in loans_with_totals %}
+            <tr>
+              <td>
+                {{ item.loan.name|default:"—" }}
+                {% if item.is_smoothed %}
+                  <span class="badge bg-info-subtle text-info-emphasis ms-1" style="font-size:.65rem;">{% translate "Smoothed" %}</span>
+                {% endif %}
+              </td>
+              <td>{{ item.loan.lender|default:"—" }}</td>
+              <td>{{ item.loan.start_date }}</td>
+              <td>{{ item.loan.end_date }}</td>
+              <td class="text-end">{{ item.loan.original_amount|format_money }}</td>
+              <td class="text-end">
+                {% if item.is_smoothed %}
+                  <span class="text-body-secondary small">{% translate "Variable" %}</span>
+                {% elif item.loan.monthly_payment %}
+                  {{ item.loan.monthly_payment|format_money }}
+                  {% if item.loan.insurance %}
+                    <span class="text-body-secondary small d-block">+ {{ item.loan.insurance|format_money }} {% translate "ins." %}</span>
+                  {% endif %}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td class="text-end">
+                {% if item.loan.interest_rate %}{{ item.loan.interest_rate|floatformat:2 }} %{% else %}—{% endif %}
+              </td>
+              <td class="text-end">
+                {% if item.duration_months %}
+                  {{ item.duration_months }} {% translate "mo." %}
+                  <span class="text-body-secondary small d-block">({% widthratio item.duration_months 12 1 %} {% translate "yr" %})</span>
+                {% else %}—{% endif %}
+              </td>
+              <td class="text-end fw-semibold">
+                {% if item.total_cost is not None %}
+                  <span class="text-danger">+ {{ item.total_cost|floatformat:0 }} {{ property.currency }}</span>
+                  {% if item.total_repaid is not None %}
+                    <span class="text-body-secondary small d-block">{% translate "Total repaid" %}: {{ item.total_repaid|floatformat:0 }} {{ property.currency }}</span>
+                  {% endif %}
+                {% else %}—{% endif %}
+              </td>
+              <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-secondary loan-expand-btn"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#loan-form-collapse-{{ item.loan.pk }}"
+                        aria-expanded="false">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </td>
+            </tr>
+            <tr class="loan-collapse-row p-0">
+              <td colspan="10" class="p-0 border-0">
+                <div class="collapse" id="loan-form-collapse-{{ item.loan.pk }}">
+                  {# inline form rendered below in loan_forms_with_schedules loop #}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {{ loan_formset.management_form }}
+
+  {% if loan_formset.non_form_errors %}
+    <div class="alert alert-danger">
+      {{ loan_formset.non_form_errors }}
+    </div>
+  {% endif %}
+
+  {# ── Loan forms (existing + new) ── #}
+  <div id="loan-formset">
+    {% for loan_entry in loan_forms_with_schedules %}
+      {% with form=loan_entry.form schedule_formset=loan_entry.schedule_formset is_smoothed=loan_entry.is_smoothed %}
+
+      {% if form.instance.pk %}
+        {# Existing loan: render inside its collapse div (injected via JS below) #}
+        <div class="loan-form-body d-none" data-loan-pk="{{ form.instance.pk }}">
+      {% else %}
+        {# New loan: rendered via the "Add a loan" collapse #}
+        <div class="loan-form-body">
+      {% endif %}
+
+        <div class="loan-form border rounded p-3 mb-3{% if not form.instance.pk %} new-loan-form{% endif %}">
+          {{ form.id }}
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">
+              {% if form.instance.pk %}
+                {% translate "Loan" %} #{{ forloop.counter }}
+                {% if form.instance.is_smoothed %}
+                  <span class="badge bg-info ms-2">{% translate "Smoothed loan" %}</span>
+                {% endif %}
+              {% else %}
+                {% translate "Add a loan" %}
+              {% endif %}
+            </h6>
+            {% if form.instance.pk %}
+              <div class="form-check">
+                {{ form.DELETE }}
+                <label class="form-check-label text-danger" for="{{ form.DELETE.id_for_label }}">
+                  <i class="bi bi-trash"></i> {% translate "Delete" %}
+                </label>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+              {{ form.name }}
+              {% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.lender.id_for_label }}" class="form-label">{{ form.lender.label }}</label>
+              {{ form.lender }}
+              {% if form.lender.errors %}<div class="invalid-feedback d-block">{{ form.lender.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                {{ form.start_date.label }}
+                {% if form.start_date.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              {{ form.start_date }}
+              {% if form.start_date.errors %}<div class="invalid-feedback d-block">{{ form.start_date.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.duration_months.id_for_label }}" class="form-label">
+                {{ form.duration_months.label }}
+                {% if form.duration_months.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              <div class="input-group">
+                {{ form.duration_months }}
+                <span class="input-group-text loan-years-display"></span>
+              </div>
+              {% if form.duration_months.help_text %}<div class="form-text">{{ form.duration_months.help_text }}</div>{% endif %}
+              {% if form.duration_months.errors %}<div class="invalid-feedback d-block">{{ form.duration_months.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.original_amount.id_for_label }}" class="form-label">
+                {{ form.original_amount.label }}
+                {% if form.original_amount.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              {{ form.original_amount }}
+              {% if form.original_amount.errors %}<div class="invalid-feedback d-block">{{ form.original_amount.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.interest_rate.id_for_label }}" class="form-label">
+                {{ form.interest_rate.label }}
+                {% if form.interest_rate.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              <div class="input-group">
+                {{ form.interest_rate }}
+                <span class="input-group-text">%</span>
+              </div>
+              {% if form.interest_rate.errors %}<div class="invalid-feedback d-block">{{ form.interest_rate.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.insurance_rate.id_for_label }}" class="form-label">{{ form.insurance_rate.label }}</label>
+              <div class="input-group">
+                {{ form.insurance_rate }}
+                <span class="input-group-text">%</span>
+              </div>
+              {% if form.insurance_rate.errors %}<div class="invalid-feedback d-block">{{ form.insurance_rate.errors.0 }}</div>{% endif %}
+            </div>
+
+            {# Loan cost preview #}
+            <div class="col-12">
+              <div class="loan-preview alert alert-info py-2 mb-0 d-none">
+                <small>
+                  <span class="loan-preview-monthly">
+                    <i class="bi bi-calculator"></i>
+                    {% translate "Estimated monthly payment" %}: <strong class="loan-preview-total">—</strong>
+                    <span class="loan-preview-detail text-body-secondary ms-2"></span>
+                    <span class="ms-3 text-body-secondary">|</span>
+                  </span>
+                  <span class="ms-2">{% translate "Total repaid" %}: <strong class="loan-preview-total-repaid">—</strong></span>
+                </small>
+              </div>
+            </div>
+          </div>
+
+          {# ── Payment schedule (Prêt Lisseur) ── #}
+          {% if schedule_formset %}
+          <div class="mt-4">
+            {% if is_smoothed %}
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0 text-info">
+                  <i class="bi bi-list-ol"></i>
+                  {% translate "Payment schedule (smoothed loan)" %}
+                </h6>
+                <button type="button" class="btn btn-sm btn-outline-info add-schedule-row"
+                        data-prefix="{{ schedule_formset.prefix }}">
+                  <i class="bi bi-plus"></i> {% translate "Add tranche" %}
+                </button>
+              </div>
+            {% else %}
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#schedule-collapse-{{ schedule_formset.prefix }}"
+                        aria-expanded="false">
+                  <i class="bi bi-list-ol"></i>
+                  {% translate "Add payment schedule (smoothed loan)" %}
+                </button>
+              </div>
+            {% endif %}
+
+            <div {% if not is_smoothed %}id="schedule-collapse-{{ schedule_formset.prefix }}" class="collapse{% if schedule_formset.errors or schedule_formset.non_form_errors %} show{% endif %}"{% endif %}>
+              {{ schedule_formset.management_form }}
+
+              {% if schedule_formset.non_form_errors %}
+                <div class="alert alert-danger py-2">{{ schedule_formset.non_form_errors }}</div>
+              {% endif %}
+
+              {% if not is_smoothed %}
+              <div class="alert alert-warning py-2 mb-2">
+                <small>
+                  <i class="bi bi-exclamation-triangle"></i>
+                  {% translate "Adding a payment schedule will convert this loan to a smoothed loan (prêt lisseur). The computed monthly payment will be ignored." %}
+                </small>
+              </div>
+              {% endif %}
+
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span></span>
+                {% if not is_smoothed %}
+                <button type="button" class="btn btn-sm btn-outline-info add-schedule-row"
+                        data-prefix="{{ schedule_formset.prefix }}">
+                  <i class="bi bi-plus"></i> {% translate "Add tranche" %}
+                </button>
+                {% endif %}
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered schedule-table" id="schedule-table-{{ schedule_formset.prefix }}">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:80px">{% translate "Order" %}</th>
+                      <th style="width:120px">{% translate "Count" %}</th>
+                      <th>{% translate "Amount" %}</th>
+                      <th style="width:80px">{% translate "Delete" %}</th>
+                    </tr>
+                  </thead>
+                  <tbody id="schedule-body-{{ schedule_formset.prefix }}">
+                    {% for sform in schedule_formset %}
+                      {% if sform.instance.pk or not sform.empty_permitted or sform.errors %}
+                      <tr class="schedule-row{% if sform.instance.pk %} existing-schedule{% endif %}">
+                        <td>
+                          {{ sform.id }}
+                          {{ sform.order }}
+                          {% if sform.order.errors %}<div class="invalid-feedback d-block">{{ sform.order.errors.0 }}</div>{% endif %}
+                        </td>
+                        <td>
+                          {{ sform.count }}
+                          {% if sform.count.errors %}<div class="invalid-feedback d-block">{{ sform.count.errors.0 }}</div>{% endif %}
+                        </td>
+                        <td>
+                          {{ sform.amount }}
+                          {% if sform.amount.errors %}<div class="invalid-feedback d-block">{{ sform.amount.errors.0 }}</div>{% endif %}
+                        </td>
+                        <td class="text-center">
+                          {% if sform.instance.pk %}{{ sform.DELETE }}{% endif %}
+                        </td>
+                      </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="schedule-summary small mt-2">
+                <div class="d-flex flex-wrap gap-1 align-items-center">
+                  <span class="schedule-total-count text-muted"></span>
+                  <span class="schedule-diff-count"></span>
+                </div>
+                <div class="mt-1">
+                  <span class="schedule-total-amount"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% elif not form.instance.pk %}
+          <div class="mt-3">
+            <p class="text-muted small mb-1">
+              <i class="bi bi-info-circle"></i>
+              {% translate "Save the loan first, then add payment schedule tranches for a smoothed loan (prêt lisseur)." %}
+            </p>
+          </div>
+          {% endif %}
+
+        </div>{# end .loan-form #}
+      </div>{# end .loan-form-body #}
+    {% endwith %}
+    {% endfor %}
+  </div>{# end #loan-formset #}
+
+  {# ── Add a new loan (collapsed by default) ── #}
+  <div class="mb-3">
+    <button type="button" class="btn btn-outline-primary btn-sm"
+            data-bs-toggle="collapse"
+            data-bs-target="#new-loan-collapse"
+            aria-expanded="false">
+      <i class="bi bi-plus-circle me-1"></i>{% translate "Add a loan" %}
+    </button>
+    <div class="collapse mt-3" id="new-loan-collapse">
+      {# The "extra=1" new-loan form body is rendered here by JS below #}
+    </div>
+  </div>
+
+  {# ── Form actions ── #}
+  <div class="d-flex gap-2 justify-content-end">
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-check-lg"></i> {% translate "Save loans" %}
+    </button>
+  </div>
+
+</form>
+
+<style>
+.loan-form {
+  background-color: var(--bs-secondary-bg);
+}
+.loan-form.deleted-loan {
+  opacity: 0.5;
+  background-color: var(--bs-danger-bg-subtle);
+}
+.loan-collapse-row td {
+  padding: 0 !important;
+  border: 0 !important;
+}
+.schedule-table td, .schedule-table th {
+  vertical-align: middle;
+}
+</style>
+
+<script>
+(function() {
+  // ── Utilities ──────────────────────────────────────────────────────────────
+
+  function parseDecimal(value) {
+    if (typeof value === 'string') value = value.replace(',', '.');
+    return parseFloat(value);
+  }
+
+  function computeLoanPreview(amount, annualRate, annualInsuranceRate, durationMonths) {
+    if (!amount || amount <= 0 || durationMonths <= 0) return null;
+    const t = annualRate / 100 / 12;
+    let pi;
+    if (t === 0) {
+      pi = amount / durationMonths;
+    } else {
+      const factor = Math.pow(1 + t, durationMonths);
+      pi = amount * t * factor / (factor - 1);
+    }
+    const insurance = annualInsuranceRate > 0 ? (amount * annualInsuranceRate / 100 / 12) : 0;
+    return { pi, insurance, total: pi + insurance };
+  }
+
+  function formatMoney(value) {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value);
+  }
+
+  // ── Loan preview ──────────────────────────────────────────────────────────
+
+  function updateLoanPreview(loanFormEl) {
+    const amountInput = loanFormEl.querySelector('input[id*="original_amount_0"], input[id$="original_amount"]');
+    const rateInput = loanFormEl.querySelector('input[id*="interest_rate"]');
+    const insuranceRateInput = loanFormEl.querySelector('input[id*="insurance_rate"]');
+    const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+    const previewEl = loanFormEl.querySelector('.loan-preview');
+    const previewMonthlyEl = loanFormEl.querySelector('.loan-preview-monthly');
+    const previewTotal = loanFormEl.querySelector('.loan-preview-total');
+    const previewDetail = loanFormEl.querySelector('.loan-preview-detail');
+    const previewTotalRepaid = loanFormEl.querySelector('.loan-preview-total-repaid');
+    if (!previewEl) return;
+
+    const amount = parseDecimal(amountInput ? amountInput.value : 0);
+    const rate = parseDecimal(rateInput ? rateInput.value : 0) || 0;
+    const insuranceRate = parseDecimal(insuranceRateInput ? insuranceRateInput.value : 0) || 0;
+    const duration = parseInt(durationInput ? durationInput.value : 0);
+
+    const scheduleTable = loanFormEl.querySelector('.schedule-table');
+    const hasActiveScheduleRows = scheduleTable ? (() => {
+      let count = 0;
+      scheduleTable.querySelectorAll('tbody tr.schedule-row').forEach(row => {
+        const del = row.querySelector('input[type="checkbox"][id*="DELETE"]');
+        if (!del || !del.checked) count++;
+      });
+      return count > 0;
+    })() : false;
+
+    if (hasActiveScheduleRows) {
+      if (previewMonthlyEl) previewMonthlyEl.style.display = 'none';
+      let smoothedTotal = 0;
+      scheduleTable.querySelectorAll('tbody tr.schedule-row').forEach(row => {
+        const del = row.querySelector('input[type="checkbox"][id*="DELETE"]');
+        if (del && del.checked) return;
+        const countInput = row.querySelector('input[name$="-count"], input[id*="count"]');
+        const amtInput = row.querySelector('input[name$="-amount_0"], input[id*="amount_0"], input[id*="amount"][type="number"]');
+        const c = parseInt(countInput ? countInput.value : 0) || 0;
+        const a = parseDecimal(amtInput ? amtInput.value : 0) || 0;
+        smoothedTotal += c * a;
+      });
+      if (smoothedTotal > 0) {
+        previewEl.classList.remove('d-none');
+        if (previewTotalRepaid) previewTotalRepaid.textContent = formatMoney(Math.round(smoothedTotal));
+      } else {
+        previewEl.classList.add('d-none');
+      }
+      return;
+    }
+
+    if (previewMonthlyEl) previewMonthlyEl.style.display = '';
+    const result = computeLoanPreview(amount, rate, insuranceRate, duration);
+    if (result) {
+      previewEl.classList.remove('d-none');
+      previewTotal.textContent = formatMoney(result.total);
+      if (insuranceRate > 0) {
+        previewDetail.textContent = '({% translate "principal+interest" %}: ' + formatMoney(result.pi) + ' + {% translate "insurance" %}: ' + formatMoney(result.insurance) + ')';
+      } else {
+        previewDetail.textContent = '';
+      }
+      if (previewTotalRepaid && duration > 0) {
+        previewTotalRepaid.textContent = formatMoney(result.total * duration);
+      }
+    } else {
+      previewEl.classList.add('d-none');
+    }
+  }
+
+  function updateYearsDisplay(loanFormEl) {
+    const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+    const yearsDisplay = loanFormEl.querySelector('.loan-years-display');
+    if (!durationInput || !yearsDisplay) return;
+    const months = parseInt(durationInput.value) || 0;
+    if (months > 0) {
+      const years = Math.floor(months / 12);
+      const rem = months % 12;
+      let label = '';
+      if (years > 0) label += years + ' {% translate "yr" %}';
+      if (rem > 0) label += (label ? ' ' : '') + rem + ' {% translate "mo" %}';
+      yearsDisplay.textContent = label;
+    } else {
+      yearsDisplay.textContent = '';
+    }
+  }
+
+  // ── Schedule summary ──────────────────────────────────────────────────────
+
+  function updateScheduleSummary(tableEl) {
+    const loanFormEl = tableEl.closest('.loan-form');
+    if (!loanFormEl) return;
+    const countSummaryEl = loanFormEl.querySelector('.schedule-total-count');
+    const amountSummaryEl = loanFormEl.querySelector('.schedule-total-amount');
+    const diffCountEl = loanFormEl.querySelector('.schedule-diff-count');
+    let totalCount = 0, totalAmount = 0;
+    tableEl.querySelectorAll('tbody tr.schedule-row').forEach(row => {
+      const del = row.querySelector('input[type="checkbox"][id*="DELETE"]');
+      if (del && del.checked) return;
+      const countInput = row.querySelector('input[name$="-count"], input[id*="count"]');
+      const amtInput = row.querySelector('input[name$="-amount_0"], input[id*="amount_0"], input[id*="amount"][type="number"]');
+      totalCount += parseInt(countInput ? countInput.value : 0) || 0;
+      totalAmount += (parseInt(countInput ? countInput.value : 0) || 0) * (parseDecimal(amtInput ? amtInput.value : 0) || 0);
+    });
+
+    if (countSummaryEl) {
+      countSummaryEl.textContent = totalCount > 0 ? '{% translate "Total payments" %}: ' + totalCount : '';
+    }
+
+    if (amountSummaryEl) {
+      if (totalAmount > 0) {
+        const amountInput = loanFormEl.querySelector('input[id*="original_amount_0"], input[id$="original_amount"]');
+        const rateInput = loanFormEl.querySelector('input[id*="interest_rate"]');
+        const insuranceRateInput = loanFormEl.querySelector('input[id*="insurance_rate"]');
+        const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+        const amount = parseDecimal(amountInput ? amountInput.value : 0);
+        const rate = parseDecimal(rateInput ? rateInput.value : 0) || 0;
+        const insuranceRate = parseDecimal(insuranceRateInput ? insuranceRateInput.value : 0) || 0;
+        const duration = parseInt(durationInput ? durationInput.value : 0);
+        const regularResult = computeLoanPreview(amount, rate, insuranceRate, duration);
+        const roundedTotal = Math.round(totalAmount);
+        let diffHtml = '';
+        if (regularResult && duration > 0) {
+          const regularTotal = Math.round(regularResult.total * duration);
+          const diff = roundedTotal - regularTotal;
+          const diffPct = regularTotal > 0 ? Math.abs(diff) / regularTotal : 0;
+          if (diffPct > 0.05) {
+            const sign = diff > 0 ? '+' : '';
+            diffHtml = ` <span class="fw-semibold text-danger">(<i class="bi bi-exclamation-triangle"></i> ${sign}${formatMoney(diff)} / ${sign}${(diffPct * 100).toFixed(1)}%)</span>`;
+          } else if (diff !== 0) {
+            const sign = diff > 0 ? '+' : '';
+            diffHtml = ` <span class="fw-semibold text-warning">(<i class="bi bi-exclamation-triangle"></i> ${sign}${formatMoney(diff)})</span>`;
+          } else {
+            diffHtml = ` <span class="text-success"><i class="bi bi-check-circle"></i></span>`;
+          }
+        }
+        amountSummaryEl.classList.remove('text-success', 'text-warning', 'text-danger', 'text-muted');
+        amountSummaryEl.innerHTML = '<span class="text-muted">{% translate "Total repaid" %}: </span>' + formatMoney(roundedTotal) + diffHtml;
+      } else {
+        amountSummaryEl.classList.remove('text-success', 'text-warning', 'text-danger');
+        amountSummaryEl.innerHTML = '';
+      }
+    }
+
+    if (diffCountEl) {
+      const durationInput = loanFormEl.querySelector('input[id*="duration_months"]');
+      const loanDurationMonths = parseInt(durationInput ? durationInput.value : 0) || 0;
+      if (loanDurationMonths > 0 && totalCount > 0) {
+        const countDiff = loanDurationMonths - totalCount;
+        diffCountEl.classList.remove('text-success', 'text-warning', 'fw-semibold');
+        if (countDiff === 0) {
+          diffCountEl.classList.add('text-success', 'fw-semibold');
+          diffCountEl.innerHTML = '<i class="bi bi-check-circle"></i>';
+        } else {
+          diffCountEl.classList.add('text-warning', 'fw-semibold');
+          diffCountEl.innerHTML = '(<i class="bi bi-exclamation-triangle"></i> {% translate "difference of" %} ' + countDiff + ')';
+        }
+      } else {
+        diffCountEl.classList.remove('text-success', 'text-warning', 'fw-semibold');
+        diffCountEl.textContent = '';
+      }
+    }
+    updateLoanPreview(loanFormEl);
+  }
+
+  // ── Wire up each .loan-form ───────────────────────────────────────────────
+
+  function initLoanForm(loanFormEl) {
+    const watchIds = ['original_amount_0', 'original_amount', 'interest_rate', 'insurance_rate', 'duration_months'];
+    loanFormEl.querySelectorAll('input').forEach(input => {
+      const shouldWatch = watchIds.some(id => input.id && input.id.includes(id));
+      if (shouldWatch) {
+        input.addEventListener('input', () => {
+          updateLoanPreview(loanFormEl);
+          if (input.id && input.id.includes('duration_months')) {
+            updateYearsDisplay(loanFormEl);
+            const tableEl = loanFormEl.querySelector('.schedule-table');
+            if (tableEl) updateScheduleSummary(tableEl);
+          }
+        });
+      }
+    });
+    updateLoanPreview(loanFormEl);
+    updateYearsDisplay(loanFormEl);
+
+    // DELETE checkbox
+    const deleteCheckboxes = loanFormEl.querySelectorAll('input[type="checkbox"][id*="DELETE"]');
+    deleteCheckboxes.forEach(cb => {
+      if (cb.checked) loanFormEl.classList.add('deleted-loan');
+      cb.addEventListener('change', function() {
+        loanFormEl.classList.toggle('deleted-loan', this.checked);
+      });
+    });
+  }
+
+  // ── Add tranche button ────────────────────────────────────────────────────
+
+  function bindAddScheduleRow(btn) {
+    btn.addEventListener('click', function() {
+      const prefix = this.dataset.prefix;
+      const tbody = document.getElementById('schedule-body-' + prefix);
+      const totalFormsInput = document.querySelector('input[name="' + prefix + '-TOTAL_FORMS"]');
+      if (!tbody || !totalFormsInput) return;
+      const newIndex = parseInt(totalFormsInput.value);
+      const activeRowsCount = tbody.querySelectorAll('tr.schedule-row').length;
+      const nextOrder = activeRowsCount + 1;
+      const tr = document.createElement('tr');
+      tr.className = 'schedule-row';
+      tr.innerHTML = `
+        <td>
+          <input type="hidden" name="${prefix}-${newIndex}-id" id="id_${prefix}-${newIndex}-id">
+          <input type="number" name="${prefix}-${newIndex}-order" id="id_${prefix}-${newIndex}-order"
+                 class="form-control" min="1" value="${nextOrder}" placeholder="1">
+        </td>
+        <td>
+          <input type="number" name="${prefix}-${newIndex}-count" id="id_${prefix}-${newIndex}-count"
+                 class="form-control" min="1" placeholder="1" value="1">
+        </td>
+        <td>
+          <div class="input-group">
+            <input type="number" name="${prefix}-${newIndex}-amount_0" id="id_${prefix}-${newIndex}-amount_0"
+                   class="form-control" step="0.01" min="0" placeholder="0.00">
+            <input type="hidden" name="${prefix}-${newIndex}-amount_1" value="EUR">
+          </div>
+        </td>
+        <td class="text-center">
+          <button type="button" class="btn btn-sm btn-outline-danger remove-new-schedule-row" title="{% translate "Remove" %}">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      totalFormsInput.value = newIndex + 1;
+      tr.querySelector('.remove-new-schedule-row').addEventListener('click', function() {
+        tr.remove();
+        const tableEl = document.getElementById('schedule-table-' + prefix);
+        if (tableEl) updateScheduleSummary(tableEl);
+      });
+      const tableEl = document.getElementById('schedule-table-' + prefix);
+      if (tableEl) updateScheduleSummary(tableEl);
+    });
+  }
+
+  // ── Move existing loan form bodies into their collapse divs ───────────────
+
+  function mountExistingLoanForms() {
+    document.querySelectorAll('.loan-form-body[data-loan-pk]').forEach(body => {
+      const loanPk = body.dataset.loanPk;
+      const collapseDiv = document.getElementById('loan-form-collapse-' + loanPk);
+      if (collapseDiv) {
+        body.classList.remove('d-none');
+        collapseDiv.appendChild(body);
+      }
+    });
+  }
+
+  // ── Move new loan form body into the "Add a loan" collapse ────────────────
+
+  function mountNewLoanForm() {
+    const newLoanCollapse = document.getElementById('new-loan-collapse');
+    if (!newLoanCollapse) return;
+    document.querySelectorAll('.loan-form-body:not([data-loan-pk])').forEach(body => {
+      newLoanCollapse.appendChild(body);
+    });
+  }
+
+  // ── Schedule table change wiring ──────────────────────────────────────────
+
+  function initScheduleTable(tableEl) {
+    updateScheduleSummary(tableEl);
+    tableEl.addEventListener('input', () => updateScheduleSummary(tableEl));
+    tableEl.addEventListener('change', () => updateScheduleSummary(tableEl));
+    tableEl.addEventListener('keyup', () => updateScheduleSummary(tableEl));
+    tableEl.querySelectorAll('input[type="checkbox"][id*="DELETE"]').forEach(checkbox => {
+      const row = checkbox.closest('tr.schedule-row');
+      if (!row) return;
+      if (checkbox.checked) row.classList.add('table-danger', 'opacity-50');
+      checkbox.addEventListener('change', function() {
+        row.classList.toggle('table-danger', this.checked);
+        row.classList.toggle('opacity-50', this.checked);
+        const t = row.closest('.schedule-table');
+        if (t) updateScheduleSummary(t);
+      });
+    });
+  }
+
+  // ── Bootstrap classes ─────────────────────────────────────────────────────
+
+  function applyBootstrapClasses() {
+    document.querySelectorAll('#loan-formset input:not([type="checkbox"]), #loan-formset select, #loan-formset textarea, #new-loan-collapse input:not([type="checkbox"]), #new-loan-collapse select').forEach(input => {
+      if (!input.classList.contains('form-control') && !input.classList.contains('form-check-input')) {
+        input.classList.add('form-control');
+      }
+    });
+    document.querySelectorAll('#loan-formset input[type="checkbox"], #new-loan-collapse input[type="checkbox"]').forEach(cb => {
+      cb.classList.add('form-check-input');
+    });
+    document.querySelectorAll('#loan-formset select, #new-loan-collapse select').forEach(sel => {
+      sel.classList.remove('form-control');
+      sel.classList.add('form-select');
+    });
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+
+  document.addEventListener('DOMContentLoaded', function() {
+    mountExistingLoanForms();
+    mountNewLoanForm();
+    applyBootstrapClasses();
+
+    document.querySelectorAll('.loan-form').forEach(initLoanForm);
+    document.querySelectorAll('.schedule-table').forEach(initScheduleTable);
+    document.querySelectorAll('.add-schedule-row').forEach(bindAddScheduleRow);
+  });
+})();
+</script>

@@ -1,0 +1,78 @@
+{% load i18n format_money %}
+
+{# ── Property information card ─────────────────────────────────────────── #}
+<div class="card mb-3">
+  <div class="card-header py-2">
+    <h6 class="mb-0"><i class="bi bi-house me-1"></i>{% translate "Property information" %}</h6>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Type" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.get_property_type_display }}</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Floor area" %}</p>
+        <p class="mb-0 fw-semibold">
+          {% if property.floor_area %}{{ property.floor_area|floatformat:0 }} m²{% else %}—{% endif %}
+        </p>
+      </div>
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Number of rooms" %}</p>
+        <p class="mb-0 fw-semibold">
+          {% if property.number_of_rooms %}{{ property.number_of_rooms }}{% else %}—{% endif %}
+        </p>
+      </div>
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Furnished" %}</p>
+        <p class="mb-0 fw-semibold">
+          {% if property.is_furnished %}
+            <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-check-circle me-1"></i>{% translate "Yes" %}</span>
+          {% else %}
+            <span class="badge bg-secondary-subtle text-secondary-emphasis"><i class="bi bi-x-circle me-1"></i>{% translate "No" %}</span>
+          {% endif %}
+        </p>
+      </div>
+      <div class="col-12">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Address" %}</p>
+        <p class="mb-0">{{ property.address|default:"—" }}</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Buying date" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.buying_date }}</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Buying value" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.buying_value|format_money }}</p>
+      </div>
+      {% if property.buying_value_gross %}
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Buying value (gross)" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.buying_value_gross|format_money }}</p>
+      </div>
+      {% endif %}
+      {% if property.selling_date %}
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Selling date" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.selling_date }}</p>
+      </div>
+      {% endif %}
+      {% if property.selling_value %}
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Selling value" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.selling_value|format_money }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Map ──────────────────────────────────────────────────────────────── #}
+<div class="card">
+  <div class="card-header py-2">
+    <h6 class="mb-0"><i class="bi bi-map me-1"></i>{% translate "Location" %}</h6>
+  </div>
+  <div class="card-body p-0">
+    <div id="property-map" class="rounded-bottom" style="height: 320px;"></div>
+  </div>
+</div>

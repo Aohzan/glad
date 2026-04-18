@@ -1,0 +1,50 @@
+{% load i18n format_money %}
+
+<div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-3">
+  <form method="get" class="d-flex gap-2 align-items-center">
+    <label for="growth-rate" class="form-label small mb-0 text-body-secondary">{% translate "Annual growth rate" %}</label>
+    <input
+      id="growth-rate"
+      name="growth_rate"
+      type="number"
+      class="form-control form-control-sm"
+      style="width: 80px;"
+      step="0.1"
+      min="-99"
+      max="100"
+      value="{{ growth_rate_percent|floatformat:2 }}"
+      title="{% translate 'Annual growth rate (%)' %}"
+    >
+    <span class="text-body-secondary small">%</span>
+    <button type="submit" class="btn btn-sm btn-primary">{% translate "Recalculate" %}</button>
+  </form>
+</div>
+
+<div class="mb-4">
+  <div id="property-projection-chart" style="height: 340px;"></div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>{% translate "Horizon" %}</th>
+        <th>{% translate "Date" %}</th>
+        <th>{% translate "Projected value" %}</th>
+        <th>{% translate "Projected debt" %}</th>
+        <th>{% translate "Projected net value" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for point in projection_points %}
+        <tr>
+          <td>{{ point.years }} {% translate "years" %}</td>
+          <td>{{ point.date }}</td>
+          <td>{{ point.projected_value|format_money }}</td>
+          <td>{{ point.projected_debt|format_money }}</td>
+          <td class="fw-semibold">{{ point.projected_net|format_money }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

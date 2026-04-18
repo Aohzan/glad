@@ -136,8 +136,6 @@ class PropertyLoanTestCase(TestCase):
         loan = PropertyLoan(
             start_date=datetime.date(2024, 1, 1),
             end_date=datetime.date(2044, 1, 1),
-            original_amount=Money(100000, "EUR"),
-            # No interest_rate
         )
         loan.compute_monthly_payment()
         self.assertIsNone(loan.monthly_payment)

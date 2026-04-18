@@ -1,7 +1,7 @@
 """
 LMNP réel tax service.
 
-Provides the mapping from TaxCategory values to cerfa 2033-B line numbers,
+Provides the mapping from ManagementCategory values to cerfa 2033-B line numbers,
 and aggregation helpers for annual tax preparation.
 
 Architecture note: This module is intentionally isolated from the models.
@@ -16,19 +16,19 @@ from decimal import Decimal
 
 from django.db.models import Sum
 
-# ─── Mapping TaxCategory → cerfa 2033-B (LMNP réel) ─────────────────────────
+# ─── Mapping ManagementCategory → cerfa 2033-B (LMNP réel) ──────────────────
 #
 # Each entry: {"section": "recettes"|"charges"|None, "line": str|None, "label": str}
 # section=None means the category is off the tax result (deposits, capital repayment).
 
 LMNP_TAX_MAPPING: dict[str, dict] = {
     # Recettes
-    "rent": {
+    "rent_collected": {
         "section": "recettes",
         "line": "213",
         "label": "Loyers meublés",
     },
-    "charges_recovered": {
+    "charges_collected": {
         "section": "recettes",
         "line": "213",
         "label": "Charges refacturées",
@@ -37,6 +37,11 @@ LMNP_TAX_MAPPING: dict[str, dict] = {
         "section": "recettes",
         "line": "209",
         "label": "Autres produits",
+    },
+    "manager_reversal": {
+        "section": "recettes",
+        "line": "213",
+        "label": "Reversement gestionnaire",
     },
     # Charges déductibles
     "management_fees": {
@@ -49,20 +54,35 @@ LMNP_TAX_MAPPING: dict[str, dict] = {
         "line": "220",
         "label": "Autres frais généraux",
     },
-    "maintenance_repairs": {
+    "coownership": {
+        "section": "charges",
+        "line": "220",
+        "label": "Charges de copropriété",
+    },
+    "maintenance": {
         "section": "charges",
         "line": "222",
         "label": "Entretien et réparations",
+    },
+    "works": {
+        "section": "charges",
+        "line": "222",
+        "label": "Travaux",
     },
     "insurance": {
         "section": "charges",
         "line": "224",
         "label": "Primes d'assurance",
     },
-    "taxes": {
+    "property_tax": {
         "section": "charges",
         "line": "226",
-        "label": "Impôts et taxes (foncière, CFE)",
+        "label": "Taxe foncière",
+    },
+    "cfe": {
+        "section": "charges",
+        "line": "226",
+        "label": "CFE",
     },
     "misc_deductible": {
         "section": "charges",
@@ -73,6 +93,11 @@ LMNP_TAX_MAPPING: dict[str, dict] = {
         "section": "charges",
         "line": "230",
         "label": "Charges financières (intérêts)",
+    },
+    "loan_insurance": {
+        "section": "charges",
+        "line": "230",
+        "label": "Assurance emprunteur",
     },
     # Hors résultat fiscal
     "loan_repayment": {
@@ -106,7 +131,7 @@ def get_lmnp_summary(property_id: int, year: int) -> dict:
       - recettes: total income (loyers + charges refacturées + other)
       - charges: total deductible expenses (per cerfa line)
       - result: recettes - charges (before amortissements)
-      - by_category: breakdown by tax_category
+      - by_category: breakdown by management_category
       - by_line: breakdown by cerfa line number
     """
     from property.models import PropertyLedgerEntry  # avoid circular at module level
@@ -118,8 +143,8 @@ def get_lmnp_summary(property_id: int, year: int) -> dict:
     )
 
     by_category: dict[str, Decimal] = {}
-    for row in entries.values("tax_category").annotate(total=Sum("amount")):
-        by_category[row["tax_category"]] = row["total"] or Decimal("0")
+    for row in entries.values("management_category").annotate(total=Sum("amount")):
+        by_category[row["management_category"]] = row["total"] or Decimal("0")
 
     recettes = Decimal("0")
     charges = Decimal("0")
@@ -152,7 +177,7 @@ def export_lmnp_csv(property_id: int, year: int) -> str:
     """
     Generate a CSV string for LMNP réel annual declaration.
 
-    Columns: property_name, entry_date, flow_type, tax_category,
+    Columns: property_name, entry_date, flow_type, management_category,
              lmnp_line, lmnp_label, description, amount_eur
     """
     from property.models import PropertyLedgerEntry
@@ -173,7 +198,7 @@ def export_lmnp_csv(property_id: int, year: int) -> str:
             "property",
             "entry_date",
             "flow_type",
-            "tax_category",
+            "management_category",
             "lmnp_line",
             "lmnp_label",
             "description",
@@ -182,13 +207,13 @@ def export_lmnp_csv(property_id: int, year: int) -> str:
         ]
     )
     for entry in entries:
-        mapping = LMNP_TAX_MAPPING.get(entry.tax_category, {})
+        mapping = LMNP_TAX_MAPPING.get(entry.management_category, {})
         writer.writerow(
             [
                 entry.property.name,
                 entry.entry_date.isoformat(),
                 entry.flow_type,
-                entry.tax_category,
+                entry.management_category,
                 mapping.get("line", ""),
                 mapping.get("label", ""),
                 entry.description,

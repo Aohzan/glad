@@ -70,6 +70,9 @@
                                 {% for prop in nav_properties %}
                                 <li><a class="dropdown-item" href="{% url 'property:detail' prop.pk %}"><i class="bi bi-{{ prop.icon | default:"building" }} me-2"></i>{{ prop.name }}</a></li>
                                 {% endfor %}
+                                {% else %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'property:create' %}"><i class="bi bi-plus-circle me-2"></i>{% translate "Add your first property" %}</a></li>
                                 {% endif %}
                             </ul>
                         </li>

@@ -9,15 +9,12 @@ from moneyed import Money
 from base.forms import MoneyInputGroupMixin
 from property.models import (
     Lease,
-    LeaseTenant,
     ManagementMandate,
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
     PropertyLoanSchedule,
-    PropertyManager,
     PropertyValue,
-    Tenant,
 )
 from property.utils import add_months_safe, calculate_monthly_payment
 
@@ -76,8 +73,8 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
             "flow_type",
             "amount",
             "entry_date",
-            "tax_category",
             "management_category",
+            "lease",
             "description",
             "recurrence_type",
             "recurrence_end_date",
@@ -86,9 +83,6 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
             "flow_type": forms.Select(
                 attrs={"class": "form-select", "id": "id_flow_type"}
             ),
-            "tax_category": forms.Select(
-                attrs={"class": "form-select", "id": "id_tax_category"}
-            ),
             "management_category": forms.Select(
                 attrs={"class": "form-select", "id": "id_management_category"}
             ),
@@ -96,7 +90,18 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
                 attrs={"class": "form-select", "id": "id_recurrence_type"}
             ),
             "description": forms.TextInput(attrs={"class": "form-control"}),
+            "lease": forms.Select(attrs={"class": "form-select"}),
         }
+
+    def __init__(self, *args, property_obj=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        lease_field = self.fields["lease"]
+        assert isinstance(lease_field, forms.ModelChoiceField)
+        if property_obj is not None:
+            lease_field.queryset = Lease.objects.filter(property=property_obj)
+        else:
+            lease_field.queryset = Lease.objects.none()
+        lease_field.required = False
 
 
 class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
@@ -120,25 +125,31 @@ class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "amount",
             "entry_date",
             "reference_period",
-            "tax_category",
             "management_category",
             "description",
             "recurrence_type",
             "recurrence_end_date",
             "lease",
-            "mandate",
             "notes",
         ]
         widgets = {
             "flow_type": forms.Select(attrs={"class": "form-select"}),
-            "tax_category": forms.Select(attrs={"class": "form-select"}),
             "management_category": forms.Select(attrs={"class": "form-select"}),
             "recurrence_type": forms.Select(attrs={"class": "form-select"}),
             "description": forms.TextInput(attrs={"class": "form-control"}),
             "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
             "lease": forms.Select(attrs={"class": "form-select"}),
-            "mandate": forms.Select(attrs={"class": "form-select"}),
         }
+
+    def __init__(self, *args, property_obj=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        lease_field = self.fields["lease"]
+        assert isinstance(lease_field, forms.ModelChoiceField)
+        if property_obj is not None:
+            lease_field.queryset = Lease.objects.filter(property=property_obj)
+        else:
+            lease_field.queryset = Lease.objects.none()
+        lease_field.required = False
 
 
 # ─── Property ─────────────────────────────────────────────────────────────────
@@ -287,6 +298,10 @@ class LeaseForm(MoneyInputGroupMixin, forms.ModelForm):
     class Meta:
         model = Lease
         fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "phone",
             "lease_type",
             "status",
             "start_date",
@@ -309,42 +324,7 @@ class LeaseForm(MoneyInputGroupMixin, forms.ModelForm):
         }
 
 
-class TenantForm(forms.ModelForm):
-    """Form for creating and editing a tenant."""
-
-    class Meta:
-        model = Tenant
-        fields = ["first_name", "last_name", "email", "phone", "notes"]
-        widgets = {
-            "notes": forms.Textarea(attrs={"rows": 2}),
-        }
-
-
-class LeaseTenantForm(forms.ModelForm):
-    """Form for linking a tenant to a lease (used in inline formset)."""
-
-    class Meta:
-        model = LeaseTenant
-        fields = ["tenant", "is_primary", "join_date", "leave_date"]
-        widgets = {
-            "join_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
-            "leave_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
-        }
-
-
 # ─── Management ───────────────────────────────────────────────────────────────
-
-
-class PropertyManagerForm(forms.ModelForm):
-    """Form for creating and editing a property manager."""
-
-    class Meta:
-        model = PropertyManager
-        fields = ["name", "email", "phone", "address", "siret", "notes"]
-        widgets = {
-            "address": forms.Textarea(attrs={"rows": 2}),
-            "notes": forms.Textarea(attrs={"rows": 2}),
-        }
 
 
 class ManagementMandateForm(MoneyInputGroupMixin, forms.ModelForm):
@@ -353,7 +333,10 @@ class ManagementMandateForm(MoneyInputGroupMixin, forms.ModelForm):
     class Meta:
         model = ManagementMandate
         fields = [
-            "manager",
+            "manager_name",
+            "manager_address",
+            "manager_phone",
+            "manager_email",
             "start_date",
             "end_date",
             "fee_type",
@@ -362,6 +345,7 @@ class ManagementMandateForm(MoneyInputGroupMixin, forms.ModelForm):
             "notes",
         ]
         widgets = {
+            "manager_address": forms.Textarea(attrs={"rows": 2}),
             "start_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "end_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "fee_type": forms.Select(attrs={"class": "form-select"}),

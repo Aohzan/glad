@@ -1,4 +1,4 @@
-"""Tests for CRUD views: delete views for tenant, lease, mandate, and cashflow service."""
+"""Tests for CRUD views: delete views for lease, mandate, and cashflow service."""
 
 import datetime
 from decimal import Decimal
@@ -10,15 +10,12 @@ from moneyed import Money
 
 from property.models import (
     Lease,
-    LeaseTenant,
     ManagementMandate,
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
     PropertyLoanSchedule,
-    PropertyManager,
     PropertyValue,
-    Tenant,
 )
 from property.services.cashflow import build_balance_sheet
 
@@ -35,66 +32,26 @@ def _make_property():
     )
 
 
-def _make_tenant():
-    return Tenant.objects.create(first_name="Alice", last_name="Dupont")
-
-
-def _make_lease(prop, tenant):
-    lease = Lease.objects.create(
+def _make_lease(prop):
+    return Lease.objects.create(
         property=prop,
         lease_type=Lease.LeaseType.EMPTY,
         start_date=datetime.date(2021, 1, 1),
         status=Lease.Status.ACTIVE,
         rent_amount=Money(800, "EUR"),
+        first_name="Alice",
+        last_name="Dupont",
     )
-    LeaseTenant.objects.create(lease=lease, tenant=tenant)
-    return lease
 
 
-def _make_manager():
-    return PropertyManager.objects.create(name="Agence Immo")
-
-
-def _make_mandate(prop, manager):
+def _make_mandate(prop):
     return ManagementMandate.objects.create(
         property=prop,
-        manager=manager,
+        manager_name="Agence Immo",
         start_date=datetime.date(2021, 1, 1),
         fee_type=ManagementMandate.FeeType.PERCENTAGE,
         fee_percentage=Decimal("7.00"),
     )
-
-
-# ─── delete_tenant ────────────────────────────────────────────────────────────
-
-
-@pytest.mark.django_db
-def test_delete_tenant_requires_post(user_client):
-    tenant = _make_tenant()
-    url = reverse("property:delete_tenant", kwargs={"pk": tenant.pk})
-    response = user_client.get(url)
-    assert response.status_code == 302
-    assert Tenant.objects.filter(pk=tenant.pk).exists()
-    msgs = list(get_messages(response.wsgi_request))
-    assert any("Invalid request method" in str(m) for m in msgs)
-
-
-@pytest.mark.django_db
-def test_delete_tenant_post_deletes_and_redirects(user_client):
-    tenant = _make_tenant()
-    url = reverse("property:delete_tenant", kwargs={"pk": tenant.pk})
-    response = user_client.post(url)
-    assert response.status_code == 302
-    assert not Tenant.objects.filter(pk=tenant.pk).exists()
-    msgs = list(get_messages(response.wsgi_request))
-    assert any("deleted" in str(m).lower() for m in msgs)
-
-
-@pytest.mark.django_db
-def test_delete_tenant_nonexistent_returns_404(user_client):
-    url = reverse("property:delete_tenant", kwargs={"pk": 99999})
-    response = user_client.post(url)
-    assert response.status_code == 404
 
 
 # ─── delete_lease ─────────────────────────────────────────────────────────────
@@ -103,8 +60,7 @@ def test_delete_tenant_nonexistent_returns_404(user_client):
 @pytest.mark.django_db
 def test_delete_lease_requires_post(user_client):
     prop = _make_property()
-    tenant = _make_tenant()
-    lease = _make_lease(prop, tenant)
+    lease = _make_lease(prop)
     url = reverse(
         "property:delete_lease", kwargs={"property_pk": prop.pk, "lease_pk": lease.pk}
     )
@@ -118,8 +74,7 @@ def test_delete_lease_requires_post(user_client):
 @pytest.mark.django_db
 def test_delete_lease_post_deletes_and_redirects(user_client):
     prop = _make_property()
-    tenant = _make_tenant()
-    lease = _make_lease(prop, tenant)
+    lease = _make_lease(prop)
     url = reverse(
         "property:delete_lease", kwargs={"property_pk": prop.pk, "lease_pk": lease.pk}
     )
@@ -146,8 +101,7 @@ def test_delete_lease_nonexistent_returns_404(user_client):
 @pytest.mark.django_db
 def test_delete_mandate_requires_post(user_client):
     prop = _make_property()
-    manager = _make_manager()
-    mandate = _make_mandate(prop, manager)
+    mandate = _make_mandate(prop)
     url = reverse(
         "property:delete_mandate",
         kwargs={"property_pk": prop.pk, "mandate_pk": mandate.pk},
@@ -162,8 +116,7 @@ def test_delete_mandate_requires_post(user_client):
 @pytest.mark.django_db
 def test_delete_mandate_post_deletes_and_redirects(user_client):
     prop = _make_property()
-    manager = _make_manager()
-    mandate = _make_mandate(prop, manager)
+    mandate = _make_mandate(prop)
     url = reverse(
         "property:delete_mandate",
         kwargs={"property_pk": prop.pk, "mandate_pk": mandate.pk},
@@ -186,47 +139,13 @@ def test_delete_mandate_nonexistent_returns_404(user_client):
     assert response.status_code == 404
 
 
-# ─── edit_tenant ──────────────────────────────────────────────────────────────
-
-
-@pytest.mark.django_db
-def test_edit_tenant_get_renders_form(user_client):
-    tenant = _make_tenant()
-    url = reverse("property:edit_tenant", kwargs={"pk": tenant.pk})
-    response = user_client.get(url)
-    assert response.status_code == 200
-    assert "form" in response.context
-
-
-@pytest.mark.django_db
-def test_edit_tenant_post_saves_and_redirects(user_client):
-    tenant = _make_tenant()
-    url = reverse("property:edit_tenant", kwargs={"pk": tenant.pk})
-    response = user_client.post(url, {"first_name": "Bob", "last_name": "Martin"})
-    assert response.status_code == 302
-    tenant.refresh_from_db()
-    assert tenant.first_name == "Bob"
-
-
-@pytest.mark.django_db
-def test_edit_tenant_post_invalid_shows_error(user_client):
-    tenant = _make_tenant()
-    url = reverse("property:edit_tenant", kwargs={"pk": tenant.pk})
-    # last_name is required — submit empty
-    response = user_client.post(url, {"first_name": "", "last_name": ""})
-    assert response.status_code == 200
-    msgs = list(get_messages(response.wsgi_request))
-    assert any("correct" in str(m).lower() for m in msgs)
-
-
 # ─── edit_lease ───────────────────────────────────────────────────────────────
 
 
 @pytest.mark.django_db
 def test_edit_lease_get_renders_form(user_client):
     prop = _make_property()
-    tenant = _make_tenant()
-    lease = _make_lease(prop, tenant)
+    lease = _make_lease(prop)
     url = reverse(
         "property:edit_lease", kwargs={"property_pk": prop.pk, "lease_pk": lease.pk}
     )
@@ -254,54 +173,13 @@ def test_edit_lease_post_invalid_shows_error(user_client):
     assert any("correct" in str(m).lower() for m in msgs)
 
 
-# ─── edit_manager ─────────────────────────────────────────────────────────────
-
-
-@pytest.mark.django_db
-def test_edit_manager_get_renders_form(user_client):
-    manager = _make_manager()
-    url = reverse("property:edit_manager", kwargs={"pk": manager.pk})
-    response = user_client.get(url)
-    assert response.status_code == 200
-    assert "form" in response.context
-
-
-@pytest.mark.django_db
-def test_new_manager_get_renders_empty_form(user_client):
-    url = reverse("property:new_manager")
-    response = user_client.get(url)
-    assert response.status_code == 200
-    assert response.context["manager"] is None
-
-
-@pytest.mark.django_db
-def test_edit_manager_post_saves_and_redirects(user_client):
-    manager = _make_manager()
-    url = reverse("property:edit_manager", kwargs={"pk": manager.pk})
-    response = user_client.post(url, {"name": "New Agency"})
-    assert response.status_code == 302
-    manager.refresh_from_db()
-    assert manager.name == "New Agency"
-
-
-@pytest.mark.django_db
-def test_edit_manager_post_invalid_shows_error(user_client):
-    manager = _make_manager()
-    url = reverse("property:edit_manager", kwargs={"pk": manager.pk})
-    response = user_client.post(url, {"name": ""})
-    assert response.status_code == 200
-    msgs = list(get_messages(response.wsgi_request))
-    assert any("correct" in str(m).lower() for m in msgs)
-
-
 # ─── edit_mandate ─────────────────────────────────────────────────────────────
 
 
 @pytest.mark.django_db
 def test_edit_mandate_get_renders_form(user_client):
     prop = _make_property()
-    manager = _make_manager()
-    mandate = _make_mandate(prop, manager)
+    mandate = _make_mandate(prop)
     url = reverse(
         "property:edit_mandate",
         kwargs={"property_pk": prop.pk, "mandate_pk": mandate.pk},
@@ -386,7 +264,6 @@ def test_edit_ledger_entry_post_saves_and_redirects(user_client):
         description="Rent",
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
         management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-        tax_category=PropertyLedgerEntry.TaxCategory.RENT,
         amount=Money(800, "EUR"),
         entry_date=datetime.date(2022, 3, 15),
     )
@@ -399,7 +276,6 @@ def test_edit_ledger_entry_post_saves_and_redirects(user_client):
             "description": "Updated Rent",
             "flow_type": PropertyLedgerEntry.FlowType.INCOME,
             "management_category": PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            "tax_category": PropertyLedgerEntry.TaxCategory.RENT,
             "amount_0": "900",
             "amount_1": "EUR",
             "entry_date": "2022-03-15",
@@ -419,7 +295,6 @@ def test_edit_ledger_entry_post_invalid_shows_error(user_client):
         description="Rent",
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
         management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-        tax_category=PropertyLedgerEntry.TaxCategory.RENT,
         amount=Money(800, "EUR"),
         entry_date=datetime.date(2022, 3, 15),
     )
@@ -482,7 +357,6 @@ def test_get_annual_cashflow_with_entries():
         description="Rent",
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
         management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-        tax_category=PropertyLedgerEntry.TaxCategory.RENT,
         amount=Money(800, "EUR"),
         entry_date=datetime.date(2022, 6, 1),
     )
@@ -491,7 +365,6 @@ def test_get_annual_cashflow_with_entries():
         description="Repair",
         flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
         management_category=PropertyLedgerEntry.ManagementCategory.MAINTENANCE,
-        tax_category=PropertyLedgerEntry.TaxCategory.MAINTENANCE_REPAIRS,
         amount=Money(200, "EUR"),
         entry_date=datetime.date(2022, 6, 15),
     )
@@ -614,7 +487,6 @@ def test_build_balance_sheet_with_ledger_entries():
         description="Rent",
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
         management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-        tax_category=PropertyLedgerEntry.TaxCategory.RENT,
         amount=Money(800, "EUR"),
         entry_date=datetime.date(2022, 3, 15),
     )
@@ -623,7 +495,6 @@ def test_build_balance_sheet_with_ledger_entries():
         description="Repair",
         flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
         management_category=PropertyLedgerEntry.ManagementCategory.MAINTENANCE,
-        tax_category=PropertyLedgerEntry.TaxCategory.MAINTENANCE_REPAIRS,
         amount=Money(200, "EUR"),
         entry_date=datetime.date(2022, 3, 20),
     )
@@ -654,7 +525,6 @@ def test_build_balance_sheet_gross_yield():
         description="Rent",
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
         management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-        tax_category=PropertyLedgerEntry.TaxCategory.RENT,
         amount=Money(800, "EUR"),
         entry_date=datetime.date(2022, 6, 1),
     )

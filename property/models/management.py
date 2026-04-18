@@ -1,4 +1,4 @@
-"""Models for third-party property management: PropertyManager, ManagementMandate."""
+"""Models for third-party property management: ManagementMandate."""
 
 import builtins
 
@@ -11,25 +11,6 @@ from base.models import BaseModel
 _property = (
     builtins.property
 )  # alias before any field named "property" shadows the built-in
-
-
-class PropertyManager(BaseModel):
-    """A property management agency or individual manager."""
-
-    class Meta:
-        verbose_name = _("property manager")
-        verbose_name_plural = _("property managers")
-        ordering = ["name"]
-
-    name = models.CharField(max_length=200, verbose_name=_("Name"))
-    email = models.EmailField(blank=True, verbose_name=_("Email"))
-    phone = models.CharField(max_length=30, blank=True, verbose_name=_("Phone"))
-    address = models.TextField(blank=True, verbose_name=_("Address"))
-    siret = models.CharField(max_length=14, blank=True, verbose_name=_("SIRET"))
-    notes = models.TextField(blank=True)
-
-    def __str__(self) -> str:
-        return self.name
 
 
 class ManagementMandate(BaseModel):
@@ -56,12 +37,12 @@ class ManagementMandate(BaseModel):
         related_name="mandates",
         verbose_name=_("Property"),
     )
-    manager = models.ForeignKey(
-        PropertyManager,
-        on_delete=models.PROTECT,
-        related_name="mandates",
-        verbose_name=_("Manager"),
+    manager_name = models.CharField(
+        max_length=200, verbose_name=_("Manager name"), default=""
     )
+    manager_address = models.TextField(blank=True, verbose_name=_("Address"))
+    manager_phone = models.CharField(max_length=30, blank=True, verbose_name=_("Phone"))
+    manager_email = models.EmailField(blank=True, verbose_name=_("Email"))
     start_date = models.DateField(verbose_name=_("Start date"))
     end_date = models.DateField(
         null=True,
@@ -95,7 +76,7 @@ class ManagementMandate(BaseModel):
     def __str__(self) -> str:
         status = _("active") if self.is_active else str(self.end_date)
         return (
-            f"{self.property.name} — {self.manager.name} ({self.start_date} → {status})"
+            f"{self.property.name} — {self.manager_name} ({self.start_date} → {status})"
         )
 
     @_property

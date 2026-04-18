@@ -9,8 +9,10 @@ app_name = "property"
 urlpatterns = [
     # Property
     path("", views.index, name="index"),
+    path("new/", views.create_property, name="create"),
     path("<int:pk>/", views.PropertyDetailView.as_view(), name="detail"),
     path("<int:pk>/edit/", views.edit_property, name="edit"),
+    path("<int:pk>/loans/", views.manage_property_loans, name="loans"),
     # Property valuation
     path(
         "<int:property_pk>/valuation/<int:valuation_pk>/delete/",
@@ -28,9 +30,6 @@ urlpatterns = [
         views.delete_ledger_entry,
         name="delete_entry",
     ),
-    # Tenants
-    path("tenant/<int:pk>/edit/", views.edit_tenant, name="edit_tenant"),
-    path("tenant/<int:pk>/delete/", views.delete_tenant, name="delete_tenant"),
     # Leases
     path("<int:property_pk>/lease/new/", views.edit_lease, name="new_lease"),
     path(
@@ -43,9 +42,7 @@ urlpatterns = [
         views.delete_lease,
         name="delete_lease",
     ),
-    # Managers & mandates
-    path("manager/new/", views.edit_manager, name="new_manager"),
-    path("manager/<int:pk>/edit/", views.edit_manager, name="edit_manager"),
+    # Mandates
     path("<int:property_pk>/mandate/new/", views.edit_mandate, name="new_mandate"),
     path(
         "<int:property_pk>/mandate/<int:mandate_pk>/edit/",

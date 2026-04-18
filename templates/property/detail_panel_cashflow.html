@@ -1,0 +1,41 @@
+{% load i18n format_money %}
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-lg-6">
+    <h6 class="text-body-secondary small mb-1">{% translate "Monthly overview" %}</h6>
+    <div id="property-cashflow-overview-chart" style="height: 260px;"></div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <h6 class="text-body-secondary small mb-1">{% translate "Expenses breakdown" %}</h6>
+    <div id="property-cashflow-breakdown-chart" style="height: 260px;"></div>
+  </div>
+</div>
+
+<hr class="my-3">
+
+{# Transactions table #}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h6 class="mb-0">{% translate "Transactions" %}</h6>
+  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#entryModal">
+    <i class="bi bi-plus-circle me-1"></i>{% translate "Add entry" %}
+  </button>
+</div>
+
+<div class="table-responsive">
+  <table id="transactions-table" class="table table-hover align-middle mb-0 w-100">
+    <thead>
+      <tr>
+        <th>{% translate "Date" %}</th>
+        <th class="d-none"></th>{# hidden raw kind — used for column search #}
+        <th>{% translate "Kind" %}</th>
+        <th>{% translate "Category" %}</th>
+        <th>{% translate "Amount" %}</th>
+        <th>{% translate "Description" %}</th>
+        <th class="no-sort">{% translate "Actions" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {# Populated by DataTables from embedded JSON #}
+    </tbody>
+  </table>
+</div>

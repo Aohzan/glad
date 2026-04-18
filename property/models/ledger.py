@@ -18,62 +18,50 @@ class PropertyLedgerEntry(BaseModel):
     - flow_type=INCOME: rent collected, charges recovered, deposit received, etc.
     - flow_type=EXPENSE: maintenance, insurance, management fees, loan interest, etc.
     - amount is always positive.
-    - tax_category maps to LMNP réel cerfa 2033-B lines.
-      The TaxCategory choices are designed to be extensible for other tax regimes
-      (micro-BIC, SCI IS, etc.) by adding new choices without breaking existing data.
+    - management_category drives both dashboard statistics and LMNP cerfa 2033-B mapping.
     """
 
     class FlowType(models.TextChoices):
         INCOME = "income", _("Income")
         EXPENSE = "expense", _("Expense")
 
-    class TaxCategory(models.TextChoices):
-        # ── Recettes ──────────────────────────────────────────────────────────
-        RENT = "rent", _("Rent")
-        CHARGES_RECOVERED = "charges_recovered", _("Recovered charges")
+    class ManagementCategory(models.TextChoices):
+        """Categories for dashboard statistics and LMNP cerfa 2033-B mapping."""
+
+        # ── Income ────────────────────────────────────────────────────────────
+        RENT_COLLECTED = "rent_collected", _("Rent collected")
+        CHARGES_COLLECTED = "charges_collected", _("Charges collected")
         OTHER_INCOME = "other_income", _("Other income")
-        # ── Charges déductibles LMNP réel (cerfa 2033-B) ─────────────────────
-        MANAGEMENT_FEES = "management_fees", _("Management fees (l.218)")
-        OTHER_GENERAL_FEES = "other_general_fees", _("Other general fees (l.220)")
-        MAINTENANCE_REPAIRS = "maintenance_repairs", _("Maintenance & repairs (l.222)")
-        INSURANCE = "insurance", _("Insurance premiums (l.224)")
-        TAXES = "taxes", _("Taxes — property tax, CFE (l.226)")
-        MISC_DEDUCTIBLE = "misc_deductible", _("Miscellaneous deductible (l.228)")
-        LOAN_INTEREST = "loan_interest", _("Loan interest (l.230)")
-        # ── Hors résultat fiscal ──────────────────────────────────────────────
-        LOAN_REPAYMENT = "loan_repayment", _("Loan capital repayment (non-deductible)")
-        DEPOSIT_IN = "deposit_in", _("Security deposit received")
-        DEPOSIT_OUT = "deposit_out", _("Security deposit returned")
+        DEPOSIT_IN = "deposit_in", _("Deposit received")
+        MANAGER_REVERSAL = "manager_reversal", _("Manager reversal")
+        # ── Deductible expenses (LMNP réel cerfa 2033-B) ─────────────────────
+        MANAGEMENT_FEES = "management_fees", _("Management fees")
+        OTHER_GENERAL_FEES = "other_general_fees", _("Other general fees")
+        COOWNERSHIP = "coownership", _("Co-ownership fees")
+        MAINTENANCE = "maintenance", _("Routine maintenance")
+        WORKS = "works", _("Works")
+        INSURANCE = "insurance", _("Insurance")
+        PROPERTY_TAX = "property_tax", _("Property tax")
+        CFE = "cfe", _("CFE")
+        MISC_DEDUCTIBLE = "misc_deductible", _("Miscellaneous deductible")
+        LOAN_INTEREST = "loan_interest", _("Loan interest")
+        LOAN_INSURANCE = "loan_insurance", _("Loan insurance")
+        # ── Off tax result ────────────────────────────────────────────────────
+        LOAN_REPAYMENT = "loan_repayment", _("Loan capital repayment")
+        DEPOSIT_OUT = "deposit_out", _("Deposit returned")
         NON_DEDUCTIBLE = "non_deductible", _("Other non-deductible")
+        OTHER = "other", _("Other")
 
     # Income categories — used in clean() to validate flow_type coherence
     _INCOME_CATEGORIES = frozenset(
         [
-            TaxCategory.RENT,
-            TaxCategory.CHARGES_RECOVERED,
-            TaxCategory.OTHER_INCOME,
-            TaxCategory.DEPOSIT_IN,
+            ManagementCategory.RENT_COLLECTED,
+            ManagementCategory.CHARGES_COLLECTED,
+            ManagementCategory.OTHER_INCOME,
+            ManagementCategory.DEPOSIT_IN,
+            ManagementCategory.MANAGER_REVERSAL,
         ]
     )
-
-    class ManagementCategory(models.TextChoices):
-        """Internal management categories for dashboard statistics."""
-
-        RENT_COLLECTED = "rent_collected", _("Rent collected")
-        CHARGES_COLLECTED = "charges_collected", _("Charges collected")
-        DEPOSIT_IN = "deposit_in", _("Deposit received")
-        DEPOSIT_OUT = "deposit_out", _("Deposit returned")
-        MANAGER_REVERSAL = "manager_reversal", _("Manager reversal")
-        MAINTENANCE = "maintenance", _("Routine maintenance")
-        WORKS = "works", _("Works")
-        INSURANCE = "insurance", _("Insurance")
-        COOWNERSHIP = "coownership", _("Co-ownership fees")
-        MANAGEMENT_FEES = "management_fees", _("Management fees")
-        LOAN_INTEREST = "loan_interest", _("Loan interest")
-        LOAN_INSURANCE = "loan_insurance", _("Loan insurance")
-        PROPERTY_TAX = "property_tax", _("Property tax")
-        CFE = "cfe", _("CFE")
-        OTHER = "other", _("Other")
 
     class RecurrenceType(models.TextChoices):
         """Recurrence type for ledger entries."""
@@ -94,7 +82,7 @@ class PropertyLedgerEntry(BaseModel):
         ordering = ["-entry_date"]
         indexes = [
             models.Index(fields=["property", "entry_date"]),
-            models.Index(fields=["property", "tax_category"]),
+            models.Index(fields=["property", "management_category"]),
             models.Index(fields=["flow_type", "entry_date"]),
         ]
 
@@ -111,14 +99,6 @@ class PropertyLedgerEntry(BaseModel):
         blank=True,
         related_name="ledger_entries",
         verbose_name=_("Lease"),
-    )
-    mandate = models.ForeignKey(
-        "property.ManagementMandate",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="ledger_entries",
-        verbose_name=_("Management mandate"),
     )
     flow_type = models.CharField(
         max_length=10,
@@ -143,15 +123,10 @@ class PropertyLedgerEntry(BaseModel):
             "The month/period this entry covers, e.g. first day of March 2024."
         ),
     )
-    tax_category = models.CharField(
-        max_length=30,
-        choices=TaxCategory.choices,
-        verbose_name=_("Tax category"),
-    )
     management_category = models.CharField(
         max_length=30,
         choices=ManagementCategory.choices,
-        verbose_name=_("Management category"),
+        verbose_name=_("Category"),
     )
     description = models.CharField(max_length=500, blank=True)
     notes = models.TextField(blank=True)
@@ -179,36 +154,29 @@ class PropertyLedgerEntry(BaseModel):
         return f"{self.property.name} — {self.amount} — {self.entry_date}"
 
     def clean(self) -> None:
-        """Validate amount positivity and flow_type / tax_category coherence."""
+        """Validate amount positivity and flow_type / management_category coherence."""
         if self.amount is not None and hasattr(self.amount, "amount"):
             if self.amount.amount <= 0:
                 raise ValidationError({"amount": _("Amount must be positive.")})
 
-        if self.flow_type and self.tax_category:
-            is_income_category = self.tax_category in self._INCOME_CATEGORIES
+        if self.flow_type and self.management_category:
+            is_income_category = self.management_category in self._INCOME_CATEGORIES
             if self.flow_type == self.FlowType.INCOME and not is_income_category:
                 raise ValidationError(
                     _(
-                        "Tax category '%(cat)s' is not valid for an INCOME entry."
+                        "Category '%(cat)s' is not valid for an INCOME entry."
                         " Use a revenue category or set flow_type to EXPENSE."
                     )
-                    % {"cat": self.tax_category}
+                    % {"cat": self.management_category}
                 )
             if self.flow_type == self.FlowType.EXPENSE and is_income_category:
                 raise ValidationError(
                     _(
-                        "Tax category '%(cat)s' is not valid for an EXPENSE entry."
+                        "Category '%(cat)s' is not valid for an EXPENSE entry."
                         " Use an expense category or set flow_type to INCOME."
                     )
-                    % {"cat": self.tax_category}
+                    % {"cat": self.management_category}
                 )
-
-    def get_tax_category_display(self) -> str:
-        return str(
-            dict(PropertyLedgerEntry.TaxCategory.choices).get(
-                self.tax_category, self.tax_category
-            )
-        )
 
     def get_management_category_display(self) -> str:
         return str(
@@ -231,7 +199,7 @@ class PropertyLedgerEntry(BaseModel):
         )
 
     def get_lmnp_line(self) -> str | None:
-        """Return the cerfa 2033-B line number for this entry's tax category."""
+        """Return the cerfa 2033-B line number for this entry's category."""
         from property.services.tax_lmnp import LMNP_TAX_MAPPING
 
-        return LMNP_TAX_MAPPING.get(self.tax_category, {}).get("line")
+        return LMNP_TAX_MAPPING.get(self.management_category, {}).get("line")

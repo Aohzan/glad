@@ -6,19 +6,16 @@ from property.models.asset import (
     PropertyLoanSchedule,
     PropertyValue,
 )
-from property.models.lease import Lease, LeaseTenant, Tenant
+from property.models.lease import Lease
 from property.models.ledger import PropertyLedgerEntry
-from property.models.management import ManagementMandate, PropertyManager
+from property.models.management import ManagementMandate
 
 __all__ = [
     "Property",
     "PropertyLoan",
     "PropertyLoanSchedule",
     "PropertyValue",
-    "Tenant",
     "Lease",
-    "LeaseTenant",
-    "PropertyManager",
     "ManagementMandate",
     "PropertyLedgerEntry",
 ]

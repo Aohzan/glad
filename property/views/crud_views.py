@@ -9,17 +9,13 @@ from property.forms import (
     LeaseForm,
     ManagementMandateForm,
     PropertyLedgerEntryEditForm,
-    PropertyManagerForm,
-    TenantForm,
 )
 from property.models import (
     Lease,
     ManagementMandate,
     Property,
     PropertyLedgerEntry,
-    PropertyManager,
     PropertyValue,
-    Tenant,
 )
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -102,14 +98,16 @@ def edit_ledger_entry(
     assert entry is not None
 
     if request.method == "POST":
-        form = PropertyLedgerEntryEditForm(request.POST, instance=entry)
+        form = PropertyLedgerEntryEditForm(
+            request.POST, instance=entry, property_obj=property_obj
+        )
         if form.is_valid():
             form.save()
             messages.success(request, _("Entry updated successfully."))
             return redirect("property:detail", pk=property_pk)
         messages.error(request, _("Please correct the errors below."))
     else:
-        form = PropertyLedgerEntryEditForm(instance=entry)
+        form = PropertyLedgerEntryEditForm(instance=entry, property_obj=property_obj)
 
     context = {
         "property": property_obj,
@@ -146,40 +144,6 @@ def delete_ledger_entry(
     entry.delete()
     messages.success(request, _("Entry deleted successfully."))
     return redirect("property:detail", pk=property_pk)
-
-
-# ─── Tenant CRUD ──────────────────────────────────────────────────────────────
-
-
-def edit_tenant(request: HttpRequest, pk: int) -> HttpResponse:
-    """Create or edit a tenant."""
-    tenant = get_object_or_404(Tenant, pk=pk) if pk else None
-
-    if request.method == "POST":
-        form = TenantForm(request.POST, instance=tenant)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Tenant saved."))
-            return redirect("property:index")
-        messages.error(request, _("Please correct the errors below."))
-    else:
-        form = TenantForm(instance=tenant)
-
-    return render(
-        request, "property/edit_tenant.html", {"form": form, "tenant": tenant}
-    )
-
-
-def delete_tenant(request: HttpRequest, pk: int) -> HttpResponse:
-    """Delete a tenant. Only accepts POST."""
-    if request.method != "POST":
-        messages.error(request, _("Invalid request method."))
-        return redirect("property:index")
-
-    tenant = get_object_or_404(Tenant, pk=pk)
-    tenant.delete()
-    messages.success(request, _("Tenant deleted successfully."))
-    return redirect("property:index")
 
 
 # ─── Lease CRUD ───────────────────────────────────────────────────────────────
@@ -228,28 +192,7 @@ def delete_lease(request: HttpRequest, property_pk: int, lease_pk: int) -> HttpR
     return redirect("property:detail", pk=property_pk)
 
 
-# ─── PropertyManager / ManagementMandate CRUD ────────────────────────────────
-
-
-def edit_manager(request: HttpRequest, pk: int | None = None) -> HttpResponse:
-    """Create or edit a property manager."""
-    manager = get_object_or_404(PropertyManager, pk=pk) if pk else None
-
-    if request.method == "POST":
-        form = PropertyManagerForm(request.POST, instance=manager)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Manager saved."))
-            return redirect("property:index")
-        messages.error(request, _("Please correct the errors below."))
-    else:
-        form = PropertyManagerForm(instance=manager)
-
-    return render(
-        request, "property/edit_manager.html", {"form": form, "manager": manager}
-    )
-
-
+# ─── ManagementMandate CRUD ───────────────────────────────────────────────────
 def edit_mandate(
     request: HttpRequest, property_pk: int, mandate_pk: int | None = None
 ) -> HttpResponse:

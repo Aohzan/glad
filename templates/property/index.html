@@ -11,7 +11,12 @@
 
 {% block content %}
 <div class="container py-4">
-    <h1 class="mb-4">{% translate 'Properties' %}</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="mb-0">{% translate 'Properties' %}</h1>
+      <a href="{% url 'property:create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>{% translate 'Add property' %}
+      </a>
+    </div>
 
     <div class="row g-4 mb-4">
       <div class="col-12">
@@ -71,7 +76,10 @@
                 <td><span class="{{ prop.progression.css_class }}">{{ prop.progression.progression }}%</span> <small>{{ prop.progression.difference | format_money }}</small></td>
             </tr>
             {% empty %}
-            <tr><td colspan="6">{% translate "No property found" %}.</td></tr>
+            <tr><td colspan="6" class="text-center py-4">
+              {% translate "No property found" %}.
+              <a href="{% url 'property:create' %}" class="ms-2">{% translate "Add your first property" %}</a>
+            </td></tr>
             {% endfor %}
         </tbody>
       </table>

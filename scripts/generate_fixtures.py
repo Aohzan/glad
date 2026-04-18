@@ -751,13 +751,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M96)}
     property: 1
     lease: null
-    mandate: null
     flow_type: expense
     amount: 2800.00
     amount_currency: EUR
     entry_date: {ds(M96)}
     reference_period: null
-    tax_category: taxes
     management_category: property_tax
     description: Taxe foncière
     notes: ""
@@ -770,13 +768,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M96)}
     property: 1
     lease: null
-    mandate: null
     flow_type: expense
     amount: 65.00
     amount_currency: EUR
     entry_date: {ds(M96)}
     reference_period: null
-    tax_category: insurance
     management_category: insurance
     description: Assurance habitation
     notes: ""
@@ -789,13 +785,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M30)}
     property: 1
     lease: null
-    mandate: null
     flow_type: expense
     amount: 4200.00
     amount_currency: EUR
     entry_date: {ds(M30)}
     reference_period: null
-    tax_category: maintenance_repairs
     management_category: works
     description: Rénovation salle de bain
     notes: "Remplacement baignoire, carrelage et robinetterie"
@@ -808,13 +802,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M12)}
     property: 1
     lease: null
-    mandate: null
     flow_type: expense
     amount: 850.00
     amount_currency: EUR
     entry_date: {ds(M12)}
     reference_period: null
-    tax_category: maintenance_repairs
     management_category: maintenance
     description: Remplacement chaudière
     notes: ""
@@ -865,7 +857,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 2
     value: 195000.00
     valuation_date: {ds(RECENT)}
-# Loan 2A — smoothed 10-year (PTH LISSEUR)
+# Loan 2A — smoothed 10-year
 #   Schedule total: 1×834.00 + 59×667.00 + 60×666.67 = 834.00 + 39353.00 + 40000.20 ≈ 80000
 #   Tranches: first month higher (setup fee), then two equal halves
 #   sum = 1×834 + 59×667 + 60×666.67 = 834 + 39353 + 40000.20 = 80187.20 → adjust last tranche
@@ -878,12 +870,12 @@ def generate_property() -> str:  # noqa: PLR0915
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    name: PTH LISSEUR
+    name: Prêt lissé
     lender: Crédit Mutuel
     original_amount: 80000
     original_amount_currency: EUR
     interest_rate: "2.95"
-    insurance_rate: null
+    insurance_rate: "0.00"
     start_date: {ds(M48)}
     end_date: {ds(LOAN2A_END)}
     monthly_payment: null
@@ -920,7 +912,7 @@ def generate_property() -> str:  # noqa: PLR0915
     count: 1
     amount: 612.00
     amount_currency: EUR
-# Loan 2B — smoothed 20-year (PRET TOUT HABITAT FACILIMMO)
+# Loan 2B — smoothed 20-year
 #   Schedule total: 1×1050.00 + 238×437.00 + 1×437.40 = 1050 + 103906 + 437.40 = 105393.40 → adjust
 #   Exact: 1×1050.00 + 238×437.00 + 1×44.00 = 1050 + 103906 + 44 = 105000
 - model: property.propertyloan
@@ -929,12 +921,12 @@ def generate_property() -> str:  # noqa: PLR0915
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    name: PRET TOUT HABITAT FACILIMMO
+    name: Prêt
     lender: Crédit Mutuel
     original_amount: 105000
     original_amount_currency: EUR
     interest_rate: "3.10"
-    insurance_rate: null
+    insurance_rate: "0.00"
     start_date: {ds(M48)}
     end_date: {ds(LOAN2B_END)}
     monthly_payment: null
@@ -971,17 +963,6 @@ def generate_property() -> str:  # noqa: PLR0915
     count: 1
     amount: 44.00
     amount_currency: EUR
-# Tenant 1 — Nice apartment
-- model: property.tenant
-  pk: 1
-  fields:
-    created_at: {dt(M36)}
-    updated_at: {dt(M36)}
-    first_name: Sophie
-    last_name: Martin
-    email: sophie.martin@example.com
-    phone: "0612345678"
-    notes: ""
 # Lease 1 — Nice apartment (active furnished)
 - model: property.lease
   pk: 1
@@ -989,6 +970,10 @@ def generate_property() -> str:  # noqa: PLR0915
     created_at: {dt(M36)}
     updated_at: {dt(M36)}
     property: 2
+    first_name: Sophie
+    last_name: Martin
+    email: sophie.martin@example.com
+    phone: "0612345678"
     lease_type: furnished
     status: active
     start_date: {ds(M36)}
@@ -1001,20 +986,7 @@ def generate_property() -> str:  # noqa: PLR0915
     deposit_amount: 1500.00
     deposit_amount_currency: EUR
     periodicity: monthly
-    irl_indexed: false
-    irl_reference_quarter: ""
-    irl_reference_value: null
     notes: "Bail meublé 1 an renouvelable"
-- model: property.leasetenant
-  pk: 1
-  fields:
-    created_at: {dt(M36)}
-    updated_at: {dt(M36)}
-    lease: 1
-    tenant: 1
-    is_primary: true
-    join_date: null
-    leave_date: null
 # Transactions — Property 2
 - model: property.propertyledgerentry
   pk: 5
@@ -1023,13 +995,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M36)}
     property: 2
     lease: 1
-    mandate: null
     flow_type: income
     amount: 1500.00
     amount_currency: EUR
     entry_date: {ds(M36)}
     reference_period: null
-    tax_category: deposit_in
     management_category: deposit_in
     description: Dépôt de garantie
     notes: ""
@@ -1042,13 +1012,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M36)}
     property: 2
     lease: 1
-    mandate: null
     flow_type: income
     amount: 750.00
     amount_currency: EUR
     entry_date: {ds(M36)}
     reference_period: null
-    tax_category: rent
     management_category: rent_collected
     description: Loyer mensuel
     notes: ""
@@ -1061,13 +1029,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M36)}
     property: 2
     lease: 1
-    mandate: null
     flow_type: income
     amount: 80.00
     amount_currency: EUR
     entry_date: {ds(M36)}
     reference_period: null
-    tax_category: charges_recovered
     management_category: charges_collected
     description: Provision pour charges
     notes: ""
@@ -1080,13 +1046,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 2
     lease: null
-    mandate: null
     flow_type: expense
     amount: 980.00
     amount_currency: EUR
     entry_date: {ds(M48)}
     reference_period: null
-    tax_category: taxes
     management_category: property_tax
     description: Taxe foncière
     notes: ""
@@ -1099,13 +1063,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 2
     lease: null
-    mandate: null
     flow_type: expense
     amount: 145.00
     amount_currency: EUR
     entry_date: {ds(M48)}
     reference_period: null
-    tax_category: other_general_fees
     management_category: coownership
     description: Charges de copropriété
     notes: ""
@@ -1118,13 +1080,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 2
     lease: null
-    mandate: null
     flow_type: expense
     amount: 28.00
     amount_currency: EUR
     entry_date: {ds(M48)}
     reference_period: null
-    tax_category: insurance
     management_category: insurance
     description: Assurance propriétaire non-occupant (PNO)
     notes: ""
@@ -1137,13 +1097,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M18)}
     property: 2
     lease: null
-    mandate: null
     flow_type: expense
     amount: 1250.00
     amount_currency: EUR
     entry_date: {ds(M18)}
     reference_period: null
-    tax_category: maintenance_repairs
     management_category: maintenance
     description: Réparation plomberie — fuite salle de bain
     notes: "Intervention plombier + remplacement joint"
@@ -1156,13 +1114,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M12)}
     property: 2
     lease: null
-    mandate: null
     flow_type: expense
     amount: 320.00
     amount_currency: EUR
     entry_date: {ds(M12)}
     reference_period: null
-    tax_category: taxes
     management_category: cfe
     description: CFE (Cotisation Foncière des Entreprises)
     notes: ""
@@ -1175,13 +1131,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M6)}
     property: 2
     lease: 1
-    mandate: null
     flow_type: income
     amount: 240.00
     amount_currency: EUR
     entry_date: {ds(M6)}
     reference_period: null
-    tax_category: charges_recovered
     management_category: charges_collected
     description: Régularisation charges annuelle
     notes: "Solde positif en faveur du propriétaire"
@@ -1243,17 +1197,6 @@ def generate_property() -> str:  # noqa: PLR0915
     monthly_payment_currency: EUR
     insurance: 13.20
     insurance_currency: EUR
-# Tenant 2 — Lyon studio
-- model: property.tenant
-  pk: 2
-  fields:
-    created_at: {dt(M24)}
-    updated_at: {dt(M24)}
-    first_name: Lucas
-    last_name: Dupont
-    email: lucas.dupont@example.com
-    phone: "0698765432"
-    notes: ""
 # Lease 2 — Lyon studio (active furnished)
 - model: property.lease
   pk: 2
@@ -1261,6 +1204,10 @@ def generate_property() -> str:  # noqa: PLR0915
     created_at: {dt(M24)}
     updated_at: {dt(M24)}
     property: 3
+    first_name: Lucas
+    last_name: Dupont
+    email: lucas.dupont@example.com
+    phone: "0698765432"
     lease_type: furnished
     status: active
     start_date: {ds(M24)}
@@ -1273,20 +1220,7 @@ def generate_property() -> str:  # noqa: PLR0915
     deposit_amount: 1040.00
     deposit_amount_currency: EUR
     periodicity: monthly
-    irl_indexed: false
-    irl_reference_quarter: ""
-    irl_reference_value: null
     notes: "Bail meublé étudiant"
-- model: property.leasetenant
-  pk: 2
-  fields:
-    created_at: {dt(M24)}
-    updated_at: {dt(M24)}
-    lease: 2
-    tenant: 2
-    is_primary: true
-    join_date: null
-    leave_date: null
 # Transactions — Property 3
 - model: property.propertyledgerentry
   pk: 14
@@ -1295,13 +1229,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M24)}
     property: 3
     lease: 2
-    mandate: null
     flow_type: income
     amount: 1040.00
     amount_currency: EUR
     entry_date: {ds(M24)}
     reference_period: null
-    tax_category: deposit_in
     management_category: deposit_in
     description: Dépôt de garantie
     notes: ""
@@ -1314,13 +1246,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M24)}
     property: 3
     lease: 2
-    mandate: null
     flow_type: income
     amount: 520.00
     amount_currency: EUR
     entry_date: {ds(M24)}
     reference_period: null
-    tax_category: rent
     management_category: rent_collected
     description: Loyer mensuel
     notes: ""
@@ -1333,13 +1263,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M24)}
     property: 3
     lease: 2
-    mandate: null
     flow_type: income
     amount: 50.00
     amount_currency: EUR
     entry_date: {ds(M24)}
     reference_period: null
-    tax_category: charges_recovered
     management_category: charges_collected
     description: Provision pour charges
     notes: ""
@@ -1352,13 +1280,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 3
     lease: null
-    mandate: null
     flow_type: expense
     amount: 420.00
     amount_currency: EUR
     entry_date: {ds(M48)}
     reference_period: null
-    tax_category: taxes
     management_category: property_tax
     description: Taxe foncière
     notes: ""
@@ -1371,13 +1297,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 3
     lease: null
-    mandate: null
     flow_type: expense
     amount: 18.00
     amount_currency: EUR
     entry_date: {ds(M48)}
     reference_period: null
-    tax_category: insurance
     management_category: insurance
     description: Assurance PNO
     notes: ""
@@ -1390,13 +1314,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M12)}
     property: 3
     lease: null
-    mandate: null
     flow_type: expense
     amount: 185.00
     amount_currency: EUR
     entry_date: {ds(M12)}
     reference_period: null
-    tax_category: taxes
     management_category: cfe
     description: CFE
     notes: ""
@@ -1409,13 +1331,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M9)}
     property: 3
     lease: null
-    mandate: null
     flow_type: expense
     amount: 380.00
     amount_currency: EUR
     entry_date: {ds(M9)}
     reference_period: null
-    tax_category: maintenance_repairs
     management_category: maintenance
     description: Remplacement électroménager (lave-linge)
     notes: ""
@@ -1473,13 +1393,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M72)}
     property: 4
     lease: null
-    mandate: null
     flow_type: expense
     amount: 1650.00
     amount_currency: EUR
     entry_date: {ds(M72)}
     reference_period: null
-    tax_category: taxes
     management_category: property_tax
     description: Taxe foncière
     notes: ""
@@ -1492,13 +1410,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M72)}
     property: 4
     lease: null
-    mandate: null
     flow_type: expense
     amount: 55.00
     amount_currency: EUR
     entry_date: {ds(M72)}
     reference_period: null
-    tax_category: insurance
     management_category: insurance
     description: Assurance habitation résidence secondaire
     notes: ""
@@ -1511,13 +1427,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 4
     lease: null
-    mandate: null
     flow_type: expense
     amount: 8500.00
     amount_currency: EUR
     entry_date: {ds(M48)}
     reference_period: null
-    tax_category: maintenance_repairs
     management_category: works
     description: Rénovation cuisine et terrasse
     notes: "Travaux réalisés par entreprise locale"
@@ -1530,13 +1444,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M18)}
     property: 4
     lease: null
-    mandate: null
     flow_type: income
     amount: 1800.00
     amount_currency: EUR
     entry_date: {ds(M18)}
     reference_period: null
-    tax_category: rent
     management_category: rent_collected
     description: Location Airbnb — été
     notes: "Juillet-août, 3 semaines"
@@ -1549,13 +1461,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M12)}
     property: 4
     lease: null
-    mandate: null
     flow_type: income
     amount: 2100.00
     amount_currency: EUR
     entry_date: {ds(M12)}
     reference_period: null
-    tax_category: rent
     management_category: rent_collected
     description: Location Airbnb — été
     notes: "Juillet-août, 4 semaines"
@@ -1568,13 +1478,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M6)}
     property: 4
     lease: null
-    mandate: null
     flow_type: income
     amount: 650.00
     amount_currency: EUR
     entry_date: {ds(M6)}
     reference_period: null
-    tax_category: rent
     management_category: rent_collected
     description: Location Airbnb — vacances de Noël
     notes: "2 semaines"
@@ -1587,13 +1495,11 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M3)}
     property: 4
     lease: null
-    mandate: null
     flow_type: expense
     amount: 420.00
     amount_currency: EUR
     entry_date: {ds(M3)}
     reference_period: null
-    tax_category: maintenance_repairs
     management_category: maintenance
     description: Entretien jardin et piscine
     notes: ""

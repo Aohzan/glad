@@ -230,7 +230,6 @@ def test_property_detail_post_quick_create_ledger_entry(user_client):
             "amount_0": "250",
             "amount_1": "EUR",
             "entry_date": datetime.date.today().isoformat(),
-            "tax_category": PropertyLedgerEntry.TaxCategory.TAXES,
             "management_category": PropertyLedgerEntry.ManagementCategory.PROPERTY_TAX,
             "description": "Taxe foncière",
             "recurrence_type": "none",
@@ -247,7 +246,6 @@ def test_property_detail_post_quick_create_ledger_entry(user_client):
             "amount_0": "1200",
             "amount_1": "EUR",
             "entry_date": datetime.date.today().isoformat(),
-            "tax_category": PropertyLedgerEntry.TaxCategory.RENT,
             "management_category": PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
             "description": "Loyer mensuel",
             "recurrence_type": "monthly",
@@ -325,7 +323,6 @@ def test_property_quick_create_normalizes_currency(user_client):
             "amount_0": "500",
             "amount_1": "EUR",
             "entry_date": datetime.date.today().isoformat(),
-            "tax_category": PropertyLedgerEntry.TaxCategory.MAINTENANCE_REPAIRS,
             "management_category": PropertyLedgerEntry.ManagementCategory.MAINTENANCE,
             "description": "Maintenance cost",
             "recurrence_type": "none",
@@ -352,7 +349,6 @@ def test_property_detail_transactions_json_context(user_client):
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
         amount=Money(1000, "EUR"),
         entry_date=datetime.date.today() - datetime.timedelta(days=30),
-        tax_category=PropertyLedgerEntry.TaxCategory.RENT,
         management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
         description="Loyer",
         recurrence_type="none",
@@ -362,7 +358,6 @@ def test_property_detail_transactions_json_context(user_client):
         flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
         amount=Money(150, "EUR"),
         entry_date=datetime.date.today() - datetime.timedelta(days=10),
-        tax_category=PropertyLedgerEntry.TaxCategory.INSURANCE,
         management_category=PropertyLedgerEntry.ManagementCategory.INSURANCE,
         description="Assurance",
         recurrence_type="none",
@@ -413,7 +408,6 @@ def test_recurring_ledger_entry_generates_occurrences(user_client):
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
         amount=Money(1000, "EUR"),
         entry_date=datetime.date.today(),
-        tax_category=PropertyLedgerEntry.TaxCategory.RENT,
         management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
         recurrence_type="monthly",
         recurrence_end_date=datetime.date.today() + datetime.timedelta(days=90),
@@ -443,7 +437,6 @@ def test_delete_ledger_entry_requires_post(user_client):
         flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
         amount=Money(1200, "EUR"),
         entry_date=datetime.date.today(),
-        tax_category=PropertyLedgerEntry.TaxCategory.TAXES,
         management_category=PropertyLedgerEntry.ManagementCategory.PROPERTY_TAX,
         recurrence_type="none",
     )
@@ -506,13 +499,11 @@ def _make_smoothed_loan(prop):
 
 @pytest.mark.django_db
 def test_edit_property_get_renders_form(user_client):
-    """GET on edit view returns 200 with property_form and loan_formset."""
+    """GET on edit view returns 200 with property_form."""
     prop = _make_property()
     response = user_client.get(reverse("property:edit", args=[prop.pk]))
     assert response.status_code == 200
     assert "property_form" in response.context
-    assert "loan_formset" in response.context
-    assert "loan_forms_with_schedules" in response.context
 
 
 @pytest.mark.django_db
@@ -520,7 +511,7 @@ def test_edit_property_standard_loan_is_not_smoothed(user_client):
     """Standard loan must have is_smoothed=False in context."""
     prop = _make_property()
     _make_standard_loan(prop)
-    response = user_client.get(reverse("property:edit", args=[prop.pk]))
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
     assert response.status_code == 200
     entries = response.context["loan_forms_with_schedules"]
     # First entry is the existing standard loan
@@ -534,7 +525,7 @@ def test_edit_property_smoothed_loan_is_smoothed(user_client):
     """Smoothed loan must have is_smoothed=True in context."""
     prop = _make_property()
     _make_smoothed_loan(prop)
-    response = user_client.get(reverse("property:edit", args=[prop.pk]))
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
     assert response.status_code == 200
     entries = response.context["loan_forms_with_schedules"]
     existing = [e for e in entries if e["form"].instance.pk]
@@ -546,7 +537,7 @@ def test_edit_property_smoothed_loan_is_smoothed(user_client):
 def test_edit_property_new_loan_entry_is_not_smoothed(user_client):
     """The extra (new) loan form entry must have is_smoothed=False."""
     prop = _make_property()
-    response = user_client.get(reverse("property:edit", args=[prop.pk]))
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
     assert response.status_code == 200
     entries = response.context["loan_forms_with_schedules"]
     new_entries = [e for e in entries if not e["form"].instance.pk]
@@ -593,7 +584,7 @@ def test_edit_property_delete_schedule_row(user_client):
     prefix = f"schedules_{loan.pk}"
 
     response = user_client.post(
-        reverse("property:edit", args=[prop.pk]),
+        reverse("property:loans", args=[prop.pk]),
         {
             # Property form
             "name": prop.name,
@@ -638,3 +629,87 @@ def test_edit_property_delete_schedule_row(user_client):
     assert response.status_code == 302
     assert not PropertyLoanSchedule.objects.filter(pk=schedule_to_delete.pk).exists()
     assert PropertyLoanSchedule.objects.filter(pk=schedule_to_keep.pk).exists()
+
+
+@pytest.mark.django_db
+def test_edit_property_context_has_loans_with_totals_standard(user_client):
+    """Detail view includes loans_with_totals with computed cost for a standard loan."""
+    prop = _make_property()
+    _make_standard_loan(prop)
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.status_code == 200
+    loans_with_totals = response.context["loans_with_totals"]
+    assert len(loans_with_totals) == 1
+    item = loans_with_totals[0]
+    assert item["is_smoothed"] is False
+    assert item["duration_months"] > 0
+    assert item["total_repaid"] is not None
+    assert item["total_cost"] is not None
+
+
+@pytest.mark.django_db
+def test_edit_property_context_has_loans_with_totals_smoothed(user_client):
+    """Detail view includes loans_with_totals with is_smoothed=True for smoothed loans."""
+    prop = _make_property()
+    _make_smoothed_loan(prop)
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.status_code == 200
+    loans_with_totals = response.context["loans_with_totals"]
+    assert len(loans_with_totals) == 1
+    assert loans_with_totals[0]["is_smoothed"] is True
+
+
+@pytest.mark.django_db
+def test_edit_property_context_loans_with_totals_empty_when_no_loans(user_client):
+    """Detail view loans_with_totals is empty when property has no loans."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.status_code == 200
+    assert response.context["loans_with_totals"] == []
+
+
+# ─── create_property view tests ───────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_create_property_get_renders_form(user_client):
+    """GET on create view returns 200 with a blank property_form."""
+    response = user_client.get(reverse("property:create"))
+    assert response.status_code == 200
+    assert "property_form" in response.context
+    assert response.context["property_form"].instance.pk is None
+
+
+@pytest.mark.django_db
+def test_create_property_post_valid_creates_and_redirects(user_client):
+    """POST with valid data creates a property and redirects to the edit view."""
+    assert Property.objects.count() == 0
+    response = user_client.post(
+        reverse("property:create"),
+        {
+            "name": "New Flat",
+            "property_type": Property.APARTMENT,
+            "buying_value_0": "180000",
+            "buying_value_1": "EUR",
+            "buying_date": "2024-06-01",
+            "is_active": "on",
+        },
+    )
+    assert Property.objects.count() == 1
+    prop = Property.objects.get()
+    assert prop.name == "New Flat"
+    assert response.status_code == 302
+    assert response["Location"] == reverse("property:detail", args=[prop.pk])
+
+
+@pytest.mark.django_db
+def test_create_property_post_invalid_rerenders_form(user_client):
+    """POST with missing required fields re-renders the create form with errors."""
+    response = user_client.post(
+        reverse("property:create"),
+        {"name": "", "property_type": "", "buying_value_0": "", "buying_date": ""},
+    )
+    assert response.status_code == 200
+    assert "property_form" in response.context
+    assert response.context["property_form"].errors
+    assert Property.objects.count() == 0
