@@ -9,7 +9,6 @@ from moneyed import EUR, Money
 from base.forms import MoneyInputGroupMixin
 from base.widgets import BootstrapMoneyWidget
 
-
 # ─── BootstrapMoneyWidget ─────────────────────────────────────────────────────
 
 

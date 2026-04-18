@@ -12,15 +12,22 @@ repos:
         args:
           - --branch=main
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.3
+    rev: 0.11.7
     hooks:
       - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.9
+    rev: v0.15.11
     hooks:
       - id: ruff
         args:
           - --fix
+          - --select
+          - I
+        name: ruff sort imports
+      - id: ruff
+        args:
+          - --fix
+        name: ruff fix
       - id: ruff-format
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.2

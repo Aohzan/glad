@@ -1,7 +1,6 @@
 """Custom widgets for the base app."""
 
 from django.utils.html import format_html
-
 from djmoney.forms.widgets import MoneyWidget
 
 # Maximum width for the currency <select> inside the input-group.

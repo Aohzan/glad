@@ -2,12 +2,11 @@
 
 import builtins
 import datetime
+from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from decimal import Decimal
-
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 

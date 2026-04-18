@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-18 09:50+0200\n"
+"POT-Creation-Date: 2026-04-18 11:21+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -473,121 +473,121 @@ msgstr "Durée (mois)"
 msgid "e.g. 240 for 20 years"
 msgstr "ex. 240 pour 20 ans"
 
-#: property/models/asset.py:22
+#: property/models/asset.py:25
 msgid "property loan"
 msgstr "prêt immobilier"
 
-#: property/models/asset.py:23
+#: property/models/asset.py:26
 msgid "property loans"
 msgstr "prêts immobiliers"
 
-#: property/models/asset.py:33 templates/property/detail_panel_loans.html:18
+#: property/models/asset.py:36 templates/property/detail_panel_loans.html:18
 msgid "Lender"
 msgstr "Prêteur"
 
-#: property/models/asset.py:35
+#: property/models/asset.py:38
 msgid "Start Date"
 msgstr "Date de début"
 
-#: property/models/asset.py:36
+#: property/models/asset.py:39
 msgid "End Date"
 msgstr "Date de fin"
 
-#: property/models/asset.py:38
+#: property/models/asset.py:41
 msgid "Original Amount"
 msgstr "Montant initial"
 
-#: property/models/asset.py:45
+#: property/models/asset.py:48
 msgid "Monthly Payment"
 msgstr "Mensualité"
 
-#: property/models/asset.py:51
+#: property/models/asset.py:54
 msgid "Interest Rate"
 msgstr "Taux d'intérêt"
 
-#: property/models/asset.py:57
+#: property/models/asset.py:60
 msgid "Insurance Rate"
 msgstr "Taux d'assurance"
 
-#: property/models/asset.py:64
+#: property/models/asset.py:67
 msgid "Monthly Insurance"
 msgstr "Assurance mensuelle"
 
-#: property/models/asset.py:229
+#: property/models/asset.py:232
 msgid "loan schedule tranche"
 msgstr "versement de prêt"
 
-#: property/models/asset.py:230
+#: property/models/asset.py:233
 msgid "loan schedule tranches"
 msgstr "versements de prêts personnalisé"
 
-#: property/models/asset.py:238 templates/property/detail_panel_loans.html:122
+#: property/models/asset.py:241 templates/property/detail_panel_loans.html:122
 msgid "Loan"
 msgstr "Prêt"
 
-#: property/models/asset.py:241 templates/property/detail_panel_loans.html:272
+#: property/models/asset.py:244 templates/property/detail_panel_loans.html:272
 msgid "Order"
 msgstr "Ordre"
 
-#: property/models/asset.py:242
+#: property/models/asset.py:245
 msgid "Position of this tranche in the payment sequence (1 = first)."
 msgstr "Posititon du versement (1 = premier)"
 
-#: property/models/asset.py:246
+#: property/models/asset.py:249
 msgid "Number of payments"
 msgstr "Nombre de mensualité"
 
-#: property/models/asset.py:247
+#: property/models/asset.py:250
 msgid "How many consecutive monthly payments at this amount."
 msgstr "Combien de mensualité consécutives pour ce moement."
 
-#: property/models/asset.py:253
+#: property/models/asset.py:256
 msgid "Payment amount"
 msgstr "Montant de paiement"
 
-#: property/models/asset.py:254
+#: property/models/asset.py:257
 msgid "Monthly payment amount for this tranche (principal + interest)."
 msgstr "Mensualité pour ce versement (capital + intérêts)"
 
-#: property/models/asset.py:272
+#: property/models/asset.py:275
 msgid "House"
 msgstr "Maison"
 
-#: property/models/asset.py:273
+#: property/models/asset.py:276
 msgid "Apartment"
 msgstr "Appartement"
 
-#: property/models/asset.py:274
+#: property/models/asset.py:277
 msgid "Condo"
 msgstr "Condo"
 
-#: property/models/asset.py:275
+#: property/models/asset.py:278
 msgid "Land"
 msgstr "Terrain"
 
-#: property/models/asset.py:276 property/models/lease.py:30
+#: property/models/asset.py:279 property/models/lease.py:29
 #: property/models/ledger.py:53 templates/property/detail.html:367
 #: templates/property/detail.html:599
 msgid "Other"
 msgstr "Autre"
 
-#: property/models/asset.py:283
+#: property/models/asset.py:286
 msgid "Property Type"
 msgstr "Type de propriété"
 
-#: property/models/asset.py:291
+#: property/models/asset.py:294
 msgid "Buying Value"
 msgstr "Valeur d'achat"
 
-#: property/models/asset.py:292
+#: property/models/asset.py:295
 msgid "The value of the property at the time of purchase."
 msgstr "La valeur de la propriété au moment de l'achat"
 
-#: property/models/asset.py:299
+#: property/models/asset.py:302
 msgid "Gross Buying Value"
 msgstr "Valeur d'achat brut"
 
-#: property/models/asset.py:301
+#: property/models/asset.py:304
 msgid ""
 "The gross value of the property at the time of purchase, including notary "
 "fees for example."
@@ -595,110 +595,110 @@ msgstr ""
 "La valeur brut de la propriété au moment de l'achat, incluand les frais de "
 "notaire par exemple."
 
-#: property/models/asset.py:309
+#: property/models/asset.py:312
 msgid "Number of shares in the property (if applicable)"
 msgstr "Nombre de part dans la propriété (si applicable)"
 
-#: property/models/asset.py:311
+#: property/models/asset.py:314
 msgid "Buying Date"
 msgstr "Date d'achat"
 
-#: property/models/asset.py:313
+#: property/models/asset.py:316
 msgid "Selling Date"
 msgstr "Date de vente"
 
-#: property/models/asset.py:321
+#: property/models/asset.py:324
 msgid "Floor area (m²)"
 msgstr "Surface habitable (m²)"
 
-#: property/models/asset.py:326 templates/property/detail_panel_info.html:21
+#: property/models/asset.py:329 templates/property/detail_panel_info.html:21
 msgid "Number of rooms"
 msgstr "Nombre de pièces"
 
-#: property/models/asset.py:330 property/models/lease.py:27
+#: property/models/asset.py:333 property/models/lease.py:26
 #: templates/property/detail_panel_info.html:27
 msgid "Furnished"
 msgstr "Meublé"
 
-#: property/models/asset.py:331
+#: property/models/asset.py:334
 msgid "Whether the property is rented furnished (LMNP meublé)."
 msgstr "Si le bien est loué meublé (LMNP meublé)."
 
-#: property/models/asset.py:338 templates/property/detail.html:5
+#: property/models/asset.py:341 templates/property/detail.html:5
 msgid "property"
 msgstr "propriété"
 
-#: property/models/asset.py:339
+#: property/models/asset.py:342
 msgid "properties"
 msgstr "propriétés"
 
-#: property/models/asset.py:452
+#: property/models/asset.py:455
 msgid "property value"
 msgstr "valeur de propriété"
 
-#: property/models/asset.py:453
+#: property/models/asset.py:456
 msgid "property values"
 msgstr "valeurs de propriétés"
 
-#: property/models/lease.py:21 templates/property/detail_panel_leases.html:18
+#: property/models/lease.py:20 templates/property/detail_panel_leases.html:18
 msgid "Upcoming"
 msgstr "À venir"
 
-#: property/models/lease.py:22 templates/property/detail_panel_leases.html:16
+#: property/models/lease.py:21 templates/property/detail_panel_leases.html:16
 #: templates/property/detail_panel_mandate.html:16
 msgid "Active"
 msgstr "Actif"
 
-#: property/models/lease.py:23 templates/property/detail_panel_leases.html:20
+#: property/models/lease.py:22 templates/property/detail_panel_leases.html:20
 msgid "Notice period"
 msgstr "Période de préavis"
 
-#: property/models/lease.py:24 templates/property/detail_panel_leases.html:22
+#: property/models/lease.py:23 templates/property/detail_panel_leases.html:22
 #: templates/property/detail_panel_mandate.html:18
 msgid "Ended"
 msgstr "Terminé"
 
-#: property/models/lease.py:28
+#: property/models/lease.py:27
 msgid "Empty"
 msgstr "Vide"
 
-#: property/models/lease.py:29
+#: property/models/lease.py:28
 msgid "Commercial"
 msgstr "Commercial"
 
-#: property/models/lease.py:33 property/models/ledger.py:70
+#: property/models/lease.py:32 property/models/ledger.py:70
 #: templates/property/detail_panel_balance.html:37
 msgid "Monthly"
 msgstr "Mensuel"
 
-#: property/models/lease.py:34 templates/property/detail_panel_balance.html:38
+#: property/models/lease.py:33 templates/property/detail_panel_balance.html:38
 msgid "Quarterly"
 msgstr "Trimestriel"
 
-#: property/models/lease.py:37
+#: property/models/lease.py:36
 msgid "lease"
 msgstr "bail"
 
-#: property/models/lease.py:38
+#: property/models/lease.py:37
 msgid "leases"
 msgstr "baux"
 
-#: property/models/lease.py:45 property/models/ledger.py:93
+#: property/models/lease.py:44 property/models/ledger.py:93
 #: property/models/management.py:38 templates/property/index.html:5
 msgid "Property"
 msgstr "Propriété"
 
-#: property/models/lease.py:48 templates/property/edit_lease.html:42
+#: property/models/lease.py:47 templates/property/edit_lease.html:42
 #: templates/property/edit_tenant.html:42
 msgid "First name"
 msgstr "Prénom"
 
-#: property/models/lease.py:50 templates/property/edit_lease.html:49
+#: property/models/lease.py:49 templates/property/edit_lease.html:49
 #: templates/property/edit_tenant.html:53
 msgid "Last name"
 msgstr "Nom"
 
-#: property/models/lease.py:51 property/models/management.py:45
+#: property/models/lease.py:50 property/models/management.py:45
 #: templates/property/edit_lease.html:56
 #: templates/property/edit_manager.html:76
 #: templates/property/edit_mandate.html:57
@@ -706,7 +706,7 @@ msgstr "Nom"
 msgid "Email"
 msgstr "Email"
 
-#: property/models/lease.py:52 property/models/management.py:44
+#: property/models/lease.py:51 property/models/management.py:44
 #: templates/property/edit_lease.html:64
 #: templates/property/edit_manager.html:87
 #: templates/property/edit_mandate.html:49
@@ -714,16 +714,16 @@ msgstr "Email"
 msgid "Phone"
 msgstr "Téléphone"
 
-#: property/models/lease.py:57 templates/property/edit_lease.html:83
+#: property/models/lease.py:56 templates/property/edit_lease.html:83
 msgid "Lease type"
 msgstr "Type de bail"
 
-#: property/models/lease.py:63 templates/index.html:338
+#: property/models/lease.py:62 templates/index.html:338
 #: templates/property/edit_lease.html:90
 msgid "Status"
 msgstr "Statut"
 
-#: property/models/lease.py:65 property/models/management.py:46
+#: property/models/lease.py:64 property/models/management.py:46
 #: templates/property/detail_panel_leases.html:44
 #: templates/property/detail_panel_mandate.html:34
 #: templates/property/edit_lease.html:115
@@ -731,7 +731,7 @@ msgstr "Statut"
 msgid "Start date"
 msgstr "Date de début"
 
-#: property/models/lease.py:66 property/models/management.py:50
+#: property/models/lease.py:65 property/models/management.py:50
 #: templates/property/detail.html:407 templates/property/detail.html:638
 #: templates/property/detail_panel_leases.html:48
 #: templates/property/detail_panel_mandate.html:38
@@ -740,26 +740,26 @@ msgstr "Date de début"
 msgid "End date"
 msgstr "Date de fin"
 
-#: property/models/lease.py:67 templates/property/edit_lease.html:130
+#: property/models/lease.py:66 templates/property/edit_lease.html:130
 msgid "Notice date"
 msgstr "Date de préavis"
 
-#: property/models/lease.py:69 templates/property/detail_panel_leases.html:52
+#: property/models/lease.py:68 templates/property/detail_panel_leases.html:52
 #: templates/property/edit_lease.html:148
 msgid "Rent (excl. charges)"
 msgstr "Loyer (hors charges)"
 
-#: property/models/lease.py:76 templates/property/detail_panel_leases.html:56
+#: property/models/lease.py:75 templates/property/detail_panel_leases.html:56
 #: templates/property/edit_lease.html:156
 msgid "Charges provision"
 msgstr "Provision pour charges"
 
-#: property/models/lease.py:83 templates/property/detail_panel_leases.html:60
+#: property/models/lease.py:82 templates/property/detail_panel_leases.html:60
 #: templates/property/edit_lease.html:164
 msgid "Security deposit"
 msgstr "Dépôt de garantie"
 
-#: property/models/lease.py:89 templates/property/detail_panel_leases.html:64
+#: property/models/lease.py:88 templates/property/detail_panel_leases.html:64
 #: templates/property/edit_lease.html:97
 msgid "Periodicity"
 msgstr "Périodicite"
@@ -1074,19 +1074,19 @@ msgstr "Mandat supprimé avec succès."
 msgid "Property value added."
 msgstr "Valeur de propriété ajoutée."
 
-#: property/views/detail_views.py:539
+#: property/views/detail_views.py:545
 msgid "Unable to add property value."
 msgstr "Impossible d'ajouter la valeur de propriété."
 
-#: property/views/detail_views.py:550
+#: property/views/detail_views.py:558
 msgid "Entry added."
 msgstr "Écriture ajoutée."
 
-#: property/views/detail_views.py:552
+#: property/views/detail_views.py:566
 msgid "Unable to add entry."
 msgstr "Impossible d'ajouter l'écriture."
 
-#: property/views/detail_views.py:555
+#: property/views/detail_views.py:570
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 

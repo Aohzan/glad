@@ -536,7 +536,15 @@ class PropertyDetailView(DetailView):
                 created_value.save()
                 messages.success(request, _("Property value added."))
                 return redirect("property:detail", pk=self.object.pk)
-            messages.error(request, _("Unable to add property value."))
+            form_errors = "; ".join(
+                f"{field}: {', '.join(str(e) for e in errors)}"
+                for field, errors in form.errors.items()
+            )
+            messages.error(
+                request,
+                _("Unable to add property value.")
+                + (f" {form_errors}" if form_errors else ""),
+            )
 
         elif form_type == "ledger_entry":
             form = PropertyLedgerEntryQuickCreateForm(
@@ -549,7 +557,14 @@ class PropertyDetailView(DetailView):
                 entry.save()
                 messages.success(request, _("Entry added."))
                 return redirect("property:detail", pk=self.object.pk)
-            messages.error(request, _("Unable to add entry."))
+            form_errors = "; ".join(
+                f"{field}: {', '.join(str(e) for e in errors)}"
+                for field, errors in form.errors.items()
+            )
+            messages.error(
+                request,
+                _("Unable to add entry.") + (f" {form_errors}" if form_errors else ""),
+            )
 
         else:
             messages.error(request, _("Unknown form action."))

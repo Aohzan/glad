@@ -11,8 +11,11 @@ from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from base.models import BaseModel
-from property.utils import add_months_safe  # noqa: F401
-from property.utils import PropertyProgression, calculate_monthly_payment
+from property.utils import (
+    PropertyProgression,
+    add_months_safe,  # noqa: F401
+    calculate_monthly_payment,
+)
 
 
 class PropertyLoan(BaseModel):
