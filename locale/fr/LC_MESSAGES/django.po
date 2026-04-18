@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-18 11:28+0200\n"
+"POT-Creation-Date: 2026-04-18 11:30+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -1821,7 +1821,9 @@ msgstr "Mandat"
 msgid "Value & Projection"
 msgstr "Valeur & Projection"
 
-#: templates/property/detail.html:204 templates/property/index.html:60
+#: templates/property/detail.html:204
+#: templates/property/detail_panel_loans.html:10
+#: templates/property/index.html:60
 msgid "Loans"
 msgstr "Prêts"
 
@@ -2250,10 +2252,6 @@ msgstr "Êtes-vous sûr de vouloir supprimer le bail débutant le %(start)s ?"
 #: templates/property/detail_panel_leases.html:102
 msgid "No leases recorded yet."
 msgstr "Aucun bail enregistré pour le moment."
-
-#: templates/property/detail_panel_loans.html:10
-msgid "Loans"
-msgstr "Emprunts"
 
 #: templates/property/detail_panel_loans.html:19
 msgid "Start"
