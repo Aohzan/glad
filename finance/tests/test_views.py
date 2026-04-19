@@ -4,7 +4,6 @@ import datetime
 from decimal import Decimal
 
 import pytest
-from django.db.transaction import TransactionManagementError
 from django.urls import reverse
 from moneyed import Money
 
@@ -659,8 +658,13 @@ def test_update_view_duplicate_values_branch(
         f"investment_{account_id}_holdings-0-new_quantity": "15",
     }
 
-    with pytest.raises(TransactionManagementError):
-        user_client.post(reverse("finance:update"), post_data)
+    response = user_client.post(reverse("finance:update"), post_data)
+    assert response.status_code == 302
+    # Duplicate values should be silently ignored with a warning message, not raise an error
+    messages_list = list(response.wsgi_request._messages)
+    assert any(
+        "Duplicate" in str(m) or "already exists" in str(m) for m in messages_list
+    )
 
 
 @pytest.mark.django_db

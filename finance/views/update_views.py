@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 from django.contrib import messages
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from django.forms import formset_factory
 from django.shortcuts import redirect, render
@@ -207,13 +207,14 @@ def update_accounts(request):
                         id=form.cleaned_data["account_id"]
                     )
                     try:
-                        SavingAccountValue.objects.create(
-                            account=account,
-                            value=Money(
-                                form.cleaned_data["new_value"], account.currency
-                            ),
-                            value_date=new_values_date,
-                        )
+                        with transaction.atomic():
+                            SavingAccountValue.objects.create(
+                                account=account,
+                                value=Money(
+                                    form.cleaned_data["new_value"], account.currency
+                                ),
+                                value_date=new_values_date,
+                            )
                         updated_count += 1
                     except IntegrityError:
                         duplicate_count += 1
@@ -243,13 +244,14 @@ def update_accounts(request):
                             id=form.cleaned_data["account_id"]
                         )
                         try:
-                            InvestmentAccountCash.objects.create(
-                                account=account,
-                                value=Money(
-                                    form.cleaned_data["new_value"], account.currency
-                                ),
-                                value_date=new_values_date,
-                            )
+                            with transaction.atomic():
+                                InvestmentAccountCash.objects.create(
+                                    account=account,
+                                    value=Money(
+                                        form.cleaned_data["new_value"], account.currency
+                                    ),
+                                    value_date=new_values_date,
+                                )
                             updated_count += 1
                         except IntegrityError:
                             duplicate_count += 1
@@ -278,15 +280,16 @@ def update_accounts(request):
                             id=form.cleaned_data["holding_id"]
                         )
                         try:
-                            InvestmentAccountHoldingHistory.objects.create(
-                                holding=holding,
-                                value=Money(
-                                    form.cleaned_data["new_value"],
-                                    holding.account.currency,
-                                ),
-                                quantity=form.cleaned_data["new_quantity"],
-                                valuation_date=new_values_date,
-                            )
+                            with transaction.atomic():
+                                InvestmentAccountHoldingHistory.objects.create(
+                                    holding=holding,
+                                    value=Money(
+                                        form.cleaned_data["new_value"],
+                                        holding.account.currency,
+                                    ),
+                                    quantity=form.cleaned_data["new_quantity"],
+                                    valuation_date=new_values_date,
+                                )
                             updated_count += 1
                         except IntegrityError:
                             duplicate_count += 1

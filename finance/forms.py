@@ -39,7 +39,7 @@ class UpdateGlobalForm(forms.Form):
 
     new_values_date = forms.DateTimeField(
         label=_("Date of new values"),
-        required=True,
+        required=False,  # computed in the view, not required from user input
         widget=forms.TextInput(
             attrs={"class": "form-control", "type": "datetime-local"}
         ),

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-18 11:45+0200\n"
+"POT-Creation-Date: 2026-04-19 08:55+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -346,7 +346,7 @@ msgstr ""
 msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
-#: finance/views/csv_views.py:340 finance/views/update_views.py:335
+#: finance/views/csv_views.py:340 finance/views/update_views.py:338
 #: property/views/crud_views.py:114 property/views/crud_views.py:181
 #: property/views/crud_views.py:230 property/views/edit_views.py:68
 #: property/views/edit_views.py:128 property/views/edit_views.py:143
@@ -398,7 +398,7 @@ msgstr " et {} erreurs supplémentaires"
 msgid "Cash"
 msgstr "Espèces"
 
-#: finance/views/update_views.py:228
+#: finance/views/update_views.py:229
 #, python-brace-format
 msgid ""
 "Duplicate value ignored for account '{account}': a value of {value} already "
@@ -407,7 +407,7 @@ msgstr ""
 "Valeur en double ignorée pour le compte '{account}' : une valeur de {value} "
 "existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:264
+#: finance/views/update_views.py:266
 #, python-brace-format
 msgid ""
 "Duplicate cash value ignored for account '{account}': a value of {value} "
@@ -416,7 +416,7 @@ msgstr ""
 "Valeur d'espèces en double ignorée pour le compte '{account}' : une valeur "
 "de {value} existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:301
+#: finance/views/update_views.py:304
 #, python-brace-format
 msgid ""
 "Duplicate holding value ignored for '{holding}': a value of {value} with "
@@ -425,18 +425,18 @@ msgstr ""
 "Valeur de titre en double ignorée pour '{holding}' : une valeur de {value} "
 "avec une quantité de {quantity} existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:316
+#: finance/views/update_views.py:319
 #, python-brace-format
 msgid "{count} account(s) updated successfully."
 msgstr "{count} compte(s) mis à jour avec succès."
 
-#: finance/views/update_views.py:324
+#: finance/views/update_views.py:327
 msgid "No updates were made. All values already exist for the selected date."
 msgstr ""
 "Aucune mise à jour effectuée. Toutes les valeurs existent déjà pour la date "
 "sélectionnée."
 
-#: finance/views/update_views.py:330
+#: finance/views/update_views.py:333
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
