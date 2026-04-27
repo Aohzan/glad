@@ -1,159 +1,64 @@
 {% load i18n format_money %}
-
-{# ── Date range navigator ─────────────────────────────────────────────── #}
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-
-  {# Prev / label / Next #}
-  <div class="d-flex align-items-center gap-2">
-    <a href="?{% if request.GET.growth_rate %}growth_rate={{ request.GET.growth_rate }}&{% endif %}bs_year={{ bs_prev_year }}&bs_start_month={{ bs_prev_start_month }}&bs_months={{ bs_months }}#balance-panel"
-       class="btn btn-sm btn-outline-secondary" title="{% translate 'Previous period' %}">
-      <i class="bi bi-chevron-left"></i>
-    </a>
-    <span class="fw-semibold">
-      {% if bs_months == 1 %}
-        {{ bs_date_from|date:"F Y" }}
-      {% elif bs_months == 3 %}
-        {{ bs_date_from|date:"M Y" }} – {{ bs_date_to|date:"M Y" }}
-      {% elif bs_months == 6 %}
-        {{ bs_date_from|date:"M Y" }} – {{ bs_date_to|date:"M Y" }}
-      {% else %}
-        {{ bs_date_from|date:"Y" }}
-      {% endif %}
-    </span>
-    <a href="?{% if request.GET.growth_rate %}growth_rate={{ request.GET.growth_rate }}&{% endif %}bs_year={{ bs_next_year }}&bs_start_month={{ bs_next_start_month }}&bs_months={{ bs_months }}#balance-panel"
-       class="btn btn-sm btn-outline-secondary" title="{% translate 'Next period' %}">
-      <i class="bi bi-chevron-right"></i>
-    </a>
-  </div>
-
-  {# Period selector #}
-  <form method="get" class="d-flex gap-2 align-items-center flex-wrap" id="bsRangeForm">
+{# ── Date range picker https://github.com/Wernfried/daterangepicker #}
+<div class="d-flex justify-content-end gap-2 mb-3">
+  <form method="get" class="d-flex gap-2 align-items-right flex-wrap" id="bsRangeForm">
     {% if request.GET.growth_rate %}<input type="hidden" name="growth_rate" value="{{ request.GET.growth_rate }}">{% endif %}
-    <input type="hidden" name="bs_year" id="bs_year_input" value="{{ bs_year }}">
-    <input type="hidden" name="bs_start_month" id="bs_start_month_input" value="{{ bs_start_month }}">
+    <input type="hidden" name="start_date" id="bs_start_date" value="{{ bs_date_from|date:'Y-m-d' }}">
+    <input type="hidden" name="end_date"   id="bs_end_date"   value="{{ bs_date_to|date:'Y-m-d' }}">
 
-    <label class="form-label small mb-0 text-body-secondary">{% translate "Period" %}</label>
-    <select name="bs_months" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
-      <option value="1"  {% if bs_months == 1  %}selected{% endif %}>{% translate "Monthly" %}</option>
-      <option value="3"  {% if bs_months == 3  %}selected{% endif %}>{% translate "Quarterly" %}</option>
-      <option value="6"  {% if bs_months == 6  %}selected{% endif %}>{% translate "Half-year" %}</option>
-      <option value="12" {% if bs_months == 12 %}selected{% endif %}>{% translate "Annual" %}</option>
-    </select>
-
-    <label class="form-label small mb-0 text-body-secondary">{% translate "Year" %}</label>
-    <input type="number" name="bs_year" class="form-control form-control-sm" style="width:90px;"
-           value="{{ bs_year }}" min="2000" max="2099">
-
-    <label class="form-label small mb-0 text-body-secondary">{% translate "Start month" %}</label>
-    <select name="bs_start_month" class="form-select form-select-sm" style="width:auto;">
-      {% for m in "123456789101112"|make_list %}{% endfor %}
-      <option value="1"  {% if bs_start_month == 1  %}selected{% endif %}>{% translate "January" %}</option>
-      <option value="2"  {% if bs_start_month == 2  %}selected{% endif %}>{% translate "February" %}</option>
-      <option value="3"  {% if bs_start_month == 3  %}selected{% endif %}>{% translate "March" %}</option>
-      <option value="4"  {% if bs_start_month == 4  %}selected{% endif %}>{% translate "April" %}</option>
-      <option value="5"  {% if bs_start_month == 5  %}selected{% endif %}>{% translate "May" %}</option>
-      <option value="6"  {% if bs_start_month == 6  %}selected{% endif %}>{% translate "June" %}</option>
-      <option value="7"  {% if bs_start_month == 7  %}selected{% endif %}>{% translate "July" %}</option>
-      <option value="8"  {% if bs_start_month == 8  %}selected{% endif %}>{% translate "August" %}</option>
-      <option value="9"  {% if bs_start_month == 9  %}selected{% endif %}>{% translate "September" %}</option>
-      <option value="10" {% if bs_start_month == 10 %}selected{% endif %}>{% translate "October" %}</option>
-      <option value="11" {% if bs_start_month == 11 %}selected{% endif %}>{% translate "November" %}</option>
-      <option value="12" {% if bs_start_month == 12 %}selected{% endif %}>{% translate "December" %}</option>
-    </select>
+    <label class="form-label mb-0 align-self-center" for="bs_daterange_picker">{% translate "Period" %}</label>
+    <div class="input-group input-group-sm" style="width:auto;">
+      <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+      <input type="text" id="bs_daterange_picker" class="form-control form-control-sm" style="min-width:220px;" readonly>
+    </div>
 
     <button type="submit" class="btn btn-sm btn-primary">{% translate "Apply" %}</button>
   </form>
 </div>
 
-{# ── KPI strip ────────────────────────────────────────────────────────── #}
-<div class="row g-2 mb-4">
-  <div class="col-6 col-md-3">
-    <div class="card border-0 bg-body-secondary h-100">
-      <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-success small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Total income" %}</p>
-        <p class="fs-5 fw-bold mb-0 text-success">{{ balance_sheet.total_income|format_money_amount:property.currency }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="card border-0 bg-body-secondary h-100">
-      <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-danger small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Total expenses" %}</p>
-        <p class="fs-5 fw-bold mb-0 text-danger">{{ balance_sheet.total_expenses|format_money_amount:property.currency }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="card border-0 bg-body-secondary h-100">
-      <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-warning small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Loan costs" %}</p>
-        <p class="fs-5 fw-bold mb-0">{{ balance_sheet.total_loan_costs|format_money_amount:property.currency }}</p>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="card border-0 bg-body-secondary h-100">
-      <div class="card-body py-2 px-3">
-        <p class="text-uppercase small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Net cashflow" %}</p>
-        <p class="fs-5 fw-bold mb-0
-          {% if balance_sheet.net_cashflow >= 0 %}text-success{% else %}text-danger{% endif %}">
-          {{ balance_sheet.net_cashflow|format_money_amount:property.currency }}
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
+<script>
+(function () {
+  const DateTime = luxon.DateTime;
+  luxon.Settings.defaultLocale = '{{ request.LANGUAGE_CODE }}';
 
-{# ── Secondary KPIs ───────────────────────────────────────────────────── #}
-<div class="row g-2 mb-4">
-  <div class="col-6 col-md-3">
-    <div class="card border-0 bg-body-tertiary h-100">
-      <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-info small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Operating result" %}
-          <span class="text-body-secondary fw-normal" style="font-size:.65rem;">({% translate "excl. principal" %})</span>
-        </p>
-        <p class="fs-6 fw-bold mb-0
-          {% if balance_sheet.net_operating >= 0 %}text-success{% else %}text-danger{% endif %}">
-          {{ balance_sheet.net_operating|format_money_amount:property.currency }}
-        </p>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="card border-0 bg-body-tertiary h-100">
-      <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Occupancy rate" %}</p>
-        <p class="fs-6 fw-bold mb-0">{{ balance_sheet.occupancy_rate|floatformat:0 }} %
-          <span class="text-body-secondary small fw-normal">({{ balance_sheet.months_with_rent }}/{{ balance_sheet.months_count }} {% translate "months" %})</span>
-        </p>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="card border-0 bg-body-tertiary h-100">
-      <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Gross yield (annualised)" %}</p>
-        <p class="fs-6 fw-bold mb-0">
-          {% if balance_sheet.gross_yield_annual is not None %}
-            {{ balance_sheet.gross_yield_annual|floatformat:2 }} %
-          {% else %}
-            —
-          {% endif %}
-        </p>
-      </div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="card border-0 bg-body-tertiary h-100">
-      <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Loan interest" %}</p>
-        <p class="fs-6 fw-bold mb-0">{{ balance_sheet.total_loan_interest|format_money_amount:property.currency }}</p>
-      </div>
-    </div>
-  </div>
-</div>
+  const startDate = DateTime.fromISO('{{ bs_date_from|date:"Y-m-d" }}');
+  const endDate   = DateTime.fromISO('{{ bs_date_to|date:"Y-m-d" }}');
 
-{# ── Detailed breakdown ───────────────────────────────────────────────── #}
+  const ranges = {};
+  ranges[new Date().getFullYear()] = [DateTime.now().startOf('year'), DateTime.now().endOf('year')];
+  ranges[DateTime.now().minus({years: 1}).year] = [DateTime.now().minus({years: 1}).startOf('year'), DateTime.now().minus({years: 1}).endOf('year')];
+  ranges["{% translate 'Last 1 year' %}"] = [DateTime.now().minus({months: 11}).startOf('month'), DateTime.now().endOf('month')];
+  ranges["{% translate 'Last 2 years' %}"] = [DateTime.now().minus({months: 23}).startOf('month'), DateTime.now().endOf('month')];
+  ranges["{% translate 'Last 5 years' %}"]  = [DateTime.now().minus({years: 4}).startOf('year'), DateTime.now().endOf('year')];
+  ranges["{% translate 'Last 10 years' %}"]  = [DateTime.now().minus({years: 9}).startOf('year'), DateTime.now().endOf('year')];
+
+  DateRangePicker.daterangepicker('#bs_daterange_picker', {
+    startDate: startDate,
+    endDate:   endDate,
+    ranges:    ranges,
+    alwaysShowCalendars: true,
+    locale: {
+      applyLabel:       "{% translate 'Apply' %}",
+      cancelLabel:      "{% translate 'Cancel' %}",
+      customRangeLabel: "{% translate 'Custom range' %}",
+    },
+    opens: 'auto',
+    autoApply: false,
+    showDropdowns: true,
+  }, function (start, end) {
+    // Normalise to first/last day of month
+    const normStart = start.startOf('month');
+    const normEnd   = end.endOf('month');
+    document.getElementById('bs_start_date').value = normStart.toFormat('yyyy-MM-dd');
+    document.getElementById('bs_end_date').value   = normEnd.toFormat('yyyy-MM-dd');
+    // Update visible label using the locale-aware short date format
+    document.getElementById('bs_daterange_picker').value =
+      normStart.toLocaleString(DateTime.DATE_SHORT) + ' – ' + normEnd.toLocaleString(DateTime.DATE_SHORT);
+  });
+})();
+</script>
+
+{# ── Breakdown ───────────────────────────────────────────────── #}
 <div class="row g-3">
 
   {# Income #}
@@ -168,6 +73,12 @@
         {% if balance_sheet.income_rows %}
           <table class="table table-sm align-middle mb-0">
             <tbody>
+              <tr>
+                <td class="ps-3">{% translate "Occupancy rate" %}</td>
+                <td class="text-end pe-3 fw-bold">{{ balance_sheet.occupancy_rate|floatformat:0 }} %
+                  <span class="text-body-secondary small fw-normal">({{ balance_sheet.months_with_rent }}/{{ balance_sheet.months_count }} {% translate "months" %})</span>
+                </td>
+              </tr>
               {% for row in balance_sheet.income_rows %}
                 <tr>
                   <td class="ps-3">{{ row.label }}</td>
@@ -175,7 +86,7 @@
                 </tr>
               {% endfor %}
             </tbody>
-            <tfoot class="table-success">
+            <tfoot>
               <tr>
                 <th class="ps-3">{% translate "Total" %}</th>
                 <th class="text-end pe-3">{{ balance_sheet.total_income|format_money_amount:property.currency }}</th>
@@ -208,7 +119,7 @@
                 </tr>
               {% endfor %}
             </tbody>
-            <tfoot class="table-danger">
+            <tfoot>
               <tr>
                 <th class="ps-3">{% translate "Total" %}</th>
                 <th class="text-end pe-3">{{ balance_sheet.total_expenses|format_money_amount:property.currency }}</th>
@@ -241,7 +152,7 @@
                 </tr>
               {% endfor %}
             </tbody>
-            <tfoot class="table-warning">
+            <tfoot>
               <tr>
                 <th class="ps-3">{% translate "Total" %}</th>
                 <th class="text-end pe-3">{{ balance_sheet.total_loan_costs|format_money_amount:property.currency }}</th>
@@ -258,8 +169,7 @@
 </div><!-- end .row breakdown -->
 
 {# ── Net result summary bar ───────────────────────────────────────────── #}
-<div class="mt-3 p-3 rounded border
-  {% if balance_sheet.net_cashflow >= 0 %}border-success bg-success-subtle{% else %}border-danger bg-danger-subtle{% endif %}">
+<div class="mt-3 p-3 rounded border">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div>
       <span class="fw-semibold">{% translate "Net cashflow" %}</span>

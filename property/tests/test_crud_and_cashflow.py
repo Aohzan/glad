@@ -542,28 +542,65 @@ def test_build_balance_sheet_gross_yield():
 
 
 @pytest.mark.django_db
-def test_detail_view_balance_sheet_invalid_params_use_defaults(user_client):
-    """Invalid bs_year/bs_months/bs_start_month params fall back to defaults."""
+def test_detail_view_balance_sheet_default_range(user_client):
+    """No date params → default is current civil year (Jan 1 – Dec 31)."""
     prop = _make_property()
     url = reverse("property:detail", kwargs={"pk": prop.pk})
-    response = user_client.get(
-        url, {"bs_year": "notanumber", "bs_months": "99", "bs_start_month": "0"}
-    )
+    response = user_client.get(url)
     assert response.status_code == 200
-    # Defaults: bs_months=12, bs_start_month=1
-    assert response.context["bs_months"] == 12
-    assert response.context["bs_start_month"] == 1
+    today = datetime.date.today()
+    assert response.context["bs_date_from"] == datetime.date(today.year, 1, 1)
+    assert response.context["bs_date_to"] == datetime.date(today.year, 12, 31)
 
 
 @pytest.mark.django_db
-def test_detail_view_balance_sheet_valid_params(user_client):
-    """Valid bs_year/bs_months/bs_start_month params are respected."""
+def test_detail_view_balance_sheet_invalid_dates_use_defaults(user_client):
+    """Invalid start_date/end_date params fall back to current-year defaults."""
+    prop = _make_property()
+    url = reverse("property:detail", kwargs={"pk": prop.pk})
+    response = user_client.get(url, {"start_date": "notadate", "end_date": "also-bad"})
+    assert response.status_code == 200
+    today = datetime.date.today()
+    assert response.context["bs_date_from"] == datetime.date(today.year, 1, 1)
+    assert response.context["bs_date_to"] == datetime.date(today.year, 12, 31)
+
+
+@pytest.mark.django_db
+def test_detail_view_balance_sheet_valid_date_range(user_client):
+    """Valid start_date/end_date are normalised to month boundaries."""
+    prop = _make_property()
+    url = reverse("property:detail", kwargs={"pk": prop.pk})
+    # Supply mid-month dates; they must be clamped to month boundaries.
+    response = user_client.get(
+        url, {"start_date": "2023-04-15", "end_date": "2023-06-20"}
+    )
+    assert response.status_code == 200
+    assert response.context["bs_date_from"] == datetime.date(2023, 4, 1)
+    assert response.context["bs_date_to"] == datetime.date(2023, 6, 30)
+
+
+@pytest.mark.django_db
+def test_detail_view_balance_sheet_inverted_range_uses_defaults(user_client):
+    """start_date > end_date falls back to current-year defaults."""
     prop = _make_property()
     url = reverse("property:detail", kwargs={"pk": prop.pk})
     response = user_client.get(
-        url, {"bs_year": "2023", "bs_months": "3", "bs_start_month": "4"}
+        url, {"start_date": "2023-12-01", "end_date": "2023-01-31"}
     )
     assert response.status_code == 200
-    assert response.context["bs_year"] == 2023
-    assert response.context["bs_months"] == 3
-    assert response.context["bs_start_month"] == 4
+    today = datetime.date.today()
+    assert response.context["bs_date_from"] == datetime.date(today.year, 1, 1)
+    assert response.context["bs_date_to"] == datetime.date(today.year, 12, 31)
+
+
+@pytest.mark.django_db
+def test_detail_view_balance_sheet_full_year_range(user_client):
+    """A full-year range (Jan 1 – Dec 31) is preserved correctly."""
+    prop = _make_property()
+    url = reverse("property:detail", kwargs={"pk": prop.pk})
+    response = user_client.get(
+        url, {"start_date": "2023-01-01", "end_date": "2023-12-31"}
+    )
+    assert response.status_code == 200
+    assert response.context["bs_date_from"] == datetime.date(2023, 1, 1)
+    assert response.context["bs_date_to"] == datetime.date(2023, 12, 31)

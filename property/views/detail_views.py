@@ -25,7 +25,6 @@ from property.models import (
 )
 from property.services.cashflow import build_balance_sheet
 from property.utils import (
-    add_months_safe,
     add_years_safe,
     build_loan_monthly_maps,
     iter_month_starts,
@@ -48,67 +47,54 @@ class PropertyDetailView(DetailView):
 
     def _parse_balance_sheet_range(
         self,
-    ) -> tuple[datetime.date, datetime.date, int, int, int]:
+    ) -> tuple[datetime.date, datetime.date]:
         """
-        Parse year/month range from GET params.
+        Parse explicit date range from GET params ``start_date`` and ``end_date``.
 
-        Returns (date_from, date_to, year, months_span, start_month) where:
-        - date_from   = first day of the start month
-        - date_to     = last day of the end month
-        - year        = reference year (used for display)
-        - months_span = number of months in the range (12 for full year, 1 for single month)
-        - start_month = first month of the range (1–12)
+        Both params must be ISO-8601 dates (YYYY-MM-DD).  ``start_date`` is
+        normalised to the first day of its month; ``end_date`` to the last day
+        of its month so the balance sheet always covers whole months.
 
-        Default: current civil year (Jan 1 → Dec 31).
+        Default: full current civil year (Jan 1 → Dec 31).
         """
         today = datetime.date.today()
-        try:
-            year = int(self.request.GET.get("bs_year", today.year))
-        except ValueError, TypeError:
-            year = today.year
+        default_from = datetime.date(today.year, 1, 1)
+        default_to = datetime.date(today.year, 12, 31)
+
+        raw_start = self.request.GET.get("start_date", "")
+        raw_end = self.request.GET.get("end_date", "")
 
         try:
-            months_span = int(self.request.GET.get("bs_months", 12))
-            if months_span not in (1, 3, 6, 12):
-                months_span = 12
+            parsed_start = datetime.date.fromisoformat(raw_start)
         except ValueError, TypeError:
-            months_span = 12
+            parsed_start = default_from
 
         try:
-            start_month = int(self.request.GET.get("bs_start_month", 1))
-            if not 1 <= start_month <= 12:
-                start_month = 1
+            parsed_end = datetime.date.fromisoformat(raw_end)
         except ValueError, TypeError:
-            start_month = 1
+            parsed_end = default_to
 
-        date_from = datetime.date(year, start_month, 1)
-        date_to_start = add_months_safe(date_from, months_span - 1)
-        date_to = month_end(date_to_start)
+        # Normalise to month boundaries
+        date_from = month_start(parsed_start)
+        date_to = month_end(parsed_end)
 
-        return date_from, date_to, year, months_span, start_month
+        # Sanity: ensure range is not inverted
+        if date_from > date_to:
+            date_from = default_from
+            date_to = default_to
+
+        return date_from, date_to
 
     def _build_balance_sheet_context(self, property_obj: Property) -> dict:
         """Build balance sheet context for the given property and date range."""
-        date_from, date_to, bs_year, bs_months, bs_start_month = (
-            self._parse_balance_sheet_range()
-        )
+        date_from, date_to = self._parse_balance_sheet_range()
 
         balance_sheet = build_balance_sheet(property_obj, date_from, date_to)
-
-        prev_start = add_months_safe(date_from, -bs_months)
-        next_start = add_months_safe(date_from, bs_months)
 
         return {
             "balance_sheet": balance_sheet,
             "bs_date_from": date_from,
             "bs_date_to": date_to,
-            "bs_year": bs_year,
-            "bs_months": bs_months,
-            "bs_start_month": bs_start_month,
-            "bs_prev_year": prev_start.year,
-            "bs_prev_start_month": prev_start.month,
-            "bs_next_year": next_start.year,
-            "bs_next_start_month": next_start.month,
         }
 
     def _get_growth_rate(self) -> Decimal:
