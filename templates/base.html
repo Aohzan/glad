@@ -59,10 +59,9 @@
                             <ul class="dropdown-menu" aria-labelledby="propertyDropdown">
                                 <li><a class="dropdown-item" href="{% url 'property:index' %}"><i class="bi bi-bar-chart-line me-2"></i>{% translate "Overview" %}</a></li>
                                 <li>
-                                    <span class="dropdown-item disabled text-muted">
-                                        <i class="bi bi-calculator me-2"></i>{% translate "Accountability" %}
-                                        <span class="badge bg-secondary ms-1" style="font-size:.6rem;">{% translate "Coming" %}</span>
-                                    </span>
+                                    <a class="dropdown-item" href="{% url 'property:accounting' %}">
+                                        <i class="bi bi-calculator me-2"></i>{% translate "Accounting" %}
+                                    </a>
                                 </li>
                                 {% if nav_properties %}
                                 <li><hr class="dropdown-divider"></li>

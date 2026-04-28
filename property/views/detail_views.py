@@ -36,6 +36,7 @@ from property.views.edit_views import (
     _make_loan_formset_class,
     _make_schedule_formset_class,
 )
+from property.views.fiscal_views import get_amortization_context
 
 
 class PropertyDetailView(DetailView):
@@ -730,4 +731,10 @@ class PropertyDetailView(DetailView):
             }
         )
         context.update(balance_sheet_context)
+        # Amortization tab (only for LMNP réel properties)
+        if property_obj.tax_regime == Property.TaxRegime.LMNP_REEL:
+            context.update(get_amortization_context(property_obj))
+        context["show_amortization_tab"] = (
+            property_obj.tax_regime == Property.TaxRegime.LMNP_REEL
+        )
         return context

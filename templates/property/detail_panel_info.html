@@ -24,12 +24,12 @@
         </p>
       </div>
       <div class="col-6 col-md-3">
-        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Furnished" %}</p>
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Tax regime" %}</p>
         <p class="mb-0 fw-semibold">
-          {% if property.is_furnished %}
-            <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-check-circle me-1"></i>{% translate "Yes" %}</span>
+          {% if property.tax_regime == 'lmnp_reel' %}
+            <span class="badge bg-info-subtle text-info-emphasis"><i class="bi bi-calculator me-1"></i>LMNP réel</span>
           {% else %}
-            <span class="badge bg-secondary-subtle text-secondary-emphasis"><i class="bi bi-x-circle me-1"></i>{% translate "No" %}</span>
+            <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ property.get_tax_regime_display }}</span>
           {% endif %}
         </p>
       </div>

@@ -674,9 +674,9 @@ def generate_property() -> str:  # noqa: PLR0915
     Properties:
       1 - Résidence principale (HO): 1 standard 20-year loan, typical owner expenses
       2 - Appartement locatif Nice (AP): 2 smoothed loans (prêt lisseur, 10y + 20y),
-          active lease, full rental transactions
+          active lease, full rental transactions, LMNP réel tax regime with amortization
       3 - Studio meublé Lyon (AP): 1 short loan ending in ~4 years, active lease,
-          rental transactions with tenant and lease
+          rental transactions with tenant and lease, LMNP réel tax regime with amortization
       4 - Maison de campagne (HO): no loan, no lease, expenses + punctual Airbnb income
     """
     return f"""# generated with scripts/generate_fixtures.py
@@ -699,7 +699,7 @@ def generate_property() -> str:  # noqa: PLR0915
     buying_date: {ds(M96)}
     selling_date: null
     floor_area: "112.50"
-    is_furnished: false
+    tax_regime: none
 - model: property.propertyvalue
   pk: 1
   fields:
@@ -832,7 +832,7 @@ def generate_property() -> str:  # noqa: PLR0915
     buying_date: {ds(M48)}
     selling_date: null
     floor_area: "42.00"
-    is_furnished: true
+    tax_regime: lmnp_reel
 - model: property.propertyvalue
   pk: 4
   fields:
@@ -1161,7 +1161,7 @@ def generate_property() -> str:  # noqa: PLR0915
     buying_date: {ds(M48)}
     selling_date: null
     floor_area: "22.00"
-    is_furnished: true
+    tax_regime: lmnp_reel
 - model: property.propertyvalue
   pk: 7
   fields:
@@ -1360,7 +1360,7 @@ def generate_property() -> str:  # noqa: PLR0915
     buying_date: {ds(M72)}
     selling_date: null
     floor_area: "95.00"
-    is_furnished: true
+    tax_regime: none
 - model: property.propertyvalue
   pk: 9
   fields:
@@ -1505,6 +1505,194 @@ def generate_property() -> str:  # noqa: PLR0915
     notes: ""
     recurrence_type: none
     recurrence_end_date: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LMNP RÉEL — Appartement locatif Nice (property 2)
+#   AmortizationSetup: total_value = buying price, land = 15 %
+#   Depreciable base = 85 % × 185 000 = 157 250 EUR
+#   Standard components (% of depreciable base, duration in years):
+#     structure      45 % × 157 250 = 70 762.50 EUR  /  75 ans
+#     electrical      6 % × 157 250 =  9 435.00 EUR  /  30 ans
+#     waterproofing   7 % × 157 250 = 11 007.50 EUR  /  25 ans
+#     roof            8 % × 157 250 = 12 580.00 EUR  /  25 ans
+#     fittings       19 % × 157 250 = 29 877.50 EUR  /  12 ans
+#   Extra immobilisation: cuisine équipée (2 400 EUR / 10 ans)
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.amortizationsetup
+  pk: 1
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    total_value: 185000.00
+    total_value_currency: EUR
+    land_percentage: "15.00"
+- model: property.amortizationasset
+  pk: 1
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    label: Gros œuvre
+    acquisition_date: {ds(M48)}
+    value_total: 70762.50
+    value_total_currency: EUR
+    duration_years: 75
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 2
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    label: Installations électriques
+    acquisition_date: {ds(M48)}
+    value_total: 9435.00
+    value_total_currency: EUR
+    duration_years: 30
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 3
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    label: Étanchéité
+    acquisition_date: {ds(M48)}
+    value_total: 11007.50
+    value_total_currency: EUR
+    duration_years: 25
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 4
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    label: Toiture
+    acquisition_date: {ds(M48)}
+    value_total: 12580.00
+    value_total_currency: EUR
+    duration_years: 25
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 5
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
+    label: Agencements intérieurs
+    acquisition_date: {ds(M48)}
+    value_total: 29877.50
+    value_total_currency: EUR
+    duration_years: 12
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 6
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    property: 2
+    label: Cuisine équipée
+    acquisition_date: {ds(M24)}
+    value_total: 2400.00
+    value_total_currency: EUR
+    duration_years: 10
+    is_initial_component: false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LMNP RÉEL — Studio meublé Lyon (property 3)
+#   AmortizationSetup: total_value = buying price, land = 15 %
+#   Depreciable base = 85 % × 95 000 = 80 750 EUR
+#   Standard components (% of depreciable base, duration in years):
+#     structure      45 % × 80 750 = 36 337.50 EUR  /  75 ans
+#     electrical      6 % × 80 750 =  4 845.00 EUR  /  30 ans
+#     waterproofing   7 % × 80 750 =  5 652.50 EUR  /  25 ans
+#     roof            8 % × 80 750 =  6 460.00 EUR  /  25 ans
+#     fittings       19 % × 80 750 = 15 342.50 EUR  /  12 ans
+#   Extra immobilisation: mobilier et électroménager (3 800 EUR / 7 ans)
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.amortizationsetup
+  pk: 2
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    total_value: 95000.00
+    total_value_currency: EUR
+    land_percentage: "15.00"
+- model: property.amortizationasset
+  pk: 7
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    label: Gros œuvre
+    acquisition_date: {ds(M48)}
+    value_total: 36337.50
+    value_total_currency: EUR
+    duration_years: 75
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 8
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    label: Installations électriques
+    acquisition_date: {ds(M48)}
+    value_total: 4845.00
+    value_total_currency: EUR
+    duration_years: 30
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 9
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    label: Étanchéité
+    acquisition_date: {ds(M48)}
+    value_total: 5652.50
+    value_total_currency: EUR
+    duration_years: 25
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 10
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    label: Toiture
+    acquisition_date: {ds(M48)}
+    value_total: 6460.00
+    value_total_currency: EUR
+    duration_years: 25
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 11
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    label: Agencements intérieurs
+    acquisition_date: {ds(M48)}
+    value_total: 15342.50
+    value_total_currency: EUR
+    duration_years: 12
+    is_initial_component: true
+- model: property.amortizationasset
+  pk: 12
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    label: Mobilier et électroménager
+    acquisition_date: {ds(M48)}
+    value_total: 3800.00
+    value_total_currency: EUR
+    duration_years: 7
+    is_initial_component: false
 """
 
 

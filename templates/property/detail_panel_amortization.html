@@ -1,0 +1,178 @@
+{% load i18n format_money %}
+
+{# ── Initialisation block (shown only when no assets exist) ───────────────── #}
+{% if not has_assets %}
+<div class="card mb-4 border-info">
+  <div class="card-body text-center py-5">
+    <i class="bi bi-box-seam fs-1 text-info mb-3 d-block"></i>
+    <h5 class="mb-2">{% translate "No amortization components yet" %}</h5>
+    <p class="text-body-secondary mb-4">
+      {% blocktranslate with value=property.net_value %}
+        Click below to automatically create the standard LMNP components based on the
+        property net value ({{ value }}) with 15 % land share.
+        You can then edit each component individually.
+      {% endblocktranslate %}
+    </p>
+    <form method="post" action="{% url 'property:initialize_amortization' property.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-info">
+        <i class="bi bi-magic me-1"></i>{% translate "Initialize default amortization" %}
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+{% if has_assets %}
+
+{# ── Alert: loi de finances 2025 ─────────────────────────────────────────── #}
+<div class="alert alert-warning d-flex gap-2 mb-4" role="alert">
+  <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+  <div>
+    <strong>{% translate "Important — Capital gains from 2025 onward" %}</strong><br>
+    {% blocktranslate %}
+      Depuis 2025, les amortissements déduits sont réintégrés dans le calcul de la plus-value
+      lors de la revente du bien (art. 150 VB bis du CGI).
+    {% endblocktranslate %}
+  </div>
+</div>
+
+{# ── KPI strip ────────────────────────────────────────────────────────────── #}
+<div class="row g-2 mb-4">
+  <div class="col-4 col-md-4">
+    <div class="card border-0 bg-body-secondary h-100">
+      <div class="card-body py-2 px-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">
+          {% translate "Depreciable base" %}
+        </p>
+        <p class="fs-5 fw-bold mb-0">{{ amortization_total_base|floatformat:0 }} €</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-4 col-md-4">
+    <div class="card border-0 bg-body-secondary h-100">
+      <div class="card-body py-2 px-3">
+        <p class="text-uppercase text-primary small fw-semibold mb-1" style="font-size:.7rem;">
+          {% translate "Amortized to date" %}
+        </p>
+        <p class="fs-5 fw-bold mb-0 text-primary">{{ amortization_amortized|floatformat:0 }} €</p>
+        {% if amortization_total_base %}
+        <div class="progress mt-1" style="height:4px;">
+          {% widthratio amortization_amortized amortization_total_base 100 as amort_pct %}
+          <div class="progress-bar bg-primary" role="progressbar" style="width:{{ amort_pct }}%"></div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-4 col-md-4">
+    <div class="card border-0 bg-body-secondary h-100">
+      <div class="card-body py-2 px-3">
+        <p class="text-uppercase text-warning small fw-semibold mb-1" style="font-size:.7rem;">
+          {% translate "Remaining" %}
+        </p>
+        <p class="fs-5 fw-bold mb-0 text-warning">{{ amortization_remaining|floatformat:0 }} €</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Components table ────────────────────────────────────────────────────── #}
+<div class="card mb-4">
+  <div class="card-header py-2">
+    <h6 class="mb-0">
+      <i class="bi bi-table me-1"></i>{% translate "Amortization components" %}
+    </h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% translate "Label" %}</th>
+            <th class="text-end">{% translate "Global %" %}</th>
+            <th class="text-end">{% translate "Value" %}</th>
+            <th class="text-center">{% translate "Duration" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in amortization_table %}
+            <tr>
+              <td class="fw-semibold">
+                {{ row.label }}
+                {% if row.is_initial %}
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis ms-1" style="font-size:.65rem;">{% translate "initial" %}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                {% if row.global_pct %}{{ row.global_pct }} %{% else %}—{% endif %}
+              </td>
+              <td class="text-end">{{ row.value_total|floatformat:0 }} €</td>
+              <td class="text-center">{{ row.duration_years }} {% translate "yr" %}</td>
+              <td class="text-end">
+                <a href="{% url 'property:edit_amortization' property.pk row.asset_pk %}"
+                   class="btn btn-xs btn-outline-secondary btn-sm py-0 px-1 me-1">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post"
+                      action="{% url 'property:delete_amortization' property.pk row.asset_pk %}"
+                      class="d-inline"
+                      onsubmit="return confirm('{% translate "Delete this immobilisation?" %}')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-xs btn-outline-danger btn-sm py-0 px-1">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-body-secondary py-3">
+                {% translate "No components found." %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-footer d-flex justify-content-end py-2">
+    <a href="{% url 'property:new_amortization' property.pk %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-plus-circle me-1"></i>{% translate "Add immobilisation" %}
+    </a>
+  </div>
+</div>
+
+{# ── Annual dotation chart ────────────────────────────────────────────────── #}
+<div class="card mb-4">
+  <div class="card-header py-2">
+    <h6 class="mb-0">
+      <i class="bi bi-bar-chart me-1"></i>{% translate "Annual dotation chart" %}
+    </h6>
+  </div>
+  <div class="card-body p-2">
+    <div id="amortization-dotation-chart"></div>
+  </div>
+</div>
+
+{# ── Year-by-year evolution DataTable ────────────────────────────────────── #}
+<div class="card">
+  <div class="card-header py-2">
+    <h6 class="mb-0">
+      <i class="bi bi-list-ol me-1"></i>{% translate "Amortization schedule" %}
+    </h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table id="amortization-schedule-table" class="table table-sm table-hover mb-0" style="width:100%">
+        <thead class="table-light">
+          <tr></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endif %}{# has_assets #}

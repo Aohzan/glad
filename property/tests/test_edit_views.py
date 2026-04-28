@@ -52,6 +52,7 @@ class TestEditProperty:
             "buying_value_1": "EUR",
             "buying_date": "2020-01-01",
             "is_active": "on",
+            "tax_regime": "none",
         }
         response = user_client.post(url, data)
         assert response.status_code == 302
@@ -99,6 +100,7 @@ class TestCreateProperty:
             "buying_value_1": "EUR",
             "buying_date": "2023-01-01",
             "is_active": "on",
+            "tax_regime": "none",
         }
         response = user_client.post(url, data)
         assert response.status_code == 302

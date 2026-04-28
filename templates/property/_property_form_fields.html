@@ -135,13 +135,14 @@
           {{ property_form.is_active.label }}
         </label>
       </div>
-      <div class="form-check">
-        {{ property_form.is_furnished }}
-        <label class="form-check-label" for="{{ property_form.is_furnished.id_for_label }}">
-          {{ property_form.is_furnished.label }}
-        </label>
-      </div>
     </div>
+  </div>
+
+  <div class="col-md-6">
+    <label for="{{ property_form.tax_regime.id_for_label }}" class="form-label">
+      {{ property_form.tax_regime.label }}
+    </label>
+    {{ property_form.tax_regime }}
   </div>
 </div>
 

@@ -14,6 +14,7 @@ For each modification to the project, perform the following checks and adjustmen
 - Use `uv run pytest --cov` to verify coverage
 - Achieve a minimum of 95% coverage
 - Use the VS Code "Code Coverage" task to generate detailed reports
+- Update the generate_fixtures.py script if necessary to include new test data to cover multiple scenarios and edge cases
 
 ### 2. Security Audit
 
@@ -33,6 +34,7 @@ For each modification to the project, perform the following checks and adjustmen
 
 ### 4. French Translation Update and Completion
 
+- All the text in code must be in english
 - Run the "Django Makemessages" task to generate translation files
 - Translate all messages to French in `locale/fr/`
 - Translate all user-facing strings

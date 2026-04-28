@@ -210,6 +210,31 @@
         {% endif %}
       </button>
     </li>
+    {% if show_amortization_tab %}
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="amortization-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#amortization-panel"
+        type="button"
+        role="tab"
+        aria-controls="amortization-panel"
+        aria-selected="false"
+      >
+        <i class="bi bi-calculator me-1"></i>{% translate "Amortissement" %}
+      </button>
+    </li>
+    {% endif %}
+    <li class="nav-item d-none" id="tabs-more-item" role="presentation">
+      <div class="dropdown">
+        <button class="nav-link dropdown-toggle" type="button" id="tabsMoreBtn"
+                data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-three-dots me-1"></i>{% translate "More" %}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" id="tabsMoreMenu" aria-labelledby="tabsMoreBtn"></ul>
+      </div>
+    </li>
   </ul>
 
   <div class="tab-content border border-top-0 rounded-bottom p-3 bg-body" id="propertyTabContent">
@@ -248,6 +273,13 @@
     <div class="tab-pane fade" id="loans-panel" role="tabpanel" aria-labelledby="loans-tab">
       {% include "property/detail_panel_loans.html" %}
     </div>
+
+    {# ── Amortissement tab (LMNP réel only) ──────────────────────────────── #}
+    {% if show_amortization_tab %}
+    <div class="tab-pane fade" id="amortization-panel" role="tabpanel" aria-labelledby="amortization-tab">
+      {% include "property/detail_panel_amortization.html" %}
+    </div>
+    {% endif %}
 
 </div><!-- end .tab-content -->
 </div><!-- end .container -->
@@ -704,28 +736,14 @@
 {{ cashflow_loan_principal_series|json_script:"cashflow-loan-principal-series" }}
 {{ cashflow_loan_insurance_series|json_script:"cashflow-loan-insurance-series" }}
 {{ cashflow_total_expenses_series|json_script:"cashflow-total-expenses-series" }}
+{% if show_amortization_tab %}
+{{ amortization_schedule_json|json_script:"amortization-schedule" }}
+{{ amortization_asset_series_json|json_script:"amortization-asset-series" }}
+{% endif %}
 <script>
 // ── Tab hash sync ─────────────────────────────────────────────────────────────
 (function () {
   const tabButtons = document.querySelectorAll('#propertyTabs [data-bs-toggle="tab"]');
-
-  // Activate tab matching URL hash on load
-  const hash = window.location.hash;
-  if (hash) {
-    const target = document.querySelector(`#propertyTabs [data-bs-target="${hash}"]`);
-    if (target) {
-      tabButtons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.setAttribute('aria-selected', 'false');
-        const panel = document.querySelector(btn.getAttribute('data-bs-target'));
-        if (panel) { panel.classList.remove('show', 'active'); }
-      });
-      target.classList.add('active');
-      target.setAttribute('aria-selected', 'true');
-      const panel = document.querySelector(hash);
-      if (panel) { panel.classList.add('show', 'active'); }
-    }
-  }
 
   // Update URL hash when a tab is clicked
   tabButtons.forEach(btn => {
@@ -734,6 +752,7 @@
     });
   });
 })();
+// Hash activation is deferred to end of script so all tab listeners are registered first.
 
 // ── Translations for JS ──────────────────────────────────────────────────────
 const i18n = {
@@ -1052,6 +1071,194 @@ document.getElementById('cashflow-tab').addEventListener('shown.bs.tab', functio
   cashflowBreakdownChart.updateOptions({});
 });
 
+{% if show_amortization_tab %}
+// ── Amortization tab: dotation chart + schedule DataTable (lazy-init) ────────
+let amortizationInitialized = false;
+document.getElementById('amortization-tab').addEventListener('shown.bs.tab', function() {
+  if (amortizationInitialized) return;
+  amortizationInitialized = true;
+
+  const scheduleRaw = document.getElementById('amortization-schedule');
+  if (!scheduleRaw) return;
+  const scheduleData = JSON.parse(scheduleRaw.textContent);
+
+  const assetSeriesRaw = document.getElementById('amortization-asset-series');
+  const assetSeries = assetSeriesRaw ? JSON.parse(assetSeriesRaw.textContent) : [];
+
+  const currentYear = new Date().getFullYear();
+
+
+  const amortChartOptions = {
+    chart: {
+      type: 'bar',
+      stacked: true,
+      height: 300,
+      toolbar: {
+        show: true,
+        tools: { download: false, selection: false, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true }
+      },
+      zoom: { enabled: true, type: 'x' },
+      background: 'transparent'
+    },
+    series: assetSeries.map(function(s) {
+      return {
+        name: s.label,
+        data: s.data.map(function(r) {
+          return { x: r.year, y: parseFloat(r.dotation.toFixed(2)) };
+        })
+      };
+    }),
+    plotOptions: {
+      bar: {
+        columnWidth: '70%',
+        dataLabels: { position: 'top', total: {
+          enabled: true,
+          style: { fontSize: '11px', fontWeight: 600 },
+          formatter: function(v) { return Math.round(v).toLocaleString('fr-FR') + ' €'; }
+        }}
+      }
+    },
+    dataLabels: { enabled: false },
+    legend: { show: true, position: 'top' },
+    xaxis: {
+      type: 'numeric',
+      min: currentYear,
+      max: currentYear + 9,
+      labels: {
+        rotate: -45,
+        style: { fontSize: '11px' },
+        formatter: function(v) { return Math.round(v); }
+      },
+      tickPlacement: 'on'
+    },
+    yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString() + ' €'; } } },
+    annotations: {
+      xaxis: [{
+        x: currentYear,
+        borderColor: '#0d6efd',
+        label: { text: String(currentYear), style: { color: '#fff', background: '#0d6efd' } }
+      }]
+    },
+    tooltip: {
+      theme: getCurrentTheme(),
+      x: { formatter: function(v) { return Math.round(v); } },
+      y: { formatter: function(v) { return v.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }); } }
+    },
+    theme: { mode: getCurrentTheme() }
+  };
+  const amortChart = new ApexCharts(document.querySelector('#amortization-dotation-chart'), amortChartOptions);
+  amortChart.render();
+
+  // ── Schedule DataTable (one column per asset + total) ─────────────────────
+  function formatMoney(v) {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+  }
+  function buildProgressBar(pct) {
+    const w = Math.min(100, Math.round(pct));
+    return `<div class="d-flex align-items-center gap-2">
+      <div class="progress flex-grow-1" style="height:6px;min-width:60px;">
+        <div class="progress-bar bg-primary" style="width:${w}%"></div>
+      </div>
+      <span class="small text-body-secondary">${pct.toFixed(1)} %</span>
+    </div>`;
+  }
+
+  const assetLabels = assetSeries.map(function(s) { return s.label; });
+
+  const columns = [
+    {
+      data: 'year',
+      title: '{% translate "Year" %}',
+      render: function(data, type, row) {
+        if (type === 'display') {
+          return row.year === currentYear
+            ? `<strong class="text-primary">${data} ◀</strong>`
+            : String(data);
+        }
+        return data;
+      }
+    }
+  ];
+
+  assetLabels.forEach(function(label) {
+    columns.push({
+      title: label,
+      className: 'text-end',
+      render: function(data, type, row) {
+        const val = (row.per_asset && row.per_asset[label] != null) ? row.per_asset[label] : 0;
+        if (type === 'display') return formatMoney(val);
+        return val;
+      }
+    });
+  });
+
+  columns.push(
+    {
+      data: 'annual_dotation',
+      title: '{% translate "Total" %}',
+      className: 'text-end fw-semibold',
+      render: function(data, type) {
+        if (type === 'display') return formatMoney(data);
+        return data;
+      }
+    },
+    {
+      data: 'cumulative',
+      title: '{% translate "Cumulative" %}',
+      className: 'text-end',
+      render: function(data, type) {
+        if (type === 'display') return formatMoney(data);
+        return data;
+      }
+    },
+    {
+      data: 'pct_complete',
+      title: '{% translate "Progress" %}',
+      render: function(data, type) {
+        if (type === 'display') return buildProgressBar(data);
+        return data;
+      }
+    }
+  );
+
+  $('#amortization-schedule-table').DataTable({
+    data: scheduleData,
+    order: [[0, 'asc']],
+    paging: true,
+    pageLength: 10,
+    lengthChange: false,
+    searching: true,
+    info: true,
+    language: {
+      emptyTable: '{% translate "No data" %}',
+      search: '{% translate "Search" %}:',
+      info: '{% translate "Lines" %} _START_ {% translate "to" %} _END_ {% translate "of" %} _TOTAL_',
+      paginate: {
+        previous: '{% translate "Previous" %}',
+        next: '{% translate "Next" %}'
+      }
+    },
+    columns: columns,
+    createdRow: function(row, data) {
+      if (data.year === currentYear) {
+        $(row).addClass('table-primary');
+      }
+    }
+  });
+});
+{% endif %}
+
+// ── Activate tab from URL hash (deferred so all listeners are registered) ────
+(function () {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(`#propertyTabs [data-bs-target="${hash}"]`);
+    if (target) {
+      bootstrap.Tab.getOrCreateInstance(target).show();
+    }
+  }
+})();
+
 function updateChartsTheme(themeName) {
   [projectionChart, cashflowOverviewChart, cashflowBreakdownChart].forEach(function(c) {
     if (c) c.updateOptions({ theme: { mode: themeName }, tooltip: { theme: themeName } });
@@ -1191,6 +1398,74 @@ document.getElementById('info-tab').addEventListener('shown.bs.tab', function() 
       });
     });
   });
+})();
+
+// ── Tabs overflow → "More" dropdown (mobile) ─────────────────────────────────
+(function () {
+  const ul       = document.getElementById('propertyTabs');
+  const moreItem = document.getElementById('tabs-more-item');
+  const moreMenu = document.getElementById('tabsMoreMenu');
+  const moreBtn  = document.getElementById('tabsMoreBtn');
+  if (!ul || !moreItem) return;
+
+  function checkTabsOverflow() {
+    const allItems = Array.from(ul.querySelectorAll(':scope > li.nav-item:not(#tabs-more-item)'));
+    // Reset: show everything
+    allItems.forEach(function(i) { i.style.display = ''; });
+    moreItem.classList.add('d-none');
+    moreBtn.classList.remove('active');
+    moreMenu.innerHTML = '';
+
+    if (allItems.length === 0) return;
+
+    // Items that wrapped to a second row have a higher offsetTop than the first item
+    const rowTop = allItems[0].getBoundingClientRect().top;
+    const overflowItems = allItems.filter(function(i) {
+      return i.getBoundingClientRect().top > rowTop + 4;
+    });
+
+    if (overflowItems.length === 0) return;
+
+    moreItem.classList.remove('d-none');
+    overflowItems.forEach(function(item) {
+      item.style.display = 'none';
+      const btn = item.querySelector('button');
+      if (!btn) return;
+      const li = document.createElement('li');
+      const a  = document.createElement('a');
+      a.className = 'dropdown-item' + (btn.classList.contains('active') ? ' active' : '');
+      a.href = '#';
+      a.innerHTML = btn.innerHTML;
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        btn.click();
+      });
+      li.appendChild(a);
+      moreMenu.appendChild(li);
+    });
+
+    if (overflowItems.some(function(i) { return i.querySelector('button.active'); })) {
+      moreBtn.classList.add('active');
+    }
+  }
+
+  // Keep dropdown active state in sync when a tab is activated
+  ul.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(btn) {
+    btn.addEventListener('shown.bs.tab', function() {
+      moreMenu.querySelectorAll('.dropdown-item').forEach(function(a) { a.classList.remove('active'); });
+      moreBtn.classList.remove('active');
+      if (btn.style.display === 'none') {
+        const label = btn.textContent.trim();
+        moreMenu.querySelectorAll('.dropdown-item').forEach(function(a) {
+          if (a.textContent.trim() === label) a.classList.add('active');
+        });
+        moreBtn.classList.add('active');
+      }
+    });
+  });
+
+  window.addEventListener('resize', checkTabsOverflow);
+  setTimeout(checkTabsOverflow, 0);
 })();
 </script>
 {% endblock %}

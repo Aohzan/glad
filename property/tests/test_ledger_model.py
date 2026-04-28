@@ -190,7 +190,7 @@ class TestPropertyLedgerEntryGetManagementCategoryDisplay:
 class TestPropertyLedgerEntryGetLmnpLine:
     def test_known_category_returns_line(self, income_entry):
         line = income_entry.get_lmnp_line()
-        assert line == "213"
+        assert line == "218"
 
     def test_off_result_category_returns_none(self, property_obj):
         entry = PropertyLedgerEntry.objects.create(
@@ -210,7 +210,7 @@ class TestPropertyLedgerEntryGetLmnpLine:
             amount=Money(Decimal("300.00"), "EUR"),
             entry_date=datetime.date(2023, 1, 1),
         )
-        assert entry.get_lmnp_line() == "230"
+        assert entry.get_lmnp_line() == "294"
 
 
 @pytest.mark.django_db

@@ -8,6 +8,8 @@ from moneyed import Money
 
 from base.forms import MoneyInputGroupMixin
 from property.models import (
+    AmortizationAsset,
+    AmortizationSetup,
     Lease,
     ManagementMandate,
     Property,
@@ -165,7 +167,7 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "name",
             "address",
             "is_active",
-            "is_furnished",
+            "tax_regime",
             "floor_area",
             "number_of_rooms",
             "buying_value",
@@ -350,4 +352,47 @@ class ManagementMandateForm(MoneyInputGroupMixin, forms.ModelForm):
             "end_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "fee_type": forms.Select(attrs={"class": "form-select"}),
             "notes": forms.Textarea(attrs={"rows": 2}),
+        }
+
+
+class AmortizationAssetForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for creating and editing an amortizable asset / immobilisation (LMNP)."""
+
+    class Meta:
+        model = AmortizationAsset
+        fields = [
+            "label",
+            "acquisition_date",
+            "value_total",
+            "duration_years",
+        ]
+        widgets = {
+            "label": forms.TextInput(attrs={"class": "form-control"}),
+            "acquisition_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+            "duration_years": forms.NumberInput(
+                attrs={"class": "form-control", "min": "1", "id": "id_amort_duration"}
+            ),
+        }
+        input_formats = {
+            "acquisition_date": ["%Y-%m-%d"],
+        }
+
+
+class AmortizationSetupForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for initialising the amortization setup of a LMNP property."""
+
+    class Meta:
+        model = AmortizationSetup
+        fields = ["total_value", "land_percentage"]
+        widgets = {
+            "land_percentage": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "max": "100",
+                }
+            ),
         }

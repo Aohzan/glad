@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% if is_create %}{% translate "Add immobilisation" %}{% else %}{% translate "Edit immobilisation" %}{% endif %}
+  — {{ property.name }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 680px;">
+
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{% url 'property:detail' property.pk %}#amortization" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>{{ property.name }}
+    </a>
+    <h1 class="h4 mb-0 ms-1">
+      {% if is_create %}
+        <i class="bi bi-plus-circle me-1"></i>{% translate "Add immobilisation" %}
+      {% else %}
+        <i class="bi bi-pencil me-1"></i>{% translate "Edit immobilisation" %}
+      {% endif %}
+    </h1>
+  </div>
+
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle me-1"></i>{% translate "Please correct the errors below." %}
+    </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-tag me-1"></i>{% translate "Asset details" %}</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+
+          <div class="col-12">
+            <label for="{{ form.label.id_for_label }}" class="form-label fw-semibold">
+              {{ form.label.label }}
+            </label>
+            {{ form.label }}
+            {% if form.label.errors %}<div class="invalid-feedback d-block">{{ form.label.errors }}</div>{% endif %}
+            <div class="form-text">{% translate "E.g. « Cuisine équipée », « Chauffe-eau », « Mobilier »." %}</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">
+              {{ form.category.label }}
+            </label>
+            {{ form.category }}
+            {% if form.category.errors %}<div class="invalid-feedback d-block">{{ form.category.errors }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label for="{{ form.acquisition_date.id_for_label }}" class="form-label fw-semibold">
+              {{ form.acquisition_date.label }}
+            </label>
+            {{ form.acquisition_date }}
+            {% if form.acquisition_date.errors %}<div class="invalid-feedback d-block">{{ form.acquisition_date.errors }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label for="{{ form.value_total.id_for_label }}" class="form-label fw-semibold">
+              {{ form.value_total.label }}
+            </label>
+            {{ form.value_total }}
+            {% if form.value_total.errors %}<div class="invalid-feedback d-block">{{ form.value_total.errors }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label for="{{ form.duration_years.id_for_label }}" class="form-label fw-semibold">
+              {{ form.duration_years.label }}
+            </label>
+            {{ form.duration_years }}
+            {% if form.duration_years.errors %}<div class="invalid-feedback d-block">{{ form.duration_years.errors }}</div>{% endif %}
+            <div class="form-text" id="duration-hint"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>{% translate "Save" %}
+      </button>
+      <a href="{% url 'property:detail' property.pk %}#amortization" class="btn btn-outline-secondary">
+        {% translate "Cancel" %}
+      </a>
+    </div>
+  </form>
+</div>
+
+<script>
+  const DURATIONS = {
+    "structure": 75,
+    "electrical": 30,
+    "waterproofing": 25,
+    "roof": 25,
+    "fittings": 12,
+    "immobilisation": 10,
+  };
+  const catSelect = document.getElementById("id_amort_category");
+  const durInput = document.getElementById("id_amort_duration");
+  const hint = document.getElementById("duration-hint");
+
+  function updateDurationHint() {
+    const cat = catSelect ? catSelect.value : "";
+    const rec = DURATIONS[cat];
+    if (rec && hint) {
+      hint.textContent = "{% translate 'Recommended:' %} " + rec + " {% translate 'years' %}";
+    } else if (hint) {
+      hint.textContent = "";
+    }
+  }
+
+  if (catSelect) {
+    catSelect.addEventListener("change", function () {
+      const rec = DURATIONS[this.value];
+      if (rec && durInput && !durInput.value) {
+        durInput.value = rec;
+      }
+      updateDurationHint();
+    });
+    updateDurationHint();
+  }
+</script>
+{% endblock %}

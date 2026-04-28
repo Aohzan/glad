@@ -57,8 +57,7 @@
                 <th>{% translate "Type" %}</th>
                 <th>{% translate "Current value" %}</th>
                 <th>{% translate "Net value" %}</th>
-                <th>{% translate "Loans" %}</th>
-                <th>{% translate "Progression" %}</th>
+                <th>{% translate "Loans in progress" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -70,13 +69,17 @@
                     </a>
                 </td>
                 <td><i class="bi bi-{{ prop.model.icon }} me-2"></i>{{ prop.model.get_property_type_display }}</td>
-                <td>{{ prop.gross_value | format_money }}</td>
+                <td>
+                  {{ prop.gross_value | format_money }}
+                  <span class="{{ prop.progression.css_class }} ms-1 small" data-bs-toggle="tooltip" data-bs-placement="top" title="{% if prop.progression.progression > 0 %}+{% endif %}{{ prop.progression.difference | format_money }}">
+                    {% if prop.progression.progression > 0 %}<i class="bi bi-arrow-up-short"></i>{% elif prop.progression.progression < 0 %}<i class="bi bi-arrow-down-short"></i>{% else %}<i class="bi bi-dash"></i>{% endif %}{{ prop.progression.progression }}%
+                  </span>
+                </td>
                 <td>{{ prop.net_value | format_money }}</td>
                 <td>{{ prop.loans_count }}</td>
-                <td><span class="{{ prop.progression.css_class }}">{{ prop.progression.progression }}%</span> <small>{{ prop.progression.difference | format_money }}</small></td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" class="text-center py-4">
+            <tr><td colspan="5" class="text-center py-4">
               {% translate "No property found" %}.
               <a href="{% url 'property:create' %}" class="ms-2">{% translate "Add your first property" %}</a>
             </td></tr>

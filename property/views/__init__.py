@@ -15,6 +15,13 @@ from property.views.edit_views import (
     edit_property,
     manage_property_loans,
 )
+from property.views.fiscal_views import (
+    accounting_dashboard,
+    create_amortization_asset,
+    delete_amortization_asset,
+    edit_amortization_asset,
+    initialize_amortization,
+)
 from property.views.index_views import index
 
 __all__ = [
@@ -30,4 +37,9 @@ __all__ = [
     "delete_lease",
     "edit_mandate",
     "delete_mandate",
+    "accounting_dashboard",
+    "initialize_amortization",
+    "create_amortization_asset",
+    "edit_amortization_asset",
+    "delete_amortization_asset",
 ]

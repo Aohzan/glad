@@ -18,6 +18,89 @@ from property.models import (
 
 
 @pytest.mark.django_db
+def test_property_detail_entries_older_than_buying_date(user_client):
+    """Entries/loans older than buying_date should shift the observation window."""
+    prop = Property.objects.create(
+        name="Old Entry Prop",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date(2020, 6, 1),
+        is_active=True,
+    )
+    # Entry older than buying_date
+    PropertyLedgerEntry.objects.create(
+        property=prop,
+        flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+        amount=Money(500, "EUR"),
+        entry_date=datetime.date(2020, 1, 1),  # before buying_date 2020-06-01
+        management_category=PropertyLedgerEntry.ManagementCategory.MAINTENANCE,
+    )
+    # Loan with start_date older than buying_date
+    PropertyLoan.objects.create(
+        property=prop,
+        name="Old Loan",
+        lender="Bank",
+        start_date=datetime.date(2019, 12, 1),  # before buying_date
+        end_date=datetime.date(2039, 12, 1),
+        original_amount=Money(150000, "EUR"),
+        monthly_payment=Money(700, "EUR"),
+        interest_rate=Decimal("1.5"),
+    )
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_property_detail_loan_without_payment_skipped(user_client):
+    """A loan with no monthly_payment and not smoothed is skipped in cashflow series."""
+    prop = Property.objects.create(
+        name="No Payment Loan",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date(2020, 1, 1),
+        is_active=True,
+    )
+    # Loan with no monthly_payment and no schedule (not smoothed)
+    PropertyLoan.objects.create(
+        property=prop,
+        name="Interest Only",
+        lender="Bank",
+        start_date=datetime.date(2020, 1, 1),
+        end_date=datetime.date(2040, 1, 1),
+        original_amount=Money(150000, "EUR"),
+        monthly_payment=None,  # no payment
+        interest_rate=Decimal("2.0"),
+    )
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_property_detail_loan_with_insurance(user_client):
+    """A loan with insurance produces non-empty insurance_map in cashflow series."""
+    prop = Property.objects.create(
+        name="Insurance Loan",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date(2020, 1, 1),
+        is_active=True,
+    )
+    PropertyLoan.objects.create(
+        property=prop,
+        name="Insured Loan",
+        lender="Bank",
+        start_date=datetime.date(2020, 1, 1),
+        end_date=datetime.date(2040, 1, 1),
+        original_amount=Money(150000, "EUR"),
+        monthly_payment=Money(700, "EUR"),
+        interest_rate=Decimal("1.5"),
+        insurance=Money(50, "EUR"),  # insurance amount
+    )
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
 def test_property_index_empty_state(user_client):
     response = user_client.get(reverse("property:index"))
     assert response.status_code == 200
@@ -559,6 +642,7 @@ def test_edit_property_post_saves_property(user_client):
             "buying_value_1": "EUR",
             "buying_date": "2020-01-01",
             "is_active": "on",
+            "tax_regime": "none",
             # loan formset management form (no loans)
             "loans-TOTAL_FORMS": "0",
             "loans-INITIAL_FORMS": "0",
@@ -693,6 +777,7 @@ def test_create_property_post_valid_creates_and_redirects(user_client):
             "buying_value_1": "EUR",
             "buying_date": "2024-06-01",
             "is_active": "on",
+            "tax_regime": "none",
         },
     )
     assert Property.objects.count() == 1
@@ -713,3 +798,130 @@ def test_create_property_post_invalid_rerenders_form(user_client):
     assert "property_form" in response.context
     assert response.context["property_form"].errors
     assert Property.objects.count() == 0
+
+
+# ─── Growth rate edge cases ────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_property_detail_growth_rate_small_positive(user_client):
+    """growth_rate <= 1 (e.g., 0.03) should be used directly without division."""
+    prop = Property.objects.create(
+        name="Rate Small",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=365),
+        is_active=True,
+    )
+    response = user_client.get(
+        reverse("property:detail", args=[prop.pk]),
+        {"growth_rate": "0.03"},
+    )
+    assert response.status_code == 200
+    assert response.context["growth_rate"] == Decimal("0.03")
+
+
+@pytest.mark.django_db
+def test_property_detail_growth_rate_too_negative_uses_default(user_client):
+    """growth_rate < -0.99 should fall back to default rate."""
+    prop = Property.objects.create(
+        name="Rate Negative",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=365),
+        is_active=True,
+    )
+    response = user_client.get(
+        reverse("property:detail", args=[prop.pk]),
+        {"growth_rate": "-1.5"},
+    )
+    assert response.status_code == 200
+    assert response.context["growth_rate"] == Decimal("0.02")  # default
+
+
+@pytest.mark.django_db
+def test_property_detail_growth_rate_invalid_string_uses_default(user_client):
+    """Non-numeric growth_rate should fall back to default rate."""
+    prop = Property.objects.create(
+        name="Rate Invalid",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=365),
+        is_active=True,
+    )
+    response = user_client.get(
+        reverse("property:detail", args=[prop.pk]),
+        {"growth_rate": "notanumber"},
+    )
+    assert response.status_code == 200
+    assert response.context["growth_rate"] == Decimal("0.02")  # default
+
+
+# ─── Detail view POST invalid / unknown form_type ──────────────────────────────
+
+
+@pytest.mark.django_db
+def test_property_detail_post_invalid_value_form(user_client):
+    """POST with form_type=value and invalid data should re-render (not redirect)."""
+    prop = Property.objects.create(
+        name="Post Invalid",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=365),
+        is_active=True,
+    )
+    response = user_client.post(
+        reverse("property:detail", args=[prop.pk]),
+        {
+            "form_type": "value",
+            "value_0": "",  # missing required value
+            "value_1": "EUR",
+            "valuation_date": "",  # missing required date
+        },
+    )
+    assert response.status_code == 200
+    assert PropertyValue.objects.filter(property=prop).count() == 0
+
+
+@pytest.mark.django_db
+def test_property_detail_post_invalid_ledger_entry_form(user_client):
+    """POST with form_type=ledger_entry and invalid data should re-render."""
+    prop = Property.objects.create(
+        name="Post Ledger Invalid",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=365),
+        is_active=True,
+    )
+    response = user_client.post(
+        reverse("property:detail", args=[prop.pk]),
+        {
+            "form_type": "ledger_entry",
+            # Missing required fields
+            "amount_0": "",
+            "entry_date": "",
+        },
+    )
+    assert response.status_code == 200
+    assert PropertyLedgerEntry.objects.filter(property=prop).count() == 0
+
+
+@pytest.mark.django_db
+def test_property_detail_post_unknown_form_type(user_client):
+    """POST with an unknown form_type should show an error."""
+    from django.contrib.messages import get_messages
+
+    prop = Property.objects.create(
+        name="Unknown Form",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=365),
+        is_active=True,
+    )
+    response = user_client.post(
+        reverse("property:detail", args=[prop.pk]),
+        {"form_type": "completely_unknown"},
+    )
+    assert response.status_code == 200
+    msgs = [str(m) for m in get_messages(response.wsgi_request)]
+    assert any("Unknown" in m or "unknown" in m for m in msgs)

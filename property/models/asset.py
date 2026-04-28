@@ -328,10 +328,17 @@ class Property(BaseModel):
         blank=True,
         verbose_name=_("Number of rooms"),
     )
-    is_furnished = models.BooleanField(
-        default=True,
-        verbose_name=_("Furnished"),
-        help_text=_("Whether the property is rented furnished (LMNP meublé)."),
+
+    class TaxRegime(models.TextChoices):
+        NONE = "none", _("None")
+        LMNP_REEL = "lmnp_reel", _("LMNP réel")
+
+    tax_regime = models.CharField(
+        max_length=20,
+        choices=TaxRegime.choices,
+        default=TaxRegime.NONE,
+        verbose_name=_("Tax regime"),
+        help_text=_("Tax regime applicable to this property (e.g. LMNP réel)."),
     )
 
     def __str__(self) -> str:
@@ -463,3 +470,255 @@ class PropertyValue(BaseModel):
         related_name="property_values",
         on_delete=models.CASCADE,
     )
+
+
+class AmortizationSetup(BaseModel):
+    """
+    One-time amortization initialisation parameters for a LMNP réel property.
+
+    Stores the total value to depreciate and the land percentage, then creates
+    the standard components automatically via ``initialize_components()``.
+    """
+
+    # Standard LMNP component breakdown (% of total value, duration in years).
+    # The remaining land_percentage (default 15 %) is never depreciable.
+    STANDARD_COMPONENTS: list[dict] = [
+        {
+            "label": "Gros œuvre",
+            "pct": 45,
+            "duration": 75,
+            "cerfa_category": "constructions",
+        },
+        {
+            "label": "Installations électriques",
+            "pct": 6,
+            "duration": 30,
+            "cerfa_category": "installations",
+        },
+        {
+            "label": "Étanchéité",
+            "pct": 7,
+            "duration": 25,
+            "cerfa_category": "constructions",
+        },
+        {
+            "label": "Toiture",
+            "pct": 8,
+            "duration": 25,
+            "cerfa_category": "constructions",
+        },
+        {
+            "label": "Agencements intérieurs",
+            "pct": 19,
+            "duration": 12,
+            "cerfa_category": "autres",
+        },
+    ]
+
+    class Meta:
+        verbose_name = _("amortization setup")
+        verbose_name_plural = _("amortization setups")
+
+    property = models.OneToOneField(
+        "property.Property",
+        on_delete=models.CASCADE,
+        related_name="amortization_setup",
+        verbose_name=_("Property"),
+    )
+    total_value = MoneyField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name=_("Total value to depreciate"),
+        help_text=_(
+            "Total acquisition value used as the base for depreciation (excl. land)."
+        ),
+    )
+    land_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("15.00"),
+        verbose_name=_("Land percentage (%)"),
+        help_text=_(
+            "Non-depreciable land share as a percentage of total value. Default: 15 %."
+        ),
+    )
+
+    def __str__(self) -> str:
+        return f"{self.property.name} — amortization setup"
+
+    def initialize_components(self) -> list["AmortizationAsset"]:
+        """Create the standard LMNP amortization components for this setup.
+
+        Uses the property buying_date as acquisition_date.  Only the
+        depreciable share (100 - land_percentage) is split across components.
+        Existing initial components are deleted before new ones are created.
+        """
+        AmortizationAsset.objects.filter(
+            property=self.property, is_initial_component=True
+        ).delete()
+
+        currency = str(self.total_value.currency)
+        acquisition_date = self.property.buying_date
+        created: list[AmortizationAsset] = []
+
+        for comp in self.STANDARD_COMPONENTS:
+            # pct is % of total property value (land + bâti)
+            component_value = (
+                self.total_value.amount * Decimal(str(comp["pct"])) / Decimal("100")
+            )
+            asset = AmortizationAsset(
+                property=self.property,
+                label=comp["label"],
+                acquisition_date=acquisition_date,
+                value_total=Money(component_value.quantize(Decimal("0.01")), currency),
+                duration_years=comp["duration"],
+                is_initial_component=True,
+                cerfa_category=comp.get("cerfa_category", ""),
+            )
+            asset.save()
+            created.append(asset)
+        return created
+
+
+class AmortizationAsset(BaseModel):
+    """
+    An amortizable asset component (immobilisation) attached to a property.
+
+    LMNP réel requires splitting the property into depreciable components.
+    The standard components are created automatically via AmortizationSetup.
+    Additional items (e.g. new appliances or renovation) can be added manually
+    (``is_initial_component=False``).
+
+    Amortization is linear with prorata temporis in the first and last year
+    (month-based, standard LMNP practice).
+    """
+
+    class Meta:
+        verbose_name = _("immobilisation")
+        verbose_name_plural = _("immobilisations")
+        ordering = ["label"]
+        indexes = [
+            models.Index(fields=["property", "acquisition_date"]),
+        ]
+
+    property = models.ForeignKey(
+        Property,
+        on_delete=models.CASCADE,
+        related_name="amortization_assets",
+        verbose_name=_("Property"),
+    )
+    label = models.CharField(
+        max_length=255,
+        verbose_name=_("Label"),
+        help_text=_("Description of the asset, e.g. 'Toiture', 'Cuisine équipée'."),
+    )
+    acquisition_date = models.DateField(
+        verbose_name=_("Acquisition date"),
+        help_text=_("Date the asset was acquired or placed in service."),
+    )
+    value_total = MoneyField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name=_("Total value"),
+        help_text=_(
+            "Total acquisition value of this asset (including VAT if applicable)."
+        ),
+    )
+    duration_years = models.PositiveIntegerField(
+        verbose_name=_("Duration (years)"),
+        help_text=_("Amortization duration in years."),
+        validators=[MinValueValidator(1)],
+    )
+    is_initial_component = models.BooleanField(
+        default=False,
+        verbose_name=_("Initial component"),
+        help_text=_(
+            "Set automatically when created by the standard amortization setup."
+        ),
+    )
+
+    class CerfaCategory(models.TextChoices):
+        TERRAINS = "terrains", _("Terrains")
+        CONSTRUCTIONS = "constructions", _("Constructions")
+        INSTALLATIONS = "installations", _("Installations générales")
+        AUTRES = "autres", _("Autres immobilisations corporelles")
+
+    cerfa_category = models.CharField(
+        max_length=20,
+        choices=CerfaCategory.choices,
+        blank=True,
+        default="",
+        verbose_name=_("Cerfa 2033-C category"),
+        help_text=_(
+            "Asset category for cerfa 2033-C: terrains, constructions, "
+            "installations générales, or autres immobilisations corporelles."
+        ),
+    )
+
+    def __str__(self) -> str:
+        return f"{self.property.name} — {self.label}"
+
+    def depreciable_base(self) -> Money:
+        """Return the depreciable base of this asset.
+
+        The land share is already excluded at the AmortizationSetup level when
+        computing component values, so the full value_total is depreciable here.
+        """
+        return Money(self.value_total.amount, str(self.value_total.currency))
+
+    def get_annual_amortization(self, year: int) -> Decimal:
+        """Return the linear amortization dotation for a given fiscal year.
+
+        Applies prorata temporis (month-based) in the first year of acquisition
+        and in the last year.  Returns Decimal("0") for years outside the
+        asset's useful life.
+        """
+        if self.acquisition_date is None or self.duration_years is None:
+            return Decimal("0")
+
+        start_year = self.acquisition_date.year
+        end_year = (
+            start_year + self.duration_years
+        )  # exclusive: fully amortized at start of end_year
+
+        if year < start_year or year >= end_year:
+            return Decimal("0")
+
+        base = self.depreciable_base().amount
+        if self.duration_years == 0:
+            return Decimal("0")
+        annual = base / Decimal(self.duration_years)
+
+        if year == start_year and year == end_year - 1:
+            # Single-year asset: prorata = months in service / 12
+            months_in_service = Decimal(13 - self.acquisition_date.month)
+            return (annual * months_in_service / Decimal("12")).quantize(
+                Decimal("0.01")
+            )
+
+        if year == start_year:
+            # First year: prorata temporis from acquisition month
+            # Convention: month of acquisition counts as full month
+            months_in_service = Decimal(13 - self.acquisition_date.month)
+            return (annual * months_in_service / Decimal("12")).quantize(
+                Decimal("0.01")
+            )
+
+        if year == end_year - 1:
+            # Last year: complement of first-year prorata
+            months_first_year = Decimal(13 - self.acquisition_date.month)
+            months_last_year = Decimal("12") - months_first_year
+            if months_last_year <= Decimal("0"):
+                return Decimal("0")
+            return (annual * months_last_year / Decimal("12")).quantize(Decimal("0.01"))
+
+        return annual.quantize(Decimal("0.01"))
+
+    def cumulative_amortization(self, up_to_year: int) -> Decimal:
+        """Return the sum of all annual amortizations from acquisition year to up_to_year (inclusive)."""
+        if self.acquisition_date is None:
+            return Decimal("0")
+        total = Decimal("0")
+        for y in range(self.acquisition_date.year, up_to_year + 1):
+            total += self.get_annual_amortization(y)
+        return total

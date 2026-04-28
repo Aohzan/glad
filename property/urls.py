@@ -54,4 +54,28 @@ urlpatterns = [
         views.delete_mandate,
         name="delete_mandate",
     ),
+    # Accounting dashboard (all LMNP réel properties)
+    path("accounting/", views.accounting_dashboard, name="accounting"),
+    # Amortization initialization
+    path(
+        "<int:pk>/amortization/initialize/",
+        views.initialize_amortization,
+        name="initialize_amortization",
+    ),
+    # Amortization assets (immobilisations)
+    path(
+        "<int:property_pk>/amortization/new/",
+        views.create_amortization_asset,
+        name="new_amortization",
+    ),
+    path(
+        "<int:property_pk>/amortization/<int:asset_pk>/edit/",
+        views.edit_amortization_asset,
+        name="edit_amortization",
+    ),
+    path(
+        "<int:property_pk>/amortization/<int:asset_pk>/delete/",
+        views.delete_amortization_asset,
+        name="delete_amortization",
+    ),
 ]

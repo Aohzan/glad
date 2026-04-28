@@ -1,6 +1,8 @@
 """Property models package — re-exports all models for backward-compatible imports."""
 
 from property.models.asset import (
+    AmortizationAsset,
+    AmortizationSetup,
     Property,
     PropertyLoan,
     PropertyLoanSchedule,
@@ -11,6 +13,8 @@ from property.models.ledger import PropertyLedgerEntry
 from property.models.management import ManagementMandate
 
 __all__ = [
+    "AmortizationAsset",
+    "AmortizationSetup",
     "Property",
     "PropertyLoan",
     "PropertyLoanSchedule",

@@ -13,7 +13,7 @@ from property.utils import generate_recurring_occurrences
 
 class PropertyLedgerEntry(BaseModel):
     """
-    Unified financial flow for a property (replaces PropertyRevenue + PropertyExpense).
+    Unified financial flow for a property.
 
     - flow_type=INCOME: rent collected, charges recovered, deposit received, etc.
     - flow_type=EXPENSE: maintenance, insurance, management fees, loan interest, etc.

@@ -3,6 +3,8 @@
 from django.contrib import admin
 
 from property.models import (
+    AmortizationAsset,
+    AmortizationSetup,
     Lease,
     ManagementMandate,
     Property,
@@ -66,6 +68,26 @@ class ManagementMandateInline(admin.TabularInline):
     readonly_fields = ("is_active", "created_at", "updated_at")
 
 
+class AmortizationAssetInline(admin.TabularInline):
+    model = AmortizationAsset
+    extra = 0
+    readonly_fields = ("created_at", "updated_at")
+    fields = (
+        "label",
+        "acquisition_date",
+        "value_total",
+        "duration_years",
+        "is_initial_component",
+    )
+
+
+class AmortizationSetupInline(admin.StackedInline):
+    model = AmortizationSetup
+    extra = 0
+    readonly_fields = ("created_at", "updated_at")
+    fields = ("total_value", "land_percentage", "created_at", "updated_at")
+
+
 @admin.register(Property)
 class PropertyAdmin(admin.ModelAdmin):
     inlines = [
@@ -74,16 +96,18 @@ class PropertyAdmin(admin.ModelAdmin):
         PropertyLoanInline,
         LeaseInline,
         ManagementMandateInline,
+        AmortizationSetupInline,
+        AmortizationAssetInline,
     ]
     list_display = (
         "name",
         "property_type",
-        "is_furnished",
+        "tax_regime",
         "gross_value",
         "net_value",
         "is_active",
     )
-    list_filter = ("property_type", "is_active", "is_furnished")
+    list_filter = ("property_type", "is_active", "tax_regime")
     search_fields = ("name", "address")
 
 
@@ -166,3 +190,23 @@ class ManagementMandateAdmin(admin.ModelAdmin):
     list_filter = ("fee_type",)
     search_fields = ("property__name", "manager_name")
     readonly_fields = ("is_active", "created_at", "updated_at")
+
+
+@admin.register(AmortizationAsset)
+class AmortizationAssetAdmin(admin.ModelAdmin):
+    list_display = (
+        "property",
+        "label",
+        "acquisition_date",
+        "value_total",
+        "duration_years",
+        "is_initial_component",
+    )
+    list_filter = ("property", "is_initial_component")
+    search_fields = ("property__name", "label")
+
+
+@admin.register(AmortizationSetup)
+class AmortizationSetupAdmin(admin.ModelAdmin):
+    list_display = ("property", "total_value", "land_percentage")
+    search_fields = ("property__name",)
