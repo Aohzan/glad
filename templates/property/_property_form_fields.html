@@ -48,19 +48,6 @@
   </div>
 
   <div class="col-md-4">
-    <label for="{{ property_form.buying_value_gross.id_for_label }}" class="form-label">
-      {{ property_form.buying_value_gross.label }}
-    </label>
-    {{ property_form.buying_value_gross }}
-    {% if property_form.buying_value_gross.errors %}
-      <div class="invalid-feedback d-block">{{ property_form.buying_value_gross.errors.0 }}</div>
-    {% endif %}
-    {% if property_form.buying_value.help_text %}
-      <div class="form-text">{{ property_form.buying_value.help_text }}</div>
-    {% endif %}
-  </div>
-
-  <div class="col-md-4">
     <label for="{{ property_form.buying_date.id_for_label }}" class="form-label">
       {{ property_form.buying_date.label }}
       {% if property_form.buying_date.field.required %}<span class="text-danger">*</span>{% endif %}
@@ -69,6 +56,41 @@
     {% if property_form.buying_date.errors %}
       <div class="invalid-feedback d-block">{{ property_form.buying_date.errors.0 }}</div>
     {% endif %}
+  </div>
+
+  {# ── Purchase fees ────────────────────────────────────────────────────── #}
+  <div class="col-12">
+    <p class="text-uppercase text-body-secondary small fw-semibold mb-2" style="font-size:.7rem;">{% translate "Purchase fees" %}</p>
+    <div class="row g-2">
+      <div class="col-md-3">
+        <label for="{{ property_form.notary_fees.id_for_label }}" class="form-label small">{{ property_form.notary_fees.label }}</label>
+        {{ property_form.notary_fees }}
+        {% if property_form.notary_fees.errors %}
+          <div class="invalid-feedback d-block">{{ property_form.notary_fees.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <label for="{{ property_form.agency_fees.id_for_label }}" class="form-label small">{{ property_form.agency_fees.label }}</label>
+        {{ property_form.agency_fees }}
+        {% if property_form.agency_fees.errors %}
+          <div class="invalid-feedback d-block">{{ property_form.agency_fees.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <label for="{{ property_form.other_fees.id_for_label }}" class="form-label small">{{ property_form.other_fees.label }}</label>
+        {{ property_form.other_fees }}
+        {% if property_form.other_fees.errors %}
+          <div class="invalid-feedback d-block">{{ property_form.other_fees.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <label for="{{ property_form.credit_fees.id_for_label }}" class="form-label small">{{ property_form.credit_fees.label }}</label>
+        {{ property_form.credit_fees }}
+        {% if property_form.credit_fees.errors %}
+          <div class="invalid-feedback d-block">{{ property_form.credit_fees.errors.0 }}</div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 
   <div class="col-md-4">

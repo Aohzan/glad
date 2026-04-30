@@ -184,6 +184,33 @@ def test_property_index_handles_property_calculation_exception(
 
 
 @pytest.mark.django_db
+def test_property_detail_history_series_uses_buying_value_gross(user_client):
+    """The first point in the history series must use buying_value_gross, not buying_value."""
+    buying_date = datetime.date.today() - datetime.timedelta(days=365)
+    property_obj = Property.objects.create(
+        name="Gross History Test",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        notary_fees=Money(15000, "EUR"),
+        agency_fees=Money(5000, "EUR"),
+        buying_date=buying_date,
+        is_active=True,
+    )
+    response = user_client.get(reverse("property:detail", args=[property_obj.pk]))
+
+    assert response.status_code == 200
+    value_history = response.context["value_history_series"]
+    # The earliest point in the series corresponds to buying_date
+    buying_date_point = next(
+        p for p in value_history if p["x"] == buying_date.isoformat()
+    )
+    # buying_value_gross = 200000 + 15000 + 5000 = 220000
+    assert buying_date_point["y"] == float(220000), (
+        f"Expected 220000 (buying_value_gross) at buying_date, got {buying_date_point['y']}"
+    )
+
+
+@pytest.mark.django_db
 def test_property_detail_view_projection_context(user_client):
     property_obj = Property.objects.create(
         name="City Loft",

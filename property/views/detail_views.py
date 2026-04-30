@@ -167,9 +167,12 @@ class PropertyDetailView(DetailView):
         debt_history_series = []
         net_history_series = []
         for chart_date in historical_dates:
-            historical_value = property_obj.get_value(
-                max_date=datetime.datetime.combine(chart_date, datetime.time.max),
-            )
+            if chart_date == property_obj.buying_date:
+                historical_value = property_obj.buying_value_gross
+            else:
+                historical_value = property_obj.get_value(
+                    max_date=datetime.datetime.combine(chart_date, datetime.time.max),
+                )
             historical_debt = property_obj.total_remaining_loans_at_date(chart_date)
             net_amount = max(
                 Decimal("0"), historical_value.amount - historical_debt.amount
@@ -690,6 +693,19 @@ class PropertyDetailView(DetailView):
                 "cashflow_total_expenses_series": total_expenses_series,
                 "projection_start_date": projection_start_date,
                 "current_raw_value": property_obj.get_value(),
+                "buying_value_gross": property_obj.buying_value_gross,
+                "value_progression_pct": (
+                    (
+                        (
+                            property_obj.get_value().amount
+                            - property_obj.buying_value_gross.amount
+                        )
+                        / property_obj.buying_value_gross.amount
+                        * Decimal("100")
+                    )
+                    if property_obj.buying_value_gross.amount
+                    else None
+                ),
                 "current_net_value": property_obj.net_value,
                 "capital_repaid": property_obj.total_paid_loans,
                 "estimated_monthly_cashflow": Money(

@@ -374,3 +374,30 @@ footer {
 [data-bs-theme="dark"] [data-bs-toggle="tooltip"]:hover {
   text-decoration-color: rgba(108, 117, 125, 0.8);
 }
+
+/* ── simple-datatables: sort arrow fixes ─────────────────────────────────── */
+/* Increase inactive arrow visibility and leave room for arrows */
+.datatable-sorter {
+  padding-right: 18px;
+}
+
+.datatable-sorter::before,
+.datatable-sorter::after {
+  opacity: 0.35;
+}
+
+.datatable-ascending .datatable-sorter::after,
+.datatable-descending .datatable-sorter::before,
+.datatable-ascending .datatable-filter::after,
+.datatable-descending .datatable-filter::before {
+  opacity: 0.8;
+}
+
+/* Dark mode: swap arrow color from #000 to near-white */
+[data-bs-theme="dark"] .datatable-sorter::before {
+  border-top-color: #dee2e6;
+}
+
+[data-bs-theme="dark"] .datatable-sorter::after {
+  border-bottom-color: #dee2e6;
+}

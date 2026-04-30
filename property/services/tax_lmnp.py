@@ -38,7 +38,9 @@ le calcul de la plus-value lors de la revente du bien (art. 150 VB bis du CGI).
 import datetime
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import Q, Sum
+
+from property.utils import generate_recurring_occurrences
 
 # ─── Mapping ManagementCategory → cerfa 2033-B (LMNP réel) ──────────────────
 #
@@ -185,16 +187,7 @@ def get_lmnp_summary(property_id: int, year: int) -> dict:
     result_before_amort = recettes - charges
 
     # Re-compute by_category and by_line for external consumers
-    from property.models import PropertyLedgerEntry
-
-    entries = PropertyLedgerEntry.objects.filter(
-        property_id=property_id,
-        entry_date__year=year,
-        amount_currency="EUR",
-    )
-    by_category: dict[str, Decimal] = {}
-    for row in entries.values("management_category").annotate(total=Sum("amount")):
-        by_category[row["management_category"]] = row["total"] or Decimal("0")
+    by_category = _get_category_totals_for_year(property_id, year)
 
     by_line: dict[str, Decimal] = {}
     for cat, total in by_category.items():
@@ -520,18 +513,67 @@ def get_deferred_amortization_balance(property_id: int, year: int) -> Decimal:
     return max(Decimal("0"), deferred_balance)
 
 
-def _get_lmnp_summary_raw(property_id: int, year: int) -> dict:
-    """Internal: return recettes and charges from ledger entries (no amortization)."""
+def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Decimal]:
+    """
+    Return per-management-category totals for ``property_id`` and ``year``.
+
+    Handles recurring entries correctly: a recurring entry whose start date is
+    before ``year`` (or whose occurrences span multiple years) is expanded and
+    each occurrence falling within [year-01-01, year-12-31] is counted.
+    """
     from property.models import PropertyLedgerEntry
 
-    entries = PropertyLedgerEntry.objects.filter(
-        property_id=property_id,
-        entry_date__year=year,
-        amount_currency="EUR",
+    year_start = datetime.date(year, 1, 1)
+    year_end = datetime.date(year, 12, 31)
+    base_filter = {"property_id": property_id, "amount_currency": "EUR"}
+
+    # ── Non-recurring: entry_date within the year ──────────────────────────
+    non_recurring_qs = PropertyLedgerEntry.objects.filter(
+        **base_filter,
+        recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
+        entry_date__gte=year_start,
+        entry_date__lte=year_end,
     )
     by_category: dict[str, Decimal] = {}
-    for row in entries.values("management_category").annotate(total=Sum("amount")):
+    for row in non_recurring_qs.values("management_category").annotate(
+        total=Sum("amount")
+    ):
         by_category[row["management_category"]] = row["total"] or Decimal("0")
+
+    # ── Recurring: entries that overlap the year ───────────────────────────
+    recurring_qs = (
+        PropertyLedgerEntry.objects.filter(**base_filter)
+        .exclude(recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE)
+        .filter(
+            entry_date__lte=year_end,
+        )
+        .filter(
+            Q(recurrence_end_date__gte=year_start) | Q(recurrence_end_date__isnull=True)
+        )
+    )
+    for entry in recurring_qs:
+        occurrences = generate_recurring_occurrences(
+            start_date=entry.entry_date,
+            amount=entry.amount,
+            recurrence_type=entry.recurrence_type,
+            recurrence_none=PropertyLedgerEntry.NONE,
+            recurrence_monthly=PropertyLedgerEntry.MONTHLY,
+            recurrence_yearly=PropertyLedgerEntry.YEARLY,
+            recurrence_end_date=entry.recurrence_end_date,
+            end_date=year_end,
+        )
+        for occ in occurrences:
+            if occ["date"] < year_start:
+                continue
+            cat = entry.management_category
+            by_category[cat] = by_category.get(cat, Decimal("0")) + occ["amount"].amount
+
+    return by_category
+
+
+def _get_lmnp_summary_raw(property_id: int, year: int) -> dict:
+    """Internal: return recettes and charges from ledger entries (no amortization)."""
+    by_category = _get_category_totals_for_year(property_id, year)
 
     recettes = Decimal("0")
     charges = Decimal("0")

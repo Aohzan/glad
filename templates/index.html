@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n format_money %}
+{% load i18n format_money static %}
 
 {% block title %}
   {% translate 'Dashboard' %}
@@ -7,7 +7,7 @@
 
 {% block extra_head %}
   <!-- ApexCharts CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
   <style>
     /* Bootstrap 5 hover effect for cards */
     .card-hover {

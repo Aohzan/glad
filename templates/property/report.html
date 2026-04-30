@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% load i18n format_money static %}
+
+{% block title %}{% translate "Income & Expenses Report" %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+  {# ── Header ───────────────────────────────────────────────────────────── #}
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <h1 class="h4 mb-0">
+      <i class="bi bi-file-earmark-bar-graph me-2"></i>{% translate "Income & Expenses Report" %}
+    </h1>
+  </div>
+
+  {# ── Filter form ──────────────────────────────────────────────────────── #}
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-4">
+            <label for="{{ form.properties.id_for_label }}" class="form-label fw-semibold">
+              {{ form.properties.label }}
+            </label>
+            {{ form.properties }}
+          </div>
+          <div class="col-6 col-md-3">
+            <label for="{{ form.start_date.id_for_label }}" class="form-label fw-semibold">
+              {{ form.start_date.label }}
+            </label>
+            {{ form.start_date }}
+          </div>
+          <div class="col-6 col-md-3">
+            <label for="{{ form.end_date.id_for_label }}" class="form-label fw-semibold">
+              {{ form.end_date.label }}
+            </label>
+            {{ form.end_date }}
+          </div>
+          <div class="col-12 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-fill">
+              <i class="bi bi-search me-1"></i>{% translate "Apply" %}
+            </button>
+            {% if report %}
+            <a href="?{{ request.GET.urlencode }}&format=csv" class="btn btn-outline-secondary flex-fill">
+              <i class="bi bi-file-earmark-arrow-down me-1"></i>{% translate "CSV" %}
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% if form.errors %}
+        <div class="mt-2">
+          {% for field in form %}
+            {% for error in field.errors %}
+            <div class="alert alert-danger py-1 mb-1">{{ field.label }}: {{ error }}</div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  {% if report %}
+
+  {# ── Summary cards ────────────────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-4">
+      <div class="card border-success">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-1">{% translate "Total Income" %}</div>
+          <div class="fs-4 fw-bold text-success">{{ report.total_income|floatformat:2 }} €</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="card border-danger">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-1">{% translate "Total Expenses" %}</div>
+          <div class="fs-4 fw-bold text-danger">{{ report.total_expenses|floatformat:2 }} €</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="card {% if report.net >= 0 %}border-primary{% else %}border-warning{% endif %}">
+        <div class="card-body text-center">
+          <div class="text-muted small mb-1">{% translate "Net" %}</div>
+          <div class="fs-4 fw-bold {% if report.net >= 0 %}text-primary{% else %}text-warning{% endif %}">
+            {{ report.net|floatformat:2 }} €
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Category breakdown ───────────────────────────────────────────────── #}
+  {% if report.by_category %}
+  <div class="row g-4">
+
+    {# Income breakdown #}
+    {% with income_rows=report.by_category|dictsort:"flow_type" %}
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header fw-semibold text-success">
+          <i class="bi bi-arrow-up-circle me-1"></i>{% translate "Income by category" %}
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{% translate "Category" %}</th>
+                <th class="text-end">{% translate "Amount" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in report.by_category %}
+                {% if row.flow_type == "income" %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end text-success">{{ row.total|floatformat:2 }} €</td>
+                </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+            <tfoot class="table-light fw-bold">
+              <tr>
+                <td>{% translate "Total" %}</td>
+                <td class="text-end text-success">{{ report.total_income|floatformat:2 }} €</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+
+    {# Expenses breakdown #}
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header fw-semibold text-danger">
+          <i class="bi bi-arrow-down-circle me-1"></i>{% translate "Expenses by category" %}
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{% translate "Category" %}</th>
+                <th class="text-end">{% translate "Amount" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in report.by_category %}
+                {% if row.flow_type == "expense" %}
+                <tr>
+                  <td>{{ row.label }}</td>
+                  <td class="text-end text-danger">{{ row.total|floatformat:2 }} €</td>
+                </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+            <tfoot class="table-light fw-bold">
+              <tr>
+                <td>{% translate "Total" %}</td>
+                <td class="text-end text-danger">{{ report.total_expenses|floatformat:2 }} €</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% else %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-1"></i>
+    {% translate "No entries found for the selected filters." %}
+  </div>
+  {% endif %}
+
+  {% elif form.is_bound %}
+  {# Form submitted but invalid — errors already shown above #}
+  {% else %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-1"></i>
+    {% translate "Select your filters and click Apply to generate the report." %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.js' %}"></script>
+<script>
+  const propSelect = document.getElementById('{{ form.properties.id_for_label }}');
+  // Select all by default when no filter is applied yet
+  if ([...propSelect.options].every(opt => !opt.selected)) {
+    [...propSelect.options].forEach(opt => { opt.selected = true; });
+  }
+  new MultiSelect('#{{ form.properties.id_for_label }}', {
+    placeholder: '{% translate "All properties" %}',
+    search: true,
+    selectAll: true,
+    listAll: false,
+  });
+</script>
+{% endblock %}

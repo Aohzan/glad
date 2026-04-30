@@ -6,7 +6,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
-from base.forms import MoneyInputGroupMixin
+from base.forms import MoneyInputGroupMixin, date_field, recurrence_end_field
 from property.models import (
     AmortizationAsset,
     AmortizationSetup,
@@ -19,30 +19,6 @@ from property.models import (
     PropertyValue,
 )
 from property.utils import add_months_safe, calculate_monthly_payment
-
-
-def _date_field(with_class: bool = False) -> forms.DateField:
-    attrs = {"type": "date"}
-    if with_class:
-        attrs["class"] = "form-control"
-    return forms.DateField(
-        widget=forms.DateInput(attrs=attrs, format="%Y-%m-%d"),
-        input_formats=["%Y-%m-%d"],
-        label=_("Date"),
-    )
-
-
-def _recurrence_end_field(with_class: bool = False) -> forms.DateField:
-    attrs = {"type": "date"}
-    if with_class:
-        attrs["class"] = "form-control"
-    return forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs=attrs, format="%Y-%m-%d"),
-        input_formats=["%Y-%m-%d"],
-        label=_("Recurrence End Date"),
-    )
-
 
 # ─── Property value ──────────────────────────────────────────────────────────
 
@@ -66,8 +42,8 @@ class PropertyValueQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
 class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
     """Quick create form for ledger entries (modal on detail view)."""
 
-    entry_date = _date_field(with_class=True)
-    recurrence_end_date = _recurrence_end_field(with_class=True)
+    entry_date = date_field(with_class=True)
+    recurrence_end_date = recurrence_end_field(with_class=True)
 
     class Meta:
         model = PropertyLedgerEntry
@@ -109,8 +85,8 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
 class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
     """Full edit form for ledger entries."""
 
-    entry_date = _date_field(with_class=True)
-    recurrence_end_date = _recurrence_end_field(with_class=True)
+    entry_date = date_field(with_class=True)
+    recurrence_end_date = recurrence_end_field(with_class=True)
     reference_period = forms.DateField(
         required=False,
         widget=forms.DateInput(
@@ -171,7 +147,10 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "floor_area",
             "number_of_rooms",
             "buying_value",
-            "buying_value_gross",
+            "notary_fees",
+            "agency_fees",
+            "other_fees",
+            "credit_fees",
             "shares_count",
             "buying_date",
             "selling_date",
@@ -396,3 +375,39 @@ class AmortizationSetupForm(MoneyInputGroupMixin, forms.ModelForm):
                 }
             ),
         }
+
+
+# ─── Income & Expenses Report ────────────────────────────────────────────────
+
+
+class PropertyReportFilterForm(forms.Form):
+    """Filter form for the income & expenses report."""
+
+    properties = forms.ModelMultipleChoiceField(
+        queryset=Property.objects.none(),
+        required=False,
+        label=_("Properties"),
+        widget=forms.SelectMultiple(),
+    )
+    start_date = forms.DateField(
+        required=False,
+        label=_("Start date"),
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+        ),
+        input_formats=["%Y-%m-%d"],
+    )
+    end_date = forms.DateField(
+        required=False,
+        label=_("End date"),
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+        ),
+        input_formats=["%Y-%m-%d"],
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        field = self.fields["properties"]
+        assert isinstance(field, forms.ModelMultipleChoiceField)
+        field.queryset = Property.objects.filter(is_active=True).order_by("name")

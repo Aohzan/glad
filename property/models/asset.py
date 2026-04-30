@@ -292,17 +292,39 @@ class Property(BaseModel):
         max_digits=10,
         decimal_places=0,
         verbose_name=_("Buying Value"),
-        help_text=_("The value of the property at the time of purchase."),
+        help_text=_("Purchase price of the property, excluding fees."),
     )
-    buying_value_gross = MoneyField(
+    notary_fees = MoneyField(
         max_digits=10,
         decimal_places=0,
         null=True,
         blank=True,
-        verbose_name=_("Gross Buying Value"),
-        help_text=_(
-            "The gross value of the property at the time of purchase, including notary fees for example."
-        ),
+        verbose_name=_("Notary fees"),
+        help_text=_("Notary fees paid at the time of purchase."),
+    )
+    agency_fees = MoneyField(
+        max_digits=10,
+        decimal_places=0,
+        null=True,
+        blank=True,
+        verbose_name=_("Agency fees"),
+        help_text=_("Real estate agency fees paid at the time of purchase."),
+    )
+    other_fees = MoneyField(
+        max_digits=10,
+        decimal_places=0,
+        null=True,
+        blank=True,
+        verbose_name=_("Other fees"),
+        help_text=_("Any other fees paid at the time of purchase."),
+    )
+    credit_fees = MoneyField(
+        max_digits=10,
+        decimal_places=0,
+        null=True,
+        blank=True,
+        verbose_name=_("Credit fees"),
+        help_text=_("Loan arrangement and guarantee fees (excluding interest)."),
     )
     shares_count = models.DecimalField(
         max_digits=10,
@@ -439,6 +461,44 @@ class Property(BaseModel):
         net_amount = max(Decimal("0"), gross.amount - remaining.amount)
         return Money(net_amount, str(self.currency))
 
+    @property
+    def buying_value_gross(self) -> Money:
+        """Total acquisition cost: purchase price plus all ancillary fees."""
+        currency = str(self.currency)
+        total = (
+            self.buying_value.amount
+            if isinstance(self.buying_value, Money)
+            else Decimal(str(self.buying_value or 0))
+        )
+        for fee_field in (
+            self.notary_fees,
+            self.agency_fees,
+            self.other_fees,
+            self.credit_fees,
+        ):
+            if fee_field is not None:
+                total += (
+                    fee_field.amount
+                    if isinstance(fee_field, Money)
+                    else Decimal(str(fee_field))
+                )
+        return Money(total, currency)
+
+    @property
+    def cash_deposit(self) -> Money:
+        """Cash contribution at purchase time: gross cost minus all loan amounts."""
+        currency = str(self.currency)
+        loans = PropertyLoan.objects.filter(property=self)
+        total_loans = sum(
+            (
+                loan.original_amount.amount
+                if isinstance(loan.original_amount, Money)
+                else Decimal(str(loan.original_amount or 0))
+            )
+            for loan in loans
+        )
+        return Money(self.buying_value_gross.amount - total_loans, currency)
+
     def get_progression(self, years: int | None = None) -> "PropertyProgression":
         if years:
             x_years_ago = datetime.datetime.now() - datetime.timedelta(days=years * 365)
@@ -448,10 +508,7 @@ class Property(BaseModel):
             )
         return PropertyProgression(
             current_value=self.get_value(),
-            old_value=Money(
-                (self.buying_value_gross or self.buying_value).amount,
-                str((self.buying_value_gross or self.buying_value).currency),
-            ),
+            old_value=self.buying_value_gross,
         )
 
 

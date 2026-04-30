@@ -54,11 +54,13 @@ class UpdateGlobalForm(forms.Form):
             )
 
 
-class UpdateSavingAccountAddValueForm(forms.Form):
-    """Form for an account in the update view."""
+class BaseValueUpdateForm(forms.Form):
+    """Base form for updating an account or holding value.
 
-    account_id = forms.IntegerField(widget=forms.HiddenInput())
-    account_name = forms.CharField(widget=forms.HiddenInput())
+    Subclasses add entity-specific id/name hidden fields and any extra fields.
+    Common fields: update checkbox, current_value (hidden), new_value.
+    """
+
     update_account = forms.BooleanField(
         label=_("Update account"),
         required=False,
@@ -76,48 +78,25 @@ class UpdateSavingAccountAddValueForm(forms.Form):
     )
 
 
-class UpdateInvestmentCashAddValueForm(forms.Form):
+class UpdateSavingAccountAddValueForm(BaseValueUpdateForm):
+    """Form for a saving account in the update view."""
+
+    account_id = forms.IntegerField(widget=forms.HiddenInput())
+    account_name = forms.CharField(widget=forms.HiddenInput())
+
+
+class UpdateInvestmentCashAddValueForm(BaseValueUpdateForm):
     """Form for an investment cash account in the update view."""
 
     account_id = forms.IntegerField(widget=forms.HiddenInput())
     account_name = forms.CharField(widget=forms.HiddenInput())
-    update_account = forms.BooleanField(
-        label=_("Update account"),
-        required=False,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-    )
-    current_value = forms.DecimalField(
-        max_digits=10, decimal_places=2, widget=forms.HiddenInput()
-    )
-    new_value = forms.DecimalField(
-        label=_("New value"),
-        max_digits=10,
-        decimal_places=2,
-        localize=True,
-        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal"}),
-    )
 
 
-class UpdateInvestmentAccountHoldingAddValueForm(forms.Form):
+class UpdateInvestmentAccountHoldingAddValueForm(BaseValueUpdateForm):
     """Form for an account holding in the update view."""
 
     holding_id = forms.IntegerField(widget=forms.HiddenInput())
     holding_name = forms.CharField(widget=forms.HiddenInput())
-    update_account = forms.BooleanField(
-        label=_("Update account"),
-        required=False,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-    )
-    current_value = forms.DecimalField(
-        max_digits=10, decimal_places=2, widget=forms.HiddenInput()
-    )
-    new_value = forms.DecimalField(
-        label=_("New value"),
-        max_digits=10,
-        decimal_places=2,
-        localize=True,
-        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal"}),
-    )
     current_quantity = forms.DecimalField(
         max_digits=10,
         decimal_places=4,

@@ -491,6 +491,15 @@ class TestInitializeAmortizationView:
         assert AmortizationSetup.objects.filter(property=property_obj).exists()
         assert AmortizationAsset.objects.filter(property=property_obj).count() == 5
 
+    def test_post_uses_buying_value_as_total(self, admin_client, property_obj):
+        """Amortization setup total_value is initialized from buying_value, not net_value."""
+        url = reverse(
+            "property:initialize_amortization", kwargs={"pk": property_obj.pk}
+        )
+        admin_client.post(url)
+        setup = AmortizationSetup.objects.get(property=property_obj)
+        assert setup.total_value.amount == property_obj.buying_value.amount
+
     def test_get_redirects(self, admin_client, property_obj):
         url = reverse(
             "property:initialize_amortization", kwargs={"pk": property_obj.pk}

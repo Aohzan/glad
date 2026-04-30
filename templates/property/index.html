@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load i18n format_money %}
+{% load i18n format_money static %}
 
 {% block title %}
   {% translate 'Property' %}
 {% endblock %}
 
 {% block extra_head %}
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}

@@ -44,13 +44,29 @@
       <div class="col-6 col-md-3">
         <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Buying value" %}</p>
         <p class="mb-0 fw-semibold">{{ property.buying_value|format_money }}</p>
+        <p class="text-body-secondary small mb-0">{% translate "excl. fees" %}</p>
       </div>
-      {% if property.buying_value_gross %}
       <div class="col-6 col-md-3">
-        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Buying value (gross)" %}</p>
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Total acquisition cost" %}</p>
         <p class="mb-0 fw-semibold">{{ property.buying_value_gross|format_money }}</p>
       </div>
+      <div class="col-6 col-md-3">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Cash deposit" %}</p>
+        <p class="mb-0 fw-semibold">{{ property.cash_deposit|format_money }}</p>
+      </div>
+      {% with nf=property.notary_fees af=property.agency_fees of=property.other_fees cf=property.credit_fees %}
+      {% if nf or af or of or cf %}
+      <div class="col-12">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Purchase fees detail" %}</p>
+        <div class="d-flex flex-wrap gap-2">
+          {% if nf %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% translate "Notary" %}: {{ nf|format_money }}</span>{% endif %}
+          {% if af %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% translate "Agency" %}: {{ af|format_money }}</span>{% endif %}
+          {% if of %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% translate "Other" %}: {{ of|format_money }}</span>{% endif %}
+          {% if cf %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% translate "Credit" %}: {{ cf|format_money }}</span>{% endif %}
+        </div>
+      </div>
       {% endif %}
+      {% endwith %}
       {% if property.selling_date %}
       <div class="col-6 col-md-3">
         <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Selling date" %}</p>

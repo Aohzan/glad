@@ -16,5 +16,9 @@ htmlcov/
 # Virtual environments
 .venv
 
+# Node / npm (frontend vendors)
+node_modules/
+static/vendors/
+
 # Generated test fixtures (regenerated dynamically by scripts/generate_fixtures.py)
 tests/fixtures/*.yaml

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
+from django import forms
+from django.utils.translation import gettext_lazy as _
 from djmoney.forms.fields import MoneyField
 
 from base.widgets import BootstrapMoneyWidget
@@ -38,3 +40,28 @@ class MoneyInputGroupMixin:
                     currency_widget=old_widget.widgets[1],
                     default_currency=old_widget.default_currency,
                 )
+
+
+def date_field(with_class: bool = False) -> forms.DateField:
+    """Return a DateField using a date picker widget."""
+    attrs: dict[str, str] = {"type": "date"}
+    if with_class:
+        attrs["class"] = "form-control"
+    return forms.DateField(
+        widget=forms.DateInput(attrs=attrs, format="%Y-%m-%d"),
+        input_formats=["%Y-%m-%d"],
+        label=_("Date"),
+    )
+
+
+def recurrence_end_field(with_class: bool = False) -> forms.DateField:
+    """Return an optional DateField for a recurrence end date."""
+    attrs: dict[str, str] = {"type": "date"}
+    if with_class:
+        attrs["class"] = "form-control"
+    return forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs=attrs, format="%Y-%m-%d"),
+        input_formats=["%Y-%m-%d"],
+        label=_("Recurrence End Date"),
+    )

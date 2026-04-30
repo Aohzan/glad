@@ -7,9 +7,9 @@
     <i class="bi bi-box-seam fs-1 text-info mb-3 d-block"></i>
     <h5 class="mb-2">{% translate "No amortization components yet" %}</h5>
     <p class="text-body-secondary mb-4">
-      {% blocktranslate with value=property.net_value %}
+      {% blocktranslate with value=property.buying_value %}
         Click below to automatically create the standard LMNP components based on the
-        property net value ({{ value }}) with 15 % land share.
+        property purchase price ({{ value }}) with 15 % land share.
         You can then edit each component individually.
       {% endblocktranslate %}
     </p>

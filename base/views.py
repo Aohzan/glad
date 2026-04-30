@@ -2,9 +2,12 @@
 
 import datetime
 from collections import defaultdict
+from typing import Any
 
-from django.http import JsonResponse
-from django.shortcuts import render
+from django.contrib import messages
+from django.db import models
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from moneyed import Money
@@ -17,6 +20,30 @@ from finance.models.investment_account import (
 from finance.models.saving_account import SavingAccount, SavingAccountValue
 from glad.settings import DEFAULT_CURRENCY
 from property.models import Property
+
+
+def get_object_or_redirect(
+    request: HttpRequest,
+    model: type[models.Model],
+    pk: int,
+    error_message: str,
+    redirect_url: str,
+    redirect_kwargs: dict[str, Any] | None = None,
+    **filter_kwargs: Any,
+) -> tuple[models.Model | None, HttpResponse | None]:
+    """Retrieve a model instance or redirect with an error message.
+
+    Returns ``(obj, None)`` on success and ``(None, redirect_response)`` when
+    the object is not found.  Any extra *filter_kwargs* are passed directly to
+    the ORM ``filter()`` call alongside the ``pk`` lookup so callers can scope
+    the query (e.g. ``property=property_obj``).  *redirect_kwargs* are forwarded
+    to ``redirect()`` as keyword arguments (e.g. ``{"pk": property_pk}``).
+    """
+    obj = model.objects.filter(pk=pk, **filter_kwargs).first()
+    if obj is not None:
+        return obj, None
+    messages.error(request, error_message)
+    return None, redirect(redirect_url, **(redirect_kwargs or {}))
 
 
 # Helper function to convert datetime to date if needed

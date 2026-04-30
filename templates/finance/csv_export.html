@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}
   {% translate 'Finance - Export CSV' %}
@@ -7,7 +7,7 @@
 
 {% block content %}
   <!-- Tom Select CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet" />
+  <link href="{% static 'vendors/tom-select/tom-select.bootstrap5.min.css' %}" rel="stylesheet" />
   <div class="card card-finance mb-4">
     <div class="card-header">
       <h3 class="card-title mb-0">{% translate 'Export data to CSV' %}</h3>
@@ -60,7 +60,7 @@
     </div>
   </div>
   <!-- Tom Select JS -->
-  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script src="{% static 'vendors/tom-select/tom-select.complete.min.js' %}"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var select = new TomSelect('#id_accounts', {

@@ -363,6 +363,75 @@ class TestLmnpSummaryConformity:
         assert approx_equal(summary["by_line"]["242"], Decimal("1766.21"))
 
 
+# ─── Recurring ledger entries tests ──────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestLmnpSummaryRecurringEntries:
+    """Verify that recurring entries are correctly counted in the LMNP summary."""
+
+    def test_monthly_rent_started_before_year_counts_all_occurrences(
+        self, lmnp_setup, lmnp_property
+    ):
+        """Monthly rent started in Dec 2024 must appear in 2025 (12 occurrences)."""
+        PropertyLedgerEntry.objects.create(
+            property=lmnp_property,
+            flow_type=PropertyLedgerEntry.FlowType.INCOME,
+            management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+            amount=Money(Decimal("500.00"), "EUR"),
+            entry_date=datetime.date(2024, 1, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
+            recurrence_end_date=datetime.date(2026, 12, 31),
+        )
+        summary = get_lmnp_summary(lmnp_property.pk, 2025)
+        # 12 months × 500 = 6000
+        assert summary["recettes"] == Decimal("6000.00")
+
+    def test_monthly_recurring_not_counted_after_recurrence_end(
+        self, lmnp_setup, lmnp_property
+    ):
+        """Monthly entry whose recurrence_end_date is before the year is excluded."""
+        PropertyLedgerEntry.objects.create(
+            property=lmnp_property,
+            flow_type=PropertyLedgerEntry.FlowType.INCOME,
+            management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+            amount=Money(Decimal("500.00"), "EUR"),
+            entry_date=datetime.date(2022, 1, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
+            recurrence_end_date=datetime.date(2024, 12, 31),
+        )
+        summary = get_lmnp_summary(lmnp_property.pk, 2025)
+        assert summary["recettes"] == Decimal("0")
+
+    def test_yearly_insurance_started_before_year(self, lmnp_setup, lmnp_property):
+        """Yearly insurance started in 2020 must appear once in 2025."""
+        PropertyLedgerEntry.objects.create(
+            property=lmnp_property,
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.INSURANCE,
+            amount=Money(Decimal("600.00"), "EUR"),
+            entry_date=datetime.date(2020, 3, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.YEARLY,
+        )
+        summary = get_lmnp_summary(lmnp_property.pk, 2025)
+        assert summary["charges_exploitation"] == Decimal("600.00")
+
+    def test_recurring_entry_appears_in_by_category(self, lmnp_setup, lmnp_property):
+        """by_category must include recurring entry amounts."""
+        PropertyLedgerEntry.objects.create(
+            property=lmnp_property,
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.MANAGEMENT_FEES,
+            amount=Money(Decimal("100.00"), "EUR"),
+            entry_date=datetime.date(2024, 1, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
+            recurrence_end_date=datetime.date(2025, 6, 30),
+        )
+        summary = get_lmnp_summary(lmnp_property.pk, 2025)
+        # 6 occurrences (Jan–Jun 2025) × 100 = 600
+        assert summary["by_category"].get("management_fees") == Decimal("600.00")
+
+
 # ─── Fiscal deficit carryforward conformity tests ────────────────────────────
 
 

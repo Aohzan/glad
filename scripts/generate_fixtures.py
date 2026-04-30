@@ -696,6 +696,14 @@ def generate_property() -> str:  # noqa: PLR0915
     is_active: true
     buying_value: 320000.00
     buying_value_currency: EUR
+    notary_fees: 24000.00
+    notary_fees_currency: EUR
+    agency_fees: 10000.00
+    agency_fees_currency: EUR
+    other_fees: null
+    other_fees_currency: EUR
+    credit_fees: null
+    credit_fees_currency: EUR
     buying_date: {ds(M96)}
     selling_date: null
     floor_area: "112.50"
@@ -829,6 +837,14 @@ def generate_property() -> str:  # noqa: PLR0915
     is_active: true
     buying_value: 185000.00
     buying_value_currency: EUR
+    notary_fees: 14000.00
+    notary_fees_currency: EUR
+    agency_fees: null
+    agency_fees_currency: EUR
+    other_fees: null
+    other_fees_currency: EUR
+    credit_fees: 800.00
+    credit_fees_currency: EUR
     buying_date: {ds(M48)}
     selling_date: null
     floor_area: "42.00"
@@ -1158,6 +1174,14 @@ def generate_property() -> str:  # noqa: PLR0915
     is_active: true
     buying_value: 95000.00
     buying_value_currency: EUR
+    notary_fees: 7500.00
+    notary_fees_currency: EUR
+    agency_fees: null
+    agency_fees_currency: EUR
+    other_fees: null
+    other_fees_currency: EUR
+    credit_fees: null
+    credit_fees_currency: EUR
     buying_date: {ds(M48)}
     selling_date: null
     floor_area: "22.00"
@@ -1357,6 +1381,14 @@ def generate_property() -> str:  # noqa: PLR0915
     is_active: true
     buying_value: 145000.00
     buying_value_currency: EUR
+    notary_fees: null
+    notary_fees_currency: EUR
+    agency_fees: null
+    agency_fees_currency: EUR
+    other_fees: null
+    other_fees_currency: EUR
+    credit_fees: null
+    credit_fees_currency: EUR
     buying_date: {ds(M72)}
     selling_date: null
     floor_area: "95.00"

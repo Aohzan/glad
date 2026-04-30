@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from base.views import get_object_or_redirect
 from property.forms import (
     LeaseForm,
     ManagementMandateForm,
@@ -25,12 +26,14 @@ from property.models import (
 def _get_property_or_redirect(
     request: HttpRequest,
     property_pk: int,
-) -> tuple[Property | None, HttpResponse | None]:
-    property_obj = Property.objects.filter(pk=property_pk).first()
-    if property_obj is not None:
-        return property_obj, None
-    messages.error(request, _("Property not found."))
-    return None, redirect("property:index")
+) -> tuple:
+    return get_object_or_redirect(
+        request,
+        Property,
+        property_pk,
+        error_message=str(_("Property not found.")),
+        redirect_url="property:index",
+    )
 
 
 def _get_related_or_redirect(
@@ -41,11 +44,15 @@ def _get_related_or_redirect(
     object_pk: int,
     property_obj: Property,
 ) -> tuple:
-    obj = model.objects.filter(pk=object_pk, property=property_obj).first()
-    if obj is not None:
-        return obj, None
-    messages.error(request, _("%(name)s not found.") % {"name": related_name})
-    return None, redirect("property:detail", pk=property_obj.pk)
+    return get_object_or_redirect(
+        request,
+        model,
+        object_pk,
+        error_message=str(_("%(name)s not found.") % {"name": related_name}),
+        redirect_url="property:detail",
+        redirect_kwargs={"pk": property_obj.pk},
+        property=property_obj,
+    )
 
 
 # ─── Property valuation ───────────────────────────────────────────────────────

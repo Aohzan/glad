@@ -56,6 +56,8 @@ urlpatterns = [
     ),
     # Accounting dashboard (all LMNP réel properties)
     path("accounting/", views.accounting_dashboard, name="accounting"),
+    # Income & expenses report
+    path("report/", views.report_view, name="report"),
     # Amortization initialization
     path(
         "<int:pk>/amortization/initialize/",

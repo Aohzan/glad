@@ -1,30 +1,22 @@
 {% extends "base.html" %}
-{% load i18n format_money %}
+{% load i18n format_money static %}
 
 {% block title %}
   {{ property.name }} {% translate "property" %}
 {% endblock %}
 
 {% block extra_head %}
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
   <link
     rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
+    href="{% static 'vendors/leaflet/leaflet.css' %}"
   >
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-  <link rel="stylesheet" href="https://cdn.datatables.net/2.3.7/css/dataTables.bootstrap5.min.css">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/2.3.7/js/dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/2.3.7/js/dataTables.bootstrap5.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/luxon@3.7.2/build/global/luxon.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@wernfried/daterangepicker@5.3.7/dist/global/daterangepicker.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@wernfried/daterangepicker@5.3.7/css/daterangepicker.min.css" />
+  <script src="{% static 'vendors/leaflet/leaflet.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'vendors/simple-datatables/simple-datatables.css' %}">
+  <script src="{% static 'vendors/simple-datatables/simple-datatables.js' %}"></script>
+  <script src="{% static 'vendors/luxon/luxon.min.js' %}"></script>
+  <script src="{% static 'vendors/daterangepicker/daterangepicker.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'vendors/daterangepicker/daterangepicker.min.css' %}" />
 {% endblock %}
 
 {% block content %}
@@ -51,6 +43,10 @@
         <div class="card-body py-2 px-3">
           <p class="text-uppercase text-primary small fw-semibold mb-1" style="font-size:.7rem;">
             {% translate "Monthly cash flow" %}
+            <i class="bi bi-info-circle ms-1 text-body-secondary"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               title="{% blocktranslate %}Average monthly cashflow over the observation period: total revenues minus expenses and all loan repayments (interest + principal + insurance), divided by the number of months observed.{% endblocktranslate %}"></i>
           </p>
           <p class="fs-5 fw-bold mb-0
             {% if estimated_monthly_cashflow.amount >= 0 %}text-success{% else %}text-danger{% endif %}">
@@ -63,10 +59,18 @@
       <div class="card border-0 bg-body-secondary h-100">
         <div class="card-body py-2 px-3">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">
-            {% translate "Gross value" %}
+            {% translate "Current value" %}
           </p>
-          <div class="d-flex align-items-center gap-2">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
             <p class="fs-5 fw-bold mb-0">{{ current_raw_value|format_money }}</p>
+            {% if value_progression_pct is not None %}
+              <span class="badge {% if value_progression_pct >= 0 %}text-bg-success{% else %}text-bg-danger{% endif %} small"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="{% blocktranslate with current=current_raw_value buying=buying_value_gross %}Progression vs. gross buying price ({{ buying }}): (current value − gross buying price) / gross buying price × 100{% endblocktranslate %}">
+                {% if value_progression_pct >= 0 %}+{% endif %}{{ value_progression_pct|floatformat:1 }}%
+              </span>
+            {% endif %}
             <div class="btn-group btn-group-sm ms-auto">
               <button class="btn btn-outline-secondary btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#valueModal" title="{% translate 'Add valuation' %}">
                 <i class="bi bi-plus" style="font-size:.8rem;"></i>
@@ -84,6 +88,10 @@
         <div class="card-body py-2 px-3">
           <p class="text-uppercase text-success small fw-semibold mb-1" style="font-size:.7rem;">
             {% translate "Net value" %}
+            <i class="bi bi-info-circle ms-1 text-body-secondary"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               title="{% blocktranslate %}Current estimated value minus the total remaining balance on all active loans.{% endblocktranslate %}"></i>
           </p>
           <p class="fs-5 fw-bold mb-0">{{ current_net_value|format_money }}</p>
         </div>
@@ -94,6 +102,10 @@
         <div class="card-body py-2 px-3">
           <p class="text-uppercase text-info small fw-semibold mb-1" style="font-size:.7rem;">
             {% translate "Capital repaid" %}
+            <i class="bi bi-info-circle ms-1 text-body-secondary"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               title="{% blocktranslate %}Total principal already repaid across all loans since the start of the investment.{% endblocktranslate %}"></i>
           </p>
           <p class="fs-5 fw-bold mb-0">{{ capital_repaid|format_money }}</p>
         </div>
@@ -741,6 +753,13 @@
 {{ amortization_asset_series_json|json_script:"amortization-asset-series" }}
 {% endif %}
 <script>
+// ── Bootstrap tooltips ────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+    new bootstrap.Tooltip(el);
+  });
+});
+
 // ── Tab hash sync ─────────────────────────────────────────────────────────────
 (function () {
   const tabButtons = document.querySelectorAll('#propertyTabs [data-bs-toggle="tab"]');
@@ -795,113 +814,137 @@ function buildKindBadge(kind) {
   return `<span class="badge text-bg-success-subtle text-success-emphasis"><i class="bi bi-arrow-down-circle me-1"></i>${i18n.income}</span>`;
 }
 
-$(document).ready(function () {
-  const table = $('#transactions-table').DataTable({
-    data: allTransactions,
-    order: [[0, 'desc']],
-    pageLength: 10,
-    lengthMenu: [5, 10, 20, 50, 100],
-    language: {
-      search: i18n.search + ':',
-      emptyTable: i18n.noData,
-      zeroRecords: i18n.noData,
+document.addEventListener('DOMContentLoaded', function () {
+  const { DataTable } = simpleDatatables;
+
+  // Build row data for simple-datatables
+  // Encode parent_id and is_recurring into the actions cell as JSON
+  const tableRows = allTransactions.map(row => [
+    row.date,
+    row.kind,
+    row.category || '',
+    String(row.amount),
+    row.description || '',
+    JSON.stringify({ parent_id: row.parent_id, is_recurring: row.is_recurring }),
+  ]);
+
+  const datatable = new DataTable('#transactions-table', {
+    data: { data: tableRows },
+    perPage: 10,
+    perPageSelect: [5, 10, 20, 50, 100],
+    searchable: true,
+    sortable: true,
+    labels: {
+      placeholder: i18n.search,
+      noRows: i18n.noData,
+      noResults: i18n.noData,
     },
     columns: [
       {
-        title: "{% translate 'Date' %}",
-        data: 'date',
-        render: function(data, type) {
-          if (type === 'display') {
-            const d = new Date(data);
-            return d.toLocaleDateString('fr-FR');
-          }
-          return data;
+        select: 0,
+        sort: 'desc',
+        type: 'date',
+        format: 'YYYY-MM-DD',
+        render: function(value) {
+          const d = new Date(value);
+          return d.toLocaleDateString('fr-FR');
         }
       },
       {
-        // Hidden raw kind column — used for column search filtering
-        title: '',
-        data: 'kind',
-        visible: false,
-        searchable: true,
-      },
-      {
-        // Visible Kind badge column
-        title: "{% translate 'Kind' %}",
-        data: 'kind',
-        render: function(data, type) {
-          if (type === 'display') return buildKindBadge(data);
-          return data;
-        }
-      },
-      {
-        title: "{% translate 'Category' %}",
-        data: 'category',
-      },
-      {
-        title: "{% translate 'Amount' %}",
-        data: 'amount',
-        render: function(data, type) {
-          if (type === 'display') return formatAmount(data);
-          return data;
+        select: 1,
+        type: 'string',
+        sortable: false,
+        render: function(value) {
+          return buildKindBadge(value);
         },
-        className: 'text-end'
-      },
-      {
-        title: "{% translate 'Description' %}",
-        data: 'description',
-        defaultContent: '—',
-        render: function(data, type) {
-          if (type === 'display') {
-            let out = data || '—';
-            return out;
-          }
-          return data;
+        searchMethod: function(terms, cell) {
+          if (!terms || !terms.length) return true;
+          return terms.includes(String(cell.data));
         }
       },
       {
-        title: "{% translate 'Actions' %}",
-        data: null,
-        orderable: false,
+        select: 2,
+        type: 'string',
+        sortable: false,
+        searchMethod: function(terms, cell) {
+          if (!terms || !terms.length) return true;
+          // Normalize cell.data the same way simple-datatables normalizes terms
+          // (sensitivity:"base" → lowercase + strip diacritics; ignorePunctuation:true)
+          const normalized = String(cell.data)
+            .toLowerCase()
+            .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+            .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '');
+          return terms.includes(normalized);
+        }
+      },
+      {
+        select: 3,
+        type: 'number',
+        cellClass: 'text-end',
+        render: function(value) {
+          return formatAmount(parseFloat(value));
+        }
+      },
+      {
+        select: 4,
+        type: 'string',
+        render: function(value) {
+          return value || '\u2014';
+        }
+      },
+      {
+        select: 5,
+        type: 'string',
+        sortable: false,
         searchable: false,
-        render: function(data, type, row) {
-          let recurIcon = row.is_recurring
+        render: function(value) {
+          const { parent_id, is_recurring } = JSON.parse(value);
+          const recurIcon = is_recurring
             ? ` <i class="bi bi-arrow-repeat text-primary ms-1" title="${i18n.recurring}"></i>`
             : '';
-          return buildActionButtons(row) + recurIcon;
+          return buildActionButtons({ parent_id }) + recurIcon;
         }
       }
-    ],
-    dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-         "<'row'<'col-sm-12'tr>>" +
-         "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-    initComplete: function() {
-      const api = this.api();
+    ]
+  });
 
-      // Column 2 (Kind) — select replaces the header title
-      const kindTh = $(api.column(2).header());
-      const kindSelect = $(`<select class="form-select form-select-sm mt-1"><option value="">{% translate 'Kind' %}</option><option value="expense">${i18n.expenses}</option><option value="income">${i18n.incomes}</option></select>`);
-      kindSelect.on('click', function(e) { e.stopPropagation(); });
-      kindSelect.on('change', function() {
-        const val = $(this).val();
-        api.column(1).search(val ? '^' + val + '$' : '', true, false).draw();
-      });
-      kindTh.empty().append(kindSelect);
+  // Add column filter selects after table is initialised
+  datatable.on('datatable.init', function() {
+    const headers = datatable.dom.querySelectorAll('thead th');
 
-      // Column 3 (Category) — select with unique values replaces the header title
-      const catCol = api.column(3);
-      const catTh = $(catCol.header());
-      const catSelect = $(`<select class="form-select form-select-sm mt-1"><option value="">{% translate 'Category' %}</option></select>`);
-      catCol.data().unique().sort().each(function(d) {
-        if (d) catSelect.append(`<option value="${$('<span>').text(d).html()}">${$('<span>').text(d).html()}</option>`);
-      });
-      catSelect.on('click', function(e) { e.stopPropagation(); });
-      catSelect.on('change', function() {
-        const val = $(this).val();
-        catCol.search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
-      });
-      catTh.empty().append(catSelect);
-    }
+    // Column 1 (Kind) — select replaces the header title
+    const kindTh = headers[1];
+    const kindSelect = document.createElement('select');
+    kindSelect.className = 'form-select form-select-sm mt-1';
+    kindSelect.innerHTML = `<option value="">{% translate 'Kind' %}</option><option value="expense">${i18n.expenses}</option><option value="income">${i18n.incomes}</option>`;
+    kindSelect.addEventListener('click', function(e) { e.stopPropagation(); });
+    kindSelect.addEventListener('change', function() {
+      const val = this.value;
+      datatable.multiSearch(val ? [{ terms: [val], columns: [1] }] : [], 'kind');
+    });
+    kindTh.replaceChildren(kindSelect);
+
+    // Column 2 (Category) — select with unique values replaces the header title
+    const catTh = headers[2];
+    const categories = [...new Set(allTransactions.map(r => r.category).filter(Boolean))].sort();
+    const catSelect = document.createElement('select');
+    catSelect.className = 'form-select form-select-sm mt-1';
+    catSelect.innerHTML = `<option value="">{% translate 'Category' %}</option>`;
+    categories.forEach(function(cat) {
+      const opt = document.createElement('option');
+      // value must be the normalized form (same as what searchMethod receives in terms[])
+      opt.value = cat.toLowerCase()
+        .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+        .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '');
+      opt.textContent = cat;
+      catSelect.appendChild(opt);
+    });
+    catSelect.addEventListener('click', function(e) { e.stopPropagation(); });
+    catSelect.addEventListener('change', function() {
+      const val = this.value;
+      datatable.multiSearch(val ? [{ terms: [val], columns: [2] }] : [], 'category');
+    });
+    catTh.replaceChildren(catSelect);
   });
 });
 
@@ -1165,86 +1208,95 @@ document.getElementById('amortization-tab').addEventListener('shown.bs.tab', fun
 
   const assetLabels = assetSeries.map(function(s) { return s.label; });
 
-  const columns = [
+  // Build headings and flat row arrays for simple-datatables
+  const amortHeadings = ['{% translate "Year" %}'];
+  assetLabels.forEach(function(label) { amortHeadings.push(label); });
+  amortHeadings.push('{% translate "Total" %}', '{% translate "Cumulative" %}', '{% translate "Progress" %}');
+
+  const amortRows = scheduleData.map(function(row) {
+    const r = [String(row.year)];
+    assetLabels.forEach(function(label) {
+      r.push(String((row.per_asset && row.per_asset[label] != null) ? row.per_asset[label] : 0));
+    });
+    r.push(String(row.annual_dotation), String(row.cumulative), String(row.pct_complete));
+    return r;
+  });
+
+  const totalColIndex = assetLabels.length + 1;
+  const cumulativeColIndex = assetLabels.length + 2;
+  const progressColIndex = assetLabels.length + 3;
+
+  const amortColumns = [
     {
-      data: 'year',
-      title: '{% translate "Year" %}',
-      render: function(data, type, row) {
-        if (type === 'display') {
-          return row.year === currentYear
-            ? `<strong class="text-primary">${data} ◀</strong>`
-            : String(data);
-        }
-        return data;
+      select: 0,
+      sort: 'asc',
+      render: function(value) {
+        return parseInt(value, 10) === currentYear
+          ? `<strong class="text-primary">${value} ◀</strong>`
+          : value;
       }
     }
   ];
 
-  assetLabels.forEach(function(label) {
-    columns.push({
-      title: label,
-      className: 'text-end',
-      render: function(data, type, row) {
-        const val = (row.per_asset && row.per_asset[label] != null) ? row.per_asset[label] : 0;
-        if (type === 'display') return formatMoney(val);
-        return val;
-      }
+  assetLabels.forEach(function(label, i) {
+    amortColumns.push({
+      select: i + 1,
+      type: 'number',
+      cellClass: 'text-end',
+      render: function(value) { return formatMoney(parseFloat(value)); }
     });
   });
 
-  columns.push(
+  amortColumns.push(
     {
-      data: 'annual_dotation',
-      title: '{% translate "Total" %}',
-      className: 'text-end fw-semibold',
-      render: function(data, type) {
-        if (type === 'display') return formatMoney(data);
-        return data;
-      }
+      select: totalColIndex,
+      type: 'number',
+      cellClass: 'text-end fw-semibold',
+      render: function(value) { return formatMoney(parseFloat(value)); }
     },
     {
-      data: 'cumulative',
-      title: '{% translate "Cumulative" %}',
-      className: 'text-end',
-      render: function(data, type) {
-        if (type === 'display') return formatMoney(data);
-        return data;
-      }
+      select: cumulativeColIndex,
+      type: 'number',
+      cellClass: 'text-end',
+      render: function(value) { return formatMoney(parseFloat(value)); }
     },
     {
-      data: 'pct_complete',
-      title: '{% translate "Progress" %}',
-      render: function(data, type) {
-        if (type === 'display') return buildProgressBar(data);
-        return data;
-      }
+      select: progressColIndex,
+      type: 'number',
+      sortable: false,
+      searchable: false,
+      render: function(value) { return buildProgressBar(parseFloat(value)); }
     }
   );
 
-  $('#amortization-schedule-table').DataTable({
-    data: scheduleData,
-    order: [[0, 'asc']],
-    paging: true,
-    pageLength: 10,
-    lengthChange: false,
-    searching: true,
-    info: true,
-    language: {
-      emptyTable: '{% translate "No data" %}',
-      search: '{% translate "Search" %}:',
-      info: '{% translate "Lines" %} _START_ {% translate "to" %} _END_ {% translate "of" %} _TOTAL_',
-      paginate: {
-        previous: '{% translate "Previous" %}',
-        next: '{% translate "Next" %}'
-      }
+  const { DataTable: AmortDataTable } = simpleDatatables;
+  const amortDatatable = new AmortDataTable('#amortization-schedule-table', {
+    data: { headings: amortHeadings, data: amortRows },
+    perPage: 10,
+    searchable: true,
+    sortable: true,
+    labels: {
+      noRows: '{% translate "No data" %}',
+      noResults: '{% translate "No data" %}',
+      placeholder: '{% translate "Search" %}',
+      previous: '{% translate "Previous" %}',
+      next: '{% translate "Next" %}',
     },
-    columns: columns,
-    createdRow: function(row, data) {
-      if (data.year === currentYear) {
-        $(row).addClass('table-primary');
-      }
-    }
+    columns: amortColumns
   });
+
+  // Highlight current year row after each render
+  function highlightCurrentYearRow() {
+    document.querySelectorAll('#amortization-schedule-table tbody tr').forEach(function(tr) {
+      const firstCell = tr.querySelector('td');
+      if (firstCell && firstCell.textContent.includes(String(currentYear))) {
+        tr.classList.add('table-primary');
+      }
+    });
+  }
+  amortDatatable.on('datatable.init', highlightCurrentYearRow);
+  amortDatatable.on('datatable.page', highlightCurrentYearRow);
+  amortDatatable.on('datatable.search', highlightCurrentYearRow);
 });
 {% endif %}
 

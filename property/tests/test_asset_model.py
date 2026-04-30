@@ -320,16 +320,19 @@ class TestPropertyModel:
         progression = property_obj.get_progression(years=1)
         assert progression is not None
 
-    def test_get_progression_with_buying_value_gross(self):
+    def test_get_progression_with_fees(self):
         prop = Property.objects.create(
-            name="Gross Value Property",
+            name="Fees Property",
             property_type=Property.APARTMENT,
             buying_value=Money(200000, "EUR"),
-            buying_value_gross=Money(215000, "EUR"),
+            notary_fees=Money(15000, "EUR"),
             buying_date=datetime.date(2020, 1, 1),
         )
         progression = prop.get_progression()
+        # buying_value_gross = 215000; no PropertyValue → gross_value = buying_value = 200000
+        # difference should be negative (current < acquisition cost)
         assert progression is not None
+        assert progression.difference.amount < Decimal("0")
 
     def test_str(self, property_obj):
         assert str(property_obj) == "Asset Test Property"
@@ -337,6 +340,68 @@ class TestPropertyModel:
     def test_total_remaining_loans_at_date(self, property_obj, loan):
         total = property_obj.total_remaining_loans_at_date(datetime.date(2030, 1, 1))
         assert total.amount > Decimal("0")
+
+    def test_buying_value_gross_no_fees(self, property_obj):
+        """When no fees are set, buying_value_gross equals buying_value."""
+        assert property_obj.buying_value_gross.amount == Decimal("300000")
+        assert (
+            property_obj.buying_value_gross.currency
+            == property_obj.buying_value.currency
+        )
+
+    def test_buying_value_gross_with_all_fees(self):
+        prop = Property.objects.create(
+            name="Fees Property",
+            property_type=Property.APARTMENT,
+            buying_value=Money(200000, "EUR"),
+            notary_fees=Money(15000, "EUR"),
+            agency_fees=Money(5000, "EUR"),
+            other_fees=Money(500, "EUR"),
+            credit_fees=Money(1000, "EUR"),
+            buying_date=datetime.date(2020, 1, 1),
+        )
+        assert prop.buying_value_gross.amount == Decimal("221500")
+
+    def test_buying_value_gross_partial_fees(self):
+        prop = Property.objects.create(
+            name="Partial Fees",
+            property_type=Property.APARTMENT,
+            buying_value=Money(100000, "EUR"),
+            notary_fees=Money(8000, "EUR"),
+            buying_date=datetime.date(2021, 1, 1),
+        )
+        assert prop.buying_value_gross.amount == Decimal("108000")
+
+    def test_cash_deposit_no_loans(self, property_obj):
+        """With no loans, cash_deposit equals buying_value_gross."""
+        assert (
+            property_obj.cash_deposit.amount == property_obj.buying_value_gross.amount
+        )
+
+    def test_cash_deposit_with_loan(self, property_obj, loan):
+        deposit = property_obj.cash_deposit
+        expected = property_obj.buying_value_gross.amount - loan.original_amount.amount
+        assert deposit.amount == expected
+
+    def test_cash_deposit_with_fees_and_loan(self):
+        prop = Property.objects.create(
+            name="Deposit Test",
+            property_type=Property.HOUSE,
+            buying_value=Money(200000, "EUR"),
+            notary_fees=Money(15000, "EUR"),
+            buying_date=datetime.date(2020, 1, 1),
+        )
+        PropertyLoan.objects.create(
+            property=prop,
+            original_amount=Money(150000, "EUR"),
+            interest_rate=Decimal("1.5"),
+            insurance_rate=Decimal("0"),
+            start_date=datetime.date(2020, 1, 1),
+            end_date=datetime.date(2040, 1, 1),
+            monthly_payment=Money(Decimal("750.00"), "EUR"),
+        )
+        # gross = 215000, loan = 150000, deposit = 65000
+        assert prop.cash_deposit.amount == Decimal("65000")
 
 
 @pytest.mark.django_db

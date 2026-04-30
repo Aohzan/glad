@@ -2,14 +2,6 @@
 
 ## General issues
 
-## Property / Accounting
-
-- Create the non existing accounting view
-- Generate a report for one or many properties, with the following data:
-  - Total income and expenses for a given period
-  - A breakdown of income and expenses by category
-- Generate all the needed information for the LMNP tax declaration
-
 ## Property / Automatic estimation
 
 add a button on the detail view to check current price of property with the French DVF API and add the value as a new entry if user confirms

@@ -30,7 +30,8 @@ def generate_recurring_occurrences(
 
     occurrences = []
     current = start_date
-    max_date = end_date or recurrence_end_date or datetime.date.today()
+    candidates = [d for d in [end_date, recurrence_end_date] if d is not None]
+    max_date = min(candidates) if candidates else datetime.date.today()
 
     # Only process recurring types if valid
     is_valid_recurrence = recurrence_type in (

@@ -1,4 +1,4 @@
-FROM python:3.14-slim-bookworm
+FROM python:3.14-slim-trixie
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # Install PostgreSQL client and build dependencies for psycopg
@@ -7,6 +7,8 @@ RUN apt-get update \
         postgresql-client \
         gcc \
         libpq-dev \
+        nodejs \
+        npm \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -22,5 +24,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 COPY uv.lock /app/uv.lock
 RUN uv sync --frozen
+
+RUN npm ci
 
 CMD ["/app/scripts/start.sh"]

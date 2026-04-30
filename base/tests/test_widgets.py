@@ -137,9 +137,10 @@ class TestMoneyInputGroupMixin:
 
         form = PropertyEditForm()
         assert isinstance(form.fields["buying_value"].widget, BootstrapMoneyWidget)
-        assert isinstance(
-            form.fields["buying_value_gross"].widget, BootstrapMoneyWidget
-        )
+        assert isinstance(form.fields["notary_fees"].widget, BootstrapMoneyWidget)
+        assert isinstance(form.fields["agency_fees"].widget, BootstrapMoneyWidget)
+        assert isinstance(form.fields["other_fees"].widget, BootstrapMoneyWidget)
+        assert isinstance(form.fields["credit_fees"].widget, BootstrapMoneyWidget)
         assert isinstance(form.fields["selling_value"].widget, BootstrapMoneyWidget)
 
     @pytest.mark.parametrize(

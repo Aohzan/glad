@@ -9,75 +9,42 @@ from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from base.models import BaseModel
+from finance.models.base import AbstractAccount, AbstractAccountType
 from finance.utils import AccountProgression
 
 
-class InvestmentAccountType(BaseModel):
-    """Model representing an account type."""
+class InvestmentAccountType(AbstractAccountType):
+    """Model representing an investment account type."""
 
-    class Meta:
+    class Meta(AbstractAccountType.Meta):
         verbose_name = _("investment account type")
         verbose_name_plural = _("investment account types")
-        ordering = ["name"]
-        indexes = [
-            models.Index(fields=["name", "code"]),
-        ]
-        unique_together = ("name", "code")
-
-    name = models.CharField(max_length=255, null=False)
-    code = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self) -> str:
-        """String representation of the AccountType model."""
+        """String representation — prefer code, fall back to name."""
         if self.code:
             return str(self.code)
         return str(self.name)
 
 
-class InvestmentAccount(BaseModel):
+class InvestmentAccount(AbstractAccount):
     """Investment account has a cash value and multiple holdings."""
 
     deposits: models.Manager["InvestmentAccountDeposit"]
 
-    class Meta:
+    class Meta(AbstractAccount.Meta):
         verbose_name = _("investment account")
         verbose_name_plural = _("investment accounts")
-        ordering = ["account_type", "name", "owner", "institution"]
-        indexes = [
-            models.Index(fields=["account_type", "name", "owner", "institution"]),
-        ]
-        unique_together = ("account_type", "name", "owner", "institution")
 
     account_type = models.ForeignKey(
         InvestmentAccountType, on_delete=models.CASCADE, null=False
     )
-    name = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text=_("Name of the account (optional)"),
-    )
-    owner = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text=_("Owner of the account (optional)"),
-    )
-    institution = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text=_("Institution where the account is held (optional)"),
-    )
-    commentaire = models.TextField(null=True, blank=True)
-
-    opening_date = models.DateField(default=datetime.date.today, null=False)
     opening_cash_value = MoneyField(
-        max_digits=10, decimal_places=2, default=0, null=False
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0"),  # type: ignore[call-arg]
+        null=False,
     )
-
-    is_active = models.BooleanField(default=True)
-    closing_date = models.DateField(null=True, blank=True)
 
     @property
     def current_value(self) -> Money:
@@ -103,15 +70,11 @@ class InvestmentAccount(BaseModel):
             account_name = f"{str(self.account_type)} {self.name}"
         else:
             account_name = str(self.account_type)
-        if self.owner:
-            account_name += f" {self.owner}"
-        if self.institution:
-            account_name += f" {_('at')} {self.institution}"
-        if not self.is_active:
-            account_name += f" {_('(closed)')}"
-        return account_name
+        return account_name + self._account_name_suffix()
 
-    def get_cash_value(self, max_date: datetime.datetime | None = None) -> Money:
+    def get_cash_value(
+        self, max_date: datetime.datetime | datetime.date | None = None
+    ) -> Money:
         """Get the value of the account at a specific date."""
         if max_date is None:
             max_date = datetime.datetime.now()
@@ -174,29 +137,6 @@ class InvestmentAccount(BaseModel):
                 holdings_value_total += holding.initial_value.amount
         return Money(cash_value_amount + holdings_value_total, self.currency)
 
-    def get_progression(self, days: int) -> AccountProgression:
-        """Get the progression of the account over a specific number of days."""
-        from django.db.models import Sum
-
-        x_days_ago = datetime.datetime.now() - datetime.timedelta(days=days)
-        current_value = self.get_value()
-        old_value = self.get_value(max_date=x_days_ago)
-
-        # Calculate deposits during the period
-        deposits_sum = self.deposits.filter(
-            deposit_date__gte=x_days_ago.date(),
-            deposit_date__lte=datetime.datetime.today(),
-        ).aggregate(total=Sum("amount"))["total"]
-
-        # Convert Decimal to Money object
-        deposits_during_period = Money(deposits_sum or 0, current_value.currency)
-
-        return AccountProgression(
-            current_value=current_value,
-            old_value=old_value,
-            deposits=deposits_during_period,
-        )
-
     def get_cash_progression(self, days: int) -> AccountProgression:
         """Get the cash progression of the account over a specific number of days."""
         x_days_ago = datetime.datetime.now() - datetime.timedelta(days=days)
@@ -206,6 +146,19 @@ class InvestmentAccount(BaseModel):
         return AccountProgression(
             current_value=current_cash_value,
             old_value=old_cash_value,
+        )
+
+    def subtract_cash(
+        self, amount: Money, at_date: datetime.datetime | datetime.date
+    ) -> None:
+        """Subtract *amount* from the account cash at *at_date* by creating a new cash record."""
+        current_cash = self.get_cash_value(max_date=at_date)
+        new_value = Money(current_cash.amount - amount.amount, self.currency)
+        cash_date = (
+            at_date.date() if isinstance(at_date, datetime.datetime) else at_date
+        )
+        InvestmentAccountCash.objects.create(
+            account=self, value_date=cash_date, value=new_value
         )
 
 
@@ -296,7 +249,7 @@ class InvestmentAccountHolding(BaseModel):
     initial_value = MoneyField(
         max_digits=10,
         decimal_places=2,
-        default=0,
+        default=Decimal("0"),  # type: ignore[call-arg]
     )
     initial_valuation_date = models.DateField(default=datetime.date.today, null=False)
 

@@ -1,5 +1,6 @@
 """Fiscal / accounting views: amortization panel, initialization, accounting dashboard."""
 
+import csv
 import datetime
 
 from django.contrib import messages
@@ -8,8 +9,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from property.forms import AmortizationAssetForm, AmortizationSetupForm  # noqa: F401
+from property.forms import (  # noqa: F401
+    AmortizationAssetForm,
+    AmortizationSetupForm,
+    PropertyReportFilterForm,
+)
 from property.models import AmortizationAsset, AmortizationSetup, Property
+from property.services.report import get_income_expense_report
 from property.services.tax_lmnp import (
     get_accounting_data,
     get_amortization_schedule,
@@ -64,7 +70,7 @@ def initialize_amortization(request: HttpRequest, pk: int) -> HttpResponse:
         try:
             setup = property_obj.amortization_setup  # ty: ignore[unresolved-attribute]
         except AmortizationSetup.DoesNotExist:
-            net = property_obj.net_value
+            net = property_obj.buying_value
             setup = AmortizationSetup(
                 property=property_obj,
                 total_value=net,
@@ -176,3 +182,71 @@ def accounting_dashboard(request: HttpRequest) -> HttpResponse:
         "accounting": accounting,
     }
     return render(request, "property/accounting_dashboard.html", context)
+
+
+# ─── Income & expenses report ─────────────────────────────────────────────────
+
+
+def report_view(request: HttpRequest) -> HttpResponse:
+    """Income & expenses report: filter by properties, date range, export to CSV."""
+    today = datetime.date.today()
+    default_start = datetime.date(today.year, 1, 1)
+    default_end = datetime.date(today.year, 12, 31)
+
+    initial = {"start_date": default_start, "end_date": default_end}
+
+    if request.GET:
+        form = PropertyReportFilterForm(request.GET, initial=initial)
+    else:
+        form = PropertyReportFilterForm(initial=initial)
+
+    report_data: dict | None = None
+
+    if form.is_bound and form.is_valid():
+        selected_props = form.cleaned_data.get("properties")
+        start_date = form.cleaned_data.get("start_date")
+        end_date = form.cleaned_data.get("end_date")
+
+        if selected_props:
+            property_ids = list(selected_props.values_list("pk", flat=True))
+        else:
+            property_ids = list(
+                Property.objects.filter(is_active=True).values_list("pk", flat=True)
+            )
+
+        report_data = get_income_expense_report(property_ids, start_date, end_date)
+
+        # CSV export
+        if request.GET.get("format") == "csv":
+            response = HttpResponse(content_type="text/csv; charset=utf-8")
+            filename = "income_expenses_report.csv"
+            response["Content-Disposition"] = f'attachment; filename="{filename}"'
+            writer = csv.writer(response)
+            writer.writerow(
+                [
+                    "date",
+                    "property",
+                    "flow_type",
+                    "management_category",
+                    "amount",
+                    "description",
+                ]
+            )
+            for entry in report_data["entries"]:
+                writer.writerow(
+                    [
+                        entry.entry_date.isoformat(),
+                        entry.property.name,
+                        entry.flow_type,
+                        entry.management_category,
+                        entry.amount.amount,
+                        entry.description or "",
+                    ]
+                )
+            return response
+
+    context = {
+        "form": form,
+        "report": report_data,
+    }
+    return render(request, "property/report.html", context)

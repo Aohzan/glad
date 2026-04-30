@@ -133,6 +133,38 @@
       }
     },
     {
+      "label": "Update npm vendors",
+      "type": "shell",
+      "detail": "Upgrade npm packages to latest compatible versions and copy dist files to static/vendors/.",
+      "command": "npm update",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install npm vendors",
+      "type": "shell",
+      "detail": "Install npm packages",
+      "command": "npm ci",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "close": true
+      },
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
       "label": "Upgrade dependencies",
       "type": "shell",
       "detail": "Upgrade all dependencies and update the lockfile.",
