@@ -326,6 +326,14 @@ class Property(BaseModel):
         verbose_name=_("Credit fees"),
         help_text=_("Loan arrangement and guarantee fees (excluding interest)."),
     )
+    coproperty_share = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("Coproperty share (%)"),
+        help_text=_("Share of the coproperty (in %), if applicable."),
+    )
     shares_count = models.DecimalField(
         max_digits=10,
         decimal_places=4,
