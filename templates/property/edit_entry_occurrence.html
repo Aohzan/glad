@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Edit occurrence" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{% url 'property:detail' property.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>{{ property.name }}
+    </a>
+    <h1 class="h4 mb-0 ms-1">
+      <i class="bi bi-calendar-event me-1"></i>{% translate "Edit occurrence" %}
+    </h1>
+  </div>
+
+  {# ── Occurrence info banner ──────────────────────────────────────────────── #}
+  <div class="alert alert-info d-flex align-items-center gap-2 mb-4">
+    <i class="bi bi-arrow-repeat fs-5"></i>
+    <div>
+      <strong>{{ occurrence_date|date:"d/m/Y" }}</strong>
+      &mdash;
+      <span class="text-body-secondary">{{ entry }}</span>
+    </div>
+  </div>
+
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle me-1"></i>{% translate "Please correct the errors below." %}
+    </div>
+  {% endif %}
+
+  <form method="post" id="occurrence-edit-form">
+    {% csrf_token %}
+
+    {# ── Scope selection ─────────────────────────────────────────────────── #}
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-sliders me-1"></i>{% translate "Edit scope" %}</h6>
+      </div>
+      <div class="card-body">
+        <div class="d-flex flex-column gap-2">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="scope" id="scope-this"
+                   value="{{ scope_this }}" checked>
+            <label class="form-check-label" for="scope-this">
+              <strong>{% translate "This occurrence only" %}</strong>
+              <div class="text-body-secondary small">{% translate "Only the selected date will be modified. The rest of the series is unchanged." %}</div>
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="scope" id="scope-future"
+                   value="{{ scope_future }}">
+            <label class="form-check-label" for="scope-future">
+              <strong>{% translate "This and future occurrences" %}</strong>
+              <div class="text-body-secondary small">{% translate "The current series will end before this date. A new series with the modified values will start from this occurrence." %}</div>
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="scope" id="scope-all"
+                   value="{{ scope_all }}">
+            <label class="form-check-label" for="scope-all">
+              <strong>{% translate "All occurrences" %}</strong>
+              <div class="text-body-secondary small">{% translate "You will be redirected to the full entry edit form." %}</div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Override fields ─────────────────────────────────────────────────── #}
+    <div id="override-fields">
+      <div class="card mb-3">
+        <div class="card-header py-2">
+          <h6 class="mb-0"><i class="bi bi-pencil me-1"></i>{% translate "Overrides" %}</h6>
+        </div>
+        <div class="card-body">
+          <p class="text-body-secondary small mb-3">
+            {% translate "Leave a field empty to keep the current series value." %}
+          </p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="{{ form.amount_override.id_for_label }}" class="form-label fw-semibold">
+                {% translate "Amount" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ form.amount_override }}
+              {% if form.amount_override.errors %}
+                <div class="invalid-feedback d-block">{{ form.amount_override.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label for="{{ form.description_override.id_for_label }}" class="form-label fw-semibold">
+                {% translate "Description" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ form.description_override }}
+              {% if form.description_override.errors %}
+                <div class="invalid-feedback d-block">{{ form.description_override.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label for="{{ form.notes_override.id_for_label }}" class="form-label fw-semibold">
+                {% translate "Notes" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ form.notes_override }}
+              {% if form.notes_override.errors %}
+                <div class="invalid-feedback d-block">{{ form.notes_override.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Redirect notice (shown when scope=all) ──────────────────────────── #}
+    <div id="redirect-notice" class="alert alert-warning d-none">
+      <i class="bi bi-arrow-right-circle me-1"></i>
+      {% translate "You will be redirected to the full entry edit form." %}
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>{% translate "Save" %}
+      </button>
+      <a href="{% url 'property:detail' property.pk %}#cashflow-panel" class="btn btn-outline-secondary">
+        {% translate "Cancel" %}
+      </a>
+    </div>
+
+  </form>
+
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const overrideFields = document.getElementById('override-fields');
+  const redirectNotice = document.getElementById('redirect-notice');
+  const radios = document.querySelectorAll('input[name="scope"]');
+
+  function updateVisibility() {
+    const selected = document.querySelector('input[name="scope"]:checked');
+    if (selected && selected.value === '{{ scope_all }}') {
+      overrideFields.classList.add('d-none');
+      redirectNotice.classList.remove('d-none');
+    } else {
+      overrideFields.classList.remove('d-none');
+      redirectNotice.classList.add('d-none');
+    }
+  }
+
+  radios.forEach(r => r.addEventListener('change', updateVisibility));
+  updateVisibility();
+});
+</script>
+{% endblock %}
+
+{% endblock %}

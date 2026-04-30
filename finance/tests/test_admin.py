@@ -10,10 +10,7 @@ from django.test import RequestFactory
 from django.urls import reverse
 from moneyed import Money
 
-from finance.admin import (
-    InvestmentAccountHoldingHistoryAdmin,
-    SavingAccountValueAdmin,
-)
+from finance.admin import InvestmentAccountHoldingHistoryAdmin, SavingAccountValueAdmin
 from finance.models.investment_account import (
     InvestmentAccountHolding,
     InvestmentAccountHoldingHistory,

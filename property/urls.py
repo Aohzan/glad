@@ -30,6 +30,16 @@ urlpatterns = [
         views.delete_ledger_entry,
         name="delete_entry",
     ),
+    path(
+        "<int:property_pk>/entry/<int:entry_pk>/occurrence/<str:occurrence_date>/edit/",
+        views.edit_ledger_entry_occurrence,
+        name="edit_entry_occurrence",
+    ),
+    path(
+        "<int:property_pk>/entry/<int:entry_pk>/occurrence/<str:occurrence_date>/delete/",
+        views.delete_ledger_entry_occurrence,
+        name="delete_entry_occurrence",
+    ),
     # Leases
     path("<int:property_pk>/lease/new/", views.edit_lease, name="new_lease"),
     path(

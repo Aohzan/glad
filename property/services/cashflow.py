@@ -75,7 +75,9 @@ def build_balance_sheet(
     end_of_range = month_end(date_to)
 
     # ── Ledger entries in range ───────────────────────────────────────────────
-    entries_qs = PropertyLedgerEntry.objects.filter(property=property_obj)
+    entries_qs = PropertyLedgerEntry.objects.filter(
+        property=property_obj
+    ).prefetch_related("exceptions")
 
     # Aggregate occurrences by management_category within the date range
     income_by_cat: dict[str, dict] = {}

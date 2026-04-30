@@ -40,8 +40,6 @@ from decimal import Decimal
 
 from django.db.models import Q, Sum
 
-from property.utils import generate_recurring_occurrences
-
 # ─── Mapping ManagementCategory → cerfa 2033-B (LMNP réel) ──────────────────
 #
 # Each entry: {"section": "recettes"|"charges"|None, "line": str|None, "label": str}
@@ -550,18 +548,10 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
         .filter(
             Q(recurrence_end_date__gte=year_start) | Q(recurrence_end_date__isnull=True)
         )
+        .prefetch_related("exceptions")
     )
     for entry in recurring_qs:
-        occurrences = generate_recurring_occurrences(
-            start_date=entry.entry_date,
-            amount=entry.amount,
-            recurrence_type=entry.recurrence_type,
-            recurrence_none=PropertyLedgerEntry.NONE,
-            recurrence_monthly=PropertyLedgerEntry.MONTHLY,
-            recurrence_yearly=PropertyLedgerEntry.YEARLY,
-            recurrence_end_date=entry.recurrence_end_date,
-            end_date=year_end,
-        )
+        occurrences = entry.generate_occurrences(end_date=year_end)
         for occ in occurrences:
             if occ["date"] < year_start:
                 continue

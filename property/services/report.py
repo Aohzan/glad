@@ -7,8 +7,6 @@ from decimal import Decimal
 from django.db.models import Q, Sum
 from moneyed import Money
 
-from property.utils import generate_recurring_occurrences
-
 
 @dataclass
 class _OccurrenceEntry:
@@ -80,17 +78,8 @@ def get_income_expense_report(
 
     # Expand recurring entries into individual occurrences within [start, end]
     expanded_occurrences: list[_OccurrenceEntry] = []
-    for entry in recurring_qs.select_related("property"):
-        occurrences = generate_recurring_occurrences(
-            start_date=entry.entry_date,
-            amount=entry.amount,
-            recurrence_type=entry.recurrence_type,
-            recurrence_none=PropertyLedgerEntry.NONE,
-            recurrence_monthly=PropertyLedgerEntry.MONTHLY,
-            recurrence_yearly=PropertyLedgerEntry.YEARLY,
-            recurrence_end_date=entry.recurrence_end_date,
-            end_date=end_date,
-        )
+    for entry in recurring_qs.select_related("property").prefetch_related("exceptions"):
+        occurrences = entry.generate_occurrences(end_date=end_date)
         for occ in occurrences:
             occ_date: datetime.date = occ["date"]
             if start_date and occ_date < start_date:
@@ -104,7 +93,7 @@ def get_income_expense_report(
                     flow_type=entry.flow_type,
                     management_category=entry.management_category,
                     amount=occ["amount"],
-                    description=entry.description,
+                    description=occ.get("description_override") or entry.description,
                 )
             )
 

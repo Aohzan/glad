@@ -7,7 +7,7 @@ import pytest
 from django.urls import reverse
 from moneyed import Money
 
-from property.models import Property, PropertyLedgerEntry
+from property.models import Property, PropertyLedgerEntry, PropertyLedgerEntryException
 from property.services.report import get_income_expense_report
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -270,6 +270,57 @@ class TestGetIncomeExpenseReport:
         assert dates == sorted(dates)
         # 3 recurring occurrences (Jan, Feb, Mar) + 2 non-recurring = 5 entries
         assert len(dates) == 5
+
+    def test_deleted_occurrence_excluded_from_totals(self):
+        """A deleted occurrence exception must reduce totals in the report."""
+        entry = _make_recurring_entry(
+            self.prop,
+            PropertyLedgerEntry.FlowType.INCOME,
+            PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+            Decimal("500"),
+            start_date=datetime.date(2025, 1, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
+            recurrence_end_date=datetime.date(2025, 3, 31),
+        )
+        # Delete the February occurrence
+        PropertyLedgerEntryException.objects.create(
+            parent_entry=entry,
+            occurrence_date=datetime.date(2025, 2, 1),
+            is_deleted=True,
+        )
+        result = get_income_expense_report(
+            [self.prop.pk],
+            datetime.date(2025, 1, 1),
+            datetime.date(2025, 12, 31),
+        )
+        # 2 recurring occurrences (Jan, Mar) × 500 + 1000 non-recurring = 2000
+        assert result["total_income"] == Decimal("2000")
+
+    def test_amount_override_applied_in_totals(self):
+        """An amount_override exception must use the overridden amount in the report."""
+        entry = _make_recurring_entry(
+            self.prop,
+            PropertyLedgerEntry.FlowType.INCOME,
+            PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+            Decimal("500"),
+            start_date=datetime.date(2025, 1, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
+            recurrence_end_date=datetime.date(2025, 2, 28),
+        )
+        # Override February amount to 300
+        PropertyLedgerEntryException.objects.create(
+            parent_entry=entry,
+            occurrence_date=datetime.date(2025, 2, 1),
+            is_deleted=False,
+            amount_override=Money(Decimal("300"), "EUR"),
+        )
+        result = get_income_expense_report(
+            [self.prop.pk],
+            datetime.date(2025, 1, 1),
+            datetime.date(2025, 12, 31),
+        )
+        # Jan 500 + Feb 300 + 1000 non-recurring = 1800
+        assert result["total_income"] == Decimal("1800")
 
 
 # ─── View tests ────────────────────────────────────────────────────────────────

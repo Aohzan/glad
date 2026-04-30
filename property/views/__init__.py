@@ -3,10 +3,12 @@
 from property.views.crud_views import (
     delete_lease,
     delete_ledger_entry,
+    delete_ledger_entry_occurrence,
     delete_mandate,
     delete_property_valuation,
     edit_lease,
     edit_ledger_entry,
+    edit_ledger_entry_occurrence,
     edit_mandate,
 )
 from property.views.detail_views import PropertyDetailView
@@ -34,6 +36,8 @@ __all__ = [
     "delete_property_valuation",
     "edit_ledger_entry",
     "delete_ledger_entry",
+    "edit_ledger_entry_occurrence",
+    "delete_ledger_entry_occurrence",
     "edit_lease",
     "delete_lease",
     "edit_mandate",

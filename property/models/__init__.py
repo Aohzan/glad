@@ -9,7 +9,7 @@ from property.models.asset import (
     PropertyValue,
 )
 from property.models.lease import Lease
-from property.models.ledger import PropertyLedgerEntry
+from property.models.ledger import PropertyLedgerEntry, PropertyLedgerEntryException
 from property.models.management import ManagementMandate
 
 __all__ = [
@@ -22,4 +22,5 @@ __all__ = [
     "Lease",
     "ManagementMandate",
     "PropertyLedgerEntry",
+    "PropertyLedgerEntryException",
 ]

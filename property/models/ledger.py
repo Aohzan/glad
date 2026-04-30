@@ -186,8 +186,14 @@ class PropertyLedgerEntry(BaseModel):
         )
 
     def generate_occurrences(self, end_date: datetime.date | None = None) -> list[dict]:
-        """Generate all occurrences of this entry based on recurrence settings."""
-        return generate_recurring_occurrences(
+        """Generate all occurrences, applying any saved exception overrides/deletions.
+
+        Uses Django's prefetch cache when ``prefetch_related('exceptions')`` has been
+        called on the queryset, otherwise falls back to one extra DB query per entry.
+        Callers that do not prefetch still get correct results; prefetching is only
+        needed for performance.
+        """
+        raw = generate_recurring_occurrences(
             start_date=self.entry_date,
             amount=self.amount,
             recurrence_type=self.recurrence_type,
@@ -197,9 +203,81 @@ class PropertyLedgerEntry(BaseModel):
             recurrence_end_date=self.recurrence_end_date,
             end_date=end_date,
         )
+        # Only look up exceptions for saved, recurring entries
+        if not self.pk or self.recurrence_type == self.NONE:
+            return raw
+
+        exceptions_qs = self.exceptions.all()  # ty: ignore[unresolved-attribute]  # uses prefetch cache if available
+        if not exceptions_qs:
+            return raw
+
+        exc_map = {exc.occurrence_date: exc for exc in exceptions_qs}
+        result = []
+        for occurrence in raw:
+            exc = exc_map.get(occurrence["date"])
+            if exc is None:
+                result.append(occurrence)
+                continue
+            if exc.is_deleted:
+                continue
+            updated = dict(occurrence)
+            if exc.amount_override is not None:
+                updated["amount"] = exc.amount_override
+            if exc.description_override is not None:
+                updated["description_override"] = exc.description_override
+            if exc.notes_override is not None:
+                updated["notes_override"] = exc.notes_override
+            updated["has_exception"] = True
+            result.append(updated)
+        return result
 
     def get_lmnp_line(self) -> str | None:
         """Return the cerfa 2033-B line number for this entry's category."""
         from property.services.tax_lmnp import LMNP_TAX_MAPPING
 
         return LMNP_TAX_MAPPING.get(self.management_category, {}).get("line")
+
+
+class PropertyLedgerEntryException(BaseModel):
+    """
+    Override or deletion marker for a single occurrence of a recurring entry.
+
+    - is_deleted=True: the occurrence on occurrence_date is hidden.
+    - Override fields replace the parent values when set.
+    """
+
+    parent_entry = models.ForeignKey(
+        PropertyLedgerEntry,
+        on_delete=models.CASCADE,
+        related_name="exceptions",
+        verbose_name=_("Parent entry"),
+    )
+    occurrence_date = models.DateField(verbose_name=_("Occurrence date"))
+    is_deleted = models.BooleanField(default=False, verbose_name=_("Is deleted"))
+    amount_override = MoneyField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("Amount override"),
+    )
+    description_override = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name=_("Description override"),
+    )
+    notes_override = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("Notes override"),
+    )
+
+    class Meta:
+        verbose_name = _("ledger entry exception")
+        verbose_name_plural = _("ledger entry exceptions")
+        unique_together = [("parent_entry", "occurrence_date")]
+
+    def __str__(self) -> str:
+        prefix = "Deleted" if self.is_deleted else "Override"
+        return f"{prefix}: {self.parent_entry} @ {self.occurrence_date}"

@@ -299,7 +299,9 @@ class PropertyDetailView(DetailView):
 
     def _estimated_monthly_cashflow(self, property_obj: Property) -> Decimal:
         """Estimate average monthly cashflow from ledger entries and loan costs."""
-        entries_qs = PropertyLedgerEntry.objects.filter(property=property_obj)
+        entries_qs = PropertyLedgerEntry.objects.filter(
+            property=property_obj
+        ).prefetch_related("exceptions")
         revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
         expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
         loans_qs = PropertyLoan.objects.filter(property=property_obj)
@@ -357,7 +359,9 @@ class PropertyDetailView(DetailView):
         list[dict],
     ]:
         """Build monthly cashflow series from ledger entries and loans."""
-        entries_qs = PropertyLedgerEntry.objects.filter(property=property_obj)
+        entries_qs = PropertyLedgerEntry.objects.filter(
+            property=property_obj
+        ).prefetch_related("exceptions")
         revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
         expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
         loans_qs = PropertyLoan.objects.filter(property=property_obj)
@@ -454,31 +458,40 @@ class PropertyDetailView(DetailView):
 
     def _build_transactions_json(self, property_obj: Property) -> list[dict]:
         """Build all expanded transactions as a list of dicts for DataTables."""
-        entries_qs = PropertyLedgerEntry.objects.filter(
-            property=property_obj
-        ).select_related("lease")
+        entries_qs = (
+            PropertyLedgerEntry.objects.filter(property=property_obj)
+            .select_related("lease")
+            .prefetch_related("exceptions")
+        )
         rows = []
         for entry in entries_qs:
             cat_label = entry.get_management_category_display()
             lease_name = entry.lease.name if entry.lease else ""
             if lease_name:
-                description = (
+                base_description = (
                     f"{entry.description} - {lease_name}"
                     if entry.description
                     else lease_name
                 )
             else:
-                description = entry.description or ""
+                base_description = entry.description or ""
             for occurrence in entry.generate_occurrences():
+                is_recurring = occurrence["is_recurring"]
                 rows.append(
                     {
                         "kind": entry.flow_type,
                         "date": occurrence["date"].isoformat(),
                         "category": str(cat_label),
                         "amount": float(occurrence["amount"].amount),
-                        "description": description,
-                        "is_recurring": occurrence["is_recurring"],
+                        "description": occurrence.get("description_override")
+                        or base_description,
+                        "is_recurring": is_recurring,
+                        "occurrence_date": occurrence["date"].isoformat()
+                        if is_recurring
+                        else None,
+                        "has_exception": occurrence.get("has_exception", False),
                         "parent_id": entry.pk,
+                        "property_id": property_obj.pk,
                     }
                 )
         # Default sort: most recent first

@@ -14,6 +14,7 @@ from property.models import (
     ManagementMandate,
     Property,
     PropertyLedgerEntry,
+    PropertyLedgerEntryException,
     PropertyLoan,
     PropertyLoanSchedule,
     PropertyValue,
@@ -128,6 +129,26 @@ class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
         else:
             lease_field.queryset = Lease.objects.none()
         lease_field.required = False
+
+
+class PropertyLedgerEntryOccurrenceForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for overriding a single occurrence of a recurring ledger entry."""
+
+    class Meta:
+        model = PropertyLedgerEntryException
+        fields = ["amount_override", "description_override", "notes_override"]
+        widgets = {
+            "description_override": forms.TextInput(attrs={"class": "form-control"}),
+            "notes_override": forms.Textarea(
+                attrs={"class": "form-control", "rows": 2}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["amount_override"].required = False
+        self.fields["description_override"].required = False
+        self.fields["notes_override"].required = False
 
 
 # ─── Property ─────────────────────────────────────────────────────────────────

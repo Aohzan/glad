@@ -1,5 +1,7 @@
 """CRUD views for ledger entries, tenants, leases, managers, and mandates."""
 
+import datetime
+
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
@@ -11,12 +13,14 @@ from property.forms import (
     LeaseForm,
     ManagementMandateForm,
     PropertyLedgerEntryEditForm,
+    PropertyLedgerEntryOccurrenceForm,
 )
 from property.models import (
     Lease,
     ManagementMandate,
     Property,
     PropertyLedgerEntry,
+    PropertyLedgerEntryException,
     PropertyValue,
 )
 
@@ -156,6 +160,224 @@ def delete_ledger_entry(
 
     entry.delete()
     messages.success(request, _("Entry deleted successfully."))
+    return HttpResponseRedirect(
+        reverse("property:detail", kwargs={"pk": property_pk}) + "#cashflow-panel"
+    )
+
+
+# ─── Occurrence edit / delete (single occurrence of a recurring entry) ────────
+
+_OCCURRENCE_DATE_FORMAT = "%Y-%m-%d"
+
+RECURRENCE_SCOPE_THIS = "this"
+RECURRENCE_SCOPE_FUTURE = "future"
+RECURRENCE_SCOPE_ALL = "all"
+_VALID_SCOPES = {RECURRENCE_SCOPE_THIS, RECURRENCE_SCOPE_FUTURE, RECURRENCE_SCOPE_ALL}
+
+
+def _parse_occurrence_date(occurrence_date_str: str) -> datetime.date | None:
+    """Parse a YYYY-MM-DD string into a date, returning None on failure."""
+    try:
+        return datetime.datetime.strptime(
+            occurrence_date_str, _OCCURRENCE_DATE_FORMAT
+        ).date()
+    except ValueError:
+        return None
+
+
+def _is_valid_occurrence(
+    entry: PropertyLedgerEntry, occurrence_date: datetime.date
+) -> bool:
+    """Return True if occurrence_date is a real occurrence of the entry."""
+    return any(occ["date"] == occurrence_date for occ in entry.generate_occurrences())
+
+
+def edit_ledger_entry_occurrence(
+    request: HttpRequest,
+    property_pk: int,
+    entry_pk: int,
+    occurrence_date: str,
+) -> HttpResponse:
+    """Edit a single occurrence (or this-and-future) of a recurring ledger entry."""
+    property_obj, response = _get_property_or_redirect(request, property_pk)
+    if response:
+        return response
+    assert property_obj is not None
+
+    entry, response = _get_related_or_redirect(
+        request,
+        model=PropertyLedgerEntry,
+        related_name=str(_("Entry")),
+        object_pk=entry_pk,
+        property_obj=property_obj,
+    )
+    if response:
+        return response
+    assert entry is not None
+
+    occ_date = _parse_occurrence_date(occurrence_date)
+    if occ_date is None or not _is_valid_occurrence(entry, occ_date):
+        messages.error(request, _("Invalid occurrence date."))
+        return redirect("property:detail", pk=property_pk)
+
+    # Load existing exception if any
+    existing_exc = PropertyLedgerEntryException.objects.filter(
+        parent_entry=entry, occurrence_date=occ_date
+    ).first()
+
+    if request.method == "POST":
+        scope = request.POST.get("scope", RECURRENCE_SCOPE_THIS)
+        if scope not in _VALID_SCOPES:
+            messages.error(request, _("Invalid scope."))
+            return redirect("property:detail", pk=property_pk)
+
+        if scope == RECURRENCE_SCOPE_ALL:
+            return redirect(
+                reverse(
+                    "property:edit_entry",
+                    kwargs={"property_pk": property_pk, "entry_pk": entry_pk},
+                )
+            )
+
+        form = PropertyLedgerEntryOccurrenceForm(request.POST, instance=existing_exc)
+        if form.is_valid():
+            if scope == RECURRENCE_SCOPE_THIS:
+                exc = form.save(commit=False)
+                exc.parent_entry = entry
+                exc.occurrence_date = occ_date
+                exc.is_deleted = False
+                exc.save()
+                messages.success(request, _("Occurrence updated successfully."))
+
+            elif scope == RECURRENCE_SCOPE_FUTURE:
+                one_day = datetime.timedelta(days=1)
+                entry.recurrence_end_date = occ_date - one_day
+                entry.save(update_fields=["recurrence_end_date"])
+
+                cleaned = form.cleaned_data
+                new_amount = cleaned.get("amount_override") or entry.amount
+                new_description = (
+                    cleaned.get("description_override")
+                    if cleaned.get("description_override") is not None
+                    else entry.description
+                )
+                new_notes = (
+                    cleaned.get("notes_override")
+                    if cleaned.get("notes_override") is not None
+                    else entry.notes
+                )
+
+                PropertyLedgerEntry.objects.create(
+                    property=property_obj,
+                    lease=entry.lease,
+                    flow_type=entry.flow_type,
+                    amount=new_amount,
+                    entry_date=occ_date,
+                    reference_period=entry.reference_period,
+                    management_category=entry.management_category,
+                    description=new_description,
+                    notes=new_notes,
+                    recurrence_type=entry.recurrence_type,
+                    recurrence_end_date=None,
+                )
+                messages.success(
+                    request, _("Series updated from this occurrence onwards.")
+                )
+
+            return HttpResponseRedirect(
+                reverse("property:detail", kwargs={"pk": property_pk})
+                + "#cashflow-panel"
+            )
+        messages.error(request, _("Please correct the errors below."))
+    else:
+        form = PropertyLedgerEntryOccurrenceForm(instance=existing_exc)
+
+    context = {
+        "property": property_obj,
+        "entry": entry,
+        "occurrence_date": occ_date,
+        "form": form,
+        "scope_this": RECURRENCE_SCOPE_THIS,
+        "scope_future": RECURRENCE_SCOPE_FUTURE,
+        "scope_all": RECURRENCE_SCOPE_ALL,
+    }
+    return render(request, "property/edit_entry_occurrence.html", context)
+
+
+def delete_ledger_entry_occurrence(
+    request: HttpRequest,
+    property_pk: int,
+    entry_pk: int,
+    occurrence_date: str,
+) -> HttpResponse:
+    """Show scope-selection page (GET) or delete a single occurrence (POST)."""
+    property_obj, response = _get_property_or_redirect(request, property_pk)
+    if response:
+        return response
+    assert property_obj is not None
+
+    entry, response = _get_related_or_redirect(
+        request,
+        model=PropertyLedgerEntry,
+        related_name=str(_("Entry")),
+        object_pk=entry_pk,
+        property_obj=property_obj,
+    )
+    if response:
+        return response
+    assert entry is not None
+
+    occ_date = _parse_occurrence_date(occurrence_date)
+    if occ_date is None or not _is_valid_occurrence(entry, occ_date):
+        messages.error(request, _("Invalid occurrence date."))
+        return redirect("property:detail", pk=property_pk)
+
+    if request.method == "GET":
+        context = {
+            "property": property_obj,
+            "entry": entry,
+            "occurrence_date": occ_date,
+            "scope_this": RECURRENCE_SCOPE_THIS,
+            "scope_future": RECURRENCE_SCOPE_FUTURE,
+            "scope_all": RECURRENCE_SCOPE_ALL,
+        }
+        return render(request, "property/delete_entry_occurrence.html", context)
+
+    if request.method != "POST":
+        messages.error(request, _("Invalid request method."))
+        return redirect("property:detail", pk=property_pk)
+
+    scope = request.POST.get("scope", RECURRENCE_SCOPE_THIS)
+    if scope not in _VALID_SCOPES:
+        messages.error(request, _("Invalid scope."))
+        return redirect("property:detail", pk=property_pk)
+
+    if scope == RECURRENCE_SCOPE_ALL:
+        entry.delete()
+        messages.success(request, _("Entry deleted successfully."))
+
+    elif scope == RECURRENCE_SCOPE_THIS:
+        PropertyLedgerEntryException.objects.update_or_create(
+            parent_entry=entry,
+            occurrence_date=occ_date,
+            defaults={
+                "is_deleted": True,
+                "amount_override": None,
+                "description_override": None,
+                "notes_override": None,
+            },
+        )
+        messages.success(request, _("Occurrence deleted successfully."))
+
+    elif scope == RECURRENCE_SCOPE_FUTURE:
+        one_day = datetime.timedelta(days=1)
+        entry.recurrence_end_date = occ_date - one_day
+        entry.save(update_fields=["recurrence_end_date"])
+        PropertyLedgerEntryException.objects.filter(
+            parent_entry=entry, occurrence_date__gte=occ_date
+        ).delete()
+        messages.success(request, _("Series truncated from this occurrence onwards."))
+
     return HttpResponseRedirect(
         reverse("property:detail", kwargs={"pk": property_pk}) + "#cashflow-panel"
     )

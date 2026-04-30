@@ -9,9 +9,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from property.forms import (  # noqa: F401
-    AmortizationAssetForm,
-    AmortizationSetupForm,
+from property.forms import (
+    AmortizationAssetForm,  # noqa: F401
     PropertyReportFilterForm,
 )
 from property.models import AmortizationAsset, AmortizationSetup, Property

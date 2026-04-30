@@ -795,6 +795,18 @@ function formatAmount(amount) {
 }
 
 function buildActionButtons(row) {
+  if (row.is_recurring && row.occurrence_date) {
+    const editUrl = `/property/${row.property_id}/entry/${row.parent_id}/occurrence/${row.occurrence_date}/edit/`;
+    const delUrl  = `/property/${row.property_id}/entry/${row.parent_id}/occurrence/${row.occurrence_date}/delete/`;
+    return `<div class="btn-group btn-group-sm" role="group">
+      <a href="${editUrl}" class="btn btn-outline-secondary" title="${i18n.edit}">
+        <i class="bi bi-pencil"></i>
+      </a>
+      <a href="${delUrl}" class="btn btn-outline-danger" title="${i18n.delete}">
+        <i class="bi bi-trash"></i>
+      </a>
+    </div>`;
+  }
   const editTarget  = `#editEntryModal${row.parent_id}`;
   const delTarget   = `#deleteEntryModal${row.parent_id}`;
   return `<div class="btn-group btn-group-sm" role="group">
@@ -818,14 +830,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const { DataTable } = simpleDatatables;
 
   // Build row data for simple-datatables
-  // Encode parent_id and is_recurring into the actions cell as JSON
+  // Encode parent_id, is_recurring, occurrence_date and property_id into the actions cell as JSON
   const tableRows = allTransactions.map(row => [
     row.date,
     row.kind,
     row.category || '',
     String(row.amount),
     row.description || '',
-    JSON.stringify({ parent_id: row.parent_id, is_recurring: row.is_recurring }),
+    JSON.stringify({ parent_id: row.parent_id, is_recurring: row.is_recurring, occurrence_date: row.occurrence_date, property_id: row.property_id }),
   ]);
 
   const datatable = new DataTable('#transactions-table', {
@@ -898,11 +910,11 @@ document.addEventListener('DOMContentLoaded', function () {
         sortable: false,
         searchable: false,
         render: function(value) {
-          const { parent_id, is_recurring } = JSON.parse(value);
+          const { parent_id, is_recurring, occurrence_date, property_id } = JSON.parse(value);
           const recurIcon = is_recurring
             ? ` <i class="bi bi-arrow-repeat text-primary ms-1" title="${i18n.recurring}"></i>`
             : '';
-          return buildActionButtons({ parent_id }) + recurIcon;
+          return buildActionButtons({ parent_id, is_recurring, occurrence_date, property_id }) + recurIcon;
         }
       }
     ]
