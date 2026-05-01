@@ -85,6 +85,7 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+        always_run: true
 
   - repo: https://github.com/crate-ci/committed
     rev: v1.1.11
