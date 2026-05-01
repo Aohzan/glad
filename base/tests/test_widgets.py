@@ -19,7 +19,7 @@ class TestBootstrapMoneyWidget:
     def test_render_wraps_in_input_group_div(self):
         widget = BootstrapMoneyWidget(default_currency="EUR")
         html = widget.render("price", Money(10, EUR))
-        assert html.startswith('<div class="input-group">')
+        assert html.startswith('<div class="input-group flex-wrap">')
         assert html.endswith("</div>")
 
     def test_render_contains_amount_input(self):
@@ -37,7 +37,7 @@ class TestBootstrapMoneyWidget:
     def test_render_with_none_value_uses_default_currency(self):
         widget = BootstrapMoneyWidget(default_currency="EUR")
         html = widget.render("price", None)
-        assert '<div class="input-group">' in html
+        assert '<div class="input-group flex-wrap">' in html
         # Currency select should still be present
         assert "<select" in html
 
@@ -56,15 +56,15 @@ class TestBootstrapMoneyWidget:
     def test_render_constrains_currency_select_width(self):
         widget = BootstrapMoneyWidget(default_currency="EUR")
         html = widget.render("price", Money(10, EUR))
-        assert "width: 150px" in html
-        assert "flex: 0 0 150px" in html
+        assert "width: 70px" in html
+        assert "flex: 0 0 70px" in html
 
     def test_render_does_not_duplicate_currency_style_on_repeated_calls(self):
         widget = BootstrapMoneyWidget(default_currency="EUR")
         widget.render("price", Money(10, EUR))
         html = widget.render("price", Money(10, EUR))
         # The style string should appear exactly once in the select attrs
-        assert html.count("width: 150px") == 1
+        assert html.count("width: 70px") == 1
 
 
 # ─── MoneyInputGroupMixin ─────────────────────────────────────────────────────
@@ -129,7 +129,7 @@ class TestMoneyInputGroupMixin:
     def test_rendered_output_contains_input_group(self):
         form = _SimpleMoneyForm(initial={"price": Money(100, EUR)})
         html = str(form["price"])
-        assert 'class="input-group"' in html
+        assert 'class="input-group flex-wrap"' in html
 
     def test_mixin_works_with_model_form(self):
         """Smoke-test: MoneyInputGroupMixin applied to a ModelForm instantiates OK."""
