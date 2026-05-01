@@ -36,6 +36,7 @@ class PropertyLedgerEntry(BaseModel):
         MANAGER_REVERSAL = "manager_reversal", _("Manager reversal")
         # ── Deductible expenses (LMNP réel cerfa 2033-B) ─────────────────────
         MANAGEMENT_FEES = "management_fees", _("Management fees")
+        LETTING_FEES = "letting_fees", _("Letting fees")
         OTHER_GENERAL_FEES = "other_general_fees", _("Other general fees")
         COOWNERSHIP = "coownership", _("Co-ownership fees")
         MAINTENANCE = "maintenance", _("Routine maintenance")
