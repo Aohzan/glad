@@ -42,11 +42,11 @@
       <div class="card border-0 bg-body-secondary h-100">
         <div class="card-body py-2 px-3">
           <p class="text-uppercase text-primary small fw-semibold mb-1" style="font-size:.7rem;">
-            {% translate "Monthly cash flow" %}
+            {% translate "Monthly cash flow (12m median)" %}
             <i class="bi bi-info-circle ms-1 text-body-secondary"
                data-bs-toggle="tooltip"
                data-bs-placement="top"
-               title="{% blocktranslate %}Average monthly cashflow over the observation period: total revenues minus expenses and all loan repayments (interest + principal + insurance), divided by the number of months observed.{% endblocktranslate %}"></i>
+               title="{% blocktranslate %}Median monthly cashflow over the last 12 months: for each month, revenues minus expenses and all loan repayments (interest + principal + insurance). The median value is used to reduce the impact of exceptional months.{% endblocktranslate %}"></i>
           </p>
           <p class="fs-5 fw-bold mb-0
             {% if estimated_monthly_cashflow.amount >= 0 %}text-success{% else %}text-danger{% endif %}">

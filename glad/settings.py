@@ -211,11 +211,10 @@ WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID") or _app_hostname or None
 
 STATIC_URL = os.path.join(os.environ.get("SUB_PATH") or "", "static/")
 
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
-if DEBUG:
-    STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",

@@ -1,6 +1,7 @@
 """Property detail dashboard view."""
 
 import datetime
+import statistics
 from decimal import Decimal
 
 from django.contrib import messages
@@ -298,16 +299,17 @@ class PropertyDetailView(DetailView):
         return loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month
 
     def _estimated_monthly_cashflow(self, property_obj: Property) -> Decimal:
-        """Estimate average monthly cashflow from ledger entries and loan costs."""
+        """Estimate monthly cashflow as the median of the last 12 months."""
+        today = datetime.date.today()
+        end_month = month_start(today)
+        start_month = month_start(datetime.date(today.year - 1, today.month, 1))
+
         entries_qs = PropertyLedgerEntry.objects.filter(
             property=property_obj
         ).prefetch_related("exceptions")
         revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
         expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
         loans_qs = PropertyLoan.objects.filter(property=property_obj)
-        start_month, end_month = self._observation_window(
-            property_obj, entries_qs, loans_qs
-        )
 
         revenue_by_month = self._occurrences_by_month(revenues_qs, end_month)
         expense_by_month = self._occurrences_by_month(expenses_qs, end_month)
@@ -316,35 +318,19 @@ class PropertyDetailView(DetailView):
         )
 
         months = iter_month_starts(start_month, end_month)
-        months_observed = max(1, len(months))
+        monthly_cashflows = [
+            revenue_by_month.get((m.year, m.month), Decimal("0"))
+            - expense_by_month.get((m.year, m.month), Decimal("0"))
+            - loan_interest_by_month.get((m.year, m.month), Decimal("0"))
+            - loan_principal_by_month.get((m.year, m.month), Decimal("0"))
+            - loan_insurance_by_month.get((m.year, m.month), Decimal("0"))
+            for m in months
+        ]
 
-        total_revenues = sum(
-            (
-                revenue_by_month.get((month.year, month.month), Decimal("0"))
-                for month in months
-            ),
-            Decimal("0"),
-        )
-        total_expenses = sum(
-            (
-                expense_by_month.get((month.year, month.month), Decimal("0"))
-                for month in months
-            ),
-            Decimal("0"),
-        )
-        total_loan_costs = sum(
-            (
-                loan_interest_by_month.get((month.year, month.month), Decimal("0"))
-                + loan_principal_by_month.get((month.year, month.month), Decimal("0"))
-                + loan_insurance_by_month.get((month.year, month.month), Decimal("0"))
-                for month in months
-            ),
-            Decimal("0"),
-        )
+        if not monthly_cashflows:
+            return Decimal("0")
 
-        return (total_revenues - total_expenses - total_loan_costs) / Decimal(
-            months_observed
-        )
+        return Decimal(str(statistics.median(monthly_cashflows)))
 
     def _build_cashflow_series(
         self,

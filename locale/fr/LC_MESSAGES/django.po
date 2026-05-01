@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-01 22:38+0200\n"
+"POT-Creation-Date: 2026-05-03 12:54+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -1298,23 +1298,23 @@ msgstr "Mandat enregistré."
 msgid "Mandate deleted successfully."
 msgstr "Mandat supprimé avec succès."
 
-#: property/views/detail_views.py:563
+#: property/views/detail_views.py:549
 msgid "Property value added."
 msgstr "Valeur de propriété ajoutée."
 
-#: property/views/detail_views.py:574
+#: property/views/detail_views.py:560
 msgid "Unable to add property value."
 msgstr "Impossible d'ajouter la valeur de propriété."
 
-#: property/views/detail_views.py:587
+#: property/views/detail_views.py:573
 msgid "Entry added."
 msgstr "Écriture ajoutée."
 
-#: property/views/detail_views.py:598
+#: property/views/detail_views.py:584
 msgid "Unable to add entry."
 msgstr "Impossible d'ajouter l'écriture."
 
-#: property/views/detail_views.py:602
+#: property/views/detail_views.py:588
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 
@@ -2347,18 +2347,19 @@ msgid "Edit"
 msgstr "Modifier"
 
 #: templates/property/detail.html:45
-msgid "Monthly cash flow"
-msgstr "Flux de trésorerie mensuel"
+msgid "Monthly cash flow (12m median)"
+msgstr "Flux de trésorerie mensuel (médiane 12 mois)"
 
 #: templates/property/detail.html:49
 msgid ""
-"Average monthly cashflow over the observation period: total revenues minus "
-"expenses and all loan repayments (interest + principal + insurance), divided "
-"by the number of months observed."
+"Median monthly cashflow over the last 12 months: for each month, revenues "
+"minus expenses and all loan repayments (interest + principal + insurance). "
+"The median value is used to reduce the impact of exceptional months."
 msgstr ""
-"Flux de trésorerie mensuel moyen sur la période d'observation : revenus "
-"totaux moins charges et remboursements de prêt (intérêts + capital + "
-"assurance), divisé par le nombre de mois observés."
+"Médiane du flux de trésorerie mensuel sur les 12 derniers mois : pour chaque "
+"mois, revenus moins charges et remboursements de prêt (intérêts + capital + "
+"assurance). La valeur médiane est utilisée pour réduire l'impact des mois "
+"exceptionnels."
 
 #: templates/property/detail.html:62 templates/property/index.html:58
 msgid "Current value"

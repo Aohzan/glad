@@ -26,6 +26,10 @@
       "to": "static/vendors/bootstrap/bootstrap.min.css"
     },
     {
+      "from": "node_modules/bootstrap/dist/css/bootstrap.min.css.map",
+      "to": "static/vendors/bootstrap/bootstrap.min.css.map"
+    },
+    {
       "from": "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
       "to": "static/vendors/bootstrap/bootstrap.bundle.min.js"
     },
@@ -86,8 +90,16 @@
       "to": "static/vendors/tom-select/tom-select.bootstrap5.min.css"
     },
     {
+      "from": "node_modules/tom-select/dist/css/tom-select.bootstrap5.min.css.map",
+      "to": "static/vendors/tom-select/tom-select.bootstrap5.min.css.map"
+    },
+    {
       "from": "node_modules/tom-select/dist/js/tom-select.complete.min.js",
       "to": "static/vendors/tom-select/tom-select.complete.min.js"
+    },
+    {
+      "from": "node_modules/tom-select/dist/js/tom-select.complete.min.js.map",
+      "to": "static/vendors/tom-select/tom-select.complete.min.js.map"
     },
     {
       "from": "node_modules/multi-select-dropdown-js/MultiSelect.min.css",
