@@ -69,11 +69,15 @@ class PropertyLedgerEntry(BaseModel):
 
         NONE = "none", _("None")
         MONTHLY = "monthly", _("Monthly")
+        QUARTERLY = "quarterly", _("Quarterly")
+        BIANNUAL = "biannual", _("Biannual")
         YEARLY = "yearly", _("Yearly")
 
     # Backward-compatible aliases (used in generate_occurrences and tests)
     NONE = RecurrenceType.NONE
     MONTHLY = RecurrenceType.MONTHLY
+    QUARTERLY = RecurrenceType.QUARTERLY
+    BIANNUAL = RecurrenceType.BIANNUAL
     YEARLY = RecurrenceType.YEARLY
     RECURRENCE_TYPE_CHOICES = RecurrenceType.choices
 
@@ -200,6 +204,8 @@ class PropertyLedgerEntry(BaseModel):
             recurrence_type=self.recurrence_type,
             recurrence_none=self.NONE,
             recurrence_monthly=self.MONTHLY,
+            recurrence_quarterly=self.QUARTERLY,
+            recurrence_biannual=self.BIANNUAL,
             recurrence_yearly=self.YEARLY,
             recurrence_end_date=self.recurrence_end_date,
             end_date=end_date,

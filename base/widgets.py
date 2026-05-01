@@ -5,7 +5,7 @@ from djmoney.forms.widgets import MoneyWidget
 
 # Maximum width for the currency <select> inside the input-group.
 # Keeps the amount input dominant and the currency selector compact.
-_CURRENCY_SELECT_STYLE = "width: 150px; flex: 0 0 150px; min-width: 0;"
+_CURRENCY_SELECT_STYLE = "width: 70px; flex: 0 0 70px; min-width: 0;"
 
 
 class BootstrapMoneyWidget(MoneyWidget):
@@ -29,6 +29,6 @@ class BootstrapMoneyWidget(MoneyWidget):
             )
         rendered = super().render(name, value, attrs, renderer=renderer)
         return format_html(
-            '<div class="input-group">{}</div>',
+            '<div class="input-group flex-wrap">{}</div>',
             rendered,
         )

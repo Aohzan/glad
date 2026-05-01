@@ -138,6 +138,45 @@ def test_generate_recurring_occurrences_yearly_path():
     ]
 
 
+def test_generate_recurring_occurrences_quarterly():
+    quarterly = generate_recurring_occurrences(
+        start_date=datetime.date(2025, 1, 31),
+        amount=Money(100, "EUR"),
+        recurrence_type="quarterly",
+        recurrence_none="none",
+        recurrence_monthly="monthly",
+        recurrence_quarterly="quarterly",
+        recurrence_yearly="yearly",
+        end_date=datetime.date(2025, 12, 31),
+    )
+    assert [item["date"] for item in quarterly] == [
+        datetime.date(2025, 1, 31),
+        datetime.date(2025, 4, 30),
+        datetime.date(2025, 7, 30),
+        datetime.date(2025, 10, 30),
+    ]
+    assert all(item["is_recurring"] for item in quarterly)
+
+
+def test_generate_recurring_occurrences_biannual():
+    biannual = generate_recurring_occurrences(
+        start_date=datetime.date(2025, 1, 31),
+        amount=Money(100, "EUR"),
+        recurrence_type="biannual",
+        recurrence_none="none",
+        recurrence_monthly="monthly",
+        recurrence_biannual="biannual",
+        recurrence_yearly="yearly",
+        end_date=datetime.date(2026, 1, 31),
+    )
+    assert [item["date"] for item in biannual] == [
+        datetime.date(2025, 1, 31),
+        datetime.date(2025, 7, 31),
+        datetime.date(2026, 1, 31),
+    ]
+    assert all(item["is_recurring"] for item in biannual)
+
+
 def test_calculate_monthly_payment_standard_french_amortization():
     """Test standard French amortization formula: 200k at 3.5% over 240 months."""
     monthly_pi, monthly_ins, total = calculate_monthly_payment(

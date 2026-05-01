@@ -246,6 +246,32 @@ class TestPropertyLedgerEntryGenerateOccurrences:
         occurrences = entry.generate_occurrences()
         assert len(occurrences) == 3  # 2021, 2022, 2023
 
+    def test_quarterly_recurring_generates_multiple(self, property_obj):
+        entry = PropertyLedgerEntry.objects.create(
+            property=property_obj,
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.INSURANCE,
+            amount=Money(Decimal("200.00"), "EUR"),
+            entry_date=datetime.date(2025, 1, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.QUARTERLY,
+            recurrence_end_date=datetime.date(2025, 12, 31),
+        )
+        occurrences = entry.generate_occurrences()
+        assert len(occurrences) == 4  # Jan, Apr, Jul, Oct
+
+    def test_biannual_recurring_generates_multiple(self, property_obj):
+        entry = PropertyLedgerEntry.objects.create(
+            property=property_obj,
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.INSURANCE,
+            amount=Money(Decimal("400.00"), "EUR"),
+            entry_date=datetime.date(2025, 1, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.BIANNUAL,
+            recurrence_end_date=datetime.date(2025, 12, 31),
+        )
+        occurrences = entry.generate_occurrences()
+        assert len(occurrences) == 2  # Jan, Jul
+
 
 @pytest.mark.django_db
 class TestPropertyLedgerEntryAliases:
@@ -254,6 +280,17 @@ class TestPropertyLedgerEntryAliases:
 
     def test_monthly_alias(self):
         assert PropertyLedgerEntry.MONTHLY == PropertyLedgerEntry.RecurrenceType.MONTHLY
+
+    def test_quarterly_alias(self):
+        assert (
+            PropertyLedgerEntry.QUARTERLY
+            == PropertyLedgerEntry.RecurrenceType.QUARTERLY
+        )
+
+    def test_biannual_alias(self):
+        assert (
+            PropertyLedgerEntry.BIANNUAL == PropertyLedgerEntry.RecurrenceType.BIANNUAL
+        )
 
     def test_yearly_alias(self):
         assert PropertyLedgerEntry.YEARLY == PropertyLedgerEntry.RecurrenceType.YEARLY

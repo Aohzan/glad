@@ -14,6 +14,8 @@ def generate_recurring_occurrences(
     recurrence_type: str,
     recurrence_none: str,
     recurrence_monthly: str,
+    recurrence_quarterly: str | None = None,
+    recurrence_biannual: str | None = None,
     recurrence_yearly: str,
     recurrence_end_date: datetime.date | None = None,
     end_date: datetime.date | None = None,
@@ -34,10 +36,12 @@ def generate_recurring_occurrences(
     max_date = min(candidates) if candidates else datetime.date.today()
 
     # Only process recurring types if valid
-    is_valid_recurrence = recurrence_type in (
-        recurrence_monthly,
-        recurrence_yearly,
-    )
+    valid_types = {recurrence_monthly, recurrence_yearly}
+    if recurrence_quarterly:
+        valid_types.add(recurrence_quarterly)
+    if recurrence_biannual:
+        valid_types.add(recurrence_biannual)
+    is_valid_recurrence = recurrence_type in valid_types
 
     while current <= max_date:
         occurrences.append(
@@ -50,6 +54,12 @@ def generate_recurring_occurrences(
 
         if recurrence_type == recurrence_monthly:
             current = add_months_safe(current, 1)
+            continue
+        if recurrence_quarterly and recurrence_type == recurrence_quarterly:
+            current = add_months_safe(current, 3)
+            continue
+        if recurrence_biannual and recurrence_type == recurrence_biannual:
+            current = add_months_safe(current, 6)
             continue
         if recurrence_type == recurrence_yearly:
             current = add_years_safe(current, 1)
