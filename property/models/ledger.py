@@ -47,6 +47,7 @@ class PropertyLedgerEntry(BaseModel):
         MISC_DEDUCTIBLE = "misc_deductible", _("Miscellaneous deductible")
         LOAN_INTEREST = "loan_interest", _("Loan interest")
         LOAN_INSURANCE = "loan_insurance", _("Loan insurance")
+        RENTAL_GUARANTEE = "rental_guarantee", _("Rental guarantee")
         # ── Off tax result ────────────────────────────────────────────────────
         LOAN_REPAYMENT = "loan_repayment", _("Loan capital repayment")
         DEPOSIT_OUT = "deposit_out", _("Deposit returned")
