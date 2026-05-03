@@ -11,6 +11,7 @@ from property.views.crud_views import (
     edit_ledger_entry_occurrence,
     edit_mandate,
 )
+from property.views.csv_views import csv_import, csv_import_confirm
 from property.views.detail_views import PropertyDetailView
 from property.views.edit_views import (
     create_property,
@@ -18,7 +19,7 @@ from property.views.edit_views import (
     manage_property_loans,
 )
 from property.views.fiscal_views import (
-    accounting_dashboard,
+    accounting_lmnp_reel,
     create_amortization_asset,
     delete_amortization_asset,
     edit_amortization_asset,
@@ -42,10 +43,12 @@ __all__ = [
     "delete_lease",
     "edit_mandate",
     "delete_mandate",
-    "accounting_dashboard",
+    "accounting_lmnp_reel",
     "report_view",
     "initialize_amortization",
     "create_amortization_asset",
     "edit_amortization_asset",
     "delete_amortization_asset",
+    "csv_import",
+    "csv_import_confirm",
 ]

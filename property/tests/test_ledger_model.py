@@ -36,7 +36,8 @@ def income_entry(property_obj):
 class TestPropertyLedgerEntryStr:
     def test_str_non_recurring(self, income_entry):
         result = str(income_entry)
-        assert "Test Property" in result
+        assert "Rent collected" in result
+        assert "1,200.00" in result
         assert "2023-03-01" in result
 
     def test_str_recurring_monthly(self, property_obj):
@@ -49,7 +50,8 @@ class TestPropertyLedgerEntryStr:
             recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
         )
         result = str(entry)
-        assert "Test Property" in result
+        assert "Rent collected" in result
+        assert "1,200.00" in result
         assert "Monthly" in result or "monthly" in result.lower()
 
     def test_str_recurring_yearly(self, property_obj):
@@ -62,7 +64,8 @@ class TestPropertyLedgerEntryStr:
             recurrence_type=PropertyLedgerEntry.RecurrenceType.YEARLY,
         )
         result = str(entry)
-        assert "Test Property" in result
+        assert "Property tax" in result
+        assert "500.00" in result
         assert "Yearly" in result or "yearly" in result.lower()
 
 

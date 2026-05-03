@@ -74,7 +74,7 @@ class AmortizationAssetInline(admin.TabularInline):
     readonly_fields = ("created_at", "updated_at")
     fields = (
         "label",
-        "acquisition_date",
+        "beginning_date",
         "value_total",
         "duration_years",
         "is_initial_component",
@@ -197,7 +197,7 @@ class AmortizationAssetAdmin(admin.ModelAdmin):
     list_display = (
         "property",
         "label",
-        "acquisition_date",
+        "beginning_date",
         "value_total",
         "duration_years",
         "is_initial_component",

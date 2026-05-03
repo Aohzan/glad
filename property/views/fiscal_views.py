@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from property.forms import (
     AmortizationAssetForm,  # noqa: F401
+    AmortizationInitForm,
     PropertyReportFilterForm,
 )
 from property.models import AmortizationAsset, AmortizationSetup, Property
@@ -39,17 +40,43 @@ def get_amortization_context(property_obj: Property) -> dict:
 
     schedule_data = get_amortization_schedule(property_obj.pk)
 
+    # Compute default acquisition fees for the init form
+    from decimal import Decimal
+
+    acquisition_fees_total = Decimal("0")
+    acquisition_fees_breakdown: dict[str, Decimal] = {}
+    for attr, label in (
+        ("notary_fees", _("Notary fees")),
+        ("agency_fees", _("Agency fees")),
+        ("other_fees", _("Other fees")),
+    ):
+        fee = getattr(property_obj, attr, None)
+        if fee is not None:
+            amount = fee.amount if hasattr(fee, "amount") else Decimal(str(fee))
+            if amount:
+                acquisition_fees_breakdown[str(label)] = amount
+                acquisition_fees_total += amount
+
+    amortization_init_form = AmortizationInitForm(
+        initial={"extra_amount": acquisition_fees_total}
+    )
+
     return {
         "amortization_table": amortization_table,
         "amortization_setup": amortization_setup,
         "has_assets": assets_qs.exists(),
-        "amortization_form": AmortizationAssetForm(),
+        "amortization_form": AmortizationAssetForm(property_obj=property_obj),
         "amortization_total_base": schedule_data["total_depreciable_base"],
         "amortization_amortized": schedule_data["amortized_to_date"],
         "amortization_remaining": schedule_data["remaining"],
         "amortization_end_year": schedule_data["end_year"],
+        "amortization_current_year": current_year,
+        "amortization_schedule": schedule_data["rows"],
         "amortization_schedule_json": schedule_data["rows"],
         "amortization_asset_series_json": schedule_data["asset_series"],
+        "amortization_init_form": amortization_init_form,
+        "acquisition_fees_breakdown": acquisition_fees_breakdown,
+        "acquisition_fees_total": acquisition_fees_total,
     }
 
 
@@ -59,28 +86,51 @@ def get_amortization_context(property_obj: Property) -> dict:
 def initialize_amortization(request: HttpRequest, pk: int) -> HttpResponse:
     """Initialize the standard LMNP amortization components in one click (POST only).
 
-    Creates an AmortizationSetup using the property's current net value and
-    land_percentage=15%, then calls initialize_components() to generate the
-    five standard LMNP assets.
+    Creates an AmortizationSetup using the property's buying_value optionally
+    increased by acquisition fees (notary, agency, other), then calls
+    initialize_components() to generate the five standard LMNP assets.
     """
+    from decimal import Decimal
+
+    from moneyed import Money
+
     property_obj = get_object_or_404(Property, pk=pk)
 
     if request.method == "POST":
-        try:
-            setup = property_obj.amortization_setup  # ty: ignore[unresolved-attribute]
-        except AmortizationSetup.DoesNotExist:
-            net = property_obj.buying_value
-            setup = AmortizationSetup(
-                property=property_obj,
-                total_value=net,
-                land_percentage=15,
+        form = AmortizationInitForm(request.POST)
+        if form.is_valid():
+            extra_amount = form.cleaned_data["extra_amount"]
+            land_percentage = form.cleaned_data["land_percentage"]
+
+            currency = str(property_obj.currency)
+            base_amount = (
+                property_obj.buying_value.amount
+                if hasattr(property_obj.buying_value, "amount")
+                else Decimal(str(property_obj.buying_value))
             )
-            setup.save()
+            total_value = Money(base_amount + extra_amount, currency)
 
-        setup.initialize_components()
-        messages.success(request, _("Default amortization components initialized."))
+            try:
+                setup = property_obj.amortization_setup  # ty: ignore[unresolved-attribute]
+                setup.total_value = total_value
+                setup.land_percentage = land_percentage
+                setup.save()
+            except AmortizationSetup.DoesNotExist:
+                setup = AmortizationSetup(
+                    property=property_obj,
+                    total_value=total_value,
+                    land_percentage=land_percentage,
+                )
+                setup.save()
 
-    return redirect(reverse("property:detail", kwargs={"pk": pk}) + "#amortization")
+            setup.initialize_components()
+            messages.success(request, _("Default amortization components initialized."))
+        else:
+            messages.error(request, _("Invalid form data. Please check the values."))
+
+    return redirect(
+        reverse("property:detail", kwargs={"pk": pk}) + "#amortization-panel"
+    )
 
 
 # ─── Amortization asset CRUD ─────────────────────────────────────────────────
@@ -91,7 +141,7 @@ def create_amortization_asset(request: HttpRequest, property_pk: int) -> HttpRes
     property_obj = get_object_or_404(Property, pk=property_pk)
 
     if request.method == "POST":
-        form = AmortizationAssetForm(request.POST)
+        form = AmortizationAssetForm(request.POST, property_obj=property_obj)
         if form.is_valid():
             asset = form.save(commit=False)
             asset.property = property_obj
@@ -99,10 +149,11 @@ def create_amortization_asset(request: HttpRequest, property_pk: int) -> HttpRes
             asset.save()
             messages.success(request, _("Immobilisation created successfully."))
             return redirect(
-                reverse("property:detail", kwargs={"pk": property_pk}) + "#amortization"
+                reverse("property:detail", kwargs={"pk": property_pk})
+                + "#amortization-panel"
             )
     else:
-        form = AmortizationAssetForm()
+        form = AmortizationAssetForm(property_obj=property_obj)
 
     return render(
         request,
@@ -119,15 +170,18 @@ def edit_amortization_asset(
     asset = get_object_or_404(AmortizationAsset, pk=asset_pk, property=property_obj)
 
     if request.method == "POST":
-        form = AmortizationAssetForm(request.POST, instance=asset)
+        form = AmortizationAssetForm(
+            request.POST, instance=asset, property_obj=property_obj
+        )
         if form.is_valid():
             form.save()
             messages.success(request, _("Immobilisation updated successfully."))
             return redirect(
-                reverse("property:detail", kwargs={"pk": property_pk}) + "#amortization"
+                reverse("property:detail", kwargs={"pk": property_pk})
+                + "#amortization-panel"
             )
     else:
-        form = AmortizationAssetForm(instance=asset)
+        form = AmortizationAssetForm(instance=asset, property_obj=property_obj)
 
     return render(
         request,
@@ -148,14 +202,14 @@ def delete_amortization_asset(
         messages.success(request, _("Immobilisation deleted."))
 
     return redirect(
-        reverse("property:detail", kwargs={"pk": property_pk}) + "#amortization"
+        reverse("property:detail", kwargs={"pk": property_pk}) + "#amortization-panel"
     )
 
 
 # ─── Global accounting dashboard ─────────────────────────────────────────────
 
 
-def accounting_dashboard(request: HttpRequest) -> HttpResponse:
+def accounting_lmnp_reel(request: HttpRequest) -> HttpResponse:
     """Global accounting dashboard aggregating all LMNP réel properties.
 
     Displays the full LMNP fiscal package: 2033-A/B/C, 2031, 2031-BIS, 2042-C PRO.
@@ -180,7 +234,7 @@ def accounting_dashboard(request: HttpRequest) -> HttpResponse:
         "lmnp_properties": lmnp_properties,
         "accounting": accounting,
     }
-    return render(request, "property/accounting_dashboard.html", context)
+    return render(request, "property/accounting_lmnp_reel.html", context)
 
 
 # ─── Income & expenses report ─────────────────────────────────────────────────

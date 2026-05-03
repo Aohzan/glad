@@ -250,7 +250,7 @@ class TestGetFiscalDeficitHistory:
         AmortizationAsset.objects.create(
             property=prop,
             label="Structure",
-            acquisition_date=datetime.date(2022, 1, 1),
+            beginning_date=datetime.date(2022, 1, 1),
             value_total=Money(80000, "EUR"),
             duration_years=75,
         )
@@ -338,7 +338,7 @@ class TestGetAmortizationSchedule:
         AmortizationAsset.objects.create(
             property=prop,
             label="Gros œuvre",
-            acquisition_date=datetime.date(2020, 1, 1),
+            beginning_date=datetime.date(2020, 1, 1),
             value_total=Money(170000, "EUR"),
             duration_years=75,
         )
@@ -358,7 +358,7 @@ class TestGetAmortizationSchedule:
         AmortizationAsset.objects.create(
             property=prop,
             label="Agencements",
-            acquisition_date=datetime.date(2022, 1, 1),
+            beginning_date=datetime.date(2022, 1, 1),
             value_total=Money(10000, "EUR"),
             duration_years=12,
         )
@@ -380,7 +380,7 @@ class TestGetAmortizationSchedule:
         AmortizationAsset.objects.create(
             property=prop,
             label="Étanchéité",
-            acquisition_date=datetime.date(2022, 1, 1),
+            beginning_date=datetime.date(2022, 1, 1),
             value_total=Money(5000, "EUR"),
             duration_years=15,
         )

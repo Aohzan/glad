@@ -1,16 +1,20 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}
   {% if is_create %}{% translate "Add immobilisation" %}{% else %}{% translate "Edit immobilisation" %}{% endif %}
   — {{ property.name }}
 {% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-4" style="max-width: 680px;">
+<div class="container py-4" style="max-width: 880px;">
 
   <div class="d-flex align-items-center gap-2 mb-4">
-    <a href="{% url 'property:detail' property.pk %}#amortization" class="btn btn-sm btn-outline-secondary">
+    <a href="{% url 'property:detail' property.pk %}#amortization-panel" class="btn btn-sm btn-outline-secondary">
       <i class="bi bi-arrow-left me-1"></i>{{ property.name }}
     </a>
     <h1 class="h4 mb-0 ms-1">
@@ -48,19 +52,20 @@
           </div>
 
           <div class="col-md-6">
-            <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">
-              {{ form.category.label }}
+            <label for="{{ form.cerfa_category.id_for_label }}" class="form-label fw-semibold">
+              {{ form.cerfa_category.label }}
             </label>
-            {{ form.category }}
-            {% if form.category.errors %}<div class="invalid-feedback d-block">{{ form.category.errors }}</div>{% endif %}
+            {{ form.cerfa_category }}
+            {% if form.cerfa_category.errors %}<div class="invalid-feedback d-block">{{ form.cerfa_category.errors }}</div>{% endif %}
+            <div class="form-text">{% translate "Used for cerfa 2033-C grouping." %}</div>
           </div>
 
           <div class="col-md-6">
-            <label for="{{ form.acquisition_date.id_for_label }}" class="form-label fw-semibold">
-              {{ form.acquisition_date.label }}
+            <label for="{{ form.beginning_date.id_for_label }}" class="form-label fw-semibold">
+              {{ form.beginning_date.label }}
             </label>
-            {{ form.acquisition_date }}
-            {% if form.acquisition_date.errors %}<div class="invalid-feedback d-block">{{ form.acquisition_date.errors }}</div>{% endif %}
+            {{ form.beginning_date }}
+            {% if form.beginning_date.errors %}<div class="invalid-feedback d-block">{{ form.beginning_date.errors }}</div>{% endif %}
           </div>
 
           <div class="col-md-6">
@@ -77,9 +82,93 @@
             </label>
             {{ form.duration_years }}
             {% if form.duration_years.errors %}<div class="invalid-feedback d-block">{{ form.duration_years.errors }}</div>{% endif %}
-            <div class="form-text" id="duration-hint"></div>
           </div>
 
+          <div class="col-12">
+            <label for="{{ form.notes.id_for_label }}" class="form-label fw-semibold">
+              {{ form.notes.label }}
+            </label>
+            {{ form.notes }}
+            {% if form.notes.errors %}<div class="invalid-feedback d-block">{{ form.notes.errors }}</div>{% endif %}
+          </div>
+
+          <div class="col-12">
+            <label for="{{ form.source_transactions.id_for_label }}" class="form-label fw-semibold">
+              {{ form.source_transactions.label }}
+            </label>
+            {{ form.source_transactions }}
+            {% if form.source_transactions.errors %}<div class="invalid-feedback d-block">{{ form.source_transactions.errors }}</div>{% endif %}
+            <div class="form-text">{% translate "Optional. Link to the expense transaction for this asset to prevent double-counting in the tax summary." %}</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    {# ── LMNP reference durations ─────────────────────────────────────────── #}
+    <div class="card mb-3 border-info-subtle">
+      <div class="card-header py-2 bg-info-subtle">
+        <a class="text-decoration-none fw-semibold small text-info-emphasis d-flex align-items-center gap-1"
+           data-bs-toggle="collapse" href="#lmnpDurationRef" role="button" aria-expanded="false" aria-controls="lmnpDurationRef">
+          <i class="bi bi-info-circle me-1"></i>{% translate "Reference durations (LMNP réel)" %}
+          <i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+      </div>
+      <div class="collapse" id="lmnpDurationRef">
+        <div class="card-body py-2 small">
+          <div class="row g-3">
+
+            <div class="col-6 col-md-3">
+              <p class="fw-semibold text-body-secondary text-uppercase mb-1" style="font-size:.7rem;">
+                {% translate "Terrains" %}
+              </p>
+              <ul class="list-unstyled mb-0">
+                <li class="text-muted fst-italic">{% translate "Non depreciable" %}</li>
+              </ul>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <p class="fw-semibold text-body-secondary text-uppercase mb-1" style="font-size:.7rem;">
+                {% translate "Constructions" %}
+              </p>
+              <ul class="list-unstyled mb-0">
+                <li>{% translate "Gros œuvre" %} — <strong>55–80 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Toiture" %} — <strong>25 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Étanchéité" %} — <strong>15–25 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Maçonnerie" %} — <strong>15 {% translate "yrs" %}</strong></li>
+              </ul>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <p class="fw-semibold text-body-secondary text-uppercase mb-1" style="font-size:.7rem;">
+                {% translate "Installations générales" %}
+              </p>
+              <ul class="list-unstyled mb-0">
+                <li>{% translate "Installations électriques" %} — <strong>20–30 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Ascenseurs" %} — <strong>15 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Aménagements intérieurs" %} — <strong>12–15 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Aménagements extérieurs" %} — <strong>15 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Plomberie" %} — <strong>10–15 {% translate "yrs" %}</strong></li>
+              </ul>
+            </div>
+
+            <div class="col-6 col-md-3">
+              <p class="fw-semibold text-body-secondary text-uppercase mb-1" style="font-size:.7rem;">
+                {% translate "Autres immobilisations corporelles" %}
+              </p>
+              <ul class="list-unstyled mb-0">
+                <li>{% translate "Meubles" %} — <strong>10 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Parquets / revêtements" %} — <strong>10–15 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Cuisine équipée" %} — <strong>10 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Peintures / papiers peints" %} — <strong>10 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Matériel électrique" %} — <strong>8 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Literie" %} — <strong>6 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Électroménager" %} — <strong>5 {% translate "yrs" %}</strong></li>
+                <li>{% translate "Matériel informatique" %} — <strong>3 {% translate "yrs" %}</strong></li>
+              </ul>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
@@ -88,45 +177,28 @@
       <button type="submit" class="btn btn-primary">
         <i class="bi bi-check-lg me-1"></i>{% translate "Save" %}
       </button>
-      <a href="{% url 'property:detail' property.pk %}#amortization" class="btn btn-outline-secondary">
+      <a href="{% url 'property:detail' property.pk %}#amortization-panel" class="btn btn-outline-secondary">
         {% translate "Cancel" %}
       </a>
     </div>
   </form>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.js' %}"></script>
 <script>
-  const DURATIONS = {
-    "structure": 75,
-    "electrical": 30,
-    "waterproofing": 25,
-    "roof": 25,
-    "fittings": 12,
-    "immobilisation": 10,
-  };
-  const catSelect = document.getElementById("id_amort_category");
-  const durInput = document.getElementById("id_amort_duration");
-  const hint = document.getElementById("duration-hint");
-
-  function updateDurationHint() {
-    const cat = catSelect ? catSelect.value : "";
-    const rec = DURATIONS[cat];
-    if (rec && hint) {
-      hint.textContent = "{% translate 'Recommended:' %} " + rec + " {% translate 'years' %}";
-    } else if (hint) {
-      hint.textContent = "";
-    }
-  }
-
-  if (catSelect) {
-    catSelect.addEventListener("change", function () {
-      const rec = DURATIONS[this.value];
-      if (rec && durInput && !durInput.value) {
-        durInput.value = rec;
-      }
-      updateDurationHint();
+  document.addEventListener('DOMContentLoaded', function() {
+    const sourceTransactions = document.getElementById('{{ form.source_transactions.id_for_label }}');
+    new MultiSelect('#{{ form.source_transactions.id_for_label }}', {
+      placeholder: '{% translate "Choose related transaction(s)" %}',
+      search: true,
+      selectAll: false,
+      listAll: false,
+      closeListOnItemSelect: false,
+      required: false,
     });
-    updateDurationHint();
-  }
+  });
 </script>
 {% endblock %}

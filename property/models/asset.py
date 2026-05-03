@@ -287,7 +287,11 @@ class Property(BaseModel):
     )
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255, null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Whether this property is currently owned (e.g. not sold)."),
+    )
     buying_value = MoneyField(
         max_digits=10,
         decimal_places=0,
@@ -308,7 +312,7 @@ class Property(BaseModel):
         null=True,
         blank=True,
         verbose_name=_("Agency fees"),
-        help_text=_("Real estate agency fees paid at the time of purchase."),
+        help_text=_("Intermediary fees (agencies, headhunters, etc.)."),
     )
     other_fees = MoneyField(
         max_digits=10,
@@ -614,7 +618,7 @@ class AmortizationSetup(BaseModel):
     def initialize_components(self) -> list["AmortizationAsset"]:
         """Create the standard LMNP amortization components for this setup.
 
-        Uses the property buying_date as acquisition_date.  Only the
+        Uses the property buying_date as beginning_date.  Only the
         depreciable share (100 - land_percentage) is split across components.
         Existing initial components are deleted before new ones are created.
         """
@@ -623,7 +627,7 @@ class AmortizationSetup(BaseModel):
         ).delete()
 
         currency = str(self.total_value.currency)
-        acquisition_date = self.property.buying_date
+        buying_date = self.property.buying_date
         created: list[AmortizationAsset] = []
 
         for comp in self.STANDARD_COMPONENTS:
@@ -634,7 +638,7 @@ class AmortizationSetup(BaseModel):
             asset = AmortizationAsset(
                 property=self.property,
                 label=comp["label"],
-                acquisition_date=acquisition_date,
+                beginning_date=buying_date,
                 value_total=Money(component_value.quantize(Decimal("0.01")), currency),
                 duration_years=comp["duration"],
                 is_initial_component=True,
@@ -663,7 +667,7 @@ class AmortizationAsset(BaseModel):
         verbose_name_plural = _("immobilisations")
         ordering = ["label"]
         indexes = [
-            models.Index(fields=["property", "acquisition_date"]),
+            models.Index(fields=["property", "beginning_date"]),
         ]
 
     property = models.ForeignKey(
@@ -677,9 +681,9 @@ class AmortizationAsset(BaseModel):
         verbose_name=_("Label"),
         help_text=_("Description of the asset, e.g. 'Toiture', 'Cuisine équipée'."),
     )
-    acquisition_date = models.DateField(
-        verbose_name=_("Acquisition date"),
-        help_text=_("Date the asset was acquired or placed in service."),
+    beginning_date = models.DateField(
+        verbose_name=_("Beginning date"),
+        help_text=_("Date of the beginning of the asset's useful life."),
     )
     value_total = MoneyField(
         max_digits=12,
@@ -719,6 +723,22 @@ class AmortizationAsset(BaseModel):
             "installations générales, or autres immobilisations corporelles."
         ),
     )
+    notes = models.TextField(
+        blank=True,
+        default="",
+        verbose_name=_("Notes"),
+        help_text=_("Optional free-text notes about this asset."),
+    )
+    source_transactions = models.ManyToManyField(
+        "property.PropertyLedgerEntry",
+        blank=True,
+        related_name="capitalized_as",
+        verbose_name=_("Source transactions"),
+        help_text=_(
+            "Ledger entries recording the payment(s) for this asset. "
+            "Linked transactions are excluded from deductible charges to avoid double-counting."
+        ),
+    )
 
     def __str__(self) -> str:
         return f"{self.property.name} — {self.label}"
@@ -738,10 +758,10 @@ class AmortizationAsset(BaseModel):
         and in the last year.  Returns Decimal("0") for years outside the
         asset's useful life.
         """
-        if self.acquisition_date is None or self.duration_years is None:
+        if self.beginning_date is None or self.duration_years is None:
             return Decimal("0")
 
-        start_year = self.acquisition_date.year
+        start_year = self.beginning_date.year
         end_year = (
             start_year + self.duration_years
         )  # exclusive: fully amortized at start of end_year
@@ -756,7 +776,7 @@ class AmortizationAsset(BaseModel):
 
         if year == start_year and year == end_year - 1:
             # Single-year asset: prorata = months in service / 12
-            months_in_service = Decimal(13 - self.acquisition_date.month)
+            months_in_service = Decimal(13 - self.beginning_date.month)
             return (annual * months_in_service / Decimal("12")).quantize(
                 Decimal("0.01")
             )
@@ -764,14 +784,14 @@ class AmortizationAsset(BaseModel):
         if year == start_year:
             # First year: prorata temporis from acquisition month
             # Convention: month of acquisition counts as full month
-            months_in_service = Decimal(13 - self.acquisition_date.month)
+            months_in_service = Decimal(13 - self.beginning_date.month)
             return (annual * months_in_service / Decimal("12")).quantize(
                 Decimal("0.01")
             )
 
         if year == end_year - 1:
             # Last year: complement of first-year prorata
-            months_first_year = Decimal(13 - self.acquisition_date.month)
+            months_first_year = Decimal(13 - self.beginning_date.month)
             months_last_year = Decimal("12") - months_first_year
             if months_last_year <= Decimal("0"):
                 return Decimal("0")
@@ -781,9 +801,9 @@ class AmortizationAsset(BaseModel):
 
     def cumulative_amortization(self, up_to_year: int) -> Decimal:
         """Return the sum of all annual amortizations from acquisition year to up_to_year (inclusive)."""
-        if self.acquisition_date is None:
+        if self.beginning_date is None:
             return Decimal("0")
         total = Decimal("0")
-        for y in range(self.acquisition_date.year, up_to_year + 1):
+        for y in range(self.beginning_date.year, up_to_year + 1):
             total += self.get_annual_amortization(y)
         return total

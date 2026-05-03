@@ -1537,6 +1537,57 @@ def generate_property() -> str:  # noqa: PLR0915
     notes: ""
     recurrence_type: none
     recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 28
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    property: 2
+    lease: 1
+    flow_type: expense
+    amount: 950.00
+    amount_currency: EUR
+    entry_date: {ds(M36)}
+    reference_period: null
+    management_category: letting_fees
+    description: Frais de mise en location
+    notes: "Honoraires agence — entrée locataire"
+    recurrence_type: none
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 29
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    property: 2
+    lease: null
+    flow_type: expense
+    amount: 180.00
+    amount_currency: EUR
+    entry_date: {ds(M36)}
+    reference_period: null
+    management_category: rental_guarantee
+    description: Assurance loyers impayés (GLI)
+    notes: ""
+    recurrence_type: yearly
+    recurrence_end_date: null
+- model: property.propertyledgerentry
+  pk: 30
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    property: 3
+    lease: null
+    flow_type: expense
+    amount: 240.00
+    amount_currency: EUR
+    entry_date: {ds(M24)}
+    reference_period: null
+    management_category: coownership
+    description: Charges de copropriété trimestrielles
+    notes: ""
+    recurrence_type: quarterly
+    recurrence_end_date: null
 
 # ─────────────────────────────────────────────────────────────────────────────
 # LMNP RÉEL — Appartement locatif Nice (property 2)
@@ -1566,7 +1617,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 2
     label: Gros œuvre
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 70762.50
     value_total_currency: EUR
     duration_years: 75
@@ -1578,7 +1629,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 2
     label: Installations électriques
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 9435.00
     value_total_currency: EUR
     duration_years: 30
@@ -1590,7 +1641,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 2
     label: Étanchéité
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 11007.50
     value_total_currency: EUR
     duration_years: 25
@@ -1602,7 +1653,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 2
     label: Toiture
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 12580.00
     value_total_currency: EUR
     duration_years: 25
@@ -1614,7 +1665,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 2
     label: Agencements intérieurs
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 29877.50
     value_total_currency: EUR
     duration_years: 12
@@ -1626,7 +1677,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M24)}
     property: 2
     label: Cuisine équipée
-    acquisition_date: {ds(M24)}
+    beginning_date: {ds(M24)}
     value_total: 2400.00
     value_total_currency: EUR
     duration_years: 10
@@ -1660,7 +1711,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 3
     label: Gros œuvre
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 36337.50
     value_total_currency: EUR
     duration_years: 75
@@ -1672,7 +1723,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 3
     label: Installations électriques
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 4845.00
     value_total_currency: EUR
     duration_years: 30
@@ -1684,7 +1735,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 3
     label: Étanchéité
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 5652.50
     value_total_currency: EUR
     duration_years: 25
@@ -1696,7 +1747,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 3
     label: Toiture
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 6460.00
     value_total_currency: EUR
     duration_years: 25
@@ -1708,7 +1759,7 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 3
     label: Agencements intérieurs
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 15342.50
     value_total_currency: EUR
     duration_years: 12
@@ -1720,11 +1771,42 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(M48)}
     property: 3
     label: Mobilier et électroménager
-    acquisition_date: {ds(M48)}
+    beginning_date: {ds(M48)}
     value_total: 3800.00
     value_total_currency: EUR
     duration_years: 7
     is_initial_component: false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LEDGER ENTRY EXCEPTIONS
+#   Occurrence overrides for recurring entries
+#   - Exception 1: entry 6 (monthly rent, property 2) — one month deleted (waived)
+#   - Exception 2: entry 15 (monthly rent, property 3) — amount override (rent increase)
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.propertyledgerentryexception
+  pk: 1
+  fields:
+    created_at: {dt(M18)}
+    updated_at: {dt(M18)}
+    parent_entry: 6
+    occurrence_date: {ds(M18)}
+    is_deleted: true
+    amount_override: null
+    amount_override_currency: EUR
+    description_override: null
+    notes_override: null
+- model: property.propertyledgerentryexception
+  pk: 2
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    parent_entry: 15
+    occurrence_date: {ds(M6)}
+    is_deleted: false
+    amount_override: 545.00
+    amount_override_currency: EUR
+    description_override: Loyer mensuel (indexé)
+    notes_override: Revalorisation IRL janvier
 """
 
 

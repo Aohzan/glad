@@ -268,10 +268,10 @@ def get_fiscal_deficit_history(property_id: int, year: int) -> dict[int, Decimal
 
     # Determine start year from first asset or property buying_date
     qs = AmortizationAsset.objects.filter(property_id=property_id).order_by(
-        "acquisition_date"
+        "beginning_date"
     )
     if qs.exists():
-        first_year = qs.first().acquisition_date.year  # ty: ignore[unresolved-attribute]
+        first_year = qs.first().beginning_date.year  # ty: ignore[unresolved-attribute]
     else:
         try:
             prop = Property.objects.get(pk=property_id)
@@ -337,8 +337,10 @@ def get_amortization_table(property_id: int, year: int) -> list[dict]:
     """
     from property.models import AmortizationAsset, AmortizationSetup
 
-    assets = AmortizationAsset.objects.filter(property_id=property_id).select_related(
-        "property"
+    assets = (
+        AmortizationAsset.objects.filter(property_id=property_id)
+        .select_related("property")
+        .prefetch_related("source_transactions")
     )
 
     try:
@@ -357,18 +359,34 @@ def get_amortization_table(property_id: int, year: int) -> list[dict]:
             global_pct = (
                 asset.value_total.amount / setup_total * Decimal("100")
             ).quantize(Decimal("0.1"))
+        end_year = (
+            asset.beginning_date.year + asset.duration_years
+            if asset.beginning_date and asset.duration_years
+            else None
+        )
+        pct_amortized = (
+            (cumul / base.amount * Decimal("100")).quantize(Decimal("0.1"))
+            if base.amount > Decimal("0")
+            else Decimal("0")
+        )
+        is_complete = end_year is not None and year >= end_year
         table.append(
             {
                 "label": asset.label,
                 "depreciable_base": base.amount,
                 "value_total": asset.value_total.amount,
                 "duration_years": asset.duration_years,
+                "beginning_date": asset.beginning_date,
+                "end_year": end_year,
+                "pct_amortized": pct_amortized,
+                "is_complete": is_complete,
                 "annual_dotation": dotation,
                 "cumulative": cumul,
                 "property_name": asset.property.name,
                 "asset_pk": asset.pk,
                 "is_initial": asset.is_initial_component,
                 "global_pct": global_pct,
+                "source_transactions": list(asset.source_transactions.all()),
             }
         )
     return table
@@ -402,8 +420,8 @@ def get_amortization_schedule(property_id: int) -> dict:
             "end_year": None,
         }
 
-    first_year = min(a.acquisition_date.year for a in assets)
-    last_year = max(a.acquisition_date.year + a.duration_years - 1 for a in assets)
+    first_year = min(a.beginning_date.year for a in assets)
+    last_year = max(a.beginning_date.year + a.duration_years - 1 for a in assets)
 
     total_base = sum((a.depreciable_base().amount for a in assets), Decimal("0"))
 
@@ -484,12 +502,12 @@ def get_deferred_amortization_balance(property_id: int, year: int) -> Decimal:
     from property.models import AmortizationAsset
 
     earliest_qs = AmortizationAsset.objects.filter(property_id=property_id).order_by(
-        "acquisition_date"
+        "beginning_date"
     )
     if not earliest_qs.exists():
         return Decimal("0")
 
-    first_year = earliest_qs.first().acquisition_date.year  # ty: ignore[unresolved-attribute]
+    first_year = earliest_qs.first().beginning_date.year  # ty: ignore[unresolved-attribute]
     if year < first_year:
         return Decimal("0")
 
@@ -531,7 +549,7 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
         recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
         entry_date__gte=year_start,
         entry_date__lte=year_end,
-    )
+    ).exclude(capitalized_as__isnull=False)
     by_category: dict[str, Decimal] = {}
     for row in non_recurring_qs.values("management_category").annotate(
         total=Sum("amount")
@@ -542,6 +560,7 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
     recurring_qs = (
         PropertyLedgerEntry.objects.filter(**base_filter)
         .exclude(recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE)
+        .exclude(capitalized_as__isnull=False)
         .filter(
             entry_date__lte=year_end,
         )
@@ -667,7 +686,7 @@ def get_bilan_data(property_id: int, year: int) -> dict:
         (
             a.value_total.amount
             for a in assets
-            if a.acquisition_date and a.acquisition_date.year == year
+            if a.beginning_date and a.beginning_date.year == year
         ),
         Decimal("0"),
     )
@@ -707,7 +726,7 @@ def get_immobilisation_movements(property_id: int, year: int) -> dict:
     )
     rows = []
     for asset in assets:
-        acq_year = asset.acquisition_date.year if asset.acquisition_date else year
+        acq_year = asset.beginning_date.year if asset.beginning_date else year
         value_total = asset.value_total.amount
         amort_start = asset.cumulative_amortization(year - 1)
         dotation = asset.get_annual_amortization(year)
@@ -766,8 +785,8 @@ def get_immobilisation_movements(property_id: int, year: int) -> dict:
             if year
             > (
                 AmortizationAsset.objects.filter(property_id=property_id)
-                .order_by("acquisition_date")
-                .values_list("acquisition_date__year", flat=True)
+                .order_by("beginning_date")
+                .values_list("beginning_date__year", flat=True)
                 .first()
                 or year
             )

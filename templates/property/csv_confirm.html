@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+  {{ property.name }} – {% translate 'Confirm CSV Import' %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="mb-3">
+    <a href="{% url 'property:csv_import' property.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>{% translate 'Back' %}
+    </a>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title mb-0">{% translate 'Confirm import' %} — {{ property.name }}</h3>
+    </div>
+    <div class="card-body">
+
+      <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        {% blocktranslate with total=total_rows %}
+          <strong>{{ total }}</strong> row(s) detected. Preview of the first rows below.
+        {% endblocktranslate %}
+      </div>
+
+      <h5>{% translate 'Preview (first 5 rows)' %}</h5>
+      <div class="table-responsive mb-4">
+        <table class="table table-sm table-striped table-bordered">
+          <thead class="table-light">
+            <tr>
+              {% for col in header %}
+                <th>{{ col }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in preview_rows %}
+              <tr>
+                {% for cell in row %}
+                  <td>{{ cell }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <form method="post" action="{% url 'property:csv_import_confirm' property.pk %}">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+          <a href="{% url 'property:detail' property.pk %}" class="btn btn-secondary">
+            <i class="bi bi-x-circle me-1"></i>{% translate 'Cancel' %}
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-circle me-1"></i>{% translate 'Import data' %}
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title mb-0">{% translate 'Valid category values' %}</h5>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% translate 'Value' %}</th>
+            <th>{% translate 'Label' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for value, label in valid_categories %}
+            <tr>
+              <td><code>{{ value }}</code></td>
+              <td>{{ label }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

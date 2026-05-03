@@ -41,7 +41,7 @@ def structure_asset(property_obj):
     return AmortizationAsset.objects.create(
         property=property_obj,
         label="Gros œuvre",
-        acquisition_date=datetime.date(2020, 1, 1),
+        beginning_date=datetime.date(2020, 1, 1),
         value_total=Money(170_000, "EUR"),  # already land-excluded
         duration_years=75,
     )
@@ -53,7 +53,7 @@ def fittings_asset(property_obj):
     return AmortizationAsset.objects.create(
         property=property_obj,
         label="Agencements",
-        acquisition_date=datetime.date(2020, 7, 1),
+        beginning_date=datetime.date(2020, 7, 1),
         value_total=Money(10_000, "EUR"),
         duration_years=12,
     )
@@ -98,7 +98,7 @@ class TestGetAnnualAmortization:
         assert structure_asset.get_annual_amortization(2019) == Decimal("0")
 
     def test_zero_after_useful_life(self, structure_asset):
-        # acquisition_date=2020, duration=75 → life ends 2094
+        # beginning_date=2020, duration=75 → life ends 2094
         assert structure_asset.get_annual_amortization(2096) == Decimal("0")
 
     def test_full_year_middle(self, structure_asset):
@@ -282,7 +282,7 @@ class TestGetLmnpSummaryArt39C:
         asset = AmortizationAsset.objects.create(
             property=property_obj,
             label="Gros œuvre test",
-            acquisition_date=datetime.date(2025, 1, 1),
+            beginning_date=datetime.date(2025, 1, 1),
             value_total=Money(170_000, "EUR"),
             duration_years=75,
         )
@@ -300,7 +300,7 @@ class TestGetLmnpSummaryArt39C:
         asset = AmortizationAsset.objects.create(
             property=property_obj,
             label="Gros œuvre partial",
-            acquisition_date=datetime.date(2025, 1, 1),
+            beginning_date=datetime.date(2025, 1, 1),
             value_total=Money(170_000, "EUR"),
             duration_years=75,
         )
@@ -317,7 +317,7 @@ class TestGetLmnpSummaryArt39C:
         asset = AmortizationAsset.objects.create(
             property=property_obj,
             label="Gros œuvre deficit",
-            acquisition_date=datetime.date(2025, 1, 1),
+            beginning_date=datetime.date(2025, 1, 1),
             value_total=Money(170_000, "EUR"),
             duration_years=75,
         )
@@ -337,7 +337,7 @@ class TestGetLmnpSummaryArt39C:
         AmortizationAsset.objects.create(
             property=property_obj,
             label="X",
-            acquisition_date=datetime.date(2025, 1, 1),
+            beginning_date=datetime.date(2025, 1, 1),
             value_total=Money(170_000, "EUR"),
             duration_years=75,
         )
@@ -353,7 +353,7 @@ class TestGetLmnpSummaryArt39C:
         AmortizationAsset.objects.create(
             property=property_obj,
             label="Y",
-            acquisition_date=datetime.date(2025, 1, 1),
+            beginning_date=datetime.date(2025, 1, 1),
             value_total=Money(170_000, "EUR"),
             duration_years=75,
         )
@@ -427,7 +427,7 @@ class TestGetAccountingData:
         AmortizationAsset.objects.create(
             property=property2,
             label="Structure 2",
-            acquisition_date=datetime.date(2021, 1, 1),
+            beginning_date=datetime.date(2021, 1, 1),
             value_total=Money(100_000, "EUR"),
             duration_years=75,
         )
@@ -471,7 +471,7 @@ class TestAccountingDashboardView:
     def test_template_used(self, admin_client):
         url = reverse("property:accounting")
         response = admin_client.get(url)
-        assert "property/accounting_dashboard.html" in [
+        assert "property/accounting_lmnp_reel.html" in [
             t.name for t in response.templates
         ]
 
@@ -481,24 +481,78 @@ class TestAccountingDashboardView:
 
 @pytest.mark.django_db
 class TestInitializeAmortizationView:
+    _VALID_DATA = {"extra_amount": "0", "land_percentage": "15"}
+
     def test_post_creates_setup_and_assets(self, admin_client, property_obj):
         url = reverse(
             "property:initialize_amortization", kwargs={"pk": property_obj.pk}
         )
         assert not AmortizationSetup.objects.filter(property=property_obj).exists()
-        response = admin_client.post(url)
+        response = admin_client.post(url, self._VALID_DATA)
         assert response.status_code == 302
         assert AmortizationSetup.objects.filter(property=property_obj).exists()
         assert AmortizationAsset.objects.filter(property=property_obj).count() == 5
 
-    def test_post_uses_buying_value_as_total(self, admin_client, property_obj):
-        """Amortization setup total_value is initialized from buying_value, not net_value."""
+    def test_post_uses_buying_value_as_total_without_extra(
+        self, admin_client, property_obj
+    ):
+        """When extra_amount=0, setup total_value equals buying_value."""
         url = reverse(
             "property:initialize_amortization", kwargs={"pk": property_obj.pk}
         )
-        admin_client.post(url)
+        admin_client.post(url, {"extra_amount": "0", "land_percentage": "15"})
         setup = AmortizationSetup.objects.get(property=property_obj)
         assert setup.total_value.amount == property_obj.buying_value.amount
+
+    def test_post_with_extra_amount_adds_to_total(self, admin_client, property_obj):
+        """extra_amount is added to buying_value for the depreciable base."""
+        url = reverse(
+            "property:initialize_amortization", kwargs={"pk": property_obj.pk}
+        )
+        admin_client.post(url, {"extra_amount": "15000", "land_percentage": "15"})
+        setup = AmortizationSetup.objects.get(property=property_obj)
+        assert setup.total_value.amount == property_obj.buying_value.amount + Decimal(
+            "15000"
+        )
+        assert setup.land_percentage == Decimal("15")
+
+    def test_post_with_custom_land_percentage(self, admin_client, property_obj):
+        """land_percentage is stored on the setup."""
+        url = reverse(
+            "property:initialize_amortization", kwargs={"pk": property_obj.pk}
+        )
+        admin_client.post(url, {"extra_amount": "0", "land_percentage": "20"})
+        setup = AmortizationSetup.objects.get(property=property_obj)
+        assert setup.land_percentage == Decimal("20")
+
+    def test_post_with_fees_and_existing_setup_updates_setup(
+        self, admin_client, property_obj
+    ):
+        """Re-initializing with new values updates the existing setup."""
+        AmortizationSetup.objects.create(
+            property=property_obj,
+            total_value=Money(100000, "EUR"),
+            land_percentage=10,
+        )
+        url = reverse(
+            "property:initialize_amortization", kwargs={"pk": property_obj.pk}
+        )
+        admin_client.post(url, {"extra_amount": "5000", "land_percentage": "15"})
+        setup = AmortizationSetup.objects.get(property=property_obj)
+        assert setup.total_value.amount == property_obj.buying_value.amount + Decimal(
+            "5000"
+        )
+
+    def test_post_invalid_form_does_not_create_setup(self, admin_client, property_obj):
+        """Invalid form data does not create a setup."""
+        url = reverse(
+            "property:initialize_amortization", kwargs={"pk": property_obj.pk}
+        )
+        response = admin_client.post(
+            url, {"extra_amount": "not-a-number", "land_percentage": "15"}
+        )
+        assert response.status_code == 302
+        assert not AmortizationSetup.objects.filter(property=property_obj).exists()
 
     def test_get_redirects(self, admin_client, property_obj):
         url = reverse(
@@ -511,12 +565,12 @@ class TestInitializeAmortizationView:
         url = reverse(
             "property:initialize_amortization", kwargs={"pk": property_obj.pk}
         )
-        response = client.post(url)
+        response = client.post(url, self._VALID_DATA)
         assert response.status_code == 302
 
     def test_404_for_missing_property(self, admin_client):
         url = reverse("property:initialize_amortization", kwargs={"pk": 999999})
-        response = admin_client.post(url)
+        response = admin_client.post(url, self._VALID_DATA)
         assert response.status_code == 404
 
 
@@ -539,7 +593,7 @@ class TestAmortizationAssetCrudViews:
         )
         data = {
             "label": "Agencements",
-            "acquisition_date": "2024-01-01",
+            "beginning_date": "2024-01-01",
             "value_total_0": "5000.00",
             "value_total_1": "EUR",
             "duration_years": "12",
@@ -570,7 +624,7 @@ class TestAmortizationAssetCrudViews:
         )
         data = {
             "label": "Gros œuvre modifié",
-            "acquisition_date": "2020-01-01",
+            "beginning_date": "2020-01-01",
             "value_total_0": "170000.00",
             "value_total_1": "EUR",
             "duration_years": "75",
@@ -646,6 +700,74 @@ class TestAmortizationAssetCrudViews:
         assert response.status_code == 302
         assert AmortizationAsset.objects.filter(pk=structure_asset.pk).exists()
 
+    def test_create_post_with_cerfa_category(self, admin_client, property_obj):
+        """Creating an asset with cerfa_category stores the value correctly."""
+        url = reverse(
+            "property:new_amortization", kwargs={"property_pk": property_obj.pk}
+        )
+        data = {
+            "label": "Toiture",
+            "cerfa_category": "constructions",
+            "beginning_date": "2024-01-01",
+            "value_total_0": "15000.00",
+            "value_total_1": "EUR",
+            "duration_years": "25",
+        }
+        admin_client.post(url, data)
+        asset = AmortizationAsset.objects.filter(
+            property=property_obj, label="Toiture"
+        ).first()
+        assert asset is not None
+        assert asset.cerfa_category == "constructions"
+
+    def test_create_post_cerfa_category_defaults_empty(
+        self, admin_client, property_obj
+    ):
+        """Creating an asset without cerfa_category leaves it blank (field is optional)."""
+        url = reverse(
+            "property:new_amortization", kwargs={"property_pk": property_obj.pk}
+        )
+        data = {
+            "label": "Mobilier divers",
+            "beginning_date": "2024-01-01",
+            "value_total_0": "3000.00",
+            "value_total_1": "EUR",
+            "duration_years": "10",
+        }
+        admin_client.post(url, data)
+        asset = AmortizationAsset.objects.filter(
+            property=property_obj, label="Mobilier divers"
+        ).first()
+        assert asset is not None
+        assert asset.cerfa_category == ""
+
+    def test_edit_post_updates_cerfa_category(
+        self, admin_client, property_obj, structure_asset
+    ):
+        """Editing an asset can change its cerfa_category."""
+        url = reverse(
+            "property:edit_amortization",
+            kwargs={"property_pk": property_obj.pk, "asset_pk": structure_asset.pk},
+        )
+        data = {
+            "label": structure_asset.label,
+            "cerfa_category": "installations",
+            "beginning_date": structure_asset.beginning_date.strftime("%Y-%m-%d"),
+            "value_total_0": str(structure_asset.value_total.amount),
+            "value_total_1": str(structure_asset.value_total.currency),
+            "duration_years": str(structure_asset.duration_years),
+        }
+        admin_client.post(url, data)
+        structure_asset.refresh_from_db()
+        assert structure_asset.cerfa_category == "installations"
+
+    def test_cerfa_category_in_form_fields(self, admin_client, property_obj):
+        """The edit/create form must expose the cerfa_category field."""
+        from property.forms import AmortizationAssetForm
+
+        form = AmortizationAssetForm()
+        assert "cerfa_category" in form.fields
+
     def test_initialize_post_when_setup_exists(self, admin_client, property_obj):
         """POST when AmortizationSetup already exists should reinitialize components."""
         from property.models import AmortizationSetup
@@ -658,7 +780,9 @@ class TestAmortizationAssetCrudViews:
         url = reverse(
             "property:initialize_amortization", kwargs={"pk": property_obj.pk}
         )
-        response = admin_client.post(url)
+        response = admin_client.post(
+            url, {"extra_amount": "0", "land_percentage": "15"}
+        )
         assert response.status_code == 302
         assert AmortizationAsset.objects.filter(property=property_obj).count() == 5
 
@@ -699,8 +823,43 @@ class TestGetAmortizationContextViaDetailView:
         assert response.status_code == 200
         assert response.context["amortization_setup"] is None
 
+    def test_detail_view_context_includes_init_form(self, admin_client, property_obj):
+        """Detail view context includes amortization_init_form."""
+        url = reverse("property:detail", kwargs={"pk": property_obj.pk})
+        response = admin_client.get(url)
+        assert response.status_code == 200
+        assert "amortization_init_form" in response.context
 
-# ─── accounting_dashboard with invalid year param ────────────────────────────
+    def test_detail_view_context_init_form_default_extra_amount_from_fees(
+        self, admin_client
+    ):
+        """Init form extra_amount defaults to sum of notary+agency+other fees."""
+        prop = Property.objects.create(
+            name="Property with fees",
+            property_type=Property.APARTMENT,
+            buying_value=Money(200000, "EUR"),
+            buying_date=datetime.date(2020, 1, 1),
+            tax_regime=Property.TaxRegime.LMNP_REEL,
+            notary_fees=Money(14000, "EUR"),
+            agency_fees=Money(5000, "EUR"),
+            other_fees=Money(1000, "EUR"),
+        )
+        url = reverse("property:detail", kwargs={"pk": prop.pk})
+        response = admin_client.get(url)
+        assert response.status_code == 200
+        assert response.context["acquisition_fees_total"] == Decimal("20000")
+        assert len(response.context["acquisition_fees_breakdown"]) == 3
+
+    def test_detail_view_context_no_fees_shows_zero(self, admin_client, property_obj):
+        """When property has no fees, acquisition_fees_total is 0."""
+        url = reverse("property:detail", kwargs={"pk": property_obj.pk})
+        response = admin_client.get(url)
+        assert response.status_code == 200
+        assert response.context["acquisition_fees_total"] == Decimal("0")
+        assert response.context["acquisition_fees_breakdown"] == {}
+
+
+# ─── accounting_lmnp_reel with invalid year param ────────────────────────────
 
 
 @pytest.mark.django_db

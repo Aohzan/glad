@@ -68,12 +68,18 @@
         {% if property_form.notary_fees.errors %}
           <div class="invalid-feedback d-block">{{ property_form.notary_fees.errors.0 }}</div>
         {% endif %}
+        {% if property_form.notary_fees.help_text %}
+          <div class="form-text">{{ property_form.notary_fees.help_text }}</div>
+        {% endif %}
       </div>
       <div class="col-md-3">
         <label for="{{ property_form.agency_fees.id_for_label }}" class="form-label small">{{ property_form.agency_fees.label }}</label>
         {{ property_form.agency_fees }}
         {% if property_form.agency_fees.errors %}
           <div class="invalid-feedback d-block">{{ property_form.agency_fees.errors.0 }}</div>
+        {% endif %}
+        {% if property_form.agency_fees.help_text %}
+          <div class="form-text">{{ property_form.agency_fees.help_text }}</div>
         {% endif %}
       </div>
       <div class="col-md-3">
@@ -82,12 +88,18 @@
         {% if property_form.other_fees.errors %}
           <div class="invalid-feedback d-block">{{ property_form.other_fees.errors.0 }}</div>
         {% endif %}
+        {% if property_form.other_fees.help_text %}
+          <div class="form-text">{{ property_form.other_fees.help_text }}</div>
+        {% endif %}
       </div>
       <div class="col-md-3">
         <label for="{{ property_form.credit_fees.id_for_label }}" class="form-label small">{{ property_form.credit_fees.label }}</label>
         {{ property_form.credit_fees }}
         {% if property_form.credit_fees.errors %}
           <div class="invalid-feedback d-block">{{ property_form.credit_fees.errors.0 }}</div>
+        {% endif %}
+        {% if property_form.credit_fees.help_text %}
+          <div class="form-text">{{ property_form.credit_fees.help_text }}</div>
         {% endif %}
       </div>
     </div>
@@ -143,41 +155,51 @@
   </div>
 
   <div class="col-md-4">
-    <label for="{{ property_form.selling_date.id_for_label }}" class="form-label">
-      {{ property_form.selling_date.label }}
-    </label>
-    {{ property_form.selling_date }}
-    {% if property_form.selling_date.errors %}
-      <div class="invalid-feedback d-block">{{ property_form.selling_date.errors.0 }}</div>
-    {% endif %}
-  </div>
-
-  <div class="col-md-4">
-    <label for="{{ property_form.selling_value.id_for_label }}" class="form-label">
-      {{ property_form.selling_value.label }}
-    </label>
-    {{ property_form.selling_value }}
-    {% if property_form.selling_value.errors %}
-      <div class="invalid-feedback d-block">{{ property_form.selling_value.errors.0 }}</div>
-    {% endif %}
-  </div>
-
-  <div class="col-12">
-    <div class="d-flex gap-4">
-      <div class="form-check">
-        {{ property_form.is_active }}
-        <label class="form-check-label" for="{{ property_form.is_active.id_for_label }}">
-          {{ property_form.is_active.label }}
-        </label>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-md-6">
     <label for="{{ property_form.tax_regime.id_for_label }}" class="form-label">
       {{ property_form.tax_regime.label }}
     </label>
     {{ property_form.tax_regime }}
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <label for="{{ property_form.selling_date.id_for_label }}" class="form-label">
+        {{ property_form.selling_date.label }}
+      </label>
+      {{ property_form.selling_date }}
+      {% if property_form.selling_date.errors %}
+        <div class="invalid-feedback d-block">{{ property_form.selling_date.errors.0 }}</div>
+      {% endif %}
+      {% if property_form.selling_date.help_text %}
+        <div class="form-text">{{ property_form.selling_date.help_text }}</div>
+      {% endif %}
+    </div>
+
+    <div class="col-md-4">
+      <label for="{{ property_form.selling_value.id_for_label }}" class="form-label">
+        {{ property_form.selling_value.label }}
+      </label>
+      {{ property_form.selling_value }}
+      {% if property_form.selling_value.errors %}
+        <div class="invalid-feedback d-block">{{ property_form.selling_value.errors.0 }}</div>
+      {% endif %}
+      {% if property_form.selling_value.help_text %}
+        <div class="form-text">{{ property_form.selling_value.help_text }}</div>
+      {% endif %}
+    </div>
+
+    <div class="col-md-4">
+      <label for="{{ property_form.is_active.id_for_label }}" class="form-label">
+        {{ property_form.is_active.label }}
+      </label>
+      {{ property_form.is_active }}
+      {% if property_form.is_active.errors %}
+        <div class="invalid-feedback d-block">{{ property_form.is_active.errors.0 }}</div>
+      {% endif %}
+      {% if property_form.is_active.help_text %}
+        <div class="form-text">{{ property_form.is_active.help_text }}</div>
+      {% endif %}
+    </div>
   </div>
 </div>
 

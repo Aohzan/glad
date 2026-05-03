@@ -749,7 +749,6 @@
 {{ cashflow_loan_insurance_series|json_script:"cashflow-loan-insurance-series" }}
 {{ cashflow_total_expenses_series|json_script:"cashflow-total-expenses-series" }}
 {% if show_amortization_tab %}
-{{ amortization_schedule_json|json_script:"amortization-schedule" }}
 {{ amortization_asset_series_json|json_script:"amortization-asset-series" }}
 {% endif %}
 <script>
@@ -1133,10 +1132,6 @@ document.getElementById('amortization-tab').addEventListener('shown.bs.tab', fun
   if (amortizationInitialized) return;
   amortizationInitialized = true;
 
-  const scheduleRaw = document.getElementById('amortization-schedule');
-  if (!scheduleRaw) return;
-  const scheduleData = JSON.parse(scheduleRaw.textContent);
-
   const assetSeriesRaw = document.getElementById('amortization-asset-series');
   const assetSeries = assetSeriesRaw ? JSON.parse(assetSeriesRaw.textContent) : [];
 
@@ -1203,112 +1198,6 @@ document.getElementById('amortization-tab').addEventListener('shown.bs.tab', fun
   };
   const amortChart = new ApexCharts(document.querySelector('#amortization-dotation-chart'), amortChartOptions);
   amortChart.render();
-
-  // ── Schedule DataTable (one column per asset + total) ─────────────────────
-  function formatMoney(v) {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
-  }
-  function buildProgressBar(pct) {
-    const w = Math.min(100, Math.round(pct));
-    return `<div class="d-flex align-items-center gap-2">
-      <div class="progress flex-grow-1" style="height:6px;min-width:60px;">
-        <div class="progress-bar bg-primary" style="width:${w}%"></div>
-      </div>
-      <span class="small text-body-secondary">${pct.toFixed(1)} %</span>
-    </div>`;
-  }
-
-  const assetLabels = assetSeries.map(function(s) { return s.label; });
-
-  // Build headings and flat row arrays for simple-datatables
-  const amortHeadings = ['{% translate "Year" %}'];
-  assetLabels.forEach(function(label) { amortHeadings.push(label); });
-  amortHeadings.push('{% translate "Total" %}', '{% translate "Cumulative" %}', '{% translate "Progress" %}');
-
-  const amortRows = scheduleData.map(function(row) {
-    const r = [String(row.year)];
-    assetLabels.forEach(function(label) {
-      r.push(String((row.per_asset && row.per_asset[label] != null) ? row.per_asset[label] : 0));
-    });
-    r.push(String(row.annual_dotation), String(row.cumulative), String(row.pct_complete));
-    return r;
-  });
-
-  const totalColIndex = assetLabels.length + 1;
-  const cumulativeColIndex = assetLabels.length + 2;
-  const progressColIndex = assetLabels.length + 3;
-
-  const amortColumns = [
-    {
-      select: 0,
-      sort: 'asc',
-      render: function(value) {
-        return parseInt(value, 10) === currentYear
-          ? `<strong class="text-primary">${value} ◀</strong>`
-          : value;
-      }
-    }
-  ];
-
-  assetLabels.forEach(function(label, i) {
-    amortColumns.push({
-      select: i + 1,
-      type: 'number',
-      cellClass: 'text-end',
-      render: function(value) { return formatMoney(parseFloat(value)); }
-    });
-  });
-
-  amortColumns.push(
-    {
-      select: totalColIndex,
-      type: 'number',
-      cellClass: 'text-end fw-semibold',
-      render: function(value) { return formatMoney(parseFloat(value)); }
-    },
-    {
-      select: cumulativeColIndex,
-      type: 'number',
-      cellClass: 'text-end',
-      render: function(value) { return formatMoney(parseFloat(value)); }
-    },
-    {
-      select: progressColIndex,
-      type: 'number',
-      sortable: false,
-      searchable: false,
-      render: function(value) { return buildProgressBar(parseFloat(value)); }
-    }
-  );
-
-  const { DataTable: AmortDataTable } = simpleDatatables;
-  const amortDatatable = new AmortDataTable('#amortization-schedule-table', {
-    data: { headings: amortHeadings, data: amortRows },
-    perPage: 10,
-    searchable: true,
-    sortable: true,
-    labels: {
-      noRows: '{% translate "No data" %}',
-      noResults: '{% translate "No data" %}',
-      placeholder: '{% translate "Search" %}',
-      previous: '{% translate "Previous" %}',
-      next: '{% translate "Next" %}',
-    },
-    columns: amortColumns
-  });
-
-  // Highlight current year row after each render
-  function highlightCurrentYearRow() {
-    document.querySelectorAll('#amortization-schedule-table tbody tr').forEach(function(tr) {
-      const firstCell = tr.querySelector('td');
-      if (firstCell && firstCell.textContent.includes(String(currentYear))) {
-        tr.classList.add('table-primary');
-      }
-    });
-  }
-  amortDatatable.on('datatable.init', highlightCurrentYearRow);
-  amortDatatable.on('datatable.page', highlightCurrentYearRow);
-  amortDatatable.on('datatable.search', highlightCurrentYearRow);
 });
 {% endif %}
 

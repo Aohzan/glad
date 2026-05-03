@@ -152,12 +152,15 @@ class PropertyLedgerEntry(BaseModel):
     )
 
     def __str__(self) -> str:
+        name = f"{self.get_management_category_display()} — {self.amount} — {self.entry_date}"
+        if self.notes:
+            name += f" — {self.notes.splitlines()[0][:30]}"  # first line, max 30 chars
         if self.recurrence_type != self.NONE:
             recurrence_label = dict(self.RecurrenceType.choices).get(
                 self.recurrence_type, self.recurrence_type
             )
-            return f"{self.property.name} — {self.amount} ({recurrence_label})"
-        return f"{self.property.name} — {self.amount} — {self.entry_date}"
+            name += f" ({recurrence_label})"
+        return name
 
     def clean(self) -> None:
         """Validate amount positivity and flow_type / management_category coherence."""

@@ -195,16 +195,20 @@
 {% block scripts %}
 <script src="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.js' %}"></script>
 <script>
-  const propSelect = document.getElementById('{{ form.properties.id_for_label }}');
-  // Select all by default when no filter is applied yet
-  if ([...propSelect.options].every(opt => !opt.selected)) {
-    [...propSelect.options].forEach(opt => { opt.selected = true; });
-  }
-  new MultiSelect('#{{ form.properties.id_for_label }}', {
-    placeholder: '{% translate "All properties" %}',
-    search: true,
-    selectAll: true,
-    listAll: false,
+  document.addEventListener('DOMContentLoaded', function() {
+    const propSelect = document.getElementById('{{ form.properties.id_for_label }}');
+    // Select all by default when no filter is applied yet
+    if ([...propSelect.options].every(opt => !opt.selected)) {
+      [...propSelect.options].forEach(opt => { opt.selected = true; });
+    }
+    new MultiSelect('#{{ form.properties.id_for_label }}', {
+      placeholder: '{% translate "Select properties" %}',
+      search: true,
+      selectAll: true,
+      listAll: false,
+      closeListOnItemSelect: false,
+      required: true,
+    });
   });
 </script>
 {% endblock %}

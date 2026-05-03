@@ -64,8 +64,19 @@ urlpatterns = [
         views.delete_mandate,
         name="delete_mandate",
     ),
+    # CSV import for ledger entries
+    path(
+        "<int:property_pk>/csv/import/",
+        views.csv_import,
+        name="csv_import",
+    ),
+    path(
+        "<int:property_pk>/csv/import/confirm/",
+        views.csv_import_confirm,
+        name="csv_import_confirm",
+    ),
     # Accounting dashboard (all LMNP réel properties)
-    path("accounting/", views.accounting_dashboard, name="accounting"),
+    path("accounting/", views.accounting_lmnp_reel, name="accounting"),
     # Income & expenses report
     path("report/", views.report_view, name="report"),
     # Amortization initialization

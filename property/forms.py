@@ -362,22 +362,46 @@ class AmortizationAssetForm(MoneyInputGroupMixin, forms.ModelForm):
         model = AmortizationAsset
         fields = [
             "label",
-            "acquisition_date",
+            "cerfa_category",
+            "beginning_date",
             "value_total",
             "duration_years",
+            "source_transactions",
+            "notes",
         ]
         widgets = {
             "label": forms.TextInput(attrs={"class": "form-control"}),
-            "acquisition_date": forms.DateInput(
+            "cerfa_category": forms.Select(attrs={"class": "form-select"}),
+            "beginning_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
             ),
             "duration_years": forms.NumberInput(
                 attrs={"class": "form-control", "min": "1", "id": "id_amort_duration"}
             ),
+            "source_transactions": forms.SelectMultiple(attrs={"class": "form-select"}),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": "3"}),
         }
         input_formats = {
-            "acquisition_date": ["%Y-%m-%d"],
+            "beginning_date": ["%Y-%m-%d"],
         }
+
+    def __init__(self, *args, property_obj=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        field = self.fields["source_transactions"]
+        assert isinstance(field, forms.ModelMultipleChoiceField)
+        field.required = False
+        if property_obj is not None:
+            # Works/maintenance expenses, non-recurring only.
+            # M2M allows linking the same transaction to multiple assets.
+            qs = PropertyLedgerEntry.objects.filter(
+                property=property_obj,
+                flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+                management_category__in=["works", "maintenance"],
+                recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
+            ).order_by("-entry_date")
+            field.queryset = qs
+        else:
+            field.queryset = PropertyLedgerEntry.objects.none()
 
 
 class AmortizationSetupForm(MoneyInputGroupMixin, forms.ModelForm):
@@ -398,6 +422,58 @@ class AmortizationSetupForm(MoneyInputGroupMixin, forms.ModelForm):
         }
 
 
+class AmortizationInitForm(forms.Form):
+    """Form for one-click amortization initialisation with optional acquisition fees."""
+
+    extra_amount = forms.DecimalField(
+        label=_("Acquisition fees to include"),
+        help_text=_(
+            "Additional amount to add to the purchase price for depreciation "
+            "(notary fees, agency fees, miscellaneous). Set to 0 to exclude."
+        ),
+        min_value=Decimal("0"),
+        decimal_places=2,
+        max_digits=12,
+        initial=Decimal("0"),
+        required=False,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "step": "1",
+                "min": "0",
+            }
+        ),
+    )
+    land_percentage = forms.DecimalField(
+        label=_("Land percentage (%)"),
+        help_text=_(
+            "Non-depreciable land share as a percentage of total value. Default: 15 %."
+        ),
+        min_value=Decimal("0"),
+        max_value=Decimal("100"),
+        decimal_places=2,
+        max_digits=5,
+        initial=Decimal("15.00"),
+        required=False,
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "step": "0.01",
+                "min": "0",
+                "max": "100",
+            }
+        ),
+    )
+
+    def clean_extra_amount(self) -> Decimal:
+        value = self.cleaned_data.get("extra_amount")
+        return value if value is not None else Decimal("0")
+
+    def clean_land_percentage(self) -> Decimal:
+        value = self.cleaned_data.get("land_percentage")
+        return value if value is not None else Decimal("15.00")
+
+
 # ─── Income & Expenses Report ────────────────────────────────────────────────
 
 
@@ -408,7 +484,7 @@ class PropertyReportFilterForm(forms.Form):
         queryset=Property.objects.none(),
         required=False,
         label=_("Properties"),
-        widget=forms.SelectMultiple(),
+        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
     )
     start_date = forms.DateField(
         required=False,
@@ -432,3 +508,18 @@ class PropertyReportFilterForm(forms.Form):
         field = self.fields["properties"]
         assert isinstance(field, forms.ModelMultipleChoiceField)
         field.queryset = Property.objects.filter(is_active=True).order_by("name")
+
+
+# ─── CSV Import ───────────────────────────────────────────────────────────────
+
+
+class PropertyCSVImportForm(forms.Form):
+    """Form for importing property ledger entries from a CSV file."""
+
+    csv_file = forms.FileField(
+        label=_("CSV File"),
+        help_text=_(
+            "Please upload a CSV file with columns: date, amount, category, description"
+        ),
+        widget=forms.FileInput(attrs={"class": "form-control", "accept": ".csv"}),
+    )
