@@ -1,5 +1,6 @@
 """Forms for property management actions."""
 
+import datetime
 from decimal import Decimal
 
 from django import forms
@@ -16,6 +17,7 @@ from property.models import (
     PropertyLedgerEntry,
     PropertyLedgerEntryException,
     PropertyLoan,
+    PropertyLoanAnnualStatement,
     PropertyLoanSchedule,
     PropertyValue,
 )
@@ -208,6 +210,7 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
         fields = [
             "name",
             "lender",
+            "bank_reference",
             "start_date",
             "duration_months",
             "original_amount",
@@ -215,7 +218,9 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             "insurance_rate",
         ]
         widgets = {
-            "start_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "start_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -289,6 +294,39 @@ class PropertyLoanScheduleForm(MoneyInputGroupMixin, forms.ModelForm):
                 attrs={"class": "form-control", "min": "1", "placeholder": "1"}
             ),
         }
+
+
+class PropertyLoanAnnualStatementForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for entering annual interest and insurance amounts from the bank statement."""
+
+    class Meta:
+        model = PropertyLoanAnnualStatement
+        fields = ["year", "interest_amount", "insurance_amount"]
+        widgets = {
+            "year": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": "2000",
+                    "value": datetime.date.today().year - 1,
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.loan = kwargs.pop("loan", None)
+        super().__init__(*args, **kwargs)
+
+    def clean_year(self):
+        year = self.cleaned_data.get("year")
+        if year is not None and self.loan is not None:
+            qs = PropertyLoanAnnualStatement.objects.filter(loan=self.loan, year=year)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError(
+                    _("An annual statement for this loan and year already exists.")
+                )
+        return year
 
 
 # ─── Lease ────────────────────────────────────────────────────────────────────

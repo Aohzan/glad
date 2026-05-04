@@ -22,6 +22,7 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
+    PropertyLoanAnnualStatement,
     PropertyValue,
 )
 from property.services.cashflow import build_balance_sheet
@@ -264,6 +265,12 @@ class PropertyDetailView(DetailView):
         for loan in loans_qs:
             if loan.monthly_payment is None and not loan.is_smoothed():
                 continue
+
+            # Fetch all annual statements for this loan once, keyed by year.
+            statements_by_year: dict[int, PropertyLoanAnnualStatement] = {
+                s.year: s for s in PropertyLoanAnnualStatement.objects.filter(loan=loan)
+            }
+
             insurance_amount = (
                 loan.insurance.amount if loan.insurance is not None else Decimal("0")
             )
@@ -273,6 +280,8 @@ class PropertyDetailView(DetailView):
             monthly_payment = (
                 None if loan.is_smoothed() else loan.monthly_payment.amount
             )
+
+            # Build the full computed maps for principal (always from amortisation).
             interest_map, principal_map, insurance_map = build_loan_monthly_maps(
                 start_date=loan.start_date,
                 end_date=loan.end_date,
@@ -282,6 +291,31 @@ class PropertyDetailView(DetailView):
                 insurance_amount=insurance_amount,
                 payment_sequence=payment_sequence,
             )
+
+            # For interest and insurance, override with annual-statement amounts
+            # (spread evenly over the 12 months of the year) when available.
+            if statements_by_year:
+                # Build year → active months mapping from the computed maps.
+                from collections import defaultdict
+
+                year_to_keys: dict[int, list[tuple[int, int]]] = defaultdict(list)
+                for key in interest_map:
+                    year_to_keys[key[0]].append(key)
+
+                for year, stmt in statements_by_year.items():
+                    keys_in_year = year_to_keys.get(year, [])
+                    if not keys_in_year:
+                        # Loan not active that year; nothing to override.
+                        continue
+                    n = len(keys_in_year)
+                    if stmt.interest_amount is not None:
+                        monthly_interest = stmt.interest_amount.amount / n
+                        for key in keys_in_year:
+                            interest_map[key] = monthly_interest
+                    if stmt.insurance_amount is not None:
+                        monthly_insurance = stmt.insurance_amount.amount / n
+                        for key in keys_in_year:
+                            insurance_map[key] = monthly_insurance
 
             for key, value in interest_map.items():
                 loan_interest_by_month[key] = (
@@ -427,9 +461,16 @@ class PropertyDetailView(DetailView):
                     }
                 )
 
+        # Exclude loan_interest and loan_insurance: those are already shown as
+        # dedicated computed series in the breakdown chart (from _loan_costs_by_month).
+        _LOAN_COST_CATS = {
+            PropertyLedgerEntry.ManagementCategory.LOAN_INTEREST,
+            PropertyLedgerEntry.ManagementCategory.LOAN_INSURANCE,
+        }
         expense_by_type_series = [
             {"label": expense_by_mgmt_cat[k]["label"], "data": type_month_series[k]}
             for k in expense_by_mgmt_cat
+            if k not in _LOAN_COST_CATS
         ]
 
         return (
@@ -518,6 +559,9 @@ class PropertyDetailView(DetailView):
             )
 
             remaining = loan.remaining_balance()
+            annual_statements = list(
+                PropertyLoanAnnualStatement.objects.filter(loan=loan).order_by("-year")
+            )
             result.append(
                 {
                     "loan": loan,
@@ -527,6 +571,7 @@ class PropertyDetailView(DetailView):
                     "is_smoothed": loan.is_smoothed(),
                     "avg_monthly_payment": avg_monthly_payment,
                     "remaining_balance": remaining,
+                    "annual_statements": annual_statements,
                 }
             )
         return result

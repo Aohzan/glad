@@ -5,6 +5,7 @@ from property.models.asset import (
     AmortizationSetup,
     Property,
     PropertyLoan,
+    PropertyLoanAnnualStatement,
     PropertyLoanSchedule,
     PropertyValue,
 )
@@ -17,6 +18,7 @@ __all__ = [
     "AmortizationSetup",
     "Property",
     "PropertyLoan",
+    "PropertyLoanAnnualStatement",
     "PropertyLoanSchedule",
     "PropertyValue",
     "Lease",

@@ -536,12 +536,35 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
     Handles recurring entries correctly: a recurring entry whose start date is
     before ``year`` (or whose occurrences span multiple years) is expanded and
     each occurrence falling within [year-01-01, year-12-31] is counted.
+
+    For ``loan_interest`` and ``loan_insurance`` categories, loan-level
+    ``PropertyLoanAnnualStatement`` values take priority over ledger entries on a
+    per-loan basis:
+      - Loans that have a statement for this year → their amounts are summed
+        directly and the corresponding ledger entries are excluded for those loans.
+      - Loans without a statement → fallback to ledger entries (existing behaviour).
     """
-    from property.models import PropertyLedgerEntry
+    from property.models import PropertyLedgerEntry, PropertyLoanAnnualStatement
 
     year_start = datetime.date(year, 1, 1)
     year_end = datetime.date(year, 12, 31)
     base_filter = {"property_id": property_id, "amount_currency": "EUR"}
+
+    # ── Loan annual statements: sum up interest/insurance from bank figures ──
+    statements = PropertyLoanAnnualStatement.objects.filter(
+        loan__property_id=property_id,
+        year=year,
+    ).select_related("loan")
+
+    statement_interest = Decimal("0")
+    statement_insurance = Decimal("0")
+    has_statement = statements.exists()
+
+    for stmt in statements:
+        if stmt.interest_amount is not None:
+            statement_interest += stmt.interest_amount.amount
+        if stmt.insurance_amount is not None:
+            statement_insurance += stmt.insurance_amount.amount
 
     # ── Non-recurring: entry_date within the year ──────────────────────────
     non_recurring_qs = PropertyLedgerEntry.objects.filter(
@@ -550,6 +573,14 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
         entry_date__gte=year_start,
         entry_date__lte=year_end,
     ).exclude(capitalized_as__isnull=False)
+
+    # When statements exist, exclude loan_interest / loan_insurance ledger entries
+    # entirely (they would double-count with the bank-provided figures).
+    if has_statement:
+        non_recurring_qs = non_recurring_qs.exclude(
+            management_category__in=_CHARGES_FINANCIERES
+        )
+
     by_category: dict[str, Decimal] = {}
     for row in non_recurring_qs.values("management_category").annotate(
         total=Sum("amount")
@@ -569,6 +600,11 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
         )
         .prefetch_related("exceptions")
     )
+    if has_statement:
+        recurring_qs = recurring_qs.exclude(
+            management_category__in=_CHARGES_FINANCIERES
+        )
+
     for entry in recurring_qs:
         occurrences = entry.generate_occurrences(end_date=year_end)
         for occ in occurrences:
@@ -576,6 +612,16 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
                 continue
             cat = entry.management_category
             by_category[cat] = by_category.get(cat, Decimal("0")) + occ["amount"].amount
+
+    # ── Inject bank-provided loan charges ──────────────────────────────────
+    if statement_interest > Decimal("0"):
+        by_category["loan_interest"] = (
+            by_category.get("loan_interest", Decimal("0")) + statement_interest
+        )
+    if statement_insurance > Decimal("0"):
+        by_category["loan_insurance"] = (
+            by_category.get("loan_insurance", Decimal("0")) + statement_insurance
+        )
 
     return by_category
 

@@ -5,20 +5,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('property', '0027_amortizationasset_source_transactions_m2m'),
+        ("property", "0027_amortizationasset_source_transactions_m2m"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='property',
-            name='agency_fees',
-            field=djmoney.models.fields.MoneyField(blank=True, decimal_places=0, help_text='Intermediary fees (agencies, headhunters, etc.).', max_digits=10, null=True, verbose_name='Agency fees'),
+            model_name="property",
+            name="agency_fees",
+            field=djmoney.models.fields.MoneyField(
+                blank=True,
+                decimal_places=0,
+                help_text="Intermediary fees (agencies, headhunters, etc.).",
+                max_digits=10,
+                null=True,
+                verbose_name="Agency fees",
+            ),
         ),
         migrations.AlterField(
-            model_name='property',
-            name='is_active',
-            field=models.BooleanField(default=True, help_text='Whether this property is currently owned (e.g. not sold).', verbose_name='Active'),
+            model_name="property",
+            name="is_active",
+            field=models.BooleanField(
+                default=True,
+                help_text="Whether this property is currently owned (e.g. not sold).",
+                verbose_name="Active",
+            ),
         ),
     ]

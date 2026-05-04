@@ -36,7 +36,11 @@
                   <span class="badge bg-info-subtle text-info-emphasis ms-1" style="font-size:.65rem;">{% translate "Smoothed" %}</span>
                 {% endif %}
               </td>
-              <td>{{ item.loan.lender|default:"—" }}</td>
+              <td>{{ item.loan.lender|default:"—" }}
+                {% if item.loan.bank_reference %}
+                  <span class="text-body-secondary small d-block">{{ item.loan.bank_reference }}</span>
+                {% endif %}
+              </td>
               <td>{{ item.loan.start_date }}</td>
               <td>{{ item.loan.end_date }}</td>
               <td class="text-end">{{ item.loan.original_amount|format_money }}</td>
@@ -85,18 +89,88 @@
                 {% else %}—{% endif %}
               </td>
               <td class="text-end">
-                <button type="button" class="btn btn-sm btn-outline-secondary loan-expand-btn"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#loan-form-collapse-{{ item.loan.pk }}"
-                        aria-expanded="false">
-                  <i class="bi bi-pencil"></i>
-                </button>
+                <div class="d-flex gap-1 justify-content-end">
+                  <button type="button" class="btn btn-sm btn-outline-secondary loan-expand-btn"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#loan-form-collapse-{{ item.loan.pk }}"
+                          aria-expanded="false"
+                          title="{% translate "Edit loan" %}">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#loan-statements-collapse-{{ item.loan.pk }}"
+                          aria-expanded="false"
+                          title="{% translate "Bank statements" %}">
+                    <i class="bi bi-file-earmark-text"></i>
+                    {% if item.annual_statements %}
+                      <span class="badge text-bg-secondary ms-1" style="font-size:.6rem">{{ item.annual_statements|length }}</span>
+                    {% endif %}
+                  </button>
+                </div>
               </td>
             </tr>
             <tr class="loan-collapse-row p-0">
               <td colspan="11" class="p-0 border-0">
                 <div class="collapse" id="loan-form-collapse-{{ item.loan.pk }}">
                   {# inline form rendered below in loan_forms_with_schedules loop #}
+                </div>
+              </td>
+            </tr>
+            {# Bank statements collapse row (inside table to appear inline) #}
+            <tr class="loan-collapse-row p-0">
+              <td colspan="11" class="p-0 border-0">
+                <div class="collapse" id="loan-statements-collapse-{{ item.loan.pk }}">
+                  <div class="px-3 py-2 bg-body-tertiary border-bottom border-secondary-subtle">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="small fw-semibold text-body-secondary">
+                        <i class="bi bi-file-earmark-text me-1"></i>{% translate "Bank statements" %}
+                      </span>
+                      <a href="{% url 'property:new_loan_statement' property.pk item.loan.pk %}"
+                         class="btn btn-sm btn-outline-secondary py-0">
+                        <i class="bi bi-plus me-1"></i>{% translate "Add" %}
+                      </a>
+                    </div>
+                    {% if not item.annual_statements %}
+                      <p class="text-body-secondary small fst-italic mb-2">
+                        {% translate "No bank statements entered — computed values are used." %}
+                        <a href="{% url 'property:detail' property.pk %}#accounting-panel" class="ms-1">
+                          {% translate "You can also enter loan interest and insurance directly in the Accounting tab." %}
+                        </a>
+                      </p>
+                    {% else %}
+                      <ul class="list-group list-group-flush rounded mb-2">
+                        {% for stmt in item.annual_statements %}
+                        <li class="list-group-item d-flex align-items-center justify-content-between py-1 px-2">
+                          <span class="fw-semibold me-3">{{ stmt.year }}</span>
+                          <span class="flex-grow-1 text-body-secondary small">
+                            {% if stmt.interest_amount %}
+                              <span class="me-3"><i class="bi bi-percent me-1"></i>{% translate "Interest" %}: <strong>{{ stmt.interest_amount|format_money }}</strong></span>
+                            {% endif %}
+                            {% if stmt.insurance_amount %}
+                              <span><i class="bi bi-shield me-1"></i>{% translate "Insurance" %}: <strong>{{ stmt.insurance_amount|format_money }}</strong></span>
+                            {% endif %}
+                            {% if not stmt.interest_amount and not stmt.insurance_amount %}
+                              <em class="text-muted">{% translate "No amounts entered" %}</em>
+                            {% endif %}
+                          </span>
+                          <div class="d-flex gap-1 ms-2">
+                            <a href="{% url 'property:edit_loan_statement' property.pk item.loan.pk stmt.pk %}"
+                               class="btn btn-sm btn-outline-secondary py-0">
+                              <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger py-0 js-delete-statement"
+                                    data-url="{% url 'property:delete_loan_statement' property.pk item.loan.pk stmt.pk %}"
+                                    data-confirm="{% translate "Delete this annual statement?" %}">
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </div>
+                        </li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
+                  </div>
                 </div>
               </td>
             </tr>
@@ -163,6 +237,12 @@
               <label for="{{ form.lender.id_for_label }}" class="form-label">{{ form.lender.label }}</label>
               {{ form.lender }}
               {% if form.lender.errors %}<div class="invalid-feedback d-block">{{ form.lender.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ form.bank_reference.id_for_label }}" class="form-label">{{ form.bank_reference.label }}</label>
+              {{ form.bank_reference }}
+              {% if form.bank_reference.help_text %}<div class="form-text">{{ form.bank_reference.help_text }}</div>{% endif %}
+              {% if form.bank_reference.errors %}<div class="invalid-feedback d-block">{{ form.bank_reference.errors.0 }}</div>{% endif %}
             </div>
             <div class="col-md-6">
               <label for="{{ form.start_date.id_for_label }}" class="form-label">
@@ -366,6 +446,7 @@
 
 </form>
 
+{# ── Bank statements (outside main form to allow standalone delete forms) ── #}
 <style>
 .loan-form {
   background-color: var(--bs-secondary-bg);
@@ -384,6 +465,25 @@
 </style>
 
 <script>
+(function() {
+  // ── Delete bank statement (fetch POST to avoid nested form) ───────────────
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.js-delete-statement');
+    if (!btn) return;
+    e.preventDefault();
+    if (!confirm(btn.dataset.confirm)) return;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch(btn.dataset.url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin'
+    }).then(function(resp) {
+      if (resp.ok || resp.redirected) { window.location.reload(); }
+      else { alert('{% translate "An error occurred. Please try again." %}'); }
+    }).catch(function() { alert('{% translate "An error occurred. Please try again." %}'); });
+  });
+})();
+
 (function() {
   // ── Utilities ──────────────────────────────────────────────────────────────
 

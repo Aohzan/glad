@@ -41,6 +41,7 @@ class PropertyLedgerEntry(BaseModel):
         COOWNERSHIP = "coownership", _("Co-ownership fees")
         MAINTENANCE = "maintenance", _("Routine maintenance")
         WORKS = "works", _("Works")
+        FURNITURES = "furnitures", _("Furnitures")
         INSURANCE = "insurance", _("Insurance")
         PROPERTY_TAX = "property_tax", _("Property tax")
         CFE = "cfe", _("CFE")

@@ -14,6 +14,7 @@ from property.forms import (
     ManagementMandateForm,
     PropertyLedgerEntryEditForm,
     PropertyLedgerEntryOccurrenceForm,
+    PropertyLoanAnnualStatementForm,
 )
 from property.models import (
     Lease,
@@ -21,6 +22,8 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLedgerEntryException,
+    PropertyLoan,
+    PropertyLoanAnnualStatement,
     PropertyValue,
 )
 
@@ -481,4 +484,70 @@ def delete_mandate(
     messages.success(request, _("Mandate deleted successfully."))
     return HttpResponseRedirect(
         reverse("property:detail", kwargs={"pk": property_pk}) + "#mandate-panel"
+    )
+
+
+# ─── Loan annual statements CRUD ─────────────────────────────────────────────
+
+
+def edit_loan_annual_statement(
+    request: HttpRequest,
+    property_pk: int,
+    loan_pk: int,
+    statement_pk: int | None = None,
+) -> HttpResponse:
+    """Create or edit a PropertyLoanAnnualStatement (bank-provided interest/insurance)."""
+    property_obj = get_object_or_404(Property, pk=property_pk)
+    loan = get_object_or_404(PropertyLoan, pk=loan_pk, property=property_obj)
+
+    if statement_pk is not None:
+        statement = get_object_or_404(
+            PropertyLoanAnnualStatement, pk=statement_pk, loan=loan
+        )
+    else:
+        statement = None
+
+    if request.method == "POST":
+        form = PropertyLoanAnnualStatementForm(
+            request.POST, instance=statement, loan=loan
+        )
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.loan = loan
+            obj.save()
+            messages.success(request, _("Annual statement saved."))
+            return HttpResponseRedirect(
+                reverse("property:detail", kwargs={"pk": property_pk}) + "#loans-panel"
+            )
+        messages.error(request, _("Please correct the errors below."))
+    else:
+        form = PropertyLoanAnnualStatementForm(instance=statement, loan=loan)
+
+    return render(
+        request,
+        "property/edit_loan_annual_statement.html",
+        {"property": property_obj, "loan": loan, "form": form, "statement": statement},
+    )
+
+
+def delete_loan_annual_statement(
+    request: HttpRequest,
+    property_pk: int,
+    loan_pk: int,
+    statement_pk: int,
+) -> HttpResponse:
+    """Delete a PropertyLoanAnnualStatement. Only accepts POST."""
+    if request.method != "POST":
+        messages.error(request, _("Invalid request method."))
+        return redirect("property:detail", pk=property_pk)
+
+    property_obj = get_object_or_404(Property, pk=property_pk)
+    loan = get_object_or_404(PropertyLoan, pk=loan_pk, property=property_obj)
+    statement = get_object_or_404(
+        PropertyLoanAnnualStatement, pk=statement_pk, loan=loan
+    )
+    statement.delete()
+    messages.success(request, _("Annual statement deleted."))
+    return HttpResponseRedirect(
+        reverse("property:detail", kwargs={"pk": property_pk}) + "#loans-panel"
     )

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html data-bs-theme="light">
-{% load i18n %}
-{% load static %}
+{% load i18n static %}
 
 <head>
     <meta charset="utf-8">
@@ -12,9 +11,9 @@
     <meta name="theme-color" content="transparent">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <title>Glad {% block title %}{% endblock %}</title>
+    <title>{% block title %}{% endblock %} - Glad</title>
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/svg+xml">
-    <link href="{% static 'vendors/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendors/bootstrap/bootstrap.min.css' %}" >
     <link rel="stylesheet" href="{% static 'vendors/bootstrap-icons/font/bootstrap-icons.css' %}">
     <link rel="stylesheet" href="{% static 'site.css' %}">
     {% block extra_head %}
