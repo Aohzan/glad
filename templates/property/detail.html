@@ -774,16 +774,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // ── Translations for JS ──────────────────────────────────────────────────────
 const i18n = {
-  expense:    "{% translate 'Expense' %}",
-  income:     "{% translate 'Income' %}",
-  recurring:  "{% translate 'Recurring' %}",
-  edit:       "{% translate 'Edit' %}",
-  delete:     "{% translate 'Delete' %}",
-  noData:     "{% translate 'No transactions found' %}",
-  search:     "{% translate 'Search' %}",
-  all:        "{% translate 'All' %}",
-  expenses:   "{% translate 'Expenses' %}",
-  incomes:    "{% translate 'Incomes' %}",
+  expense:      "{% translate 'Expense' %}",
+  income:       "{% translate 'Income' %}",
+  recurring:    "{% translate 'Recurring' %}",
+  capitalized:  "{% translate 'Linked to an amortization asset' %}",
+  edit:         "{% translate 'Edit' %}",
+  delete:       "{% translate 'Delete' %}",
+  noData:       "{% translate 'No transactions found' %}",
+  search:       "{% translate 'Search' %}",
+  all:          "{% translate 'All' %}",
+  expenses:     "{% translate 'Expenses' %}",
+  incomes:      "{% translate 'Incomes' %}",
 };
 
 // ── DataTables transaction table ─────────────────────────────────────────────
@@ -836,7 +837,7 @@ document.addEventListener('DOMContentLoaded', function () {
     row.category || '',
     String(row.amount),
     row.description || '',
-    JSON.stringify({ parent_id: row.parent_id, is_recurring: row.is_recurring, occurrence_date: row.occurrence_date, property_id: row.property_id }),
+    JSON.stringify({ parent_id: row.parent_id, is_recurring: row.is_recurring, is_capitalized: row.is_capitalized, occurrence_date: row.occurrence_date, property_id: row.property_id }),
   ]);
 
   const datatable = new DataTable('#transactions-table', {
@@ -909,11 +910,14 @@ document.addEventListener('DOMContentLoaded', function () {
         sortable: false,
         searchable: false,
         render: function(value) {
-          const { parent_id, is_recurring, occurrence_date, property_id } = JSON.parse(value);
+          const { parent_id, is_recurring, is_capitalized, occurrence_date, property_id } = JSON.parse(value);
           const recurIcon = is_recurring
             ? ` <i class="bi bi-arrow-repeat text-primary ms-1" title="${i18n.recurring}"></i>`
             : '';
-          return buildActionButtons({ parent_id, is_recurring, occurrence_date, property_id }) + recurIcon;
+          const capitalizedIcon = is_capitalized
+            ? ` <i class="bi bi-box-seam text-warning ms-1" title="${i18n.capitalized}"></i>`
+            : '';
+          return buildActionButtons({ parent_id, is_recurring, occurrence_date, property_id }) + recurIcon + capitalizedIcon;
         }
       }
     ]
@@ -1136,8 +1140,7 @@ document.getElementById('amortization-tab').addEventListener('shown.bs.tab', fun
   const assetSeries = assetSeriesRaw ? JSON.parse(assetSeriesRaw.textContent) : [];
 
   const currentYear = new Date().getFullYear();
-
-
+  const defaultYear = currentYear - 1;
   const amortChartOptions = {
     chart: {
       type: 'bar',
@@ -1172,8 +1175,8 @@ document.getElementById('amortization-tab').addEventListener('shown.bs.tab', fun
     legend: { show: true, position: 'top' },
     xaxis: {
       type: 'numeric',
-      min: currentYear,
-      max: currentYear + 9,
+      min: defaultYear,
+      max: defaultYear + 9,
       labels: {
         rotate: -45,
         style: { fontSize: '11px' },
@@ -1184,9 +1187,9 @@ document.getElementById('amortization-tab').addEventListener('shown.bs.tab', fun
     yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString() + ' €'; } } },
     annotations: {
       xaxis: [{
-        x: currentYear,
+        x: defaultYear,
         borderColor: '#0d6efd',
-        label: { text: String(currentYear), style: { color: '#fff', background: '#0d6efd' } }
+        label: { text: String(defaultYear), style: { color: '#fff', background: '#0d6efd' } }
       }]
     },
     tooltip: {

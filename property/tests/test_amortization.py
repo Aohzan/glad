@@ -447,29 +447,29 @@ class TestGetAccountingData:
 @pytest.mark.django_db
 class TestAccountingDashboardView:
     def test_redirects_unauthenticated(self, client):
-        url = reverse("property:accounting")
+        url = reverse("property:lmnp_accounting")
         response = client.get(url)
         assert response.status_code == 302
 
     def test_returns_200_for_authenticated(self, admin_client):
-        url = reverse("property:accounting")
+        url = reverse("property:lmnp_accounting")
         response = admin_client.get(url)
         assert response.status_code == 200
 
     def test_context_has_accounting(self, admin_client):
-        url = reverse("property:accounting")
+        url = reverse("property:lmnp_accounting")
         response = admin_client.get(url)
         assert "accounting" in response.context
         assert "year" in response.context
         assert "lmnp_properties" in response.context
 
     def test_year_param(self, admin_client):
-        url = reverse("property:accounting")
+        url = reverse("property:lmnp_accounting")
         response = admin_client.get(url, {"year": "2023"})
         assert response.context["year"] == 2023
 
     def test_template_used(self, admin_client):
-        url = reverse("property:accounting")
+        url = reverse("property:lmnp_accounting")
         response = admin_client.get(url)
         assert "property/accounting_lmnp_reel.html" in [
             t.name for t in response.templates
@@ -867,7 +867,7 @@ class TestAccountingDashboardInvalidYear:
     def test_invalid_year_falls_back_to_current(self, admin_client):
         import datetime
 
-        url = reverse("property:accounting")
+        url = reverse("property:lmnp_accounting")
         response = admin_client.get(url, {"year": "notanumber"})
         assert response.status_code == 200
-        assert response.context["year"] == datetime.date.today().year
+        assert response.context["year"] == datetime.date.today().year - 1

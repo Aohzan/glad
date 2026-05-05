@@ -488,7 +488,7 @@ class PropertyDetailView(DetailView):
         entries_qs = (
             PropertyLedgerEntry.objects.filter(property=property_obj)
             .select_related("lease")
-            .prefetch_related("exceptions")
+            .prefetch_related("exceptions", "capitalized_as")
         )
         rows = []
         for entry in entries_qs:
@@ -502,6 +502,7 @@ class PropertyDetailView(DetailView):
                 )
             else:
                 base_description = entry.description or ""
+            is_capitalized = entry.capitalized_as.exists()  # ty: ignore[unresolved-attribute]
             for occurrence in entry.generate_occurrences():
                 is_recurring = occurrence["is_recurring"]
                 rows.append(
@@ -513,6 +514,7 @@ class PropertyDetailView(DetailView):
                         "description": occurrence.get("description_override")
                         or base_description,
                         "is_recurring": is_recurring,
+                        "is_capitalized": is_capitalized,
                         "occurrence_date": occurrence["date"].isoformat()
                         if is_recurring
                         else None,

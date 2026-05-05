@@ -92,7 +92,7 @@ urlpatterns = [
         name="csv_import_confirm",
     ),
     # Accounting dashboard (all LMNP réel properties)
-    path("accounting/", views.accounting_lmnp_reel, name="accounting"),
+    path("lmnp_accounting/", views.accounting_lmnp_reel, name="lmnp_accounting"),
     # Income & expenses report
     path("report/", views.report_view, name="report"),
     # Amortization initialization

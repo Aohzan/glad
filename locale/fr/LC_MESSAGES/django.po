@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 22:48+0200\n"
+"POT-Creation-Date: 2026-05-05 23:51+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -1129,15 +1129,15 @@ msgstr "CFE"
 msgid "Miscellaneous deductible"
 msgstr "Charges diverses déductibles"
 
-#: property/models/ledger.py:49 property/services/cashflow.py:173
+#: property/models/ledger.py:49 property/services/cashflow.py:202
 #: templates/property/detail.html:407 templates/property/detail.html:639
-#: templates/property/detail.html:1096
+#: templates/property/detail.html:1100
 msgid "Loan interest"
 msgstr "Intérêts du prêt"
 
-#: property/models/ledger.py:50 property/services/cashflow.py:177
+#: property/models/ledger.py:50 property/services/cashflow.py:206
 #: templates/property/detail.html:408 templates/property/detail.html:640
-#: templates/property/detail.html:1098
+#: templates/property/detail.html:1102
 msgid "Loan insurance"
 msgstr "Assurance de prêt"
 
@@ -1212,7 +1212,7 @@ msgstr ""
 #: property/models/ledger.py:135
 #: templates/property/accounting_lmnp_reel.html:458
 #: templates/property/detail.html:384 templates/property/detail.html:617
-#: templates/property/detail.html:943
+#: templates/property/detail.html:947
 #: templates/property/detail_panel_cashflow.html:35
 #: templates/property/report.html:114 templates/property/report.html:150
 msgid "Category"
@@ -1339,7 +1339,7 @@ msgstr "Pourcentage du loyer encaissé, ex. 7,50 pour 7,5%."
 msgid "active"
 msgstr "actif"
 
-#: property/services/cashflow.py:182
+#: property/services/cashflow.py:211
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
@@ -1488,23 +1488,23 @@ msgstr "%(count)d ligne(s) n'ont pas pu être importée(s)."
 msgid "Row %(num)d: %(reason)s"
 msgstr "Ligne %(num)d : %(reason)s"
 
-#: property/views/detail_views.py:594
+#: property/views/detail_views.py:596
 msgid "Property value added."
 msgstr "Valeur de propriété ajoutée."
 
-#: property/views/detail_views.py:605
+#: property/views/detail_views.py:607
 msgid "Unable to add property value."
 msgstr "Impossible d'ajouter la valeur de propriété."
 
-#: property/views/detail_views.py:618
+#: property/views/detail_views.py:620
 msgid "Entry added."
 msgstr "Écriture ajoutée."
 
-#: property/views/detail_views.py:629
+#: property/views/detail_views.py:631
 msgid "Unable to add entry."
 msgstr "Impossible d'ajouter l'écriture."
 
-#: property/views/detail_views.py:633
+#: property/views/detail_views.py:635
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 
@@ -2097,7 +2097,7 @@ msgstr "Afficher les pourcentages"
 msgid "Accounts Progression"
 msgstr "Progression des comptes"
 
-#: templates/index.html:222 templates/property/detail.html:784
+#: templates/index.html:222 templates/property/detail.html:785
 msgid "All"
 msgstr "Tous"
 
@@ -2676,7 +2676,7 @@ msgstr "Confirmer la suppression"
 msgid "Address not specified"
 msgstr "Adresse non spécifiée"
 
-#: templates/property/detail.html:34 templates/property/detail.html:780
+#: templates/property/detail.html:34 templates/property/detail.html:781
 #: templates/property/detail_panel_leases.html:29
 #: templates/property/detail_panel_loans.html:27
 #: templates/property/detail_panel_mandate.html:23
@@ -2790,7 +2790,7 @@ msgstr "Ajouter une évaluation de propriété"
 msgid "Valuation date"
 msgstr "Date d'évaluation"
 
-#: templates/property/detail.html:339 templates/property/detail.html:1319
+#: templates/property/detail.html:339 templates/property/detail.html:1322
 msgid "Add income / expense"
 msgstr "Ajouter un revenu / une dépense"
 
@@ -2799,7 +2799,7 @@ msgid "Select a category"
 msgstr "Sélectionner une catégorie"
 
 #: templates/property/detail.html:399 templates/property/detail.html:631
-#: templates/property/detail.html:785
+#: templates/property/detail.html:786
 #: templates/property/detail_panel_balance.html:108
 msgid "Expenses"
 msgstr "Dépenses"
@@ -2855,7 +2855,7 @@ msgid "Are you sure you want to delete this valuation?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette évaluation ?"
 
 #: templates/property/detail.html:501 templates/property/detail.html:726
-#: templates/property/detail.html:781
+#: templates/property/detail.html:782
 #: templates/property/detail_panel_leases.html:32
 #: templates/property/detail_panel_leases.html:92
 #: templates/property/detail_panel_loans.html:224
@@ -2915,64 +2915,68 @@ msgstr ""
 msgid "Recurring"
 msgstr "Récurrent"
 
-#: templates/property/detail.html:782
+#: templates/property/detail.html:780
+msgid "Linked to an amortization asset"
+msgstr "Lié à une immobilisation"
+
+#: templates/property/detail.html:783
 msgid "No transactions found"
 msgstr "Aucune transaction trouvée"
 
-#: templates/property/detail.html:783
+#: templates/property/detail.html:784
 msgid "Search"
 msgstr "Rechercher"
 
-#: templates/property/detail.html:786 templates/property/detail.html:1069
+#: templates/property/detail.html:787 templates/property/detail.html:1073
 msgid "Incomes"
 msgstr "Revenus"
 
-#: templates/property/detail.html:930
+#: templates/property/detail.html:934
 #: templates/property/detail_panel_cashflow.html:34
 msgid "Kind"
 msgstr "Type"
 
-#: templates/property/detail.html:990
+#: templates/property/detail.html:994
 msgid "Property value (history)"
 msgstr "Valeur de propriété (historique)"
 
-#: templates/property/detail.html:991
+#: templates/property/detail.html:995
 msgid "Property value (projection)"
 msgstr "Valeur de propriété (projection)"
 
-#: templates/property/detail.html:992
+#: templates/property/detail.html:996
 msgid "Debt amortization (history)"
 msgstr "Amortissement de la dette (historique)"
 
-#: templates/property/detail.html:993
+#: templates/property/detail.html:997
 msgid "Debt amortization (projection)"
 msgstr "Amortissement de la dette (projection)"
 
-#: templates/property/detail.html:994
+#: templates/property/detail.html:998
 msgid "Net value (history)"
 msgstr "Valeur nette (historique)"
 
-#: templates/property/detail.html:995
+#: templates/property/detail.html:999
 msgid "Net value (projection)"
 msgstr "Valeur nette (projection)"
 
-#: templates/property/detail.html:1070
+#: templates/property/detail.html:1074
 msgid "Total expenses"
 msgstr "Dépenses totales"
 
-#: templates/property/detail.html:1071
+#: templates/property/detail.html:1075
 msgid "Difference"
 msgstr "Différence"
 
-#: templates/property/detail.html:1097
+#: templates/property/detail.html:1101
 msgid "Loan principal"
 msgstr "Capital du prêt"
 
-#: templates/property/detail.html:1296
+#: templates/property/detail.html:1299
 msgid "Add income"
 msgstr "Ajouter un revenu"
 
-#: templates/property/detail.html:1298
+#: templates/property/detail.html:1301
 msgid "Add expense"
 msgstr "Ajouter une dépense"
 

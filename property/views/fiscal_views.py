@@ -216,10 +216,11 @@ def accounting_lmnp_reel(request: HttpRequest) -> HttpResponse:
     Each line shows the aggregate total; hovering reveals a per-property breakdown.
     """
     current_year = datetime.date.today().year
+    default_year = current_year - 1
     try:
-        year = int(request.GET.get("year", current_year))
+        year = int(request.GET.get("year", default_year))
     except ValueError, TypeError:
-        year = current_year
+        year = default_year
 
     lmnp_properties = list(
         Property.objects.filter(tax_regime=Property.TaxRegime.LMNP_REEL, is_active=True)

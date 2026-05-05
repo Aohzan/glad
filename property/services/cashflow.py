@@ -62,7 +62,13 @@ def build_balance_sheet(
     - occupancy_rate: Decimal  (0–100)
     - gross_yield_annual: Decimal | None  (annualised income / property value × 100)
     """
-    from property.models import PropertyLedgerEntry, PropertyLoan
+    from collections import defaultdict
+
+    from property.models import (
+        PropertyLedgerEntry,
+        PropertyLoan,
+        PropertyLoanAnnualStatement,
+    )
     from property.utils import (
         build_loan_monthly_maps,
         iter_month_starts,
@@ -127,6 +133,29 @@ def build_balance_sheet(
             insurance_amount=insurance_amount,
             payment_sequence=payment_sequence,
         )
+
+        # Override computed interest/insurance with annual statement values when available
+        statements_by_year: dict[int, PropertyLoanAnnualStatement] = {
+            s.year: s for s in PropertyLoanAnnualStatement.objects.filter(loan=loan)
+        }
+        if statements_by_year:
+            year_to_keys: dict[int, list[tuple[int, int]]] = defaultdict(list)
+            for key in interest_map:
+                year_to_keys[key[0]].append(key)
+            for year, stmt in statements_by_year.items():
+                keys_in_year = year_to_keys.get(year, [])
+                if not keys_in_year:
+                    continue
+                n = len(keys_in_year)
+                if stmt.interest_amount is not None:
+                    monthly_interest = stmt.interest_amount.amount / n
+                    for key in keys_in_year:
+                        interest_map[key] = monthly_interest
+                if stmt.insurance_amount is not None:
+                    monthly_insurance = stmt.insurance_amount.amount / n
+                    for key in keys_in_year:
+                        insurance_map[key] = monthly_insurance
+
         for month in iter_month_starts(start_month, end_month):
             key = (month.year, month.month)
             total_loan_interest += interest_map.get(key, Decimal("0"))
