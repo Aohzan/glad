@@ -27,6 +27,12 @@
     </div>
   {% endif %}
 
+  {% if not lease %}
+    <div class="alert alert-warning">
+      <i class="bi bi-info-circle me-1"></i>{% translate "Do not forget to declare the new tenant on impots.gouv.fr." %}
+    </div>
+  {% endif %}
+
   <form method="post">
     {% csrf_token %}
 

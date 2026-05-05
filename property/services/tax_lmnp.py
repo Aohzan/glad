@@ -341,6 +341,7 @@ def get_amortization_table(property_id: int, year: int) -> list[dict]:
         AmortizationAsset.objects.filter(property_id=property_id)
         .select_related("property")
         .prefetch_related("source_transactions")
+        .order_by("-is_initial_component", "beginning_date")
     )
 
     try:

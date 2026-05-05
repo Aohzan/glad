@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 21:06+0200\n"
+"POT-Creation-Date: 2026-05-05 22:40+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -511,7 +511,7 @@ msgstr "Immobilier"
 #: templates/property/detail_panel_amortization.html:126
 #: templates/property/detail_panel_leases.html:44
 #: templates/property/detail_panel_mandate.html:34
-#: templates/property/edit_lease.html:115
+#: templates/property/edit_lease.html:121
 #: templates/property/edit_mandate.html:73
 msgid "Start date"
 msgstr "Date de début"
@@ -521,7 +521,7 @@ msgstr "Date de début"
 #: templates/property/detail.html:685
 #: templates/property/detail_panel_leases.html:48
 #: templates/property/detail_panel_mandate.html:38
-#: templates/property/edit_lease.html:122
+#: templates/property/edit_lease.html:128
 #: templates/property/edit_mandate.html:80
 msgid "End date"
 msgstr "Date de fin"
@@ -912,8 +912,8 @@ msgstr ""
 #: templates/property/detail_panel_leases.html:69
 #: templates/property/detail_panel_mandate.html:56
 #: templates/property/edit_entry_occurrence.html:105
-#: templates/property/edit_lease.html:178
-#: templates/property/edit_lease.html:182
+#: templates/property/edit_lease.html:184
+#: templates/property/edit_lease.html:188
 #: templates/property/edit_manager.html:112
 #: templates/property/edit_manager.html:116
 #: templates/property/edit_mandate.html:134
@@ -980,18 +980,18 @@ msgstr "bail"
 msgid "leases"
 msgstr "baux"
 
-#: property/models/lease.py:47 templates/property/edit_lease.html:42
+#: property/models/lease.py:47 templates/property/edit_lease.html:48
 #: templates/property/edit_tenant.html:42
 msgid "First name"
 msgstr "Prénom"
 
-#: property/models/lease.py:49 templates/property/edit_lease.html:49
+#: property/models/lease.py:49 templates/property/edit_lease.html:55
 #: templates/property/edit_tenant.html:53
 msgid "Last name"
 msgstr "Nom"
 
 #: property/models/lease.py:50 property/models/management.py:45
-#: templates/property/edit_lease.html:56
+#: templates/property/edit_lease.html:62
 #: templates/property/edit_manager.html:76
 #: templates/property/edit_mandate.html:57
 #: templates/property/edit_tenant.html:75
@@ -999,43 +999,43 @@ msgid "Email"
 msgstr "Email"
 
 #: property/models/lease.py:51 property/models/management.py:44
-#: templates/property/edit_lease.html:64
+#: templates/property/edit_lease.html:70
 #: templates/property/edit_manager.html:87
 #: templates/property/edit_mandate.html:49
 #: templates/property/edit_tenant.html:86
 msgid "Phone"
 msgstr "Téléphone"
 
-#: property/models/lease.py:56 templates/property/edit_lease.html:83
+#: property/models/lease.py:56 templates/property/edit_lease.html:89
 msgid "Lease type"
 msgstr "Type de bail"
 
 #: property/models/lease.py:62 templates/index.html:338
-#: templates/property/edit_lease.html:90
+#: templates/property/edit_lease.html:96
 msgid "Status"
 msgstr "Statut"
 
-#: property/models/lease.py:66 templates/property/edit_lease.html:130
+#: property/models/lease.py:66 templates/property/edit_lease.html:136
 msgid "Notice date"
 msgstr "Date de préavis"
 
 #: property/models/lease.py:68 templates/property/detail_panel_leases.html:52
-#: templates/property/edit_lease.html:148
+#: templates/property/edit_lease.html:154
 msgid "Rent (excl. charges)"
 msgstr "Loyer (hors charges)"
 
 #: property/models/lease.py:75 templates/property/detail_panel_leases.html:56
-#: templates/property/edit_lease.html:156
+#: templates/property/edit_lease.html:162
 msgid "Charges provision"
 msgstr "Provision pour charges"
 
 #: property/models/lease.py:82 templates/property/detail_panel_leases.html:60
-#: templates/property/edit_lease.html:164
+#: templates/property/edit_lease.html:170
 msgid "Security deposit"
 msgstr "Dépôt de garantie"
 
 #: property/models/lease.py:88 templates/property/detail_panel_leases.html:64
-#: templates/property/edit_lease.html:97
+#: templates/property/edit_lease.html:103
 msgid "Periodicity"
 msgstr "Périodicite"
 
@@ -1603,7 +1603,7 @@ msgstr "minutes"
 #: templates/property/detail.html:466
 #: templates/property/edit_amortization.html:178
 #: templates/property/edit_entry_occurrence.html:126
-#: templates/property/edit_lease.html:192
+#: templates/property/edit_lease.html:198
 #: templates/property/edit_loan_annual_statement.html:67
 #: templates/property/edit_manager.html:126
 #: templates/property/edit_mandate.html:148
@@ -1693,7 +1693,7 @@ msgstr "Mise à jour"
 #: templates/property/edit.html:34
 #: templates/property/edit_amortization.html:181
 #: templates/property/edit_entry_occurrence.html:129
-#: templates/property/edit_lease.html:195
+#: templates/property/edit_lease.html:201
 #: templates/property/edit_loan_annual_statement.html:70
 #: templates/property/edit_manager.html:129
 #: templates/property/edit_mandate.html:151
@@ -2812,10 +2812,10 @@ msgstr "Dépenses"
 #: templates/property/edit_entry_occurrence.html:86
 #: templates/property/edit_entry_occurrence.html:96
 #: templates/property/edit_entry_occurrence.html:106
-#: templates/property/edit_lease.html:57 templates/property/edit_lease.html:65
-#: templates/property/edit_lease.html:123
-#: templates/property/edit_lease.html:131
-#: templates/property/edit_lease.html:183
+#: templates/property/edit_lease.html:63 templates/property/edit_lease.html:71
+#: templates/property/edit_lease.html:129
+#: templates/property/edit_lease.html:137
+#: templates/property/edit_lease.html:189
 #: templates/property/edit_manager.html:54
 #: templates/property/edit_manager.html:77
 #: templates/property/edit_manager.html:88
@@ -3650,19 +3650,23 @@ msgstr "Modifier le bail"
 msgid "New lease"
 msgstr "Nouveau bail"
 
-#: templates/property/edit_lease.html:36
+#: templates/property/edit_lease.html:32
+msgid "Do not forget to declare the new tenant on impots.gouv.fr."
+msgstr "Ne pas oublier de déclarer le nouveau locataire sur impots.gouv.fr."
+
+#: templates/property/edit_lease.html:42
 msgid "Tenant"
 msgstr "Locataire"
 
-#: templates/property/edit_lease.html:77
+#: templates/property/edit_lease.html:83
 msgid "Lease information"
 msgstr "Informations sur le bail"
 
-#: templates/property/edit_lease.html:109
+#: templates/property/edit_lease.html:115
 msgid "Dates"
 msgstr "Dates"
 
-#: templates/property/edit_lease.html:143
+#: templates/property/edit_lease.html:149
 msgid "Financial"
 msgstr "Financier"
 
