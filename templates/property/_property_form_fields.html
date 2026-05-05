@@ -34,6 +34,30 @@
   </div>
 
   <div class="col-md-4">
+    <label for="{{ property_form.buying_date.id_for_label }}" class="form-label">
+      {{ property_form.buying_date.label }}
+      {% if property_form.buying_date.field.required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    {{ property_form.buying_date }}
+    {% if property_form.buying_date.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.buying_date.errors.0 }}</div>
+    {% endif %}
+    {% if property_form.buying_date.help_text %}
+      <div class="form-text">{{ property_form.buying_date.help_text }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label text-body-secondary">{% translate "Total purchase cost" %}</label>
+    <div class="input-group flex-wrap">
+      <input type="text" id="id_total_purchase_cost" class="form-control" disabled tabindex="-1"
+             style="background-color: var(--bs-secondary-bg);">
+      <span class="input-group-text" id="id_total_purchase_cost_currency">EUR</span>
+    </div>
+    <div class="form-text">{% translate "Buying value + all fees (computed)" %}</div>
+  </div>
+
+  <div class="col-md-4">
     <label for="{{ property_form.buying_value.id_for_label }}" class="form-label">
       {{ property_form.buying_value.label }}
       {% if property_form.buying_value.field.required %}<span class="text-danger">*</span>{% endif %}
@@ -47,16 +71,49 @@
     {% endif %}
   </div>
 
-  <div class="col-md-4">
-    <label for="{{ property_form.buying_date.id_for_label }}" class="form-label">
-      {{ property_form.buying_date.label }}
-      {% if property_form.buying_date.field.required %}<span class="text-danger">*</span>{% endif %}
-    </label>
-    {{ property_form.buying_date }}
-    {% if property_form.buying_date.errors %}
-      <div class="invalid-feedback d-block">{{ property_form.buying_date.errors.0 }}</div>
-    {% endif %}
-  </div>
+  <script>
+  (function () {
+    const amountFields = [
+      'id_buying_value_0',
+      'id_notary_fees_0',
+      'id_agency_fees_0',
+      'id_other_fees_0',
+      'id_credit_fees_0',
+    ];
+    const totalInput = document.getElementById('id_total_purchase_cost');
+    const currencySpan = document.getElementById('id_total_purchase_cost_currency');
+
+    function updateTotal() {
+      let total = 0;
+      amountFields.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) {
+          const val = parseFloat(el.value.replace(/\s/g, '').replace(',', '.'));
+          if (!isNaN(val)) total += val;
+        }
+      });
+      totalInput.value = total.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      const currencyEl = document.getElementById('id_buying_value_1');
+      if (currencyEl) currencySpan.textContent = currencyEl.value || 'EUR';
+    }
+
+    function attachListeners() {
+      amountFields.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateTotal);
+      });
+      const currencyEl = document.getElementById('id_buying_value_1');
+      if (currencyEl) currencyEl.addEventListener('change', updateTotal);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () { attachListeners(); updateTotal(); });
+    } else {
+      attachListeners();
+      updateTotal();
+    }
+  })();
+  </script>
 
   {# ── Purchase fees ────────────────────────────────────────────────────── #}
   <div class="col-12">

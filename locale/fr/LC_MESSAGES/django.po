@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-04 23:39+0200\n"
+"POT-Creation-Date: 2026-05-05 21:06+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -489,11 +489,11 @@ msgstr ""
 "Montant à additionner au prix d'achat pour l'amortissement (frais de "
 "notaire, frais d'agence, autres). Mettre à 0 pour ignorer."
 
-#: property/forms.py:486 property/models/asset.py:660
+#: property/forms.py:486 property/models/asset.py:663
 msgid "Land percentage (%)"
 msgstr "Pourcentage du terrain (%)"
 
-#: property/forms.py:488 property/models/asset.py:662
+#: property/forms.py:488 property/models/asset.py:665
 msgid ""
 "Non-depreciable land share as a percentage of total value. Default: 15 %."
 msgstr ""
@@ -737,63 +737,67 @@ msgstr "Quote-part dans la co-propriété (en %), si applicable."
 msgid "Number of shares in the property (if applicable)"
 msgstr "Nombre de part dans la propriété (si applicable)"
 
-#: property/models/asset.py:399
+#: property/models/asset.py:400
 msgid "Buying Date"
 msgstr "Date d'achat"
 
 #: property/models/asset.py:401
+msgid "Date of purchase of the property on the notary deed."
+msgstr "Date d'achat du bien sur l'acte notarié."
+
+#: property/models/asset.py:404
 msgid "Selling Date"
 msgstr "Date de vente"
 
-#: property/models/asset.py:409
+#: property/models/asset.py:412
 msgid "Floor area (m²)"
 msgstr "Surface habitable (m²)"
 
-#: property/models/asset.py:414 templates/property/detail_panel_info.html:21
+#: property/models/asset.py:417 templates/property/detail_panel_info.html:21
 msgid "Number of rooms"
 msgstr "Nombre de pièces"
 
-#: property/models/asset.py:418 property/models/ledger.py:72
+#: property/models/asset.py:421 property/models/ledger.py:72
 msgid "None"
 msgstr "Aucune"
 
-#: property/models/asset.py:419
+#: property/models/asset.py:422
 msgid "LMNP réel"
 msgstr "LMNP réel"
 
-#: property/models/asset.py:425 templates/property/detail_panel_info.html:27
+#: property/models/asset.py:428 templates/property/detail_panel_info.html:27
 msgid "Tax regime"
 msgstr "Régime fiscal"
 
-#: property/models/asset.py:426
+#: property/models/asset.py:429
 msgid "Tax regime applicable to this property (e.g. LMNP réel)."
 msgstr "Régime fiscal applicable à ce bien (ex. LMNP réel)."
 
-#: property/models/asset.py:433 templates/property/detail.html:5
+#: property/models/asset.py:436 templates/property/detail.html:5
 msgid "property"
 msgstr "propriété"
 
-#: property/models/asset.py:434
+#: property/models/asset.py:437
 msgid "properties"
 msgstr "propriétés"
 
-#: property/models/asset.py:582
+#: property/models/asset.py:585
 msgid "property value"
 msgstr "valeur de propriété"
 
-#: property/models/asset.py:583
+#: property/models/asset.py:586
 msgid "property values"
 msgstr "valeurs de propriétés"
 
-#: property/models/asset.py:639
+#: property/models/asset.py:642
 msgid "amortization setup"
 msgstr "paramétrage d'amortissement"
 
-#: property/models/asset.py:640
+#: property/models/asset.py:643
 msgid "amortization setups"
 msgstr "paramétrages d'amortissement"
 
-#: property/models/asset.py:646 property/models/asset.py:728
+#: property/models/asset.py:649 property/models/asset.py:731
 #: property/models/lease.py:44 property/models/ledger.py:100
 #: property/models/management.py:38
 #: templates/property/accounting_lmnp_reel.html:161
@@ -801,24 +805,24 @@ msgstr "paramétrages d'amortissement"
 msgid "Property"
 msgstr "Propriété"
 
-#: property/models/asset.py:651
+#: property/models/asset.py:654
 msgid "Total value to depreciate"
 msgstr "Valeur totale à amortir"
 
-#: property/models/asset.py:653
+#: property/models/asset.py:656
 msgid "Total acquisition value used as the base for depreciation (excl. land)."
 msgstr ""
 "Valeur d'acquisition totale servant de base à l'amortissement (hors terrain)."
 
-#: property/models/asset.py:717
+#: property/models/asset.py:720
 msgid "immobilisation"
 msgstr "immobilisation"
 
-#: property/models/asset.py:718
+#: property/models/asset.py:721
 msgid "immobilisations"
 msgstr "immobilisations"
 
-#: property/models/asset.py:732 templates/property/accounting_lmnp_reel.html:59
+#: property/models/asset.py:735 templates/property/accounting_lmnp_reel.html:59
 #: templates/property/accounting_lmnp_reel.html:361
 #: templates/property/csv_confirm.html:76
 #: templates/property/csv_import.html:106
@@ -826,77 +830,77 @@ msgstr "immobilisations"
 msgid "Label"
 msgstr "Libellé"
 
-#: property/models/asset.py:733
+#: property/models/asset.py:736
 msgid "Description of the asset, e.g. 'Toiture', 'Cuisine équipée'."
 msgstr "Description de l'immobilisation, ex. 'Toiture', 'Cuisine équipée'."
 
-#: property/models/asset.py:736
+#: property/models/asset.py:739
 msgid "Beginning date"
 msgstr "Date de début"
 
-#: property/models/asset.py:737
+#: property/models/asset.py:740
 msgid "Date of the beginning of the asset's useful life."
 msgstr "Date de début de l'amortissement."
 
-#: property/models/asset.py:742
+#: property/models/asset.py:745
 msgid "Total value"
 msgstr "Valeur totale"
 
-#: property/models/asset.py:744
+#: property/models/asset.py:747
 msgid "Total acquisition value of this asset (including VAT if applicable)."
 msgstr "Valeur totale d'acquisition de cet élément (TTC si applicable)."
 
-#: property/models/asset.py:748
+#: property/models/asset.py:751
 msgid "Duration (years)"
 msgstr "Durée (ans)"
 
-#: property/models/asset.py:749
+#: property/models/asset.py:752
 msgid "Amortization duration in years."
 msgstr "Durée d'amortissement en années."
 
-#: property/models/asset.py:754
+#: property/models/asset.py:757
 msgid "Initial component"
 msgstr "Composant initial"
 
-#: property/models/asset.py:756
+#: property/models/asset.py:759
 msgid "Set automatically when created by the standard amortization setup."
 msgstr ""
 "Défini automatiquement lors de la création par le paramétrage "
 "d'amortissement standard."
 
-#: property/models/asset.py:761
+#: property/models/asset.py:764
 #: templates/property/accounting_lmnp_reel.html:325
 #: templates/property/accounting_lmnp_reel.html:376
 #: templates/property/edit_amortization.html:123
 msgid "Terrains"
 msgstr "Terrains"
 
-#: property/models/asset.py:762
+#: property/models/asset.py:765
 #: templates/property/accounting_lmnp_reel.html:326
 #: templates/property/accounting_lmnp_reel.html:377
 #: templates/property/edit_amortization.html:132
 msgid "Constructions"
 msgstr "Constructions"
 
-#: property/models/asset.py:763
+#: property/models/asset.py:766
 #: templates/property/accounting_lmnp_reel.html:327
 #: templates/property/accounting_lmnp_reel.html:378
 #: templates/property/edit_amortization.html:144
 msgid "Installations générales"
 msgstr "Installations générales"
 
-#: property/models/asset.py:764
+#: property/models/asset.py:767
 #: templates/property/accounting_lmnp_reel.html:328
 #: templates/property/accounting_lmnp_reel.html:379
 #: templates/property/edit_amortization.html:157
 msgid "Autres immobilisations corporelles"
 msgstr "Autres immobilisations corporelles"
 
-#: property/models/asset.py:771
+#: property/models/asset.py:774
 msgid "Cerfa 2033-C category"
 msgstr "Catégorie cerfa 2033-C"
 
-#: property/models/asset.py:773
+#: property/models/asset.py:776
 msgid ""
 "Asset category for cerfa 2033-C: terrains, constructions, installations "
 "générales, or autres immobilisations corporelles."
@@ -904,7 +908,7 @@ msgstr ""
 "Catégorie d'actif pour le cerfa 2033-C : terrains, constructions, "
 "installations générales, ou autres immobilisations corporelles."
 
-#: property/models/asset.py:780 templates/property/detail.html:665
+#: property/models/asset.py:783 templates/property/detail.html:665
 #: templates/property/detail_panel_leases.html:69
 #: templates/property/detail_panel_mandate.html:56
 #: templates/property/edit_entry_occurrence.html:105
@@ -919,15 +923,15 @@ msgstr ""
 msgid "Notes"
 msgstr "Notes"
 
-#: property/models/asset.py:781
+#: property/models/asset.py:784
 msgid "Optional free-text notes about this asset."
 msgstr "Notes libres sur cette immobilisation."
 
-#: property/models/asset.py:787
+#: property/models/asset.py:790
 msgid "Source transactions"
 msgstr "Transactions associées"
 
-#: property/models/asset.py:789
+#: property/models/asset.py:792
 msgid ""
 "Ledger entries recording the payment(s) for this asset. Linked transactions "
 "are excluded from deductible charges to avoid double-counting."
@@ -2198,7 +2202,15 @@ msgstr "Oui"
 msgid "No"
 msgstr "Non"
 
-#: templates/property/_property_form_fields.html:63
+#: templates/property/_property_form_fields.html:51
+msgid "Total purchase cost"
+msgstr "Coût total d'achat"
+
+#: templates/property/_property_form_fields.html:57
+msgid "Buying value + all fees (computed)"
+msgstr "Prix d'achat + frais (généré)"
+
+#: templates/property/_property_form_fields.html:120
 msgid "Purchase fees"
 msgstr "Frais d'acquisition"
 

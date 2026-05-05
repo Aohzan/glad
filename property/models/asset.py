@@ -396,7 +396,10 @@ class Property(BaseModel):
         blank=True,
         help_text=_("Number of shares in the property (if applicable)"),
     )
-    buying_date = models.DateField(verbose_name=_("Buying Date"))
+    buying_date = models.DateField(
+        verbose_name=_("Buying Date"),
+        help_text=_("Date of purchase of the property on the notary deed."),
+    )
     selling_date = models.DateField(
         null=True, blank=True, verbose_name=_("Selling Date")
     )
