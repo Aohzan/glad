@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 22:40+0200\n"
+"POT-Creation-Date: 2026-05-05 22:48+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -49,7 +49,7 @@ msgstr "Mise à jour du mot de passe réussie"
 msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
-#: base/forms.py:53 property/models/ledger.py:122 templates/index.html:337
+#: base/forms.py:53 property/models/ledger.py:121 templates/index.html:337
 #: templates/property/detail.html:373 templates/property/detail.html:487
 #: templates/property/detail.html:586
 #: templates/property/detail_panel_cashflow.html:33
@@ -460,7 +460,7 @@ msgstr "Anglais"
 msgid "French"
 msgstr "Français"
 
-#: property/forms.py:99 property/models/ledger.py:128
+#: property/forms.py:99 property/models/ledger.py:127
 #: templates/property/detail.html:597
 msgid "Reference period"
 msgstr "Période de référence"
@@ -665,8 +665,7 @@ msgid "Land"
 msgstr "Terrain"
 
 #: property/models/asset.py:330 property/models/lease.py:29
-#: property/models/ledger.py:56 templates/property/detail.html:414
-#: templates/property/detail.html:646
+#: templates/property/detail.html:414 templates/property/detail.html:646
 #: templates/property/detail_panel_info.html:64
 msgid "Other"
 msgstr "Autre"
@@ -757,7 +756,7 @@ msgstr "Surface habitable (m²)"
 msgid "Number of rooms"
 msgstr "Nombre de pièces"
 
-#: property/models/asset.py:421 property/models/ledger.py:72
+#: property/models/asset.py:421 property/models/ledger.py:71
 msgid "None"
 msgstr "Aucune"
 
@@ -798,7 +797,7 @@ msgid "amortization setups"
 msgstr "paramétrages d'amortissement"
 
 #: property/models/asset.py:649 property/models/asset.py:731
-#: property/models/lease.py:44 property/models/ledger.py:100
+#: property/models/lease.py:44 property/models/ledger.py:99
 #: property/models/management.py:38
 #: templates/property/accounting_lmnp_reel.html:161
 #: templates/property/index.html:5
@@ -964,11 +963,11 @@ msgstr "Vide"
 msgid "Commercial"
 msgstr "Commercial"
 
-#: property/models/lease.py:32 property/models/ledger.py:73
+#: property/models/lease.py:32 property/models/ledger.py:72
 msgid "Monthly"
 msgstr "Mensuel"
 
-#: property/models/lease.py:33 property/models/ledger.py:74
+#: property/models/lease.py:33 property/models/ledger.py:73
 msgid "Quarterly"
 msgstr "Trimestriel"
 
@@ -1161,32 +1160,32 @@ msgstr "Dépôt restitué"
 msgid "Other non-deductible"
 msgstr "Autres charges non déductibles"
 
-#: property/models/ledger.py:75
+#: property/models/ledger.py:74
 msgid "Biannual"
 msgstr "Biannuel"
 
-#: property/models/ledger.py:76
+#: property/models/ledger.py:75
 msgid "Yearly"
 msgstr "Annuel"
 
-#: property/models/ledger.py:87
+#: property/models/ledger.py:86
 msgid "ledger entry"
 msgstr "écriture comptable"
 
-#: property/models/ledger.py:88
+#: property/models/ledger.py:87
 msgid "ledger entries"
 msgstr "écritures comptables"
 
-#: property/models/ledger.py:108 templates/property/detail.html:432
+#: property/models/ledger.py:107 templates/property/detail.html:432
 #: templates/property/detail.html:605
 msgid "Lease"
 msgstr "Bail"
 
-#: property/models/ledger.py:113
+#: property/models/ledger.py:112
 msgid "Flow type"
 msgstr "Type de flux"
 
-#: property/models/ledger.py:118 templates/index.html:336
+#: property/models/ledger.py:117 templates/index.html:336
 #: templates/property/accounting_lmnp_reel.html:458
 #: templates/property/accounting_lmnp_reel.html:506
 #: templates/property/detail.html:366 templates/property/detail.html:579
@@ -1197,20 +1196,20 @@ msgstr "Type de flux"
 msgid "Amount"
 msgstr "Montant"
 
-#: property/models/ledger.py:119
+#: property/models/ledger.py:118
 msgid "Always positive. Use flow_type to indicate income or expense."
 msgstr "Toujours positif. Utiliser flow_type pour indiquer revenu ou dépense."
 
-#: property/models/ledger.py:123
+#: property/models/ledger.py:122
 msgid "Date of the entry (or start date for recurring entries)."
 msgstr "Date de l'écriture (ou date de début pour les écritures récurrentes)."
 
-#: property/models/ledger.py:130
+#: property/models/ledger.py:129
 msgid "The month/period this entry covers, e.g. first day of March 2024."
 msgstr ""
 "Le mois/période que couvre cette écriture, ex. premier jour de mars 2024."
 
-#: property/models/ledger.py:136
+#: property/models/ledger.py:135
 #: templates/property/accounting_lmnp_reel.html:458
 #: templates/property/detail.html:384 templates/property/detail.html:617
 #: templates/property/detail.html:943
@@ -1219,24 +1218,24 @@ msgstr ""
 msgid "Category"
 msgstr "Catégorie"
 
-#: property/models/ledger.py:146
+#: property/models/ledger.py:145
 msgid "Recurrence type"
 msgstr "Type de récurrence"
 
-#: property/models/ledger.py:151
+#: property/models/ledger.py:150
 msgid "Recurrence end date"
 msgstr "Date de fin de récurrence"
 
-#: property/models/ledger.py:152
+#: property/models/ledger.py:151
 msgid "End date for recurring entries (leave empty for indefinite)."
 msgstr ""
 "Date de fin pour les écritures récurrentes (laisser vide pour indéfini)."
 
-#: property/models/ledger.py:170
+#: property/models/ledger.py:169
 msgid "Amount must be positive."
 msgstr "Le montant doit être positif."
 
-#: property/models/ledger.py:177
+#: property/models/ledger.py:176
 #, python-format
 msgid ""
 "Category '%(cat)s' is not valid for an INCOME entry. Use a revenue category "
@@ -1245,7 +1244,7 @@ msgstr ""
 "La catégorie '%(cat)s' n'est pas valide pour une écriture REVENU. Utiliser "
 "une catégorie de revenu ou définir flow_type sur DÉPENSE."
 
-#: property/models/ledger.py:185
+#: property/models/ledger.py:184
 #, python-format
 msgid ""
 "Category '%(cat)s' is not valid for an EXPENSE entry. Use an expense "
@@ -1254,35 +1253,35 @@ msgstr ""
 "La catégorie '%(cat)s' n'est pas valide pour une écriture DÉPENSE. Utiliser "
 "une catégorie de dépense ou définir flow_type sur REVENU."
 
-#: property/models/ledger.py:265
+#: property/models/ledger.py:264
 msgid "Parent entry"
 msgstr "Écriture parente"
 
-#: property/models/ledger.py:267
+#: property/models/ledger.py:266
 msgid "Occurrence date"
 msgstr "Date d'occurrence"
 
-#: property/models/ledger.py:268
+#: property/models/ledger.py:267
 msgid "Is deleted"
 msgstr "Est supprimé"
 
-#: property/models/ledger.py:274
+#: property/models/ledger.py:273
 msgid "Amount override"
 msgstr "Montant personnalisé"
 
-#: property/models/ledger.py:280
+#: property/models/ledger.py:279
 msgid "Description override"
 msgstr "Description personnalisée"
 
-#: property/models/ledger.py:285
+#: property/models/ledger.py:284
 msgid "Notes override"
 msgstr "Notes personnalisées"
 
-#: property/models/ledger.py:289
+#: property/models/ledger.py:288
 msgid "ledger entry exception"
 msgstr "exception d'écriture comptable"
 
-#: property/models/ledger.py:290
+#: property/models/ledger.py:289
 msgid "ledger entry exceptions"
 msgstr "exceptions d'écritures comptables"
 

@@ -53,7 +53,6 @@ class PropertyLedgerEntry(BaseModel):
         LOAN_REPAYMENT = "loan_repayment", _("Loan capital repayment")
         DEPOSIT_OUT = "deposit_out", _("Deposit returned")
         NON_DEDUCTIBLE = "non_deductible", _("Other non-deductible")
-        OTHER = "other", _("Other")
 
     # Income categories — used in clean() to validate flow_type coherence
     _INCOME_CATEGORIES = frozenset(

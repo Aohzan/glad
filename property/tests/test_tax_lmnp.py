@@ -204,11 +204,11 @@ class TestGetLmnpSummary:
         entry = PropertyLedgerEntry.objects.create(
             property=property_obj,
             flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
-            management_category=PropertyLedgerEntry.ManagementCategory.OTHER,
+            management_category=PropertyLedgerEntry.ManagementCategory.NON_DEDUCTIBLE,
             amount=Money(Decimal("50.00"), "EUR"),
             entry_date=datetime.date(2023, 1, 1),
         )
-        # 'other' is not in LMNP_TAX_MAPPING, so it should be skipped
+        # 'non_deductible' is not in LMNP_TAX_MAPPING, so it should be skipped
         result = get_lmnp_summary(property_obj.pk, 2023)
         assert result["recettes"] == Decimal("0")
         assert result["charges"] == Decimal("0")
