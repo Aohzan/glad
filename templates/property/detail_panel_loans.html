@@ -253,6 +253,14 @@
               {% if form.start_date.errors %}<div class="invalid-feedback d-block">{{ form.start_date.errors.0 }}</div>{% endif %}
             </div>
             <div class="col-md-6">
+              <label for="{{ form.first_payment_date.id_for_label }}" class="form-label">
+                {{ form.first_payment_date.label }}
+              </label>
+              {{ form.first_payment_date }}
+              {% if form.first_payment_date.help_text %}<div class="form-text">{{ form.first_payment_date.help_text }}</div>{% endif %}
+              {% if form.first_payment_date.errors %}<div class="invalid-feedback d-block">{{ form.first_payment_date.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
               <label for="{{ form.duration_months.id_for_label }}" class="form-label">
                 {{ form.duration_months.label }}
                 {% if form.duration_months.field.required %}<span class="text-danger">*</span>{% endif %}

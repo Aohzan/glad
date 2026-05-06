@@ -212,6 +212,7 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             "lender",
             "bank_reference",
             "start_date",
+            "first_payment_date",
             "duration_months",
             "original_amount",
             "interest_rate",
@@ -219,6 +220,9 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
         ]
         widgets = {
             "start_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+            "first_payment_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
             ),
         }

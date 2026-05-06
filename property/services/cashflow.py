@@ -132,6 +132,8 @@ def build_balance_sheet(
             interest_rate=loan.interest_rate,
             insurance_amount=insurance_amount,
             payment_sequence=payment_sequence,
+            disbursement_date=loan.start_date,
+            first_payment_date=loan.first_payment_date,
         )
 
         # Override computed interest/insurance with annual statement values when available

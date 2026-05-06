@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 23:51+0200\n"
+"POT-Creation-Date: 2026-05-06 23:08+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -167,7 +167,7 @@ msgstr "Épargne"
 msgid "Data type to import"
 msgstr "Type de données à importer"
 
-#: finance/forms.py:162 property/forms.py:558
+#: finance/forms.py:162 property/forms.py:562
 msgid "CSV File"
 msgstr "Fichier CSV"
 
@@ -473,15 +473,15 @@ msgstr "Durée (mois)"
 msgid "e.g. 240 for 20 years"
 msgstr "ex. 240 pour 20 ans"
 
-#: property/forms.py:327
+#: property/forms.py:331
 msgid "An annual statement for this loan and year already exists."
 msgstr "Un relevé annuel existe déjà pour ce prêt et cette année."
 
-#: property/forms.py:467
+#: property/forms.py:471
 msgid "Acquisition fees to include"
 msgstr "Frais d'acquisition à inclure"
 
-#: property/forms.py:469
+#: property/forms.py:473
 msgid ""
 "Additional amount to add to the purchase price for depreciation (notary "
 "fees, agency fees, miscellaneous). Set to 0 to exclude."
@@ -489,24 +489,24 @@ msgstr ""
 "Montant à additionner au prix d'achat pour l'amortissement (frais de "
 "notaire, frais d'agence, autres). Mettre à 0 pour ignorer."
 
-#: property/forms.py:486 property/models/asset.py:663
+#: property/forms.py:490 property/models/asset.py:676
 msgid "Land percentage (%)"
 msgstr "Pourcentage du terrain (%)"
 
-#: property/forms.py:488 property/models/asset.py:665
+#: property/forms.py:492 property/models/asset.py:678
 msgid ""
 "Non-depreciable land share as a percentage of total value. Default: 15 %."
 msgstr ""
 "Part de terrain non amortissable en pourcentage de la valeur totale. "
 "Défaut : 15 %."
 
-#: property/forms.py:524 templates/base.html:55 templates/index.html:270
+#: property/forms.py:528 templates/base.html:55 templates/index.html:270
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:15
 msgid "Properties"
 msgstr "Immobilier"
 
-#: property/forms.py:529 property/models/lease.py:64
+#: property/forms.py:533 property/models/lease.py:64
 #: property/models/management.py:46
 #: templates/property/detail_panel_amortization.html:126
 #: templates/property/detail_panel_leases.html:44
@@ -516,7 +516,7 @@ msgstr "Immobilier"
 msgid "Start date"
 msgstr "Date de début"
 
-#: property/forms.py:537 property/models/lease.py:65
+#: property/forms.py:541 property/models/lease.py:65
 #: property/models/management.py:50 templates/property/detail.html:454
 #: templates/property/detail.html:685
 #: templates/property/detail_panel_leases.html:48
@@ -526,7 +526,7 @@ msgstr "Date de début"
 msgid "End date"
 msgstr "Date de fin"
 
-#: property/forms.py:560
+#: property/forms.py:564
 msgid ""
 "Please upload a CSV file with columns: date, amount, category, description"
 msgstr ""
@@ -581,222 +581,237 @@ msgstr "Référence bancaire"
 msgid "Loan reference number as shown on your bank statements."
 msgstr "Numéro de référence du prêt tel qu'indiqué sur vos relevés bancaires."
 
-#: property/models/asset.py:239
+#: property/models/asset.py:79
+msgid "First payment date"
+msgstr "Date du premier prélèvement"
+
+#: property/models/asset.py:81
+msgid ""
+"Date of the first bank debit. When set, the first month's interest is "
+"calculated proportionally based on the actual number of days between the "
+"disbursement date and the first payment, matching the bank's amortization "
+"table."
+msgstr ""
+"Date du premier prélèvement bancaire. Quand définie, l'intérêt du premier "
+"mois est calculé au prorata du nombre de jours réels entre le déblocage et "
+"le premier prélèvement, conformément au tableau d'amortissement de la banque."
+
+#: property/models/asset.py:252
 msgid "loan schedule tranche"
 msgstr "versement de prêt"
 
-#: property/models/asset.py:240
+#: property/models/asset.py:253
 msgid "loan schedule tranches"
 msgstr "versements de prêts personnalisé"
 
-#: property/models/asset.py:248 property/models/asset.py:289
+#: property/models/asset.py:261 property/models/asset.py:302
 #: templates/property/detail_panel_loans.html:212
 msgid "Loan"
 msgstr "Prêt"
 
-#: property/models/asset.py:251 templates/property/detail_panel_loans.html:368
+#: property/models/asset.py:264 templates/property/detail_panel_loans.html:376
 msgid "Order"
 msgstr "Ordre"
 
-#: property/models/asset.py:252
+#: property/models/asset.py:265
 msgid "Position of this tranche in the payment sequence (1 = first)."
 msgstr "Posititon du versement (1 = premier)"
 
-#: property/models/asset.py:256
+#: property/models/asset.py:269
 msgid "Number of payments"
 msgstr "Nombre de mensualité"
 
-#: property/models/asset.py:257
+#: property/models/asset.py:270
 msgid "How many consecutive monthly payments at this amount."
 msgstr "Combien de mensualité consécutives pour ce moement."
 
-#: property/models/asset.py:263
+#: property/models/asset.py:276
 msgid "Payment amount"
 msgstr "Montant de paiement"
 
-#: property/models/asset.py:264
+#: property/models/asset.py:277
 msgid "Monthly payment amount for this tranche (principal + interest)."
 msgstr "Mensualité pour ce versement (capital + intérêts)"
 
-#: property/models/asset.py:280
+#: property/models/asset.py:293
 msgid "annual loan statement"
 msgstr "relevé annuel de prêt"
 
-#: property/models/asset.py:281
+#: property/models/asset.py:294
 msgid "annual loan statements"
 msgstr "relevés annuels de prêt"
 
-#: property/models/asset.py:291
+#: property/models/asset.py:304
 #: templates/property/detail_panel_amortization.html:215
 msgid "Year"
 msgstr "Année"
 
-#: property/models/asset.py:297
+#: property/models/asset.py:310
 msgid "Interest paid"
 msgstr "Intérêts payés"
 
-#: property/models/asset.py:298
+#: property/models/asset.py:311
 msgid "Total interest paid during the year as stated by the bank."
 msgstr "Total des intérêts payés sur l'année tel qu'indiqué par la banque."
 
-#: property/models/asset.py:305
+#: property/models/asset.py:318
 msgid "Insurance paid"
 msgstr "Assurance payée"
 
-#: property/models/asset.py:307
+#: property/models/asset.py:320
 msgid "Total insurance premium paid during the year as stated by the bank."
 msgstr ""
 "Total des primes d'assurance payées sur l'année tel qu'indiqué par la banque."
 
-#: property/models/asset.py:326
+#: property/models/asset.py:339
 msgid "House"
 msgstr "Maison"
 
-#: property/models/asset.py:327
+#: property/models/asset.py:340
 msgid "Apartment"
 msgstr "Appartement"
 
-#: property/models/asset.py:328
+#: property/models/asset.py:341
 msgid "Condo"
 msgstr "Condo"
 
-#: property/models/asset.py:329
+#: property/models/asset.py:342
 msgid "Land"
 msgstr "Terrain"
 
-#: property/models/asset.py:330 property/models/lease.py:29
+#: property/models/asset.py:343 property/models/lease.py:29
 #: templates/property/detail.html:414 templates/property/detail.html:646
 #: templates/property/detail_panel_info.html:64
 msgid "Other"
 msgstr "Autre"
 
-#: property/models/asset.py:337
+#: property/models/asset.py:350
 msgid "Property Type"
 msgstr "Type de propriété"
 
-#: property/models/asset.py:343 property/models/lease.py:21
+#: property/models/asset.py:356 property/models/lease.py:21
 #: templates/property/detail_panel_leases.html:16
 #: templates/property/detail_panel_mandate.html:16
 msgid "Active"
 msgstr "Actif"
 
-#: property/models/asset.py:344
+#: property/models/asset.py:357
 msgid "Whether this property is currently owned (e.g. not sold)."
 msgstr "Si cette propriété est actuellement possédée (non vendue)."
 
-#: property/models/asset.py:349
+#: property/models/asset.py:362
 msgid "Buying Value"
 msgstr "Valeur d'achat"
 
-#: property/models/asset.py:350
+#: property/models/asset.py:363
 msgid "Purchase price of the property, excluding fees."
 msgstr "Prix d'achat du bien, hors frais."
 
-#: property/models/asset.py:357 property/views/fiscal_views.py:49
+#: property/models/asset.py:370 property/views/fiscal_views.py:49
 msgid "Notary fees"
 msgstr "Frais de notaire"
 
-#: property/models/asset.py:358
+#: property/models/asset.py:371
 msgid "Notary fees paid at the time of purchase."
 msgstr "Frais de notaire payés lors de l'acquisition."
 
-#: property/models/asset.py:365 property/views/fiscal_views.py:50
+#: property/models/asset.py:378 property/views/fiscal_views.py:50
 msgid "Agency fees"
 msgstr "Frais d'agence"
 
-#: property/models/asset.py:366
+#: property/models/asset.py:379
 msgid "Intermediary fees (agencies, headhunters, etc.)."
 msgstr "Frais d'intermediaires (agences, chasseurs…)"
 
-#: property/models/asset.py:373 property/views/fiscal_views.py:51
+#: property/models/asset.py:386 property/views/fiscal_views.py:51
 msgid "Other fees"
 msgstr "Autres frais"
 
-#: property/models/asset.py:374
+#: property/models/asset.py:387
 msgid "Any other fees paid at the time of purchase."
 msgstr "Tout autre frais payé lors de l'acquisition."
 
-#: property/models/asset.py:381
+#: property/models/asset.py:394
 msgid "Credit fees"
 msgstr "Frais de crédit"
 
-#: property/models/asset.py:382
+#: property/models/asset.py:395
 msgid "Loan arrangement and guarantee fees (excluding interest)."
 msgstr "Frais de dossier et de garantie bancaire (hors intérêts)."
 
-#: property/models/asset.py:389
+#: property/models/asset.py:402
 msgid "Coproperty share (%)"
 msgstr "Quote-part co-propriété (%)"
 
-#: property/models/asset.py:390
+#: property/models/asset.py:403
 msgid "Share of the coproperty (in %), if applicable."
 msgstr "Quote-part dans la co-propriété (en %), si applicable."
 
-#: property/models/asset.py:397
+#: property/models/asset.py:410
 msgid "Number of shares in the property (if applicable)"
 msgstr "Nombre de part dans la propriété (si applicable)"
 
-#: property/models/asset.py:400
+#: property/models/asset.py:413
 msgid "Buying Date"
 msgstr "Date d'achat"
 
-#: property/models/asset.py:401
+#: property/models/asset.py:414
 msgid "Date of purchase of the property on the notary deed."
 msgstr "Date d'achat du bien sur l'acte notarié."
 
-#: property/models/asset.py:404
+#: property/models/asset.py:417
 msgid "Selling Date"
 msgstr "Date de vente"
 
-#: property/models/asset.py:412
+#: property/models/asset.py:425
 msgid "Floor area (m²)"
 msgstr "Surface habitable (m²)"
 
-#: property/models/asset.py:417 templates/property/detail_panel_info.html:21
+#: property/models/asset.py:430 templates/property/detail_panel_info.html:21
 msgid "Number of rooms"
 msgstr "Nombre de pièces"
 
-#: property/models/asset.py:421 property/models/ledger.py:71
+#: property/models/asset.py:434 property/models/ledger.py:71
 msgid "None"
 msgstr "Aucune"
 
-#: property/models/asset.py:422
+#: property/models/asset.py:435
 msgid "LMNP réel"
 msgstr "LMNP réel"
 
-#: property/models/asset.py:428 templates/property/detail_panel_info.html:27
+#: property/models/asset.py:441 templates/property/detail_panel_info.html:27
 msgid "Tax regime"
 msgstr "Régime fiscal"
 
-#: property/models/asset.py:429
+#: property/models/asset.py:442
 msgid "Tax regime applicable to this property (e.g. LMNP réel)."
 msgstr "Régime fiscal applicable à ce bien (ex. LMNP réel)."
 
-#: property/models/asset.py:436 templates/property/detail.html:5
+#: property/models/asset.py:449 templates/property/detail.html:5
 msgid "property"
 msgstr "propriété"
 
-#: property/models/asset.py:437
+#: property/models/asset.py:450
 msgid "properties"
 msgstr "propriétés"
 
-#: property/models/asset.py:585
+#: property/models/asset.py:598
 msgid "property value"
 msgstr "valeur de propriété"
 
-#: property/models/asset.py:586
+#: property/models/asset.py:599
 msgid "property values"
 msgstr "valeurs de propriétés"
 
-#: property/models/asset.py:642
+#: property/models/asset.py:655
 msgid "amortization setup"
 msgstr "paramétrage d'amortissement"
 
-#: property/models/asset.py:643
+#: property/models/asset.py:656
 msgid "amortization setups"
 msgstr "paramétrages d'amortissement"
 
-#: property/models/asset.py:649 property/models/asset.py:731
+#: property/models/asset.py:662 property/models/asset.py:744
 #: property/models/lease.py:44 property/models/ledger.py:99
 #: property/models/management.py:38
 #: templates/property/accounting_lmnp_reel.html:161
@@ -804,24 +819,24 @@ msgstr "paramétrages d'amortissement"
 msgid "Property"
 msgstr "Propriété"
 
-#: property/models/asset.py:654
+#: property/models/asset.py:667
 msgid "Total value to depreciate"
 msgstr "Valeur totale à amortir"
 
-#: property/models/asset.py:656
+#: property/models/asset.py:669
 msgid "Total acquisition value used as the base for depreciation (excl. land)."
 msgstr ""
 "Valeur d'acquisition totale servant de base à l'amortissement (hors terrain)."
 
-#: property/models/asset.py:720
+#: property/models/asset.py:733
 msgid "immobilisation"
 msgstr "immobilisation"
 
-#: property/models/asset.py:721
+#: property/models/asset.py:734
 msgid "immobilisations"
 msgstr "immobilisations"
 
-#: property/models/asset.py:735 templates/property/accounting_lmnp_reel.html:59
+#: property/models/asset.py:748 templates/property/accounting_lmnp_reel.html:59
 #: templates/property/accounting_lmnp_reel.html:361
 #: templates/property/csv_confirm.html:76
 #: templates/property/csv_import.html:106
@@ -829,77 +844,77 @@ msgstr "immobilisations"
 msgid "Label"
 msgstr "Libellé"
 
-#: property/models/asset.py:736
+#: property/models/asset.py:749
 msgid "Description of the asset, e.g. 'Toiture', 'Cuisine équipée'."
 msgstr "Description de l'immobilisation, ex. 'Toiture', 'Cuisine équipée'."
 
-#: property/models/asset.py:739
+#: property/models/asset.py:752
 msgid "Beginning date"
 msgstr "Date de début"
 
-#: property/models/asset.py:740
+#: property/models/asset.py:753
 msgid "Date of the beginning of the asset's useful life."
 msgstr "Date de début de l'amortissement."
 
-#: property/models/asset.py:745
+#: property/models/asset.py:758
 msgid "Total value"
 msgstr "Valeur totale"
 
-#: property/models/asset.py:747
+#: property/models/asset.py:760
 msgid "Total acquisition value of this asset (including VAT if applicable)."
 msgstr "Valeur totale d'acquisition de cet élément (TTC si applicable)."
 
-#: property/models/asset.py:751
+#: property/models/asset.py:764
 msgid "Duration (years)"
 msgstr "Durée (ans)"
 
-#: property/models/asset.py:752
+#: property/models/asset.py:765
 msgid "Amortization duration in years."
 msgstr "Durée d'amortissement en années."
 
-#: property/models/asset.py:757
+#: property/models/asset.py:770
 msgid "Initial component"
 msgstr "Composant initial"
 
-#: property/models/asset.py:759
+#: property/models/asset.py:772
 msgid "Set automatically when created by the standard amortization setup."
 msgstr ""
 "Défini automatiquement lors de la création par le paramétrage "
 "d'amortissement standard."
 
-#: property/models/asset.py:764
+#: property/models/asset.py:777
 #: templates/property/accounting_lmnp_reel.html:325
 #: templates/property/accounting_lmnp_reel.html:376
 #: templates/property/edit_amortization.html:123
 msgid "Terrains"
 msgstr "Terrains"
 
-#: property/models/asset.py:765
+#: property/models/asset.py:778
 #: templates/property/accounting_lmnp_reel.html:326
 #: templates/property/accounting_lmnp_reel.html:377
 #: templates/property/edit_amortization.html:132
 msgid "Constructions"
 msgstr "Constructions"
 
-#: property/models/asset.py:766
+#: property/models/asset.py:779
 #: templates/property/accounting_lmnp_reel.html:327
 #: templates/property/accounting_lmnp_reel.html:378
 #: templates/property/edit_amortization.html:144
 msgid "Installations générales"
 msgstr "Installations générales"
 
-#: property/models/asset.py:767
+#: property/models/asset.py:780
 #: templates/property/accounting_lmnp_reel.html:328
 #: templates/property/accounting_lmnp_reel.html:379
 #: templates/property/edit_amortization.html:157
 msgid "Autres immobilisations corporelles"
 msgstr "Autres immobilisations corporelles"
 
-#: property/models/asset.py:774
+#: property/models/asset.py:787
 msgid "Cerfa 2033-C category"
 msgstr "Catégorie cerfa 2033-C"
 
-#: property/models/asset.py:776
+#: property/models/asset.py:789
 msgid ""
 "Asset category for cerfa 2033-C: terrains, constructions, installations "
 "générales, or autres immobilisations corporelles."
@@ -907,7 +922,7 @@ msgstr ""
 "Catégorie d'actif pour le cerfa 2033-C : terrains, constructions, "
 "installations générales, ou autres immobilisations corporelles."
 
-#: property/models/asset.py:783 templates/property/detail.html:665
+#: property/models/asset.py:796 templates/property/detail.html:665
 #: templates/property/detail_panel_leases.html:69
 #: templates/property/detail_panel_mandate.html:56
 #: templates/property/edit_entry_occurrence.html:105
@@ -922,15 +937,15 @@ msgstr ""
 msgid "Notes"
 msgstr "Notes"
 
-#: property/models/asset.py:784
+#: property/models/asset.py:797
 msgid "Optional free-text notes about this asset."
 msgstr "Notes libres sur cette immobilisation."
 
-#: property/models/asset.py:790
+#: property/models/asset.py:803
 msgid "Source transactions"
 msgstr "Transactions associées"
 
-#: property/models/asset.py:792
+#: property/models/asset.py:805
 msgid ""
 "Ledger entries recording the payment(s) for this asset. Linked transactions "
 "are excluded from deductible charges to avoid double-counting."
@@ -1129,13 +1144,13 @@ msgstr "CFE"
 msgid "Miscellaneous deductible"
 msgstr "Charges diverses déductibles"
 
-#: property/models/ledger.py:49 property/services/cashflow.py:202
+#: property/models/ledger.py:49 property/services/cashflow.py:204
 #: templates/property/detail.html:407 templates/property/detail.html:639
 #: templates/property/detail.html:1100
 msgid "Loan interest"
 msgstr "Intérêts du prêt"
 
-#: property/models/ledger.py:50 property/services/cashflow.py:206
+#: property/models/ledger.py:50 property/services/cashflow.py:208
 #: templates/property/detail.html:408 templates/property/detail.html:640
 #: templates/property/detail.html:1102
 msgid "Loan insurance"
@@ -1190,7 +1205,7 @@ msgstr "Type de flux"
 #: templates/property/accounting_lmnp_reel.html:506
 #: templates/property/detail.html:366 templates/property/detail.html:579
 #: templates/property/detail_panel_cashflow.html:36
-#: templates/property/detail_panel_loans.html:370
+#: templates/property/detail_panel_loans.html:378
 #: templates/property/edit_entry_occurrence.html:85
 #: templates/property/report.html:115 templates/property/report.html:151
 msgid "Amount"
@@ -1339,7 +1354,7 @@ msgstr "Pourcentage du loyer encaissé, ex. 7,50 pour 7,5%."
 msgid "active"
 msgstr "actif"
 
-#: property/services/cashflow.py:211
+#: property/services/cashflow.py:213
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
@@ -2859,7 +2874,7 @@ msgstr "Êtes-vous sûr de vouloir supprimer cette évaluation ?"
 #: templates/property/detail_panel_leases.html:32
 #: templates/property/detail_panel_leases.html:92
 #: templates/property/detail_panel_loans.html:224
-#: templates/property/detail_panel_loans.html:371
+#: templates/property/detail_panel_loans.html:379
 #: templates/property/detail_panel_mandate.html:26
 #: templates/property/detail_panel_mandate.html:79
 msgid "Delete"
@@ -3292,7 +3307,7 @@ msgid "mo."
 msgstr "mo."
 
 #: templates/property/detail_panel_loans.html:70
-#: templates/property/detail_panel_loans.html:590
+#: templates/property/detail_panel_loans.html:598
 msgid "yr"
 msgstr "an"
 
@@ -3338,33 +3353,33 @@ msgid "Smoothed loan"
 msgstr "Prêt lissé"
 
 #: templates/property/detail_panel_loans.html:217
-#: templates/property/detail_panel_loans.html:433
+#: templates/property/detail_panel_loans.html:441
 msgid "Add a loan"
 msgstr "Ajouter un prêt"
 
-#: templates/property/detail_panel_loans.html:301
+#: templates/property/detail_panel_loans.html:309
 msgid "Estimated monthly payment"
 msgstr "Mensualité estimée"
 
-#: templates/property/detail_panel_loans.html:305
-#: templates/property/detail_panel_loans.html:648
+#: templates/property/detail_panel_loans.html:313
+#: templates/property/detail_panel_loans.html:656
 msgid "Total repaid"
 msgstr "Total remboursé"
 
-#: templates/property/detail_panel_loans.html:318
+#: templates/property/detail_panel_loans.html:326
 msgid "Payment schedule (smoothed loan)"
 msgstr "Versements personnalisés (prêt lissé)"
 
-#: templates/property/detail_panel_loans.html:322
-#: templates/property/detail_panel_loans.html:359
+#: templates/property/detail_panel_loans.html:330
+#: templates/property/detail_panel_loans.html:367
 msgid "Add tranche"
 msgstr "Ajouter des versements"
 
-#: templates/property/detail_panel_loans.html:333
+#: templates/property/detail_panel_loans.html:341
 msgid "Add payment schedule (smoothed loan)"
 msgstr "Ajouter des versements personnalisés (prêt lissé)"
 
-#: templates/property/detail_panel_loans.html:349
+#: templates/property/detail_panel_loans.html:357
 msgid ""
 "Adding a payment schedule will convert this loan to a smoothed loan (prêt "
 "lisseur). The computed monthly payment will be ignored."
@@ -3372,46 +3387,46 @@ msgstr ""
 "L'ajout de versements personnalisés convertira le prêt. La mensualité "
 "calculée sera ignorée."
 
-#: templates/property/detail_panel_loans.html:369
+#: templates/property/detail_panel_loans.html:377
 msgid "Count"
 msgstr "Nombre"
 
-#: templates/property/detail_panel_loans.html:416
+#: templates/property/detail_panel_loans.html:424
 msgid ""
 "Save the loan first, then add payment schedule tranches for a smoothed loan "
 "(prêt lisseur)."
 msgstr "Enregistrer le prêt en premier afin de pouvoir définir un lissement"
 
-#: templates/property/detail_panel_loans.html:443
+#: templates/property/detail_panel_loans.html:451
 msgid "Save loans"
 msgstr "Enregistrer les prêts"
 
-#: templates/property/detail_panel_loans.html:482
-#: templates/property/detail_panel_loans.html:483
+#: templates/property/detail_panel_loans.html:490
+#: templates/property/detail_panel_loans.html:491
 msgid "An error occurred. Please try again."
 msgstr "Une erreur est survenue. Merci de réessayer."
 
-#: templates/property/detail_panel_loans.html:569
+#: templates/property/detail_panel_loans.html:577
 msgid "principal+interest"
 msgstr "capital+intérêts"
 
-#: templates/property/detail_panel_loans.html:569
+#: templates/property/detail_panel_loans.html:577
 msgid "insurance"
 msgstr "assurance"
 
-#: templates/property/detail_panel_loans.html:591
+#: templates/property/detail_panel_loans.html:599
 msgid "mo"
 msgstr "mois"
 
-#: templates/property/detail_panel_loans.html:617
+#: templates/property/detail_panel_loans.html:625
 msgid "Total payments"
 msgstr "Total paiements"
 
-#: templates/property/detail_panel_loans.html:666
+#: templates/property/detail_panel_loans.html:674
 msgid "difference of"
 msgstr "différence de"
 
-#: templates/property/detail_panel_loans.html:737
+#: templates/property/detail_panel_loans.html:745
 msgid "Remove"
 msgstr "Supprimer"
 

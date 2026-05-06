@@ -466,3 +466,191 @@ class PropertyLoanScheduleStrTest(TestCase):
         self.assertIn("2", result)
         self.assertIn("118", result)
         self.assertIn("234", result)
+
+
+# ─── Interest rounding in amortization ────────────────────────────────────────
+
+
+class InterestRoundingTest(TestCase):
+    """Interest must be rounded to 2 decimal places to match bank tables."""
+
+    def test_interest_rounded_in_balance_calculation(self):
+        """Each monthly interest is rounded to 2dp before computing principal."""
+        # 100,000 at 3.25% for 180 months: monthly_rate = 0.0325/12
+        # Month 1 interest = 100000 * 0.0325/12 = 270.8333...
+        # Bank rounds to 270.83, so principal = payment - 270.83
+        balance = build_loan_amortization_balance(
+            original_amount=Decimal("100000"),
+            interest_rate=Decimal("3.25"),
+            payment_sequence=[Decimal("700")] * 180,
+            months_elapsed=1,
+        )
+        # interest = round(100000 * 3.25/100/12, 2) = 270.83
+        # principal = 700 - 270.83 = 429.17
+        # balance = 100000 - 429.17 = 99570.83
+        self.assertEqual(balance, Decimal("99570.83"))
+
+    def test_interest_rounded_in_monthly_maps(self):
+        """Monthly interest entries in the map must be rounded to 2dp."""
+        interest_map, _, _ = build_loan_monthly_maps(
+            start_date=datetime.date(2025, 1, 1),
+            end_date=datetime.date(2040, 1, 1),
+            original_amount=Decimal("100000"),
+            monthly_payment=Decimal("700"),
+            interest_rate=Decimal("3.25"),
+            insurance_amount=Decimal("0"),
+        )
+        jan_interest = interest_map[(2025, 1)]
+        # 100000 * 3.25/100/12 = 270.8333... rounded to 270.83
+        self.assertEqual(jan_interest, Decimal("270.83"))
+
+    def test_rounding_prevents_drift_over_many_months(self):
+        """Balance after N months with rounding must not drift from exact bank value."""
+        # Use real Angers bank data: 40000 at 3.25%, 180 months
+        # Row 1 (2025-11-10): payment=270.59, interest=97.85, principal=172.74 → remaining=39827.26
+        # Row 2 (2025-12-10): payment=281.07, interest=107.87, principal=173.20 → remaining=39654.06
+        seq = [Decimal("270.59"), Decimal("281.07")]
+        balance = build_loan_amortization_balance(
+            original_amount=Decimal("40000"),
+            interest_rate=Decimal("3.25"),
+            payment_sequence=seq,
+            months_elapsed=2,
+            disbursement_date=datetime.date(2025, 10, 13),
+            first_payment_date=datetime.date(2025, 11, 10),
+        )
+        # Bank shows 39,654.06 after 2 payments
+        self.assertAlmostEqual(float(balance), 39654.06, delta=2.0)
+
+
+# ─── Partial first period (first_payment_date) ────────────────────────────────
+
+
+class PartialFirstPeriodTest(TestCase):
+    """When first_payment_date differs from start_date, the first month's
+    interest must be computed proportionally (days / 365).
+    """
+
+    def test_prorated_first_interest_in_balance(self):
+        """First month interest uses monthly_rate × days/days_in_month convention."""
+        # Disbursement: 2025-10-13, first payment: 2025-11-10 → 28 days, October has 31 days
+        # interest₁ = 40000 × (3.25/100/12) × (28/31) = 97.85
+        balance_with_prorate = build_loan_amortization_balance(
+            original_amount=Decimal("40000"),
+            interest_rate=Decimal("3.25"),
+            payment_sequence=[Decimal("270.59")],
+            months_elapsed=1,
+            disbursement_date=datetime.date(2025, 10, 13),
+            first_payment_date=datetime.date(2025, 11, 10),
+        )
+        balance_without_prorate = build_loan_amortization_balance(
+            original_amount=Decimal("40000"),
+            interest_rate=Decimal("3.25"),
+            payment_sequence=[Decimal("270.59")],
+            months_elapsed=1,
+        )
+        # With prorate, less interest → more principal → lower remaining balance
+        self.assertLess(float(balance_with_prorate), float(balance_without_prorate))
+        # Bank shows 39,827.26 after first payment
+        self.assertAlmostEqual(float(balance_with_prorate), 39827.26, delta=1.0)
+
+    def test_prorated_first_interest_value(self):
+        """Verify the actual prorated interest amount: 97.85€ for 28 days in October."""
+        # interest = 40000 × (3.25/100/12) × (28/31) = 97.848... → rounds to 97.85
+        # principal = 270.59 - 97.85 = 172.74
+        # balance = 40000 - 172.74 = 39827.26
+        balance = build_loan_amortization_balance(
+            original_amount=Decimal("40000"),
+            interest_rate=Decimal("3.25"),
+            payment_sequence=[Decimal("270.59")],
+            months_elapsed=1,
+            disbursement_date=datetime.date(2025, 10, 13),
+            first_payment_date=datetime.date(2025, 11, 10),
+        )
+        self.assertEqual(balance, Decimal("39827.26"))
+
+    def test_no_prorate_when_no_first_payment_date(self):
+        """Without first_payment_date, behaves as before (full monthly rate)."""
+        balance = build_loan_amortization_balance(
+            original_amount=Decimal("40000"),
+            interest_rate=Decimal("3.25"),
+            payment_sequence=[Decimal("281.07")],
+            months_elapsed=1,
+        )
+        # interest = round(40000 * 3.25/100/12, 2) = 108.33
+        # principal = 281.07 - 108.33 = 172.74
+        # balance = 40000 - 172.74 = 39827.26
+        self.assertAlmostEqual(float(balance), 39827.26, delta=0.5)
+
+    def test_monthly_maps_start_at_first_payment_month(self):
+        """When first_payment_date is provided, the map keys start from that month."""
+        interest_map, _, _ = build_loan_monthly_maps(
+            start_date=datetime.date(2025, 10, 13),
+            end_date=datetime.date(2040, 10, 13),
+            original_amount=Decimal("40000"),
+            monthly_payment=Decimal("281.07"),
+            interest_rate=Decimal("3.25"),
+            insurance_amount=Decimal("0"),
+            disbursement_date=datetime.date(2025, 10, 13),
+            first_payment_date=datetime.date(2025, 11, 10),
+        )
+        # October must NOT be in the map — first payment is November
+        self.assertNotIn((2025, 10), interest_map)
+        self.assertIn((2025, 11), interest_map)
+
+    def test_monthly_maps_prorated_first_interest(self):
+        """The first month in the map uses monthly_rate × days/days_in_month."""
+        interest_map, _, _ = build_loan_monthly_maps(
+            start_date=datetime.date(2025, 10, 13),
+            end_date=datetime.date(2040, 10, 13),
+            original_amount=Decimal("40000"),
+            monthly_payment=Decimal("270.59"),
+            interest_rate=Decimal("3.25"),
+            insurance_amount=Decimal("0"),
+            disbursement_date=datetime.date(2025, 10, 13),
+            first_payment_date=datetime.date(2025, 11, 10),
+        )
+        nov_interest = interest_map.get((2025, 11), Decimal("0"))
+        # 40000 × (3.25/100/12) × (28/31) = 97.85 (not 108.33 for a full month)
+        self.assertEqual(nov_interest, Decimal("97.85"))
+        # Full-month interest would be 108.33 — ensure we're clearly less
+        self.assertLess(float(nov_interest), 105.0)
+
+    def test_same_date_no_prorate(self):
+        """When disbursement_date == first_payment_date, use standard monthly rate."""
+        balance = build_loan_amortization_balance(
+            original_amount=Decimal("40000"),
+            interest_rate=Decimal("3.25"),
+            payment_sequence=[Decimal("281.07")],
+            months_elapsed=1,
+            disbursement_date=datetime.date(2025, 11, 10),
+            first_payment_date=datetime.date(2025, 11, 10),
+        )
+        # No prorate: interest = round(40000 * 3.25/100/12, 2) = 108.33
+        self.assertAlmostEqual(float(balance), 39827.26, delta=0.5)
+
+    def test_first_payment_date_on_model(self):
+        """PropertyLoan.remaining_balance() uses first_payment_date when set."""
+        prop = Property.objects.create(
+            name="Test",
+            property_type=Property.HOUSE,
+            buying_value=Money(100_000, "EUR"),
+            buying_date=datetime.date(2025, 10, 1),
+        )
+        loan = PropertyLoan.objects.create(
+            property=prop,
+            name="Facilimmo",
+            start_date=datetime.date(2025, 10, 13),
+            end_date=datetime.date(2040, 10, 13),
+            original_amount=Money(Decimal("40000"), "EUR"),
+            monthly_payment=Money(Decimal("281.07"), "EUR"),
+            interest_rate=Decimal("3.25"),
+            first_payment_date=datetime.date(2025, 11, 10),
+        )
+        # With first_payment_date set, remaining balance after 1 month should
+        # reflect the prorated first period
+        balance_with = loan.remaining_balance(datetime.date(2025, 11, 30))
+        # Without first_payment_date
+        loan.first_payment_date = None
+        balance_without = loan.remaining_balance(datetime.date(2025, 11, 30))
+        # With prorated first period, slightly different balance
+        self.assertNotEqual(float(balance_with.amount), float(balance_without.amount))

@@ -73,6 +73,17 @@ class PropertyLoan(BaseModel):
         verbose_name=_("Bank reference"),
         help_text=_("Loan reference number as shown on your bank statements."),
     )
+    first_payment_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("First payment date"),
+        help_text=_(
+            "Date of the first bank debit. When set, the first month's interest is"
+            " calculated proportionally based on the actual number of days between"
+            " the disbursement date and the first payment, matching the bank's"
+            " amortization table."
+        ),
+    )
 
     def __str__(self) -> str:
         if self.name:
@@ -212,6 +223,8 @@ class PropertyLoan(BaseModel):
             interest_rate=self.interest_rate,
             payment_sequence=payment_sequence,
             months_elapsed=months_elapsed,
+            disbursement_date=self.start_date,
+            first_payment_date=self.first_payment_date,
         )
         return Money(max(Decimal("0"), balance), currency)
 

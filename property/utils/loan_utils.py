@@ -1,5 +1,6 @@
 """Loan math utilities: amortization, monthly payment, and monthly map builders."""
 
+import calendar
 import datetime
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -50,6 +51,8 @@ def build_loan_amortization_balance(
     interest_rate: Decimal | None,
     payment_sequence: list[Decimal],
     months_elapsed: int,
+    disbursement_date: datetime.date | None = None,
+    first_payment_date: datetime.date | None = None,
 ) -> Decimal:
     """Simulate real amortization and return the remaining balance after N months.
 
@@ -61,17 +64,41 @@ def build_loan_amortization_balance(
         interest_rate: Annual interest rate in percent (e.g. Decimal("3.5")).
         payment_sequence: Ordered list of monthly payment amounts.
         months_elapsed: How many months have passed since loan start.
+        disbursement_date: Date the loan was disbursed. Used together with
+            first_payment_date to compute a prorated first-period interest.
+        first_payment_date: Date of the first bank debit. When provided alongside
+            disbursement_date, the first period's interest is calculated using the
+            actual number of days (actual/365) to match the bank's table.
 
     Returns:
         Remaining capital balance as a Decimal (≥ 0).
     """
+    annual_rate = Decimal("0")
     monthly_rate = Decimal("0")
     if interest_rate:
-        monthly_rate = (interest_rate / Decimal("100")) / Decimal("12")
+        annual_rate = interest_rate / Decimal("100")
+        monthly_rate = annual_rate / Decimal("12")
+
+    use_prorated_first = (
+        disbursement_date is not None
+        and first_payment_date is not None
+        and first_payment_date != disbursement_date
+    )
 
     balance = original_amount
     for i in range(min(months_elapsed, len(payment_sequence))):
-        interest_amount = balance * monthly_rate
+        if use_prorated_first and i == 0:
+            days = Decimal((first_payment_date - disbursement_date).days)  # type: ignore[operator]
+            days_in_month = Decimal(
+                calendar.monthrange(disbursement_date.year, disbursement_date.month)[1]
+            )  # type: ignore[union-attr]
+            interest_amount = (balance * monthly_rate * days / days_in_month).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
+        else:
+            interest_amount = (balance * monthly_rate).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
         principal_amount = payment_sequence[i] - interest_amount
         if principal_amount < Decimal("0"):
             principal_amount = Decimal("0")
@@ -93,6 +120,8 @@ def build_loan_monthly_maps(
     interest_rate: Decimal | None,
     insurance_amount: Decimal,
     payment_sequence: list[Decimal] | None = None,
+    disbursement_date: datetime.date | None = None,
+    first_payment_date: datetime.date | None = None,
 ) -> tuple[
     dict[tuple[int, int], Decimal],
     dict[tuple[int, int], Decimal],
@@ -104,7 +133,8 @@ def build_loan_monthly_maps(
     (prêt lisseur) via payment_sequence.
 
     Args:
-        start_date: First payment date.
+        start_date: Disbursement date (used as loop start when first_payment_date
+            is not provided, for backwards compatibility).
         end_date: Last payment date.
         original_amount: Initial loan capital.
         monthly_payment: Fixed monthly payment (used when payment_sequence is None).
@@ -112,16 +142,32 @@ def build_loan_monthly_maps(
         insurance_amount: Fixed monthly insurance amount.
         payment_sequence: Ordered list of monthly payment amounts (smoothed loans).
             When provided, takes precedence over monthly_payment.
+        disbursement_date: Date the loan was disbursed. Used together with
+            first_payment_date to compute a prorated first-period interest.
+        first_payment_date: Date of the first bank debit. When provided, the monthly
+            map loop starts from this date's month, and the first period's interest
+            is computed using the actual number of days (actual/365).
     """
     interest_by_month: dict[tuple[int, int], Decimal] = {}
     principal_by_month: dict[tuple[int, int], Decimal] = {}
     insurance_by_month: dict[tuple[int, int], Decimal] = {}
 
+    annual_rate = Decimal("0")
     monthly_rate = Decimal("0")
     if interest_rate:
-        monthly_rate = (interest_rate / Decimal("100")) / Decimal("12")
+        annual_rate = interest_rate / Decimal("100")
+        monthly_rate = annual_rate / Decimal("12")
 
-    current = month_start(start_date)
+    loop_start_date = (
+        first_payment_date if first_payment_date is not None else start_date
+    )
+    use_prorated_first = (
+        disbursement_date is not None
+        and first_payment_date is not None
+        and first_payment_date != disbursement_date
+    )
+
+    current = month_start(loop_start_date)
     end_month = month_start(end_date)
     remaining_balance = original_amount
     months_count = (
@@ -142,7 +188,18 @@ def build_loan_monthly_maps(
         else:
             break
 
-        interest_amount = remaining_balance * monthly_rate
+        if use_prorated_first and step == 0:
+            days = Decimal((first_payment_date - disbursement_date).days)  # type: ignore[operator]
+            days_in_month = Decimal(
+                calendar.monthrange(disbursement_date.year, disbursement_date.month)[1]
+            )  # type: ignore[union-attr]
+            interest_amount = (
+                remaining_balance * monthly_rate * days / days_in_month
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        else:
+            interest_amount = (remaining_balance * monthly_rate).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
         principal_amount = payment - interest_amount
         if principal_amount < Decimal("0"):
             principal_amount = Decimal("0")
