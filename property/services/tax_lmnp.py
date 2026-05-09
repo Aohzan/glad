@@ -39,6 +39,8 @@ import datetime
 from decimal import Decimal
 
 from django.db.models import Q, Sum
+from django.utils.functional import Promise
+from django.utils.translation import gettext_lazy as _
 
 # ─── Mapping ManagementCategory → cerfa 2033-B (LMNP réel) ──────────────────
 #
@@ -1064,4 +1066,352 @@ def get_accounting_data(properties: list, year: int) -> dict:
         "form_2031": form_2031,
         "form_2031bis": form_2031bis,
         "form_2042c": form_2042c,
+    }
+
+
+# ─── Checklist categories ─────────────────────────────────────────────────────
+
+_CHECKLIST_RECETTES = frozenset(
+    {"rent_collected", "charges_collected", "other_income", "manager_reversal"}
+)
+_CHECKLIST_CHARGES_EXPLOIT = frozenset(
+    {
+        "management_fees",
+        "letting_fees",
+        "other_general_fees",
+        "coownership",
+        "maintenance",
+        "works",
+        "furnitures",
+        "insurance",
+        "misc_deductible",
+    }
+)
+_CHECKLIST_TAXES = frozenset({"property_tax", "cfe"})
+_CHECKLIST_FINANCIERES = frozenset({"loan_interest", "loan_insurance"})
+
+
+def _count_entries_in_year(property_id: int, year: int, categories: frozenset) -> int:
+    """Count ledger entries (recurring or not) that have amounts in ``year``."""
+    from property.models import PropertyLedgerEntry
+
+    year_start = datetime.date(year, 1, 1)
+    year_end = datetime.date(year, 12, 31)
+
+    non_recurring_q = Q(
+        recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
+        entry_date__gte=year_start,
+        entry_date__lte=year_end,
+    )
+    recurring_q = (
+        ~Q(recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE)
+        & Q(entry_date__lte=year_end)
+        & (Q(recurrence_end_date__gte=year_start) | Q(recurrence_end_date__isnull=True))
+    )
+
+    return (
+        PropertyLedgerEntry.objects.filter(
+            property_id=property_id,
+            management_category__in=list(categories),
+            amount_currency="EUR",
+        )
+        .filter(non_recurring_q | recurring_q)
+        .count()
+    )
+
+
+def get_lmnp_checklist(properties: list, year: int) -> dict:
+    """
+    Return a data completeness checklist for LMNP réel properties.
+
+    For each property, runs a series of checks on required data for the
+    LMNP fiscal declaration (liasse fiscale 2031 + 2033-A/B/C/D + SUIV39C).
+
+    Each check has a status:
+      - "ok"      : data is present and complete
+      - "warning" : data may be absent but not strictly required (e.g. taxe foncière)
+      - "missing"  : required data is absent
+      - "na"      : not applicable (e.g. no loan → financial charges not required)
+
+    Returns a dict with:
+      - "properties": per-property check results
+      - "forms": readiness summary per LMNP form
+      - "total_issues": total count of warning + missing checks across all properties
+      - "overall_status": "ok" | "warning" | "incomplete"
+    """
+    from property.models import AmortizationAsset, AmortizationSetup, PropertyLoan
+
+    def _check(
+        check_id: str,
+        label: str | Promise,
+        count: int,
+        form_ref: str,
+        required: bool = True,
+        loan_active: bool | None = None,
+    ) -> dict:
+        """Build a single check result dict."""
+        if check_id == "financial_charges":
+            if loan_active is False:
+                status = "na"
+                detail = _("No active loan — not required.")
+            elif count > 0:
+                status = "ok"
+                detail = _("%(count)d entry(ies) found.") % {"count": count}
+            else:
+                status = "warning"
+                detail = _("Loan detected but no financial charge entries found.")
+        elif count > 0:
+            status = "ok"
+            detail = _("%(count)d entry(ies) found.") % {"count": count}
+        elif required:
+            status = "missing"
+            detail = _("No entry found — required for %(form)s.") % {"form": form_ref}
+        else:
+            status = "warning"
+            detail = _("No entry found — recommended for %(form)s.") % {
+                "form": form_ref
+            }
+        return {
+            "id": check_id,
+            "label": label,
+            "status": status,
+            "detail": detail,
+            "count": count,
+            "form_ref": form_ref,
+        }
+
+    prop_results = []
+    all_checks: list[list[dict]] = []
+
+    for prop in properties:
+        year_start = datetime.date(year, 1, 1)
+        year_end = datetime.date(year, 12, 31)
+
+        # --- Revenues ---
+        revenue_count = _count_entries_in_year(prop.pk, year, _CHECKLIST_RECETTES)
+
+        # --- Operating charges ---
+        charges_count = _count_entries_in_year(
+            prop.pk, year, _CHECKLIST_CHARGES_EXPLOIT
+        )
+
+        # --- Taxes (taxe foncière / CFE) ---
+        taxes_count = _count_entries_in_year(prop.pk, year, _CHECKLIST_TAXES)
+
+        # --- Financial charges (only required if a loan is active this year) ---
+        has_active_loan = PropertyLoan.objects.filter(
+            property_id=prop.pk,
+            start_date__lte=year_end,
+            end_date__gte=year_start,
+        ).exists()
+        fin_count = _count_entries_in_year(prop.pk, year, _CHECKLIST_FINANCIERES)
+
+        # --- Amortization setup ---
+        has_setup = AmortizationSetup.objects.filter(property=prop).exists()
+
+        # --- Amortization components ---
+        asset_count = AmortizationAsset.objects.filter(property=prop).count()
+
+        # --- Acquisition value ---
+        has_buying_value = (
+            prop.buying_value is not None and prop.buying_value.amount > Decimal("0")
+        )
+
+        checks = [
+            _check(
+                "revenues",
+                _("Revenue entries"),
+                revenue_count,
+                "2033-B (line 218)",
+                required=True,
+            ),
+            _check(
+                "charges",
+                _("Operating charge entries"),
+                charges_count,
+                "2033-B (line 242)",
+                required=False,
+            ),
+            _check(
+                "taxes",
+                _("Property tax / CFE entries"),
+                taxes_count,
+                "2033-B (line 244)",
+                required=False,
+            ),
+            _check(
+                "financial_charges",
+                _("Financial charge entries"),
+                fin_count,
+                "2033-B (line 294)",
+                loan_active=has_active_loan,
+            ),
+            {
+                "id": "amortization_setup",
+                "label": _("Amortization initialized"),
+                "status": "ok" if has_setup else "missing",
+                "detail": (
+                    _("Amortization setup found.")
+                    if has_setup
+                    else _("No amortization setup — required for 2033-A and 2033-C.")
+                ),
+                "count": 1 if has_setup else 0,
+                "form_ref": "2033-A / 2033-C",
+            },
+            {
+                "id": "amortization_components",
+                "label": _("Amortization components"),
+                "status": (
+                    "ok" if asset_count > 0 else ("warning" if has_setup else "missing")
+                ),
+                "detail": (
+                    _("%(count)d component(s) found.") % {"count": asset_count}
+                    if asset_count > 0
+                    else (
+                        _("Setup exists but no components — check initialization.")
+                        if has_setup
+                        else _("No components — initialize amortization first.")
+                    )
+                ),
+                "count": asset_count,
+                "form_ref": "2033-C",
+            },
+            {
+                "id": "buying_value",
+                "label": _("Acquisition value set"),
+                "status": "ok" if has_buying_value else "missing",
+                "detail": (
+                    _("Buying value is set.")
+                    if has_buying_value
+                    else _("No buying value — required for 2033-A (bilan actif).")
+                ),
+                "count": 1 if has_buying_value else 0,
+                "form_ref": "2033-A",
+            },
+        ]
+
+        issue_count = sum(1 for c in checks if c["status"] in ("warning", "missing"))
+        prop_results.append(
+            {
+                "property": prop,
+                "checks": checks,
+                "has_issues": issue_count > 0,
+                "issue_count": issue_count,
+            }
+        )
+        all_checks.append(checks)
+
+    # ── Derive per-form readiness ─────────────────────────────────────────────
+    def _form_status(check_ids: list[str]) -> str:
+        """Return 'ok'/'warning'/'incomplete' based on matching checks across all props."""
+        worst = "ok"
+        for prop_checks in all_checks:
+            for chk in prop_checks:
+                if chk["id"] in check_ids:
+                    if chk["status"] == "missing":
+                        return "incomplete"
+                    if chk["status"] == "warning":
+                        worst = "warning"
+        return worst
+
+    forms = [
+        {
+            "id": "2031",
+            "name": "2031-SD",
+            "label": _("Déclaration de résultat BIC"),
+            "status": _form_status(["revenues"]),
+            "required": True,
+        },
+        {
+            "id": "2033a",
+            "name": "2033-A",
+            "label": _("Bilan simplifié"),
+            "status": _form_status(["buying_value", "amortization_setup"]),
+            "required": True,
+        },
+        {
+            "id": "2033b",
+            "name": "2033-B",
+            "label": _("Compte de résultat"),
+            "status": _form_status(
+                ["revenues", "charges", "taxes", "financial_charges"]
+            ),
+            "required": True,
+        },
+        {
+            "id": "2033c",
+            "name": "2033-C",
+            "label": _("Immobilisations & amortissements"),
+            "status": _form_status(["amortization_setup", "amortization_components"]),
+            "required": True,
+        },
+        {
+            "id": "2033d",
+            "name": "2033-D",
+            "label": _("Déficits reportables"),
+            "status": "auto",
+            "required": True,
+        },
+        {
+            "id": "suiv39c",
+            "name": "SUIV39C",
+            "label": _("Amortissements différés art. 39C"),
+            "status": _form_status(["amortization_setup"]),
+            "required": True,
+        },
+        {
+            "id": "2042c",
+            "name": "2042-C PRO",
+            "label": _("Déclaration complémentaire"),
+            "status": _form_status(["revenues"]),
+            "required": True,
+        },
+        {
+            "id": "2033e",
+            "name": "2033-E",
+            "label": _("Valeur ajoutée (CVAE)"),
+            "status": "na",
+            "required": False,
+        },
+        {
+            "id": "2033f",
+            "name": "2033-F",
+            "label": _("Composition du capital"),
+            "status": "na",
+            "required": False,
+        },
+        {
+            "id": "2033g",
+            "name": "2033-G",
+            "label": _("Filiales et participations"),
+            "status": "na",
+            "required": False,
+        },
+    ]
+
+    total_issues = sum(p["issue_count"] for p in prop_results)
+
+    has_incomplete = any(
+        f["status"] == "incomplete"
+        for f in forms
+        if f["required"] and f["status"] != "auto"
+    )
+    has_warning = any(
+        f["status"] == "warning"
+        for f in forms
+        if f["required"] and f["status"] != "auto"
+    )
+
+    if has_incomplete:
+        overall_status = "incomplete"
+    elif has_warning:
+        overall_status = "warning"
+    else:
+        overall_status = "ok"
+
+    return {
+        "properties": prop_results,
+        "forms": forms,
+        "total_issues": total_issues,
+        "overall_status": overall_status,
     }

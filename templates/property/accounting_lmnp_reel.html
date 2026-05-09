@@ -35,7 +35,19 @@
 
   {# ── Tabs for each cerfa form ─────────────────────────────────────────── #}
   <ul class="nav nav-tabs mb-0" id="cerfaTabs" role="tablist">
-    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-2033b" type="button">2033-B</button></li>
+    <li class="nav-item">
+      <button class="nav-link active d-flex align-items-center gap-1" data-bs-toggle="tab" data-bs-target="#tab-checklist" type="button">
+        {% translate "Checklist" %}
+        {% if checklist.overall_status == "incomplete" %}
+          <span class="badge bg-danger rounded-pill">{{ checklist.total_issues }}</span>
+        {% elif checklist.overall_status == "warning" %}
+          <span class="badge bg-warning text-dark rounded-pill">{{ checklist.total_issues }}</span>
+        {% else %}
+          <i class="bi bi-check-circle-fill text-success ms-1" style="font-size:.85rem;"></i>
+        {% endif %}
+      </button>
+    </li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033b" type="button">2033-B</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033a" type="button">2033-A</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033c" type="button">2033-C</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2031" type="button">2031</button></li>
@@ -46,9 +58,105 @@
   <div class="tab-content border border-top-0 rounded-bottom p-3 bg-body mb-4">
 
     {# ══════════════════════════════════════════════════════════════════════ #}
+    {# Checklist — Vérification des données                                  #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade show active" id="tab-checklist">
+      <h5 class="mb-3">{% translate "Data completeness checklist" %}</h5>
+
+      {# ── Form readiness badges ──────────────────────────────────────────── #}
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        {% for form in checklist.forms %}
+          {% if form.required %}
+            {% if form.status == "ok" %}
+              <span class="badge rounded-pill bg-success fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+                <i class="bi bi-check-circle me-1"></i>{{ form.name }}
+              </span>
+            {% elif form.status == "warning" %}
+              <span class="badge rounded-pill bg-warning text-dark fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+                <i class="bi bi-exclamation-circle me-1"></i>{{ form.name }}
+              </span>
+            {% elif form.status == "incomplete" %}
+              <span class="badge rounded-pill bg-danger fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+                <i class="bi bi-x-circle me-1"></i>{{ form.name }}
+              </span>
+            {% else %}{# auto #}
+              <span class="badge rounded-pill bg-secondary fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+                <i class="bi bi-robot me-1"></i>{{ form.name }}
+              </span>
+            {% endif %}
+          {% else %}
+            <span class="badge rounded-pill bg-light text-secondary border fs-6 fw-normal px-3 py-2" title="{{ form.label }} — {% translate 'Filed as nil (à néant)' %}">
+              {{ form.name }} <small class="opacity-75">{% translate "à néant" %}</small>
+            </span>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      {# ── Per-property checks ────────────────────────────────────────────── #}
+      {% if not checklist.properties %}
+        <p class="text-body-secondary">{% translate "No LMNP properties." %}</p>
+      {% else %}
+      {% for prop_data in checklist.properties %}
+      <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2 py-2">
+          <i class="bi bi-house-door"></i>
+          <a href="{% url 'property:detail' prop_data.property.pk %}" class="fw-semibold text-decoration-none">{{ prop_data.property.name }}</a>
+          {% if not prop_data.has_issues %}
+            <span class="badge bg-success ms-auto"><i class="bi bi-check-lg me-1"></i>{% translate "Complete" %}</span>
+          {% else %}
+            <span class="badge bg-danger ms-auto">{{ prop_data.issue_count }} {% translate "issue(s)" %}</span>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:2rem;"></th>
+                <th>{% translate "Check" %}</th>
+                <th>{% translate "Detail" %}</th>
+                <th>{% translate "Form" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for check in prop_data.checks %}
+              <tr>
+                <td class="text-center">
+                  {% if check.status == "ok" %}
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                  {% elif check.status == "warning" %}
+                    <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                  {% elif check.status == "missing" %}
+                    <i class="bi bi-x-circle-fill text-danger"></i>
+                  {% else %}{# na #}
+                    <i class="bi bi-dash-circle text-secondary"></i>
+                  {% endif %}
+                </td>
+                <td class="fw-semibold">{{ check.label }}</td>
+                <td class="text-body-secondary small">{{ check.detail }}</td>
+                <td><code class="small">{{ check.form_ref }}</code></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endfor %}
+
+      {# ── Legend ────────────────────────────────────────────────────────── #}
+      <div class="d-flex flex-wrap gap-3 mt-3 small text-body-secondary">
+        <span><i class="bi bi-check-circle-fill text-success me-1"></i>{% translate "OK — data present" %}</span>
+        <span><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>{% translate "Warning — recommended data missing" %}</span>
+        <span><i class="bi bi-x-circle-fill text-danger me-1"></i>{% translate "Missing — required data absent" %}</span>
+        <span><i class="bi bi-dash-circle text-secondary me-1"></i>{% translate "N/A — not applicable" %}</span>
+        <span><i class="bi bi-robot text-secondary me-1"></i>{% translate "Auto — computed automatically" %}</span>
+      </div>
+      {% endif %}
+    </div>{# /tab-checklist #}
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
     {# 2033-B — Compte de résultat simplifié                                 #}
     {# ══════════════════════════════════════════════════════════════════════ #}
-    <div class="tab-pane fade show active" id="tab-2033b">
+    <div class="tab-pane fade" id="tab-2033b">
       <h5 class="mb-3">{% translate "2033-B — Compte de résultat simplifié" %}</h5>
       <div class="row g-4">
         <div class="col-lg-7">

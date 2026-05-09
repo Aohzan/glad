@@ -463,6 +463,23 @@ class TestAccountingDashboardView:
         assert "year" in response.context
         assert "lmnp_properties" in response.context
 
+    def test_context_has_checklist(self, admin_client):
+        url = reverse("property:lmnp_accounting")
+        response = admin_client.get(url)
+        assert "checklist" in response.context
+        checklist = response.context["checklist"]
+        assert "properties" in checklist
+        assert "forms" in checklist
+        assert "total_issues" in checklist
+        assert "overall_status" in checklist
+
+    def test_checklist_forms_include_all_required_ids(self, admin_client):
+        url = reverse("property:lmnp_accounting")
+        response = admin_client.get(url)
+        form_ids = {f["id"] for f in response.context["checklist"]["forms"]}
+        for fid in ("2031", "2033a", "2033b", "2033c", "2033d", "suiv39c", "2042c"):
+            assert fid in form_ids
+
     def test_year_param(self, admin_client):
         url = reverse("property:lmnp_accounting")
         response = admin_client.get(url, {"year": "2023"})

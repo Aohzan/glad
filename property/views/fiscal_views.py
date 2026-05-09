@@ -20,6 +20,7 @@ from property.services.tax_lmnp import (
     get_accounting_data,
     get_amortization_schedule,
     get_amortization_table,
+    get_lmnp_checklist,
 )
 
 # ─── Per-property amortization panel context helper ──────────────────────────
@@ -228,12 +229,14 @@ def accounting_lmnp_reel(request: HttpRequest) -> HttpResponse:
 
     year_range = list(range(current_year - 5, current_year + 2))
     accounting = get_accounting_data(lmnp_properties, year)
+    checklist = get_lmnp_checklist(lmnp_properties, year)
 
     context = {
         "year": year,
         "year_range": year_range,
         "lmnp_properties": lmnp_properties,
         "accounting": accounting,
+        "checklist": checklist,
     }
     return render(request, "property/accounting_lmnp_reel.html", context)
 
