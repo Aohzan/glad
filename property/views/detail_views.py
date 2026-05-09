@@ -494,14 +494,12 @@ class PropertyDetailView(DetailView):
         for entry in entries_qs:
             cat_label = entry.get_management_category_display()
             lease_name = entry.lease.name if entry.lease else ""
+            descriptions = [entry.description] if entry.description else []
+            if entry.third_party:
+                descriptions.insert(0, entry.third_party)
             if lease_name:
-                base_description = (
-                    f"{entry.description} - {lease_name}"
-                    if entry.description
-                    else lease_name
-                )
-            else:
-                base_description = entry.description or ""
+                descriptions.append(lease_name)
+            base_description = " - ".join(descriptions)
             is_capitalized = entry.capitalized_as.exists()  # ty: ignore[unresolved-attribute]
             for occurrence in entry.generate_occurrences():
                 is_recurring = occurrence["is_recurring"]

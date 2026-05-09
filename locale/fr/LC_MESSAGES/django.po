@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-09 17:38+0200\n"
+"POT-Creation-Date: 2026-05-09 18:16+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -1512,23 +1512,23 @@ msgstr "%(count)d ligne(s) n'ont pas pu être importée(s)."
 msgid "Row %(num)d: %(reason)s"
 msgstr "Ligne %(num)d : %(reason)s"
 
-#: property/views/detail_views.py:596
+#: property/views/detail_views.py:594
 msgid "Property value added."
 msgstr "Valeur de propriété ajoutée."
 
-#: property/views/detail_views.py:607
+#: property/views/detail_views.py:605
 msgid "Unable to add property value."
 msgstr "Impossible d'ajouter la valeur de propriété."
 
-#: property/views/detail_views.py:620
+#: property/views/detail_views.py:618
 msgid "Entry added."
 msgstr "Écriture ajoutée."
 
-#: property/views/detail_views.py:631
+#: property/views/detail_views.py:629
 msgid "Unable to add entry."
 msgstr "Impossible d'ajouter l'écriture."
 
-#: property/views/detail_views.py:635
+#: property/views/detail_views.py:633
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 
@@ -1625,6 +1625,7 @@ msgstr "minutes"
 #: templates/accounts/settings.html:119 templates/property/detail.html:324
 #: templates/property/detail.html:479
 #: templates/property/edit_amortization.html:178
+#: templates/property/edit_entry.html:12
 #: templates/property/edit_entry_occurrence.html:126
 #: templates/property/edit_lease.html:198
 #: templates/property/edit_loan_annual_statement.html:67
@@ -1715,6 +1716,7 @@ msgstr "Mise à jour"
 #: templates/property/detail_panel_mandate.html:78
 #: templates/property/edit.html:34
 #: templates/property/edit_amortization.html:181
+#: templates/property/edit_entry.html:13
 #: templates/property/edit_entry_occurrence.html:129
 #: templates/property/edit_lease.html:201
 #: templates/property/edit_loan_annual_statement.html:70
@@ -3633,6 +3635,10 @@ msgstr "Matériel informatique"
 #: templates/property/edit_amortization.html:195
 msgid "Choose related transaction(s)"
 msgstr "Choisir les transactions associées"
+
+#: templates/property/edit_entry.html:4 templates/property/edit_entry.html:8
+msgid "Edit Entry"
+msgstr "Modifier la ligne"
 
 #: templates/property/edit_entry_occurrence.html:4
 #: templates/property/edit_entry_occurrence.html:14
