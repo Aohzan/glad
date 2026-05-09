@@ -7,7 +7,9 @@
     "terminal.integrated.profiles.linux": {
         "zsh": {
             "path": "zsh",
-            "args": ["-l"]
+            "args": [
+                "-l"
+            ]
         }
     },
     "python.testing.pytestArgs": [
@@ -21,5 +23,10 @@
             "approve": true,
             "matchCommandLine": true
         }
-    }
+    },
+    "files.associations": {
+        "**/*.html": "html",
+        "**/templates/**/*.html": "django-html",
+        "**/templates/**/*": "django-txt",
+    },
 }

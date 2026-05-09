@@ -55,6 +55,7 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
             "amount",
             "entry_date",
             "management_category",
+            "third_party",
             "lease",
             "description",
             "recurrence_type",
@@ -71,6 +72,7 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
                 attrs={"class": "form-select", "id": "id_recurrence_type"}
             ),
             "description": forms.TextInput(attrs={"class": "form-control"}),
+            "third_party": forms.TextInput(attrs={"class": "form-control"}),
             "lease": forms.Select(attrs={"class": "form-select"}),
         }
 
@@ -107,6 +109,7 @@ class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "entry_date",
             "reference_period",
             "management_category",
+            "third_party",
             "description",
             "recurrence_type",
             "recurrence_end_date",
@@ -118,6 +121,7 @@ class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "management_category": forms.Select(attrs={"class": "form-select"}),
             "recurrence_type": forms.Select(attrs={"class": "form-select"}),
             "description": forms.TextInput(attrs={"class": "form-control"}),
+            "third_party": forms.TextInput(attrs={"class": "form-control"}),
             "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
             "lease": forms.Select(attrs={"class": "form-select"}),
         }

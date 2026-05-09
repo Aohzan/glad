@@ -359,6 +359,9 @@
             </div>
           </div>
 
+          {# ── Remaining fields: shown only once a flow type is selected ── #}
+          <div id="entryFormFields" style="display:none">
+
           {# ── Row 2: Amount + Date ── #}
           <div class="row g-3 mb-3">
             <div class="col-md-6">
@@ -377,7 +380,7 @@
             </div>
           </div>
 
-          {# ── Row 3: Management category ── #}
+          {# ── Row 3: Management category + Third party ── #}
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="{{ entry_form.management_category.id_for_label }}" class="form-label fw-semibold">
@@ -415,6 +418,14 @@
                 </optgroup>
               </select>
               {% if entry_form.management_category.errors %}<div class="invalid-feedback d-block">{{ entry_form.management_category.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ entry_form.third_party.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-secondary"></i>{% translate "Third party" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ entry_form.third_party }}
+              {% if entry_form.third_party.errors %}<div class="invalid-feedback d-block">{{ entry_form.third_party.errors }}</div>{% endif %}
             </div>
           </div>
 
@@ -458,6 +469,8 @@
               </div>
             </div>
           </div>
+
+          </div>{# /entryFormFields #}
 
         </div>
         <div class="modal-footer">
@@ -610,7 +623,7 @@
             </div>
           </div>
 
-          {# ── Management category + Tax category ── #}
+          {# ── Management category + Third party ── #}
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="edit_mgmt_cat_{{ item.obj.pk }}" class="form-label fw-semibold">
@@ -647,6 +660,14 @@
                 </optgroup>
               </select>
               {% if item.edit_form.management_category.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.management_category.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.third_party.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-secondary"></i>{% translate "Third party" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ item.edit_form.third_party }}
+              {% if item.edit_form.third_party.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.third_party.errors }}</div>{% endif %}
             </div>
           </div>
 
@@ -1291,6 +1312,7 @@ document.getElementById('info-tab').addEventListener('shown.bs.tab', function() 
   const recEndBlock   = document.getElementById('recurrenceEndBlock');
   const recTypeSelect = document.getElementById('id_recurrence_type');
   const modalTitle    = document.getElementById('entryModalTitle');
+  const entryFormFields = document.getElementById('entryFormFields');
 
   function updateCreateModal(flowType) {
     if (!flowType) return;
@@ -1302,6 +1324,7 @@ document.getElementById('info-tab').addEventListener('shown.bs.tab', function() 
       }
     }
     applyMgmtFilter(mgmtSelect, flowType);
+    if (entryFormFields) entryFormFields.style.display = '';
   }
 
   function updateRecurrenceEnd() {
@@ -1328,6 +1351,7 @@ document.getElementById('info-tab').addEventListener('shown.bs.tab', function() 
         if (eg) eg.style.display = '';
         mgmtSelect.value = '';
       }
+      if (entryFormFields) entryFormFields.style.display = 'none';
       updateRecurrenceEnd();
     });
 

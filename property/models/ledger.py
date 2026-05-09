@@ -135,6 +135,12 @@ class PropertyLedgerEntry(BaseModel):
         verbose_name=_("Category"),
     )
     description = models.CharField(max_length=500, blank=True)
+    third_party = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name=_("Third party"),
+        help_text=_("Optional. Name of the third party (tenant, supplier, etc.)."),
+    )
     notes = models.TextField(blank=True)
 
     # Recurrence — same pattern as former PropertyRevenue/PropertyExpense
