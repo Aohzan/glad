@@ -160,9 +160,9 @@ def lmnp_entries_2025(lmnp_property):
 class TestAmortizationConformity:
     """Verify amortization values match the Excel reference spreadsheet."""
 
-    def test_setup_creates_five_components(self, lmnp_setup):
+    def test_setup_creates_six_components(self, lmnp_setup):
         assets = AmortizationAsset.objects.filter(property=lmnp_setup.property)
-        assert assets.count() == 5
+        assert assets.count() == 6
 
     def test_depreciable_total_is_85_percent(self, lmnp_setup):
         """
@@ -205,6 +205,7 @@ class TestAmortizationConformity:
         assets = AmortizationAsset.objects.filter(property=lmnp_setup.property)
         for asset in assets:
             assert asset.cerfa_category in [
+                "terrains",
                 "constructions",
                 "installations",
                 "autres",

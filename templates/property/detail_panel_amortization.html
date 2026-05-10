@@ -147,12 +147,16 @@
               <td class="small">{{ row.beginning_date|date:"d/m/Y" }}</td>
               <td class="text-end">{{ row.value_total|floatformat:0 }} €</td>
               <td class="text-center">
-                {% blocktranslate count n=row.duration_years %}{{ n }} yr{% plural %}{{ n }} yrs{% endblocktranslate %}
-                <div class="progress mt-1" style="height:4px;">
-                  <div class="progress-bar {% if row.is_complete %}bg-secondary{% else %}bg-primary{% endif %}"
-                       style="width:{{ row.pct_amortized|floatformat:0 }}%"></div>
-                </div>
-                <span class="small text-body-secondary">{{ row.pct_amortized|floatformat:0 }} %</span>
+                {% if row.is_depreciable %}
+                  {% blocktranslate count n=row.duration_years %}{{ n }} yr{% plural %}{{ n }} yrs{% endblocktranslate %}
+                  <div class="progress mt-1" style="height:4px;">
+                    <div class="progress-bar {% if row.is_complete %}bg-secondary{% else %}bg-primary{% endif %}"
+                         style="width:{{ row.pct_amortized|floatformat:0 }}%"></div>
+                  </div>
+                  <span class="small text-body-secondary">{{ row.pct_amortized|floatformat:0 }} %</span>
+                {% else %}
+                  <span class="text-body-secondary fst-italic small">{% translate "Non-depreciable" %}</span>
+                {% endif %}
               </td>
               <td class="text-end">
                 <a href="{% url 'property:edit_amortization' property.pk row.asset_pk %}"

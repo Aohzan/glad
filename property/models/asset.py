@@ -1,5 +1,6 @@
 """Models for property assets: Property, PropertyValue, PropertyLoan, PropertyLoanSchedule."""
 
+import builtins
 import datetime
 from decimal import Decimal
 
@@ -649,6 +650,12 @@ class AmortizationSetup(BaseModel):
             "duration": 12,
             "cerfa_category": "autres",
         },
+        {
+            "label": "Terrain",
+            "pct": 15,
+            "duration": None,
+            "cerfa_category": "terrains",
+        },
     ]
 
     class Meta:
@@ -762,8 +769,11 @@ class AmortizationAsset(BaseModel):
     )
     duration_years = models.PositiveIntegerField(
         verbose_name=_("Duration (years)"),
-        help_text=_("Amortization duration in years."),
-        validators=[MinValueValidator(1)],
+        help_text=_(
+            "Amortization duration in years. Leave blank for non-depreciable assets (e.g. land)."
+        ),
+        null=True,
+        blank=True,
     )
     is_initial_component = models.BooleanField(
         default=False,
@@ -810,6 +820,14 @@ class AmortizationAsset(BaseModel):
     def __str__(self) -> str:
         return f"{self.property.name} — {self.label}"
 
+    @builtins.property
+    def is_depreciable(self) -> bool:
+        """Return True if this asset can be depreciated (i.e. not land)."""
+        return (
+            self.cerfa_category != self.CerfaCategory.TERRAINS
+            and self.duration_years is not None
+        )
+
     def depreciable_base(self) -> Money:
         """Return the depreciable base of this asset.
 
@@ -821,56 +839,50 @@ class AmortizationAsset(BaseModel):
     def get_annual_amortization(self, year: int) -> Decimal:
         """Return the linear amortization dotation for a given fiscal year.
 
-        Applies prorata temporis (month-based) in the first year of acquisition
-        and in the last year.  Returns Decimal("0") for years outside the
-        asset's useful life.
+        Applies day-based prorata temporis in the first and last years.
+        Returns ``Decimal("0")`` outside the asset's useful life or for non-depreciable assets.
         """
-        if self.beginning_date is None or self.duration_years is None:
+        if (
+            not self.beginning_date
+            or not self.duration_years
+            or not self.is_depreciable
+        ):
             return Decimal("0")
 
         start_year = self.beginning_date.year
+        has_partial_first_year = not (
+            self.beginning_date.month == 1 and self.beginning_date.day == 1
+        )
         end_year = (
-            start_year + self.duration_years
-        )  # exclusive: fully amortized at start of end_year
+            start_year + self.duration_years + (1 if has_partial_first_year else 0)
+        )
 
         if year < start_year or year >= end_year:
             return Decimal("0")
 
-        base = self.depreciable_base().amount
-        if self.duration_years == 0:
-            return Decimal("0")
-        annual = base / Decimal(self.duration_years)
+        annual = self.depreciable_base().amount / Decimal(self.duration_years)
 
-        if year == start_year and year == end_year - 1:
-            # Single-year asset: prorata = months in service / 12
-            months_in_service = Decimal(13 - self.beginning_date.month)
-            return (annual * months_in_service / Decimal("12")).quantize(
-                Decimal("0.01")
-            )
-
-        if year == start_year:
-            # First year: prorata temporis from acquisition month
-            # Convention: month of acquisition counts as full month
-            months_in_service = Decimal(13 - self.beginning_date.month)
-            return (annual * months_in_service / Decimal("12")).quantize(
-                Decimal("0.01")
-            )
-
-        if year == end_year - 1:
-            # Last year: complement of first-year prorata
-            months_first_year = Decimal(13 - self.beginning_date.month)
-            months_last_year = Decimal("12") - months_first_year
-            if months_last_year <= Decimal("0"):
-                return Decimal("0")
-            return (annual * months_last_year / Decimal("12")).quantize(Decimal("0.01"))
+        if has_partial_first_year:
+            days_first = (datetime.date(start_year, 12, 31) - self.beginning_date).days
+            if year == start_year:
+                return (annual * Decimal(days_first) / Decimal("365")).quantize(
+                    Decimal("0.01")
+                )
+            if year == end_year - 1:
+                return (annual * Decimal(365 - days_first) / Decimal("365")).quantize(
+                    Decimal("0.01")
+                )
 
         return annual.quantize(Decimal("0.01"))
 
     def cumulative_amortization(self, up_to_year: int) -> Decimal:
-        """Return the sum of all annual amortizations from acquisition year to up_to_year (inclusive)."""
-        if self.beginning_date is None:
+        """Return the sum of all annual amortizations from acquisition year to *up_to_year* (inclusive)."""
+        if not self.beginning_date:
             return Decimal("0")
-        total = Decimal("0")
-        for y in range(self.beginning_date.year, up_to_year + 1):
-            total += self.get_annual_amortization(y)
-        return total
+        return sum(
+            (
+                self.get_annual_amortization(y)
+                for y in range(self.beginning_date.year, up_to_year + 1)
+            ),
+            Decimal("0"),
+        )

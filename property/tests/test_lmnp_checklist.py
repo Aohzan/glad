@@ -356,8 +356,8 @@ class TestChecklistAmortization:
         )
         assert check["status"] == "ok"
         assert (
-            check["count"] == 5
-        )  # 5 standard components created by initialize_components
+            check["count"] == 6
+        )  # 6 standard components created by initialize_components (incl. terrain)
 
 
 @pytest.mark.django_db

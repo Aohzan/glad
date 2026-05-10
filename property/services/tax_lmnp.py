@@ -369,7 +369,7 @@ def get_amortization_table(property_id: int, year: int) -> list[dict]:
         )
         pct_amortized = (
             (cumul / base.amount * Decimal("100")).quantize(Decimal("0.1"))
-            if base.amount > Decimal("0")
+            if base.amount > Decimal("0") and asset.is_depreciable
             else Decimal("0")
         )
         is_complete = end_year is not None and year >= end_year
@@ -379,6 +379,7 @@ def get_amortization_table(property_id: int, year: int) -> list[dict]:
                 "depreciable_base": base.amount,
                 "value_total": asset.value_total.amount,
                 "duration_years": asset.duration_years,
+                "is_depreciable": asset.is_depreciable,
                 "beginning_date": asset.beginning_date,
                 "end_year": end_year,
                 "pct_amortized": pct_amortized,
@@ -423,14 +424,33 @@ def get_amortization_schedule(property_id: int) -> dict:
             "end_year": None,
         }
 
-    first_year = min(a.beginning_date.year for a in assets)
-    last_year = max(a.beginning_date.year + a.duration_years - 1 for a in assets)
+    # Separate depreciable assets (not land) from non-depreciable ones
+    depreciable_assets = [a for a in assets if a.is_depreciable]
 
-    total_base = sum((a.depreciable_base().amount for a in assets), Decimal("0"))
+    if not depreciable_assets:
+        return {
+            "rows": [],
+            "asset_series": [],
+            "total_depreciable_base": Decimal("0"),
+            "amortized_to_date": Decimal("0"),
+            "remaining": Decimal("0"),
+            "end_year": None,
+        }
+
+    first_year = min(a.beginning_date.year for a in depreciable_assets)
+    last_year = max(
+        a.beginning_date.year + a.duration_years - 1 for a in depreciable_assets
+    )
+
+    # Totals consider only depreciable assets (land is not amortized)
+    total_base = sum(
+        (a.depreciable_base().amount for a in depreciable_assets), Decimal("0")
+    )
 
     # Pre-compute per-asset dotations for each year to avoid repeated queries
+    # Only depreciable assets are included in the chart series
     asset_yearly: list[dict] = []
-    for asset in assets:
+    for asset in depreciable_assets:
         yearly = {
             year: asset.get_annual_amortization(year)
             for year in range(first_year, last_year + 1)
@@ -440,7 +460,9 @@ def get_amortization_schedule(property_id: int) -> dict:
     rows = []
     for year in range(first_year, last_year + 1):
         dotation = sum((ay["yearly"][year] for ay in asset_yearly), Decimal("0"))
-        cumul = sum((a.cumulative_amortization(year) for a in assets), Decimal("0"))
+        cumul = sum(
+            (a.cumulative_amortization(year) for a in depreciable_assets), Decimal("0")
+        )
         pct = (
             (cumul / total_base * Decimal("100")).quantize(Decimal("0.1"))
             if total_base > Decimal("0")
@@ -457,7 +479,7 @@ def get_amortization_schedule(property_id: int) -> dict:
             }
         )
 
-    # Build per-asset series for multi-line chart
+    # Build per-asset series for multi-line chart (terrains excluded — not depreciable)
     asset_series = [
         {
             "label": ay["label"],
@@ -471,7 +493,8 @@ def get_amortization_schedule(property_id: int) -> dict:
     ]
 
     amortized_to_date = sum(
-        (a.cumulative_amortization(today_year) for a in assets), Decimal("0")
+        (a.cumulative_amortization(today_year) for a in depreciable_assets),
+        Decimal("0"),
     )
     amortized_to_date = min(amortized_to_date, total_base)
     remaining = max(Decimal("0"), total_base - amortized_to_date)
@@ -676,7 +699,6 @@ def get_bilan_data(property_id: int, year: int) -> dict:
     """
     from property.models import (
         AmortizationAsset,
-        AmortizationSetup,
         Property,
         PropertyLoan,
     )
@@ -684,15 +706,7 @@ def get_bilan_data(property_id: int, year: int) -> dict:
     assets = AmortizationAsset.objects.filter(property_id=property_id)
     brut = sum((a.value_total.amount for a in assets), Decimal("0"))
 
-    # Add land value from setup (non-amortizable but must appear in bilan)
-    try:
-        setup = AmortizationSetup.objects.get(property_id=property_id)
-        land_value = (
-            setup.total_value.amount * setup.land_percentage / Decimal("100")
-        ).quantize(Decimal("0.01"))
-        brut += land_value
-    except AmortizationSetup.DoesNotExist:
-        land_value = Decimal("0")
+    # Land is included as an AmortizationAsset (cerfa_category="terrains").
 
     cumul = sum((a.cumulative_amortization(year) for a in assets), Decimal("0"))
 
@@ -739,8 +753,6 @@ def get_bilan_data(property_id: int, year: int) -> dict:
         ),
         Decimal("0"),
     )
-    if land_value > Decimal("0") and start_year == year:
-        cout_revient_acquisitions += land_value
 
     return {
         "immobilisations_brutes": brut,
@@ -763,12 +775,12 @@ def get_immobilisation_movements(property_id: int, year: int) -> dict:
       - by_cerfa_category: aggregated by cerfa category (terrains/constructions/
             installations/autres) with keys: value_start, acquisitions, value_end,
             amort_start, dotation, amort_end
-      - terrains: land value from AmortizationSetup (non-amortizable)
+      - terrains_value: land value from terrain AmortizationAsset (0 if absent)
     Each row:
       - label, cerfa_category, value_start, acquisitions, value_end,
         amort_start, dotation, amort_end, asset_pk
     """
-    from property.models import AmortizationAsset, AmortizationSetup
+    from property.models import AmortizationAsset
 
     assets = AmortizationAsset.objects.filter(property_id=property_id).select_related(
         "property"
@@ -817,38 +829,30 @@ def get_immobilisation_movements(property_id: int, year: int) -> dict:
         by_cerfa[cat]["dotation"] += row["dotation"]
         by_cerfa[cat]["amort_end"] += row["amort_end"]
 
-    # Land (terrains) from AmortizationSetup — non-amortizable
-    terrains_value = Decimal("0")
-    try:
-        setup = AmortizationSetup.objects.get(property_id=property_id)
-        terrains_value = (
-            setup.total_value.amount * setup.land_percentage / Decimal("100")
-        ).quantize(Decimal("0.01"))
-    except AmortizationSetup.DoesNotExist:
-        pass
+    # Land (terrains) value comes directly from the terrain AmortizationAsset.
+    # No setup-based override — the asset row already populates by_cerfa["terrains"].
+    terrains_value = by_cerfa["terrains"]["value_end"]
 
-    if terrains_value > Decimal("0"):
-        by_cerfa["terrains"]["value_end"] = terrains_value
-        by_cerfa["terrains"]["value_start"] = (
-            terrains_value
-            if year
-            > (
-                AmortizationAsset.objects.filter(property_id=property_id)
-                .order_by("beginning_date")
-                .values_list("beginning_date__year", flat=True)
-                .first()
-                or year
-            )
-            else Decimal("0")
-        )
-        by_cerfa["terrains"]["acquisitions"] = (
-            terrains_value - by_cerfa["terrains"]["value_start"]
-        )
+    # Compute totals across all categories (cerfa lines 490 / 570)
+    _zero = Decimal("0")
+    totals = {
+        "value_start": sum(r["value_start"] for r in by_cerfa.values()),
+        "acquisitions": sum(r["acquisitions"] for r in by_cerfa.values()),
+        "diminutions": _zero,  # asset disposals not tracked yet
+        "value_end": sum(r["value_end"] for r in by_cerfa.values()),
+        "amort_start": sum(r["amort_start"] for r in by_cerfa.values()),
+        "dotation": sum(r["dotation"] for r in by_cerfa.values()),
+        "amort_end": sum(r["amort_end"] for r in by_cerfa.values()),
+    }
+    # Also add diminutions=0 to each category row for template consistency
+    for cat_row in by_cerfa.values():
+        cat_row.setdefault("diminutions", _zero)
 
     return {
         "rows": rows,
         "by_cerfa_category": by_cerfa,
         "terrains_value": terrains_value,
+        "totals": totals,
     }
 
 
@@ -917,11 +921,15 @@ def get_accounting_data(properties: list, year: int) -> dict:
     # Cerfa 2033-B line 370: résultat fiscal final (after deficit imputation, always >= 0)
     # Computed from 2042-C PRO data below
 
+    _agg_impots_taxes = agg_by_line.get("244", Decimal("0"))
     form_2033b = {
         "recettes": agg_recettes,
         "charges": agg_charges,
         "charges_exploitation": agg_charges_exploitation,
+        "autres_charges_externes": agg_charges_exploitation - _agg_impots_taxes,
         "charges_financieres": agg_charges_financieres,
+        "impots_taxes": _agg_impots_taxes,
+        "cfe": agg_by_line.get("243", Decimal("0")),
         "result": agg_result_before,
         "result_exploitation": agg_result_exploitation,
         "amortization_total": agg_amort_total,
@@ -969,12 +977,49 @@ def get_accounting_data(properties: list, year: int) -> dict:
     }
 
     # ── 2033-C: immobilisation movements per property ─────────────────────────
+    _zero_c = Decimal("0")
+    categories_c = ["terrains", "constructions", "installations", "autres"]
+    agg_by_cerfa: dict[str, dict] = {
+        cat: {
+            "value_start": _zero_c,
+            "acquisitions": _zero_c,
+            "diminutions": _zero_c,
+            "value_end": _zero_c,
+            "amort_start": _zero_c,
+            "dotation": _zero_c,
+            "amort_end": _zero_c,
+        }
+        for cat in categories_c
+    }
     per_prop_immobilisations: list[dict] = []
     for prop in properties:
         movements = get_immobilisation_movements(prop.pk, year)
         per_prop_immobilisations.append({"property": prop, "movements": movements})
+        for cat in categories_c:
+            row = movements["by_cerfa_category"][cat]
+            agg_by_cerfa[cat]["value_start"] += row["value_start"]
+            agg_by_cerfa[cat]["acquisitions"] += row["acquisitions"]
+            agg_by_cerfa[cat]["diminutions"] += row.get("diminutions", _zero_c)
+            agg_by_cerfa[cat]["value_end"] += row["value_end"]
+            agg_by_cerfa[cat]["amort_start"] += row["amort_start"]
+            agg_by_cerfa[cat]["dotation"] += row["dotation"]
+            agg_by_cerfa[cat]["amort_end"] += row["amort_end"]
 
-    form_2033c = {"per_prop": per_prop_immobilisations}
+    agg_totals_c = {
+        "value_start": sum(r["value_start"] for r in agg_by_cerfa.values()),
+        "acquisitions": sum(r["acquisitions"] for r in agg_by_cerfa.values()),
+        "diminutions": sum(r["diminutions"] for r in agg_by_cerfa.values()),
+        "value_end": sum(r["value_end"] for r in agg_by_cerfa.values()),
+        "amort_start": sum(r["amort_start"] for r in agg_by_cerfa.values()),
+        "dotation": sum(r["dotation"] for r in agg_by_cerfa.values()),
+        "amort_end": sum(r["amort_end"] for r in agg_by_cerfa.values()),
+    }
+
+    form_2033c = {
+        "per_prop": per_prop_immobilisations,
+        "by_cerfa_category": agg_by_cerfa,
+        "totals": agg_totals_c,
+    }
 
     # ── 2031: BIC result summary ──────────────────────────────────────────────
     form_2031 = {
@@ -1006,6 +1051,7 @@ def get_accounting_data(properties: list, year: int) -> dict:
         "amort_deductible": agg_amort_deductible,
         "amort_deferred_balance": agg_amort_deferred,
         "taxable_result": agg_taxable_result,
+        "per_prop": per_prop_summaries,
     }
 
     # ── 2042-C PRO ────────────────────────────────────────────────────────────
@@ -1050,8 +1096,10 @@ def get_accounting_data(properties: list, year: int) -> dict:
         exercise_months = 12
 
     form_2042c = {
-        "case_5nk": case_5nk,  # résultat bénéficiaire après imputation déficits
-        "case_5nz": case_5nz,  # résultat déficitaire de l'année
+        "case_5nk": case_5nk,  # résultat bénéficiaire après imputation déficits (non-adhérent CGA)
+        "case_5na": case_5nk,  # résultat bénéficiaire après imputation déficits (adhérent CGA/OGA)
+        "case_5nz": case_5nz,  # résultat déficitaire de l'année (non-adhérent CGA)
+        "case_5ny": case_5nz,  # résultat déficitaire de l'année (adhérent CGA/OGA)
         "deficit_carryforward": total_deficit_carryforward,
         "deficit_history": agg_deficit_history,
         "case_5cd": exercise_months,
@@ -1251,6 +1299,12 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
         # --- Amortization components ---
         asset_count = AmortizationAsset.objects.filter(property=prop).count()
 
+        # --- Terrain asset (required for 2033-C) ---
+        has_terrain_asset = AmortizationAsset.objects.filter(
+            property=prop,
+            cerfa_category=AmortizationAsset.CerfaCategory.TERRAINS,
+        ).exists()
+
         # --- Acquisition value ---
         has_buying_value = (
             prop.buying_value is not None and prop.buying_value.amount > Decimal("0")
@@ -1328,6 +1382,21 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
                 "count": 1 if has_buying_value else 0,
                 "form_ref": "2033-A",
             },
+            {
+                "id": "terrain_asset",
+                "label": _("Land component (terrain)"),
+                "status": "ok" if has_terrain_asset else "missing",
+                "detail": (
+                    _("Land asset found.")
+                    if has_terrain_asset
+                    else _(
+                        "No land (terrain) component — required for 2033-C. "
+                        "Add an amortization asset with category 'terrains'."
+                    )
+                ),
+                "count": 1 if has_terrain_asset else 0,
+                "form_ref": "2033-C",
+            },
         ]
 
         issue_count = sum(1 for c in checks if c["status"] in ("warning", "missing"))
@@ -1382,7 +1451,9 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
             "id": "2033c",
             "name": "2033-C",
             "label": _("Immobilisations & amortissements"),
-            "status": _form_status(["amortization_setup", "amortization_components"]),
+            "status": _form_status(
+                ["amortization_setup", "amortization_components", "terrain_asset"]
+            ),
             "required": True,
         },
         {

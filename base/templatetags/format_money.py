@@ -8,6 +8,14 @@ from moneyed.l10n import format_money
 register = template.Library()
 
 
+@register.filter(name="get_item")
+def get_item(dictionary, key):
+    """Return dictionary[key], or None if missing. Useful for variable-key dict access."""
+    if dictionary is None:
+        return None
+    return dictionary.get(key)
+
+
 @register.filter(name="format_money")
 def format_money_filter(money: Money | str | None, locale: str | None = None):
     """Format a Money instance according to the given locale."""

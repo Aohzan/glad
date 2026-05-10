@@ -15,6 +15,7 @@ from property.models import (
 )
 from property.services.tax_lmnp import (
     get_accounting_data,
+    get_amortization_schedule,
     get_amortization_table,
     get_deferred_amortization_balance,
     get_lmnp_summary,
@@ -98,7 +99,8 @@ class TestGetAnnualAmortization:
         assert structure_asset.get_annual_amortization(2019) == Decimal("0")
 
     def test_zero_after_useful_life(self, structure_asset):
-        # beginning_date=2020, duration=75 → life ends 2094
+        # beginning_date=2020-01-01, duration=75 → last active year=2094, exclusive end=2095
+        assert structure_asset.get_annual_amortization(2095) == Decimal("0")
         assert structure_asset.get_annual_amortization(2096) == Decimal("0")
 
     def test_full_year_middle(self, structure_asset):
@@ -115,17 +117,72 @@ class TestGetAnnualAmortization:
         assert dotation == expected
 
     def test_first_year_prorata_july(self, fittings_asset):
-        """Acquisition on July 1: prorata = 6/12 of annual."""
+        """Acquisition on July 1: day-based prorata = 183/365 of annual."""
         dotation = fittings_asset.get_annual_amortization(2020)
         annual = Decimal("10000") / Decimal("12")
-        expected = (annual * Decimal("6") / Decimal("12")).quantize(Decimal("0.01"))
+        # July 1 to Dec 31 = 183 days
+        expected = (annual * Decimal("183") / Decimal("365")).quantize(Decimal("0.01"))
         assert dotation == expected
 
     def test_middle_years_fittings(self, fittings_asset):
-        """Years 2021–2030 are full years for fittings asset (12-year life)."""
+        """Years 2021–2031 are full years for fittings asset (12-year life, July start)."""
         annual = (Decimal("10000") / Decimal("12")).quantize(Decimal("0.01"))
-        for y in range(2021, 2031):
+        for y in range(2021, 2032):
             assert fittings_asset.get_annual_amortization(y) == annual
+
+    def test_last_year_prorata_mid_year_start(self, fittings_asset):
+        """Fittings asset acquired July 2020 (12 years): last year is 2032, complement prorata."""
+        # July 1 to Dec 31 = 183 days → last year = 365 - 183 = 182 days
+        dotation = fittings_asset.get_annual_amortization(2032)
+        annual = Decimal("10000") / Decimal("12")
+        expected = (annual * Decimal("182") / Decimal("365")).quantize(Decimal("0.01"))
+        assert dotation == expected
+
+    def test_zero_after_last_partial_year(self, fittings_asset):
+        """Year 2033 and beyond must return 0 for fittings asset (July 2020, 12 years)."""
+        assert fittings_asset.get_annual_amortization(2033) == Decimal("0")
+
+    def test_first_year_prorata_mid_month(self, property_obj):
+        """Acquisition on Oct 16: day-based prorata = 76/365 of annual."""
+        asset = AmortizationAsset.objects.create(
+            property=property_obj,
+            label="Test mid-month",
+            beginning_date=datetime.date(2025, 10, 16),
+            value_total=Money(44025, "EUR"),
+            duration_years=70,
+        )
+        dotation = asset.get_annual_amortization(2025)
+        annual = Decimal("44025") / Decimal("70")
+        # Oct 16 to Dec 31 = 76 days
+        expected = (annual * Decimal("76") / Decimal("365")).quantize(Decimal("0.01"))
+        assert dotation == expected
+        assert dotation == Decimal("130.95")
+
+    def test_total_amortization_equals_base_january_start(self, structure_asset):
+        """Total over full life must equal the depreciable base (January start)."""
+        total = sum(
+            structure_asset.get_annual_amortization(y) for y in range(2020, 2095)
+        )
+        base = structure_asset.depreciable_base().amount
+        assert abs(total - base) <= Decimal(
+            "1.00"
+        )  # rounding tolerance (75 years * 0.01)
+
+    def test_total_amortization_equals_base_mid_year_start(self, fittings_asset):
+        """Total over full life must equal the depreciable base (July start)."""
+        total = sum(
+            fittings_asset.get_annual_amortization(y) for y in range(2020, 2033)
+        )
+        base = fittings_asset.depreciable_base().amount
+        assert abs(total - base) <= Decimal(
+            "0.50"
+        )  # rounding tolerance (13 years * 0.01)
+
+    def test_last_full_year_january_asset_returns_annual(self, structure_asset):
+        """For a January-start asset, the final active year (2094) must return a full dotation."""
+        dotation = structure_asset.get_annual_amortization(2094)
+        expected = (Decimal("170000") / Decimal("75")).quantize(Decimal("0.01"))
+        assert dotation == expected
 
 
 @pytest.mark.django_db
@@ -157,7 +214,7 @@ class TestAmortizationSetup:
         )
         assert setup.pk is not None
 
-    def test_initialize_components_creates_five_assets(self, property_obj):
+    def test_initialize_components_creates_six_assets(self, property_obj):
         setup = AmortizationSetup.objects.create(
             property=property_obj,
             total_value=Money(200_000, "EUR"),
@@ -167,7 +224,7 @@ class TestAmortizationSetup:
         assert AmortizationAsset.objects.filter(property=property_obj).count() == 0
         setup.initialize_components()
         assets = AmortizationAsset.objects.filter(property=property_obj)
-        assert assets.count() == 5
+        assert assets.count() == 6
 
     def test_initialize_components_sets_is_initial_component(self, property_obj):
         setup = AmortizationSetup.objects.create(
@@ -198,6 +255,19 @@ class TestAmortizationSetup:
         assert "Étanchéité" in labels
         assert "Toiture" in labels
         assert "Agencements intérieurs" in labels
+        assert "Terrain" in labels
+
+    def test_initialize_components_terrain_has_no_duration(self, property_obj):
+        """Land (Terrain) must be non-depreciable: duration_years is None."""
+        setup = AmortizationSetup.objects.create(
+            property=property_obj,
+            total_value=Money(200_000, "EUR"),
+            land_percentage=Decimal("15.00"),
+        )
+        setup.initialize_components()
+        terrain = AmortizationAsset.objects.get(property=property_obj, label="Terrain")
+        assert terrain.duration_years is None
+        assert terrain.cerfa_category == "terrains"
 
 
 # ─── Tax service: amortization helpers ───────────────────────────────────────
@@ -508,7 +578,7 @@ class TestInitializeAmortizationView:
         response = admin_client.post(url, self._VALID_DATA)
         assert response.status_code == 302
         assert AmortizationSetup.objects.filter(property=property_obj).exists()
-        assert AmortizationAsset.objects.filter(property=property_obj).count() == 5
+        assert AmortizationAsset.objects.filter(property=property_obj).count() == 6
 
     def test_post_uses_buying_value_as_total_without_extra(
         self, admin_client, property_obj
@@ -801,7 +871,7 @@ class TestAmortizationAssetCrudViews:
             url, {"extra_amount": "0", "land_percentage": "15"}
         )
         assert response.status_code == 302
-        assert AmortizationAsset.objects.filter(property=property_obj).count() == 5
+        assert AmortizationAsset.objects.filter(property=property_obj).count() == 6
 
 
 # ─── get_amortization_context via detail view ─────────────────────────────────
@@ -888,3 +958,137 @@ class TestAccountingDashboardInvalidYear:
         response = admin_client.get(url, {"year": "notanumber"})
         assert response.status_code == 200
         assert response.context["year"] == datetime.date.today().year - 1
+
+
+# ─── Terrain (non-depreciable) assets ────────────────────────────────────────
+
+
+@pytest.fixture
+def terrain_asset(property_obj):
+    """Land (terrain) asset: no duration, not depreciable."""
+    return AmortizationAsset.objects.create(
+        property=property_obj,
+        label="Terrain",
+        cerfa_category=AmortizationAsset.CerfaCategory.TERRAINS,
+        beginning_date=datetime.date(2020, 1, 1),
+        value_total=Money(30_000, "EUR"),
+        duration_years=None,
+    )
+
+
+@pytest.mark.django_db
+class TestTerrainAsset:
+    def test_is_not_depreciable(self, terrain_asset):
+        assert terrain_asset.is_depreciable is False
+
+    def test_depreciable_asset_is_depreciable(self, structure_asset):
+        assert structure_asset.is_depreciable is True
+
+    def test_annual_amortization_zero_for_terrain(self, terrain_asset):
+        assert terrain_asset.get_annual_amortization(2020) == Decimal("0")
+        assert terrain_asset.get_annual_amortization(2025) == Decimal("0")
+
+    def test_cumulative_amortization_zero_for_terrain(self, terrain_asset):
+        assert terrain_asset.cumulative_amortization(2025) == Decimal("0")
+
+    def test_schedule_excludes_terrain_from_chart_series(
+        self, property_obj, structure_asset, terrain_asset
+    ):
+        """Terrain assets must not appear in asset_series (chart data)."""
+        schedule = get_amortization_schedule(property_obj.pk)
+        series_labels = [s["label"] for s in schedule["asset_series"]]
+        assert "Terrain" not in series_labels
+        assert "Gros œuvre" in series_labels
+
+    def test_schedule_total_base_excludes_terrain(
+        self, property_obj, structure_asset, terrain_asset
+    ):
+        """total_depreciable_base must not include the terrain value."""
+        schedule = get_amortization_schedule(property_obj.pk)
+        assert schedule["total_depreciable_base"] == structure_asset.value_total.amount
+
+    def test_schedule_only_terrain_returns_empty_rows(
+        self, property_obj, terrain_asset
+    ):
+        """When only terrain assets exist, schedule rows should be empty."""
+        schedule = get_amortization_schedule(property_obj.pk)
+        assert schedule["rows"] == []
+        assert schedule["asset_series"] == []
+        assert schedule["total_depreciable_base"] == Decimal("0")
+
+    def test_table_row_has_is_depreciable_false(self, property_obj, terrain_asset):
+        table = get_amortization_table(property_obj.pk, 2025)
+        assert len(table) == 1
+        assert table[0]["is_depreciable"] is False
+        assert table[0]["annual_dotation"] == Decimal("0")
+        assert table[0]["pct_amortized"] == Decimal("0")
+
+    def test_terrain_without_duration_saves(self, property_obj):
+        """Terrain asset can be created without duration_years."""
+        asset = AmortizationAsset.objects.create(
+            property=property_obj,
+            label="Terrain test",
+            cerfa_category=AmortizationAsset.CerfaCategory.TERRAINS,
+            beginning_date=datetime.date(2022, 6, 1),
+            value_total=Money(20_000, "EUR"),
+            duration_years=None,
+        )
+        assert asset.pk is not None
+        assert asset.duration_years is None
+
+    def test_form_valid_terrain_without_duration(self, property_obj):
+        """Form is valid for terrain category even without duration_years."""
+        from property.forms import AmortizationAssetForm
+
+        form = AmortizationAssetForm(
+            data={
+                "label": "Terrain",
+                "cerfa_category": "terrains",
+                "beginning_date": "2024-01-01",
+                "value_total_0": "30000.00",
+                "value_total_1": "EUR",
+                "duration_years": "",
+            },
+            property_obj=property_obj,
+        )
+        assert form.is_valid(), form.errors
+
+    def test_form_invalid_depreciable_without_duration(self, property_obj):
+        """Form is invalid for non-terrain category when duration_years is missing."""
+        from property.forms import AmortizationAssetForm
+
+        form = AmortizationAssetForm(
+            data={
+                "label": "Toiture",
+                "cerfa_category": "constructions",
+                "beginning_date": "2024-01-01",
+                "value_total_0": "15000.00",
+                "value_total_1": "EUR",
+                "duration_years": "",
+            },
+            property_obj=property_obj,
+        )
+        assert not form.is_valid()
+        assert "duration_years" in form.errors
+
+    def test_create_terrain_via_view(self, admin_client, property_obj):
+        """POST to create view with terrain category and no duration succeeds."""
+        url = reverse(
+            "property:new_amortization", kwargs={"property_pk": property_obj.pk}
+        )
+        data = {
+            "label": "Terrain",
+            "cerfa_category": "terrains",
+            "beginning_date": "2024-01-01",
+            "value_total_0": "30000.00",
+            "value_total_1": "EUR",
+            "duration_years": "",
+        }
+        response = admin_client.post(url, data)
+        assert response.status_code == 302
+        asset = AmortizationAsset.objects.filter(
+            property=property_obj, label="Terrain"
+        ).first()
+        assert asset is not None
+        assert asset.duration_years is None
+        assert asset.cerfa_category == "terrains"

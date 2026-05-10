@@ -352,14 +352,18 @@ class PropertyDetailView(DetailView):
         )
 
         months = iter_month_starts(start_month, end_month)
-        monthly_cashflows = [
-            revenue_by_month.get((m.year, m.month), Decimal("0"))
-            - expense_by_month.get((m.year, m.month), Decimal("0"))
-            - loan_interest_by_month.get((m.year, m.month), Decimal("0"))
-            - loan_principal_by_month.get((m.year, m.month), Decimal("0"))
-            - loan_insurance_by_month.get((m.year, m.month), Decimal("0"))
-            for m in months
-        ]
+        monthly_cashflows = []
+        for m in months:
+            key = (m.year, m.month)
+            rev = revenue_by_month.get(key, Decimal("0"))
+            exp = expense_by_month.get(key, Decimal("0"))
+            interest = loan_interest_by_month.get(key, Decimal("0"))
+            principal = loan_principal_by_month.get(key, Decimal("0"))
+            insurance = loan_insurance_by_month.get(key, Decimal("0"))
+            # Skip months with no financial activity at all (no data)
+            if not (rev or exp or interest or principal or insurance):
+                continue
+            monthly_cashflows.append(rev - exp - interest - principal - insurance)
 
         if not monthly_cashflows:
             return Decimal("0")

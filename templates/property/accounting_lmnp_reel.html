@@ -165,27 +165,65 @@
           <div class="card">
             <div class="card-header py-2"><h6 class="mb-0">{% translate "Actif" %}</h6></div>
             <div class="card-body p-0">
-              <table class="table table-sm mb-0">
+              <table class="table table-sm table-hover mb-0">
                 <tbody>
+                  {# Immobilisations corporelles brutes #}
+                  {% if accounting.form_2033a.per_prop|length > 1 %}
+                  <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-immo-brutes" aria-expanded="false" style="cursor:pointer;">
+                    <td>{% translate "Immobilisations corporelles brutes" %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+                    <td class="text-end fw-semibold">{{ accounting.form_2033a.immobilisations_brutes|floatformat:2 }} €</td>
+                  </tr>
+                  <tr class="collapse" id="a-immo-brutes">
+                    <td colspan="2" class="p-0 ps-3">
+                      <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                        <tbody>
+                          {% for p in accounting.form_2033a.per_prop %}
+                          <tr>
+                            <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                            <td class="text-end">{{ p.bilan.immobilisations_brutes|floatformat:2 }} €</td>
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                  {% else %}
                   <tr>
                     <td>{% translate "Immobilisations corporelles brutes" %}</td>
                     <td class="text-end fw-semibold">{{ accounting.form_2033a.immobilisations_brutes|floatformat:2 }} €</td>
-                    <td class="text-center">
-                      {% if accounting.form_2033a.per_prop|length > 1 %}
-                        <i class="bi bi-info-circle text-body-secondary" data-bs-toggle="tooltip"
-                           title="{% for p in accounting.form_2033a.per_prop %}{{ p.property.name }}: {{ p.bilan.immobilisations_brutes|floatformat:2 }} €&#10;{% endfor %}"></i>
-                      {% endif %}
+                  </tr>
+                  {% endif %}
+
+                  {# Amortissements cumulés #}
+                  {% if accounting.form_2033a.per_prop|length > 1 %}
+                  <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-amort-cumul" aria-expanded="false" style="cursor:pointer;">
+                    <td>{% translate "Amortissements cumulés" %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+                    <td class="text-end text-danger">− {{ accounting.form_2033a.amortissements_cumules|floatformat:2 }} €</td>
+                  </tr>
+                  <tr class="collapse" id="a-amort-cumul">
+                    <td colspan="2" class="p-0 ps-3">
+                      <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                        <tbody>
+                          {% for p in accounting.form_2033a.per_prop %}
+                          <tr>
+                            <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                            <td class="text-end text-danger">− {{ p.bilan.amortissements_cumules|floatformat:2 }} €</td>
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
                     </td>
                   </tr>
+                  {% else %}
                   <tr>
                     <td>{% translate "Amortissements cumulés" %}</td>
                     <td class="text-end text-danger">− {{ accounting.form_2033a.amortissements_cumules|floatformat:2 }} €</td>
-                    <td></td>
                   </tr>
+                  {% endif %}
+
                   <tr class="table-light fw-semibold">
                     <td>{% translate "Valeur nette comptable" %}</td>
                     <td class="text-end">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:2 }} €</td>
-                    <td></td>
                   </tr>
                 </tbody>
               </table>
@@ -196,22 +234,38 @@
           <div class="card">
             <div class="card-header py-2"><h6 class="mb-0">{% translate "Passif" %}</h6></div>
             <div class="card-body p-0">
-              <table class="table table-sm mb-0">
+              <table class="table table-sm table-hover mb-0">
                 <tbody>
+                  {# Emprunts #}
+                  {% if accounting.form_2033a.per_prop|length > 1 %}
+                  <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-emprunts" aria-expanded="false" style="cursor:pointer;">
+                    <td>{% translate "Emprunts et dettes" %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+                    <td class="text-end fw-semibold">{{ accounting.form_2033a.emprunts|floatformat:2 }} €</td>
+                  </tr>
+                  <tr class="collapse" id="a-emprunts">
+                    <td colspan="2" class="p-0 ps-3">
+                      <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                        <tbody>
+                          {% for p in accounting.form_2033a.per_prop %}
+                          <tr>
+                            <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                            <td class="text-end">{{ p.bilan.emprunts|floatformat:2 }} €</td>
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                  {% else %}
                   <tr>
                     <td>{% translate "Emprunts et dettes" %}</td>
                     <td class="text-end fw-semibold">{{ accounting.form_2033a.emprunts|floatformat:2 }} €</td>
-                    <td class="text-center">
-                      {% if accounting.form_2033a.per_prop|length > 1 %}
-                        <i class="bi bi-info-circle text-body-secondary" data-bs-toggle="tooltip"
-                           title="{% for p in accounting.form_2033a.per_prop %}{{ p.property.name }}: {{ p.bilan.emprunts|floatformat:2 }} €&#10;{% endfor %}"></i>
-                      {% endif %}
-                    </td>
                   </tr>
+                  {% endif %}
+
                   <tr>
                     <td>{% translate "Résultat de l'exercice" %}</td>
                     <td class="text-end fw-semibold text-primary">{{ accounting.form_2033a.resultat_exercice|floatformat:2 }} €</td>
-                    <td></td>
                   </tr>
                 </tbody>
               </table>
@@ -226,178 +280,338 @@
     {# ══════════════════════════════════════════════════════════════════════ #}
     <div class="tab-pane fade" id="tab-2033b">
       <h5 class="mb-3">{% translate "2033-B — Compte de résultat simplifié" %}</h5>
-      <div class="row g-4">
-        <div class="col-lg-7">
-          <table class="table table-sm table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>{% translate "Line" %}</th>
-                <th>{% translate "Label" %}</th>
-                <th class="text-end">{% translate "Total" %}</th>
-                <th class="text-center" style="width:2rem;"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>213 / 209</code></td>
-                <td>{% translate "Recettes" %}</td>
-                <td class="text-end fw-semibold text-success">{{ accounting.form_2033b.recettes|floatformat:2 }} €</td>
-                <td class="text-center">
-                  {% if accounting.form_2033b.per_prop|length > 1 %}
-                    <i class="bi bi-info-circle text-body-secondary"
-                       data-bs-toggle="tooltip"
-                       title="{% for p in accounting.form_2033b.per_prop %}{{ p.property.name }}: {{ p.summary.recettes|floatformat:2 }} €&#10;{% endfor %}"></i>
-                  {% endif %}
-                </td>
-              </tr>
-              <tr>
-                <td><code>242 / 244</code></td>
-                <td>{% translate "Charges d'exploitation" %}</td>
-                <td class="text-end text-danger">{{ accounting.form_2033b.charges_exploitation|floatformat:2 }} €</td>
-                <td class="text-center">
-                  {% if accounting.form_2033b.per_prop|length > 1 %}
-                    <i class="bi bi-info-circle text-body-secondary"
-                       data-bs-toggle="tooltip"
-                       title="{% for p in accounting.form_2033b.per_prop %}{{ p.property.name }}: {{ p.summary.charges_exploitation|floatformat:2 }} €&#10;{% endfor %}"></i>
-                  {% endif %}
-                </td>
-              </tr>
-              {% if accounting.form_2033b.charges_financieres %}
-              <tr>
-                <td><code>294</code></td>
-                <td>{% translate "Charges financières (intérêts emprunt)" %}</td>
-                <td class="text-end text-danger">{{ accounting.form_2033b.charges_financieres|floatformat:2 }} €</td>
-                <td class="text-center">
-                  {% if accounting.form_2033b.per_prop|length > 1 %}
-                    <i class="bi bi-info-circle text-body-secondary"
-                       data-bs-toggle="tooltip"
-                       title="{% for p in accounting.form_2033b.per_prop %}{{ p.property.name }}: {{ p.summary.charges_financieres|floatformat:2 }} €&#10;{% endfor %}"></i>
-                  {% endif %}
-                </td>
-              </tr>
-              {% endif %}
-              <tr class="table-light fw-semibold">
-                <td><code>—</code></td>
-                <td>{% translate "Résultat avant amortissements" %}</td>
-                <td class="text-end {% if accounting.form_2033b.result >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.result|floatformat:2 }} €</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td><code>254</code></td>
-                <td>{% translate "Dotation aux amortissements" %}</td>
-                <td class="text-end text-body-secondary">{{ accounting.form_2033b.amortization_total|floatformat:2 }} €</td>
-                <td class="text-center">
-                  {% if accounting.form_2033b.per_prop|length > 1 %}
-                    <i class="bi bi-info-circle text-body-secondary"
-                       data-bs-toggle="tooltip"
-                       title="{% for p in accounting.form_2033b.per_prop %}{{ p.property.name }}: {{ p.summary.amortization_total|floatformat:2 }} €&#10;{% endfor %}"></i>
-                  {% endif %}
-                </td>
-              </tr>
-              <tr>
-                <td><code>—</code></td>
-                <td>{% translate "Report antérieur (art. 39C)" %}</td>
-                <td class="text-end text-body-secondary">{{ accounting.form_2033b.deferred_prior|floatformat:2 }} €</td>
-                <td></td>
-              </tr>
-              <tr class="text-success">
-                <td><code>—</code></td>
-                <td>{% translate "Amortissements déduits" %}</td>
-                <td class="text-end fw-semibold">− {{ accounting.form_2033b.amortization_deductible|floatformat:2 }} €</td>
-                <td></td>
-              </tr>
-              <tr class="text-warning">
-                <td><code>—</code></td>
-                <td>{% translate "Amortissements différés" %}</td>
-                <td class="text-end">{{ accounting.form_2033b.amortization_deferred|floatformat:2 }} €</td>
-                <td></td>
-              </tr>
-              <tr class="table-primary fw-bold">
-                <td><code>310</code></td>
-                <td>{% translate "Résultat fiscal (BIC)" %}</td>
-                <td class="text-end fs-5">{{ accounting.form_2033b.taxable_result|floatformat:2 }} €</td>
-                <td class="text-center">
-                  {% if accounting.form_2033b.per_prop|length > 1 %}
-                    <i class="bi bi-info-circle"
-                       data-bs-toggle="tooltip"
-                       title="{% for p in accounting.form_2033b.per_prop %}{{ p.property.name }}: {{ p.summary.taxable_result|floatformat:2 }} €&#10;{% endfor %}"></i>
-                  {% endif %}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="col-lg-5">
-          <div class="card">
-            <div class="card-header py-2"><h6 class="mb-0">{% translate "Details" %}</h6></div>
-            <div class="card-body p-0">
-              <table class="table table-sm mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>{% translate "Property" %}</th>
-                    <th class="text-end">{% translate "Recettes" %}</th>
-                    <th class="text-end">{% translate "Résultat fiscal" %}</th>
-                    <th style="width:1.5rem;"></th>
-                  </tr>
-                </thead>
+
+
+
+      <table class="table table-sm table-hover">
+        <thead class="table-light">
+          <tr>
+            <th style="width:8rem;">{% translate "Line" %}</th>
+            <th>{% translate "Label" %}</th>
+            <th class="text-end" style="width:12rem;">{% translate "Total" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          {# — Production vendue — Services — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-recettes" aria-expanded="false" style="cursor:pointer;">
+            <td><code>214 / 218</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr>
+            <td><code>214 / 218</code></td>
+          {% endif %}
+            <td>{% translate "Production vendue — Services" %}</td>
+            <td class="text-end fw-semibold text-success">{{ accounting.form_2033b.recettes|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse" id="b-recettes">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
                 <tbody>
                   {% for p in accounting.form_2033b.per_prop %}
-                  <tr role="button" data-bs-toggle="collapse" data-bs-target="#prop-detail-{{ forloop.counter }}" aria-expanded="false" style="cursor:pointer;">
-                    <td>
-                      <i class="bi bi-chevron-right me-1 text-body-secondary prop-chevron" style="transition:transform .2s;font-size:.75rem;"></i>
-                      <a href="{% url 'property:detail' p.property.pk %}#amortization-panel" onclick="event.stopPropagation()">{{ p.property.name }}</a>
-                    </td>
-                    <td class="text-end">{{ p.summary.recettes|floatformat:2 }} €</td>
-                    <td class="text-end fw-semibold {% if p.summary.taxable_result >= 0 %}text-success{% else %}text-danger{% endif %}">{{ p.summary.taxable_result|floatformat:2 }} €</td>
-                    <td></td>
-                  </tr>
-                  <tr class="collapse" id="prop-detail-{{ forloop.counter }}">
-                    <td colspan="4" class="p-0">
-                      <table class="table table-sm mb-0 table-borderless bg-body-secondary">
-                        <tbody>
-                          <tr>
-                            <td class="ps-4 text-body-secondary">{% translate "Charges d'exploitation" %} <small><code>242/244</code></small></td>
-                            <td class="text-end text-danger">{{ p.summary.charges_exploitation|floatformat:2 }} €</td>
-                          </tr>
-                          {% if p.summary.charges_financieres %}
-                          <tr>
-                            <td class="ps-4 text-body-secondary">{% translate "Charges financières (intérêts)" %} <small><code>294</code></small></td>
-                            <td class="text-end text-danger">{{ p.summary.charges_financieres|floatformat:2 }} €</td>
-                          </tr>
-                          {% endif %}
-                          <tr>
-                            <td class="ps-4 text-body-secondary">{% translate "Résultat avant amortissements" %}</td>
-                            <td class="text-end fw-semibold {% if p.summary.result >= 0 %}text-success{% else %}text-danger{% endif %}">{{ p.summary.result|floatformat:2 }} €</td>
-                          </tr>
-                          <tr>
-                            <td class="ps-4 text-body-secondary">{% translate "Dotation aux amortissements" %} <small><code>254</code></small></td>
-                            <td class="text-end text-body-secondary">{{ p.summary.amortization_total|floatformat:2 }} €</td>
-                          </tr>
-                          <tr>
-                            <td class="ps-4 text-body-secondary">{% translate "Amortissements déduits" %}</td>
-                            <td class="text-end text-success">− {{ p.summary.amortization_deductible|floatformat:2 }} €</td>
-                          </tr>
-                          {% if p.summary.amortization_deferred %}
-                          <tr>
-                            <td class="ps-4 text-body-secondary">{% translate "Amortissements différés" %} <small>(art. 39C)</small></td>
-                            <td class="text-end text-warning">{{ p.summary.amortization_deferred|floatformat:2 }} €</td>
-                          </tr>
-                          {% endif %}
-                          <tr class="fw-semibold">
-                            <td class="ps-4">{% translate "Résultat fiscal" %}</td>
-                            <td class="text-end {% if p.summary.taxable_result >= 0 %}text-success{% else %}text-danger{% endif %}">{{ p.summary.taxable_result|floatformat:2 }} €</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </td>
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end text-success">{{ p.summary.recettes|floatformat:2 }} €</td>
                   </tr>
                   {% endfor %}
                 </tbody>
               </table>
-            </div>
-          </div>
-        </div>
-      </div>
+            </td>
+          </tr>
+          {% endif %}
+
+          {# — Autres charges externes — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-autres-charges" aria-expanded="false" style="cursor:pointer;">
+            <td><code>242</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr>
+            <td><code>242</code></td>
+          {% endif %}
+            <td>{% translate "Autres charges externes" %}</td>
+            <td class="text-end text-danger">{{ accounting.form_2033b.autres_charges_externes|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse" id="b-autres-charges">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end text-danger">{{ p.summary.by_line.242|default:"0"|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          {# — Impôts et taxes — #}
+          {% if accounting.form_2033b.impots_taxes %}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-impots" aria-expanded="false" style="cursor:pointer;">
+            <td><code>244</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr>
+            <td><code>244</code></td>
+          {% endif %}
+            <td>{% translate "Impôts, taxes et versements assimilés" %}</td>
+            <td class="text-end text-danger">{{ accounting.form_2033b.impots_taxes|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse" id="b-impots">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end text-danger">{{ p.summary.by_line.244|default:"0"|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+          {% if accounting.form_2033b.cfe %}
+          <tr class="text-body-secondary small">
+            <td class="ps-3"><code>243</code></td>
+            <td class="ps-3">{% translate "dont TP/CFE, CVAE" %}</td>
+            <td class="text-end">{{ accounting.form_2033b.cfe|floatformat:2 }} €</td>
+          </tr>
+          {% endif %}
+          {% endif %}
+
+          {# — Charges financières — #}
+          {% if accounting.form_2033b.charges_financieres %}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-financieres" aria-expanded="false" style="cursor:pointer;">
+            <td><code>294</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr>
+            <td><code>294</code></td>
+          {% endif %}
+            <td>{% translate "Charges financières (V)" %}</td>
+            <td class="text-end text-danger">{{ accounting.form_2033b.charges_financieres|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse" id="b-financieres">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  {% if p.summary.charges_financieres %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end text-danger">{{ p.summary.charges_financieres|floatformat:2 }} €</td>
+                  </tr>
+                  {% endif %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+          {% endif %}
+
+          {# — Résultat avant amortissements — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="table-light fw-semibold" role="button" data-bs-toggle="collapse" data-bs-target="#b-result-avant" aria-expanded="false" style="cursor:pointer;">
+            <td><code>—</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr class="table-light fw-semibold">
+            <td><code>—</code></td>
+          {% endif %}
+            <td>{% translate "Résultat avant amortissements" %}</td>
+            <td class="text-end {% if accounting.form_2033b.result >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.result|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse table-light" id="b-result-avant">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold {% if p.summary.result >= 0 %}text-success{% else %}text-danger{% endif %}">{{ p.summary.result|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          {# — Dotation aux amortissements — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-dotation" aria-expanded="false" style="cursor:pointer;">
+            <td><code>254</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr>
+            <td><code>254</code></td>
+          {% endif %}
+            <td>{% translate "Dotation aux amortissements" %}</td>
+            <td class="text-end text-body-secondary">{{ accounting.form_2033b.amortization_total|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse" id="b-dotation">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end text-body-secondary">{{ p.summary.amortization_total|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          {# — Report antérieur — #}
+          <tr>
+            <td><code>—</code></td>
+            <td>{% translate "Report antérieur (art. 39C)" %}</td>
+            <td class="text-end text-body-secondary">{{ accounting.form_2033b.deferred_prior|floatformat:2 }} €</td>
+          </tr>
+
+          {# — Amortissements déduits — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="text-success" role="button" data-bs-toggle="collapse" data-bs-target="#b-amort-deduits" aria-expanded="false" style="cursor:pointer;">
+            <td><code>—</code> <i class="bi bi-chevron-right ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr class="text-success">
+            <td><code>—</code></td>
+          {% endif %}
+            <td>{% translate "Amortissements déduits" %}</td>
+            <td class="text-end fw-semibold">− {{ accounting.form_2033b.amortization_deductible|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse" id="b-amort-deduits">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end text-success">− {{ p.summary.amortization_deductible|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          {# — Amortissements différés — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="text-warning" role="button" data-bs-toggle="collapse" data-bs-target="#b-amort-differes" aria-expanded="false" style="cursor:pointer;">
+            <td><code>—</code> <i class="bi bi-chevron-right ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr class="text-warning">
+            <td><code>—</code></td>
+          {% endif %}
+            <td>{% translate "Amortissements différés" %}</td>
+            <td class="text-end">{{ accounting.form_2033b.amortization_deferred|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse" id="b-amort-differes">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end text-warning">{{ p.summary.amortization_deferred|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          {# — Bénéfices ou pertes (310) — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="table-light fw-semibold" role="button" data-bs-toggle="collapse" data-bs-target="#b-310" aria-expanded="false" style="cursor:pointer;">
+            <td><code>310</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr class="table-light fw-semibold">
+            <td><code>310</code></td>
+          {% endif %}
+            <td>{% translate "Bénéfices ou pertes — Produits (I+III+IV) – Charges (II+V+VI+VII)" %}</td>
+            <td class="text-end {% if accounting.form_2033b.cerfa_310 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.cerfa_310|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse table-light" id="b-310">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold {% if p.summary.cerfa_310 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ p.summary.cerfa_310|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          {# — Réintégration 318 — #}
+          {% if accounting.form_2033b.cerfa_318 %}
+          <tr class="text-body-secondary small">
+            <td><code>318</code></td>
+            <td>{% translate "Amortissements excédentaires (art. 39-4 CGI) et autres amortissements non déductibles" %}</td>
+            <td class="text-end">+ {{ accounting.form_2033b.cerfa_318|floatformat:2 }} €</td>
+          </tr>
+          {% endif %}
+
+          {# — Résultat fiscal avant déficits (352) — #}
+          <tr class="table-warning fw-semibold">
+            <td><code>352</code></td>
+            <td>{% translate "1. Résultat fiscal avant imputation des déficits antérieurs" %}</td>
+            <td class="text-end {% if accounting.form_2033b.cerfa_352 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.cerfa_352|floatformat:2 }} €</td>
+          </tr>
+
+          {# — Résultat fiscal final (370) — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="table-primary fw-bold" role="button" data-bs-toggle="collapse" data-bs-target="#b-370" aria-expanded="false" style="cursor:pointer;">
+            <td><code>370</code> <i class="bi bi-chevron-right ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr class="table-primary fw-bold">
+            <td><code>370</code></td>
+          {% endif %}
+            <td>{% translate "2. Résultat fiscal après imputation des déficits" %}</td>
+            <td class="text-end fs-5 {% if accounting.form_2033b.cerfa_370 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.cerfa_370|floatformat:2 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse table-primary" id="b-370">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless" style="background:transparent;">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold {% if p.summary.taxable_result >= 0 %}text-success{% else %}text-danger{% endif %}">{{ p.summary.taxable_result|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+        </tbody>
+      </table>
+
       <div class="mt-3 small text-body-secondary">
         <i class="bi bi-link-45deg me-1"></i>
         <a href="https://www.impots.gouv.fr/formulaire/2033/bilan-simplifie" target="_blank" rel="noopener noreferrer">{% translate "Liasse 2033 (impots.gouv.fr)" %}</a>
@@ -409,105 +623,318 @@
     {# ══════════════════════════════════════════════════════════════════════ #}
     <div class="tab-pane fade" id="tab-2033c">
       <h5 class="mb-3">{% translate "2033-C — Immobilisations & amortissements" %}</h5>
-      {% for prop_data in accounting.form_2033c.per_prop %}
-      <h6 class="mt-3 mb-2">{{ prop_data.property.name }}</h6>
 
-      {# ── Summary by cerfa category ── #}
-      <div class="table-responsive mb-2">
+      {# ── I. Immobilisations ── #}
+      <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2 mt-3">I — {% translate "Immobilisations" %}</h6>
+      <div class="table-responsive mb-4">
         <table class="table table-sm table-hover">
           <thead class="table-light">
             <tr>
-              <th>{% translate "Category (2033-C)" %}</th>
-              <th class="text-end">{% translate "Valeur début" %}</th>
-              <th class="text-end">{% translate "Acquisitions" %}</th>
-              <th class="text-end">{% translate "Valeur fin" %}</th>
-              <th class="text-end">{% translate "Amort. début" %}</th>
-              <th class="text-end">{% translate "Dotation N" %}</th>
-              <th class="text-end">{% translate "Amort. fin" %}</th>
+              <th>{% translate "Nature" %}</th>
+              <th class="text-end">{% translate "Valeur brute début" %}</th>
+              <th class="text-end text-success">{% translate "Augmentations" %}</th>
+              <th class="text-end text-danger">{% translate "Diminutions" %}</th>
+              <th class="text-end fw-semibold">{% translate "Valeur brute fin" %}</th>
             </tr>
           </thead>
           <tbody>
-            {% with mv=prop_data.movements %}
-            {% for cat, row in mv.by_cerfa_category.items %}
-            {% if row.value_end or row.amort_end %}
-            <tr>
-              <td class="fw-semibold">
-                {% if cat == "terrains" %}{% translate "Terrains" %}
-                {% elif cat == "constructions" %}{% translate "Constructions" %}
-                {% elif cat == "installations" %}{% translate "Installations générales" %}
-                {% else %}{% translate "Autres immobilisations corporelles" %}
-                {% endif %}
+            {% with agg=accounting.form_2033c.by_cerfa_category %}
+
+            {# Terrains #}
+            {% if agg.terrains.value_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-terrains" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>{% translate "Terrains" %} <small class="text-body-secondary">(420–426)</small>{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end">{{ agg.terrains.value_start|floatformat:2 }} €</td>
+              <td class="text-end text-success">{{ agg.terrains.acquisitions|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ agg.terrains.diminutions|floatformat:2 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.terrains.value_end|floatformat:2 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ci-terrains">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.terrains %}{% if r.value_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ r.value_start|floatformat:2 }} €</td>
+                      <td class="text-end text-success">{{ r.acquisitions|floatformat:2 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:2 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.value_end|floatformat:2 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
               </td>
-              <td class="text-end">{{ row.value_start|floatformat:2 }} €</td>
-              <td class="text-end text-success">{{ row.acquisitions|floatformat:2 }} €</td>
-              <td class="text-end fw-semibold">{{ row.value_end|floatformat:2 }} €</td>
-              <td class="text-end text-body-secondary">{{ row.amort_start|floatformat:2 }} €</td>
-              <td class="text-end text-primary">{{ row.dotation|floatformat:2 }} €</td>
-              <td class="text-end fw-semibold">{{ row.amort_end|floatformat:2 }} €</td>
             </tr>
             {% endif %}
-            {% empty %}
-            <tr><td colspan="7" class="text-center text-body-secondary py-2">{% translate "No assets." %}</td></tr>
-            {% endfor %}
+            {% endif %}
+
+            {# Constructions #}
+            {% if agg.constructions.value_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-constructions" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>{% translate "Constructions" %} <small class="text-body-secondary">(430–436)</small>{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end">{{ agg.constructions.value_start|floatformat:2 }} €</td>
+              <td class="text-end text-success">{{ agg.constructions.acquisitions|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ agg.constructions.diminutions|floatformat:2 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.constructions.value_end|floatformat:2 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ci-constructions">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.constructions %}{% if r.value_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ r.value_start|floatformat:2 }} €</td>
+                      <td class="text-end text-success">{{ r.acquisitions|floatformat:2 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:2 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.value_end|floatformat:2 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Installations #}
+            {% if agg.installations.value_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-installations" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>{% translate "Installations générales, agencements" %} <small class="text-body-secondary">(450–456)</small>{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end">{{ agg.installations.value_start|floatformat:2 }} €</td>
+              <td class="text-end text-success">{{ agg.installations.acquisitions|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ agg.installations.diminutions|floatformat:2 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.installations.value_end|floatformat:2 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ci-installations">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.installations %}{% if r.value_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ r.value_start|floatformat:2 }} €</td>
+                      <td class="text-end text-success">{{ r.acquisitions|floatformat:2 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:2 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.value_end|floatformat:2 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Autres #}
+            {% if agg.autres.value_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-autres" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>{% translate "Autres immobilisations corporelles" %} <small class="text-body-secondary">(470–476)</small>{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end">{{ agg.autres.value_start|floatformat:2 }} €</td>
+              <td class="text-end text-success">{{ agg.autres.acquisitions|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ agg.autres.diminutions|floatformat:2 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.autres.value_end|floatformat:2 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ci-autres">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.autres %}{% if r.value_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ r.value_start|floatformat:2 }} €</td>
+                      <td class="text-end text-success">{{ r.acquisitions|floatformat:2 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:2 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.value_end|floatformat:2 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
             {% endwith %}
           </tbody>
+          <tfoot class="table-light fw-bold">
+            {% with t=accounting.form_2033c.totals %}
+            <tr>
+              <td>{% translate "TOTAL" %} <small class="text-body-secondary fw-normal">(490)</small></td>
+              <td class="text-end">{{ t.value_start|floatformat:2 }} €</td>
+              <td class="text-end text-success">{{ t.acquisitions|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ t.diminutions|floatformat:2 }} €</td>
+              <td class="text-end">{{ t.value_end|floatformat:2 }} €</td>
+            </tr>
+            {% endwith %}
+          </tfoot>
         </table>
       </div>
 
-      {# ── Per-asset detail (collapsible) ── #}
-      <div class="mb-4">
-        <a class="small text-body-secondary text-decoration-none"
-           data-bs-toggle="collapse"
-           href="#assets-detail-{{ forloop.counter }}"
-           role="button"
-           aria-expanded="false">
-          <i class="bi bi-chevron-right me-1"></i>{% translate "Per-asset detail" %}
-        </a>
-        <div class="collapse" id="assets-detail-{{ forloop.counter }}">
-          <div class="table-responsive mt-2">
-            <table class="table table-sm table-hover">
-              <thead class="table-light">
-                <tr>
-                  <th>{% translate "Label" %}</th>
-                  <th>{% translate "Category (2033-C)" %}</th>
-                  <th class="text-end">{% translate "Valeur début" %}</th>
-                  <th class="text-end">{% translate "Acquisitions" %}</th>
-                  <th class="text-end">{% translate "Valeur fin" %}</th>
-                  <th class="text-end">{% translate "Amort. début" %}</th>
-                  <th class="text-end">{% translate "Dotation N" %}</th>
-                  <th class="text-end">{% translate "Amort. fin" %}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in prop_data.movements.rows %}
-                <tr>
-                  <td>{{ row.label }}</td>
-                  <td class="text-body-secondary small">
-                    {% if row.cerfa_category == "terrains" %}{% translate "Terrains" %}
-                    {% elif row.cerfa_category == "constructions" %}{% translate "Constructions" %}
-                    {% elif row.cerfa_category == "installations" %}{% translate "Installations générales" %}
-                    {% else %}{% translate "Autres immobilisations corporelles" %}
-                    {% endif %}
-                  </td>
-                  <td class="text-end">{{ row.value_start|floatformat:2 }} €</td>
-                  <td class="text-end text-success">{{ row.acquisitions|floatformat:2 }} €</td>
-                  <td class="text-end fw-semibold">{{ row.value_end|floatformat:2 }} €</td>
-                  <td class="text-end text-body-secondary">{{ row.amort_start|floatformat:2 }} €</td>
-                  <td class="text-end text-primary">{{ row.dotation|floatformat:2 }} €</td>
-                  <td class="text-end fw-semibold">{{ row.amort_end|floatformat:2 }} €</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="8" class="text-center text-body-secondary py-2">{% translate "No assets." %}</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      {# ── II. Amortissements ── #}
+      <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">II — {% translate "Amortissements" %}</h6>
+      <div class="table-responsive mb-4">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>{% translate "Nature" %}</th>
+              <th class="text-end">{% translate "Amort. début" %}</th>
+              <th class="text-end text-primary">{% translate "Dotations N" %}</th>
+              <th class="text-end text-danger">{% translate "Diminutions" %}</th>
+              <th class="text-end fw-semibold">{% translate "Amort. fin" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% with agg=accounting.form_2033c.by_cerfa_category %}
+
+            {# Terrains #}
+            {% if agg.terrains.amort_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-terrains" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>{% translate "Terrains" %} <small class="text-body-secondary">(510–516)</small>{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end text-body-secondary">{{ agg.terrains.amort_start|floatformat:2 }} €</td>
+              <td class="text-end text-primary">{{ agg.terrains.dotation|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ agg.terrains.diminutions|floatformat:2 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.terrains.amort_end|floatformat:2 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ca-terrains">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.terrains %}{% if r.amort_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:2 }} €</td>
+                      <td class="text-end text-primary">{{ r.dotation|floatformat:2 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:2 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.amort_end|floatformat:2 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Constructions #}
+            {% if agg.constructions.amort_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-constructions" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>{% translate "Constructions" %} <small class="text-body-secondary">(520–526)</small>{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end text-body-secondary">{{ agg.constructions.amort_start|floatformat:2 }} €</td>
+              <td class="text-end text-primary">{{ agg.constructions.dotation|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ agg.constructions.diminutions|floatformat:2 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.constructions.amort_end|floatformat:2 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ca-constructions">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.constructions %}{% if r.amort_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:2 }} €</td>
+                      <td class="text-end text-primary">{{ r.dotation|floatformat:2 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:2 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.amort_end|floatformat:2 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Installations #}
+            {% if agg.installations.amort_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-installations" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>{% translate "Installations générales, agencements" %} <small class="text-body-secondary">(540–546)</small>{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end text-body-secondary">{{ agg.installations.amort_start|floatformat:2 }} €</td>
+              <td class="text-end text-primary">{{ agg.installations.dotation|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ agg.installations.diminutions|floatformat:2 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.installations.amort_end|floatformat:2 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ca-installations">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.installations %}{% if r.amort_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:2 }} €</td>
+                      <td class="text-end text-primary">{{ r.dotation|floatformat:2 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:2 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.amort_end|floatformat:2 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Autres #}
+            {% if agg.autres.amort_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-autres" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>{% translate "Autres immobilisations corporelles" %} <small class="text-body-secondary">(560–566)</small>{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end text-body-secondary">{{ agg.autres.amort_start|floatformat:2 }} €</td>
+              <td class="text-end text-primary">{{ agg.autres.dotation|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ agg.autres.diminutions|floatformat:2 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.autres.amort_end|floatformat:2 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ca-autres">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.autres %}{% if r.amort_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:2 }} €</td>
+                      <td class="text-end text-primary">{{ r.dotation|floatformat:2 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:2 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.amort_end|floatformat:2 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {% endwith %}
+          </tbody>
+          <tfoot class="table-light fw-bold">
+            {% with t=accounting.form_2033c.totals %}
+            <tr>
+              <td>{% translate "TOTAL" %} <small class="text-body-secondary fw-normal">(570)</small></td>
+              <td class="text-end text-body-secondary">{{ t.amort_start|floatformat:2 }} €</td>
+              <td class="text-end text-primary">{{ t.dotation|floatformat:2 }} €</td>
+              <td class="text-end text-danger">{{ t.diminutions|floatformat:2 }} €</td>
+              <td class="text-end">{{ t.amort_end|floatformat:2 }} €</td>
+            </tr>
+            {% endwith %}
+          </tfoot>
+        </table>
       </div>
 
-      {% empty %}
-      <p class="text-body-secondary">{% translate "No properties." %}</p>
-      {% endfor %}
+      {# ── III. Plus-values / Moins-values ── #}
+      <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">III — {% translate "Plus-values et moins-values" %}</h6>
+      <div class="alert alert-secondary py-2 small mb-4">
+        <i class="bi bi-dash-circle me-1"></i>
+        {% translate "No asset disposals recorded for this year." %}
+        {% translate "This section (lines 578–599) will populate automatically when a disposal is entered." %}
+      </div>
     </div>
 
     {# ══════════════════════════════════════════════════════════════════════ #}
@@ -659,14 +1086,39 @@
           <div class="card">
             <div class="card-header py-2"><h6 class="mb-0">{% translate "Charges par nature" %}</h6></div>
             <div class="card-body p-0">
-              <table class="table table-sm mb-0">
+              <table class="table table-sm table-hover mb-0">
                 <thead class="table-light"><tr><th>{% translate "Category" %}</th><th class="text-end">{% translate "Amount" %}</th></tr></thead>
                 <tbody>
                   {% for charge in accounting.form_2031bis.charges_detail %}
+                  {% if accounting.form_2031bis.per_prop|length > 1 %}
+                  <tr role="button" data-bs-toggle="collapse" data-bs-target="#bis-charge-{{ forloop.counter }}" aria-expanded="false" style="cursor:pointer;">
+                    <td>{{ charge.label }} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+                    <td class="text-end">{{ charge.amount|floatformat:2 }} €</td>
+                  </tr>
+                  <tr class="collapse" id="bis-charge-{{ forloop.counter }}">
+                    <td colspan="2" class="p-0 ps-3">
+                      <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                        <tbody>
+                          {% for p in accounting.form_2031bis.per_prop %}
+                          {% with amt=p.summary.by_category|get_item:charge.category %}
+                          {% if amt %}
+                          <tr>
+                            <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                            <td class="text-end">{{ amt|floatformat:2 }} €</td>
+                          </tr>
+                          {% endif %}
+                          {% endwith %}
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                  {% else %}
                   <tr>
                     <td>{{ charge.label }}</td>
                     <td class="text-end">{{ charge.amount|floatformat:2 }} €</td>
                   </tr>
+                  {% endif %}
                   {% empty %}
                   <tr><td colspan="2" class="text-center text-body-secondary py-2">{% translate "No charges." %}</td></tr>
                   {% endfor %}

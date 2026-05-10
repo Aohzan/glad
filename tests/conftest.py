@@ -14,6 +14,14 @@ from django.test import Client
 # Set SECRET_KEY for tests
 settings.SECRET_KEY = "test"
 settings.LANGUAGE_CODE = "en"
+settings.STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 User = get_user_model()
 

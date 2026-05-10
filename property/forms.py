@@ -436,6 +436,7 @@ class AmortizationAssetForm(MoneyInputGroupMixin, forms.ModelForm):
         field = self.fields["source_transactions"]
         assert isinstance(field, forms.ModelMultipleChoiceField)
         field.required = False
+        self.fields["duration_years"].required = False
         if property_obj is not None:
             # Works/maintenance expenses, non-recurring only.
             # M2M allows linking the same transaction to multiple assets.
@@ -448,6 +449,20 @@ class AmortizationAssetForm(MoneyInputGroupMixin, forms.ModelForm):
             field.queryset = qs
         else:
             field.queryset = PropertyLedgerEntry.objects.none()
+
+    def clean(self):
+        cleaned_data = super().clean() or {}
+        cerfa_category = cleaned_data.get("cerfa_category")
+        duration_years = cleaned_data.get("duration_years")
+        if (
+            cerfa_category != AmortizationAsset.CerfaCategory.TERRAINS
+            and not duration_years
+        ):
+            self.add_error(
+                "duration_years",
+                _("Duration is required for depreciable assets."),
+            )
+        return cleaned_data
 
 
 class AmortizationSetupForm(MoneyInputGroupMixin, forms.ModelForm):
