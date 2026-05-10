@@ -229,7 +229,7 @@ class TestAmortizationConformity:
         asset = AmortizationAsset.objects.get(
             property=lmnp_setup.property, label="Agencements intérieurs"
         )
-        assert asset.cerfa_category == "autres"
+        assert asset.cerfa_category == "constructions"
 
     def test_deferred_balance_zero_first_year_with_surplus(
         self, lmnp_setup, lmnp_property

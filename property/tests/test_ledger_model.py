@@ -159,6 +159,27 @@ class TestPropertyLedgerEntryClean:
         )
         entry.clean()  # Should not raise
 
+    def test_clean_alur_works_fund_expense_valid(self, property_obj):
+        entry = PropertyLedgerEntry(
+            property=property_obj,
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.ALUR_WORKS_FUND,
+            amount=Money(Decimal("150.00"), "EUR"),
+            entry_date=datetime.date(2023, 3, 1),
+        )
+        entry.clean()  # Should not raise
+
+    def test_clean_alur_works_fund_income_raises(self, property_obj):
+        entry = PropertyLedgerEntry(
+            property=property_obj,
+            flow_type=PropertyLedgerEntry.FlowType.INCOME,
+            management_category=PropertyLedgerEntry.ManagementCategory.ALUR_WORKS_FUND,
+            amount=Money(Decimal("150.00"), "EUR"),
+            entry_date=datetime.date(2023, 3, 1),
+        )
+        with pytest.raises(ValidationError):
+            entry.clean()
+
     def test_clean_no_amount_does_not_raise(self, property_obj):
         entry = PropertyLedgerEntry(
             property=property_obj,

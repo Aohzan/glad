@@ -47,6 +47,14 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
 
     entry_date = date_field(with_class=True)
     recurrence_end_date = recurrence_end_field(with_class=True)
+    reference_period = forms.DateField(
+        required=False,
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+        ),
+        input_formats=["%Y-%m-%d"],
+        label=_("Reference period"),
+    )
 
     class Meta:
         model = PropertyLedgerEntry
@@ -54,12 +62,14 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
             "flow_type",
             "amount",
             "entry_date",
+            "reference_period",
             "management_category",
             "third_party",
             "lease",
             "description",
             "recurrence_type",
             "recurrence_end_date",
+            "notes",
         ]
         widgets = {
             "flow_type": forms.Select(
@@ -74,6 +84,7 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
             "description": forms.TextInput(attrs={"class": "form-control"}),
             "third_party": forms.TextInput(attrs={"class": "form-control"}),
             "lease": forms.Select(attrs={"class": "form-select"}),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 
     def __init__(self, *args, property_obj=None, **kwargs):

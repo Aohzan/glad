@@ -27,7 +27,7 @@ le calcul de la plus-value lors de la revente du bien (art. 150 VB bis du CGI).
   244 = Impôts, taxes et versements assimilés — taxe foncière, CFE
   254 = Dotations aux amortissements
   270 = Résultat d'exploitation (1)
-  294 = Charges financières — intérêts et assurance emprunteur
+  294 = Charges financières — intérêts emprunteur
   310 = Bénéfices ou pertes (résultat comptable)
   318 = Réintégrations : amortissements reportés art. 39C
   352 = Résultat fiscal avant imputation des déficits antérieurs
@@ -47,9 +47,13 @@ from django.utils.translation import gettext_lazy as _
 # Each entry: {"section": "recettes"|"charges"|None, "line": str|None, "label": str}
 # section=None means the category is off the tax result (deposits, capital repayment).
 #
-# Charges financières (loan_interest, loan_insurance) map to line 294 and are
-# excluded from the exploitation result (270) but included in the overall result (310).
+# loan_interest and loan_insurance are excluded from ledger queries when a bank
+# statement exists (to avoid double-counting with the injected statement figures).
 _CHARGES_FINANCIERES = {"loan_interest", "loan_insurance"}
+
+# Only loan_interest maps to cerfa line 294 (Charges financières).
+# loan_insurance is classified as an exploitation charge (line 242) per CERFA 2033-B.
+_CERFA_294 = {"loan_interest"}
 
 LMNP_TAX_MAPPING: dict[str, dict] = {
     # Recettes (line 218: Production vendue – services)
@@ -128,7 +132,7 @@ LMNP_TAX_MAPPING: dict[str, dict] = {
     },
     "loan_insurance": {
         "section": "charges",
-        "line": "294",
+        "line": "242",
         "label": "Assurance emprunteur",
     },
     # Hors résultat fiscal
@@ -151,6 +155,11 @@ LMNP_TAX_MAPPING: dict[str, dict] = {
         "section": None,
         "line": None,
         "label": "Charge non déductible",
+    },
+    "alur_works_fund": {
+        "section": None,
+        "line": None,
+        "label": "Fonds travaux (non déductible)",
     },
 }
 
@@ -668,7 +677,7 @@ def _get_lmnp_summary_raw(property_id: int, year: int) -> dict:
             recettes += total
         elif mapping["section"] == "charges":
             charges += total
-            if cat in _CHARGES_FINANCIERES:
+            if cat in _CERFA_294:
                 charges_financieres += total
             else:
                 charges_exploitation += total

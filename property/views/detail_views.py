@@ -793,6 +793,16 @@ class PropertyDetailView(DetailView):
                 "all_properties": Property.objects.filter(is_active=True).order_by(
                     "name"
                 ),
+                "ledger_income_categories": [
+                    (c.value, c.label)
+                    for c in PropertyLedgerEntry.ManagementCategory
+                    if c.value in PropertyLedgerEntry._INCOME_CATEGORIES
+                ],
+                "ledger_expense_categories": [
+                    (c.value, c.label)
+                    for c in PropertyLedgerEntry.ManagementCategory
+                    if c.value not in PropertyLedgerEntry._INCOME_CATEGORIES
+                ],
             }
         )
         context.update(balance_sheet_context)

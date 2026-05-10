@@ -374,29 +374,15 @@
                 <option value="">— {% translate "Select a category" %} —</option>
                 {# Income options — shown when flow_type=income #}
                 <optgroup label="{% translate 'Income' %}" class="mgmt-income-group">
-                  <option value="rent_collected">{% translate "Rent collected" %}</option>
-                  <option value="charges_collected">{% translate "Charges collected" %}</option>
-                  <option value="other_income">{% translate "Other income" %}</option>
-                  <option value="deposit_in">{% translate "Deposit received" %}</option>
-                  <option value="manager_reversal">{% translate "Manager reversal" %}</option>
+                  {% for value, label in ledger_income_categories %}
+                  <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
                 </optgroup>
                 {# Expense options — shown when flow_type=expense #}
                 <optgroup label="{% translate 'Expenses' %}" class="mgmt-expense-group">
-                  <option value="maintenance">{% translate "Routine maintenance" %}</option>
-                  <option value="works">{% translate "Works" %}</option>
-                  <option value="insurance">{% translate "Insurance" %}</option>
-                  <option value="coownership">{% translate "Co-ownership fees" %}</option>
-                  <option value="management_fees">{% translate "Management fees" %}</option>
-                  <option value="other_general_fees">{% translate "Other general fees" %}</option>
-                  <option value="misc_deductible">{% translate "Miscellaneous deductible" %}</option>
-                  <option value="loan_interest">{% translate "Loan interest" %}</option>
-                  <option value="loan_insurance">{% translate "Loan insurance" %}</option>
-                  <option value="property_tax">{% translate "Property tax" %}</option>
-                  <option value="cfe">{% translate "CFE" %}</option>
-                  <option value="loan_repayment">{% translate "Loan capital repayment" %}</option>
-                  <option value="deposit_out">{% translate "Deposit returned" %}</option>
-                  <option value="non_deductible">{% translate "Other non-deductible" %}</option>
-                  <option value="other">{% translate "Other" %}</option>
+                  {% for value, label in ledger_expense_categories %}
+                  <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
                 </optgroup>
               </select>
               {% if entry_form.management_category.errors %}<div class="invalid-feedback d-block">{{ entry_form.management_category.errors }}</div>{% endif %}
@@ -438,6 +424,18 @@
             </div>
           </div>
 
+          {# ── Row 3b: Reference period ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ entry_form.reference_period.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-calendar-range me-1 text-secondary"></i>{% translate "Reference period" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ entry_form.reference_period }}
+              {% if entry_form.reference_period.errors %}<div class="invalid-feedback d-block">{{ entry_form.reference_period.errors }}</div>{% endif %}
+            </div>
+          </div>
+
           {# ── Row 4: Description + Third party ── #}
           <div class="row g-3 mb-3">
             <div class="col-md-6">
@@ -455,6 +453,16 @@
               {{ entry_form.third_party }}
               {% if entry_form.third_party.errors %}<div class="invalid-feedback d-block">{{ entry_form.third_party.errors }}</div>{% endif %}
             </div>
+          </div>
+
+          {# ── Row 4b: Notes ── #}
+          <div class="mb-3">
+            <label for="{{ entry_form.notes.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-sticky me-1 text-secondary"></i>{% translate "Notes" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ entry_form.notes }}
+            {% if entry_form.notes.errors %}<div class="invalid-feedback d-block">{{ entry_form.notes.errors }}</div>{% endif %}
           </div>
 
           {# ── Row 5: Recurrence ── #}
@@ -644,28 +652,14 @@
                       data-flow="{{ item.obj.flow_type }}">
                 <option value="">— {% translate "Select a category" %} —</option>
                 <optgroup label="{% translate 'Income' %}" class="mgmt-income-group">
-                  <option value="rent_collected" {% if item.obj.management_category == "rent_collected" %}selected{% endif %}>{% translate "Rent collected" %}</option>
-                  <option value="charges_collected" {% if item.obj.management_category == "charges_collected" %}selected{% endif %}>{% translate "Charges collected" %}</option>
-                  <option value="other_income" {% if item.obj.management_category == "other_income" %}selected{% endif %}>{% translate "Other income" %}</option>
-                  <option value="deposit_in" {% if item.obj.management_category == "deposit_in" %}selected{% endif %}>{% translate "Deposit received" %}</option>
-                  <option value="manager_reversal" {% if item.obj.management_category == "manager_reversal" %}selected{% endif %}>{% translate "Manager reversal" %}</option>
+                  {% for value, label in ledger_income_categories %}
+                  <option value="{{ value }}" {% if item.obj.management_category == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
                 </optgroup>
                 <optgroup label="{% translate 'Expenses' %}" class="mgmt-expense-group">
-                  <option value="maintenance" {% if item.obj.management_category == "maintenance" %}selected{% endif %}>{% translate "Routine maintenance" %}</option>
-                  <option value="works" {% if item.obj.management_category == "works" %}selected{% endif %}>{% translate "Works" %}</option>
-                  <option value="insurance" {% if item.obj.management_category == "insurance" %}selected{% endif %}>{% translate "Insurance" %}</option>
-                  <option value="coownership" {% if item.obj.management_category == "coownership" %}selected{% endif %}>{% translate "Co-ownership fees" %}</option>
-                  <option value="management_fees" {% if item.obj.management_category == "management_fees" %}selected{% endif %}>{% translate "Management fees" %}</option>
-                  <option value="other_general_fees" {% if item.obj.management_category == "other_general_fees" %}selected{% endif %}>{% translate "Other general fees" %}</option>
-                  <option value="misc_deductible" {% if item.obj.management_category == "misc_deductible" %}selected{% endif %}>{% translate "Miscellaneous deductible" %}</option>
-                  <option value="loan_interest" {% if item.obj.management_category == "loan_interest" %}selected{% endif %}>{% translate "Loan interest" %}</option>
-                  <option value="loan_insurance" {% if item.obj.management_category == "loan_insurance" %}selected{% endif %}>{% translate "Loan insurance" %}</option>
-                  <option value="property_tax" {% if item.obj.management_category == "property_tax" %}selected{% endif %}>{% translate "Property tax" %}</option>
-                  <option value="cfe" {% if item.obj.management_category == "cfe" %}selected{% endif %}>{% translate "CFE" %}</option>
-                  <option value="loan_repayment" {% if item.obj.management_category == "loan_repayment" %}selected{% endif %}>{% translate "Loan capital repayment" %}</option>
-                  <option value="deposit_out" {% if item.obj.management_category == "deposit_out" %}selected{% endif %}>{% translate "Deposit returned" %}</option>
-                  <option value="non_deductible" {% if item.obj.management_category == "non_deductible" %}selected{% endif %}>{% translate "Other non-deductible" %}</option>
-                  <option value="other" {% if item.obj.management_category == "other" %}selected{% endif %}>{% translate "Other" %}</option>
+                  {% for value, label in ledger_expense_categories %}
+                  <option value="{{ value }}" {% if item.obj.management_category == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
                 </optgroup>
               </select>
               {% if item.edit_form.management_category.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.management_category.errors }}</div>{% endif %}
@@ -1297,10 +1291,8 @@ document.getElementById('info-tab').addEventListener('shown.bs.tab', function() 
 
 // ── Entry modal: conditional fields logic ────────────────────────────────────
 (function() {
-  const INCOME_MGMT  = ['rent_collected', 'charges_collected', 'other_income', 'deposit_in', 'manager_reversal'];
-  const EXPENSE_MGMT = ['maintenance', 'works', 'insurance', 'coownership', 'management_fees',
-                        'other_general_fees', 'misc_deductible', 'loan_interest', 'loan_insurance',
-                        'property_tax', 'cfe', 'loan_repayment', 'deposit_out', 'non_deductible', 'other'];
+  const INCOME_MGMT  = [{% for value, label in ledger_income_categories %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+  const EXPENSE_MGMT = [{% for value, label in ledger_expense_categories %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
 
   // ── Helper: apply optgroup filtering to a management category select ──────
   function applyMgmtFilter(mgmtSelect, flowType) {

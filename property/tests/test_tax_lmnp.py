@@ -6,7 +6,13 @@ from decimal import Decimal
 import pytest
 from moneyed import Money
 
-from property.models import AmortizationAsset, Property, PropertyLedgerEntry
+from property.models import (
+    AmortizationAsset,
+    Property,
+    PropertyLedgerEntry,
+    PropertyLoan,
+    PropertyLoanAnnualStatement,
+)
 from property.services.tax_lmnp import (
     LMNP_TAX_MAPPING,
     get_amortization_schedule,
@@ -52,12 +58,17 @@ class TestLmnpTaxMapping:
         assert LMNP_TAX_MAPPING["deposit_in"]["section"] is None
         assert LMNP_TAX_MAPPING["deposit_out"]["section"] is None
         assert LMNP_TAX_MAPPING["non_deductible"]["section"] is None
+        assert LMNP_TAX_MAPPING["alur_works_fund"]["section"] is None
+
+    def test_alur_works_fund_not_in_taxable_charges(self):
+        assert LMNP_TAX_MAPPING["alur_works_fund"]["line"] is None
 
     def test_mapping_has_cerfa_lines(self):
         assert LMNP_TAX_MAPPING["rent_collected"]["line"] == "218"
         assert LMNP_TAX_MAPPING["other_income"]["line"] == "209"
         assert LMNP_TAX_MAPPING["management_fees"]["line"] == "242"
         assert LMNP_TAX_MAPPING["loan_interest"]["line"] == "294"
+        assert LMNP_TAX_MAPPING["loan_insurance"]["line"] == "242"
         assert LMNP_TAX_MAPPING["property_tax"]["line"] == "244"
 
     def test_mapping_none_section_has_no_line(self):
@@ -214,6 +225,21 @@ class TestGetLmnpSummary:
         assert result["charges"] == Decimal("0")
         entry.delete()
 
+    def test_summary_alur_works_fund_excluded_from_charges(self, property_obj):
+        """ALUR works fund must not appear in taxable charges."""
+        PropertyLedgerEntry.objects.create(
+            property=property_obj,
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.ALUR_WORKS_FUND,
+            amount=Money(Decimal("200.00"), "EUR"),
+            entry_date=datetime.date(2023, 1, 1),
+        )
+        result = get_lmnp_summary(property_obj.pk, 2023)
+        assert result["charges"] == Decimal("0"), (
+            "ALUR works fund must not be in taxable charges"
+        )
+        assert result["recettes"] == Decimal("0")
+
     def test_summary_other_income_maps_to_line_209(self, property_obj):
         PropertyLedgerEntry.objects.create(
             property=property_obj,
@@ -238,7 +264,60 @@ class TestGetLmnpSummary:
 
 
 @pytest.mark.django_db
-class TestGetFiscalDeficitHistory:
+class TestLoanInsuranceClassification:
+    """Verify that loan_insurance is classified as exploitation charge (line 242),
+    not as a financial charge (line 294)."""
+
+    def test_loan_insurance_ledger_entry_in_charges_exploitation(self, property_obj):
+        """loan_insurance from ledger goes into charges_exploitation, not charges_financieres."""
+        PropertyLedgerEntry.objects.create(
+            property=property_obj,
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.LOAN_INSURANCE,
+            amount=Money(Decimal("600.00"), "EUR"),
+            entry_date=datetime.date(2023, 6, 1),
+        )
+        result = get_lmnp_summary(property_obj.pk, 2023)
+        assert result["charges"] == Decimal("600.00")
+        assert result["by_line"].get("242") == Decimal("600.00")
+        assert "294" not in result["by_line"]
+
+    def test_loan_insurance_via_bank_statement_in_charges_exploitation(
+        self, property_obj
+    ):
+        """loan_insurance from PropertyLoanAnnualStatement also lands in line 242,
+        and the bank statement takes priority over any ledger entry (no double-count)."""
+        loan = PropertyLoan.objects.create(
+            property=property_obj,
+            name="Test loan",
+            original_amount=Money(Decimal("100000.00"), "EUR"),
+            start_date=datetime.date(2020, 1, 1),
+            end_date=datetime.date(2040, 12, 31),
+            interest_rate=Decimal("1.5"),
+            insurance_rate=Decimal("0.2"),
+        )
+        PropertyLoanAnnualStatement.objects.create(
+            loan=loan,
+            year=2023,
+            interest_amount=Money(Decimal("1200.00"), "EUR"),
+            insurance_amount=Money(Decimal("400.00"), "EUR"),
+        )
+        # Also add a ledger entry that must be superseded by the statement
+        PropertyLedgerEntry.objects.create(
+            property=property_obj,
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.LOAN_INSURANCE,
+            amount=Money(Decimal("999.00"), "EUR"),
+            entry_date=datetime.date(2023, 3, 1),
+        )
+        result = get_lmnp_summary(property_obj.pk, 2023)
+        # Statement takes priority: insurance is 400, not 999 or 1399
+        assert result["by_line"].get("242", Decimal("0")) == Decimal("400.00")
+        # Interest from statement → line 294
+        assert result["by_line"].get("294", Decimal("0")) == Decimal("1200.00")
+        # Insurance is in exploitation, interest in financial charges
+        assert result["charges"] == Decimal("1600.00")
+
     def test_year_before_first_asset_returns_empty(self):
         """When year < first acquisition year, should return {}."""
         prop = Property.objects.create(

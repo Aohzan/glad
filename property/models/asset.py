@@ -618,19 +618,19 @@ class AmortizationSetup(BaseModel):
     """
 
     # Standard LMNP component breakdown (% of total value, duration in years).
-    # The remaining land_percentage (default 15 %) is never depreciable.
+    # The remaining land percentage (default 15 %) is never depreciable.
     STANDARD_COMPONENTS: list[dict] = [
+        {
+            "label": "Terrain",
+            "pct": 15,
+            "duration": None,
+            "cerfa_category": "terrains",
+        },
         {
             "label": "Gros œuvre",
             "pct": 45,
             "duration": 75,
             "cerfa_category": "constructions",
-        },
-        {
-            "label": "Installations électriques",
-            "pct": 6,
-            "duration": 30,
-            "cerfa_category": "installations",
         },
         {
             "label": "Étanchéité",
@@ -648,13 +648,13 @@ class AmortizationSetup(BaseModel):
             "label": "Agencements intérieurs",
             "pct": 19,
             "duration": 12,
-            "cerfa_category": "autres",
+            "cerfa_category": "constructions",
         },
         {
-            "label": "Terrain",
-            "pct": 15,
-            "duration": None,
-            "cerfa_category": "terrains",
+            "label": "Installations électriques",
+            "pct": 6,
+            "duration": 30,
+            "cerfa_category": "installations",
         },
     ]
 
