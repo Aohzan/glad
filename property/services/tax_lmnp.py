@@ -1139,7 +1139,12 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
       - "total_issues": total count of warning + missing checks across all properties
       - "overall_status": "ok" | "warning" | "incomplete"
     """
-    from property.models import AmortizationAsset, AmortizationSetup, PropertyLoan
+    from property.models import (
+        AmortizationAsset,
+        AmortizationSetup,
+        PropertyLoan,
+        PropertyLoanAnnualStatement,
+    )
 
     def _check(
         check_id: str,
@@ -1148,15 +1153,28 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
         form_ref: str,
         required: bool = True,
         loan_active: bool | None = None,
+        loans_missing: list[str] | None = None,
     ) -> dict:
         """Build a single check result dict."""
+        if loans_missing is None:
+            loans_missing = []
         if check_id == "financial_charges":
             if loan_active is False:
                 status = "na"
                 detail = _("No active loan — not required.")
             elif count > 0:
-                status = "ok"
-                detail = _("%(count)d entry(ies) found.") % {"count": count}
+                if loans_missing:
+                    status = "warning"
+                    detail = _(
+                        "%(count)d entry(ies) found, but %(n)d loan(s) without a bank statement: %(names)s."
+                    ) % {
+                        "count": count,
+                        "n": len(loans_missing),
+                        "names": ", ".join(loans_missing),
+                    }
+                else:
+                    status = "ok"
+                    detail = _("%(count)d entry(ies) found.") % {"count": count}
             else:
                 status = "warning"
                 detail = _("Loan detected but no financial charge entries found.")
@@ -1199,12 +1217,33 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
         taxes_count = _count_entries_in_year(prop.pk, year, _CHECKLIST_TAXES)
 
         # --- Financial charges (only required if a loan is active this year) ---
-        has_active_loan = PropertyLoan.objects.filter(
-            property_id=prop.pk,
-            start_date__lte=year_end,
-            end_date__gte=year_start,
-        ).exists()
+        active_loans = list(
+            PropertyLoan.objects.filter(
+                property_id=prop.pk,
+                start_date__lte=year_end,
+                end_date__gte=year_start,
+            )
+        )
+        has_active_loan = bool(active_loans)
         fin_count = _count_entries_in_year(prop.pk, year, _CHECKLIST_FINANCIERES)
+        # Also count loan annual statements as valid financial charge data
+        # (consistent with _get_category_totals_for_year which prioritises statements)
+        statement_loan_ids = set(
+            PropertyLoanAnnualStatement.objects.filter(
+                loan__property_id=prop.pk, year=year
+            ).values_list("loan_id", flat=True)
+        )
+        if fin_count == 0 and statement_loan_ids:
+            fin_count = 1
+
+        # --- Loan annual statements: one per active loan ---
+        active_loan_ids = {loan.pk for loan in active_loans}
+        loans_without_statement = active_loan_ids - statement_loan_ids
+        loan_names_missing = [
+            loan.name or str(loan.pk)
+            for loan in active_loans
+            if loan.pk in loans_without_statement
+        ]
 
         # --- Amortization setup ---
         has_setup = AmortizationSetup.objects.filter(property=prop).exists()
@@ -1245,6 +1284,7 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
                 fin_count,
                 "2033-B (line 294)",
                 loan_active=has_active_loan,
+                loans_missing=loan_names_missing,
             ),
             {
                 "id": "amortization_setup",

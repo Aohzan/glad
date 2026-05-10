@@ -757,7 +757,8 @@ class PropertyDetailView(DetailView):
                     str(property_obj.buying_value.currency),
                 ),
                 "entry_form": PropertyLedgerEntryQuickCreateForm(
-                    property_obj=property_obj
+                    property_obj=property_obj,
+                    initial={"entry_date": datetime.date.today()},
                 ),
                 "value_form": PropertyValueQuickCreateForm(
                     initial={

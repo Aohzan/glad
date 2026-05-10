@@ -11,6 +11,7 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
+    PropertyLoanAnnualStatement,
 )
 from property.services.tax_lmnp import get_lmnp_checklist
 
@@ -62,14 +63,24 @@ def _add_entry(prop, category, amount=1000, year=2024, flow_type=None):
     )
 
 
-def _add_loan(prop, year=2024):
+def _add_loan(prop, year=2024, name=None):
     return PropertyLoan.objects.create(
         property=prop,
+        name=name or "Loan",
         start_date=datetime.date(year, 1, 1),
         end_date=datetime.date(year + 20, 1, 1),
         original_amount=Money(150_000, "EUR"),
         interest_rate=Decimal("1.5"),
         insurance_rate=Decimal("0.1"),
+    )
+
+
+def _add_loan_statement(loan, year=2024):
+    return PropertyLoanAnnualStatement.objects.create(
+        loan=loan,
+        year=year,
+        interest_amount=Money(2_000, "EUR"),
+        insurance_amount=Money(300, "EUR"),
     )
 
 
@@ -182,8 +193,36 @@ class TestChecklistFinancialCharges:
         )
         assert check["status"] == "warning"
 
-    def test_ok_when_loan_and_interest_entry(self, lmnp_property):
+    def test_warning_when_loan_and_interest_entry_but_no_statement(self, lmnp_property):
+        """Loan with ledger entries but missing bank statement → warning."""
         _add_loan(lmnp_property, year=2024)
+        _add_entry(lmnp_property, "loan_interest", year=2024)
+        result = get_lmnp_checklist([lmnp_property], 2024)
+        check = next(
+            c
+            for c in result["properties"][0]["checks"]
+            if c["id"] == "financial_charges"
+        )
+        assert check["status"] == "warning"
+
+    def test_warning_when_loan_and_insurance_entry_but_no_statement(
+        self, lmnp_property
+    ):
+        """Loan with ledger entries but missing bank statement → warning."""
+        _add_loan(lmnp_property, year=2024)
+        _add_entry(lmnp_property, "loan_insurance", year=2024)
+        result = get_lmnp_checklist([lmnp_property], 2024)
+        check = next(
+            c
+            for c in result["properties"][0]["checks"]
+            if c["id"] == "financial_charges"
+        )
+        assert check["status"] == "warning"
+
+    def test_ok_when_loan_with_annual_statement(self, lmnp_property):
+        """Loan with annual statement and entries → ok."""
+        loan = _add_loan(lmnp_property, year=2024)
+        _add_loan_statement(loan, year=2024)
         _add_entry(lmnp_property, "loan_interest", year=2024)
         result = get_lmnp_checklist([lmnp_property], 2024)
         check = next(
@@ -193,9 +232,10 @@ class TestChecklistFinancialCharges:
         )
         assert check["status"] == "ok"
 
-    def test_ok_when_loan_and_insurance_entry(self, lmnp_property):
-        _add_loan(lmnp_property, year=2024)
-        _add_entry(lmnp_property, "loan_insurance", year=2024)
+    def test_ok_when_statement_counts_even_without_ledger_entries(self, lmnp_property):
+        """Annual statement with no ledger entries still counts as fin_count=1."""
+        loan = _add_loan(lmnp_property, year=2024)
+        _add_loan_statement(loan, year=2024)
         result = get_lmnp_checklist([lmnp_property], 2024)
         check = next(
             c
@@ -203,6 +243,44 @@ class TestChecklistFinancialCharges:
             if c["id"] == "financial_charges"
         )
         assert check["status"] == "ok"
+
+    def test_warning_with_loans_missing_statement_names_in_detail(self, lmnp_property):
+        """Loan name appears in warning detail when statement is missing."""
+        _add_loan(lmnp_property, year=2024, name="Crédit Agricole")
+        _add_entry(lmnp_property, "loan_interest", year=2024)
+        result = get_lmnp_checklist([lmnp_property], 2024)
+        check = next(
+            c
+            for c in result["properties"][0]["checks"]
+            if c["id"] == "financial_charges"
+        )
+        assert check["status"] == "warning"
+        assert "Crédit Agricole" in check["detail"]
+
+    def test_warning_with_partial_statements_two_loans(self, lmnp_property):
+        """Two loans, only one with a statement → warning listing the missing loan."""
+        loan1 = _add_loan(lmnp_property, year=2024, name="Loan A")
+        loan2 = PropertyLoan.objects.create(
+            property=lmnp_property,
+            name="Loan B",
+            start_date=datetime.date(2024, 1, 1),
+            end_date=datetime.date(2044, 1, 1),
+            original_amount=Money(50_000, "EUR"),
+            interest_rate=Decimal("2.0"),
+            insurance_rate=Decimal("0.15"),
+        )
+        _add_loan_statement(loan1, year=2024)
+        _add_entry(lmnp_property, "loan_interest", year=2024)
+        # loan2 has no statement
+        del loan2  # ensure it exists in DB, variable not needed
+        result = get_lmnp_checklist([lmnp_property], 2024)
+        check = next(
+            c
+            for c in result["properties"][0]["checks"]
+            if c["id"] == "financial_charges"
+        )
+        assert check["status"] == "warning"
+        assert "Loan B" in check["detail"]
 
     def test_na_when_loan_ended_before_year(self, lmnp_property):
         """Loan ended before the checked year — not active, so N/A."""

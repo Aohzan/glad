@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n format_money static %}
+{% load i18n format_money static l10n %}
 
 {% block title %}
   {{ property.name }} {% translate "property" %}
@@ -362,25 +362,7 @@
           {# ── Remaining fields: shown only once a flow type is selected ── #}
           <div id="entryFormFields" style="display:none">
 
-          {# ── Row 2: Amount + Date ── #}
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label for="{{ entry_form.amount.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-currency-euro me-1 text-secondary"></i>{% translate "Amount" %}
-              </label>
-              {{ entry_form.amount.subwidgets.0 }}
-              {% if entry_form.amount.errors %}<div class="invalid-feedback d-block">{{ entry_form.amount.errors }}</div>{% endif %}
-            </div>
-            <div class="col-md-6">
-              <label for="{{ entry_form.entry_date.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-calendar3 me-1 text-secondary"></i>{% translate "Date" %}
-              </label>
-              {{ entry_form.entry_date }}
-              {% if entry_form.entry_date.errors %}<div class="invalid-feedback d-block">{{ entry_form.entry_date.errors }}</div>{% endif %}
-            </div>
-          </div>
-
-          {# ── Row 3: Management category + Third party ── #}
+          {# ── Row 2: Category + Lease ── #}
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="{{ entry_form.management_category.id_for_label }}" class="form-label fw-semibold">
@@ -420,16 +402,43 @@
               {% if entry_form.management_category.errors %}<div class="invalid-feedback d-block">{{ entry_form.management_category.errors }}</div>{% endif %}
             </div>
             <div class="col-md-6">
-              <label for="{{ entry_form.third_party.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-person me-1 text-secondary"></i>{% translate "Third party" %}
+              <label for="{{ entry_form.lease.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-file-text me-1 text-secondary"></i>{% translate "Lease" %}
                 <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
               </label>
-              {{ entry_form.third_party }}
-              {% if entry_form.third_party.errors %}<div class="invalid-feedback d-block">{{ entry_form.third_party.errors }}</div>{% endif %}
+              <select name="{{ entry_form.lease.html_name }}" id="{{ entry_form.lease.id_for_label }}" class="form-select">
+                <option value="">— {% translate "Select a lease" %} —</option>
+                {% for lease in property_leases %}
+                  <option value="{{ lease.pk }}"
+                          data-rent-amount="{{ lease.rent_amount.amount|unlocalize }}"
+                          data-charges-amount="{{ lease.charges_amount.amount|unlocalize }}">
+                    {{ lease }}
+                  </option>
+                {% endfor %}
+              </select>
+              {% if entry_form.lease.errors %}<div class="invalid-feedback d-block">{{ entry_form.lease.errors }}</div>{% endif %}
             </div>
           </div>
 
-          {# ── Row 4: Description + Lease ── #}
+          {# ── Row 3: Amount + Date ── #}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ entry_form.amount.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-currency-euro me-1 text-secondary"></i>{% translate "Amount" %}
+              </label>
+              {{ entry_form.amount.subwidgets.0 }}
+              {% if entry_form.amount.errors %}<div class="invalid-feedback d-block">{{ entry_form.amount.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ entry_form.entry_date.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-calendar3 me-1 text-secondary"></i>{% translate "Date" %}
+              </label>
+              {{ entry_form.entry_date }}
+              {% if entry_form.entry_date.errors %}<div class="invalid-feedback d-block">{{ entry_form.entry_date.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# ── Row 4: Description + Third party ── #}
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="{{ entry_form.description.id_for_label }}" class="form-label fw-semibold">
@@ -439,12 +448,12 @@
               {{ entry_form.description }}
             </div>
             <div class="col-md-6">
-              <label for="{{ entry_form.lease.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-file-text me-1 text-secondary"></i>{% translate "Lease" %}
+              <label for="{{ entry_form.third_party.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-secondary"></i>{% translate "Third party" %}
                 <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
               </label>
-              {{ entry_form.lease }}
-              {% if entry_form.lease.errors %}<div class="invalid-feedback d-block">{{ entry_form.lease.errors }}</div>{% endif %}
+              {{ entry_form.third_party }}
+              {% if entry_form.third_party.errors %}<div class="invalid-feedback d-block">{{ entry_form.third_party.errors }}</div>{% endif %}
             </div>
           </div>
 
@@ -1331,6 +1340,25 @@ document.getElementById('info-tab').addEventListener('shown.bs.tab', function() 
     if (!recTypeSelect || !recEndBlock) return;
     recEndBlock.style.display = (recTypeSelect.value && recTypeSelect.value !== 'none') ? '' : 'none';
   }
+
+  // ── Auto-fill amount from lease when rent_collected or charges_collected ──
+  const leaseSelect = entryModal ? entryModal.querySelector('select[name="{{ entry_form.lease.html_name }}"]') : null;
+  const amountInput = entryModal ? entryModal.querySelector('input[name="amount_0"]') : null;
+
+  function autoFillAmountFromLease() {
+    if (!leaseSelect || !amountInput || !mgmtSelect) return;
+    const cat = mgmtSelect.value;
+    const leaseOpt = leaseSelect.options[leaseSelect.selectedIndex];
+    if (!leaseOpt || !leaseOpt.value) return;
+    if (cat === 'rent_collected') {
+      amountInput.value = leaseOpt.dataset.rentAmount;
+    } else if (cat === 'charges_collected') {
+      amountInput.value = leaseOpt.dataset.chargesAmount;
+    }
+  }
+
+  if (mgmtSelect) mgmtSelect.addEventListener('change', autoFillAmountFromLease);
+  if (leaseSelect) leaseSelect.addEventListener('change', autoFillAmountFromLease);
 
   if (entryModal) {
     // Scope radio listeners to the create modal only

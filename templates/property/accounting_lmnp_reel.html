@@ -47,11 +47,13 @@
         {% endif %}
       </button>
     </li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033b" type="button">2033-B</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033a" type="button">2033-A</button></li>
-    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033c" type="button">2033-C</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2031" type="button">2031</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2031bis" type="button">2031-BIS</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033a" type="button">2033-A</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033b" type="button">2033-B</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033c" type="button">2033-C</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033d" type="button">2033-D</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-suiv39c" type="button">SUIV39C</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2042c" type="button">2042-C PRO</button></li>
   </ul>
 
@@ -152,6 +154,72 @@
       </div>
       {% endif %}
     </div>{# /tab-checklist #}
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# 2033-A — Bilan simplifié                                               #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-2033a">
+      <h5 class="mb-3">{% translate "2033-A — Bilan simplifié" %}</h5>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header py-2"><h6 class="mb-0">{% translate "Actif" %}</h6></div>
+            <div class="card-body p-0">
+              <table class="table table-sm mb-0">
+                <tbody>
+                  <tr>
+                    <td>{% translate "Immobilisations corporelles brutes" %}</td>
+                    <td class="text-end fw-semibold">{{ accounting.form_2033a.immobilisations_brutes|floatformat:2 }} €</td>
+                    <td class="text-center">
+                      {% if accounting.form_2033a.per_prop|length > 1 %}
+                        <i class="bi bi-info-circle text-body-secondary" data-bs-toggle="tooltip"
+                           title="{% for p in accounting.form_2033a.per_prop %}{{ p.property.name }}: {{ p.bilan.immobilisations_brutes|floatformat:2 }} €&#10;{% endfor %}"></i>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>{% translate "Amortissements cumulés" %}</td>
+                    <td class="text-end text-danger">− {{ accounting.form_2033a.amortissements_cumules|floatformat:2 }} €</td>
+                    <td></td>
+                  </tr>
+                  <tr class="table-light fw-semibold">
+                    <td>{% translate "Valeur nette comptable" %}</td>
+                    <td class="text-end">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:2 }} €</td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header py-2"><h6 class="mb-0">{% translate "Passif" %}</h6></div>
+            <div class="card-body p-0">
+              <table class="table table-sm mb-0">
+                <tbody>
+                  <tr>
+                    <td>{% translate "Emprunts et dettes" %}</td>
+                    <td class="text-end fw-semibold">{{ accounting.form_2033a.emprunts|floatformat:2 }} €</td>
+                    <td class="text-center">
+                      {% if accounting.form_2033a.per_prop|length > 1 %}
+                        <i class="bi bi-info-circle text-body-secondary" data-bs-toggle="tooltip"
+                           title="{% for p in accounting.form_2033a.per_prop %}{{ p.property.name }}: {{ p.bilan.emprunts|floatformat:2 }} €&#10;{% endfor %}"></i>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>{% translate "Résultat de l'exercice" %}</td>
+                    <td class="text-end fw-semibold text-primary">{{ accounting.form_2033a.resultat_exercice|floatformat:2 }} €</td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     {# ══════════════════════════════════════════════════════════════════════ #}
     {# 2033-B — Compte de résultat simplifié                                 #}
@@ -337,72 +405,6 @@
     </div>
 
     {# ══════════════════════════════════════════════════════════════════════ #}
-    {# 2033-A — Bilan simplifié                                               #}
-    {# ══════════════════════════════════════════════════════════════════════ #}
-    <div class="tab-pane fade" id="tab-2033a">
-      <h5 class="mb-3">{% translate "2033-A — Bilan simplifié" %}</h5>
-      <div class="row g-4">
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header py-2"><h6 class="mb-0">{% translate "Actif" %}</h6></div>
-            <div class="card-body p-0">
-              <table class="table table-sm mb-0">
-                <tbody>
-                  <tr>
-                    <td>{% translate "Immobilisations corporelles brutes" %}</td>
-                    <td class="text-end fw-semibold">{{ accounting.form_2033a.immobilisations_brutes|floatformat:2 }} €</td>
-                    <td class="text-center">
-                      {% if accounting.form_2033a.per_prop|length > 1 %}
-                        <i class="bi bi-info-circle text-body-secondary" data-bs-toggle="tooltip"
-                           title="{% for p in accounting.form_2033a.per_prop %}{{ p.property.name }}: {{ p.bilan.immobilisations_brutes|floatformat:2 }} €&#10;{% endfor %}"></i>
-                      {% endif %}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>{% translate "Amortissements cumulés" %}</td>
-                    <td class="text-end text-danger">− {{ accounting.form_2033a.amortissements_cumules|floatformat:2 }} €</td>
-                    <td></td>
-                  </tr>
-                  <tr class="table-light fw-semibold">
-                    <td>{% translate "Valeur nette comptable" %}</td>
-                    <td class="text-end">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:2 }} €</td>
-                    <td></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header py-2"><h6 class="mb-0">{% translate "Passif" %}</h6></div>
-            <div class="card-body p-0">
-              <table class="table table-sm mb-0">
-                <tbody>
-                  <tr>
-                    <td>{% translate "Emprunts et dettes" %}</td>
-                    <td class="text-end fw-semibold">{{ accounting.form_2033a.emprunts|floatformat:2 }} €</td>
-                    <td class="text-center">
-                      {% if accounting.form_2033a.per_prop|length > 1 %}
-                        <i class="bi bi-info-circle text-body-secondary" data-bs-toggle="tooltip"
-                           title="{% for p in accounting.form_2033a.per_prop %}{{ p.property.name }}: {{ p.bilan.emprunts|floatformat:2 }} €&#10;{% endfor %}"></i>
-                      {% endif %}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>{% translate "Résultat de l'exercice" %}</td>
-                    <td class="text-end fw-semibold text-primary">{{ accounting.form_2033a.resultat_exercice|floatformat:2 }} €</td>
-                    <td></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {# ══════════════════════════════════════════════════════════════════════ #}
     {# 2033-C — Immobilisations & amortissements                              #}
     {# ══════════════════════════════════════════════════════════════════════ #}
     <div class="tab-pane fade" id="tab-2033c">
@@ -506,6 +508,101 @@
       {% empty %}
       <p class="text-body-secondary">{% translate "No properties." %}</p>
       {% endfor %}
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# 2033-D — Déficits reportables                                          #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-2033d">
+      <h5 class="mb-3">{% translate "2033-D — Déficits reportables" %}</h5>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle me-1"></i>
+        {% translate "LMNP fiscal deficits can be carried forward for up to 10 years and offset against future LMNP profits (art. 156 I-1° bis CGI)." %}
+      </div>
+      {% if accounting.form_2042c.deficit_history %}
+      <div class="card" style="max-width:520px;">
+        <div class="card-header py-2"><h6 class="mb-0">{% translate "Outstanding deficits by origin year" %}</h6></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{% translate "Origin year" %}</th>
+                <th>{% translate "Expires after" %}</th>
+                <th class="text-end">{% translate "Remaining deficit" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for origin_year, amount in accounting.form_2042c.deficit_history.items %}
+              <tr>
+                <td>{{ origin_year }}</td>
+                <td class="text-body-secondary small">{{ origin_year|add:10 }}</td>
+                <td class="text-end text-danger fw-semibold">{{ amount|floatformat:2 }} €</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot class="table-light fw-bold">
+              <tr>
+                <td colspan="2">{% translate "Total carryforward" %}</td>
+                <td class="text-end text-danger">{{ accounting.form_2042c.deficit_carryforward|floatformat:2 }} €</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-body-secondary">{% translate "No outstanding fiscal deficit carryforward." %}</p>
+      {% endif %}
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# SUIV39C — Suivi des amortissements différés art. 39C                  #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-suiv39c">
+      <h5 class="mb-3">{% translate "SUIV39C — Amortissements différés art. 39C" %}</h5>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle me-1"></i>
+        {% translate "Amortization cannot create or increase an operating deficit (art. 39C CGI). Unused dotations are deferred and deducted in subsequent profitable years." %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover" style="max-width:760px;">
+          <thead class="table-light">
+            <tr>
+              <th>{% translate "Property" %}</th>
+              <th class="text-end">{% translate "Report N-1" %}</th>
+              <th class="text-end">{% translate "Dotation N" %}</th>
+              <th class="text-end">{% translate "Déduit N" %}</th>
+              <th class="text-end">{% translate "Différé N" %}</th>
+              <th class="text-end">{% translate "Solde fin N" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in accounting.form_2033b.per_prop %}
+            <tr>
+              <td>
+                <a href="{% url 'property:detail' p.property.pk %}#amortization-panel">{{ p.property.name }}</a>
+              </td>
+              <td class="text-end text-body-secondary">{{ p.summary.deferred_prior|floatformat:2 }} €</td>
+              <td class="text-end">{{ p.summary.amortization_total|floatformat:2 }} €</td>
+              <td class="text-end text-success">{{ p.summary.amortization_deductible|floatformat:2 }} €</td>
+              <td class="text-end text-warning">{{ p.summary.amortization_deferred|floatformat:2 }} €</td>
+              <td class="text-end fw-semibold {% if p.summary.deferred_balance %}text-warning{% endif %}">{{ p.summary.deferred_balance|floatformat:2 }} €</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-body-secondary py-2">{% translate "No properties." %}</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="table-light fw-bold">
+            <tr>
+              <td>{% translate "Total" %}</td>
+              <td class="text-end text-body-secondary">{{ accounting.form_2033b.deferred_prior|floatformat:2 }} €</td>
+              <td class="text-end">{{ accounting.form_2033b.amortization_total|floatformat:2 }} €</td>
+              <td class="text-end text-success">{{ accounting.form_2033b.amortization_deductible|floatformat:2 }} €</td>
+              <td class="text-end text-warning">{{ accounting.form_2033b.amortization_deferred|floatformat:2 }} €</td>
+              <td class="text-end">—</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     </div>
 
     {# ══════════════════════════════════════════════════════════════════════ #}

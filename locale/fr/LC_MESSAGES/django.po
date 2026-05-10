@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-09 21:26+0200\n"
+"POT-Creation-Date: 2026-05-10 11:58+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -50,8 +50,8 @@ msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
 #: base/forms.py:53 property/models/ledger.py:121 templates/index.html:337
-#: templates/property/detail.html:376 templates/property/detail.html:500
-#: templates/property/detail.html:599
+#: templates/property/detail.html:434 templates/property/detail.html:509
+#: templates/property/detail.html:608
 #: templates/property/detail_panel_cashflow.html:33
 #: templates/property/detail_panel_projection.html:32
 msgid "Date"
@@ -461,7 +461,7 @@ msgid "French"
 msgstr "Français"
 
 #: property/forms.py:101 property/models/ledger.py:127
-#: templates/property/detail.html:610
+#: templates/property/detail.html:619
 msgid "Reference period"
 msgstr "Période de référence"
 
@@ -517,8 +517,8 @@ msgid "Start date"
 msgstr "Date de début"
 
 #: property/forms.py:545 property/models/lease.py:65
-#: property/models/management.py:50 templates/property/detail.html:465
-#: templates/property/detail.html:706
+#: property/models/management.py:50 templates/property/detail.html:474
+#: templates/property/detail.html:715
 #: templates/property/detail_panel_leases.html:48
 #: templates/property/detail_panel_mandate.html:38
 #: templates/property/edit_lease.html:128
@@ -680,7 +680,7 @@ msgid "Land"
 msgstr "Terrain"
 
 #: property/models/asset.py:343 property/models/lease.py:29
-#: templates/property/detail.html:417 templates/property/detail.html:659
+#: templates/property/detail.html:399 templates/property/detail.html:668
 #: templates/property/detail_panel_info.html:64
 msgid "Other"
 msgstr "Autre"
@@ -814,7 +814,8 @@ msgstr "paramétrages d'amortissement"
 #: property/models/asset.py:662 property/models/asset.py:744
 #: property/models/lease.py:44 property/models/ledger.py:99
 #: property/models/management.py:38
-#: templates/property/accounting_lmnp_reel.html:269
+#: templates/property/accounting_lmnp_reel.html:337
+#: templates/property/accounting_lmnp_reel.html:570
 #: templates/property/index.html:5
 msgid "Property"
 msgstr "Propriété"
@@ -837,8 +838,8 @@ msgid "immobilisations"
 msgstr "immobilisations"
 
 #: property/models/asset.py:748
-#: templates/property/accounting_lmnp_reel.html:167
-#: templates/property/accounting_lmnp_reel.html:469
+#: templates/property/accounting_lmnp_reel.html:235
+#: templates/property/accounting_lmnp_reel.html:471
 #: templates/property/csv_confirm.html:76
 #: templates/property/csv_import.html:106
 #: templates/property/detail_panel_amortization.html:125
@@ -884,29 +885,29 @@ msgstr ""
 "d'amortissement standard."
 
 #: property/models/asset.py:777
-#: templates/property/accounting_lmnp_reel.html:433
-#: templates/property/accounting_lmnp_reel.html:484
+#: templates/property/accounting_lmnp_reel.html:435
+#: templates/property/accounting_lmnp_reel.html:486
 #: templates/property/edit_amortization.html:123
 msgid "Terrains"
 msgstr "Terrains"
 
 #: property/models/asset.py:778
-#: templates/property/accounting_lmnp_reel.html:434
-#: templates/property/accounting_lmnp_reel.html:485
+#: templates/property/accounting_lmnp_reel.html:436
+#: templates/property/accounting_lmnp_reel.html:487
 #: templates/property/edit_amortization.html:132
 msgid "Constructions"
 msgstr "Constructions"
 
 #: property/models/asset.py:779
-#: templates/property/accounting_lmnp_reel.html:435
-#: templates/property/accounting_lmnp_reel.html:486
+#: templates/property/accounting_lmnp_reel.html:437
+#: templates/property/accounting_lmnp_reel.html:488
 #: templates/property/edit_amortization.html:144
 msgid "Installations générales"
 msgstr "Installations générales"
 
 #: property/models/asset.py:780
-#: templates/property/accounting_lmnp_reel.html:436
-#: templates/property/accounting_lmnp_reel.html:487
+#: templates/property/accounting_lmnp_reel.html:438
+#: templates/property/accounting_lmnp_reel.html:489
 #: templates/property/edit_amortization.html:157
 msgid "Autres immobilisations corporelles"
 msgstr "Autres immobilisations corporelles"
@@ -923,7 +924,7 @@ msgstr ""
 "Catégorie d'actif pour le cerfa 2033-C : terrains, constructions, "
 "installations générales, ou autres immobilisations corporelles."
 
-#: property/models/asset.py:796 templates/property/detail.html:686
+#: property/models/asset.py:796 templates/property/detail.html:695
 #: templates/property/detail_panel_leases.html:69
 #: templates/property/detail_panel_mandate.html:56
 #: templates/property/edit_entry_occurrence.html:105
@@ -1055,44 +1056,44 @@ msgid "Periodicity"
 msgstr "Périodicite"
 
 #: property/models/ledger.py:25 templates/property/detail.html:353
-#: templates/property/detail.html:394 templates/property/detail.html:573
-#: templates/property/detail.html:637 templates/property/detail.html:799
+#: templates/property/detail.html:376 templates/property/detail.html:582
+#: templates/property/detail.html:646 templates/property/detail.html:808
 #: templates/property/detail_panel_balance.html:69
 msgid "Income"
 msgstr "Revenu"
 
 #: property/models/ledger.py:26 templates/property/detail.html:357
-#: templates/property/detail.html:582 templates/property/detail.html:798
+#: templates/property/detail.html:591 templates/property/detail.html:807
 msgid "Expense"
 msgstr "Dépense"
 
-#: property/models/ledger.py:32 templates/property/detail.html:395
-#: templates/property/detail.html:638
+#: property/models/ledger.py:32 templates/property/detail.html:377
+#: templates/property/detail.html:647
 msgid "Rent collected"
 msgstr "Loyer encaissé"
 
-#: property/models/ledger.py:33 templates/property/detail.html:396
-#: templates/property/detail.html:639
+#: property/models/ledger.py:33 templates/property/detail.html:378
+#: templates/property/detail.html:648
 msgid "Charges collected"
 msgstr "Charges encaissées"
 
-#: property/models/ledger.py:34 templates/property/detail.html:397
-#: templates/property/detail.html:640
+#: property/models/ledger.py:34 templates/property/detail.html:379
+#: templates/property/detail.html:649
 msgid "Other income"
 msgstr "Autres revenus"
 
-#: property/models/ledger.py:35 templates/property/detail.html:398
-#: templates/property/detail.html:641
+#: property/models/ledger.py:35 templates/property/detail.html:380
+#: templates/property/detail.html:650
 msgid "Deposit received"
 msgstr "Dépôt reçu"
 
-#: property/models/ledger.py:36 templates/property/detail.html:399
-#: templates/property/detail.html:642
+#: property/models/ledger.py:36 templates/property/detail.html:381
+#: templates/property/detail.html:651
 msgid "Manager reversal"
 msgstr "Reversement du gestionnaire"
 
-#: property/models/ledger.py:38 templates/property/detail.html:407
-#: templates/property/detail.html:649
+#: property/models/ledger.py:38 templates/property/detail.html:389
+#: templates/property/detail.html:658
 msgid "Management fees"
 msgstr "Frais de gestion"
 
@@ -1100,23 +1101,23 @@ msgstr "Frais de gestion"
 msgid "Letting fees"
 msgstr "Frais de mise en location"
 
-#: property/models/ledger.py:40 templates/property/detail.html:408
-#: templates/property/detail.html:650
+#: property/models/ledger.py:40 templates/property/detail.html:390
+#: templates/property/detail.html:659
 msgid "Other general fees"
 msgstr "Autres frais généraux"
 
-#: property/models/ledger.py:41 templates/property/detail.html:406
-#: templates/property/detail.html:648
+#: property/models/ledger.py:41 templates/property/detail.html:388
+#: templates/property/detail.html:657
 msgid "Co-ownership fees"
 msgstr "Charges de copropriété"
 
-#: property/models/ledger.py:42 templates/property/detail.html:403
-#: templates/property/detail.html:645
+#: property/models/ledger.py:42 templates/property/detail.html:385
+#: templates/property/detail.html:654
 msgid "Routine maintenance"
 msgstr "Entretien courant"
 
-#: property/models/ledger.py:43 templates/property/detail.html:404
-#: templates/property/detail.html:646
+#: property/models/ledger.py:43 templates/property/detail.html:386
+#: templates/property/detail.html:655
 msgid "Works"
 msgstr "Travaux"
 
@@ -1124,36 +1125,36 @@ msgstr "Travaux"
 msgid "Furnitures"
 msgstr "Meublé"
 
-#: property/models/ledger.py:45 templates/property/detail.html:405
-#: templates/property/detail.html:647
+#: property/models/ledger.py:45 templates/property/detail.html:387
+#: templates/property/detail.html:656
 #: templates/property/detail_panel_loans.html:151
 msgid "Insurance"
 msgstr "Assurance"
 
-#: property/models/ledger.py:46 templates/property/detail.html:412
-#: templates/property/detail.html:654
+#: property/models/ledger.py:46 templates/property/detail.html:394
+#: templates/property/detail.html:663
 msgid "Property tax"
 msgstr "Taxe foncière"
 
-#: property/models/ledger.py:47 templates/property/detail.html:413
-#: templates/property/detail.html:655
+#: property/models/ledger.py:47 templates/property/detail.html:395
+#: templates/property/detail.html:664
 msgid "CFE"
 msgstr "CFE"
 
-#: property/models/ledger.py:48 templates/property/detail.html:409
-#: templates/property/detail.html:651
+#: property/models/ledger.py:48 templates/property/detail.html:391
+#: templates/property/detail.html:660
 msgid "Miscellaneous deductible"
 msgstr "Charges diverses déductibles"
 
 #: property/models/ledger.py:49 property/services/cashflow.py:204
-#: templates/property/detail.html:410 templates/property/detail.html:652
-#: templates/property/detail.html:1121
+#: templates/property/detail.html:392 templates/property/detail.html:661
+#: templates/property/detail.html:1130
 msgid "Loan interest"
 msgstr "Intérêts du prêt"
 
 #: property/models/ledger.py:50 property/services/cashflow.py:208
-#: templates/property/detail.html:411 templates/property/detail.html:653
-#: templates/property/detail.html:1123
+#: templates/property/detail.html:393 templates/property/detail.html:662
+#: templates/property/detail.html:1132
 msgid "Loan insurance"
 msgstr "Assurance de prêt"
 
@@ -1161,18 +1162,18 @@ msgstr "Assurance de prêt"
 msgid "Rental guarantee"
 msgstr "Garantie Loyer Impayée"
 
-#: property/models/ledger.py:53 templates/property/detail.html:414
-#: templates/property/detail.html:656
+#: property/models/ledger.py:53 templates/property/detail.html:396
+#: templates/property/detail.html:665
 msgid "Loan capital repayment"
 msgstr "Remboursement du capital"
 
-#: property/models/ledger.py:54 templates/property/detail.html:415
-#: templates/property/detail.html:657
+#: property/models/ledger.py:54 templates/property/detail.html:397
+#: templates/property/detail.html:666
 msgid "Deposit returned"
 msgstr "Dépôt restitué"
 
-#: property/models/ledger.py:55 templates/property/detail.html:416
-#: templates/property/detail.html:658
+#: property/models/ledger.py:55 templates/property/detail.html:398
+#: templates/property/detail.html:667
 msgid "Other non-deductible"
 msgstr "Autres charges non déductibles"
 
@@ -1192,8 +1193,8 @@ msgstr "écriture comptable"
 msgid "ledger entries"
 msgstr "écritures comptables"
 
-#: property/models/ledger.py:107 templates/property/detail.html:443
-#: templates/property/detail.html:618
+#: property/models/ledger.py:107 templates/property/detail.html:406
+#: templates/property/detail.html:627
 msgid "Lease"
 msgstr "Bail"
 
@@ -1202,9 +1203,9 @@ msgid "Flow type"
 msgstr "Type de flux"
 
 #: property/models/ledger.py:117 templates/index.html:336
-#: templates/property/accounting_lmnp_reel.html:566
-#: templates/property/accounting_lmnp_reel.html:614
-#: templates/property/detail.html:369 templates/property/detail.html:592
+#: templates/property/accounting_lmnp_reel.html:663
+#: templates/property/accounting_lmnp_reel.html:711
+#: templates/property/detail.html:427 templates/property/detail.html:601
 #: templates/property/detail_panel_cashflow.html:36
 #: templates/property/detail_panel_loans.html:378
 #: templates/property/edit_entry_occurrence.html:85
@@ -1226,16 +1227,16 @@ msgstr ""
 "Le mois/période que couvre cette écriture, ex. premier jour de mars 2024."
 
 #: property/models/ledger.py:135
-#: templates/property/accounting_lmnp_reel.html:566
-#: templates/property/detail.html:387 templates/property/detail.html:630
-#: templates/property/detail.html:968
+#: templates/property/accounting_lmnp_reel.html:663
+#: templates/property/detail.html:369 templates/property/detail.html:639
+#: templates/property/detail.html:977
 #: templates/property/detail_panel_cashflow.html:35
 #: templates/property/report.html:114 templates/property/report.html:150
 msgid "Category"
 msgstr "Catégorie"
 
-#: property/models/ledger.py:141 templates/property/detail.html:424
-#: templates/property/detail.html:666
+#: property/models/ledger.py:141 templates/property/detail.html:452
+#: templates/property/detail.html:675
 msgid "Third party"
 msgstr "Tiers"
 
@@ -1368,124 +1369,133 @@ msgstr "actif"
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
-#: property/services/tax_lmnp.py:1156
+#: property/services/tax_lmnp.py:1164
 msgid "No active loan — not required."
 msgstr "Aucun prêt actif — non requis."
 
-#: property/services/tax_lmnp.py:1159 property/services/tax_lmnp.py:1165
+#: property/services/tax_lmnp.py:1169
+#, python-format
+msgid ""
+"%(count)d entry(ies) found, but %(n)d loan(s) without a bank statement: "
+"%(names)s."
+msgstr ""
+"%(count)d écriture(s) trouvée(s), mais %(n)d prêt(s) sans relevé bancaire : "
+"%(names)s."
+
+#: property/services/tax_lmnp.py:1177 property/services/tax_lmnp.py:1183
 #, python-format
 msgid "%(count)d entry(ies) found."
 msgstr "%(count)d écriture(s) trouvée(s)."
 
-#: property/services/tax_lmnp.py:1162
+#: property/services/tax_lmnp.py:1180
 msgid "Loan detected but no financial charge entries found."
 msgstr "Prêt détecté mais aucune charge financière saisie."
 
-#: property/services/tax_lmnp.py:1168
+#: property/services/tax_lmnp.py:1186
 #, python-format
 msgid "No entry found — required for %(form)s."
 msgstr "Aucune écriture trouvée — requise pour %(form)s."
 
-#: property/services/tax_lmnp.py:1171
+#: property/services/tax_lmnp.py:1189
 #, python-format
 msgid "No entry found — recommended for %(form)s."
 msgstr "Aucune écriture trouvée — recommandée pour %(form)s."
 
-#: property/services/tax_lmnp.py:1223
+#: property/services/tax_lmnp.py:1262
 msgid "Revenue entries"
 msgstr "Saisie des revenus"
 
-#: property/services/tax_lmnp.py:1230
+#: property/services/tax_lmnp.py:1269
 msgid "Operating charge entries"
 msgstr "Saisie des charges d'exploitation"
 
-#: property/services/tax_lmnp.py:1237
+#: property/services/tax_lmnp.py:1276
 msgid "Property tax / CFE entries"
 msgstr "Saisie de la taxe foncière / CFE"
 
-#: property/services/tax_lmnp.py:1244
+#: property/services/tax_lmnp.py:1283
 msgid "Financial charge entries"
 msgstr "Saisie des charges financières"
 
-#: property/services/tax_lmnp.py:1251
+#: property/services/tax_lmnp.py:1291
 msgid "Amortization initialized"
 msgstr "Amortissement initialisé"
 
-#: property/services/tax_lmnp.py:1254
+#: property/services/tax_lmnp.py:1294
 msgid "Amortization setup found."
 msgstr "Paramétrage d'amortissement trouvé."
 
-#: property/services/tax_lmnp.py:1256
+#: property/services/tax_lmnp.py:1296
 msgid "No amortization setup — required for 2033-A and 2033-C."
 msgstr "Aucun paramétrage d'amortissement — requis pour 2033-A et 2033-C."
 
-#: property/services/tax_lmnp.py:1263
+#: property/services/tax_lmnp.py:1303
 #: templates/property/detail_panel_amortization.html:117
 msgid "Amortization components"
 msgstr "Lignes d'amortissement"
 
-#: property/services/tax_lmnp.py:1268
+#: property/services/tax_lmnp.py:1308
 #, python-format
 msgid "%(count)d component(s) found."
 msgstr "%(count)d composant(s) trouvé(s)."
 
-#: property/services/tax_lmnp.py:1271
+#: property/services/tax_lmnp.py:1311
 msgid "Setup exists but no components — check initialization."
 msgstr "Paramétrage existant sans composants — vérifiez l'initialisation."
 
-#: property/services/tax_lmnp.py:1273
+#: property/services/tax_lmnp.py:1313
 msgid "No components — initialize amortization first."
 msgstr "Aucun composant — initialisez l'amortissement d'abord."
 
-#: property/services/tax_lmnp.py:1281
+#: property/services/tax_lmnp.py:1321
 msgid "Acquisition value set"
 msgstr "Valeur d'acquisition renseignée"
 
-#: property/services/tax_lmnp.py:1284
+#: property/services/tax_lmnp.py:1324
 msgid "Buying value is set."
 msgstr "Valeur d'achat renseignée."
 
-#: property/services/tax_lmnp.py:1286
+#: property/services/tax_lmnp.py:1326
 msgid "No buying value — required for 2033-A (bilan actif)."
 msgstr "Aucune valeur d'achat — requise pour 2033-A (actif du bilan)."
 
-#: property/services/tax_lmnp.py:1321
+#: property/services/tax_lmnp.py:1361
 msgid "Déclaration de résultat BIC"
 msgstr "Déclaration de résultat BIC"
 
-#: property/services/tax_lmnp.py:1328
+#: property/services/tax_lmnp.py:1368
 msgid "Bilan simplifié"
 msgstr "Bilan simplifié"
 
-#: property/services/tax_lmnp.py:1335
+#: property/services/tax_lmnp.py:1375
 msgid "Compte de résultat"
 msgstr "Compte de résultat"
 
-#: property/services/tax_lmnp.py:1344
+#: property/services/tax_lmnp.py:1384
 msgid "Immobilisations & amortissements"
 msgstr "Immobilisations & amortissements"
 
-#: property/services/tax_lmnp.py:1351
+#: property/services/tax_lmnp.py:1391
 msgid "Déficits reportables"
 msgstr "Déficits reportables"
 
-#: property/services/tax_lmnp.py:1358
+#: property/services/tax_lmnp.py:1398
 msgid "Amortissements différés art. 39C"
 msgstr "Amortissements différés art. 39C"
 
-#: property/services/tax_lmnp.py:1365
+#: property/services/tax_lmnp.py:1405
 msgid "Déclaration complémentaire"
 msgstr "Déclaration complémentaire"
 
-#: property/services/tax_lmnp.py:1372
+#: property/services/tax_lmnp.py:1412
 msgid "Valeur ajoutée (CVAE)"
 msgstr "Valeur ajoutée (CVAE)"
 
-#: property/services/tax_lmnp.py:1379
+#: property/services/tax_lmnp.py:1419
 msgid "Composition du capital"
 msgstr "Composition du capital"
 
-#: property/services/tax_lmnp.py:1386
+#: property/services/tax_lmnp.py:1426
 msgid "Filiales et participations"
 msgstr "Filiales et participations"
 
@@ -1745,7 +1755,7 @@ msgid "minutes"
 msgstr "minutes"
 
 #: templates/accounts/settings.html:119 templates/property/detail.html:324
-#: templates/property/detail.html:479
+#: templates/property/detail.html:488
 #: templates/property/edit_amortization.html:178
 #: templates/property/edit_entry.html:12
 #: templates/property/edit_entry_occurrence.html:126
@@ -1831,8 +1841,8 @@ msgstr "Mise à jour"
 #: templates/finance/csv_mapping.html:76 templates/property/create.html:33
 #: templates/property/csv_confirm.html:56
 #: templates/property/delete_entry_occurrence.html:71
-#: templates/property/detail.html:323 templates/property/detail.html:477
-#: templates/property/detail.html:716 templates/property/detail.html:746
+#: templates/property/detail.html:323 templates/property/detail.html:486
+#: templates/property/detail.html:725 templates/property/detail.html:755
 #: templates/property/detail_panel_balance.html:42
 #: templates/property/detail_panel_leases.html:91
 #: templates/property/detail_panel_mandate.html:78
@@ -2080,7 +2090,7 @@ msgstr "Nom"
 
 #: templates/finance/index.html:134 templates/finance/index.html:251
 #: templates/property/csv_confirm.html:75 templates/property/detail.html:313
-#: templates/property/detail.html:501
+#: templates/property/detail.html:510
 #: templates/property/detail_panel_amortization.html:127
 msgid "Value"
 msgstr "Valeur"
@@ -2245,7 +2255,7 @@ msgstr "Afficher les pourcentages"
 msgid "Accounts Progression"
 msgstr "Progression des comptes"
 
-#: templates/index.html:222 templates/property/detail.html:806
+#: templates/index.html:222 templates/property/detail.html:815
 msgid "All"
 msgstr "Tous"
 
@@ -2262,7 +2272,7 @@ msgid "View All"
 msgstr "Voir tout"
 
 #: templates/index.html:281 templates/property/detail.html:348
-#: templates/property/detail.html:563
+#: templates/property/detail.html:572
 #: templates/property/detail_panel_info.html:11
 #: templates/property/detail_panel_leases.html:40
 #: templates/property/index.html:57
@@ -2385,71 +2395,104 @@ msgstr "Définissez le régime fiscal sur un bien pour voir ses données ici."
 msgid "Checklist"
 msgstr "Checklist"
 
-#: templates/property/accounting_lmnp_reel.html:64
+#: templates/property/accounting_lmnp_reel.html:66
 msgid "Data completeness checklist"
 msgstr "Vérification des données"
 
-#: templates/property/accounting_lmnp_reel.html:88
+#: templates/property/accounting_lmnp_reel.html:90
 msgid "Filed as nil (à néant)"
 msgstr "Déposé à néant"
 
-#: templates/property/accounting_lmnp_reel.html:89
+#: templates/property/accounting_lmnp_reel.html:91
 msgid "à néant"
 msgstr "à néant"
 
-#: templates/property/accounting_lmnp_reel.html:97
+#: templates/property/accounting_lmnp_reel.html:99
 msgid "No LMNP properties."
 msgstr "Aucun bien LMNP."
 
-#: templates/property/accounting_lmnp_reel.html:105
+#: templates/property/accounting_lmnp_reel.html:107
 msgid "Complete"
 msgstr "Complet"
 
-#: templates/property/accounting_lmnp_reel.html:107
+#: templates/property/accounting_lmnp_reel.html:109
 msgid "issue(s)"
 msgstr "problème(s)"
 
-#: templates/property/accounting_lmnp_reel.html:115
+#: templates/property/accounting_lmnp_reel.html:117
 msgid "Check"
 msgstr "Vérification"
 
-#: templates/property/accounting_lmnp_reel.html:116
+#: templates/property/accounting_lmnp_reel.html:118
 msgid "Detail"
 msgstr "Détail"
 
-#: templates/property/accounting_lmnp_reel.html:117
+#: templates/property/accounting_lmnp_reel.html:119
 msgid "Form"
 msgstr "Formulaire"
 
-#: templates/property/accounting_lmnp_reel.html:147
+#: templates/property/accounting_lmnp_reel.html:149
 msgid "OK — data present"
 msgstr "OK — données présentes"
 
-#: templates/property/accounting_lmnp_reel.html:148
+#: templates/property/accounting_lmnp_reel.html:150
 msgid "Warning — recommended data missing"
 msgstr "Avertissement — données recommandées manquantes"
 
-#: templates/property/accounting_lmnp_reel.html:149
+#: templates/property/accounting_lmnp_reel.html:151
 msgid "Missing — required data absent"
 msgstr "Manquant — données requises absentes"
 
-#: templates/property/accounting_lmnp_reel.html:150
+#: templates/property/accounting_lmnp_reel.html:152
 msgid "N/A — not applicable"
 msgstr "N/A — non applicable"
 
-#: templates/property/accounting_lmnp_reel.html:151
+#: templates/property/accounting_lmnp_reel.html:153
 msgid "Auto — computed automatically"
 msgstr "Auto — calculé automatiquement"
 
-#: templates/property/accounting_lmnp_reel.html:160
+#: templates/property/accounting_lmnp_reel.html:162
+msgid "2033-A — Bilan simplifié"
+msgstr "2033-A — Bilan simplifié"
+
+#: templates/property/accounting_lmnp_reel.html:166
+msgid "Actif"
+msgstr "Actif"
+
+#: templates/property/accounting_lmnp_reel.html:171
+msgid "Immobilisations corporelles brutes"
+msgstr "Immobilisations corporelles brutes"
+
+#: templates/property/accounting_lmnp_reel.html:181
+msgid "Amortissements cumulés"
+msgstr "Amortissements cumulés"
+
+#: templates/property/accounting_lmnp_reel.html:186
+msgid "Valeur nette comptable"
+msgstr "Valeur nette comptable"
+
+#: templates/property/accounting_lmnp_reel.html:197
+msgid "Passif"
+msgstr "Passif"
+
+#: templates/property/accounting_lmnp_reel.html:202
+msgid "Emprunts et dettes"
+msgstr "Emprunts et dettes"
+
+#: templates/property/accounting_lmnp_reel.html:212
+msgid "Résultat de l'exercice"
+msgstr "Résultat de l'exercice"
+
+#: templates/property/accounting_lmnp_reel.html:228
 msgid "2033-B — Compte de résultat simplifié"
 msgstr "2033-B — Compte de résultat simplifié"
 
-#: templates/property/accounting_lmnp_reel.html:166
+#: templates/property/accounting_lmnp_reel.html:234
 msgid "Line"
 msgstr "Ligne"
 
-#: templates/property/accounting_lmnp_reel.html:168
+#: templates/property/accounting_lmnp_reel.html:236
+#: templates/property/accounting_lmnp_reel.html:596
 #: templates/property/detail_panel_balance.html:91
 #: templates/property/detail_panel_balance.html:124
 #: templates/property/detail_panel_balance.html:157
@@ -2457,208 +2500,243 @@ msgstr "Ligne"
 msgid "Total"
 msgstr "Total"
 
-#: templates/property/accounting_lmnp_reel.html:175
-#: templates/property/accounting_lmnp_reel.html:270
+#: templates/property/accounting_lmnp_reel.html:243
+#: templates/property/accounting_lmnp_reel.html:338
 msgid "Recettes"
 msgstr "Recettes"
 
-#: templates/property/accounting_lmnp_reel.html:187
-#: templates/property/accounting_lmnp_reel.html:291
+#: templates/property/accounting_lmnp_reel.html:255
+#: templates/property/accounting_lmnp_reel.html:359
 msgid "Charges d'exploitation"
 msgstr "Charges d'exploitation"
 
-#: templates/property/accounting_lmnp_reel.html:200
+#: templates/property/accounting_lmnp_reel.html:268
 msgid "Charges financières (intérêts emprunt)"
 msgstr "Charges financières (intérêts d'emprunt)"
 
-#: templates/property/accounting_lmnp_reel.html:213
-#: templates/property/accounting_lmnp_reel.html:301
+#: templates/property/accounting_lmnp_reel.html:281
+#: templates/property/accounting_lmnp_reel.html:369
 msgid "Résultat avant amortissements"
 msgstr "Résultat avant amortissements"
 
-#: templates/property/accounting_lmnp_reel.html:219
-#: templates/property/accounting_lmnp_reel.html:305
+#: templates/property/accounting_lmnp_reel.html:287
+#: templates/property/accounting_lmnp_reel.html:373
 msgid "Dotation aux amortissements"
 msgstr "Dotation aux amortissements"
 
-#: templates/property/accounting_lmnp_reel.html:231
+#: templates/property/accounting_lmnp_reel.html:299
 msgid "Report antérieur (art. 39C)"
 msgstr "Report antérieur (art. 39C)"
 
-#: templates/property/accounting_lmnp_reel.html:237
-#: templates/property/accounting_lmnp_reel.html:309
-#: templates/property/accounting_lmnp_reel.html:588
+#: templates/property/accounting_lmnp_reel.html:305
+#: templates/property/accounting_lmnp_reel.html:377
+#: templates/property/accounting_lmnp_reel.html:685
 msgid "Amortissements déduits"
 msgstr "Amortissements déduits"
 
-#: templates/property/accounting_lmnp_reel.html:243
-#: templates/property/accounting_lmnp_reel.html:314
+#: templates/property/accounting_lmnp_reel.html:311
+#: templates/property/accounting_lmnp_reel.html:382
 msgid "Amortissements différés"
 msgstr "Amortissements différés"
 
-#: templates/property/accounting_lmnp_reel.html:249
-#: templates/property/accounting_lmnp_reel.html:542
+#: templates/property/accounting_lmnp_reel.html:317
+#: templates/property/accounting_lmnp_reel.html:639
 msgid "Résultat fiscal (BIC)"
 msgstr "Résultat fiscal (BIC)"
 
-#: templates/property/accounting_lmnp_reel.html:264
+#: templates/property/accounting_lmnp_reel.html:332
 msgid "Details"
 msgstr "Détails"
 
-#: templates/property/accounting_lmnp_reel.html:271
-#: templates/property/accounting_lmnp_reel.html:319
+#: templates/property/accounting_lmnp_reel.html:339
+#: templates/property/accounting_lmnp_reel.html:387
 msgid "Résultat fiscal"
 msgstr "Résultat fiscal"
 
-#: templates/property/accounting_lmnp_reel.html:296
+#: templates/property/accounting_lmnp_reel.html:364
 msgid "Charges financières (intérêts)"
 msgstr "Charges financières (intérêts)"
 
-#: templates/property/accounting_lmnp_reel.html:335
+#: templates/property/accounting_lmnp_reel.html:403
 msgid "Liasse 2033 (impots.gouv.fr)"
 msgstr "Liasse 2033 (impots.gouv.fr)"
 
-#: templates/property/accounting_lmnp_reel.html:343
-msgid "2033-A — Bilan simplifié"
-msgstr "2033-A — Bilan simplifié"
-
-#: templates/property/accounting_lmnp_reel.html:347
-msgid "Actif"
-msgstr "Actif"
-
-#: templates/property/accounting_lmnp_reel.html:352
-msgid "Immobilisations corporelles brutes"
-msgstr "Immobilisations corporelles brutes"
-
-#: templates/property/accounting_lmnp_reel.html:362
-msgid "Amortissements cumulés"
-msgstr "Amortissements cumulés"
-
-#: templates/property/accounting_lmnp_reel.html:367
-msgid "Valeur nette comptable"
-msgstr "Valeur nette comptable"
-
-#: templates/property/accounting_lmnp_reel.html:378
-msgid "Passif"
-msgstr "Passif"
-
-#: templates/property/accounting_lmnp_reel.html:383
-msgid "Emprunts et dettes"
-msgstr "Emprunts et dettes"
-
-#: templates/property/accounting_lmnp_reel.html:393
-msgid "Résultat de l'exercice"
-msgstr "Résultat de l'exercice"
-
-#: templates/property/accounting_lmnp_reel.html:409
+#: templates/property/accounting_lmnp_reel.html:411
 msgid "2033-C — Immobilisations & amortissements"
 msgstr "2033-C — Immobilisations & amortissements"
 
-#: templates/property/accounting_lmnp_reel.html:418
-#: templates/property/accounting_lmnp_reel.html:470
+#: templates/property/accounting_lmnp_reel.html:420
+#: templates/property/accounting_lmnp_reel.html:472
 msgid "Category (2033-C)"
 msgstr "Catégorie (2033-C)"
 
-#: templates/property/accounting_lmnp_reel.html:419
-#: templates/property/accounting_lmnp_reel.html:471
+#: templates/property/accounting_lmnp_reel.html:421
+#: templates/property/accounting_lmnp_reel.html:473
 msgid "Valeur début"
 msgstr "Valeur début"
 
-#: templates/property/accounting_lmnp_reel.html:420
-#: templates/property/accounting_lmnp_reel.html:472
+#: templates/property/accounting_lmnp_reel.html:422
+#: templates/property/accounting_lmnp_reel.html:474
 msgid "Acquisitions"
 msgstr "Acquisitions"
 
-#: templates/property/accounting_lmnp_reel.html:421
-#: templates/property/accounting_lmnp_reel.html:473
+#: templates/property/accounting_lmnp_reel.html:423
+#: templates/property/accounting_lmnp_reel.html:475
 msgid "Valeur fin"
 msgstr "Valeur fin"
 
-#: templates/property/accounting_lmnp_reel.html:422
-#: templates/property/accounting_lmnp_reel.html:474
+#: templates/property/accounting_lmnp_reel.html:424
+#: templates/property/accounting_lmnp_reel.html:476
 msgid "Amort. début"
 msgstr "Amort. début"
 
-#: templates/property/accounting_lmnp_reel.html:423
-#: templates/property/accounting_lmnp_reel.html:475
+#: templates/property/accounting_lmnp_reel.html:425
+#: templates/property/accounting_lmnp_reel.html:477
+#: templates/property/accounting_lmnp_reel.html:572
 msgid "Dotation N"
 msgstr "Dotation N"
 
-#: templates/property/accounting_lmnp_reel.html:424
-#: templates/property/accounting_lmnp_reel.html:476
+#: templates/property/accounting_lmnp_reel.html:426
+#: templates/property/accounting_lmnp_reel.html:478
 msgid "Amort. fin"
 msgstr "Amort. fin"
 
-#: templates/property/accounting_lmnp_reel.html:448
-#: templates/property/accounting_lmnp_reel.html:498
+#: templates/property/accounting_lmnp_reel.html:450
+#: templates/property/accounting_lmnp_reel.html:500
 msgid "No assets."
 msgstr "Aucune immobilisation."
 
-#: templates/property/accounting_lmnp_reel.html:462
+#: templates/property/accounting_lmnp_reel.html:464
 msgid "Per-asset detail"
 msgstr "Détail par immobilisation"
 
-#: templates/property/accounting_lmnp_reel.html:507
+#: templates/property/accounting_lmnp_reel.html:509
+#: templates/property/accounting_lmnp_reel.html:591
 msgid "No properties."
 msgstr "Aucune propriété."
 
-#: templates/property/accounting_lmnp_reel.html:515
+#: templates/property/accounting_lmnp_reel.html:517
+msgid "2033-D — Déficits reportables"
+msgstr "2033-D — Déficits reportables"
+
+#: templates/property/accounting_lmnp_reel.html:520
+msgid ""
+"LMNP fiscal deficits can be carried forward for up to 10 years and offset "
+"against future LMNP profits (art. 156 I-1° bis CGI)."
+msgstr ""
+"Les déficits fiscaux LMNP sont reportables sur 10 ans et imputables sur les "
+"bénéfices futurs (art. 156 I-1° bis CGI)."
+
+#: templates/property/accounting_lmnp_reel.html:524
+msgid "Outstanding deficits by origin year"
+msgstr "Déficits en attente par année d'origine"
+
+#: templates/property/accounting_lmnp_reel.html:529
+msgid "Origin year"
+msgstr "Année d'origine"
+
+#: templates/property/accounting_lmnp_reel.html:530
+msgid "Expires after"
+msgstr "Expire après"
+
+#: templates/property/accounting_lmnp_reel.html:531
+msgid "Remaining deficit"
+msgstr "Déficit restant"
+
+#: templates/property/accounting_lmnp_reel.html:545
+msgid "Total carryforward"
+msgstr "Total reporté"
+
+#: templates/property/accounting_lmnp_reel.html:553
+msgid "No outstanding fiscal deficit carryforward."
+msgstr "Aucun déficit fiscal reportable en cours."
+
+#: templates/property/accounting_lmnp_reel.html:561
+msgid "SUIV39C — Amortissements différés art. 39C"
+msgstr "SUIV39C — Amortissements différés art. 39C"
+
+#: templates/property/accounting_lmnp_reel.html:564
+msgid ""
+"Amortization cannot create or increase an operating deficit (art. 39C CGI). "
+"Unused dotations are deferred and deducted in subsequent profitable years."
+msgstr ""
+"L'amortissement ne peut pas créer ni aggraver un déficit d'exploitation "
+"(art. 39C CGI). Les dotations non utilisées sont différées et déduites lors "
+"des exercices bénéficiaires suivants."
+
+#: templates/property/accounting_lmnp_reel.html:571
+msgid "Report N-1"
+msgstr "Report N-1"
+
+#: templates/property/accounting_lmnp_reel.html:573
+msgid "Déduit N"
+msgstr "Déduit N"
+
+#: templates/property/accounting_lmnp_reel.html:574
+msgid "Différé N"
+msgstr "Différé N"
+
+#: templates/property/accounting_lmnp_reel.html:575
+msgid "Solde fin N"
+msgstr "Solde fin N"
+
+#: templates/property/accounting_lmnp_reel.html:612
 msgid "2031 — Déclaration de résultat BIC"
 msgstr "2031 — Déclaration de résultat BIC"
 
-#: templates/property/accounting_lmnp_reel.html:521
+#: templates/property/accounting_lmnp_reel.html:618
 msgid "Activity"
 msgstr "Activité"
 
-#: templates/property/accounting_lmnp_reel.html:525
+#: templates/property/accounting_lmnp_reel.html:622
 msgid "Regime"
 msgstr "Régime"
 
-#: templates/property/accounting_lmnp_reel.html:530
+#: templates/property/accounting_lmnp_reel.html:627
 msgid "Chiffre d'affaires (recettes)"
 msgstr "Chiffre d'affaires (recettes)"
 
-#: templates/property/accounting_lmnp_reel.html:534
+#: templates/property/accounting_lmnp_reel.html:631
 msgid "Charges déductibles totales"
 msgstr "Charges déductibles totales"
 
-#: templates/property/accounting_lmnp_reel.html:538
+#: templates/property/accounting_lmnp_reel.html:635
 msgid "Dotation aux amortissements déduite"
 msgstr "Dotation aux amortissements déduite"
 
-#: templates/property/accounting_lmnp_reel.html:551
+#: templates/property/accounting_lmnp_reel.html:648
 msgid "Notice 2031 (impots.gouv.fr)"
 msgstr "Notice 2031 (impots.gouv.fr)"
 
-#: templates/property/accounting_lmnp_reel.html:559
+#: templates/property/accounting_lmnp_reel.html:656
 msgid "2031-BIS — Annexe"
 msgstr "2031-BIS — Annexe"
 
-#: templates/property/accounting_lmnp_reel.html:563
+#: templates/property/accounting_lmnp_reel.html:660
 msgid "Charges par nature"
 msgstr "Charges par nature"
 
-#: templates/property/accounting_lmnp_reel.html:574
+#: templates/property/accounting_lmnp_reel.html:671
 msgid "No charges."
 msgstr "Aucune charge."
 
-#: templates/property/accounting_lmnp_reel.html:583
+#: templates/property/accounting_lmnp_reel.html:680
 msgid "Amortissements"
 msgstr "Amortissements"
 
-#: templates/property/accounting_lmnp_reel.html:587
+#: templates/property/accounting_lmnp_reel.html:684
 msgid "Dotation totale N"
 msgstr "Dotation totale N"
 
-#: templates/property/accounting_lmnp_reel.html:589
+#: templates/property/accounting_lmnp_reel.html:686
 msgid "Report différé (solde)"
 msgstr "Report différé (solde)"
 
-#: templates/property/accounting_lmnp_reel.html:602
+#: templates/property/accounting_lmnp_reel.html:699
 msgid "2042-C PRO — Déclaration complémentaire"
 msgstr "2042-C PRO — Déclaration complémentaire"
 
-#: templates/property/accounting_lmnp_reel.html:605
+#: templates/property/accounting_lmnp_reel.html:702
 msgid ""
 "Report these amounts on your personal income tax return (2042-C PRO), "
 "section 'Revenus des locations meublées non professionnelles'."
@@ -2666,43 +2744,43 @@ msgstr ""
 "Reportez ces montants sur votre déclaration de revenus (2042-C PRO), section "
 "'Revenus des locations meublées non professionnelles'."
 
-#: templates/property/accounting_lmnp_reel.html:609
+#: templates/property/accounting_lmnp_reel.html:706
 msgid "Bénéfice"
 msgstr "Bénéfice"
 
-#: templates/property/accounting_lmnp_reel.html:609
+#: templates/property/accounting_lmnp_reel.html:706
 msgid "Déficit"
 msgstr "Déficit"
 
-#: templates/property/accounting_lmnp_reel.html:614
+#: templates/property/accounting_lmnp_reel.html:711
 msgid "Case"
 msgstr "Case"
 
-#: templates/property/accounting_lmnp_reel.html:614
-#: templates/property/csv_import.html:64 templates/property/detail.html:436
-#: templates/property/detail.html:677
+#: templates/property/accounting_lmnp_reel.html:711
+#: templates/property/csv_import.html:64 templates/property/detail.html:445
+#: templates/property/detail.html:686
 #: templates/property/detail_panel_cashflow.html:37
 #: templates/property/edit_entry_occurrence.html:95
 msgid "Description"
 msgstr "Description"
 
-#: templates/property/accounting_lmnp_reel.html:620
+#: templates/property/accounting_lmnp_reel.html:717
 msgid "Bénéfice — Adhérent CGA / viseur"
 msgstr "Bénéfice — Adhérent CGA / viseur"
 
-#: templates/property/accounting_lmnp_reel.html:625
+#: templates/property/accounting_lmnp_reel.html:722
 msgid "Bénéfice — Non adhérent CGA"
 msgstr "Bénéfice — Non adhérent CGA"
 
-#: templates/property/accounting_lmnp_reel.html:631
+#: templates/property/accounting_lmnp_reel.html:728
 msgid "Déficit — Adhérent CGA"
 msgstr "Déficit — Adhérent CGA"
 
-#: templates/property/accounting_lmnp_reel.html:636
+#: templates/property/accounting_lmnp_reel.html:733
 msgid "Déficit — Non adhérent CGA"
 msgstr "Déficit — Non adhérent CGA"
 
-#: templates/property/accounting_lmnp_reel.html:646
+#: templates/property/accounting_lmnp_reel.html:743
 msgid ""
 "Note: For non-CGA members, the taxable profit is multiplied by 1.25 by the "
 "tax authority. Report the amount before this multiplication in case 5NK."
@@ -2884,7 +2962,7 @@ msgstr "Confirmer la suppression"
 msgid "Address not specified"
 msgstr "Adresse non spécifiée"
 
-#: templates/property/detail.html:34 templates/property/detail.html:802
+#: templates/property/detail.html:34 templates/property/detail.html:811
 #: templates/property/detail_panel_leases.html:29
 #: templates/property/detail_panel_loans.html:27
 #: templates/property/detail_panel_mandate.html:23
@@ -2998,25 +3076,25 @@ msgstr "Ajouter une évaluation de propriété"
 msgid "Valuation date"
 msgstr "Date d'évaluation"
 
-#: templates/property/detail.html:339 templates/property/detail.html:1345
+#: templates/property/detail.html:339 templates/property/detail.html:1373
 msgid "Add income / expense"
 msgstr "Ajouter un revenu / une dépense"
 
-#: templates/property/detail.html:392 templates/property/detail.html:636
+#: templates/property/detail.html:374 templates/property/detail.html:645
 msgid "Select a category"
 msgstr "Sélectionner une catégorie"
 
-#: templates/property/detail.html:402 templates/property/detail.html:644
-#: templates/property/detail.html:807
+#: templates/property/detail.html:384 templates/property/detail.html:653
+#: templates/property/detail.html:816
 #: templates/property/detail_panel_balance.html:108
 msgid "Expenses"
 msgstr "Dépenses"
 
-#: templates/property/detail.html:425 templates/property/detail.html:437
-#: templates/property/detail.html:444 templates/property/detail.html:466
-#: templates/property/detail.html:611 templates/property/detail.html:619
-#: templates/property/detail.html:667 templates/property/detail.html:678
-#: templates/property/detail.html:687 templates/property/detail.html:707
+#: templates/property/detail.html:407 templates/property/detail.html:446
+#: templates/property/detail.html:453 templates/property/detail.html:475
+#: templates/property/detail.html:620 templates/property/detail.html:628
+#: templates/property/detail.html:676 templates/property/detail.html:687
+#: templates/property/detail.html:696 templates/property/detail.html:716
 #: templates/property/edit_entry_occurrence.html:86
 #: templates/property/edit_entry_occurrence.html:96
 #: templates/property/edit_entry_occurrence.html:106
@@ -3042,29 +3120,33 @@ msgstr "Dépenses"
 msgid "optional"
 msgstr "optionnel"
 
-#: templates/property/detail.html:454 templates/property/detail.html:695
+#: templates/property/detail.html:410
+msgid "Select a lease"
+msgstr "Choisir un bail"
+
+#: templates/property/detail.html:463 templates/property/detail.html:704
 msgid "Recurrence"
 msgstr "Récurrence"
 
-#: templates/property/detail.html:459 templates/property/detail.html:700
+#: templates/property/detail.html:468 templates/property/detail.html:709
 msgid "Frequency"
 msgstr "Fréquence"
 
-#: templates/property/detail.html:491
+#: templates/property/detail.html:500
 msgid "Property value history"
 msgstr "Historique des valeurs de propriété"
 
-#: templates/property/detail.html:502
+#: templates/property/detail.html:511
 #: templates/property/detail_panel_cashflow.html:38
 msgid "Actions"
 msgstr "Actions"
 
-#: templates/property/detail.html:511
+#: templates/property/detail.html:520
 msgid "Are you sure you want to delete this valuation?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette évaluation ?"
 
-#: templates/property/detail.html:514 templates/property/detail.html:747
-#: templates/property/detail.html:803
+#: templates/property/detail.html:523 templates/property/detail.html:756
+#: templates/property/detail.html:812
 #: templates/property/detail_panel_leases.html:32
 #: templates/property/detail_panel_leases.html:92
 #: templates/property/detail_panel_loans.html:224
@@ -3074,118 +3156,118 @@ msgstr "Êtes-vous sûr de vouloir supprimer cette évaluation ?"
 msgid "Delete"
 msgstr "Supprimer"
 
-#: templates/property/detail.html:525
+#: templates/property/detail.html:534
 msgid "No valuations recorded yet."
 msgstr "Aucune évaluation enregistrée pour le moment."
 
-#: templates/property/detail.html:529
+#: templates/property/detail.html:538
 msgid "Close"
 msgstr "Fermer"
 
-#: templates/property/detail.html:545
+#: templates/property/detail.html:554
 msgid "Edit expense"
 msgstr "Modifier la dépense"
 
-#: templates/property/detail.html:547
+#: templates/property/detail.html:556
 msgid "Edit income"
 msgstr "Modifier le revenu"
 
-#: templates/property/detail.html:556
+#: templates/property/detail.html:565
 msgid "This is a recurring entry. Changes will apply to all occurrences."
 msgstr ""
 "Ceci est une écriture récurrente. Les modifications s'appliqueront à toutes "
 "les occurrences."
 
-#: templates/property/detail.html:718
+#: templates/property/detail.html:727
 msgid "Save changes"
 msgstr "Enregistrer les modifications"
 
-#: templates/property/detail.html:733
+#: templates/property/detail.html:742
 msgid "Delete expense"
 msgstr "Supprimer la dépense"
 
-#: templates/property/detail.html:733
+#: templates/property/detail.html:742
 msgid "Delete income"
 msgstr "Supprimer le revenu"
 
-#: templates/property/detail.html:740
+#: templates/property/detail.html:749
 msgid "This is a recurring entry. All occurrences will be deleted."
 msgstr ""
 "Ceci est une écriture récurrente. Toutes les occurrences seront supprimées."
 
-#: templates/property/detail.html:743
+#: templates/property/detail.html:752
 #, python-format
 msgid "Are you sure you want to delete the entry of %(amount)s dated %(date)s?"
 msgstr ""
 "Êtes-vous sûr de vouloir supprimer l'écriture de %(amount)s datée du "
 "%(date)s ?"
 
-#: templates/property/detail.html:800
+#: templates/property/detail.html:809
 msgid "Recurring"
 msgstr "Récurrent"
 
-#: templates/property/detail.html:801
+#: templates/property/detail.html:810
 msgid "Linked to an amortization asset"
 msgstr "Lié à une immobilisation"
 
-#: templates/property/detail.html:804
+#: templates/property/detail.html:813
 msgid "No transactions found"
 msgstr "Aucune transaction trouvée"
 
-#: templates/property/detail.html:805
+#: templates/property/detail.html:814
 msgid "Search"
 msgstr "Rechercher"
 
-#: templates/property/detail.html:808 templates/property/detail.html:1094
+#: templates/property/detail.html:817 templates/property/detail.html:1103
 msgid "Incomes"
 msgstr "Revenus"
 
-#: templates/property/detail.html:955
+#: templates/property/detail.html:964
 #: templates/property/detail_panel_cashflow.html:34
 msgid "Kind"
 msgstr "Type"
 
-#: templates/property/detail.html:1015
+#: templates/property/detail.html:1024
 msgid "Property value (history)"
 msgstr "Valeur de propriété (historique)"
 
-#: templates/property/detail.html:1016
+#: templates/property/detail.html:1025
 msgid "Property value (projection)"
 msgstr "Valeur de propriété (projection)"
 
-#: templates/property/detail.html:1017
+#: templates/property/detail.html:1026
 msgid "Debt amortization (history)"
 msgstr "Amortissement de la dette (historique)"
 
-#: templates/property/detail.html:1018
+#: templates/property/detail.html:1027
 msgid "Debt amortization (projection)"
 msgstr "Amortissement de la dette (projection)"
 
-#: templates/property/detail.html:1019
+#: templates/property/detail.html:1028
 msgid "Net value (history)"
 msgstr "Valeur nette (historique)"
 
-#: templates/property/detail.html:1020
+#: templates/property/detail.html:1029
 msgid "Net value (projection)"
 msgstr "Valeur nette (projection)"
 
-#: templates/property/detail.html:1095
+#: templates/property/detail.html:1104
 msgid "Total expenses"
 msgstr "Dépenses totales"
 
-#: templates/property/detail.html:1096
+#: templates/property/detail.html:1105
 msgid "Difference"
 msgstr "Différence"
 
-#: templates/property/detail.html:1122
+#: templates/property/detail.html:1131
 msgid "Loan principal"
 msgstr "Capital du prêt"
 
-#: templates/property/detail.html:1321
+#: templates/property/detail.html:1330
 msgid "Add income"
 msgstr "Ajouter un revenu"
 
-#: templates/property/detail.html:1323
+#: templates/property/detail.html:1332
 msgid "Add expense"
 msgstr "Ajouter une dépense"
 
