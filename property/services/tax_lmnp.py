@@ -106,7 +106,7 @@ LMNP_TAX_MAPPING: dict[str, dict] = {
     "insurance": {
         "section": "charges",
         "line": "242",
-        "label": "Primes d'assurance",
+        "label": "Primes d'assurance crédit",
     },
     "misc_deductible": {
         "section": "charges",
@@ -162,6 +162,51 @@ LMNP_TAX_MAPPING: dict[str, dict] = {
         "label": "Fonds travaux (non déductible)",
     },
 }
+
+
+def _build_by_line_categories(by_category: dict[str, Decimal]) -> dict[str, list[dict]]:
+    """
+    Build a per-cerfa-line breakdown of all mapped categories with their amounts.
+
+    All categories with a cerfa line are included, even if amount is zero, so that
+    the template can display a complete list for each cerfa line.
+
+    Also includes a virtual "recettes" key grouping all section="recettes" categories.
+
+    Returns:
+        dict mapping cerfa line (str) → list of {key, label, amount} sorted by label.
+    """
+    result: dict[str, list[dict]] = {}
+
+    for cat_key, mapping in LMNP_TAX_MAPPING.items():
+        line = mapping.get("line")
+        if not line:
+            continue
+        amount = by_category.get(cat_key, Decimal("0"))
+        result.setdefault(line, []).append(
+            {"key": cat_key, "label": mapping["label"], "amount": amount}
+        )
+
+    # Sort each line's categories alphabetically by label
+    for line in result:
+        result[line].sort(key=lambda x: x["label"])
+
+    # Virtual "recettes" group: all section="recettes" categories (for 218/209 combined row)
+    recettes_cats = sorted(
+        [
+            {
+                "key": cat_key,
+                "label": mapping["label"],
+                "amount": by_category.get(cat_key, Decimal("0")),
+            }
+            for cat_key, mapping in LMNP_TAX_MAPPING.items()
+            if mapping.get("section") == "recettes"
+        ],
+        key=lambda x: x["label"],
+    )
+    result["recettes"] = recettes_cats
+
+    return result
 
 
 def get_lmnp_summary(property_id: int, year: int) -> dict:
@@ -256,6 +301,7 @@ def get_lmnp_summary(property_id: int, year: int) -> dict:
         "taxable_result": taxable_result,
         "by_category": by_category,
         "by_line": by_line,
+        "by_line_categories": _build_by_line_categories(by_category),
         "cerfa_310": cerfa_310,
         "cerfa_318": cerfa_318,
     }

@@ -262,6 +262,47 @@ class TestGetLmnpSummary:
         result = get_lmnp_summary(property_obj.pk, 2023)
         assert result["recettes"] == Decimal("300.00")
 
+    def test_by_line_categories_present_and_includes_zeros(self, property_obj):
+        """by_line_categories contains all mapped cerfa-line categories, even zeros."""
+        PropertyLedgerEntry.objects.create(
+            property=property_obj,
+            flow_type=PropertyLedgerEntry.FlowType.INCOME,
+            management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+            amount=Money(Decimal("1000.00"), "EUR"),
+            entry_date=datetime.date(2023, 1, 1),
+        )
+        result = get_lmnp_summary(property_obj.pk, 2023)
+        blc = result["by_line_categories"]
+
+        # All cerfa lines with mapped categories should be present
+        assert "218" in blc
+        assert "242" in blc
+        assert "244" in blc
+        assert "294" in blc
+        assert "recettes" in blc
+
+        # Line 242 should have all exploitation categories including zeros
+        line_242_keys = {cat["key"] for cat in blc["242"]}
+        assert "management_fees" in line_242_keys
+        assert "insurance" in line_242_keys
+        assert "coownership" in line_242_keys
+        assert "loan_insurance" in line_242_keys
+
+        # Zero-value categories are included
+        zero_cats = [cat for cat in blc["242"] if cat["amount"] == Decimal("0")]
+        assert len(zero_cats) > 0
+
+        # Non-zero rent_collected is reflected in "recettes" group
+        rent = next(c for c in blc["recettes"] if c["key"] == "rent_collected")
+        assert rent["amount"] == Decimal("1000.00")
+
+    def test_by_line_categories_sorted_alphabetically(self, property_obj):
+        """Each cerfa line's categories are sorted alphabetically by label."""
+        result = get_lmnp_summary(property_obj.pk, 2023)
+        for line, cats in result["by_line_categories"].items():
+            labels = [c["label"] for c in cats]
+            assert labels == sorted(labels), f"Line {line} not sorted: {labels}"
+
 
 @pytest.mark.django_db
 class TestLoanInsuranceClassification:

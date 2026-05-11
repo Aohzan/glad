@@ -294,89 +294,91 @@
         <tbody>
 
           {# — Production vendue — Services — #}
-          {% if accounting.form_2033b.per_prop|length > 1 %}
           <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-recettes" aria-expanded="false" style="cursor:pointer;">
             <td><code>214 / 218</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
-          {% else %}
-          <tr>
-            <td><code>214 / 218</code></td>
-          {% endif %}
             <td>{% translate "Production vendue — Services" %}</td>
             <td class="text-end fw-semibold text-success">{{ accounting.form_2033b.recettes|floatformat:2 }} €</td>
           </tr>
-          {% if accounting.form_2033b.per_prop|length > 1 %}
           <tr class="collapse" id="b-recettes">
             <td colspan="3" class="p-0 ps-4">
               <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
                 <tbody>
                   {% for p in accounting.form_2033b.per_prop %}
+                  {% if accounting.form_2033b.per_prop|length > 1 %}
                   <tr>
-                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
-                    <td class="text-end text-success">{{ p.summary.recettes|floatformat:2 }} €</td>
+                    <td class="text-body-secondary fw-semibold"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold text-success">{{ p.summary.recettes|floatformat:2 }} €</td>
                   </tr>
+                  {% endif %}
+                  {% for cat in p.summary.by_line_categories.recettes %}
+                  <tr class="small">
+                    <td class="ps-3 {% if not cat.amount %}text-body-tertiary{% else %}text-body-secondary{% endif %}">{{ cat.label }}</td>
+                    <td class="text-end {% if cat.amount %}text-success{% else %}text-body-tertiary{% endif %}">{{ cat.amount|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
                   {% endfor %}
                 </tbody>
               </table>
             </td>
           </tr>
-          {% endif %}
 
           {# — Autres charges externes — #}
-          {% if accounting.form_2033b.per_prop|length > 1 %}
           <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-autres-charges" aria-expanded="false" style="cursor:pointer;">
             <td><code>242</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
-          {% else %}
-          <tr>
-            <td><code>242</code></td>
-          {% endif %}
             <td>{% translate "Autres charges externes" %}</td>
             <td class="text-end text-danger">{{ accounting.form_2033b.autres_charges_externes|floatformat:2 }} €</td>
           </tr>
-          {% if accounting.form_2033b.per_prop|length > 1 %}
           <tr class="collapse" id="b-autres-charges">
             <td colspan="3" class="p-0 ps-4">
               <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
                 <tbody>
                   {% for p in accounting.form_2033b.per_prop %}
+                  {% if accounting.form_2033b.per_prop|length > 1 %}
                   <tr>
-                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
-                    <td class="text-end text-danger">{{ p.summary.by_line.242|default:"0"|floatformat:2 }} €</td>
+                    <td class="text-body-secondary fw-semibold"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold text-danger">{{ p.summary.by_line.242|default:"0"|floatformat:2 }} €</td>
                   </tr>
+                  {% endif %}
+                  {% for cat in p.summary.by_line_categories.242 %}
+                  <tr class="small">
+                    <td class="ps-3 {% if not cat.amount %}text-body-tertiary{% else %}text-body-secondary{% endif %}">{{ cat.label }}</td>
+                    <td class="text-end {% if cat.amount %}text-danger{% else %}text-body-tertiary{% endif %}">{{ cat.amount|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
                   {% endfor %}
                 </tbody>
               </table>
             </td>
           </tr>
-          {% endif %}
 
           {# — Impôts et taxes — #}
-          {% if accounting.form_2033b.impots_taxes %}
-          {% if accounting.form_2033b.per_prop|length > 1 %}
           <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-impots" aria-expanded="false" style="cursor:pointer;">
             <td><code>244</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
-          {% else %}
-          <tr>
-            <td><code>244</code></td>
-          {% endif %}
             <td>{% translate "Impôts, taxes et versements assimilés" %}</td>
             <td class="text-end text-danger">{{ accounting.form_2033b.impots_taxes|floatformat:2 }} €</td>
           </tr>
-          {% if accounting.form_2033b.per_prop|length > 1 %}
           <tr class="collapse" id="b-impots">
             <td colspan="3" class="p-0 ps-4">
               <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
                 <tbody>
                   {% for p in accounting.form_2033b.per_prop %}
+                  {% if accounting.form_2033b.per_prop|length > 1 %}
                   <tr>
-                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
-                    <td class="text-end text-danger">{{ p.summary.by_line.244|default:"0"|floatformat:2 }} €</td>
+                    <td class="text-body-secondary fw-semibold"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold text-danger">{{ p.summary.by_line.244|default:"0"|floatformat:2 }} €</td>
                   </tr>
+                  {% endif %}
+                  {% for cat in p.summary.by_line_categories.244 %}
+                  <tr class="small">
+                    <td class="ps-3 {% if not cat.amount %}text-body-tertiary{% else %}text-body-secondary{% endif %}">{{ cat.label }}</td>
+                    <td class="text-end {% if cat.amount %}text-danger{% else %}text-body-tertiary{% endif %}">{{ cat.amount|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
                   {% endfor %}
                 </tbody>
               </table>
             </td>
           </tr>
-          {% endif %}
           {% if accounting.form_2033b.cfe %}
           <tr class="text-body-secondary small">
             <td class="ps-3"><code>243</code></td>
@@ -384,39 +386,35 @@
             <td class="text-end">{{ accounting.form_2033b.cfe|floatformat:2 }} €</td>
           </tr>
           {% endif %}
-          {% endif %}
 
           {# — Charges financières — #}
-          {% if accounting.form_2033b.charges_financieres %}
-          {% if accounting.form_2033b.per_prop|length > 1 %}
           <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-financieres" aria-expanded="false" style="cursor:pointer;">
             <td><code>294</code> <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
-          {% else %}
-          <tr>
-            <td><code>294</code></td>
-          {% endif %}
             <td>{% translate "Charges financières (V)" %}</td>
             <td class="text-end text-danger">{{ accounting.form_2033b.charges_financieres|floatformat:2 }} €</td>
           </tr>
-          {% if accounting.form_2033b.per_prop|length > 1 %}
           <tr class="collapse" id="b-financieres">
             <td colspan="3" class="p-0 ps-4">
               <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
                 <tbody>
                   {% for p in accounting.form_2033b.per_prop %}
-                  {% if p.summary.charges_financieres %}
+                  {% if accounting.form_2033b.per_prop|length > 1 %}
                   <tr>
-                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
-                    <td class="text-end text-danger">{{ p.summary.charges_financieres|floatformat:2 }} €</td>
+                    <td class="text-body-secondary fw-semibold"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold text-danger">{{ p.summary.charges_financieres|floatformat:2 }} €</td>
                   </tr>
                   {% endif %}
+                  {% for cat in p.summary.by_line_categories.294 %}
+                  <tr class="small">
+                    <td class="ps-3 {% if not cat.amount %}text-body-tertiary{% else %}text-body-secondary{% endif %}">{{ cat.label }}</td>
+                    <td class="text-end {% if cat.amount %}text-danger{% else %}text-body-tertiary{% endif %}">{{ cat.amount|floatformat:2 }} €</td>
+                  </tr>
+                  {% endfor %}
                   {% endfor %}
                 </tbody>
               </table>
             </td>
           </tr>
-          {% endif %}
-          {% endif %}
 
           {# — Résultat avant amortissements — #}
           {% if accounting.form_2033b.per_prop|length > 1 %}
