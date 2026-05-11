@@ -1,6 +1,8 @@
 """Model for unified financial flows: PropertyLedgerEntry."""
 
 import datetime
+import enum
+from typing import ClassVar
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -9,6 +11,210 @@ from djmoney.models.fields import MoneyField
 
 from base.models import BaseModel
 from property.utils import generate_recurring_occurrences
+
+
+class ManagementCategory(str, enum.Enum):
+    """
+    Categories for dashboard statistics and LMNP cerfa 2033-B mapping.
+
+    Each member carries LMNP fiscal metadata:
+      - lmnp_section: "recettes", "charges", or None (off-tax result)
+      - lmnp_line: cerfa 2033-B line number (e.g. "218", "242"), or None
+      - lmnp_label: French label used in cerfa output
+
+    Having all data in one place ensures that adding a new category forces the
+    author to specify its tax treatment immediately — no silent omissions.
+
+    2033-B cerfa line reference:
+      218 = Production vendue (services) — loyers et charges refacturées
+      209 = Autres produits d'exploitation
+      242 = Autres charges externes — gestion, charges, travaux, assurance, etc.
+      244 = Impôts, taxes et versements assimilés — taxe foncière, CFE
+      294 = Charges financières — intérêts emprunteur
+    """
+
+    def __new__(
+        cls,
+        value: str,
+        label: str,
+        lmnp_section: str | None = None,
+        lmnp_line: str | None = None,
+        lmnp_label: str = "",
+    ) -> "ManagementCategory":
+        obj = str.__new__(cls, value)
+        obj._value_ = value
+        obj._label_ = label
+        obj.lmnp_section = lmnp_section
+        obj.lmnp_line = lmnp_line
+        obj.lmnp_label = lmnp_label
+        return obj
+
+    # Instance attribute annotations (set in __new__; needed for static type checkers)
+    _label_: str
+    lmnp_section: str | None
+    lmnp_line: str | None
+    lmnp_label: str
+
+    # Class-level choices list (set after class definition for Django compatibility)
+    choices: ClassVar[list]
+
+    @property
+    def label(self) -> str:
+        return str(self._label_)
+
+    def __str__(self) -> str:
+        return self._value_
+
+    # ── Income ────────────────────────────────────────────────────────────────
+    RENT_COLLECTED = (
+        "rent_collected",
+        _("Rent collected"),
+        "recettes",
+        "218",
+        "Loyers meublés",
+    )
+    CHARGES_COLLECTED = (
+        "charges_collected",
+        _("Charges collected"),
+        "recettes",
+        "218",
+        "Charges refacturées",
+    )
+    OTHER_INCOME = (
+        "other_income",
+        _("Other income"),
+        "recettes",
+        "209",
+        "Autres produits",
+    )
+    DEPOSIT_IN = (
+        "deposit_in",
+        _("Deposit received"),
+        None,
+        None,
+        "Dépôt de garantie encaissé",
+    )  # codespell:ignore garantie
+    MANAGER_REVERSAL = (
+        "manager_reversal",
+        _("Manager reversal"),
+        "recettes",
+        "218",
+        "Reversement gestionnaire",
+    )
+    # ── Deductible expenses (LMNP réel cerfa 2033-B) ──────────────────────────
+    MANAGEMENT_FEES = (
+        "management_fees",
+        _("Management fees"),
+        "charges",
+        "242",
+        "Frais de gestion",
+    )
+    LETTING_FEES = (
+        "letting_fees",
+        _("Letting fees"),
+        "charges",
+        "242",
+        "Frais de mise en location",
+    )
+    OTHER_GENERAL_FEES = (
+        "other_general_fees",
+        _("Other general fees"),
+        "charges",
+        "242",
+        "Autres frais généraux",
+    )
+    COOWNERSHIP = (
+        "coownership",
+        _("Co-ownership fees"),
+        "charges",
+        "242",
+        "Charges de copropriété",
+    )
+    MAINTENANCE = (
+        "maintenance",
+        _("Routine maintenance"),
+        "charges",
+        "242",
+        "Entretien et réparations",
+    )
+    WORKS = ("works", _("Works"), "charges", "242", "Travaux")
+    FURNITURES = (
+        "furnitures",
+        _("Furnitures"),
+        "charges",
+        "242",
+        "Mobilier et équipements",
+    )
+    INSURANCE = ("insurance", _("Insurance"), "charges", "242", "Assurance PNO")
+    PROPERTY_TAX = (
+        "property_tax",
+        _("Property tax"),
+        "charges",
+        "244",
+        "Taxe foncière",
+    )
+    CFE = ("cfe", _("CFE"), "charges", "244", "CFE")
+    MISC_DEDUCTIBLE = (
+        "misc_deductible",
+        _("Miscellaneous deductible"),
+        "charges",
+        "242",
+        "Charges diverses déductibles",
+    )
+    LOAN_INTEREST = (
+        "loan_interest",
+        _("Loan interest"),
+        "charges",
+        "294",
+        "Charges financières (intérêts)",
+    )
+    LOAN_INSURANCE = (
+        "loan_insurance",
+        _("Loan insurance"),
+        "charges",
+        "242",
+        "Assurance emprunteur",
+    )
+    RENTAL_GUARANTEE = (
+        "rental_guarantee",
+        _("Rental guarantee"),
+        "charges",
+        "242",
+        "Garantie loyers impayés (GLI)",
+    )  # codespell:ignore garantie
+    # ── Off tax result ─────────────────────────────────────────────────────────
+    LOAN_REPAYMENT = (
+        "loan_repayment",
+        _("Loan capital repayment"),
+        None,
+        None,
+        "Capital remboursé (non déductible)",
+    )
+    DEPOSIT_OUT = (
+        "deposit_out",
+        _("Deposit returned"),
+        None,
+        None,
+        "Dépôt de garantie restitué",
+    )  # codespell:ignore garantie
+    NON_DEDUCTIBLE = (
+        "non_deductible",
+        _("Other non-deductible"),
+        None,
+        None,
+        "Charge non déductible",
+    )
+    ALUR_WORKS_FUND = (
+        "alur_works_fund",
+        _("ALUR works fund"),
+        None,
+        None,
+        "Fonds travaux (non déductible)",
+    )
+
+
+# Django-compatible choices list: [(value, label), ...]
+ManagementCategory.choices = [(m.value, m._label_) for m in ManagementCategory]
 
 
 class PropertyLedgerEntry(BaseModel):
@@ -25,45 +231,16 @@ class PropertyLedgerEntry(BaseModel):
         INCOME = "income", _("Income")
         EXPENSE = "expense", _("Expense")
 
-    class ManagementCategory(models.TextChoices):
-        """Categories for dashboard statistics and LMNP cerfa 2033-B mapping."""
+    # Expose module-level enum as class attribute for backward compatibility
+    # (code using PropertyLedgerEntry.ManagementCategory.XXX continues to work)
+    ManagementCategory = ManagementCategory
 
-        # ── Income ────────────────────────────────────────────────────────────
-        RENT_COLLECTED = "rent_collected", _("Rent collected")
-        CHARGES_COLLECTED = "charges_collected", _("Charges collected")
-        OTHER_INCOME = "other_income", _("Other income")
-        DEPOSIT_IN = "deposit_in", _("Deposit received")
-        MANAGER_REVERSAL = "manager_reversal", _("Manager reversal")
-        # ── Deductible expenses (LMNP réel cerfa 2033-B) ─────────────────────
-        MANAGEMENT_FEES = "management_fees", _("Management fees")
-        LETTING_FEES = "letting_fees", _("Letting fees")
-        OTHER_GENERAL_FEES = "other_general_fees", _("Other general fees")
-        COOWNERSHIP = "coownership", _("Co-ownership fees")
-        MAINTENANCE = "maintenance", _("Routine maintenance")
-        WORKS = "works", _("Works")
-        FURNITURES = "furnitures", _("Furnitures")
-        INSURANCE = "insurance", _("Insurance")
-        PROPERTY_TAX = "property_tax", _("Property tax")
-        CFE = "cfe", _("CFE")
-        MISC_DEDUCTIBLE = "misc_deductible", _("Miscellaneous deductible")
-        LOAN_INTEREST = "loan_interest", _("Loan interest")
-        LOAN_INSURANCE = "loan_insurance", _("Loan insurance")
-        RENTAL_GUARANTEE = "rental_guarantee", _("Rental guarantee")
-        # ── Off tax result ────────────────────────────────────────────────────
-        LOAN_REPAYMENT = "loan_repayment", _("Loan capital repayment")
-        DEPOSIT_OUT = "deposit_out", _("Deposit returned")
-        NON_DEDUCTIBLE = "non_deductible", _("Other non-deductible")
-        ALUR_WORKS_FUND = "alur_works_fund", _("ALUR works fund")
-
-    # Income categories — used in clean() to validate flow_type coherence
+    # Income categories — used in clean() to validate flow_type coherence.
+    # DEPOSIT_IN is income for cash-flow purposes even though it is off-tax (lmnp_section=None).
     _INCOME_CATEGORIES = frozenset(
-        [
-            ManagementCategory.RENT_COLLECTED,
-            ManagementCategory.CHARGES_COLLECTED,
-            ManagementCategory.OTHER_INCOME,
-            ManagementCategory.DEPOSIT_IN,
-            ManagementCategory.MANAGER_REVERSAL,
-        ]
+        c
+        for c in ManagementCategory
+        if c.lmnp_section == "recettes" or c == ManagementCategory.DEPOSIT_IN
     )
 
     class RecurrenceType(models.TextChoices):
@@ -196,7 +373,7 @@ class PropertyLedgerEntry(BaseModel):
 
     def get_management_category_display(self) -> str:
         return str(
-            dict(PropertyLedgerEntry.ManagementCategory.choices).get(
+            dict(ManagementCategory.choices).get(
                 self.management_category, self.management_category
             )
         )
@@ -251,9 +428,10 @@ class PropertyLedgerEntry(BaseModel):
 
     def get_lmnp_line(self) -> str | None:
         """Return the cerfa 2033-B line number for this entry's category."""
-        from property.services.tax_lmnp import LMNP_TAX_MAPPING
-
-        return LMNP_TAX_MAPPING.get(self.management_category, {}).get("line")
+        try:
+            return ManagementCategory(self.management_category).lmnp_line
+        except ValueError:
+            return None
 
 
 class PropertyLedgerEntryException(BaseModel):

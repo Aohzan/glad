@@ -2,6 +2,8 @@
 
 ## General issues
 
+## LMNP accounting
+
 ## Property / Automatic estimation
 
 add a button on the detail view to check current price of property with the French DVF API and add the value as a new entry if user confirms

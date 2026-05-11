@@ -97,16 +97,6 @@
                           title="{% translate "Edit loan" %}">
                     <i class="bi bi-pencil"></i>
                   </button>
-                  <button type="button" class="btn btn-sm btn-outline-secondary"
-                          data-bs-toggle="collapse"
-                          data-bs-target="#loan-statements-collapse-{{ item.loan.pk }}"
-                          aria-expanded="false"
-                          title="{% translate "Bank statements" %}">
-                    <i class="bi bi-file-earmark-text"></i>
-                    {% if item.annual_statements %}
-                      <span class="badge text-bg-secondary ms-1" style="font-size:.6rem">{{ item.annual_statements|length }}</span>
-                    {% endif %}
-                  </button>
                 </div>
               </td>
             </tr>
@@ -114,63 +104,6 @@
               <td colspan="11" class="p-0 border-0">
                 <div class="collapse" id="loan-form-collapse-{{ item.loan.pk }}">
                   {# inline form rendered below in loan_forms_with_schedules loop #}
-                </div>
-              </td>
-            </tr>
-            {# Bank statements collapse row (inside table to appear inline) #}
-            <tr class="loan-collapse-row p-0">
-              <td colspan="11" class="p-0 border-0">
-                <div class="collapse" id="loan-statements-collapse-{{ item.loan.pk }}">
-                  <div class="px-3 py-2 bg-body-tertiary border-bottom border-secondary-subtle">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                      <span class="small fw-semibold text-body-secondary">
-                        <i class="bi bi-file-earmark-text me-1"></i>{% translate "Bank statements" %}
-                      </span>
-                      <a href="{% url 'property:new_loan_statement' property.pk item.loan.pk %}"
-                         class="btn btn-sm btn-outline-secondary py-0">
-                        <i class="bi bi-plus me-1"></i>{% translate "Add" %}
-                      </a>
-                    </div>
-                    {% if not item.annual_statements %}
-                      <p class="text-body-secondary small fst-italic mb-2">
-                        {% translate "No bank statements entered — computed values are used." %}
-                        <a href="{% url 'property:detail' property.pk %}#accounting-panel" class="ms-1">
-                          {% translate "You can also enter loan interest and insurance directly in the Accounting tab." %}
-                        </a>
-                      </p>
-                    {% else %}
-                      <ul class="list-group list-group-flush rounded mb-2">
-                        {% for stmt in item.annual_statements %}
-                        <li class="list-group-item d-flex align-items-center justify-content-between py-1 px-2">
-                          <span class="fw-semibold me-3">{{ stmt.year }}</span>
-                          <span class="flex-grow-1 text-body-secondary small">
-                            {% if stmt.interest_amount %}
-                              <span class="me-3"><i class="bi bi-percent me-1"></i>{% translate "Interest" %}: <strong>{{ stmt.interest_amount|format_money }}</strong></span>
-                            {% endif %}
-                            {% if stmt.insurance_amount %}
-                              <span><i class="bi bi-shield me-1"></i>{% translate "Insurance" %}: <strong>{{ stmt.insurance_amount|format_money }}</strong></span>
-                            {% endif %}
-                            {% if not stmt.interest_amount and not stmt.insurance_amount %}
-                              <em class="text-muted">{% translate "No amounts entered" %}</em>
-                            {% endif %}
-                          </span>
-                          <div class="d-flex gap-1 ms-2">
-                            <a href="{% url 'property:edit_loan_statement' property.pk item.loan.pk stmt.pk %}"
-                               class="btn btn-sm btn-outline-secondary py-0">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-danger py-0 js-delete-statement"
-                                    data-url="{% url 'property:delete_loan_statement' property.pk item.loan.pk stmt.pk %}"
-                                    data-confirm="{% translate "Delete this annual statement?" %}">
-                              <i class="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </li>
-                        {% endfor %}
-                      </ul>
-                    {% endif %}
-                  </div>
                 </div>
               </td>
             </tr>

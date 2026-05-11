@@ -5,12 +5,15 @@ from property.models.asset import (
     AmortizationSetup,
     Property,
     PropertyLoan,
-    PropertyLoanAnnualStatement,
     PropertyLoanSchedule,
     PropertyValue,
 )
 from property.models.lease import Lease
-from property.models.ledger import PropertyLedgerEntry, PropertyLedgerEntryException
+from property.models.ledger import (
+    ManagementCategory,
+    PropertyLedgerEntry,
+    PropertyLedgerEntryException,
+)
 from property.models.management import ManagementMandate
 
 __all__ = [
@@ -18,10 +21,10 @@ __all__ = [
     "AmortizationSetup",
     "Property",
     "PropertyLoan",
-    "PropertyLoanAnnualStatement",
     "PropertyLoanSchedule",
     "PropertyValue",
     "Lease",
+    "ManagementCategory",
     "ManagementMandate",
     "PropertyLedgerEntry",
     "PropertyLedgerEntryException",

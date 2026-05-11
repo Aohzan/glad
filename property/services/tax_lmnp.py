@@ -1,13 +1,12 @@
 """
 LMNP réel tax service.
 
-Provides the mapping from ManagementCategory values to cerfa 2033-B line numbers,
-and aggregation helpers for annual tax preparation.
+Provides aggregation helpers for annual tax preparation, using the LMNP metadata
+embedded directly in ManagementCategory (property.models.ledger).
 
-Architecture note: This module is intentionally isolated from the models.
-To support a different tax regime (micro-BIC, SCI IS, etc.), add a new
-mapping dict (e.g. MICRO_BIC_MAPPING) and a corresponding get_*_summary()
-function — no model changes required.
+Architecture note: ManagementCategory carries lmnp_section, lmnp_line, and lmnp_label
+for every transaction category. No separate mapping dict is needed — adding a new
+category without specifying its tax metadata raises an error at import time.
 
 Art. 39C (CGI): Amortization cannot create or increase an operating deficit.
 Any unused amortization in a given year is deferred to subsequent years
@@ -42,126 +41,7 @@ from django.db.models import Q, Sum
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
-# ─── Mapping ManagementCategory → cerfa 2033-B (LMNP réel) ──────────────────
-#
-# Each entry: {"section": "recettes"|"charges"|None, "line": str|None, "label": str}
-# section=None means the category is off the tax result (deposits, capital repayment).
-#
-# loan_interest and loan_insurance are excluded from ledger queries when a bank
-# statement exists (to avoid double-counting with the injected statement figures).
-_CHARGES_FINANCIERES = {"loan_interest", "loan_insurance"}
-
-# Only loan_interest maps to cerfa line 294 (Charges financières).
-# loan_insurance is classified as an exploitation charge (line 242) per CERFA 2033-B.
-_CERFA_294 = {"loan_interest"}
-
-LMNP_TAX_MAPPING: dict[str, dict] = {
-    # Recettes (line 218: Production vendue – services)
-    "rent_collected": {
-        "section": "recettes",
-        "line": "218",
-        "label": "Loyers meublés",
-    },
-    "charges_collected": {
-        "section": "recettes",
-        "line": "218",
-        "label": "Charges refacturées",
-    },
-    "other_income": {
-        "section": "recettes",
-        "line": "209",
-        "label": "Autres produits",
-    },
-    "manager_reversal": {
-        "section": "recettes",
-        "line": "218",
-        "label": "Reversement gestionnaire",
-    },
-    # Charges d'exploitation (line 242: Autres charges externes)
-    "management_fees": {
-        "section": "charges",
-        "line": "242",
-        "label": "Frais de gestion",
-    },
-    "other_general_fees": {
-        "section": "charges",
-        "line": "242",
-        "label": "Autres frais généraux",
-    },
-    "coownership": {
-        "section": "charges",
-        "line": "242",
-        "label": "Charges de copropriété",
-    },
-    "maintenance": {
-        "section": "charges",
-        "line": "242",
-        "label": "Entretien et réparations",
-    },
-    "works": {
-        "section": "charges",
-        "line": "242",
-        "label": "Travaux",
-    },
-    "insurance": {
-        "section": "charges",
-        "line": "242",
-        "label": "Primes d'assurance crédit",
-    },
-    "misc_deductible": {
-        "section": "charges",
-        "line": "242",
-        "label": "Charges diverses déductibles",
-    },
-    # Impôts et taxes (line 244; CFE also tracked separately on line 243)
-    "property_tax": {
-        "section": "charges",
-        "line": "244",
-        "label": "Taxe foncière",
-    },
-    "cfe": {
-        "section": "charges",
-        "line": "244",
-        "label": "CFE",
-    },
-    # Charges financières (line 294)
-    "loan_interest": {
-        "section": "charges",
-        "line": "294",
-        "label": "Charges financières (intérêts)",
-    },
-    "loan_insurance": {
-        "section": "charges",
-        "line": "242",
-        "label": "Assurance emprunteur",
-    },
-    # Hors résultat fiscal
-    "loan_repayment": {
-        "section": None,
-        "line": None,
-        "label": "Capital remboursé (non déductible)",
-    },
-    "deposit_in": {
-        "section": None,
-        "line": None,
-        "label": "Dépôt de garantie encaissé",  # codespell:ignore garantie
-    },
-    "deposit_out": {
-        "section": None,
-        "line": None,
-        "label": "Dépôt de garantie restitué",  # codespell:ignore garantie
-    },
-    "non_deductible": {
-        "section": None,
-        "line": None,
-        "label": "Charge non déductible",
-    },
-    "alur_works_fund": {
-        "section": None,
-        "line": None,
-        "label": "Fonds travaux (non déductible)",
-    },
-}
+from property.models.ledger import ManagementCategory
 
 
 def _build_by_line_categories(by_category: dict[str, Decimal]) -> dict[str, list[dict]]:
@@ -178,13 +58,12 @@ def _build_by_line_categories(by_category: dict[str, Decimal]) -> dict[str, list
     """
     result: dict[str, list[dict]] = {}
 
-    for cat_key, mapping in LMNP_TAX_MAPPING.items():
-        line = mapping.get("line")
-        if not line:
+    for cat in ManagementCategory:
+        if not cat.lmnp_line:
             continue
-        amount = by_category.get(cat_key, Decimal("0"))
-        result.setdefault(line, []).append(
-            {"key": cat_key, "label": mapping["label"], "amount": amount}
+        amount = by_category.get(str(cat), Decimal("0"))
+        result.setdefault(cat.lmnp_line, []).append(
+            {"key": cat.value, "label": cat.lmnp_label, "amount": amount}
         )
 
     # Sort each line's categories alphabetically by label
@@ -195,12 +74,12 @@ def _build_by_line_categories(by_category: dict[str, Decimal]) -> dict[str, list
     recettes_cats = sorted(
         [
             {
-                "key": cat_key,
-                "label": mapping["label"],
-                "amount": by_category.get(cat_key, Decimal("0")),
+                "key": cat.value,
+                "label": cat.lmnp_label,
+                "amount": by_category.get(str(cat), Decimal("0")),
             }
-            for cat_key, mapping in LMNP_TAX_MAPPING.items()
-            if mapping.get("section") == "recettes"
+            for cat in ManagementCategory
+            if cat.lmnp_section == "recettes"
         ],
         key=lambda x: x["label"],
     )
@@ -245,10 +124,11 @@ def get_lmnp_summary(property_id: int, year: int) -> dict:
 
     by_line: dict[str, Decimal] = {}
     for cat, total in by_category.items():
-        mapping = LMNP_TAX_MAPPING.get(cat)
-        if not mapping:
+        try:
+            cat_enum = ManagementCategory(cat)
+        except ValueError:
             continue
-        line = mapping["line"]
+        line = cat_enum.lmnp_line
         if line:
             by_line[line] = by_line.get(line, Decimal("0")) + total
 
@@ -618,34 +498,14 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
     before ``year`` (or whose occurrences span multiple years) is expanded and
     each occurrence falling within [year-01-01, year-12-31] is counted.
 
-    For ``loan_interest`` and ``loan_insurance`` categories, loan-level
-    ``PropertyLoanAnnualStatement`` values take priority over ledger entries on a
-    per-loan basis:
-      - Loans that have a statement for this year → their amounts are summed
-        directly and the corresponding ledger entries are excluded for those loans.
-      - Loans without a statement → fallback to ledger entries (existing behaviour).
+    For ``loan_interest`` and ``loan_insurance`` categories, ledger entries are
+    used directly. If no entries are present, amounts default to zero.
     """
-    from property.models import PropertyLedgerEntry, PropertyLoanAnnualStatement
+    from property.models import PropertyLedgerEntry
 
     year_start = datetime.date(year, 1, 1)
     year_end = datetime.date(year, 12, 31)
     base_filter = {"property_id": property_id, "amount_currency": "EUR"}
-
-    # ── Loan annual statements: sum up interest/insurance from bank figures ──
-    statements = PropertyLoanAnnualStatement.objects.filter(
-        loan__property_id=property_id,
-        year=year,
-    ).select_related("loan")
-
-    statement_interest = Decimal("0")
-    statement_insurance = Decimal("0")
-    has_statement = statements.exists()
-
-    for stmt in statements:
-        if stmt.interest_amount is not None:
-            statement_interest += stmt.interest_amount.amount
-        if stmt.insurance_amount is not None:
-            statement_insurance += stmt.insurance_amount.amount
 
     # ── Non-recurring: entry_date within the year ──────────────────────────
     non_recurring_qs = PropertyLedgerEntry.objects.filter(
@@ -654,13 +514,6 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
         entry_date__gte=year_start,
         entry_date__lte=year_end,
     ).exclude(capitalized_as__isnull=False)
-
-    # When statements exist, exclude loan_interest / loan_insurance ledger entries
-    # entirely (they would double-count with the bank-provided figures).
-    if has_statement:
-        non_recurring_qs = non_recurring_qs.exclude(
-            management_category__in=_CHARGES_FINANCIERES
-        )
 
     by_category: dict[str, Decimal] = {}
     for row in non_recurring_qs.values("management_category").annotate(
@@ -681,10 +534,6 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
         )
         .prefetch_related("exceptions")
     )
-    if has_statement:
-        recurring_qs = recurring_qs.exclude(
-            management_category__in=_CHARGES_FINANCIERES
-        )
 
     for entry in recurring_qs:
         occurrences = entry.generate_occurrences(end_date=year_end)
@@ -693,16 +542,6 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
                 continue
             cat = entry.management_category
             by_category[cat] = by_category.get(cat, Decimal("0")) + occ["amount"].amount
-
-    # ── Inject bank-provided loan charges ──────────────────────────────────
-    if statement_interest > Decimal("0"):
-        by_category["loan_interest"] = (
-            by_category.get("loan_interest", Decimal("0")) + statement_interest
-        )
-    if statement_insurance > Decimal("0"):
-        by_category["loan_insurance"] = (
-            by_category.get("loan_insurance", Decimal("0")) + statement_insurance
-        )
 
     return by_category
 
@@ -716,14 +555,15 @@ def _get_lmnp_summary_raw(property_id: int, year: int) -> dict:
     charges_exploitation = Decimal("0")
     charges_financieres = Decimal("0")
     for cat, total in by_category.items():
-        mapping = LMNP_TAX_MAPPING.get(cat)
-        if not mapping:
+        try:
+            cat_enum = ManagementCategory(cat)
+        except ValueError:
             continue
-        if mapping["section"] == "recettes":
+        if cat_enum.lmnp_section == "recettes":
             recettes += total
-        elif mapping["section"] == "charges":
+        elif cat_enum.lmnp_section == "charges":
             charges += total
-            if cat in _CERFA_294:
+            if cat_enum.lmnp_line == "294":
                 charges_financieres += total
             else:
                 charges_exploitation += total
@@ -748,13 +588,12 @@ def get_bilan_data(property_id: int, year: int) -> dict:
       - valeur_nette_comptable: brut - cumulé
       - emprunts: remaining loan balance at year-end
       - resultat_exercice: taxable_result from LMNP summary
-      - capital_individuel: cumulative equity (buying_value_gross + cumulative results)
-      - total_capitaux_propres: capital + results retained
+      - capital_individuel: net equity minus current result (ligne 120)
+      - total_capitaux_propres: valeur_nette_comptable - emprunts (balance sheet equity)
       - cout_revient_acquisitions: gross value of assets acquired during the year
     """
     from property.models import (
         AmortizationAsset,
-        Property,
         PropertyLoan,
     )
 
@@ -773,31 +612,14 @@ def get_bilan_data(property_id: int, year: int) -> dict:
 
     summary = get_lmnp_summary(property_id, year)
 
-    # Cumulative taxable results from start of activity through this year
-    try:
-        prop = Property.objects.get(pk=property_id)
-        start_year = prop.buying_date.year if prop.buying_date else year
-    except Property.DoesNotExist:
-        start_year = year
-    cumulative_results = sum(
-        (
-            get_lmnp_summary(property_id, y)["taxable_result"]
-            for y in range(start_year, year + 1)
-        ),
-        Decimal("0"),
-    )
-
-    # Gross buying value (frais d'acquisition inclus)
-    capital_base = Decimal("0")
-    try:
-        prop = Property.objects.get(pk=property_id)
-        buying = prop.buying_value_gross or prop.buying_value
-        capital_base = buying.amount
-    except Property.DoesNotExist:
-        pass
-
-    capital_individuel = capital_base + cumulative_results
-    total_capitaux_propres = capital_individuel  # simplified (no reserves for LMNP)
+    # On the 2033-A balance sheet the Passif must equal the Actif net.
+    # Actif net = immobilisations brutes − amortissements cumulés = brut − cumul
+    # Passif = Capitaux propres (I) + Dettes (II)
+    # => Capitaux propres = Actif net − Dettes = (brut − cumul) − emprunts
+    # Capital individuel (ligne 120) = Total capitaux propres − Résultat exercice
+    valeur_nette = brut - cumul
+    total_capitaux_propres = valeur_nette - emprunts
+    capital_individuel = total_capitaux_propres - summary["taxable_result"]
 
     # Cost of assets acquired during this year (2033-A-182)
     cout_revient_acquisitions = sum(
@@ -1082,6 +904,8 @@ def get_accounting_data(properties: list, year: int) -> dict:
         "charges": agg_charges,
         "amortization_deductible": agg_amort_deductible,
         "taxable_result": agg_taxable_result,
+        "bic_benefice": max(Decimal("0"), agg_taxable_result),
+        "bic_deficit": max(Decimal("0"), -agg_taxable_result),
         "regime": "Réel simplifié",
         "activite": "Location meublée non professionnelle",
     }
@@ -1094,10 +918,13 @@ def get_accounting_data(properties: list, year: int) -> dict:
 
     charges_detail = []
     for cat, total in agg_by_category.items():
-        mapping = LMNP_TAX_MAPPING.get(cat)
-        if mapping and mapping["section"] == "charges":
+        try:
+            cat_enum = ManagementCategory(cat)
+        except ValueError:
+            continue
+        if cat_enum.lmnp_section == "charges":
             charges_detail.append(
-                {"category": cat, "label": mapping["label"], "amount": total}
+                {"category": cat, "label": cat_enum.lmnp_label, "amount": total}
             )
 
     form_2031bis = {
@@ -1150,6 +977,15 @@ def get_accounting_data(properties: list, year: int) -> dict:
     else:
         exercise_months = 12
 
+    deficit_cases_list = [
+        {
+            "label": label,
+            "origin_year": year - i,
+            "amount": agg_deficit_history.get(year - i, Decimal("0")),
+        }
+        for i, label in enumerate(case_labels, start=1)
+    ]
+
     form_2042c = {
         "case_5nk": case_5nk,  # résultat bénéficiaire après imputation déficits (non-adhérent CGA)
         "case_5na": case_5nk,  # résultat bénéficiaire après imputation déficits (adhérent CGA/OGA)
@@ -1157,6 +993,7 @@ def get_accounting_data(properties: list, year: int) -> dict:
         "case_5ny": case_5nz,  # résultat déficitaire de l'année (adhérent CGA/OGA)
         "deficit_carryforward": total_deficit_carryforward,
         "deficit_history": agg_deficit_history,
+        "deficit_cases_list": deficit_cases_list,
         "case_5cd": exercise_months,
         "is_benefice": agg_taxable_result >= Decimal("0"),
         **deficit_cases,
@@ -1172,26 +1009,34 @@ def get_accounting_data(properties: list, year: int) -> dict:
     }
 
 
-# ─── Checklist categories ─────────────────────────────────────────────────────
+# ─── Checklist categories (derived from ManagementCategory metadata) ──────────
+#
+# These frozensets are derived entirely from the ManagementCategory enum so they
+# stay in sync automatically when categories are added or reclassified.
+#
+# Note: loan_insurance has lmnp_line="242" (exploitation charge per CERFA 2033-B)
+# but is grouped with financial charges in the checklist for UX clarity.
 
 _CHECKLIST_RECETTES = frozenset(
-    {"rent_collected", "charges_collected", "other_income", "manager_reversal"}
+    c.value for c in ManagementCategory if c.lmnp_section == "recettes"
 )
 _CHECKLIST_CHARGES_EXPLOIT = frozenset(
-    {
-        "management_fees",
-        "letting_fees",
-        "other_general_fees",
-        "coownership",
-        "maintenance",
-        "works",
-        "furnitures",
-        "insurance",
-        "misc_deductible",
-    }
+    c.value
+    for c in ManagementCategory
+    if c.lmnp_section == "charges"
+    and c.lmnp_line == "242"
+    and c != ManagementCategory.LOAN_INSURANCE
 )
-_CHECKLIST_TAXES = frozenset({"property_tax", "cfe"})
-_CHECKLIST_FINANCIERES = frozenset({"loan_interest", "loan_insurance"})
+_CHECKLIST_TAXES = frozenset(
+    c.value
+    for c in ManagementCategory
+    if c.lmnp_section == "charges" and c.lmnp_line == "244"
+)
+_CHECKLIST_FINANCIERES = frozenset(
+    c.value
+    for c in ManagementCategory
+    if c.lmnp_line == "294" or c == ManagementCategory.LOAN_INSURANCE
+)
 
 
 def _count_entries_in_year(property_id: int, year: int, categories: frozenset) -> int:
@@ -1246,7 +1091,6 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
         AmortizationAsset,
         AmortizationSetup,
         PropertyLoan,
-        PropertyLoanAnnualStatement,
     )
 
     def _check(
@@ -1256,28 +1100,15 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
         form_ref: str,
         required: bool = True,
         loan_active: bool | None = None,
-        loans_missing: list[str] | None = None,
     ) -> dict:
         """Build a single check result dict."""
-        if loans_missing is None:
-            loans_missing = []
         if check_id == "financial_charges":
             if loan_active is False:
                 status = "na"
                 detail = _("No active loan — not required.")
             elif count > 0:
-                if loans_missing:
-                    status = "warning"
-                    detail = _(
-                        "%(count)d entry(ies) found, but %(n)d loan(s) without a bank statement: %(names)s."
-                    ) % {
-                        "count": count,
-                        "n": len(loans_missing),
-                        "names": ", ".join(loans_missing),
-                    }
-                else:
-                    status = "ok"
-                    detail = _("%(count)d entry(ies) found.") % {"count": count}
+                status = "ok"
+                detail = _("%(count)d entry(ies) found.") % {"count": count}
             else:
                 status = "warning"
                 detail = _("Loan detected but no financial charge entries found.")
@@ -1329,24 +1160,6 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
         )
         has_active_loan = bool(active_loans)
         fin_count = _count_entries_in_year(prop.pk, year, _CHECKLIST_FINANCIERES)
-        # Also count loan annual statements as valid financial charge data
-        # (consistent with _get_category_totals_for_year which prioritises statements)
-        statement_loan_ids = set(
-            PropertyLoanAnnualStatement.objects.filter(
-                loan__property_id=prop.pk, year=year
-            ).values_list("loan_id", flat=True)
-        )
-        if fin_count == 0 and statement_loan_ids:
-            fin_count = 1
-
-        # --- Loan annual statements: one per active loan ---
-        active_loan_ids = {loan.pk for loan in active_loans}
-        loans_without_statement = active_loan_ids - statement_loan_ids
-        loan_names_missing = [
-            loan.name or str(loan.pk)
-            for loan in active_loans
-            if loan.pk in loans_without_statement
-        ]
 
         # --- Amortization setup ---
         has_setup = AmortizationSetup.objects.filter(property=prop).exists()
@@ -1370,30 +1183,29 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
                 "revenues",
                 _("Revenue entries"),
                 revenue_count,
-                "2033-B (line 218)",
+                "2033-B",
                 required=True,
             ),
             _check(
                 "charges",
                 _("Operating charge entries"),
                 charges_count,
-                "2033-B (line 242)",
+                "2033-B",
                 required=False,
             ),
             _check(
                 "taxes",
                 _("Property tax / CFE entries"),
                 taxes_count,
-                "2033-B (line 244)",
+                "2033-B",
                 required=False,
             ),
             _check(
                 "financial_charges",
                 _("Financial charge entries"),
                 fin_count,
-                "2033-B (line 294)",
+                "2033-B",
                 loan_active=has_active_loan,
-                loans_missing=loan_names_missing,
             ),
             {
                 "id": "amortization_setup",

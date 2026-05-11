@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+echo "Starting application setup..."
+
 echo "Applying database migrations..."
 python manage.py migrate
 echo

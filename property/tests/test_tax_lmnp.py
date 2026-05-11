@@ -8,13 +8,11 @@ from moneyed import Money
 
 from property.models import (
     AmortizationAsset,
+    ManagementCategory,
     Property,
     PropertyLedgerEntry,
-    PropertyLoan,
-    PropertyLoanAnnualStatement,
 )
 from property.services.tax_lmnp import (
-    LMNP_TAX_MAPPING,
     get_amortization_schedule,
     get_bilan_data,
     get_fiscal_deficit_history,
@@ -33,52 +31,81 @@ def property_obj():
 
 
 @pytest.mark.django_db
-class TestLmnpTaxMapping:
-    def test_mapping_has_recettes_section(self):
-        assert LMNP_TAX_MAPPING["rent_collected"]["section"] == "recettes"
-        assert LMNP_TAX_MAPPING["charges_collected"]["section"] == "recettes"
-        assert LMNP_TAX_MAPPING["other_income"]["section"] == "recettes"
-        assert LMNP_TAX_MAPPING["manager_reversal"]["section"] == "recettes"
+class TestManagementCategoryLmnpMetadata:
+    def test_recettes_section(self):
+        assert ManagementCategory.RENT_COLLECTED.lmnp_section == "recettes"
+        assert ManagementCategory.CHARGES_COLLECTED.lmnp_section == "recettes"
+        assert ManagementCategory.OTHER_INCOME.lmnp_section == "recettes"
+        assert ManagementCategory.MANAGER_REVERSAL.lmnp_section == "recettes"
 
-    def test_mapping_has_charges_section(self):
-        assert LMNP_TAX_MAPPING["management_fees"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["maintenance"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["insurance"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["loan_interest"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["loan_insurance"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["property_tax"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["cfe"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["coownership"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["works"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["other_general_fees"]["section"] == "charges"
-        assert LMNP_TAX_MAPPING["misc_deductible"]["section"] == "charges"
+    def test_charges_section(self):
+        assert ManagementCategory.MANAGEMENT_FEES.lmnp_section == "charges"
+        assert ManagementCategory.LETTING_FEES.lmnp_section == "charges"
+        assert ManagementCategory.MAINTENANCE.lmnp_section == "charges"
+        assert ManagementCategory.INSURANCE.lmnp_section == "charges"
+        assert ManagementCategory.FURNITURES.lmnp_section == "charges"
+        assert ManagementCategory.RENTAL_GUARANTEE.lmnp_section == "charges"
+        assert ManagementCategory.LOAN_INTEREST.lmnp_section == "charges"
+        assert ManagementCategory.LOAN_INSURANCE.lmnp_section == "charges"
+        assert ManagementCategory.PROPERTY_TAX.lmnp_section == "charges"
+        assert ManagementCategory.CFE.lmnp_section == "charges"
+        assert ManagementCategory.COOWNERSHIP.lmnp_section == "charges"
+        assert ManagementCategory.WORKS.lmnp_section == "charges"
+        assert ManagementCategory.OTHER_GENERAL_FEES.lmnp_section == "charges"
+        assert ManagementCategory.MISC_DEDUCTIBLE.lmnp_section == "charges"
 
-    def test_mapping_has_none_section_for_off_result(self):
-        assert LMNP_TAX_MAPPING["loan_repayment"]["section"] is None
-        assert LMNP_TAX_MAPPING["deposit_in"]["section"] is None
-        assert LMNP_TAX_MAPPING["deposit_out"]["section"] is None
-        assert LMNP_TAX_MAPPING["non_deductible"]["section"] is None
-        assert LMNP_TAX_MAPPING["alur_works_fund"]["section"] is None
+    def test_none_section_for_off_result(self):
+        assert ManagementCategory.LOAN_REPAYMENT.lmnp_section is None
+        assert ManagementCategory.DEPOSIT_IN.lmnp_section is None
+        assert ManagementCategory.DEPOSIT_OUT.lmnp_section is None
+        assert ManagementCategory.NON_DEDUCTIBLE.lmnp_section is None
+        assert ManagementCategory.ALUR_WORKS_FUND.lmnp_section is None
 
-    def test_alur_works_fund_not_in_taxable_charges(self):
-        assert LMNP_TAX_MAPPING["alur_works_fund"]["line"] is None
+    def test_alur_works_fund_has_no_cerfa_line(self):
+        assert ManagementCategory.ALUR_WORKS_FUND.lmnp_line is None
 
-    def test_mapping_has_cerfa_lines(self):
-        assert LMNP_TAX_MAPPING["rent_collected"]["line"] == "218"
-        assert LMNP_TAX_MAPPING["other_income"]["line"] == "209"
-        assert LMNP_TAX_MAPPING["management_fees"]["line"] == "242"
-        assert LMNP_TAX_MAPPING["loan_interest"]["line"] == "294"
-        assert LMNP_TAX_MAPPING["loan_insurance"]["line"] == "242"
-        assert LMNP_TAX_MAPPING["property_tax"]["line"] == "244"
+    def test_cerfa_lines(self):
+        assert ManagementCategory.RENT_COLLECTED.lmnp_line == "218"
+        assert ManagementCategory.OTHER_INCOME.lmnp_line == "209"
+        assert ManagementCategory.MANAGEMENT_FEES.lmnp_line == "242"
+        assert ManagementCategory.LOAN_INTEREST.lmnp_line == "294"
+        assert ManagementCategory.LOAN_INSURANCE.lmnp_line == "242"
+        assert ManagementCategory.PROPERTY_TAX.lmnp_line == "244"
 
-    def test_mapping_none_section_has_no_line(self):
-        assert LMNP_TAX_MAPPING["loan_repayment"]["line"] is None
-        assert LMNP_TAX_MAPPING["deposit_in"]["line"] is None
+    def test_off_result_categories_have_no_cerfa_line(self):
+        assert ManagementCategory.LOAN_REPAYMENT.lmnp_line is None
+        assert ManagementCategory.DEPOSIT_IN.lmnp_line is None
 
-    def test_mapping_has_labels(self):
-        for key, value in LMNP_TAX_MAPPING.items():
-            assert "label" in value, f"Missing label for {key}"
-            assert value["label"], f"Empty label for {key}"
+    def test_all_categories_have_lmnp_label(self):
+        for cat in ManagementCategory:
+            assert cat.lmnp_label, f"Empty lmnp_label for {cat.value}"
+
+    def test_all_categories_have_label(self):
+        for cat in ManagementCategory:
+            assert cat.label, f"Empty label for {cat.value}"
+
+    def test_choices_is_django_compatible(self):
+        """ManagementCategory.choices must be a list of (value, label) 2-tuples."""
+        choices = ManagementCategory.choices
+        assert isinstance(choices, list)
+        assert len(choices) == len(ManagementCategory)
+        for value, label in choices:
+            assert isinstance(value, str)
+            # label may be lazy string, just check it's truthy
+            assert label
+
+    def test_value_is_string(self):
+        """Enum values must be plain strings for Django ORM field storage."""
+        assert ManagementCategory.RENT_COLLECTED == "rent_collected"
+        assert ManagementCategory.LOAN_INTEREST == "loan_interest"
+
+    def test_section_none_implies_no_cerfa_line(self):
+        """Every off-tax category (section=None) must have no cerfa line."""
+        for cat in ManagementCategory:
+            if cat.lmnp_section is None:
+                assert cat.lmnp_line is None, (
+                    f"{cat.value} has section=None but lmnp_line={cat.lmnp_line}"
+                )
 
 
 @pytest.mark.django_db
@@ -211,7 +238,7 @@ class TestGetLmnpSummary:
         assert result["by_line"]["218"] == Decimal("1100.00")
 
     def test_summary_unknown_category_is_skipped(self, property_obj):
-        """Categories not in LMNP_TAX_MAPPING are skipped gracefully."""
+        """Off-tax categories (lmnp_section=None) are excluded from recettes and charges."""
         entry = PropertyLedgerEntry.objects.create(
             property=property_obj,
             flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
@@ -219,7 +246,7 @@ class TestGetLmnpSummary:
             amount=Money(Decimal("50.00"), "EUR"),
             entry_date=datetime.date(2023, 1, 1),
         )
-        # 'non_deductible' is not in LMNP_TAX_MAPPING, so it should be skipped
+        # 'non_deductible' has lmnp_section=None, so it must be excluded from the tax result
         result = get_lmnp_summary(property_obj.pk, 2023)
         assert result["recettes"] == Decimal("0")
         assert result["charges"] == Decimal("0")
@@ -323,27 +350,10 @@ class TestLoanInsuranceClassification:
         assert result["by_line"].get("242") == Decimal("600.00")
         assert "294" not in result["by_line"]
 
-    def test_loan_insurance_via_bank_statement_in_charges_exploitation(
+    def test_loan_insurance_from_ledger_entry_in_charges_exploitation(
         self, property_obj
     ):
-        """loan_insurance from PropertyLoanAnnualStatement also lands in line 242,
-        and the bank statement takes priority over any ledger entry (no double-count)."""
-        loan = PropertyLoan.objects.create(
-            property=property_obj,
-            name="Test loan",
-            original_amount=Money(Decimal("100000.00"), "EUR"),
-            start_date=datetime.date(2020, 1, 1),
-            end_date=datetime.date(2040, 12, 31),
-            interest_rate=Decimal("1.5"),
-            insurance_rate=Decimal("0.2"),
-        )
-        PropertyLoanAnnualStatement.objects.create(
-            loan=loan,
-            year=2023,
-            interest_amount=Money(Decimal("1200.00"), "EUR"),
-            insurance_amount=Money(Decimal("400.00"), "EUR"),
-        )
-        # Also add a ledger entry that must be superseded by the statement
+        """loan_insurance ledger entry lands in line 242 (exploitation charges)."""
         PropertyLedgerEntry.objects.create(
             property=property_obj,
             flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
@@ -352,12 +362,9 @@ class TestLoanInsuranceClassification:
             entry_date=datetime.date(2023, 3, 1),
         )
         result = get_lmnp_summary(property_obj.pk, 2023)
-        # Statement takes priority: insurance is 400, not 999 or 1399
-        assert result["by_line"].get("242", Decimal("0")) == Decimal("400.00")
-        # Interest from statement → line 294
-        assert result["by_line"].get("294", Decimal("0")) == Decimal("1200.00")
-        # Insurance is in exploitation, interest in financial charges
-        assert result["charges"] == Decimal("1600.00")
+        assert result["by_line"].get("242", Decimal("0")) == Decimal("999.00")
+        assert "294" not in result["by_line"]
+        assert result["charges"] == Decimal("999.00")
 
     def test_year_before_first_asset_returns_empty(self):
         """When year < first acquisition year, should return {}."""
@@ -527,6 +534,7 @@ class TestGetBilanData:
         # Should not raise even with missing property
         result = get_bilan_data(prop_id, 2025)
         assert result["capital_individuel"] == Decimal("0")
+        assert result["total_capitaux_propres"] == Decimal("0")
 
     def test_bilan_basic_fields_present(self):
         prop = Property.objects.create(
@@ -543,3 +551,20 @@ class TestGetBilanData:
         assert "emprunts" in result
         assert "resultat_exercice" in result
         assert "capital_individuel" in result
+
+    def test_bilan_balance_sheet_equation(self):
+        """capital_individuel + resultat_exercice + emprunts == valeur_nette_comptable."""
+        prop = Property.objects.create(
+            name="Balance Sheet Prop",
+            property_type=Property.APARTMENT,
+            buying_value=Money(150000, "EUR"),
+            buying_date=datetime.date(2020, 1, 1),
+            tax_regime=Property.TaxRegime.LMNP_REEL,
+        )
+        result = get_bilan_data(prop.pk, 2025)
+        assert (
+            result["capital_individuel"]
+            + result["resultat_exercice"]
+            + result["emprunts"]
+            == result["valeur_nette_comptable"]
+        )

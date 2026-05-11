@@ -282,50 +282,6 @@ class PropertyLoanSchedule(BaseModel):
         return f"{self.loan} — tranche {self.order}: {self.count}× {self.amount}"
 
 
-class PropertyLoanAnnualStatement(BaseModel):
-    """Annual statement of loan interest and insurance provided by the bank.
-
-    When present for a given loan and year, these amounts are used in the LMNP
-    tax declaration (cerfa 2033-B line 294) and in cashflow charts instead of
-    the computed values, to match the exact figures from the bank.
-    """
-
-    class Meta:
-        verbose_name = _("annual loan statement")
-        verbose_name_plural = _("annual loan statements")
-        ordering = ["-year"]
-        unique_together = [("loan", "year")]
-
-    loan = models.ForeignKey(
-        PropertyLoan,
-        related_name="annual_statements",
-        on_delete=models.CASCADE,
-        verbose_name=_("Loan"),
-    )
-    year = models.PositiveIntegerField(verbose_name=_("Year"))
-    interest_amount = MoneyField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        verbose_name=_("Interest paid"),
-        help_text=_("Total interest paid during the year as stated by the bank."),
-    )
-    insurance_amount = MoneyField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        verbose_name=_("Insurance paid"),
-        help_text=_(
-            "Total insurance premium paid during the year as stated by the bank."
-        ),
-    )
-
-    def __str__(self) -> str:
-        return f"{self.loan} — {self.year}"
-
-
 class Property(BaseModel):
     """Model representing a property."""
 
@@ -648,7 +604,7 @@ class AmortizationSetup(BaseModel):
             "label": "Agencements intérieurs",
             "pct": 19,
             "duration": 12,
-            "cerfa_category": "constructions",
+            "cerfa_category": "installations",
         },
         {
             "label": "Installations électriques",

@@ -4,13 +4,11 @@ from property.views.crud_views import (
     delete_lease,
     delete_ledger_entry,
     delete_ledger_entry_occurrence,
-    delete_loan_annual_statement,
     delete_mandate,
     delete_property_valuation,
     edit_lease,
     edit_ledger_entry,
     edit_ledger_entry_occurrence,
-    edit_loan_annual_statement,
     edit_mandate,
 )
 from property.views.csv_views import csv_import, csv_import_confirm
@@ -41,8 +39,6 @@ __all__ = [
     "delete_ledger_entry",
     "edit_ledger_entry_occurrence",
     "delete_ledger_entry_occurrence",
-    "edit_loan_annual_statement",
-    "delete_loan_annual_statement",
     "edit_lease",
     "delete_lease",
     "edit_mandate",

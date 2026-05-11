@@ -13,22 +13,6 @@ urlpatterns = [
     path("<int:pk>/", views.PropertyDetailView.as_view(), name="detail"),
     path("<int:pk>/edit/", views.edit_property, name="edit"),
     path("<int:pk>/loans/", views.manage_property_loans, name="loans"),
-    # Loan annual statements (bank-provided interest/insurance)
-    path(
-        "<int:property_pk>/loans/<int:loan_pk>/statement/new/",
-        views.edit_loan_annual_statement,
-        name="new_loan_statement",
-    ),
-    path(
-        "<int:property_pk>/loans/<int:loan_pk>/statement/<int:statement_pk>/edit/",
-        views.edit_loan_annual_statement,
-        name="edit_loan_statement",
-    ),
-    path(
-        "<int:property_pk>/loans/<int:loan_pk>/statement/<int:statement_pk>/delete/",
-        views.delete_loan_annual_statement,
-        name="delete_loan_statement",
-    ),
     # Property valuation
     path(
         "<int:property_pk>/valuation/<int:valuation_pk>/delete/",

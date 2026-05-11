@@ -213,7 +213,7 @@ class TestAmortizationConformity:
                 f"Asset '{asset.label}' has unexpected cerfa_category: {asset.cerfa_category}"
             )
 
-    def test_gros_oeuvre_is_constructions(self, lmnp_setup):
+    def test_gros_oeuvre_category(self, lmnp_setup):
         asset = AmortizationAsset.objects.get(
             property=lmnp_setup.property, label="Gros œuvre"
         )
@@ -225,11 +225,11 @@ class TestAmortizationConformity:
         )
         assert asset.cerfa_category == "installations"
 
-    def test_agencements_is_autres(self, lmnp_setup):
+    def test_agencements_category(self, lmnp_setup):
         asset = AmortizationAsset.objects.get(
             property=lmnp_setup.property, label="Agencements intérieurs"
         )
-        assert asset.cerfa_category == "constructions"
+        assert asset.cerfa_category == "installations"
 
     def test_deferred_balance_zero_first_year_with_surplus(
         self, lmnp_setup, lmnp_property
@@ -539,6 +539,32 @@ class TestBilanConformity:
         bilan = get_bilan_data(lmnp_property.pk, 2026)
         assert bilan["cout_revient_acquisitions"] == Decimal("0")
 
+    def test_passif_balances_with_actif(self, lmnp_property, lmnp_setup, lmnp_loan):
+        """Balance sheet equation: total_capitaux_propres + emprunts == valeur_nette_comptable."""
+        bilan = get_bilan_data(lmnp_property.pk, 2025)
+        assert (
+            bilan["total_capitaux_propres"] + bilan["emprunts"]
+            == bilan["valeur_nette_comptable"]
+        )
+
+    def test_capital_individuel_plus_resultat_equals_capitaux_propres(
+        self, lmnp_property, lmnp_setup, lmnp_entries_2025
+    ):
+        """capital_individuel + resultat_exercice == total_capitaux_propres."""
+        bilan = get_bilan_data(lmnp_property.pk, 2025)
+        assert (
+            bilan["capital_individuel"] + bilan["resultat_exercice"]
+            == bilan["total_capitaux_propres"]
+        )
+
+    def test_total_capitaux_propres_equals_vnc_minus_emprunts(
+        self, lmnp_property, lmnp_setup, lmnp_loan
+    ):
+        """total_capitaux_propres = valeur_nette_comptable - emprunts."""
+        bilan = get_bilan_data(lmnp_property.pk, 2025)
+        expected = bilan["valeur_nette_comptable"] - bilan["emprunts"]
+        assert bilan["total_capitaux_propres"] == expected
+
 
 # ─── 2033-C Immobilisations conformity tests ─────────────────────────────────
 
@@ -682,3 +708,84 @@ class TestForm2033BConformity:
         """2033-B-370 = 0 when no taxable profit after deficit imputation."""
         accounting = get_accounting_data([lmnp_property], 2025)
         assert accounting["form_2033b"]["cerfa_370"] == Decimal("0")
+
+
+# ─── form_2031 new fields ─────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestForm2031NewFields:
+    """Tests for bic_benefice and bic_deficit fields added to form_2031."""
+
+    def test_bic_deficit_when_loss(self, lmnp_property, lmnp_setup, lmnp_entries_2025):
+        """bic_deficit = abs(taxable_result) when result is negative."""
+        accounting = get_accounting_data([lmnp_property], 2025)
+        form_2031 = accounting["form_2031"]
+        assert form_2031["bic_deficit"] > Decimal("0")
+        assert form_2031["bic_benefice"] == Decimal("0")
+        assert approx_equal(form_2031["bic_deficit"], abs(form_2031["taxable_result"]))
+
+    def test_bic_benefice_when_profit(self, lmnp_property, lmnp_setup):
+        """bic_benefice > 0 and bic_deficit = 0 when taxable_result >= 0."""
+        PropertyLedgerEntry.objects.create(
+            property=lmnp_property,
+            flow_type=PropertyLedgerEntry.FlowType.INCOME,
+            management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+            amount=Money(Decimal("100000.00"), "EUR"),
+            entry_date=datetime.date(2025, 6, 1),
+        )
+        accounting = get_accounting_data([lmnp_property], 2025)
+        form_2031 = accounting["form_2031"]
+        assert form_2031["bic_benefice"] > Decimal("0")
+        assert form_2031["bic_deficit"] == Decimal("0")
+        assert approx_equal(form_2031["bic_benefice"], form_2031["taxable_result"])
+
+
+# ─── form_2042c deficit_cases_list ───────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestForm2042cDeficitCasesList:
+    """Tests for the deficit_cases_list field added to form_2042c."""
+
+    def test_deficit_cases_list_has_10_entries(self, lmnp_property, lmnp_setup):
+        """deficit_cases_list must always contain exactly 10 entries (5GJ..5GA)."""
+        accounting = get_accounting_data([lmnp_property], 2025)
+        cases = accounting["form_2042c"]["deficit_cases_list"]
+        assert len(cases) == 10
+
+    def test_deficit_cases_list_labels(self, lmnp_property, lmnp_setup):
+        """Labels must be 5GJ (N-1) through 5GA (N-10) in order."""
+        accounting = get_accounting_data([lmnp_property], 2025)
+        cases = accounting["form_2042c"]["deficit_cases_list"]
+        expected_labels = [
+            "5GJ",
+            "5GI",
+            "5GH",
+            "5GG",
+            "5GF",
+            "5GE",
+            "5GD",
+            "5GC",
+            "5GB",
+            "5GA",
+        ]
+        assert [c["label"] for c in cases] == expected_labels
+
+    def test_deficit_cases_list_origin_years(self, lmnp_property, lmnp_setup):
+        """origin_year for each case must decrease from year-1 to year-10."""
+        accounting = get_accounting_data([lmnp_property], 2025)
+        cases = accounting["form_2042c"]["deficit_cases_list"]
+        expected_years = list(range(2024, 2014, -1))
+        assert [c["origin_year"] for c in cases] == expected_years
+
+    def test_deficit_cases_list_contains_current_year_deficit(
+        self, lmnp_property, lmnp_setup, lmnp_entries_2025
+    ):
+        """After a deficit year, next year's 5GJ entry (N-1 = 2025) must hold the deficit."""
+        accounting = get_accounting_data([lmnp_property], 2026)
+        cases = accounting["form_2042c"]["deficit_cases_list"]
+        # 5GJ is N-1 = 2025
+        entry_5gj = next(c for c in cases if c["label"] == "5GJ")
+        assert entry_5gj["origin_year"] == 2025
+        assert approx_equal(entry_5gj["amount"], Decimal("4598.21"))
