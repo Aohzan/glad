@@ -1,5 +1,8 @@
 """URL configuration for the property app."""
 
+from typing import Callable, cast
+
+from django.http import HttpResponseBase
 from django.urls import path
 
 from . import views
@@ -13,6 +16,21 @@ urlpatterns = [
     path("<int:pk>/", views.PropertyDetailView.as_view(), name="detail"),
     path("<int:pk>/edit/", views.edit_property, name="edit"),
     path("<int:pk>/loans/", views.manage_property_loans, name="loans"),
+    path(
+        "<int:pk>/loans/<int:loan_pk>/amortization/import/",
+        cast(Callable[..., HttpResponseBase], views.import_loan_amortization),
+        name="loan_amortization_import",
+    ),
+    path(
+        "<int:pk>/loans/<int:loan_pk>/amortization/generate/",
+        cast(Callable[..., HttpResponseBase], views.generate_loan_amortization),
+        name="loan_amortization_generate",
+    ),
+    path(
+        "<int:pk>/loans/<int:loan_pk>/amortization/clear/",
+        cast(Callable[..., HttpResponseBase], views.clear_loan_amortization),
+        name="loan_amortization_clear",
+    ),
     # Property valuation
     path(
         "<int:property_pk>/valuation/<int:valuation_pk>/delete/",

@@ -16,7 +16,6 @@ from property.models import (
     PropertyLedgerEntry,
     PropertyLedgerEntryException,
     PropertyLoan,
-    PropertyLoanSchedule,
     PropertyValue,
 )
 from property.utils import add_months_safe, calculate_monthly_payment
@@ -202,11 +201,8 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
 class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
     """Form for editing property loan details.
 
-    For standard loans, monthly_payment and insurance are computed automatically
-    from original_amount, interest_rate, insurance_rate and duration_months.
-
-    For smoothed loans (prêt lisseur), interest_rate is optional and the payment
-    schedule is managed via the PropertyLoanScheduleFormSet.
+    monthly_payment and insurance are computed automatically from original_amount,
+    interest_rate, insurance_rate and duration_months.
     """
 
     duration_months = forms.IntegerField(
@@ -297,20 +293,14 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
         return instance
 
 
-class PropertyLoanScheduleForm(MoneyInputGroupMixin, forms.ModelForm):
-    """Form for a single payment tranche of a smoothed loan (prêt lisseur)."""
+class PropertyLoanAmortizationImportForm(forms.Form):
+    """Form for uploading a bank amortization table CSV."""
 
-    class Meta:
-        model = PropertyLoanSchedule
-        fields = ["order", "count", "amount"]
-        widgets = {
-            "order": forms.NumberInput(
-                attrs={"class": "form-control", "min": "1", "placeholder": "1"}
-            ),
-            "count": forms.NumberInput(
-                attrs={"class": "form-control", "min": "1", "placeholder": "1"}
-            ),
-        }
+    csv_file = forms.FileField(
+        label=_("CSV file"),
+        help_text=_("Columns: date, capital, interets, capital_restant"),
+        widget=forms.FileInput(attrs={"class": "form-control", "accept": ".csv,.txt"}),
+    )
 
 
 # ─── Lease ────────────────────────────────────────────────────────────────────

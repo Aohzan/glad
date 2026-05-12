@@ -14,7 +14,6 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
-    PropertyLoanSchedule,
     PropertyValue,
 )
 from property.services.cashflow import build_balance_sheet
@@ -384,48 +383,6 @@ def test_get_annual_cashflow_empty():
     assert result["income"] == Decimal("0")
     assert result["expenses"] == Decimal("0")
     assert result["net"] == Decimal("0")
-
-
-# ─── build_balance_sheet with smoothed loan ───────────────────────────────────
-
-
-@pytest.mark.django_db
-def test_build_balance_sheet_with_smoothed_loan():
-    """build_balance_sheet correctly handles smoothed loans via payment_sequence."""
-    prop = _make_property()
-    loan = PropertyLoan.objects.create(
-        property=prop,
-        name="Smoothed Loan",
-        lender="Bank",
-        start_date=datetime.date(2020, 1, 1),
-        end_date=datetime.date(2025, 12, 31),
-        original_amount=Money(100000, "EUR"),
-        interest_rate=Decimal("0.02"),
-    )
-    # Add schedule tranches to make it a smoothed loan (order/count/amount fields)
-    PropertyLoanSchedule.objects.create(
-        loan=loan,
-        order=1,
-        count=36,
-        amount=Money(500, "EUR"),
-    )
-    PropertyLoanSchedule.objects.create(
-        loan=loan,
-        order=2,
-        count=36,
-        amount=Money(700, "EUR"),
-    )
-    assert loan.is_smoothed()
-
-    result = build_balance_sheet(
-        prop,
-        datetime.date(2020, 1, 1),
-        datetime.date(2020, 12, 31),
-    )
-    # Should have loan interest and principal rows
-    assert result["total_loan_interest"] > Decimal("0")
-    assert result["total_loan_principal"] > Decimal("0")
-    assert result["months_count"] == 12
 
 
 @pytest.mark.django_db

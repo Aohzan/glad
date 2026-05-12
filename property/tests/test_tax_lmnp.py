@@ -11,6 +11,8 @@ from property.models import (
     ManagementCategory,
     Property,
     PropertyLedgerEntry,
+    PropertyLoan,
+    PropertyLoanAmortizationEntry,
 )
 from property.services.tax_lmnp import (
     get_amortization_schedule,
@@ -568,3 +570,150 @@ class TestGetBilanData:
             + result["emprunts"]
             == result["valeur_nette_comptable"]
         )
+
+
+@pytest.mark.django_db
+class TestAmortizationEntryFallbackForLoanInterest:
+    """_get_category_totals_for_year should use amortization entries when no manual loan_interest entries exist."""
+
+    def _make_property(self, name="Amort Fallback Prop"):
+        return Property.objects.create(
+            name=name,
+            property_type=Property.APARTMENT,
+            buying_value=Money(200000, "EUR"),
+            buying_date=datetime.date(2020, 1, 1),
+            tax_regime=Property.TaxRegime.LMNP_REEL,
+        )
+
+    def _make_loan(self, prop):
+        return PropertyLoan.objects.create(
+            property=prop,
+            original_amount=Money(150000, "EUR"),
+            interest_rate=Decimal("3.5"),
+            start_date=datetime.date(2020, 2, 1),
+            end_date=datetime.date(2045, 2, 1),
+            monthly_payment=Money(750, "EUR"),
+        )
+
+    def test_uses_amortization_entries_when_no_ledger_entries(self):
+        """When no loan_interest ledger entries exist, the amortization table interest is used."""
+        from property.services.tax_lmnp import _get_category_totals_for_year
+
+        prop = self._make_property()
+        loan = self._make_loan(prop)
+
+        # Create amortization entries for 2022 (3 months)
+        PropertyLoanAmortizationEntry.objects.create(
+            loan=loan,
+            date=datetime.date(2022, 1, 1),
+            capital=Money(Decimal("500"), "EUR"),
+            interest=Money(Decimal("437.50"), "EUR"),
+            remaining_balance_amount=Money(Decimal("149500"), "EUR"),
+        )
+        PropertyLoanAmortizationEntry.objects.create(
+            loan=loan,
+            date=datetime.date(2022, 2, 1),
+            capital=Money(Decimal("502"), "EUR"),
+            interest=Money(Decimal("435.50"), "EUR"),
+            remaining_balance_amount=Money(Decimal("148998"), "EUR"),
+        )
+
+        totals = _get_category_totals_for_year(prop.pk, 2022)
+        assert "loan_interest" in totals
+        assert totals["loan_interest"] == Decimal("437.50") + Decimal("435.50")
+
+    def test_manual_ledger_entries_take_precedence(self):
+        """When manual loan_interest ledger entries exist, they override amortization entries."""
+        from property.services.tax_lmnp import _get_category_totals_for_year
+
+        prop = self._make_property("Precedence Prop")
+        loan = self._make_loan(prop)
+
+        # Manual ledger entry for loan_interest
+        PropertyLedgerEntry.objects.create(
+            property=prop,
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.LOAN_INTEREST,
+            amount=Money(Decimal("1200"), "EUR"),
+            entry_date=datetime.date(2022, 6, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
+        )
+
+        # Create amortization entry with different value
+        PropertyLoanAmortizationEntry.objects.create(
+            loan=loan,
+            date=datetime.date(2022, 6, 1),
+            capital=Money(Decimal("500"), "EUR"),
+            interest=Money(Decimal("437.50"), "EUR"),
+            remaining_balance_amount=Money(Decimal("149500"), "EUR"),
+        )
+
+        totals = _get_category_totals_for_year(prop.pk, 2022)
+        # Should use the manual ledger entry (1200), not the amortization entry (437.50)
+        assert totals["loan_interest"] == Decimal("1200")
+
+    def test_no_amortization_entries_defaults_to_zero(self):
+        """When no ledger entries and no amortization entries, loan_interest is absent/zero."""
+        from property.services.tax_lmnp import _get_category_totals_for_year
+
+        prop = self._make_property("Zero Prop")
+        self._make_loan(prop)
+
+        totals = _get_category_totals_for_year(prop.pk, 2022)
+        # No amortization entries → loan_interest not in totals (defaults to 0)
+        assert totals.get("loan_interest", Decimal("0")) == Decimal("0")
+
+    def test_amortization_entries_outside_year_not_counted(self):
+        """Only amortization entries within the requested year are summed."""
+        from property.services.tax_lmnp import _get_category_totals_for_year
+
+        prop = self._make_property("Year Filter Prop")
+        loan = self._make_loan(prop)
+
+        # Entry in 2022 (included)
+        PropertyLoanAmortizationEntry.objects.create(
+            loan=loan,
+            date=datetime.date(2022, 6, 1),
+            capital=Money(Decimal("500"), "EUR"),
+            interest=Money(Decimal("300"), "EUR"),
+            remaining_balance_amount=Money(Decimal("149500"), "EUR"),
+        )
+        # Entry in 2021 (excluded when querying 2022)
+        PropertyLoanAmortizationEntry.objects.create(
+            loan=loan,
+            date=datetime.date(2021, 12, 1),
+            capital=Money(Decimal("495"), "EUR"),
+            interest=Money(Decimal("999"), "EUR"),
+            remaining_balance_amount=Money(Decimal("150000"), "EUR"),
+        )
+
+        totals = _get_category_totals_for_year(prop.pk, 2022)
+        assert totals["loan_interest"] == Decimal("300")
+
+    def test_lmnp_summary_uses_amortization_interest(self):
+        """get_lmnp_summary charges_financieres reflects amortization entry interest."""
+        prop = self._make_property("LMNP Summary Amort Prop")
+        loan = self._make_loan(prop)
+
+        # Add rent income
+        PropertyLedgerEntry.objects.create(
+            property=prop,
+            flow_type=PropertyLedgerEntry.FlowType.INCOME,
+            management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+            amount=Money(Decimal("800"), "EUR"),
+            entry_date=datetime.date(2022, 1, 1),
+            recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
+        )
+
+        # Create amortization entries for 2022
+        PropertyLoanAmortizationEntry.objects.create(
+            loan=loan,
+            date=datetime.date(2022, 1, 1),
+            capital=Money(Decimal("500"), "EUR"),
+            interest=Money(Decimal("437.50"), "EUR"),
+            remaining_balance_amount=Money(Decimal("149500"), "EUR"),
+        )
+
+        summary = get_lmnp_summary(prop.pk, 2022)
+        assert summary["charges_financieres"] == Decimal("437.50")
+        assert summary["charges"] == Decimal("437.50")

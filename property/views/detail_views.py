@@ -22,6 +22,7 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
+    PropertyLoanAmortizationEntry,
     PropertyValue,
 )
 from property.services.cashflow import build_balance_sheet
@@ -32,11 +33,7 @@ from property.utils import (
     month_end,
     month_start,
 )
-from property.views.edit_views import (
-    _build_loan_forms_with_schedules,
-    _make_loan_formset_class,
-    _make_schedule_formset_class,
-)
+from property.views.edit_views import _make_loan_formset_class
 from property.views.fiscal_views import get_amortization_context
 
 
@@ -262,28 +259,62 @@ class PropertyDetailView(DetailView):
         loan_insurance_by_month: dict[tuple[int, int], Decimal] = {}
 
         for loan in loans_qs:
-            if loan.monthly_payment is None and not loan.is_smoothed():
-                continue
-
             insurance_amount = (
                 loan.insurance.amount if loan.insurance is not None else Decimal("0")
             )
-            payment_sequence = (
-                loan.get_payment_sequence() if loan.is_smoothed() else None
-            )
-            monthly_payment = (
-                None if loan.is_smoothed() else loan.monthly_payment.amount
-            )
 
-            # Build the full computed maps for principal (always from amortisation).
+            # When amortization entries exist, use them for interest and principal.
+            amort_entries = list(
+                PropertyLoanAmortizationEntry.objects.filter(loan=loan).order_by("date")
+            )
+            if amort_entries:
+                for entry in amort_entries:
+                    key = (entry.date.year, entry.date.month)
+                    loan_interest_by_month[key] = (
+                        loan_interest_by_month.get(key, Decimal("0"))
+                        + entry.interest.amount
+                    )
+                    loan_principal_by_month[key] = (
+                        loan_principal_by_month.get(key, Decimal("0"))
+                        + entry.capital.amount
+                    )
+                # Insurance is not in amortization entries; derive from loan params.
+                if (
+                    insurance_amount > Decimal("0")
+                    and loan.start_date
+                    and loan.end_date
+                ):
+                    _, _, insurance_map = build_loan_monthly_maps(
+                        start_date=loan.start_date,
+                        end_date=loan.end_date,
+                        original_amount=loan.original_amount.amount,
+                        monthly_payment=loan.monthly_payment.amount
+                        if loan.monthly_payment is not None
+                        else Decimal("0"),
+                        interest_rate=loan.interest_rate,
+                        insurance_amount=insurance_amount,
+                        disbursement_date=loan.start_date,
+                        first_payment_date=loan.first_payment_date,
+                    )
+                    for key, value in insurance_map.items():
+                        loan_insurance_by_month[key] = (
+                            loan_insurance_by_month.get(key, Decimal("0")) + value
+                        )
+                continue
+
+            # Fallback: compute from loan parameters when no amortization entries.
+            if loan.monthly_payment is None:
+                continue
+
             interest_map, principal_map, insurance_map = build_loan_monthly_maps(
                 start_date=loan.start_date,
                 end_date=loan.end_date,
                 original_amount=loan.original_amount.amount,
-                monthly_payment=monthly_payment,
+                monthly_payment=loan.monthly_payment.amount,
                 interest_rate=loan.interest_rate,
                 insurance_amount=insurance_amount,
-                payment_sequence=payment_sequence,
+                disbursement_date=loan.start_date,
+                first_payment_date=loan.first_payment_date,
             )
 
             for key, value in interest_map.items():
@@ -507,16 +538,7 @@ class PropertyDetailView(DetailView):
         for loan in loans:
             duration = loan.get_duration_months()
             avg_monthly_payment = None
-            if loan.is_smoothed():
-                payment_sequence = loan.get_payment_sequence()
-                total_repaid_amount = sum(payment_sequence)
-                total_repaid = Money(total_repaid_amount, loan.original_amount.currency)
-                if payment_sequence:
-                    avg_monthly_payment = Money(
-                        total_repaid_amount / len(payment_sequence),
-                        loan.original_amount.currency,
-                    )
-            elif loan.monthly_payment is not None and duration > 0:
+            if loan.monthly_payment is not None and duration > 0:
                 monthly = loan.monthly_payment.amount
                 insurance = loan.insurance.amount if loan.insurance is not None else 0
                 total_repaid = Money(
@@ -538,7 +560,6 @@ class PropertyDetailView(DetailView):
                     "duration_months": duration,
                     "total_repaid": total_repaid,
                     "total_cost": total_cost,
-                    "is_smoothed": loan.is_smoothed(),
                     "avg_monthly_payment": avg_monthly_payment,
                     "remaining_balance": remaining,
                 }
@@ -606,34 +627,16 @@ class PropertyDetailView(DetailView):
     def _build_loan_formset(self, property_obj: Property):
         """Build a read-only (GET) loan formset for the Loans tab."""
         PropertyLoanFormSet = _make_loan_formset_class()
-        ScheduleFormSet = _make_schedule_formset_class()
-        existing_loans = list(PropertyLoan.objects.filter(property=property_obj))
         loan_formset = PropertyLoanFormSet(instance=property_obj)
-        self._loan_schedule_formsets: dict = {}
-        for loan in existing_loans:
-            prefix = f"schedules_{loan.pk}"
-            self._loan_schedule_formsets[loan.pk] = ScheduleFormSet(
-                instance=loan, prefix=prefix
-            )
-        for form_idx, loan_form in enumerate(loan_formset.forms):
-            if not loan_form.instance.pk:
-                prefix = f"schedules_new_{form_idx}"
-                self._loan_schedule_formsets[f"temp_{form_idx}"] = ScheduleFormSet(
-                    instance=loan_form.instance, prefix=prefix
-                )
         self._loan_formset_cache = loan_formset
         return loan_formset
 
-    def _build_loan_forms_with_schedules_ctx(
-        self, property_obj: Property
-    ) -> list[dict]:
-        """Build loan forms paired with schedule formsets (must call after _build_loan_formset)."""
+    def _build_loan_forms_ctx(self) -> list[dict]:
+        """Return each loan form as a simple dict (no schedule formsets)."""
         loan_formset = getattr(self, "_loan_formset_cache", None)
         if loan_formset is None:
             return []
-        return _build_loan_forms_with_schedules(
-            property_obj, loan_formset, self._loan_schedule_formsets
-        )
+        return [{"form": form} for form in loan_formset.forms]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -752,9 +755,7 @@ class PropertyDetailView(DetailView):
                 "loans_with_totals": self._build_loans_context(property_obj),
                 "today": datetime.date.today(),
                 "loan_formset": self._build_loan_formset(property_obj),
-                "loan_forms_with_schedules": self._build_loan_forms_with_schedules_ctx(
-                    property_obj
-                ),
+                "loan_forms_with_schedules": self._build_loan_forms_ctx(),
                 "all_properties": Property.objects.filter(is_active=True).order_by(
                     "name"
                 ),

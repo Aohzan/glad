@@ -6,7 +6,7 @@ from decimal import Decimal
 import pytest
 from moneyed import Money
 
-from property.models import Property, PropertyLoan, PropertyLoanSchedule, PropertyValue
+from property.models import Property, PropertyLoan, PropertyValue
 
 
 @pytest.fixture
@@ -57,30 +57,6 @@ class TestPropertyLoanStr:
 
 
 @pytest.mark.django_db
-class TestPropertyLoanIsSmoothed:
-    def test_not_smoothed_without_schedule(self, loan):
-        assert loan.is_smoothed() is False
-
-    def test_smoothed_with_schedule(self, loan):
-        PropertyLoanSchedule.objects.create(
-            loan=loan,
-            order=1,
-            count=240,
-            amount=Money(Decimal("900.00"), "EUR"),
-        )
-        assert loan.is_smoothed() is True
-
-    def test_not_smoothed_without_pk(self, property_obj):
-        loan = PropertyLoan(
-            property=property_obj,
-            start_date=datetime.date(2020, 1, 1),
-            end_date=datetime.date(2040, 1, 1),
-            original_amount=Money(100000, "EUR"),
-        )
-        assert loan.is_smoothed() is False
-
-
-@pytest.mark.django_db
 class TestPropertyLoanGetDurationMonths:
     def test_duration_months(self, loan):
         # 2020-01-01 to 2040-01-01 = 240 months
@@ -94,37 +70,6 @@ class TestPropertyLoanGetDurationMonths:
             original_amount=Money(100000, "EUR"),
         )
         assert loan.get_duration_months() == 0
-
-
-@pytest.mark.django_db
-class TestPropertyLoanGetPaymentSequence:
-    def test_standard_loan_sequence(self, loan):
-        seq = loan.get_payment_sequence()
-        assert len(seq) == 240
-        assert all(p == Decimal("900") for p in seq)
-
-    def test_smoothed_loan_sequence(self, loan):
-        PropertyLoanSchedule.objects.create(
-            loan=loan, order=1, count=60, amount=Money(Decimal("800.00"), "EUR")
-        )
-        PropertyLoanSchedule.objects.create(
-            loan=loan, order=2, count=180, amount=Money(Decimal("1000.00"), "EUR")
-        )
-        seq = loan.get_payment_sequence()
-        assert len(seq) == 240
-        assert seq[0] == Decimal("800.00")
-        assert seq[60] == Decimal("1000.00")
-
-    def test_no_monthly_payment_returns_empty(self, property_obj):
-        loan = PropertyLoan.objects.create(
-            property=property_obj,
-            start_date=datetime.date(2020, 1, 1),
-            end_date=datetime.date(2040, 1, 1),
-            original_amount=Money(100000, "EUR"),
-            monthly_payment=None,
-            interest_rate=Decimal("1.0"),
-        )
-        assert loan.get_payment_sequence() == []
 
 
 @pytest.mark.django_db
@@ -157,26 +102,12 @@ class TestPropertyLoanComputeMonthlyPayment:
         # insurance_rate is 0, so insurance should not be set
         assert loan.insurance is None
 
-    def test_compute_monthly_payment_smoothed_does_nothing(self, loan):
-        PropertyLoanSchedule.objects.create(
-            loan=loan, order=1, count=240, amount=Money(Decimal("900.00"), "EUR")
-        )
-        original_payment = loan.monthly_payment
-        loan.compute_monthly_payment()
-        assert loan.monthly_payment == original_payment
-
 
 @pytest.mark.django_db
 class TestPropertyLoanTaegRate:
     def test_taeg_rate_standard_loan(self, loan):
         taeg = loan.taeg_rate()
         assert taeg > Decimal("0")
-
-    def test_taeg_rate_smoothed_returns_zero(self, loan):
-        PropertyLoanSchedule.objects.create(
-            loan=loan, order=1, count=240, amount=Money(Decimal("900.00"), "EUR")
-        )
-        assert loan.taeg_rate() == Decimal("0.0")
 
     def test_taeg_rate_no_monthly_payment_returns_zero(self, property_obj):
         loan = PropertyLoan.objects.create(
@@ -402,17 +333,3 @@ class TestPropertyModel:
         )
         # gross = 215000, loan = 150000, deposit = 65000
         assert prop.cash_deposit.amount == Decimal("65000")
-
-
-@pytest.mark.django_db
-class TestPropertyLoanScheduleStr:
-    def test_str(self, loan):
-        schedule = PropertyLoanSchedule.objects.create(
-            loan=loan,
-            order=1,
-            count=60,
-            amount=Money(Decimal("900.00"), "EUR"),
-        )
-        result = str(schedule)
-        assert "tranche 1" in result
-        assert "60" in result

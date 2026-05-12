@@ -499,9 +499,15 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
     each occurrence falling within [year-01-01, year-12-31] is counted.
 
     For ``loan_interest`` and ``loan_insurance`` categories, ledger entries are
-    used directly. If no entries are present, amounts default to zero.
+    used when present. When no manual ``loan_interest`` ledger entries exist for
+    the year, the interest column of the loan amortization table is used instead
+    (summed over all loans that have amortization entries for that year).
     """
-    from property.models import PropertyLedgerEntry
+    from property.models import (
+        PropertyLedgerEntry,
+        PropertyLoan,
+        PropertyLoanAmortizationEntry,
+    )
 
     year_start = datetime.date(year, 1, 1)
     year_end = datetime.date(year, 12, 31)
@@ -542,6 +548,23 @@ def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Deci
                 continue
             cat = entry.management_category
             by_category[cat] = by_category.get(cat, Decimal("0")) + occ["amount"].amount
+
+    # ── Fallback: use loan amortization entries for loan_interest ─────────
+    # When no manual loan_interest ledger entries exist for the year, sum the
+    # interest column from PropertyLoanAmortizationEntry for all property loans.
+    loan_interest_key = str(ManagementCategory.LOAN_INTEREST)
+    if not by_category.get(loan_interest_key):
+        loans = PropertyLoan.objects.filter(property_id=property_id)
+        amort_interest_total = Decimal("0")
+        for loan in loans:
+            result = PropertyLoanAmortizationEntry.objects.filter(
+                loan=loan,
+                date__gte=year_start,
+                date__lte=year_end,
+            ).aggregate(total=Sum("interest"))
+            amort_interest_total += result["total"] or Decimal("0")
+        if amort_interest_total > Decimal("0"):
+            by_category[loan_interest_key] = amort_interest_total
 
     return by_category
 
@@ -617,9 +640,11 @@ def get_bilan_data(property_id: int, year: int) -> dict:
     # Passif = Capitaux propres (I) + Dettes (II)
     # => Capitaux propres = Actif net − Dettes = (brut − cumul) − emprunts
     # Capital individuel (ligne 120) = Total capitaux propres − Résultat exercice
+    # Résultat de l'exercice on the bilan = résultat COMPTABLE (cerfa_310), not fiscal result.
     valeur_nette = brut - cumul
     total_capitaux_propres = valeur_nette - emprunts
-    capital_individuel = total_capitaux_propres - summary["taxable_result"]
+    resultat_comptable = summary["cerfa_310"]
+    capital_individuel = total_capitaux_propres - resultat_comptable
 
     # Cost of assets acquired during this year (2033-A-182)
     cout_revient_acquisitions = sum(
@@ -636,10 +661,11 @@ def get_bilan_data(property_id: int, year: int) -> dict:
         "amortissements_cumules": cumul,
         "valeur_nette_comptable": brut - cumul,
         "emprunts": emprunts,
-        "resultat_exercice": summary["taxable_result"],
+        "resultat_exercice": resultat_comptable,  # 2033-A ligne 136: résultat COMPTABLE
         "capital_individuel": capital_individuel,
         "total_capitaux_propres": total_capitaux_propres,
         "cout_revient_acquisitions": cout_revient_acquisitions,
+        "charges_constatees_avance": Decimal("0"),  # actif circulant ligne 092
     }
 
 
@@ -827,10 +853,11 @@ def get_accounting_data(properties: list, year: int) -> dict:
         "amortissements_cumules": agg_cumul,
         "valeur_nette_comptable": agg_brut - agg_cumul,
         "emprunts": agg_emprunts,
-        "resultat_exercice": agg_taxable_result,
+        "resultat_exercice": agg_cerfa_310,  # 2033-A ligne 136: résultat COMPTABLE
         "capital_individuel": agg_capital,
         "total_capitaux_propres": agg_capitaux_propres,
         "cout_revient_acquisitions": agg_cout_revient,
+        "charges_constatees_avance": Decimal("0"),  # actif circulant ligne 092
         "per_prop": per_prop_bilan,
     }
 

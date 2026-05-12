@@ -12,7 +12,6 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
-    PropertyLoanSchedule,
     PropertyValue,
 )
 
@@ -259,35 +258,23 @@ def test_property_detail_growth_rate_query_param(user_client):
 
 
 @pytest.mark.django_db
-def test_property_detail_capital_repaid_uses_schedule_for_smoothed_loans(user_client):
-    """Smoothed loans must not be treated as fully repaid only from end_date."""
+def test_property_detail_capital_repaid_for_standard_loan(user_client):
+    """Standard loan's capital repaid should be > 0 after some payments."""
     property_obj = Property.objects.create(
-        name="Schedule Detail",
+        name="Loan Detail",
         property_type=Property.HOUSE,
         buying_value=Money(200000, "EUR"),
         buying_date=datetime.date(2020, 1, 1),
         is_active=True,
     )
-    loan = PropertyLoan.objects.create(
+    PropertyLoan.objects.create(
         property=property_obj,
-        name="Smoothed Loan",
+        name="Standard Loan",
         start_date=datetime.date(2020, 1, 1),
-        # Intentionally inconsistent with schedule duration (too short)
-        end_date=datetime.date(2021, 1, 1),
+        end_date=datetime.date(2040, 1, 1),
         original_amount=Money(200000, "EUR"),
+        monthly_payment=Money(Decimal("1159.97"), "EUR"),
         interest_rate=Decimal("3.5"),
-    )
-    PropertyLoanSchedule.objects.create(
-        loan=loan,
-        order=1,
-        count=60,
-        amount=Money(Decimal("800.00"), "EUR"),
-    )
-    PropertyLoanSchedule.objects.create(
-        loan=loan,
-        order=2,
-        count=180,
-        amount=Money(Decimal("1200.00"), "EUR"),
     )
 
     response = user_client.get(reverse("property:detail", args=[property_obj.pk]))
@@ -295,7 +282,7 @@ def test_property_detail_capital_repaid_uses_schedule_for_smoothed_loans(user_cl
     assert response.status_code == 200
     capital_repaid = response.context["capital_repaid"].amount
     assert capital_repaid > Decimal("0")
-    assert capital_repaid < loan.original_amount.amount
+    assert capital_repaid < Decimal("200000")
 
 
 @pytest.mark.django_db
@@ -589,22 +576,16 @@ def _make_standard_loan(prop):
     )
 
 
-def _make_smoothed_loan(prop):
-    loan = PropertyLoan.objects.create(
+def _make_second_loan(prop):
+    return PropertyLoan.objects.create(
         property=prop,
-        name="Smoothed Loan",
+        name="Second Loan",
         start_date=datetime.date(2020, 1, 1),
         end_date=datetime.date(2040, 1, 1),
         original_amount=Money(200_000, "EUR"),
+        monthly_payment=Money(Decimal("1100.00"), "EUR"),
         interest_rate=Decimal("3.5"),
     )
-    PropertyLoanSchedule.objects.create(
-        loan=loan, order=1, count=60, amount=Money(Decimal("800.00"), "EUR")
-    )
-    PropertyLoanSchedule.objects.create(
-        loan=loan, order=2, count=180, amount=Money(Decimal("1200.00"), "EUR")
-    )
-    return loan
 
 
 @pytest.mark.django_db
@@ -617,43 +598,15 @@ def test_edit_property_get_renders_form(user_client):
 
 
 @pytest.mark.django_db
-def test_edit_property_standard_loan_is_not_smoothed(user_client):
-    """Standard loan must have is_smoothed=False in context."""
+def test_edit_property_loan_forms_with_schedules_context(user_client):
+    """loan_forms_with_schedules context includes existing loan form entries."""
     prop = _make_property()
     _make_standard_loan(prop)
     response = user_client.get(reverse("property:detail", args=[prop.pk]))
     assert response.status_code == 200
     entries = response.context["loan_forms_with_schedules"]
-    # First entry is the existing standard loan
     existing = [e for e in entries if e["form"].instance.pk]
     assert len(existing) == 1
-    assert existing[0]["is_smoothed"] is False
-
-
-@pytest.mark.django_db
-def test_edit_property_smoothed_loan_is_smoothed(user_client):
-    """Smoothed loan must have is_smoothed=True in context."""
-    prop = _make_property()
-    _make_smoothed_loan(prop)
-    response = user_client.get(reverse("property:detail", args=[prop.pk]))
-    assert response.status_code == 200
-    entries = response.context["loan_forms_with_schedules"]
-    existing = [e for e in entries if e["form"].instance.pk]
-    assert len(existing) == 1
-    assert existing[0]["is_smoothed"] is True
-
-
-@pytest.mark.django_db
-def test_edit_property_new_loan_entry_is_not_smoothed(user_client):
-    """The extra (new) loan form entry must have is_smoothed=False."""
-    prop = _make_property()
-    response = user_client.get(reverse("property:detail", args=[prop.pk]))
-    assert response.status_code == 200
-    entries = response.context["loan_forms_with_schedules"]
-    new_entries = [e for e in entries if not e["form"].instance.pk]
-    assert len(new_entries) >= 1
-    for entry in new_entries:
-        assert entry["is_smoothed"] is False
 
 
 @pytest.mark.django_db
@@ -683,66 +636,6 @@ def test_edit_property_post_saves_property(user_client):
 
 
 @pytest.mark.django_db
-def test_edit_property_delete_schedule_row(user_client):
-    """Marking a schedule row for deletion removes it from the database."""
-    prop = _make_property()
-    loan = _make_smoothed_loan(prop)
-    schedules = list(PropertyLoanSchedule.objects.filter(loan=loan).order_by("order"))
-    assert len(schedules) == 2
-
-    schedule_to_delete = schedules[0]
-    schedule_to_keep = schedules[1]
-    prefix = f"schedules_{loan.pk}"
-
-    response = user_client.post(
-        reverse("property:loans", args=[prop.pk]),
-        {
-            # Property form
-            "name": prop.name,
-            "property_type": prop.property_type,
-            "buying_value_0": str(int(prop.buying_value.amount)),
-            "buying_value_1": "EUR",
-            "buying_date": prop.buying_date.isoformat(),
-            "is_active": "on",
-            # Loan formset management form
-            "loans-TOTAL_FORMS": "1",
-            "loans-INITIAL_FORMS": "1",
-            "loans-MIN_NUM_FORMS": "0",
-            "loans-MAX_NUM_FORMS": "1000",
-            # Loan form
-            "loans-0-id": str(loan.pk),
-            "loans-0-name": loan.name,
-            "loans-0-start_date": loan.start_date.isoformat(),
-            "loans-0-duration_months": str(loan.get_duration_months()),
-            "loans-0-original_amount_0": str(int(loan.original_amount.amount)),
-            "loans-0-original_amount_1": "EUR",
-            "loans-0-interest_rate": str(loan.interest_rate),
-            # Schedule formset management form
-            f"{prefix}-TOTAL_FORMS": "2",
-            f"{prefix}-INITIAL_FORMS": "2",
-            f"{prefix}-MIN_NUM_FORMS": "0",
-            f"{prefix}-MAX_NUM_FORMS": "1000",
-            # Schedule row 0 – mark for deletion
-            f"{prefix}-0-id": str(schedule_to_delete.pk),
-            f"{prefix}-0-order": str(schedule_to_delete.order),
-            f"{prefix}-0-count": str(schedule_to_delete.count),
-            f"{prefix}-0-amount_0": str(schedule_to_delete.amount.amount),
-            f"{prefix}-0-amount_1": "EUR",
-            f"{prefix}-0-DELETE": "on",
-            # Schedule row 1 – keep
-            f"{prefix}-1-id": str(schedule_to_keep.pk),
-            f"{prefix}-1-order": str(schedule_to_keep.order),
-            f"{prefix}-1-count": str(schedule_to_keep.count),
-            f"{prefix}-1-amount_0": str(schedule_to_keep.amount.amount),
-            f"{prefix}-1-amount_1": "EUR",
-        },
-    )
-    assert response.status_code == 302
-    assert not PropertyLoanSchedule.objects.filter(pk=schedule_to_delete.pk).exists()
-    assert PropertyLoanSchedule.objects.filter(pk=schedule_to_keep.pk).exists()
-
-
-@pytest.mark.django_db
 def test_edit_property_context_has_loans_with_totals_standard(user_client):
     """Detail view includes loans_with_totals with computed cost for a standard loan."""
     prop = _make_property()
@@ -752,22 +645,21 @@ def test_edit_property_context_has_loans_with_totals_standard(user_client):
     loans_with_totals = response.context["loans_with_totals"]
     assert len(loans_with_totals) == 1
     item = loans_with_totals[0]
-    assert item["is_smoothed"] is False
     assert item["duration_months"] > 0
     assert item["total_repaid"] is not None
     assert item["total_cost"] is not None
 
 
 @pytest.mark.django_db
-def test_edit_property_context_has_loans_with_totals_smoothed(user_client):
-    """Detail view includes loans_with_totals with is_smoothed=True for smoothed loans."""
+def test_edit_property_context_has_loans_with_totals_second_loan(user_client):
+    """Detail view includes loans_with_totals for a second loan."""
     prop = _make_property()
-    _make_smoothed_loan(prop)
+    _make_second_loan(prop)
     response = user_client.get(reverse("property:detail", args=[prop.pk]))
     assert response.status_code == 200
     loans_with_totals = response.context["loans_with_totals"]
     assert len(loans_with_totals) == 1
-    assert loans_with_totals[0]["is_smoothed"] is True
+    assert loans_with_totals[0]["duration_months"] > 0
 
 
 @pytest.mark.django_db

@@ -196,3 +196,74 @@ class TestManagePropertyLoans:
         assert PropertyLoan.objects.filter(
             property=property_obj, name="New Loan"
         ).exists()
+
+
+@pytest.mark.django_db
+class TestGenerateLoanAmortization:
+    """Tests for the generate_loan_amortization view."""
+
+    def test_generate_with_stored_monthly_payment(self, user_client, loan):
+        """Generate should succeed when monthly_payment is already stored."""
+        url = reverse(
+            "property:loan_amortization_generate",
+            kwargs={"pk": loan.property.pk, "loan_pk": loan.pk},
+        )
+        response = user_client.post(url)
+        assert response.status_code == 302
+        from property.models import PropertyLoanAmortizationEntry
+
+        assert PropertyLoanAmortizationEntry.objects.filter(loan=loan).exists()
+        messages = list(get_messages(response.wsgi_request))
+        assert any(
+            "generated" in str(m).lower() or "entries" in str(m).lower()
+            for m in messages
+        )
+
+    def test_generate_without_monthly_payment_computes_from_params(
+        self, user_client, property_obj
+    ):
+        """Generate should compute monthly_payment from loan params when not stored."""
+        loan_no_payment = PropertyLoan.objects.create(
+            property=property_obj,
+            name="Loan No Payment",
+            start_date=datetime.date(2020, 1, 1),
+            end_date=datetime.date(2040, 1, 1),
+            original_amount=Money(150000, "EUR"),
+            monthly_payment=None,
+            monthly_payment_currency="EUR",
+            interest_rate=Decimal("1.5"),
+        )
+        url = reverse(
+            "property:loan_amortization_generate",
+            kwargs={"pk": property_obj.pk, "loan_pk": loan_no_payment.pk},
+        )
+        response = user_client.post(url)
+        assert response.status_code == 302
+        from property.models import PropertyLoanAmortizationEntry
+
+        assert PropertyLoanAmortizationEntry.objects.filter(
+            loan=loan_no_payment
+        ).exists()
+
+    def test_generate_without_monthly_payment_and_no_rate_shows_error(
+        self, user_client, property_obj
+    ):
+        """Generate should show error when monthly_payment cannot be computed (zero duration)."""
+        loan_no_rate = PropertyLoan.objects.create(
+            property=property_obj,
+            name="Loan No Rate",
+            start_date=datetime.date(2020, 1, 1),
+            end_date=datetime.date(2020, 1, 1),  # same start/end → duration=0
+            original_amount=Money(150000, "EUR"),
+            monthly_payment=None,
+            monthly_payment_currency="EUR",
+            interest_rate=Decimal("1.5"),
+        )
+        url = reverse(
+            "property:loan_amortization_generate",
+            kwargs={"pk": property_obj.pk, "loan_pk": loan_no_rate.pk},
+        )
+        response = user_client.post(url)
+        assert response.status_code == 302
+        messages = list(get_messages(response.wsgi_request))
+        assert any("monthly payment" in str(m).lower() for m in messages)

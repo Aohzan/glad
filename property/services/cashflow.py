@@ -108,27 +108,57 @@ def build_balance_sheet(
                 expense_by_cat[cat]["amount"] += amount
 
     # ── Loan costs in range ───────────────────────────────────────────────────
+    from property.models import PropertyLoanAmortizationEntry
+
     loans_qs = PropertyLoan.objects.filter(property=property_obj)
     total_loan_interest = Decimal("0")
     total_loan_principal = Decimal("0")
     total_loan_insurance = Decimal("0")
 
     for loan in loans_qs:
-        if loan.monthly_payment is None and not loan.is_smoothed():
-            continue
         insurance_amount = (
             loan.insurance.amount if loan.insurance is not None else Decimal("0")
         )
-        payment_sequence = loan.get_payment_sequence() if loan.is_smoothed() else None
-        monthly_payment = None if loan.is_smoothed() else loan.monthly_payment.amount
+
+        # When amortization entries exist, use them for interest and principal.
+        amort_entries = list(
+            PropertyLoanAmortizationEntry.objects.filter(loan=loan).order_by("date")
+        )
+        if amort_entries:
+            for entry in amort_entries:
+                if entry.date < date_from or entry.date > end_of_range:
+                    continue
+                total_loan_interest += entry.interest.amount
+                total_loan_principal += entry.capital.amount
+            # Insurance still derived from loan params (not in amortization entries).
+            if insurance_amount > Decimal("0") and loan.start_date and loan.end_date:
+                _, _, insurance_map = build_loan_monthly_maps(
+                    start_date=loan.start_date,
+                    end_date=loan.end_date,
+                    original_amount=loan.original_amount.amount,
+                    monthly_payment=loan.monthly_payment.amount
+                    if loan.monthly_payment is not None
+                    else Decimal("0"),
+                    interest_rate=loan.interest_rate,
+                    insurance_amount=insurance_amount,
+                    disbursement_date=loan.start_date,
+                    first_payment_date=loan.first_payment_date,
+                )
+                for month in iter_month_starts(start_month, end_month):
+                    key = (month.year, month.month)
+                    total_loan_insurance += insurance_map.get(key, Decimal("0"))
+            continue
+
+        # Fallback: compute from loan parameters when no amortization entries.
+        if loan.monthly_payment is None:
+            continue
         interest_map, principal_map, insurance_map = build_loan_monthly_maps(
             start_date=loan.start_date,
             end_date=loan.end_date,
             original_amount=loan.original_amount.amount,
-            monthly_payment=monthly_payment,
+            monthly_payment=loan.monthly_payment.amount,
             interest_rate=loan.interest_rate,
             insurance_amount=insurance_amount,
-            payment_sequence=payment_sequence,
             disbursement_date=loan.start_date,
             first_payment_date=loan.first_payment_date,
         )

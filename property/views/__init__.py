@@ -14,8 +14,11 @@ from property.views.crud_views import (
 from property.views.csv_views import csv_import, csv_import_confirm
 from property.views.detail_views import PropertyDetailView
 from property.views.edit_views import (
+    clear_loan_amortization,
     create_property,
     edit_property,
+    generate_loan_amortization,
+    import_loan_amortization,
     manage_property_loans,
 )
 from property.views.fiscal_views import (
@@ -34,6 +37,9 @@ __all__ = [
     "edit_property",
     "create_property",
     "manage_property_loans",
+    "import_loan_amortization",
+    "generate_loan_amortization",
+    "clear_loan_amortization",
     "delete_property_valuation",
     "edit_ledger_entry",
     "delete_ledger_entry",
