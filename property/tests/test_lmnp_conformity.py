@@ -500,7 +500,10 @@ class TestFiscalDeficitConformity:
         accounting = get_accounting_data([lmnp_property], 2026)
         form_2042c = accounting["form_2042c"]
         # 5GJ = deficit from N-1 = 2025
-        assert approx_equal(form_2042c["5GJ"], Decimal("4598.21"))
+        entry_5gj = next(
+            c for c in form_2042c["deficit_cases_list"] if c["label"] == "5GJ"
+        )
+        assert approx_equal(entry_5gj["amount"], Decimal("4598.21"))
 
 
 # ─── 2033-A Bilan conformity tests ───────────────────────────────────────────
@@ -684,17 +687,6 @@ class TestForm2033BConformity:
         computed = summary["cerfa_310"] + summary["cerfa_318"]
         assert approx_equal(computed, summary["taxable_result"])
 
-    def test_result_exploitation_formula(
-        self, lmnp_property, lmnp_setup, lmnp_entries_2025
-    ):
-        """2033-B-270 = recettes - charges_exploitation - amort_deductible."""
-        accounting = get_accounting_data([lmnp_property], 2025)
-        b = accounting["form_2033b"]
-        expected_270 = (
-            b["recettes"] - b["charges_exploitation"] - b["amortization_deductible"]
-        )
-        assert approx_equal(b["result_exploitation"], expected_270)
-
     def test_cerfa_352_is_zero_when_deficit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
@@ -708,37 +700,6 @@ class TestForm2033BConformity:
         """2033-B-370 = 0 when no taxable profit after deficit imputation."""
         accounting = get_accounting_data([lmnp_property], 2025)
         assert accounting["form_2033b"]["cerfa_370"] == Decimal("0")
-
-
-# ─── form_2031 new fields ─────────────────────────────────────────────────────
-
-
-@pytest.mark.django_db
-class TestForm2031NewFields:
-    """Tests for bic_benefice and bic_deficit fields added to form_2031."""
-
-    def test_bic_deficit_when_loss(self, lmnp_property, lmnp_setup, lmnp_entries_2025):
-        """bic_deficit = abs(taxable_result) when result is negative."""
-        accounting = get_accounting_data([lmnp_property], 2025)
-        form_2031 = accounting["form_2031"]
-        assert form_2031["bic_deficit"] > Decimal("0")
-        assert form_2031["bic_benefice"] == Decimal("0")
-        assert approx_equal(form_2031["bic_deficit"], abs(form_2031["taxable_result"]))
-
-    def test_bic_benefice_when_profit(self, lmnp_property, lmnp_setup):
-        """bic_benefice > 0 and bic_deficit = 0 when taxable_result >= 0."""
-        PropertyLedgerEntry.objects.create(
-            property=lmnp_property,
-            flow_type=PropertyLedgerEntry.FlowType.INCOME,
-            management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            amount=Money(Decimal("100000.00"), "EUR"),
-            entry_date=datetime.date(2025, 6, 1),
-        )
-        accounting = get_accounting_data([lmnp_property], 2025)
-        form_2031 = accounting["form_2031"]
-        assert form_2031["bic_benefice"] > Decimal("0")
-        assert form_2031["bic_deficit"] == Decimal("0")
-        assert approx_equal(form_2031["bic_benefice"], form_2031["taxable_result"])
 
 
 # ─── form_2042c deficit_cases_list ───────────────────────────────────────────

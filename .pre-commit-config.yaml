@@ -35,7 +35,7 @@ repos:
       - id: codespell
         args:
           - --ignore-words-list=OT,activite,garantie,individuel,exercice
-          - --skip=./.*,*.csv,*.json,*.ambr,*.lock,*/migrations/*.py,*/fixtures/*.yaml,scripts/generate_fixtures.py,locale/**/*.po,TODO.md
+          - --skip=./.*,*.csv,*.json,*.ambr,*.lock,*/migrations/*.py,*/fixtures/*.yaml,scripts/generate_fixtures.py,locale/**/*.po,TODO.md,templates/property/accounting_lmnp_reel.html
           - --quiet-level=2
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.38.0

@@ -483,7 +483,6 @@ class TestGetAccountingData:
         assert "form_2033a" in data
         assert "form_2033c" in data
         assert "form_2031" in data
-        assert "form_2031bis" in data
         assert "form_2042c" in data
 
     def test_aggregates_multiple_properties(self, property_obj, structure_asset):

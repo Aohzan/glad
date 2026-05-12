@@ -742,12 +742,10 @@ def get_accounting_data(properties: list, year: int) -> dict:
       - form_2033a: 2033-A Bilan simplifié (aggregated)
       - form_2033c: 2033-C Immobilisations (per-property)
       - form_2031: 2031 résultat BIC summary
-      - form_2031bis: 2031-BIS annex (charges by category, deferred amort)
-      - form_2042c: 2042-C PRO cases 5NK/5NZ + deficit carryforward 5GJ..5GA
+      - form_2042c: 2042-C PRO cases 5NK/5NZ + deficit carryforward (deficit_cases_list)
     """
     # ── 2033-B: aggregate by cerfa line ──────────────────────────────────────
     agg_recettes = Decimal("0")
-    agg_charges = Decimal("0")
     agg_charges_exploitation = Decimal("0")
     agg_charges_financieres = Decimal("0")
     agg_amort_total = Decimal("0")
@@ -755,14 +753,11 @@ def get_accounting_data(properties: list, year: int) -> dict:
     agg_amort_deferred = Decimal("0")
     agg_deferred_prior = Decimal("0")
     agg_taxable_result = Decimal("0")
-    agg_result_before = Decimal("0")
     agg_cerfa_310 = Decimal("0")
     agg_cerfa_318 = Decimal("0")
 
     # Aggregated cerfa line amounts
     agg_by_line: dict[str, Decimal] = {}
-    # Per-property breakdown: {line: [{property_name, amount}]}
-    per_prop_by_line: dict[str, list[dict]] = {}
 
     # Per-property summaries for other forms
     per_prop_summaries: list[dict] = []
@@ -770,7 +765,6 @@ def get_accounting_data(properties: list, year: int) -> dict:
     for prop in properties:
         summary = get_lmnp_summary(prop.pk, year)
         agg_recettes += summary["recettes"]
-        agg_charges += summary["charges"]
         agg_charges_exploitation += summary["charges_exploitation"]
         agg_charges_financieres += summary["charges_financieres"]
         agg_amort_total += summary["amortization_total"]
@@ -778,21 +772,13 @@ def get_accounting_data(properties: list, year: int) -> dict:
         agg_amort_deferred += summary["amortization_deferred"]
         agg_deferred_prior += summary["deferred_prior"]
         agg_taxable_result += summary["taxable_result"]
-        agg_result_before += summary["result"]
         agg_cerfa_310 += summary["cerfa_310"]
         agg_cerfa_318 += summary["cerfa_318"]
 
         for line, amount in summary["by_line"].items():
             agg_by_line[line] = agg_by_line.get(line, Decimal("0")) + amount
-            per_prop_by_line.setdefault(line, []).append(
-                {"name": prop.name, "amount": amount}
-            )
         per_prop_summaries.append({"property": prop, "summary": summary})
 
-    # Cerfa 2033-B: résultat d'exploitation (270) = recettes - charges_exploitation - amort_deductible
-    agg_result_exploitation = (
-        agg_recettes - agg_charges_exploitation - agg_amort_deductible
-    )
     # Cerfa 2033-B line 352: résultat fiscal avant déficits = max(0, taxable_result)
     agg_cerfa_352 = max(Decimal("0"), agg_taxable_result)
     # Cerfa 2033-B line 370: résultat fiscal final (after deficit imputation, always >= 0)
@@ -801,14 +787,10 @@ def get_accounting_data(properties: list, year: int) -> dict:
     _agg_impots_taxes = agg_by_line.get("244", Decimal("0"))
     form_2033b = {
         "recettes": agg_recettes,
-        "charges": agg_charges,
-        "charges_exploitation": agg_charges_exploitation,
         "autres_charges_externes": agg_charges_exploitation - _agg_impots_taxes,
         "charges_financieres": agg_charges_financieres,
         "impots_taxes": _agg_impots_taxes,
         "cfe": agg_by_line.get("243", Decimal("0")),
-        "result": agg_result_before,
-        "result_exploitation": agg_result_exploitation,
         "amortization_total": agg_amort_total,
         "deferred_prior": agg_deferred_prior,
         "amortization_deductible": agg_amort_deductible,
@@ -818,7 +800,6 @@ def get_accounting_data(properties: list, year: int) -> dict:
         "cerfa_318": agg_cerfa_318,
         "cerfa_352": agg_cerfa_352,
         "by_line": agg_by_line,
-        "per_prop_by_line": per_prop_by_line,
         "per_prop": per_prop_summaries,
     }
 
@@ -899,42 +880,7 @@ def get_accounting_data(properties: list, year: int) -> dict:
     }
 
     # ── 2031: BIC result summary ──────────────────────────────────────────────
-    form_2031 = {
-        "recettes": agg_recettes,
-        "charges": agg_charges,
-        "amortization_deductible": agg_amort_deductible,
-        "taxable_result": agg_taxable_result,
-        "bic_benefice": max(Decimal("0"), agg_taxable_result),
-        "bic_deficit": max(Decimal("0"), -agg_taxable_result),
-        "regime": "Réel simplifié",
-        "activite": "Location meublée non professionnelle",
-    }
-
-    # ── 2031-BIS: annex ──────────────────────────────────────────────────────
-    agg_by_category: dict[str, Decimal] = {}
-    for entry in per_prop_summaries:
-        for cat, amt in entry["summary"].get("by_category", {}).items():
-            agg_by_category[cat] = agg_by_category.get(cat, Decimal("0")) + amt
-
-    charges_detail = []
-    for cat, total in agg_by_category.items():
-        try:
-            cat_enum = ManagementCategory(cat)
-        except ValueError:
-            continue
-        if cat_enum.lmnp_section == "charges":
-            charges_detail.append(
-                {"category": cat, "label": cat_enum.lmnp_label, "amount": total}
-            )
-
-    form_2031bis = {
-        "charges_detail": charges_detail,
-        "amort_total": agg_amort_total,
-        "amort_deductible": agg_amort_deductible,
-        "amort_deferred_balance": agg_amort_deferred,
-        "taxable_result": agg_taxable_result,
-        "per_prop": per_prop_summaries,
-    }
+    form_2031 = {}
 
     # ── 2042-C PRO ────────────────────────────────────────────────────────────
     # Aggregate deficit carryforward across all properties
@@ -963,12 +909,7 @@ def get_accounting_data(properties: list, year: int) -> dict:
 
     form_2033b["cerfa_370"] = agg_cerfa_370
 
-    # Per-year deficit amounts (for 2042-C PRO cases 5GJ to 5GA: N-1..N-10)
-    deficit_cases: dict[str, Decimal] = {}
     case_labels = ["5GJ", "5GI", "5GH", "5GG", "5GF", "5GE", "5GD", "5GC", "5GB", "5GA"]
-    for i, label in enumerate(case_labels, start=1):
-        origin_year = year - i
-        deficit_cases[label] = agg_deficit_history.get(origin_year, Decimal("0"))
 
     # Duration of exercise in months (standard = 12)
     today = datetime.date.today()
@@ -996,7 +937,6 @@ def get_accounting_data(properties: list, year: int) -> dict:
         "deficit_cases_list": deficit_cases_list,
         "case_5cd": exercise_months,
         "is_benefice": agg_taxable_result >= Decimal("0"),
-        **deficit_cases,
     }
 
     return {
@@ -1004,7 +944,6 @@ def get_accounting_data(properties: list, year: int) -> dict:
         "form_2033a": form_2033a,
         "form_2033c": form_2033c,
         "form_2031": form_2031,
-        "form_2031bis": form_2031bis,
         "form_2042c": form_2042c,
     }
 
