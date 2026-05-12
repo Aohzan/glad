@@ -1,6 +1,7 @@
 """Property detail dashboard view."""
 
 import datetime
+import json
 import statistics
 from decimal import Decimal
 
@@ -529,6 +530,105 @@ class PropertyDetailView(DetailView):
         rows.sort(key=lambda r: r["date"], reverse=True)
         return rows
 
+    def _build_loan_chart_data(self, property_obj: Property) -> dict:
+        """Build per-loan monthly chart data for the loans panel chart.
+
+        Returns a dict with:
+        - loans: list of {name, data: [{x, y}]} — total payment per month per loan
+        - total_capital: [{x, y}] — total capital repaid per month across all loans
+        - total_interest: [{x, y}] — total interest paid per month across all loans
+        """
+        loans = (
+            PropertyLoan.objects.filter(property=property_obj)
+            .prefetch_related("amortization_entries")
+            .order_by("start_date")
+        )
+
+        # Collect per-loan monthly maps: {(year, month): total_payment}
+        loan_series: list[dict] = []
+        all_capital: dict[tuple[int, int], Decimal] = {}
+        all_interest: dict[tuple[int, int], Decimal] = {}
+
+        for loan in loans:
+            if loan.start_date is None or loan.end_date is None:
+                continue
+
+            capital_map: dict[tuple[int, int], Decimal] = {}
+            interest_map: dict[tuple[int, int], Decimal] = {}
+            insurance_map: dict[tuple[int, int], Decimal] = {}
+
+            if loan.amortization_entries.exists():
+                # Use imported/generated amortization table
+                for entry in loan.amortization_entries.all():
+                    key = (entry.date.year, entry.date.month)
+                    capital_map[key] = (
+                        capital_map.get(key, Decimal("0")) + entry.capital.amount
+                    )
+                    interest_map[key] = (
+                        interest_map.get(key, Decimal("0")) + entry.interest.amount
+                    )
+            elif loan.monthly_payment is not None and loan.interest_rate is not None:
+                insurance_amount = (
+                    loan.insurance.amount if loan.insurance else Decimal("0")
+                )
+                interest_map, capital_map, insurance_map = build_loan_monthly_maps(
+                    start_date=loan.start_date,
+                    end_date=loan.end_date,
+                    original_amount=loan.original_amount.amount,
+                    monthly_payment=loan.monthly_payment.amount,
+                    interest_rate=loan.interest_rate,
+                    insurance_amount=insurance_amount,
+                    disbursement_date=loan.start_date,
+                    first_payment_date=loan.first_payment_date,
+                )
+            else:
+                continue
+
+            # Build total payment per month for this loan (capital + interest + insurance)
+            all_months = set(capital_map) | set(interest_map) | set(insurance_map)
+            total_map: dict[tuple[int, int], Decimal] = {}
+            for key in all_months:
+                total = (
+                    capital_map.get(key, Decimal("0"))
+                    + interest_map.get(key, Decimal("0"))
+                    + insurance_map.get(key, Decimal("0"))
+                )
+                total_map[key] = total
+                all_capital[key] = all_capital.get(key, Decimal("0")) + capital_map.get(
+                    key, Decimal("0")
+                )
+                all_interest[key] = all_interest.get(
+                    key, Decimal("0")
+                ) + interest_map.get(key, Decimal("0"))
+
+            sorted_months = sorted(total_map.keys())
+            loan_series.append(
+                {
+                    "name": loan.name or loan.lender or f"#{loan.pk}",
+                    "data": [
+                        {"x": f"{y}-{m:02d}-01", "y": float(total_map[(y, m)])}
+                        for y, m in sorted_months
+                    ],
+                }
+            )
+
+        # Build aggregate lines
+        all_months_sorted = sorted(set(all_capital) | set(all_interest))
+        total_capital_series = [
+            {"x": f"{y}-{m:02d}-01", "y": float(all_capital.get((y, m), Decimal("0")))}
+            for y, m in all_months_sorted
+        ]
+        total_interest_series = [
+            {"x": f"{y}-{m:02d}-01", "y": float(all_interest.get((y, m), Decimal("0")))}
+            for y, m in all_months_sorted
+        ]
+
+        return {
+            "loans": loan_series,
+            "total_capital": total_capital_series,
+            "total_interest": total_interest_series,
+        }
+
     def _build_loans_context(self, property_obj: Property) -> list[dict]:
         """Build loan details with computed total cost for the Info tab."""
         loans = PropertyLoan.objects.filter(property=property_obj).order_by(
@@ -753,6 +853,9 @@ class PropertyDetailView(DetailView):
                 "property_mandates": property_mandates,
                 "transactions_json": transactions_data,
                 "loans_with_totals": self._build_loans_context(property_obj),
+                "loan_chart_data_json": json.dumps(
+                    self._build_loan_chart_data(property_obj)
+                ),
                 "today": datetime.date.today(),
                 "loan_formset": self._build_loan_formset(property_obj),
                 "loan_forms_with_schedules": self._build_loan_forms_ctx(),

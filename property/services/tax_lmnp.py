@@ -110,7 +110,8 @@ def get_lmnp_summary(property_id: int, year: int) -> dict:
       - by_line: breakdown by cerfa line number (includes amortization on line 254)
       Cerfa 2033-B computed lines:
       - cerfa_310: résultat comptable = recettes - charges - amort_total
-      - cerfa_318: réintégration art. 39C = amort_total - amort_deductible
+      - cerfa_318: réintégration amortissements excédentaires (art. 39-4 CGI):
+            abs(cerfa_310) when cerfa_310 < 0, else amortization_total
     """
     raw = _get_lmnp_summary_raw(property_id, year)
     recettes = raw["recettes"]
@@ -164,7 +165,13 @@ def get_lmnp_summary(property_id: int, year: int) -> dict:
 
     # Cerfa 2033-B computed lines
     cerfa_310 = result_before_amort - amortization_total  # résultat comptable
-    cerfa_318 = amortization_total - amortization_deductible  # réintégration art. 39C
+    # Réintégration amortissements excédentaires (art. 39-4 CGI):
+    # when the accounting result is a loss, reintegrate abs(cerfa_310) to cap at zero;
+    # when the result is a gain, reintegrate the full dotation.
+    if cerfa_310 < Decimal("0"):
+        cerfa_318 = abs(cerfa_310)
+    else:
+        cerfa_318 = amortization_total
 
     return {
         "year": year,

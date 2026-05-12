@@ -321,11 +321,11 @@ class TestLmnpSummaryConformity:
 
     def test_cerfa_318_2025(self, lmnp_setup, lmnp_entries_2025, lmnp_property):
         """
-        2033-B line 318 (réintégration art. 39C) = full amort_total
-        when result is a deficit.
+        2033-B line 318 = abs(cerfa_310) when cerfa_310 < 0 (deficit comptable).
         """
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
-        assert approx_equal(summary["cerfa_318"], summary["amortization_total"])
+        assert summary["cerfa_310"] < Decimal("0")
+        assert approx_equal(summary["cerfa_318"], abs(summary["cerfa_310"]))
 
     def test_by_line_218_has_loyers(self, lmnp_setup, lmnp_entries_2025, lmnp_property):
         """Line 218 = loyers."""
@@ -672,20 +672,24 @@ class TestForm2033BConformity:
         )
         assert approx_equal(summary["cerfa_310"], expected_310)
 
-    def test_cerfa_318_equals_amort_total_when_deficit(
+    def test_cerfa_318_equals_abs_cerfa_310_when_deficit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
-        """2033-B-318 = amort_total when there is an operating deficit."""
+        """2033-B-318 = abs(cerfa_310) when there is an accounting deficit."""
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
-        assert approx_equal(summary["cerfa_318"], summary["amortization_total"])
+        assert summary["cerfa_310"] < Decimal("0")
+        assert approx_equal(summary["cerfa_318"], abs(summary["cerfa_310"]))
 
-    def test_310_plus_318_equals_taxable_result(
+    def test_310_plus_318_equals_zero_when_deficit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
-        """2033-B-310 + 2033-B-318 = taxable_result (fiscal result)."""
+        """
+        When cerfa_310 < 0, the réintégration exactly offsets the accounting deficit:
+        cerfa_310 + cerfa_318 = 0.
+        """
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
         computed = summary["cerfa_310"] + summary["cerfa_318"]
-        assert approx_equal(computed, summary["taxable_result"])
+        assert approx_equal(computed, Decimal("0"))
 
     def test_cerfa_352_is_zero_when_deficit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025

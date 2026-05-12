@@ -3,6 +3,18 @@
 <form method="post" action="{% url 'property:loans' property.pk %}" novalidate>
   {% csrf_token %}
 
+  {# ── Loans amortization chart ── #}
+  {% if loans_with_totals %}
+  <div class="card mb-3">
+    <div class="card-header py-2">
+      <h6 class="mb-0"><i class="bi bi-bar-chart-line me-1"></i>{% translate "Amortization schedule" %}</h6>
+    </div>
+    <div class="card-body p-2">
+      <div id="loan-amortization-chart" style="height: 300px;"></div>
+    </div>
+  </div>
+  {% endif %}
+
   {# ── Loans table ── #}
   {% if loans_with_totals %}
   <div class="card mb-3">
@@ -587,3 +599,98 @@
   });
 })();
 </script>
+
+{% if loans_with_totals %}
+<script>
+(function() {
+  var chartData = {{ loan_chart_data_json|safe }};
+  if (!chartData || !chartData.loans || chartData.loans.length === 0) return;
+
+  var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+  // Stacked bar series (one per loan)
+  var barSeries = chartData.loans.map(function(loan) {
+    return { name: loan.name, type: 'bar', data: loan.data };
+  });
+
+  // Line series for capital and interest totals
+  var lineSeries = [
+    { name: '{% translate "Total capital" %}', type: 'line', data: chartData.total_capital },
+    { name: '{% translate "Total interest" %}', type: 'line', data: chartData.total_interest },
+  ];
+
+  var allSeries = barSeries.concat(lineSeries);
+
+  // Assign types: bars are 'bar', lines are 'line'
+  var yaxis = [
+    {
+      seriesName: barSeries[0].name,
+      labels: { formatter: function(v) { return new Intl.NumberFormat('fr-FR', {style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v); } },
+    }
+  ];
+  // All bar series share the same y-axis (only first defined explicitly)
+  for (var i = 1; i < barSeries.length; i++) {
+    yaxis.push({ seriesName: barSeries[0].name, show: false });
+  }
+  // Line series share same axis but hidden label
+  yaxis.push({ seriesName: '{% translate "Total capital" %}', show: false });
+  yaxis.push({ seriesName: '{% translate "Total interest" %}', show: false });
+
+  var options = {
+    series: allSeries,
+    chart: {
+      type: 'bar',
+      height: 300,
+      stacked: true,
+      toolbar: { show: false },
+      background: 'transparent',
+      animations: { enabled: false },
+    },
+    theme: { mode: isDark ? 'dark' : 'light' },
+    plotOptions: {
+      bar: { columnWidth: '70%' }
+    },
+    stroke: {
+      width: allSeries.map(function(s) { return s.type === 'line' ? 2 : 0; }),
+      curve: 'smooth',
+    },
+    markers: {
+      size: allSeries.map(function(s) { return s.type === 'line' ? 0 : 0; }),
+    },
+    xaxis: {
+      type: 'datetime',
+      labels: {
+        datetimeUTC: false,
+        format: 'MMM yy',
+      },
+    },
+    yaxis: yaxis,
+    legend: { position: 'top' },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      x: { format: 'MMM yyyy' },
+      y: {
+        formatter: function(v) {
+          return new Intl.NumberFormat('fr-FR', {style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
+        }
+      }
+    },
+    dataLabels: { enabled: false },
+    grid: { strokeDashArray: 4 },
+  };
+
+  var chartEl = document.querySelector('#loan-amortization-chart');
+  if (chartEl) {
+    var chart = new ApexCharts(chartEl, options);
+    chart.render();
+
+    // Re-render when tab becomes visible
+    var loansTab = document.getElementById('loans-tab');
+    if (loansTab) {
+      loansTab.addEventListener('shown.bs.tab', function() { chart.render(); });
+    }
+  }
+})();
+</script>
+{% endif %}
