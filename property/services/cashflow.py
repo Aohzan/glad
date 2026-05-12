@@ -62,10 +62,7 @@ def build_balance_sheet(
     - occupancy_rate: Decimal  (0–100)
     - gross_yield_annual: Decimal | None  (annualised income / property value × 100)
     """
-    from property.models import (
-        PropertyLedgerEntry,
-        PropertyLoan,
-    )
+    from property.models import PropertyLedgerEntry, PropertyLoan
     from property.utils import (
         build_loan_monthly_maps,
         iter_month_starts,

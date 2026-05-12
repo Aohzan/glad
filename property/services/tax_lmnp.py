@@ -615,10 +615,7 @@ def get_bilan_data(property_id: int, year: int) -> dict:
       - total_capitaux_propres: valeur_nette_comptable - emprunts (balance sheet equity)
       - cout_revient_acquisitions: gross value of assets acquired during the year
     """
-    from property.models import (
-        AmortizationAsset,
-        PropertyLoan,
-    )
+    from property.models import AmortizationAsset, PropertyLoan
 
     assets = AmortizationAsset.objects.filter(property_id=property_id)
     brut = sum((a.value_total.amount for a in assets), Decimal("0"))
@@ -1053,11 +1050,7 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
       - "total_issues": total count of warning + missing checks across all properties
       - "overall_status": "ok" | "warning" | "incomplete"
     """
-    from property.models import (
-        AmortizationAsset,
-        AmortizationSetup,
-        PropertyLoan,
-    )
+    from property.models import AmortizationAsset, AmortizationSetup, PropertyLoan
 
     def _check(
         check_id: str,
