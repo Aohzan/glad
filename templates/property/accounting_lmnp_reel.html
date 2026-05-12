@@ -953,6 +953,56 @@
     {# ══════════════════════════════════════════════════════════════════════ #}
     <div class="tab-pane fade" id="tab-2033d">
       <h5 class="mb-3">2033-D — Déficits reportables</h5>
+
+      {# ── Amortissements excédentaires non déductibles ─────────────────── #}
+      <h6 class="mt-3 mb-2">Amortissements excédentaires (art. 39-4 CGI) et autres amortissements non déductibles</h6>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle me-1"></i>
+        Les amortissements excédentaires correspondent aux dotations réintégrées fiscalement (ligne 318 du 2033-B) :
+        lorsque le résultat comptable est déficitaire, la fraction des amortissements qui crée ou aggrave la perte est réintégrée ;
+        lorsqu'il est bénéficiaire, la totalité de la dotation est réintégrée (car déduite via le mécanisme art. 39C).
+      </div>
+      <div class="card mb-4" style="max-width:700px;">
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Bien</th>
+                <th class="text-end">Dotation N</th>
+                <th class="text-end">Déduite N (art. 39C)</th>
+                <th class="text-end">Réintégration ligne 318</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in accounting.form_2033b.per_prop %}
+              <tr>
+                <td>{{ p.property.name }}</td>
+                <td class="text-end">{{ p.summary.amortization_total|floatformat:0 }} €</td>
+                <td class="text-end text-success">{{ p.summary.amortization_deductible|floatformat:0 }} €</td>
+                <td class="text-end {% if p.summary.cerfa_318 %}text-warning fw-semibold{% else %}text-body-secondary{% endif %}">
+                  {{ p.summary.cerfa_318|floatformat:0 }} €
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-body-secondary py-2">Aucun bien.</td></tr>
+              {% endfor %}
+            </tbody>
+            <tfoot class="table-light fw-bold">
+              <tr>
+                <td>Total (ligne 318)</td>
+                <td class="text-end">{{ accounting.form_2033b.amortization_total|floatformat:0 }} €</td>
+                <td class="text-end text-success">{{ accounting.form_2033b.amortization_deductible|floatformat:0 }} €</td>
+                <td class="text-end {% if accounting.form_2033b.cerfa_318 %}text-warning{% endif %}">
+                  {{ accounting.form_2033b.cerfa_318|floatformat:0 }} €
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {# ── Déficits fiscaux reportables ─────────────────────────────────── #}
+      <h6 class="mt-3 mb-2">Déficits fiscaux reportables (art. 156 I-1° bis CGI)</h6>
       <div class="alert alert-info">
         <i class="bi bi-info-circle me-1"></i>
         Les déficits fiscaux LMNP sont reportables sur 10 ans et imputables sur les bénéfices LMNP futurs (art. 156 I-1° bis CGI).

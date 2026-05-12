@@ -2,6 +2,7 @@
 set -e
 
 echo "Starting application setup..."
+echo
 
 echo "Applying database migrations..."
 python manage.py migrate
