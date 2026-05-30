@@ -55,6 +55,7 @@ For each modification to the project, perform the following checks and adjustmen
 2. Write and validate tests (95% coverage)
 3. Perform security audit
 4. Optimize and fix bugs
+(following tasks should be run at the end of all tasks, ask if there is anything to do else, before running them)
 5. Update the generate_fixtures.py script if necessary
 6. Update translations
 7. Run pre-commit and fix issues until all checks pass

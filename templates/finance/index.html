@@ -128,14 +128,7 @@
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-finance table-striped">
-          <thead>
-            <tr>
-              <th>{% translate 'Name' %}</th>
-              <th>{% translate 'Value' %}</th>
-              <th>{% translate 'Net progression' %} ({% translate 'Gross' %})</th>
-              <th width="50"></th>
-            </tr>
-          </thead>
+          {% include "finance/_account_table_header.html" %}
           <tbody>
             {% for account in investment_accounts %}
               <tr data-bs-toggle="collapse" data-bs-target="#investment-account-{{ account.model.id }}" aria-expanded="false" aria-controls="investment-account-{{ account.model.id }}">
@@ -146,36 +139,7 @@
                 <td>
                   <strong>{{ account.model.current_value | format_money }}</strong>
                 </td>
-                <td class="progression {{ account.progression.css_class }}">
-                  <div class="progression-value">
-                    {% if account.progression.css_class == "up" %}
-                      <div class="text-success">
-                        <i class="bi bi-arrow-up"></i>
-                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
-                      </div>
-                    {% elif account.progression.css_class == "down" %}
-                      <div class="text-danger">
-                        <i class="bi bi-arrow-down"></i>
-                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
-                      </div>
-                    {% else %}
-                      <div class="text-secondary">
-                        <i class="bi bi-dash"></i>
-                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
-                      </div>
-                    {% endif %}
-                  </div>
-                  <div><small><strong>{{ account.progression.net_difference | format_money }}</strong> <em>({{ account.progression.gross_difference | format_money }})</em></small></div>
-                </td>
-                <td>
-                  <i class="bi bi-bar-chart-line chart-icon text-muted"
-                     data-bs-toggle="tooltip"
-                     data-bs-placement="left"
-                     data-type="investment_account"
-                     data-id="{{ account.model.id }}"
-                     title="{% translate 'Show chart' %}"
-                     style="cursor: pointer;"></i>
-                </td>
+                {% include "finance/_account_progression_cell.html" with chart_data_type="investment_account" %}
               </tr>
               <tr class="collapse" id="investment-account-{{ account.model.id }}">
                 <td colspan="4">
@@ -245,14 +209,7 @@
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-finance table-striped table-hover">
-          <thead>
-            <tr>
-              <th>{% translate 'Name' %}</th>
-              <th>{% translate 'Value' %}</th>
-              <th>{% translate 'Net progression' %} ({% translate 'Gross' %})</th>
-              <th width="50"></th>
-            </tr>
-          </thead>
+          {% include "finance/_account_table_header.html" %}
           <tbody>
             {% for account in savings_accounts %}
               <tr>
@@ -260,36 +217,7 @@
                 <td>
                   <strong>{{ account.model.current_value | format_money }}</strong>
                 </td>
-                <td class="progression {{ account.progression.css_class }}">
-                  <div class="progression-value">
-                    {% if account.progression.css_class == "up" %}
-                      <div class="text-success">
-                        <i class="bi bi-arrow-up"></i>
-                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
-                      </div>
-                    {% elif account.progression.css_class == "down" %}
-                      <div class="text-danger">
-                        <i class="bi bi-arrow-down"></i>
-                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
-                      </div>
-                    {% else %}
-                      <div class="text-secondary">
-                        <i class="bi bi-dash"></i>
-                        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
-                      </div>
-                    {% endif %}
-                  </div>
-                  <div><small><strong>{{ account.progression.net_difference | format_money }}</strong> <em>({{ account.progression.gross_difference | format_money }})</em></small></div>
-                </td>
-                <td>
-                  <i class="bi bi-bar-chart-line chart-icon text-muted"
-                     data-bs-toggle="tooltip"
-                     data-bs-placement="left"
-                     data-type="saving_account"
-                     data-id="{{ account.model.id }}"
-                     title="{% translate 'Show chart' %}"
-                     style="cursor: pointer;"></i>
-                </td>
+                {% include "finance/_account_progression_cell.html" with chart_data_type="saving_account" %}
               </tr>
             {% endfor %}
           </tbody>
@@ -321,6 +249,14 @@
   <script>
     // Set up chart data URL base
     const CHART_DATA_URL_BASE = '{% url "finance:index" %}chart-data';
+    const CURRENCY_CODE = '{{ currency_code|default:"EUR" }}';
+
+    function formatCurrency(val) {
+      return new Intl.NumberFormat(navigator.language || 'en-US', {
+        style: 'currency',
+        currency: CURRENCY_CODE
+      }).format(val);
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize tooltips
@@ -462,12 +398,7 @@
               style: {
                 colors: '#0d6efd'
               },
-              formatter: function (val) {
-                return new Intl.NumberFormat(navigator.language || 'en-US', {
-                  style: 'currency',
-                  currency: '{{ currency_code|default:"EUR" }}'
-                }).format(val);
-              }
+              formatter: formatCurrency
             },
             axisBorder: {
               show: false
@@ -495,12 +426,7 @@
               style: {
                 colors: '#0d6efd'
               },
-              formatter: function (val) {
-                return new Intl.NumberFormat(navigator.language || 'en-US', {
-                  style: 'currency',
-                  currency: '{{ currency_code|default:"EUR" }}'
-                }).format(val);
-              }
+              formatter: formatCurrency
             },
             axisBorder: {
               show: false
@@ -512,23 +438,13 @@
               format: 'dd/MM/yyyy'
             },
             y: data.quantities ? [{
-              formatter: function (val) {
-                return new Intl.NumberFormat(navigator.language || 'en-US', {
-                  style: 'currency',
-                  currency: '{{ currency_code|default:"EUR" }}'
-                }).format(val);
-              }
+              formatter: formatCurrency
             }, {
               formatter: function (val) {
                 return val.toFixed(2);
               }
             }] : {
-              formatter: function (val) {
-                return new Intl.NumberFormat(navigator.language || 'en-US', {
-                  style: 'currency',
-                  currency: '{{ currency_code|default:"EUR" }}'
-                }).format(val);
-              }
+              formatter: formatCurrency
             }
           },
           grid: {

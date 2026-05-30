@@ -12,11 +12,11 @@ repos:
         args:
           - --branch=main
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.12
+    rev: 0.11.17
     hooks:
       - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.15.15
     hooks:
       - id: ruff
         args:
@@ -78,6 +78,12 @@ repos:
         exclude: ^migrations
         language: system
         types: [python]
+
+      - id: jscpd
+        name: jscpd
+        entry: npx jscpd --config .jscpd.json
+        language: system
+
       - id: pytest
         name: pytest
         entry: bash -c 'ENV_FILE=./.env.dev uv run pytest --picked --cov'

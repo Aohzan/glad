@@ -1,4 +1,10 @@
 /* Loading bar */
+
+/* Property detail label used in info panels */
+.prop-label {
+  font-size: .7rem;
+}
+
 #loading-bar {
   position: fixed;
   top: 0;
@@ -62,6 +68,72 @@ footer {
 .progression.negative {
   color: #dc3545; /* Bootstrap danger color */
 }
+
+/* ── Property cards (shared between index.html, property/index.html, etc.) */
+.property-card { border: none; border-radius: 1rem; overflow: hidden; transition: transform .2s, box-shadow .2s; height: 100%; }
+.property-card:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.12) !important; }
+.property-card-header { padding: 1rem 1.25rem .75rem; }
+.property-type-badge { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.cashflow-strip { border-top: 1px solid rgba(0,0,0,.08); font-size: .82rem; }
+[data-bs-theme="dark"] .cashflow-strip { border-top-color: rgba(255,255,255,.08); }
+.loan-bar { height: 6px; border-radius: 3px; }
+
+/* Property type gradients */
+.prop-gradient-house    { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; }
+.prop-gradient-building { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; }
+.prop-gradient-tree     { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
+.prop-gradient-other    { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); color: #374151; }
+[data-bs-theme="dark"] .prop-gradient-house    { background: linear-gradient(135deg, #064e3b, #065f46); color: #a7f3d0; }
+[data-bs-theme="dark"] .prop-gradient-building { background: linear-gradient(135deg, #1e3a5f, #1e40af); color: #bfdbfe; }
+[data-bs-theme="dark"] .prop-gradient-tree     { background: linear-gradient(135deg, #451a03, #78350f); color: #fde68a; }
+[data-bs-theme="dark"] .prop-gradient-other    { background: linear-gradient(135deg, #1f2937, #374151); color: #e5e7eb; }
+
+/* Property horizontal scroll */
+.prop-scroll-track {
+  display: flex;
+  gap: .75rem;
+  overflow-x: auto;
+  padding-bottom: .5rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.prop-scroll-track::-webkit-scrollbar { height: 4px; }
+.prop-scroll-track::-webkit-scrollbar-track { background: transparent; }
+.prop-scroll-track::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 2px; }
+[data-bs-theme="dark"] .prop-scroll-track::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); }
+.prop-scroll-item { min-width: 300px; max-width: 300px; scroll-snap-align: start; flex-shrink: 0; }
+
+/* Account / stat icon circle */
+.account-icon-circle {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+/* Account cards */
+.account-card {
+  border-radius: .75rem;
+  border: 1px solid rgba(0,0,0,.07);
+  padding: .75rem 1rem;
+  transition: background .15s;
+}
+[data-bs-theme="dark"] .account-card { border-color: rgba(255,255,255,.07); }
+.account-card:hover { background: var(--bs-tertiary-bg); }
+.account-value { font-size: 1.05rem; font-weight: 700; line-height: 1.1; }
+.progression-badge {
+  font-size: .7rem; font-weight: 700;
+  padding: .2em .5em;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+/* Section header */
+.section-title { font-size: 1rem; font-weight: 700; letter-spacing: -.01em; }
+
+/* Skeletons */
+.skeleton-card { min-height: 300px; }
 
 /* Custom Bootstrap theme overrides */
 .table-finance {

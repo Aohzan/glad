@@ -1,4 +1,4 @@
-"""Models for finance-related entities such as accounts, account types, and values."""
+"""Models for investment accounts, account types, holdings, and deposits."""
 
 import datetime
 from decimal import Decimal
@@ -47,11 +47,6 @@ class InvestmentAccount(AbstractAccount):
     )
 
     @property
-    def current_value(self) -> Money:
-        """Lazily get the current value using get_value()."""
-        return self.get_value()
-
-    @property
     def currency(self) -> str:
         """Get the currency of the initial value."""
         return str(self.opening_cash_value.currency)
@@ -60,17 +55,6 @@ class InvestmentAccount(AbstractAccount):
     def current_cash_value(self) -> Money:
         """Lazily get the current cash amount."""
         return self.get_cash_value()
-
-    def __str__(self) -> str:
-        """String representation of the Account model."""
-        account_name: str = ""
-        if self.name and self.name in [self.account_type.name, self.account_type.code]:
-            account_name = str(self.name)
-        elif self.name:
-            account_name = f"{str(self.account_type)} {self.name}"
-        else:
-            account_name = str(self.account_type)
-        return account_name + self._account_name_suffix()
 
     def get_cash_value(
         self, max_date: datetime.datetime | datetime.date | None = None

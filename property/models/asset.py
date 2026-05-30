@@ -3,6 +3,7 @@
 import builtins
 import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.db import models
@@ -17,9 +18,14 @@ from property.utils import (
     calculate_monthly_payment,
 )
 
+if TYPE_CHECKING:
+    from property.models.lease import Lease
+
 
 class PropertyLoan(BaseModel):
     """Model representing a property loan."""
+
+    amortization_entries: models.Manager["PropertyLoanAmortizationEntry"]
 
     class Meta:
         verbose_name = _("property loan")
@@ -252,6 +258,8 @@ class Property(BaseModel):
     """Model representing a property."""
 
     property_values: models.Manager["PropertyValue"]
+    leases: models.Manager["Lease"]
+    loans: models.Manager["PropertyLoan"]
 
     HOUSE = "HO"
     APARTMENT = "AP"
@@ -511,6 +519,37 @@ class Property(BaseModel):
         return PropertyProgression(
             current_value=self.get_value(),
             old_value=self.buying_value_gross,
+        )
+
+    @property
+    def appreciation_percent(self) -> float:
+        """Return the value appreciation % versus total acquisition cost."""
+        cost = self.buying_value_gross.amount
+        if not cost:
+            return 0.0
+        return float(((self.gross_value.amount - cost) / cost) * 100)
+
+    @property
+    def loan_progress_percent(self) -> float:
+        """Return the percentage of total loan capital repaid (0–100)."""
+        loans = PropertyLoan.objects.filter(property=self)
+        if not loans.exists():
+            return 100.0
+        total_original = sum(
+            (loan.original_amount.amount for loan in loans), Decimal("0")
+        )
+        if not total_original:
+            return 0.0
+        return float((self.total_paid_loans.amount / total_original) * 100)
+
+    @property
+    def active_lease(self):
+        """Return the first currently active lease, or None."""
+        today = datetime.date.today()
+        return (
+            self.leases.filter(start_date__lte=today)
+            .filter(models.Q(end_date__isnull=True) | models.Q(end_date__gte=today))
+            .first()
         )
 
 

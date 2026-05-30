@@ -19,21 +19,6 @@ def property_obj():
     )
 
 
-@pytest.fixture
-def loan(property_obj):
-    return PropertyLoan.objects.create(
-        property=property_obj,
-        name="Test Loan",
-        lender="Test Bank",
-        start_date=datetime.date(2020, 1, 1),
-        end_date=datetime.date(2040, 1, 1),
-        original_amount=Money(200000, "EUR"),
-        monthly_payment=Money(900, "EUR"),
-        interest_rate=Decimal("1.5"),
-        insurance_rate=Decimal("0.2"),
-    )
-
-
 @pytest.mark.django_db
 class TestPropertyLoanStr:
     def test_str_with_name(self, loan):

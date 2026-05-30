@@ -15,6 +15,7 @@ from finance.models.investment_account import (
     InvestmentAccountHoldingHistory,
 )
 from finance.models.saving_account import SavingAccountValue
+from finance.tests.helpers import csv_confirm_post_data, setup_csv_import_session
 
 # ---------------------------------------------------------------------------
 # csv_export — form validation failures
@@ -171,28 +172,17 @@ def test_csv_import_legacy_headers_investment_cash(user_client):
 @pytest.mark.django_db
 def test_csv_import_confirm_more_than_5_error_rows(user_client, active_saving_account):
     """When more than 5 rows have errors the message includes 'and N more errors'."""
-    session = user_client.session
-    session["csv_type"] = "saving_value"
-    session["csv_header"] = ["account", "value", "date"]
-    # 7 rows with unmapped accounts
-    session["csv_data"] = [
-        [f"Unknown Account {i}", "100", "2024-01-01 12:00:00"] for i in range(7)
-    ]
-    session["app_account_choices"] = [
-        (active_saving_account.id, str(active_saving_account))
-    ]
-    session.save()
+    setup_csv_import_session(
+        user_client,
+        active_saving_account,
+        csv_data=[
+            [f"Unknown Account {i}", "100", "2024-01-01 12:00:00"] for i in range(7)
+        ],
+    )
 
     response = user_client.post(
         reverse("finance:csv_import_confirm"),
-        {
-            "accounts-TOTAL_FORMS": "1",
-            "accounts-INITIAL_FORMS": "1",
-            "accounts-MIN_NUM_FORMS": "0",
-            "accounts-MAX_NUM_FORMS": "1000",
-            "accounts-0-csv_account_name": "Mapped",
-            "accounts-0-app_account_id": str(active_saving_account.id),
-        },
+        csv_confirm_post_data("Mapped", active_saving_account.id),
     )
 
     assert response.status_code == 302
@@ -221,30 +211,18 @@ def test_csv_import_confirm_mixed_imported_and_duplicates(
         value_date=duplicate_date,
     )
 
-    session = user_client.session
-    session["csv_type"] = "saving_value"
-    session["csv_header"] = ["account", "value", "date"]
-    session["csv_data"] = [
-        # duplicate
-        [active_saving_account.name, "1000", "2024-03-15 10:00:00"],
-        # new
-        [active_saving_account.name, "1200", "2024-04-01 12:00:00"],
-    ]
-    session["app_account_choices"] = [
-        (active_saving_account.id, str(active_saving_account))
-    ]
-    session.save()
+    setup_csv_import_session(
+        user_client,
+        active_saving_account,
+        csv_data=[
+            [active_saving_account.name, "1000", "2024-03-15 10:00:00"],  # duplicate
+            [active_saving_account.name, "1200", "2024-04-01 12:00:00"],  # new
+        ],
+    )
 
     response = user_client.post(
         reverse("finance:csv_import_confirm"),
-        {
-            "accounts-TOTAL_FORMS": "1",
-            "accounts-INITIAL_FORMS": "1",
-            "accounts-MIN_NUM_FORMS": "0",
-            "accounts-MAX_NUM_FORMS": "1000",
-            "accounts-0-csv_account_name": active_saving_account.name,
-            "accounts-0-app_account_id": str(active_saving_account.id),
-        },
+        csv_confirm_post_data(active_saving_account.name, active_saving_account.id),
     )
 
     assert response.status_code == 302
@@ -263,27 +241,18 @@ def test_csv_import_confirm_investment_cash_success(
     user_client, active_investment_account
 ):
     """Confirm step successfully creates InvestmentAccountCash entries."""
-    session = user_client.session
-    session["csv_type"] = "investment_cash"
-    session["csv_header"] = ["account", "value", "date"]
-    session["csv_data"] = [
-        [active_investment_account.name, "4500.00", "2024-05-01 10:00:00"]
-    ]
-    session["app_account_choices"] = [
-        (active_investment_account.id, str(active_investment_account))
-    ]
-    session.save()
+    setup_csv_import_session(
+        user_client,
+        active_investment_account,
+        csv_data=[[active_investment_account.name, "4500.00", "2024-05-01 10:00:00"]],
+        csv_type="investment_cash",
+    )
 
     response = user_client.post(
         reverse("finance:csv_import_confirm"),
-        {
-            "accounts-TOTAL_FORMS": "1",
-            "accounts-INITIAL_FORMS": "1",
-            "accounts-MIN_NUM_FORMS": "0",
-            "accounts-MAX_NUM_FORMS": "1000",
-            "accounts-0-csv_account_name": active_investment_account.name,
-            "accounts-0-app_account_id": str(active_investment_account.id),
-        },
+        csv_confirm_post_data(
+            active_investment_account.name, active_investment_account.id
+        ),
     )
 
     assert response.status_code == 302
@@ -312,31 +281,29 @@ def test_csv_import_confirm_investment_holding_success(
     )
     mapping_key = f"{active_investment_account.name} - World ETF (WRLD)"
 
+    setup_csv_import_session(
+        user_client,
+        active_investment_account,
+        csv_data=[
+            [
+                active_investment_account.name,
+                "World ETF (WRLD)",
+                "600.00",
+                "5",
+                "2024-06-01 10:00:00",
+            ]
+        ],
+        csv_type="investment_holding",
+        csv_header=["account", "holding", "value", "quantity", "date"],
+    )
+    # Override app_account_choices to use holding id instead of account id
     session = user_client.session
-    session["csv_type"] = "investment_holding"
-    session["csv_header"] = ["account", "holding", "value", "quantity", "date"]
-    session["csv_data"] = [
-        [
-            active_investment_account.name,
-            "World ETF (WRLD)",
-            "600.00",
-            "5",
-            "2024-06-01 10:00:00",
-        ]
-    ]
     session["app_account_choices"] = [(holding.id, str(holding))]
     session.save()
 
     response = user_client.post(
         reverse("finance:csv_import_confirm"),
-        {
-            "accounts-TOTAL_FORMS": "1",
-            "accounts-INITIAL_FORMS": "1",
-            "accounts-MIN_NUM_FORMS": "0",
-            "accounts-MAX_NUM_FORMS": "1000",
-            "accounts-0-csv_account_name": mapping_key,
-            "accounts-0-app_account_id": str(holding.id),
-        },
+        csv_confirm_post_data(mapping_key, holding.id),
     )
 
     assert response.status_code == 302

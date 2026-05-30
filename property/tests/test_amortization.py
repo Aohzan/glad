@@ -878,22 +878,22 @@ class TestAmortizationAssetCrudViews:
 
 @pytest.mark.django_db
 class TestGetAmortizationContextViaDetailView:
-    """Cover get_amortization_context and get_amortization_schedule via the detail view."""
+    """Cover get_amortization_context and get_amortization_schedule via the amortization panel."""
 
     def test_detail_view_with_lmnp_reel_no_assets(self, admin_client, property_obj):
-        """Detail view for LMNP_REEL property without assets calls get_amortization_context."""
-        url = reverse("property:detail", kwargs={"pk": property_obj.pk})
+        """Amortization panel for LMNP_REEL property without assets calls get_amortization_context."""
+        url = reverse("property:panel_amortization", kwargs={"pk": property_obj.pk})
         response = admin_client.get(url)
         assert response.status_code == 200
-        assert response.context["show_amortization_tab"] is True
+        assert response.context["has_assets"] is False
         assert response.context["amortization_table"] == []
         assert response.context["amortization_end_year"] is None
 
     def test_detail_view_with_lmnp_reel_with_assets(
         self, admin_client, property_obj, structure_asset
     ):
-        """Detail view with assets populates the schedule context."""
-        url = reverse("property:detail", kwargs={"pk": property_obj.pk})
+        """Amortization panel with assets populates the schedule context."""
+        url = reverse("property:panel_amortization", kwargs={"pk": property_obj.pk})
         response = admin_client.get(url)
         assert response.status_code == 200
         assert len(response.context["amortization_table"]) == 1
@@ -904,14 +904,14 @@ class TestGetAmortizationContextViaDetailView:
         self, admin_client, property_obj
     ):
         """No AmortizationSetup → amortization_setup context is None."""
-        url = reverse("property:detail", kwargs={"pk": property_obj.pk})
+        url = reverse("property:panel_amortization", kwargs={"pk": property_obj.pk})
         response = admin_client.get(url)
         assert response.status_code == 200
         assert response.context["amortization_setup"] is None
 
     def test_detail_view_context_includes_init_form(self, admin_client, property_obj):
-        """Detail view context includes amortization_init_form."""
-        url = reverse("property:detail", kwargs={"pk": property_obj.pk})
+        """Amortization panel context includes amortization_init_form."""
+        url = reverse("property:panel_amortization", kwargs={"pk": property_obj.pk})
         response = admin_client.get(url)
         assert response.status_code == 200
         assert "amortization_init_form" in response.context
@@ -930,7 +930,7 @@ class TestGetAmortizationContextViaDetailView:
             agency_fees=Money(5000, "EUR"),
             other_fees=Money(1000, "EUR"),
         )
-        url = reverse("property:detail", kwargs={"pk": prop.pk})
+        url = reverse("property:panel_amortization", kwargs={"pk": prop.pk})
         response = admin_client.get(url)
         assert response.status_code == 200
         assert response.context["acquisition_fees_total"] == Decimal("20000")
@@ -938,7 +938,7 @@ class TestGetAmortizationContextViaDetailView:
 
     def test_detail_view_context_no_fees_shows_zero(self, admin_client, property_obj):
         """When property has no fees, acquisition_fees_total is 0."""
-        url = reverse("property:detail", kwargs={"pk": property_obj.pk})
+        url = reverse("property:panel_amortization", kwargs={"pk": property_obj.pk})
         response = admin_client.get(url)
         assert response.status_code == 200
         assert response.context["acquisition_fees_total"] == Decimal("0")

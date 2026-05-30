@@ -1,7 +1,13 @@
 """Admin conf for Finance."""
 
+from __future__ import annotations
+
 from django.contrib import admin, messages
 from django.contrib.admin import helpers
+from django.db import models
+from django.shortcuts import render
+from django.utils import timezone
+from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 from finance.models.investment_account import (
@@ -21,6 +27,50 @@ from finance.models.saving_account import (
 
 admin.site.register(SavingAccountType)
 admin.site.register(InvestmentAccountType)
+
+
+class BulkUpdateDateMixin:
+    """Mixin that provides a reusable bulk-date-update action helper."""
+
+    model: type[models.Model]
+
+    def _bulk_update_date_action(
+        self,
+        request,
+        queryset,
+        *,
+        date_field: str,
+        action_name: str,
+        title: str | Promise,
+        date_field_label: str | Promise,
+    ):
+        """Shared implementation for bulk date update admin actions."""
+        post_key = f"new_{date_field}"
+        if "apply" in request.POST:
+            new_date = request.POST.get(post_key)
+            if new_date:
+                count = queryset.update(**{date_field: new_date})
+                messages.success(
+                    request,
+                    _("Successfully updated %(field)s for %(count)d items.")
+                    % {"field": date_field.replace("_", " "), "count": count},
+                )
+                return None
+
+        return render(
+            request,
+            "admin/bulk_update_date.html",
+            {
+                "queryset": queryset,
+                "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
+                "opts": self.model._meta,
+                "action_name": action_name,
+                "title": title,
+                "date_field_name": post_key,
+                "date_field_label": date_field_label,
+                "now": timezone.now(),
+            },
+        )
 
 
 class InvestmentAccountHoldingInline(admin.TabularInline):
@@ -144,7 +194,7 @@ class InvestmentAccountDepositAdmin(admin.ModelAdmin):
 
 
 @admin.register(InvestmentAccountHoldingHistory)
-class InvestmentAccountHoldingHistoryAdmin(admin.ModelAdmin):
+class InvestmentAccountHoldingHistoryAdmin(BulkUpdateDateMixin, admin.ModelAdmin):
     """Admin interface for InvestmentAccountHoldingHistory."""
 
     list_display = (
@@ -161,39 +211,18 @@ class InvestmentAccountHoldingHistoryAdmin(admin.ModelAdmin):
     @admin.action(description=_("Bulk update valuation date"))
     def bulk_update_valuation_date(self, request, queryset):
         """Bulk update valuation date for selected items."""
-        if "apply" in request.POST:
-            new_date = request.POST.get("new_valuation_date")
-            if new_date:
-                count = queryset.update(valuation_date=new_date)
-                messages.success(
-                    request,
-                    _("Successfully updated valuation date for %(count)d items.")
-                    % {"count": count},
-                )
-                return None
-
-        # Show intermediate page with date input
-        from django.shortcuts import render
-        from django.utils import timezone
-
-        return render(
+        return self._bulk_update_date_action(
             request,
-            "admin/bulk_update_date.html",
-            {
-                "queryset": queryset,
-                "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
-                "opts": self.model._meta,
-                "action_name": "bulk_update_valuation_date",
-                "title": _("Bulk update valuation date"),
-                "date_field_name": "new_valuation_date",
-                "date_field_label": _("New valuation date"),
-                "now": timezone.now(),
-            },
+            queryset,
+            date_field="valuation_date",
+            action_name="bulk_update_valuation_date",
+            title=_("Bulk update valuation date"),
+            date_field_label=_("New valuation date"),
         )
 
 
 @admin.register(SavingAccountValue)
-class SavingAccountValueAdmin(admin.ModelAdmin):
+class SavingAccountValueAdmin(BulkUpdateDateMixin, admin.ModelAdmin):
     """Admin interface for SavingAccountValue."""
 
     list_display = (
@@ -209,32 +238,11 @@ class SavingAccountValueAdmin(admin.ModelAdmin):
     @admin.action(description=_("Bulk update value date"))
     def bulk_update_value_date(self, request, queryset):
         """Bulk update value date for selected items."""
-        if "apply" in request.POST:
-            new_date = request.POST.get("new_value_date")
-            if new_date:
-                count = queryset.update(value_date=new_date)
-                messages.success(
-                    request,
-                    _("Successfully updated value date for %(count)d items.")
-                    % {"count": count},
-                )
-                return None
-
-        # Show intermediate page with date input
-        from django.shortcuts import render
-        from django.utils import timezone
-
-        return render(
+        return self._bulk_update_date_action(
             request,
-            "admin/bulk_update_date.html",
-            {
-                "queryset": queryset,
-                "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
-                "opts": self.model._meta,
-                "action_name": "bulk_update_value_date",
-                "title": _("Bulk update value date"),
-                "date_field_name": "new_value_date",
-                "date_field_label": _("New value date"),
-                "now": timezone.now(),
-            },
+            queryset,
+            date_field="value_date",
+            action_name="bulk_update_value_date",
+            title=_("Bulk update value date"),
+            date_field_label=_("New value date"),
         )

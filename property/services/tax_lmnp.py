@@ -728,7 +728,11 @@ def get_immobilisation_movements(property_id: int, year: int) -> dict:
         for cat in categories
     }
     for row in rows:
-        cat = row["cerfa_category"] if row["cerfa_category"] in categories else "autres"
+        cat: str = (
+            str(row["cerfa_category"])
+            if row["cerfa_category"] in categories
+            else "autres"
+        )
         by_cerfa[cat]["value_start"] += row["value_start"]
         by_cerfa[cat]["acquisitions"] += row["acquisitions"]
         by_cerfa[cat]["value_end"] += row["value_end"]

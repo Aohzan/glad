@@ -112,21 +112,10 @@ def test_bulk_update_valuation_date_shows_intermediate_form(
 
 @pytest.mark.django_db
 def test_bulk_update_valuation_date_apply_updates_records(
-    admin_client, active_investment_account
+    admin_client, investment_holding_history
 ):
     """Selecting bulk_update_valuation_date with 'apply' updates the valuation date."""
-    holding = InvestmentAccountHolding.objects.create(
-        account=active_investment_account,
-        name="Holding for Update",
-        is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
-    )
-    history = InvestmentAccountHoldingHistory.objects.create(
-        holding=holding,
-        value=Money(Decimal("300"), "EUR"),
-        quantity=Decimal("3"),
-        valuation_date=datetime.datetime(2025, 2, 1, 10, 0, 0),
-    )
+    history = investment_holding_history
 
     new_date = "2025-06-01"
     url = reverse("admin:finance_investmentaccountholdinghistory_changelist")

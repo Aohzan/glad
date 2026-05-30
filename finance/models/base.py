@@ -9,6 +9,14 @@ from base.models import BaseModel
 from finance.utils import AccountProgression
 
 
+class ActiveAccountManager(models.Manager):
+    """Default manager that provides an ``active()`` shortcut queryset."""
+
+    def active(self):
+        """Return only active accounts (``is_active=True``)."""
+        return self.filter(is_active=True)
+
+
 class AbstractAccountType(BaseModel):
     """Abstract base for account-type lookup models.
 
@@ -35,6 +43,8 @@ class AbstractAccount(BaseModel):
     subclasses only need to declare type-specific fields (e.g. ``interest_rate``
     or ``opening_cash_value``) and their own ``get_value()`` / ``currency``.
     """
+
+    objects = ActiveAccountManager()
 
     class Meta:
         abstract = True
@@ -71,6 +81,17 @@ class AbstractAccount(BaseModel):
     def current_value(self):
         """Lazily compute the current value via ``get_value()``."""
         return self.get_value()  # ty: ignore[unresolved-attribute]
+
+    def __str__(self) -> str:
+        """String representation shared by all concrete account models."""
+        account_name: str = ""
+        if self.name and self.name in [self.account_type.name, self.account_type.code]:  # ty: ignore[unresolved-attribute]
+            account_name = str(self.name)
+        elif self.name:
+            account_name = f"{self.account_type} {self.name}"  # ty: ignore[unresolved-attribute]
+        else:
+            account_name = str(self.account_type)  # ty: ignore[unresolved-attribute]
+        return account_name + self._account_name_suffix()
 
     def _account_name_suffix(self) -> str:
         """Return the owner / institution / closed suffix shared by all account __str__."""

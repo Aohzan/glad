@@ -6,62 +6,21 @@
 {% block content %}
 <div class="container py-4" style="max-width: 640px;">
 
-  <div class="d-flex align-items-center gap-2 mb-4">
-    <a href="{% url 'property:detail' property.pk %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>{{ property.name }}
-    </a>
-    <h1 class="h4 mb-0 ms-1">
-      <i class="bi bi-trash me-1 text-danger"></i>{% translate "Delete occurrence" %}
-    </h1>
-  </div>
+  {% url 'property:detail' property.pk as back_url %}
+  {% translate "Delete occurrence" as page_title %}
+  {% include "property/_edit_page_header.html" with back_url=back_url back_label=property.name page_title=page_title title_icon_class="bi-trash text-danger" %}
 
   {# ── Occurrence info banner ──────────────────────────────────────────────── #}
-  <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
-    <i class="bi bi-arrow-repeat fs-5"></i>
-    <div>
-      <strong>{{ occurrence_date|date:"d/m/Y" }}</strong>
-      &mdash;
-      <span class="text-body-secondary">{{ entry }}</span>
-    </div>
-  </div>
+  {% include "property/_occurrence_info_banner.html" with alert_class="alert-warning" %}
 
   <form method="post">
     {% csrf_token %}
 
-    {# ── Scope selection ─────────────────────────────────────────────────── #}
-    <div class="card mb-4">
-      <div class="card-header py-2">
-        <h6 class="mb-0"><i class="bi bi-sliders me-1"></i>{% translate "Delete scope" %}</h6>
-      </div>
-      <div class="card-body">
-        <div class="d-flex flex-column gap-2">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="scope" id="scope-this"
-                   value="{{ scope_this }}" checked>
-            <label class="form-check-label" for="scope-this">
-              <strong>{% translate "This occurrence only" %}</strong>
-              <div class="text-body-secondary small">{% translate "Only the selected date will be removed. The rest of the series is unchanged." %}</div>
-            </label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="scope" id="scope-future"
-                   value="{{ scope_future }}">
-            <label class="form-check-label" for="scope-future">
-              <strong>{% translate "This and future occurrences" %}</strong>
-              <div class="text-body-secondary small">{% translate "The series will end before this date. All occurrences from this date onwards will be removed." %}</div>
-            </label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="scope" id="scope-all"
-                   value="{{ scope_all }}">
-            <label class="form-check-label" for="scope-all">
-              <strong>{% translate "All occurrences" %}</strong>
-              <div class="text-body-secondary small text-danger">{% translate "The entire recurring entry will be permanently deleted." %}</div>
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
+    {% translate "Delete scope" as card_title %}
+    {% translate "Only the selected date will be removed. The rest of the series is unchanged." as desc_this %}
+    {% translate "The series will end before this date. All occurrences from this date onwards will be removed." as desc_future %}
+    {% translate "The entire recurring entry will be permanently deleted." as desc_all %}
+    {% include "property/_occurrence_scope_selector.html" with card_title=card_title card_mb="mb-4" desc_this=desc_this desc_future=desc_future desc_all=desc_all all_desc_class="text-danger" %}
 
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-danger">

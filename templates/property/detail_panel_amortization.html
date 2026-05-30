@@ -75,7 +75,7 @@
   <div class="col-4 col-md-4">
     <div class="card border-0 bg-body-secondary h-100">
       <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">
+        <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">
           {% translate "Depreciable base" %}
         </p>
         <p class="fs-5 fw-bold mb-0">{{ amortization_total_base|floatformat:0 }} €</p>
@@ -85,7 +85,7 @@
   <div class="col-4 col-md-4">
     <div class="card border-0 bg-body-secondary h-100">
       <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-primary small fw-semibold mb-1" style="font-size:.7rem;">
+        <p class="text-uppercase text-primary small fw-semibold mb-1 prop-label">
           {% translate "Amortized to date" %}
         </p>
         <p class="fs-5 fw-bold mb-0 text-primary">{{ amortization_amortized|floatformat:0 }} €</p>
@@ -101,7 +101,7 @@
   <div class="col-4 col-md-4">
     <div class="card border-0 bg-body-secondary h-100">
       <div class="card-body py-2 px-3">
-        <p class="text-uppercase text-warning small fw-semibold mb-1" style="font-size:.7rem;">
+        <p class="text-uppercase text-warning small fw-semibold mb-1 prop-label">
           {% translate "Remaining" %}
         </p>
         <p class="fs-5 fw-bold mb-0 text-warning">{{ amortization_remaining|floatformat:0 }} €</p>
@@ -292,3 +292,66 @@ document.querySelectorAll('.amort-row').forEach(function(row) {
   });
 });
 </script>
+
+{% if has_assets %}
+{{ amortization_asset_series_json|json_script:"amortization-asset-series" }}
+<script>
+(function () {
+  var assetSeries = JSON.parse(document.getElementById('amortization-asset-series').textContent) || [];
+  if (!assetSeries.length) return;
+
+  function getCurrentTheme() {
+    return document.documentElement.getAttribute('data-bs-theme') || 'light';
+  }
+
+  var currentYear = new Date().getFullYear();
+  var defaultYear = currentYear - 1;
+
+  var amortChart = new ApexCharts(document.querySelector('#amortization-dotation-chart'), {
+    chart: {
+      type: 'bar', stacked: true, height: 300,
+      toolbar: { show: true, tools: { download: false, selection: false, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true } },
+      zoom: { enabled: true, type: 'x' },
+      background: 'transparent'
+    },
+    series: assetSeries.map(function(s) {
+      return { name: s.label, data: s.data.map(function(r) { return { x: r.year, y: parseFloat(r.dotation.toFixed(2)) }; }) };
+    }),
+    plotOptions: {
+      bar: {
+        columnWidth: '70%',
+        dataLabels: { position: 'top', total: {
+          enabled: true,
+          style: { fontSize: '11px', fontWeight: 600 },
+          formatter: function(v) { return Math.round(v).toLocaleString('fr-FR') + ' €'; }
+        }}
+      }
+    },
+    dataLabels: { enabled: false },
+    legend: { show: true, position: 'top' },
+    xaxis: {
+      type: 'numeric',
+      min: defaultYear,
+      max: defaultYear + 9,
+      labels: { rotate: -45, style: { fontSize: '11px' }, formatter: function(v) { return Math.round(v); } },
+      tickPlacement: 'on'
+    },
+    yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString() + ' €'; } } },
+    annotations: {
+      xaxis: [{ x: defaultYear, borderColor: '#0d6efd', label: { text: String(defaultYear), style: { color: '#fff', background: '#0d6efd' } } }]
+    },
+    tooltip: {
+      theme: getCurrentTheme(),
+      x: { formatter: function(v) { return Math.round(v); } },
+      y: { formatter: function(v) { return v.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }); } }
+    },
+    theme: { mode: getCurrentTheme() }
+  });
+  amortChart.render();
+
+  // Register for theme updates
+  window._propertyPanelCharts = window._propertyPanelCharts || [];
+  window._propertyPanelCharts.push(amortChart);
+})();
+</script>
+{% endif %}

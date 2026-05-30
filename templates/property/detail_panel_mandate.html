@@ -19,31 +19,27 @@
           {% endif %}
           <span class="fw-semibold">{{ mandate.manager_name }}</span>
         </div>
-        <div class="btn-group btn-group-sm">
-          <a href="{% url 'property:edit_mandate' property.pk mandate.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
-            <i class="bi bi-pencil"></i>
-          </a>
-          <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMandateModal{{ mandate.pk }}" title="{% translate 'Delete' %}">
-            <i class="bi bi-trash"></i>
-          </button>
-        </div>
+        {% url 'property:edit_mandate' property.pk mandate.pk as edit_url %}
+        {% with delete_modal_id="deleteMandateModal"|add:mandate.pk|stringformat:"s" %}
+          {% include "property/_item_actions.html" with edit_url=edit_url delete_modal_id=delete_modal_id %}
+        {% endwith %}
       </div>
       <div class="card-body py-2">
         <div class="row g-2">
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Start date" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Start date" %}</p>
             <p class="mb-0">{{ mandate.start_date }}</p>
           </div>
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "End date" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "End date" %}</p>
             <p class="mb-0">{{ mandate.end_date|default:"—" }}</p>
           </div>
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Fee type" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Fee type" %}</p>
             <p class="mb-0">{{ mandate.get_fee_type_display }}</p>
           </div>
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Fee" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Fee" %}</p>
             <p class="mb-0">
               {% if mandate.fee_percentage %}{{ mandate.fee_percentage|floatformat:2 }} %{% endif %}
               {% if mandate.fee_percentage and mandate.fixed_fee %} + {% endif %}
@@ -53,7 +49,7 @@
           </div>
           {% if mandate.notes %}
             <div class="col-12">
-              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Notes" %}</p>
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Notes" %}</p>
               <p class="mb-0 small text-body-secondary">{{ mandate.notes }}</p>
             </div>
           {% endif %}
@@ -62,26 +58,10 @@
     </div>
 
     {# Delete mandate confirmation modal #}
-    <div class="modal fade" id="deleteMandateModal{{ mandate.pk }}" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form method="post" action="{% url 'property:delete_mandate' property.pk mandate.pk %}">
-            {% csrf_token %}
-            <div class="modal-header">
-              <h5 class="modal-title">{% translate "Delete mandate" %}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <p>{% blocktranslate with manager=mandate.manager_name start=mandate.start_date %}Are you sure you want to delete the mandate with {{ manager }} starting {{ start }}?{% endblocktranslate %}</p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-              <button type="submit" class="btn btn-danger">{% translate "Delete" %}</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+    {% url 'property:delete_mandate' property.pk mandate.pk as delete_mandate_url %}
+    {% translate "Delete mandate" as delete_mandate_title %}
+    {% blocktranslate with manager=mandate.manager_name start=mandate.start_date asvar confirm_mandate_text %}Are you sure you want to delete the mandate with {{ manager }} starting {{ start }}?{% endblocktranslate %}
+    {% include "property/_delete_modal.html" with modal_id="deleteMandateModal"|add:mandate.pk|stringformat:"s" delete_url=delete_mandate_url modal_title=delete_mandate_title confirm_text=confirm_mandate_text %}
   {% endfor %}
 {% else %}
   <div class="text-center py-5 text-body-secondary">

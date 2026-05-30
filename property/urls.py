@@ -119,4 +119,29 @@ urlpatterns = [
         views.delete_amortization_asset,
         name="delete_amortization",
     ),
+    # API
+    path(
+        "<int:pk>/api/dashboard-card/",
+        views.property_dashboard_card_api,
+        name="api_dashboard_card",
+    ),
+    # Async panel fragments
+    path(
+        "<int:pk>/panel/cashflow/", views.property_panel_cashflow, name="panel_cashflow"
+    ),
+    path(
+        "<int:pk>/panel/projection/",
+        views.property_panel_projection,
+        name="panel_projection",
+    ),
+    path("<int:pk>/panel/balance/", views.property_panel_balance, name="panel_balance"),
+    path("<int:pk>/panel/info/", views.property_panel_info, name="panel_info"),
+    path("<int:pk>/panel/loans/", views.property_panel_loans, name="panel_loans"),
+    path("<int:pk>/panel/leases/", views.property_panel_leases, name="panel_leases"),
+    path("<int:pk>/panel/mandate/", views.property_panel_mandate, name="panel_mandate"),
+    path(
+        "<int:pk>/panel/amortization/",
+        views.property_panel_amortization,
+        name="panel_amortization",
+    ),
 ]

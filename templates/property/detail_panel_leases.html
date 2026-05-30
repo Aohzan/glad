@@ -1,7 +1,7 @@
 {% load i18n format_money %}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h6 class="mb-0"><i class="bi bi-house-door me-1"></i>{% translate "Leases" %}</h6>
+  <h6 class="section-title mb-0"><i class="bi bi-house-door me-2 text-primary"></i>{% translate "Leases" %}</h6>
   <a href="{% url 'property:new_lease' property.pk %}" class="btn btn-sm btn-outline-primary">
     <i class="bi bi-plus-circle me-1"></i>{% translate "Add lease" %}
   </a>
@@ -9,8 +9,22 @@
 
 {% if property_leases %}
   {% for lease in property_leases %}
-    <div class="card mb-3">
-      <div class="card-header py-2 d-flex justify-content-between align-items-center">
+    {% if lease.status == "active" %}
+      {% with border_color="#198754" %}
+    <div class="card mb-3 shadow-sm rounded-4 overflow-hidden" style="border-left:4px solid {{ border_color }} !important">
+    {% endwith %}
+    {% elif lease.status == "upcoming" %}
+      {% with border_color="#0dcaf0" %}
+    <div class="card mb-3 shadow-sm rounded-4 overflow-hidden" style="border-left:4px solid {{ border_color }} !important">
+    {% endwith %}
+    {% elif lease.status == "notice" %}
+      {% with border_color="#ffc107" %}
+    <div class="card mb-3 shadow-sm rounded-4 overflow-hidden" style="border-left:4px solid {{ border_color }} !important">
+    {% endwith %}
+    {% else %}
+    <div class="card mb-3 shadow-sm rounded-4 overflow-hidden" style="border-left:4px solid #adb5bd !important">
+    {% endif %}
+      <div class="card-header border-0 py-2 d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
           {% if lease.status == "active" %}
             <span class="badge bg-success">{% translate "Active" %}</span>
@@ -21,52 +35,46 @@
           {% else %}
             <span class="badge bg-secondary">{% translate "Ended" %}</span>
           {% endif %}
-          <span class="fw-semibold">
-            {{ lease.name }}
-          </span>
+          <span class="fw-semibold">{{ lease.name }}</span>
         </div>
-        <div class="btn-group btn-group-sm">
-          <a href="{% url 'property:edit_lease' property.pk lease.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
-            <i class="bi bi-pencil"></i>
-          </a>
-          <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteLeaseModal{{ lease.pk }}" title="{% translate 'Delete' %}">
-            <i class="bi bi-trash"></i>
-          </button>
-        </div>
+        {% url 'property:edit_lease' property.pk lease.pk as edit_url %}
+        {% with delete_modal_id="deleteLeaseModal"|add:lease.pk|stringformat:"s" %}
+          {% include "property/_item_actions.html" with edit_url=edit_url delete_modal_id=delete_modal_id %}
+        {% endwith %}
       </div>
       <div class="card-body py-2">
         <div class="row g-2">
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Type" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Type" %}</p>
             <p class="mb-0">{{ lease.get_lease_type_display }}</p>
           </div>
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Start date" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Start date" %}</p>
             <p class="mb-0">{{ lease.start_date }}</p>
           </div>
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "End date" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "End date" %}</p>
             <p class="mb-0">{{ lease.end_date|default:"—" }}</p>
           </div>
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Rent (excl. charges)" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Rent (excl. charges)" %}</p>
             <p class="mb-0 fw-semibold">{{ lease.rent_amount|format_money }}</p>
           </div>
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Charges provision" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Charges provision" %}</p>
             <p class="mb-0">{{ lease.charges_amount|format_money }}</p>
           </div>
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Security deposit" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Security deposit" %}</p>
             <p class="mb-0">{{ lease.deposit_amount|format_money }}</p>
           </div>
           <div class="col-6 col-md-3">
-            <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Periodicity" %}</p>
+            <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Periodicity" %}</p>
             <p class="mb-0">{{ lease.get_periodicity_display }}</p>
           </div>
           {% if lease.notes %}
             <div class="col-12">
-              <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">{% translate "Notes" %}</p>
+              <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Notes" %}</p>
               <p class="mb-0 small text-body-secondary">{{ lease.notes }}</p>
             </div>
           {% endif %}
@@ -75,26 +83,10 @@
     </div>
 
     {# Delete lease confirmation modal #}
-    <div class="modal fade" id="deleteLeaseModal{{ lease.pk }}" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form method="post" action="{% url 'property:delete_lease' property.pk lease.pk %}">
-            {% csrf_token %}
-            <div class="modal-header">
-              <h5 class="modal-title">{% translate "Delete lease" %}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <p>{% blocktranslate with start=lease.start_date %}Are you sure you want to delete the lease starting {{ start }}?{% endblocktranslate %}</p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-              <button type="submit" class="btn btn-danger">{% translate "Delete" %}</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+    {% url 'property:delete_lease' property.pk lease.pk as delete_lease_url %}
+    {% translate "Delete lease" as delete_lease_title %}
+    {% blocktranslate with start=lease.start_date asvar confirm_lease_text %}Are you sure you want to delete the lease starting {{ start }}?{% endblocktranslate %}
+    {% include "property/_delete_modal.html" with modal_id="deleteLeaseModal"|add:lease.pk|stringformat:"s" delete_url=delete_lease_url modal_title=delete_lease_title confirm_text=confirm_lease_text %}
   {% endfor %}
 {% else %}
   <div class="text-center py-5 text-body-secondary">

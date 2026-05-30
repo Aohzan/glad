@@ -61,110 +61,17 @@
 {# ── Breakdown ───────────────────────────────────────────────── #}
 <div class="row g-3">
 
-  {# Income #}
-  <div class="col-12 col-lg-4">
-    <div class="card h-100">
-      <div class="card-header py-2 bg-success-subtle">
-        <h6 class="mb-0 text-success-emphasis">
-          <i class="bi bi-arrow-down-circle me-1"></i>{% translate "Income" %}
-        </h6>
-      </div>
-      <div class="card-body p-0">
-        {% if balance_sheet.income_rows %}
-          <table class="table table-sm align-middle mb-0">
-            <tbody>
-              <tr>
-                <td class="ps-3">{% translate "Occupancy rate" %}</td>
-                <td class="text-end pe-3 fw-bold">{{ balance_sheet.occupancy_rate|floatformat:0 }} %
-                  <span class="text-body-secondary small fw-normal">({{ balance_sheet.months_with_rent }}/{{ balance_sheet.months_count }} {% translate "months" %})</span>
-                </td>
-              </tr>
-              {% for row in balance_sheet.income_rows %}
-                <tr>
-                  <td class="ps-3">{{ row.label }}</td>
-                  <td class="text-end pe-3 fw-semibold">{{ row.amount|format_money_amount:property.currency }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th class="ps-3">{% translate "Total" %}</th>
-                <th class="text-end pe-3">{{ balance_sheet.total_income|format_money_amount:property.currency }}</th>
-              </tr>
-            </tfoot>
-          </table>
-        {% else %}
-          <p class="text-body-secondary text-center py-3 mb-0 small">{% translate "No income in this period." %}</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+  {% translate "Income" as income_title %}
+  {% translate "No income in this period." as no_income_msg %}
+  {% include "property/_balance_section_card.html" with card_header_bg="bg-success-subtle" header_text_class="text-success-emphasis" header_icon="bi-arrow-down-circle" section_title=income_title section_rows=balance_sheet.income_rows section_total=balance_sheet.total_income empty_message=no_income_msg show_occupancy_rate=True %}
 
-  {# Expenses #}
-  <div class="col-12 col-lg-4">
-    <div class="card h-100">
-      <div class="card-header py-2 bg-danger-subtle">
-        <h6 class="mb-0 text-danger-emphasis">
-          <i class="bi bi-arrow-up-circle me-1"></i>{% translate "Expenses" %}
-        </h6>
-      </div>
-      <div class="card-body p-0">
-        {% if balance_sheet.expense_rows %}
-          <table class="table table-sm align-middle mb-0">
-            <tbody>
-              {% for row in balance_sheet.expense_rows %}
-                <tr>
-                  <td class="ps-3">{{ row.label }}</td>
-                  <td class="text-end pe-3 fw-semibold">{{ row.amount|format_money_amount:property.currency }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th class="ps-3">{% translate "Total" %}</th>
-                <th class="text-end pe-3">{{ balance_sheet.total_expenses|format_money_amount:property.currency }}</th>
-              </tr>
-            </tfoot>
-          </table>
-        {% else %}
-          <p class="text-body-secondary text-center py-3 mb-0 small">{% translate "No expenses in this period." %}</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+  {% translate "Expenses" as expenses_title %}
+  {% translate "No expenses in this period." as no_expenses_msg %}
+  {% include "property/_balance_section_card.html" with card_header_bg="bg-danger-subtle" header_text_class="text-danger-emphasis" header_icon="bi-arrow-up-circle" section_title=expenses_title section_rows=balance_sheet.expense_rows section_total=balance_sheet.total_expenses empty_message=no_expenses_msg %}
 
-  {# Loan costs #}
-  <div class="col-12 col-lg-4">
-    <div class="card h-100">
-      <div class="card-header py-2 bg-warning-subtle">
-        <h6 class="mb-0 text-warning-emphasis">
-          <i class="bi bi-bank me-1"></i>{% translate "Loan costs" %}
-        </h6>
-      </div>
-      <div class="card-body p-0">
-        {% if balance_sheet.loan_rows %}
-          <table class="table table-sm align-middle mb-0">
-            <tbody>
-              {% for row in balance_sheet.loan_rows %}
-                <tr>
-                  <td class="ps-3">{{ row.label }}</td>
-                  <td class="text-end pe-3 fw-semibold">{{ row.amount|format_money_amount:property.currency }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th class="ps-3">{% translate "Total" %}</th>
-                <th class="text-end pe-3">{{ balance_sheet.total_loan_costs|format_money_amount:property.currency }}</th>
-              </tr>
-            </tfoot>
-          </table>
-        {% else %}
-          <p class="text-body-secondary text-center py-3 mb-0 small">{% translate "No loan costs in this period." %}</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+  {% translate "Loan costs" as loan_costs_title %}
+  {% translate "No loan costs in this period." as no_loan_costs_msg %}
+  {% include "property/_balance_section_card.html" with card_header_bg="bg-warning-subtle" header_text_class="text-warning-emphasis" header_icon="bi-bank" section_title=loan_costs_title section_rows=balance_sheet.loan_rows section_total=balance_sheet.total_loan_costs empty_message=no_loan_costs_msg %}
 
 </div><!-- end .row breakdown -->
 

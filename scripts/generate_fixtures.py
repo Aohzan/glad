@@ -80,6 +80,7 @@ M25 = months_ago(25)
 M28 = months_ago(28)
 M30 = months_ago(30)
 M36 = months_ago(36)
+M47 = months_ago(47)
 M48 = months_ago(48)
 M60 = months_ago(60)
 M72 = months_ago(72)
@@ -898,36 +899,59 @@ def generate_property() -> str:  # noqa: PLR0915
     monthly_payment_currency: EUR
     insurance: null
     insurance_currency: EUR
-- model: property.propertyloanschedule
+# Amortization entries — Loan 2A (80 000 EUR, 2.95 %, 120 months)
+- model: property.propertyloanamortizationentry
   pk: 1
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     loan: 2
-    order: 1
-    count: 1
-    amount: 800.00
-    amount_currency: EUR
-- model: property.propertyloanschedule
+    date: {ds(M48)}
+    capital: 574.46
+    capital_currency: EUR
+    interest: 196.67
+    interest_currency: EUR
+    remaining_balance_amount: 79425.54
+    remaining_balance_amount_currency: EUR
+- model: property.propertyloanamortizationentry
   pk: 2
   fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
+    created_at: {dt(M47)}
+    updated_at: {dt(M47)}
     loan: 2
-    order: 2
-    count: 118
-    amount: 666.00
-    amount_currency: EUR
-- model: property.propertyloanschedule
+    date: {ds(M47)}
+    capital: 575.87
+    capital_currency: EUR
+    interest: 195.26
+    interest_currency: EUR
+    remaining_balance_amount: 78849.67
+    remaining_balance_amount_currency: EUR
+- model: property.propertyloanamortizationentry
   pk: 3
   fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
     loan: 2
-    order: 3
-    count: 1
-    amount: 612.00
-    amount_currency: EUR
+    date: {ds(M12)}
+    capital: 626.86
+    capital_currency: EUR
+    interest: 144.27
+    interest_currency: EUR
+    remaining_balance_amount: 58065.14
+    remaining_balance_amount_currency: EUR
+- model: property.propertyloanamortizationentry
+  pk: 4
+  fields:
+    created_at: {dt(M1)}
+    updated_at: {dt(M1)}
+    loan: 2
+    date: {ds(M1)}
+    capital: 643.03
+    capital_currency: EUR
+    interest: 128.10
+    interest_currency: EUR
+    remaining_balance_amount: 51473.11
+    remaining_balance_amount_currency: EUR
 # Loan 2B — smoothed 20-year
 #   Schedule total: 1×1050.00 + 238×437.00 + 1×437.40 = 1050 + 103906 + 437.40 = 105393.40 → adjust
 #   Exact: 1×1050.00 + 238×437.00 + 1×44.00 = 1050 + 103906 + 44 = 105000
@@ -949,36 +973,59 @@ def generate_property() -> str:  # noqa: PLR0915
     monthly_payment_currency: EUR
     insurance: null
     insurance_currency: EUR
-- model: property.propertyloanschedule
+# Amortization entries — Loan 2B (105 000 EUR, 3.10 %, 240 months)
+- model: property.propertyloanamortizationentry
+  pk: 5
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    loan: 3
+    date: {ds(M48)}
+    capital: 316.42
+    capital_currency: EUR
+    interest: 271.25
+    interest_currency: EUR
+    remaining_balance_amount: 104683.58
+    remaining_balance_amount_currency: EUR
+- model: property.propertyloanamortizationentry
   pk: 6
   fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
+    created_at: {dt(M47)}
+    updated_at: {dt(M47)}
     loan: 3
-    order: 1
-    count: 1
-    amount: 1050.00
-    amount_currency: EUR
-- model: property.propertyloanschedule
+    date: {ds(M47)}
+    capital: 317.24
+    capital_currency: EUR
+    interest: 270.43
+    interest_currency: EUR
+    remaining_balance_amount: 104366.34
+    remaining_balance_amount_currency: EUR
+- model: property.propertyloanamortizationentry
   pk: 7
   fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
     loan: 3
-    order: 2
-    count: 238
-    amount: 437.00
-    amount_currency: EUR
-- model: property.propertyloanschedule
+    date: {ds(M12)}
+    capital: 347.05
+    capital_currency: EUR
+    interest: 240.62
+    interest_currency: EUR
+    remaining_balance_amount: 92806.95
+    remaining_balance_amount_currency: EUR
+- model: property.propertyloanamortizationentry
   pk: 8
   fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
+    created_at: {dt(M1)}
+    updated_at: {dt(M1)}
     loan: 3
-    order: 3
-    count: 1
-    amount: 44.00
-    amount_currency: EUR
+    date: {ds(M1)}
+    capital: 356.07
+    capital_currency: EUR
+    interest: 231.60
+    interest_currency: EUR
+    remaining_balance_amount: 89277.93
+    remaining_balance_amount_currency: EUR
 # Lease 1 — Nice apartment (active furnished)
 - model: property.lease
   pk: 1

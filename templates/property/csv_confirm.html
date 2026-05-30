@@ -28,26 +28,7 @@
       </div>
 
       <h5>{% translate 'Preview (first 5 rows)' %}</h5>
-      <div class="table-responsive mb-4">
-        <table class="table table-sm table-striped table-bordered">
-          <thead class="table-light">
-            <tr>
-              {% for col in header %}
-                <th>{{ col }}</th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in preview_rows %}
-              <tr>
-                {% for cell in row %}
-                  <td>{{ cell }}</td>
-                {% endfor %}
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+      {% include "_csv_preview_table.html" %}
 
       <form method="post" action="{% url 'property:csv_import_confirm' property.pk %}">
         {% csrf_token %}
@@ -69,22 +50,8 @@
       <h5 class="card-title mb-0">{% translate 'Valid category values' %}</h5>
     </div>
     <div class="card-body p-0">
-      <table class="table table-sm mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>{% translate 'Value' %}</th>
-            <th>{% translate 'Label' %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for value, label in valid_categories %}
-            <tr>
-              <td><code>{{ value }}</code></td>
-              <td>{{ label }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      {% translate 'Value' as value_header %}
+      {% include "property/_valid_categories_table.html" with table_class="table table-sm mb-0" value_header=value_header %}
     </div>
   </div>
 

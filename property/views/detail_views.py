@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView
@@ -742,41 +743,7 @@ class PropertyDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         property_obj = self.object
 
-        growth_rate = self._get_growth_rate()
-        projections = self._build_projection_data(property_obj)
-        (
-            value_history_series,
-            debt_history_series,
-            net_history_series,
-            value_projection_series,
-            debt_projection_series,
-            net_projection_series,
-            projection_start_date,
-        ) = self._build_chart_series(property_obj, projections)
         monthly_cashflow_amount = self._estimated_monthly_cashflow(property_obj)
-        transactions_data = self._build_transactions_json(property_obj)
-        (
-            revenue_series,
-            expense_series,
-            loan_interest_series,
-            loan_principal_series,
-            loan_insurance_series,
-            total_expenses_series,
-            expense_by_type_series,
-        ) = self._build_cashflow_series(property_obj)
-
-        entries = PropertyLedgerEntry.objects.filter(property=property_obj)
-        entries_with_forms = [
-            {
-                "obj": entry,
-                "edit_form": PropertyLedgerEntryEditForm(
-                    instance=entry, property_obj=property_obj
-                ),
-            }
-            for entry in entries
-        ]
-
-        balance_sheet_context = self._build_balance_sheet_context(property_obj)
 
         property_leases = Lease.objects.filter(property=property_obj).order_by(
             "-start_date"
@@ -785,29 +752,10 @@ class PropertyDetailView(DetailView):
             property=property_obj
         ).order_by("-start_date")
 
+        loans_count = PropertyLoan.objects.filter(property=property_obj).count()
+
         context.update(
             {
-                "growth_rate": growth_rate,
-                "growth_rate_percent": growth_rate * Decimal("100"),
-                "projection_points": projections,
-                "projection_labels": [str(item["years"]) for item in projections],
-                "projection_values": [item["value_amount"] for item in projections],
-                "projection_debts": [item["debt_amount"] for item in projections],
-                "projection_nets": [item["net_amount"] for item in projections],
-                "value_history_series": value_history_series,
-                "debt_history_series": debt_history_series,
-                "net_history_series": net_history_series,
-                "value_projection_series": value_projection_series,
-                "debt_projection_series": debt_projection_series,
-                "net_projection_series": net_projection_series,
-                "cashflow_revenue_series": revenue_series,
-                "cashflow_expense_series": expense_series,
-                "cashflow_expense_by_type_series": expense_by_type_series,
-                "cashflow_loan_interest_series": loan_interest_series,
-                "cashflow_loan_principal_series": loan_principal_series,
-                "cashflow_loan_insurance_series": loan_insurance_series,
-                "cashflow_total_expenses_series": total_expenses_series,
-                "projection_start_date": projection_start_date,
                 "current_raw_value": property_obj.get_value(),
                 "buying_value_gross": property_obj.buying_value_gross,
                 "value_progression_pct": (
@@ -841,27 +789,10 @@ class PropertyDetailView(DetailView):
                 "property_values": PropertyValue.objects.filter(
                     property=property_obj
                 ).order_by("-valuation_date"),
-                "entries_with_forms": entries_with_forms,
-                "active_leases": Lease.objects.filter(
-                    property=property_obj,
-                    status__in=[Lease.Status.ACTIVE, Lease.Status.NOTICE_PERIOD],
-                ).prefetch_related("tenants"),
-                "active_mandate": ManagementMandate.objects.filter(
-                    property=property_obj, end_date__isnull=True
-                ).first(),
                 "property_leases": property_leases,
                 "property_mandates": property_mandates,
-                "transactions_json": transactions_data,
-                "loans_with_totals": self._build_loans_context(property_obj),
-                "loan_chart_data_json": json.dumps(
-                    self._build_loan_chart_data(property_obj)
-                ),
+                "loans_count": loans_count,
                 "today": datetime.date.today(),
-                "loan_formset": self._build_loan_formset(property_obj),
-                "loan_forms_with_schedules": self._build_loan_forms_ctx(),
-                "all_properties": Property.objects.filter(is_active=True).order_by(
-                    "name"
-                ),
                 "ledger_income_categories": [
                     (c.value, c.label)
                     for c in PropertyLedgerEntry.ManagementCategory
@@ -874,11 +805,176 @@ class PropertyDetailView(DetailView):
                 ],
             }
         )
-        context.update(balance_sheet_context)
         # Amortization tab (only for LMNP réel properties)
-        if property_obj.tax_regime == Property.TaxRegime.LMNP_REEL:
-            context.update(get_amortization_context(property_obj))
         context["show_amortization_tab"] = (
             property_obj.tax_regime == Property.TaxRegime.LMNP_REEL
         )
         return context
+
+
+# ── Panel HTML fragment views (async-loaded on tab click) ────────────────────
+
+
+def _make_panel_view(
+    property_obj: Property, request: HttpRequest
+) -> "PropertyDetailView":
+    """Create a lightweight PropertyDetailView instance to reuse helper methods."""
+    view = PropertyDetailView()
+    view.object = property_obj
+    view.request = request
+    view.kwargs = {}
+    return view
+
+
+def property_panel_cashflow(request: HttpRequest, pk: int) -> HttpResponse:
+    """Return the Cash flow panel HTML fragment."""
+    prop = get_object_or_404(Property, pk=pk)
+    view = _make_panel_view(prop, request)
+    (
+        revenue_series,
+        expense_series,
+        loan_interest_series,
+        loan_principal_series,
+        loan_insurance_series,
+        total_expenses_series,
+        expense_by_type_series,
+    ) = view._build_cashflow_series(prop)
+    transactions_data = view._build_transactions_json(prop)
+    entries = (
+        PropertyLedgerEntry.objects.filter(property=prop)
+        .select_related("lease")
+        .prefetch_related("exceptions", "capitalized_as")
+    )
+    entries_with_forms = [
+        {
+            "obj": entry,
+            "edit_form": PropertyLedgerEntryEditForm(instance=entry, property_obj=prop),
+        }
+        for entry in entries
+    ]
+    context = {
+        "property": prop,
+        "transactions_json": transactions_data,
+        "cashflow_revenue_series": revenue_series,
+        "cashflow_expense_series": expense_series,
+        "cashflow_expense_by_type_series": expense_by_type_series,
+        "cashflow_loan_interest_series": loan_interest_series,
+        "cashflow_loan_principal_series": loan_principal_series,
+        "cashflow_loan_insurance_series": loan_insurance_series,
+        "cashflow_total_expenses_series": total_expenses_series,
+        "entries_with_forms": entries_with_forms,
+        "ledger_income_categories": [
+            (c.value, c.label)
+            for c in PropertyLedgerEntry.ManagementCategory
+            if c.value in PropertyLedgerEntry._INCOME_CATEGORIES
+        ],
+        "ledger_expense_categories": [
+            (c.value, c.label)
+            for c in PropertyLedgerEntry.ManagementCategory
+            if c.value not in PropertyLedgerEntry._INCOME_CATEGORIES
+        ],
+    }
+    return render(request, "property/detail_panel_cashflow.html", context)
+
+
+def property_panel_projection(request: HttpRequest, pk: int) -> HttpResponse:
+    """Return the Value & Projection panel HTML fragment."""
+    prop = get_object_or_404(Property, pk=pk)
+    view = _make_panel_view(prop, request)
+    growth_rate = view._get_growth_rate()
+    projections = view._build_projection_data(prop)
+    (
+        value_history_series,
+        debt_history_series,
+        net_history_series,
+        value_projection_series,
+        debt_projection_series,
+        net_projection_series,
+        projection_start_date,
+    ) = view._build_chart_series(prop, projections)
+    context = {
+        "property": prop,
+        "growth_rate": growth_rate,
+        "growth_rate_percent": growth_rate * Decimal("100"),
+        "projection_points": projections,
+        "value_history_series": value_history_series,
+        "debt_history_series": debt_history_series,
+        "net_history_series": net_history_series,
+        "value_projection_series": value_projection_series,
+        "debt_projection_series": debt_projection_series,
+        "net_projection_series": net_projection_series,
+        "projection_start_date": projection_start_date,
+        "property_values": PropertyValue.objects.filter(property=prop).order_by(
+            "-valuation_date"
+        ),
+    }
+    return render(request, "property/detail_panel_projection.html", context)
+
+
+def property_panel_balance(request: HttpRequest, pk: int) -> HttpResponse:
+    """Return the Balance sheet panel HTML fragment."""
+    prop = get_object_or_404(Property, pk=pk)
+    view = _make_panel_view(prop, request)
+    context = {"property": prop}
+    context.update(view._build_balance_sheet_context(prop))
+    return render(request, "property/detail_panel_balance.html", context)
+
+
+def property_panel_info(request: HttpRequest, pk: int) -> HttpResponse:
+    """Return the Info panel HTML fragment."""
+    prop = get_object_or_404(Property, pk=pk)
+    context = {"property": prop}
+    return render(request, "property/detail_panel_info.html", context)
+
+
+def property_panel_loans(request: HttpRequest, pk: int) -> HttpResponse:
+    """Return the Loans panel HTML fragment."""
+    prop = get_object_or_404(Property, pk=pk)
+    view = _make_panel_view(prop, request)
+    loans_with_totals = view._build_loans_context(prop)
+    loan_chart_data = view._build_loan_chart_data(prop)
+    loan_formset = view._build_loan_formset(prop)
+    loan_forms_ctx = view._build_loan_forms_ctx()
+    context = {
+        "property": prop,
+        "loans_with_totals": loans_with_totals,
+        "loan_chart_data_json": json.dumps(loan_chart_data),
+        "today": datetime.date.today(),
+        "loan_formset": loan_formset,
+        "loan_forms_with_schedules": loan_forms_ctx,
+    }
+    return render(request, "property/detail_panel_loans.html", context)
+
+
+def property_panel_leases(request: HttpRequest, pk: int) -> HttpResponse:
+    """Return the Leases panel HTML fragment."""
+    prop = get_object_or_404(Property, pk=pk)
+    property_leases = Lease.objects.filter(property=prop).order_by("-start_date")
+    context = {
+        "property": prop,
+        "property_leases": property_leases,
+    }
+    return render(request, "property/detail_panel_leases.html", context)
+
+
+def property_panel_mandate(request: HttpRequest, pk: int) -> HttpResponse:
+    """Return the Mandate panel HTML fragment."""
+    prop = get_object_or_404(Property, pk=pk)
+    property_mandates = ManagementMandate.objects.filter(property=prop).order_by(
+        "-start_date"
+    )
+    context = {
+        "property": prop,
+        "property_mandates": property_mandates,
+    }
+    return render(request, "property/detail_panel_mandate.html", context)
+
+
+def property_panel_amortization(request: HttpRequest, pk: int) -> HttpResponse:
+    """Return the Amortization panel HTML fragment (LMNP réel only)."""
+    prop = get_object_or_404(Property, pk=pk)
+    if prop.tax_regime != Property.TaxRegime.LMNP_REEL:
+        return HttpResponse(status=404)
+    context = {"property": prop}
+    context.update(get_amortization_context(prop))
+    return render(request, "property/detail_panel_amortization.html", context)

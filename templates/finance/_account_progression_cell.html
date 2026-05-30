@@ -1,0 +1,31 @@
+{% load i18n format_money %}
+<td class="progression {{ account.progression.css_class }}">
+  <div class="progression-value">
+    {% if account.progression.css_class == "up" %}
+      <div class="text-success">
+        <i class="bi bi-arrow-up"></i>
+        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
+      </div>
+    {% elif account.progression.css_class == "down" %}
+      <div class="text-danger">
+        <i class="bi bi-arrow-down"></i>
+        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
+      </div>
+    {% else %}
+      <div class="text-secondary">
+        <i class="bi bi-dash"></i>
+        <strong>{{ account.progression.net_progression }}%</strong> <small><em>({{ account.progression.gross_progression }}%)</em></small>
+      </div>
+    {% endif %}
+  </div>
+  <div><small><strong>{{ account.progression.net_difference | format_money }}</strong> <em>({{ account.progression.gross_difference | format_money }})</em></small></div>
+</td>
+<td>
+  <i class="bi bi-bar-chart-line chart-icon text-muted"
+     data-bs-toggle="tooltip"
+     data-bs-placement="left"
+     data-type="{{ chart_data_type }}"
+     data-id="{{ account.model.id }}"
+     title="{% translate 'Show chart' %}"
+     style="cursor: pointer;"></i>
+</td>

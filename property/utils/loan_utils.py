@@ -223,3 +223,33 @@ def build_loan_monthly_maps(
         current = add_months_safe(current, 1)
 
     return interest_by_month, principal_by_month, insurance_by_month
+
+
+def build_loan_maps_from_loan_obj(
+    loan,
+    insurance_amount: Decimal,
+) -> tuple[
+    dict[tuple[int, int], Decimal],
+    dict[tuple[int, int], Decimal],
+    dict[tuple[int, int], Decimal],
+]:
+    """Build monthly maps for a PropertyLoan model object.
+
+    Convenience wrapper around build_loan_monthly_maps that reads
+    the required fields from the loan object directly.
+    """
+    monthly_payment_amount = (
+        loan.monthly_payment.amount
+        if loan.monthly_payment is not None
+        else Decimal("0")
+    )
+    return build_loan_monthly_maps(
+        start_date=loan.start_date,
+        end_date=loan.end_date,
+        original_amount=loan.original_amount.amount,
+        monthly_payment=monthly_payment_amount,
+        interest_rate=loan.interest_rate,
+        insurance_amount=insurance_amount,
+        disbursement_date=loan.start_date,
+        first_payment_date=loan.first_payment_date,
+    )

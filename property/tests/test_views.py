@@ -195,10 +195,23 @@ def test_property_detail_history_series_uses_buying_value_gross(user_client):
         buying_date=buying_date,
         is_active=True,
     )
-    response = user_client.get(reverse("property:detail", args=[property_obj.pk]))
+    # history series is now provided by the projection panel
+    import json as _json
+
+    response = user_client.get(
+        reverse("property:panel_projection", args=[property_obj.pk])
+    )
 
     assert response.status_code == 200
-    value_history = response.context["value_history_series"]
+    # parse from the json_script tag in the HTML
+    _re = __import__("re")
+    _match = _re.search(
+        r'<script id="value-history-series" type="application/json">(.*?)</script>',
+        response.content.decode(),
+        _re.DOTALL,
+    )
+    assert _match is not None, "Could not find value-history-series script tag"
+    value_history = _json.loads(_match.group(1))
     # The earliest point in the series corresponds to buying_date
     buying_date_point = next(
         p for p in value_history if p["x"] == buying_date.isoformat()
@@ -233,8 +246,12 @@ def test_property_detail_view_projection_context(user_client):
 
     assert response.status_code == 200
     assert response.context["property"] == property_obj
-    assert len(response.context["projection_points"]) == 20
-    assert response.context["projection_labels"] == [str(year) for year in range(1, 21)]
+    # projection data is now provided by the projection panel
+    panel_response = user_client.get(
+        reverse("property:panel_projection", args=[property_obj.pk])
+    )
+    assert panel_response.status_code == 200
+    assert len(panel_response.context["projection_points"]) == 20
 
 
 @pytest.mark.django_db
@@ -248,7 +265,7 @@ def test_property_detail_growth_rate_query_param(user_client):
     )
 
     response = user_client.get(
-        reverse("property:detail", args=[property_obj.pk]),
+        reverse("property:panel_projection", args=[property_obj.pk]),
         {"growth_rate": "3.5"},
     )
 
@@ -433,7 +450,7 @@ def test_property_quick_create_normalizes_currency(user_client):
 
 @pytest.mark.django_db
 def test_property_detail_transactions_json_context(user_client):
-    """Test that the detail view provides transactions_json for DataTables."""
+    """Test that the cashflow panel provides transactions_json for DataTables."""
     property_obj = Property.objects.create(
         name="JSON Test Property",
         property_type=Property.APARTMENT,
@@ -460,7 +477,9 @@ def test_property_detail_transactions_json_context(user_client):
         recurrence_type="none",
     )
 
-    response = user_client.get(reverse("property:detail", args=[property_obj.pk]))
+    response = user_client.get(
+        reverse("property:panel_cashflow", args=[property_obj.pk])
+    )
 
     assert response.status_code == 200
     tx_json = response.context["transactions_json"]
@@ -602,7 +621,7 @@ def test_edit_property_loan_forms_with_schedules_context(user_client):
     """loan_forms_with_schedules context includes existing loan form entries."""
     prop = _make_property()
     _make_standard_loan(prop)
-    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    response = user_client.get(reverse("property:panel_loans", args=[prop.pk]))
     assert response.status_code == 200
     entries = response.context["loan_forms_with_schedules"]
     existing = [e for e in entries if e["form"].instance.pk]
@@ -637,10 +656,10 @@ def test_edit_property_post_saves_property(user_client):
 
 @pytest.mark.django_db
 def test_edit_property_context_has_loans_with_totals_standard(user_client):
-    """Detail view includes loans_with_totals with computed cost for a standard loan."""
+    """Loans panel includes loans_with_totals with computed cost for a standard loan."""
     prop = _make_property()
     _make_standard_loan(prop)
-    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    response = user_client.get(reverse("property:panel_loans", args=[prop.pk]))
     assert response.status_code == 200
     loans_with_totals = response.context["loans_with_totals"]
     assert len(loans_with_totals) == 1
@@ -652,10 +671,10 @@ def test_edit_property_context_has_loans_with_totals_standard(user_client):
 
 @pytest.mark.django_db
 def test_edit_property_context_has_loans_with_totals_second_loan(user_client):
-    """Detail view includes loans_with_totals for a second loan."""
+    """Loans panel includes loans_with_totals for a second loan."""
     prop = _make_property()
     _make_second_loan(prop)
-    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    response = user_client.get(reverse("property:panel_loans", args=[prop.pk]))
     assert response.status_code == 200
     loans_with_totals = response.context["loans_with_totals"]
     assert len(loans_with_totals) == 1
@@ -664,9 +683,9 @@ def test_edit_property_context_has_loans_with_totals_second_loan(user_client):
 
 @pytest.mark.django_db
 def test_edit_property_context_loans_with_totals_empty_when_no_loans(user_client):
-    """Detail view loans_with_totals is empty when property has no loans."""
+    """Loans panel loans_with_totals is empty when property has no loans."""
     prop = _make_property()
-    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    response = user_client.get(reverse("property:panel_loans", args=[prop.pk]))
     assert response.status_code == 200
     assert response.context["loans_with_totals"] == []
 
@@ -733,7 +752,7 @@ def test_property_detail_growth_rate_small_positive(user_client):
         is_active=True,
     )
     response = user_client.get(
-        reverse("property:detail", args=[prop.pk]),
+        reverse("property:panel_projection", args=[prop.pk]),
         {"growth_rate": "0.03"},
     )
     assert response.status_code == 200
@@ -751,7 +770,7 @@ def test_property_detail_growth_rate_too_negative_uses_default(user_client):
         is_active=True,
     )
     response = user_client.get(
-        reverse("property:detail", args=[prop.pk]),
+        reverse("property:panel_projection", args=[prop.pk]),
         {"growth_rate": "-1.5"},
     )
     assert response.status_code == 200
@@ -769,7 +788,7 @@ def test_property_detail_growth_rate_invalid_string_uses_default(user_client):
         is_active=True,
     )
     response = user_client.get(
-        reverse("property:detail", args=[prop.pk]),
+        reverse("property:panel_projection", args=[prop.pk]),
         {"growth_rate": "notanumber"},
     )
     assert response.status_code == 200
@@ -844,3 +863,102 @@ def test_property_detail_post_unknown_form_type(user_client):
     assert response.status_code == 200
     msgs = [str(m) for m in get_messages(response.wsgi_request)]
     assert any("Unknown" in m or "unknown" in m for m in msgs)
+
+
+# ─── Panel fragment view tests ────────────────────────────────────────────────
+
+
+def _make_lmnp_property():
+    return Property.objects.create(
+        name="LMNP Property",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date.today() - datetime.timedelta(days=365),
+        is_active=True,
+        tax_regime=Property.TaxRegime.LMNP_REEL,
+    )
+
+
+@pytest.mark.django_db
+def test_panel_cashflow_returns_200(user_client):
+    """Cashflow panel returns 200 with transactions_json in context."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:panel_cashflow", args=[prop.pk]))
+    assert response.status_code == 200
+    assert "transactions_json" in response.context
+
+
+@pytest.mark.django_db
+def test_panel_projection_returns_200(user_client):
+    """Projection panel returns 200 with projection data in context."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:panel_projection", args=[prop.pk]))
+    assert response.status_code == 200
+    assert "projection_points" in response.context
+    assert "value_history_series" in response.context
+
+
+@pytest.mark.django_db
+def test_panel_balance_returns_200(user_client):
+    """Balance panel returns 200."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:panel_balance", args=[prop.pk]))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_panel_info_returns_200(user_client):
+    """Info panel returns 200 with property in context."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:panel_info", args=[prop.pk]))
+    assert response.status_code == 200
+    assert response.context["property"] == prop
+
+
+@pytest.mark.django_db
+def test_panel_loans_returns_200(user_client):
+    """Loans panel returns 200 with loans_with_totals in context."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:panel_loans", args=[prop.pk]))
+    assert response.status_code == 200
+    assert "loans_with_totals" in response.context
+
+
+@pytest.mark.django_db
+def test_panel_leases_returns_200(user_client):
+    """Leases panel returns 200."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:panel_leases", args=[prop.pk]))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_panel_mandate_returns_200(user_client):
+    """Mandate panel returns 200."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:panel_mandate", args=[prop.pk]))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_panel_amortization_returns_200_for_lmnp(user_client):
+    """Amortization panel returns 200 for LMNP réel properties."""
+    prop = _make_lmnp_property()
+    response = user_client.get(reverse("property:panel_amortization", args=[prop.pk]))
+    assert response.status_code == 200
+    assert "has_assets" in response.context
+
+
+@pytest.mark.django_db
+def test_panel_amortization_returns_404_for_non_lmnp(user_client):
+    """Amortization panel returns 404 for non-LMNP properties."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:panel_amortization", args=[prop.pk]))
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_panel_unknown_returns_404(user_client):
+    """Non-existent property panel returns 404."""
+    response = user_client.get(reverse("property:panel_cashflow", args=[99999]))
+    assert response.status_code == 404

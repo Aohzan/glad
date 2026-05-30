@@ -66,35 +66,35 @@ class ManagementCategory(str, enum.Enum):
         return self._value_
 
     # ── Income ────────────────────────────────────────────────────────────────
-    RENT_COLLECTED = (
+    RENT_COLLECTED = (  # ty: ignore[invalid-assignment]
         "rent_collected",
         _("Rent collected"),
         "recettes",
         "218",
         "Loyers meublés",
     )
-    CHARGES_COLLECTED = (
+    CHARGES_COLLECTED = (  # ty: ignore[invalid-assignment]
         "charges_collected",
         _("Charges collected"),
         "recettes",
         "218",
         "Charges refacturées",
     )
-    OTHER_INCOME = (
+    OTHER_INCOME = (  # ty: ignore[invalid-assignment]
         "other_income",
         _("Other income"),
         "recettes",
         "209",
         "Autres produits",
     )
-    DEPOSIT_IN = (
+    DEPOSIT_IN = (  # ty: ignore[invalid-assignment]
         "deposit_in",
         _("Deposit received"),
         None,
         None,
         "Dépôt de garantie encaissé",
     )  # codespell:ignore garantie
-    MANAGER_REVERSAL = (
+    MANAGER_REVERSAL = (  # ty: ignore[invalid-assignment]
         "manager_reversal",
         _("Manager reversal"),
         "recettes",
@@ -102,80 +102,80 @@ class ManagementCategory(str, enum.Enum):
         "Reversement gestionnaire",
     )
     # ── Deductible expenses (LMNP réel cerfa 2033-B) ──────────────────────────
-    MANAGEMENT_FEES = (
+    MANAGEMENT_FEES = (  # ty: ignore[invalid-assignment]
         "management_fees",
         _("Management fees"),
         "charges",
         "242",
         "Frais de gestion",
     )
-    LETTING_FEES = (
+    LETTING_FEES = (  # ty: ignore[invalid-assignment]
         "letting_fees",
         _("Letting fees"),
         "charges",
         "242",
         "Frais de mise en location",
     )
-    OTHER_GENERAL_FEES = (
+    OTHER_GENERAL_FEES = (  # ty: ignore[invalid-assignment]
         "other_general_fees",
         _("Other general fees"),
         "charges",
         "242",
         "Autres frais généraux",
     )
-    COOWNERSHIP = (
+    COOWNERSHIP = (  # ty: ignore[invalid-assignment]
         "coownership",
         _("Co-ownership fees"),
         "charges",
         "242",
         "Charges de copropriété",
     )
-    MAINTENANCE = (
+    MAINTENANCE = (  # ty: ignore[invalid-assignment]
         "maintenance",
         _("Routine maintenance"),
         "charges",
         "242",
         "Entretien et réparations",
     )
-    WORKS = ("works", _("Works"), "charges", "242", "Travaux")
-    FURNITURES = (
+    WORKS = ("works", _("Works"), "charges", "242", "Travaux")  # ty: ignore[invalid-assignment]
+    FURNITURES = (  # ty: ignore[invalid-assignment]
         "furnitures",
         _("Furnitures"),
         "charges",
         "242",
         "Mobilier et équipements",
     )
-    INSURANCE = ("insurance", _("Insurance"), "charges", "242", "Assurance PNO")
-    PROPERTY_TAX = (
+    INSURANCE = ("insurance", _("Insurance"), "charges", "242", "Assurance PNO")  # ty: ignore[invalid-assignment]
+    PROPERTY_TAX = (  # ty: ignore[invalid-assignment]
         "property_tax",
         _("Property tax"),
         "charges",
         "244",
         "Taxe foncière",
     )
-    CFE = ("cfe", _("CFE"), "charges", "244", "CFE")
-    MISC_DEDUCTIBLE = (
+    CFE = ("cfe", _("CFE"), "charges", "244", "CFE")  # ty: ignore[invalid-assignment]
+    MISC_DEDUCTIBLE = (  # ty: ignore[invalid-assignment]
         "misc_deductible",
         _("Miscellaneous deductible"),
         "charges",
         "242",
         "Charges diverses déductibles",
     )
-    LOAN_INTEREST = (
+    LOAN_INTEREST = (  # ty: ignore[invalid-assignment]
         "loan_interest",
         _("Loan interest"),
         "charges",
         "294",
         "Charges financières (intérêts)",
     )
-    LOAN_INSURANCE = (
+    LOAN_INSURANCE = (  # ty: ignore[invalid-assignment]
         "loan_insurance",
         _("Loan insurance"),
         "charges",
         "242",
         "Assurance emprunteur",
     )
-    RENTAL_GUARANTEE = (
+    RENTAL_GUARANTEE = (  # ty: ignore[invalid-assignment]
         "rental_guarantee",
         _("Rental guarantee"),
         "charges",
@@ -183,28 +183,28 @@ class ManagementCategory(str, enum.Enum):
         "Garantie loyers impayés (GLI)",
     )  # codespell:ignore garantie
     # ── Off tax result ─────────────────────────────────────────────────────────
-    LOAN_REPAYMENT = (
+    LOAN_REPAYMENT = (  # ty: ignore[invalid-assignment]
         "loan_repayment",
         _("Loan capital repayment"),
         None,
         None,
         "Capital remboursé (non déductible)",
     )
-    DEPOSIT_OUT = (
+    DEPOSIT_OUT = (  # ty: ignore[invalid-assignment]
         "deposit_out",
         _("Deposit returned"),
         None,
         None,
         "Dépôt de garantie restitué",
     )  # codespell:ignore garantie
-    NON_DEDUCTIBLE = (
+    NON_DEDUCTIBLE = (  # ty: ignore[invalid-assignment]
         "non_deductible",
         _("Other non-deductible"),
         None,
         None,
         "Charge non déductible",
     )
-    ALUR_WORKS_FUND = (
+    ALUR_WORKS_FUND = (  # ty: ignore[invalid-assignment]
         "alur_works_fund",
         _("ALUR works fund"),
         None,

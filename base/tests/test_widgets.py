@@ -167,10 +167,6 @@ class TestMoneyInputGroupMixin:
                 ["amount"],
             ),
             (
-                "property.forms.PropertyLoanScheduleForm",
-                ["amount"],
-            ),
-            (
                 "property.forms.PropertyValueQuickCreateForm",
                 ["value"],
             ),

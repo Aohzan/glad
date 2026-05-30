@@ -22,26 +22,44 @@
 {% block content %}
 <div class="container py-4">
 
-  {# ── Page header ─────────────────────────────────────────────────────────── #}
-  <div class="d-flex justify-content-between align-items-start mb-2">
-    <div>
-      <h1 class="mb-0 h3">{{ property.name }}</h1>
-      <p class="text-body-secondary small mb-0">
-        <i class="bi bi-geo-alt me-1"></i>{{ property.address|default:_("Address not specified") }}
-      </p>
+  {# ── Property header banner ─────────────────────────────────────────────── #}
+  <div class="card shadow-sm rounded-4 overflow-hidden mb-3">
+    <div class="property-card-header prop-gradient-{{ property.icon }}{% if property.icon == 'question-circle' %} prop-gradient-other{% endif %}">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="d-flex align-items-center gap-3">
+          <div class="account-icon-circle" style="background:rgba(0,0,0,.1);font-size:1.4rem">
+            <i class="bi bi-{{ property.icon }}"></i>
+          </div>
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge property-type-badge" style="background:rgba(0,0,0,.12)">
+                {{ property.get_property_type_display }}
+              </span>
+              {% if not property.is_active %}
+                <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size:.65rem">{% translate "Inactive" %}</span>
+              {% endif %}
+            </div>
+            <h1 class="mb-0 h4 fw-bold">{{ property.name }}</h1>
+            {% if property.address %}
+              <p class="small mb-0 mt-1 opacity-75">
+                <i class="bi bi-geo-alt me-1"></i>{{ property.address }}
+              </p>
+            {% endif %}
+          </div>
+        </div>
+        <a href="{% url 'property:edit' property.pk %}" class="btn btn-sm" style="background:rgba(0,0,0,.1);color:inherit;border:none">
+          <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+        </a>
+      </div>
     </div>
-    <a href="{% url 'property:edit' property.pk %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
-    </a>
   </div>
 
-  {# ── Property submenu ─────────────────────────────────────────────────────── #}
   {# ── KPI strip ───────────────────────────────────────────────────────────── #}
   <div class="row g-2 mb-4">
     <div class="col-6 col-md-3">
-      <div class="card border-0 bg-body-secondary h-100">
+      <div class="card border-0 shadow-sm rounded-4 bg-body-secondary h-100">
         <div class="card-body py-2 px-3">
-          <p class="text-uppercase text-primary small fw-semibold mb-1" style="font-size:.7rem;">
+          <p class="text-uppercase text-primary small fw-semibold mb-1 prop-label">
             {% translate "Monthly cash flow (12m median)" %}
             <i class="bi bi-info-circle ms-1 text-body-secondary"
                data-bs-toggle="tooltip"
@@ -56,9 +74,9 @@
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card border-0 bg-body-secondary h-100">
+      <div class="card border-0 shadow-sm rounded-4 bg-body-secondary h-100">
         <div class="card-body py-2 px-3">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1" style="font-size:.7rem;">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">
             {% translate "Current value" %}
           </p>
           <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -84,9 +102,9 @@
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card border-0 bg-body-secondary h-100">
+      <div class="card border-0 shadow-sm rounded-4 bg-body-secondary h-100">
         <div class="card-body py-2 px-3">
-          <p class="text-uppercase text-success small fw-semibold mb-1" style="font-size:.7rem;">
+          <p class="text-uppercase text-success small fw-semibold mb-1 prop-label">
             {% translate "Net value" %}
             <i class="bi bi-info-circle ms-1 text-body-secondary"
                data-bs-toggle="tooltip"
@@ -98,9 +116,9 @@
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card border-0 bg-body-secondary h-100">
+      <div class="card border-0 shadow-sm rounded-4 bg-body-secondary h-100">
         <div class="card-body py-2 px-3">
-          <p class="text-uppercase text-info small fw-semibold mb-1" style="font-size:.7rem;">
+          <p class="text-uppercase text-info small fw-semibold mb-1 prop-label">
             {% translate "Capital repaid" %}
             <i class="bi bi-info-circle ms-1 text-body-secondary"
                data-bs-toggle="tooltip"
@@ -217,8 +235,8 @@
         aria-selected="false"
       >
         <i class="bi bi-bank me-1"></i>{% translate "Loans" %}
-        {% if loans_with_totals %}
-          <span class="badge rounded-pill bg-secondary ms-1">{{ loans_with_totals|length }}</span>
+        {% if loans_count %}
+          <span class="badge rounded-pill bg-secondary ms-1">{{ loans_count }}</span>
         {% endif %}
       </button>
     </li>
@@ -253,43 +271,59 @@
 
     {# ── Cash flow tab ──────────────────────────────────────────────────────── #}
     <div class="tab-pane fade show active" id="cashflow-panel" role="tabpanel" aria-labelledby="cashflow-tab">
-      {% include "property/detail_panel_cashflow.html" %}
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
     </div>
 
     {# ── Value & Projection tab ─────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="projection-panel" role="tabpanel" aria-labelledby="projection-tab">
-      {% include "property/detail_panel_projection.html" %}
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
     </div>
 
     {# ── Balance sheet tab ──────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="balance-panel" role="tabpanel" aria-labelledby="balance-tab">
-      {% include "property/detail_panel_balance.html" %}
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
     </div>
 
     {# ── Leases tab ──────────────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="leases-panel" role="tabpanel" aria-labelledby="leases-tab">
-      {% include "property/detail_panel_leases.html" %}
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
     </div>
 
     {# ── Mandate tab ─────────────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="mandate-panel" role="tabpanel" aria-labelledby="mandate-tab">
-      {% include "property/detail_panel_mandate.html" %}
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
     </div>
 
     {# ── Info tab ────────────────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="info-panel" role="tabpanel" aria-labelledby="info-tab">
-      {% include "property/detail_panel_info.html" %}
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
     </div>
 
     {# ── Loans tab ──────────────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="loans-panel" role="tabpanel" aria-labelledby="loans-tab">
-      {% include "property/detail_panel_loans.html" %}
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
     </div>
 
     {# ── Amortissement tab (LMNP réel only) ──────────────────────────────── #}
     {% if show_amortization_tab %}
     <div class="tab-pane fade" id="amortization-panel" role="tabpanel" aria-labelledby="amortization-tab">
-      {% include "property/detail_panel_amortization.html" %}
+      <div class="panel-loading text-center py-5">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+      </div>
     </div>
     {% endif %}
 
@@ -549,232 +583,9 @@
   </div>
 </div>
 
-{# ── Entry edit/delete modals (one per ledger entry) ─────────────────────────── #}
-{% for item in entries_with_forms %}
-<div class="modal fade" id="editEntryModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <form method="post" action="{% url 'property:edit_entry' property.pk item.obj.pk %}">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title">
-            {% if item.obj.flow_type == "expense" %}
-              <i class="bi bi-arrow-up-circle me-2 text-danger"></i>{% translate "Edit expense" %}
-            {% else %}
-              <i class="bi bi-arrow-down-circle me-2 text-success"></i>{% translate "Edit income" %}
-            {% endif %}
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-
-          {% if item.obj.recurrence_type != 'none' %}
-            <div class="alert alert-info py-2">
-              <i class="bi bi-info-circle me-1"></i> {% translate "This is a recurring entry. Changes will apply to all occurrences." %}
-            </div>
-          {% endif %}
-
-          {# ── Flow type as btn-check radios ── #}
-          <div class="mb-4">
-            <label class="form-label fw-semibold">
-              <i class="bi bi-arrow-left-right me-1 text-secondary"></i>{% translate "Type" %}
-            </label>
-            <div class="d-flex gap-2">
-              <input type="radio" class="btn-check"
-                     name="{{ item.edit_form.flow_type.html_name }}"
-                     id="flowTypeIncome{{ item.obj.pk }}"
-                     value="income"
-                     autocomplete="off"
-                     {% if item.obj.flow_type == "income" %}checked{% endif %}>
-              <label class="btn btn-outline-success flex-fill" for="flowTypeIncome{{ item.obj.pk }}">
-                {% translate "Income" %}
-              </label>
-              <input type="radio" class="btn-check"
-                     name="{{ item.edit_form.flow_type.html_name }}"
-                     id="flowTypeExpense{{ item.obj.pk }}"
-                     value="expense"
-                     autocomplete="off"
-                     {% if item.obj.flow_type == "expense" %}checked{% endif %}>
-              <label class="btn btn-outline-danger flex-fill" for="flowTypeExpense{{ item.obj.pk }}">
-                {% translate "Expense" %}
-              </label>
-            </div>
-            {% if item.edit_form.flow_type.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.flow_type.errors }}</div>{% endif %}
-          </div>
-
-          {# ── Amount + Date ── #}
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label for="{{ item.edit_form.amount.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-currency-euro me-1 text-secondary"></i>{% translate "Amount" %}
-              </label>
-              {{ item.edit_form.amount }}
-              {% if item.edit_form.amount.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.amount.errors }}</div>{% endif %}
-            </div>
-            <div class="col-md-6">
-              <label for="{{ item.edit_form.entry_date.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-calendar3 me-1 text-secondary"></i>{% translate "Date" %}
-              </label>
-              {{ item.edit_form.entry_date }}
-              {% if item.edit_form.entry_date.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.entry_date.errors }}</div>{% endif %}
-            </div>
-          </div>
-
-          {# ── Reference period + Lease ── #}
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label for="{{ item.edit_form.reference_period.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-calendar-range me-1 text-secondary"></i>{% translate "Reference period" %}
-                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
-              </label>
-              {{ item.edit_form.reference_period }}
-              {% if item.edit_form.reference_period.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.reference_period.errors }}</div>{% endif %}
-            </div>
-            <div class="col-md-6">
-              <label for="{{ item.edit_form.lease.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-file-text me-1 text-secondary"></i>{% translate "Lease" %}
-                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
-              </label>
-              {{ item.edit_form.lease }}
-              {% if item.edit_form.lease.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.lease.errors }}</div>{% endif %}
-            </div>
-          </div>
-
-          {# ── Management category + Third party ── #}
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label for="edit_mgmt_cat_{{ item.obj.pk }}" class="form-label fw-semibold">
-                <i class="bi bi-tag me-1 text-secondary"></i>{% translate "Category" %}
-              </label>
-              <select name="{{ item.edit_form.management_category.html_name }}"
-                      id="edit_mgmt_cat_{{ item.obj.pk }}"
-                      class="form-select edit-mgmt-cat"
-                      data-flow="{{ item.obj.flow_type }}">
-                <option value="">— {% translate "Select a category" %} —</option>
-                <optgroup label="{% translate 'Income' %}" class="mgmt-income-group">
-                  {% for value, label in ledger_income_categories %}
-                  <option value="{{ value }}" {% if item.obj.management_category == value %}selected{% endif %}>{{ label }}</option>
-                  {% endfor %}
-                </optgroup>
-                <optgroup label="{% translate 'Expenses' %}" class="mgmt-expense-group">
-                  {% for value, label in ledger_expense_categories %}
-                  <option value="{{ value }}" {% if item.obj.management_category == value %}selected{% endif %}>{{ label }}</option>
-                  {% endfor %}
-                </optgroup>
-              </select>
-              {% if item.edit_form.management_category.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.management_category.errors }}</div>{% endif %}
-            </div>
-            <div class="col-md-6">
-              <label for="{{ item.edit_form.third_party.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-person me-1 text-secondary"></i>{% translate "Third party" %}
-                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
-              </label>
-              {{ item.edit_form.third_party }}
-              {% if item.edit_form.third_party.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.third_party.errors }}</div>{% endif %}
-            </div>
-          </div>
-
-          {# ── Description ── #}
-          <div class="mb-3">
-            <label for="{{ item.edit_form.description.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-chat-left-text me-1 text-secondary"></i>{% translate "Description" %}
-              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
-            </label>
-            {{ item.edit_form.description }}
-          </div>
-
-          {# ── Notes ── #}
-          <div class="mb-3">
-            <label for="{{ item.edit_form.notes.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-sticky me-1 text-secondary"></i>{% translate "Notes" %}
-              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
-            </label>
-            {{ item.edit_form.notes }}
-          </div>
-
-          {# ── Recurrence ── #}
-          <div class="border rounded p-3 bg-body-tertiary">
-            <p class="small fw-semibold text-body-secondary mb-2">
-              <i class="bi bi-arrow-repeat me-1"></i>{% translate "Recurrence" %}
-            </p>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label for="{{ item.edit_form.recurrence_type.id_for_label }}" class="form-label small">
-                  {% translate "Frequency" %}
-                </label>
-                {{ item.edit_form.recurrence_type }}
-              </div>
-              <div class="col-md-6">
-                <label for="{{ item.edit_form.recurrence_end_date.id_for_label }}" class="form-label small">
-                  {% translate "End date" %}
-                  <span class="text-body-secondary fw-normal">({% translate "optional" %})</span>
-                </label>
-                {{ item.edit_form.recurrence_end_date }}
-              </div>
-            </div>
-          </div>
-
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg me-1"></i>{% translate "Save changes" %}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="deleteEntryModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="post" action="{% url 'property:delete_entry' property.pk item.obj.pk %}">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title">
-            {% if item.obj.flow_type == "expense" %}{% translate "Delete expense" %}{% else %}{% translate "Delete income" %}{% endif %}
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          {% if item.obj.recurrence_type != 'none' %}
-            <div class="alert alert-warning">
-              <i class="bi bi-exclamation-triangle"></i> {% translate "This is a recurring entry. All occurrences will be deleted." %}
-            </div>
-          {% endif %}
-          <p>{% blocktranslate with amount=item.obj.amount|format_money date=item.obj.entry_date %}Are you sure you want to delete the entry of {{ amount }} dated {{ date }}?{% endblocktranslate %}</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-          <button type="submit" class="btn btn-danger">{% translate "Delete" %}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-{% endfor %}
-
 {% endblock %}
 
 {% block scripts %}
-{{ transactions_json|json_script:"transactions-data" }}
-{{ value_history_series|json_script:"value-history-series" }}
-{{ debt_history_series|json_script:"debt-history-series" }}
-{{ net_history_series|json_script:"net-history-series" }}
-{{ value_projection_series|json_script:"value-projection-series" }}
-{{ debt_projection_series|json_script:"debt-projection-series" }}
-{{ net_projection_series|json_script:"net-projection-series" }}
-{{ cashflow_revenue_series|json_script:"cashflow-revenue-series" }}
-{{ cashflow_expense_series|json_script:"cashflow-expense-series" }}
-{{ cashflow_expense_by_type_series|json_script:"cashflow-expense-by-type-series" }}
-{{ cashflow_loan_interest_series|json_script:"cashflow-loan-interest-series" }}
-{{ cashflow_loan_principal_series|json_script:"cashflow-loan-principal-series" }}
-{{ cashflow_loan_insurance_series|json_script:"cashflow-loan-insurance-series" }}
-{{ cashflow_total_expenses_series|json_script:"cashflow-total-expenses-series" }}
-{% if show_amortization_tab %}
-{{ amortization_asset_series_json|json_script:"amortization-asset-series" }}
-{% endif %}
 <script>
 // ── Bootstrap tooltips ────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
@@ -794,439 +605,64 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 })();
-// Hash activation is deferred to end of script so all tab listeners are registered first.
+// ── Hash activation is deferred to end of script so all tab listeners are registered first.
 
-// ── Translations for JS ──────────────────────────────────────────────────────
-const i18n = {
-  expense:      "{% translate 'Expense' %}",
-  income:       "{% translate 'Income' %}",
-  recurring:    "{% translate 'Recurring' %}",
-  capitalized:  "{% translate 'Linked to an amortization asset' %}",
-  edit:         "{% translate 'Edit' %}",
-  delete:       "{% translate 'Delete' %}",
-  noData:       "{% translate 'No transactions found' %}",
-  search:       "{% translate 'Search' %}",
-  all:          "{% translate 'All' %}",
-  expenses:     "{% translate 'Expenses' %}",
-  incomes:      "{% translate 'Incomes' %}",
+// ── Async panel loading ───────────────────────────────────────────────────────
+const PANEL_URLS = {
+  cashflow:   "{% url 'property:panel_cashflow' property.pk %}",
+  projection: "{% url 'property:panel_projection' property.pk %}",
+  balance:    "{% url 'property:panel_balance' property.pk %}",
+  info:       "{% url 'property:panel_info' property.pk %}",
+  loans:      "{% url 'property:panel_loans' property.pk %}",
+  leases:     "{% url 'property:panel_leases' property.pk %}",
+  mandate:    "{% url 'property:panel_mandate' property.pk %}",
+  {% if show_amortization_tab %}amortization: "{% url 'property:panel_amortization' property.pk %}",{% endif %}
 };
 
-// ── DataTables transaction table ─────────────────────────────────────────────
-const allTransactions = JSON.parse(document.getElementById('transactions-data').textContent);
-
-function formatAmount(amount) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(amount);
-}
-
-function buildActionButtons(row) {
-  if (row.is_recurring && row.occurrence_date) {
-    const editUrl = `/property/${row.property_id}/entry/${row.parent_id}/occurrence/${row.occurrence_date}/edit/`;
-    const delUrl  = `/property/${row.property_id}/entry/${row.parent_id}/occurrence/${row.occurrence_date}/delete/`;
-    return `<div class="btn-group btn-group-sm" role="group">
-      <a href="${editUrl}" class="btn btn-outline-secondary" title="${i18n.edit}">
-        <i class="bi bi-pencil"></i>
-      </a>
-      <a href="${delUrl}" class="btn btn-outline-danger" title="${i18n.delete}">
-        <i class="bi bi-trash"></i>
-      </a>
-    </div>`;
-  }
-  const editTarget  = `#editEntryModal${row.parent_id}`;
-  const delTarget   = `#deleteEntryModal${row.parent_id}`;
-  return `<div class="btn-group btn-group-sm" role="group">
-    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="${editTarget}" title="${i18n.edit}">
-      <i class="bi bi-pencil"></i>
-    </button>
-    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="${delTarget}" title="${i18n.delete}">
-      <i class="bi bi-trash"></i>
-    </button>
-  </div>`;
-}
-
-function buildKindBadge(kind) {
-  if (kind === 'expense') {
-    return `<span class="badge text-bg-danger-subtle text-danger-emphasis"><i class="bi bi-arrow-up-circle me-1"></i>${i18n.expense}</span>`;
-  }
-  return `<span class="badge text-bg-success-subtle text-success-emphasis"><i class="bi bi-arrow-down-circle me-1"></i>${i18n.income}</span>`;
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-  const { DataTable } = simpleDatatables;
-
-  // Build row data for simple-datatables
-  // Encode parent_id, is_recurring, occurrence_date and property_id into the actions cell as JSON
-  const tableRows = allTransactions.map(row => [
-    row.date,
-    row.kind,
-    row.category || '',
-    String(row.amount),
-    row.description || '',
-    JSON.stringify({ parent_id: row.parent_id, is_recurring: row.is_recurring, is_capitalized: row.is_capitalized, occurrence_date: row.occurrence_date, property_id: row.property_id }),
-  ]);
-
-  const datatable = new DataTable('#transactions-table', {
-    data: { data: tableRows },
-    perPage: 10,
-    perPageSelect: [5, 10, 20, 50, 100],
-    searchable: true,
-    sortable: true,
-    labels: {
-      placeholder: i18n.search,
-      noRows: i18n.noData,
-      noResults: i18n.noData,
-    },
-    columns: [
-      {
-        select: 0,
-        sort: 'desc',
-        type: 'date',
-        format: 'YYYY-MM-DD',
-        render: function(value) {
-          const d = new Date(value);
-          return d.toLocaleDateString('fr-FR');
-        }
-      },
-      {
-        select: 1,
-        type: 'string',
-        sortable: false,
-        render: function(value) {
-          return buildKindBadge(value);
-        },
-        searchMethod: function(terms, cell) {
-          if (!terms || !terms.length) return true;
-          return terms.includes(String(cell.data));
-        }
-      },
-      {
-        select: 2,
-        type: 'string',
-        sortable: false,
-        searchMethod: function(terms, cell) {
-          if (!terms || !terms.length) return true;
-          // Normalize cell.data the same way simple-datatables normalizes terms
-          // (sensitivity:"base" → lowercase + strip diacritics; ignorePunctuation:true)
-          const normalized = String(cell.data)
-            .toLowerCase()
-            .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-            .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '');
-          return terms.includes(normalized);
-        }
-      },
-      {
-        select: 3,
-        type: 'number',
-        cellClass: 'text-end',
-        render: function(value) {
-          return formatAmount(parseFloat(value));
-        }
-      },
-      {
-        select: 4,
-        type: 'string',
-        render: function(value) {
-          return value || '\u2014';
-        }
-      },
-      {
-        select: 5,
-        type: 'string',
-        sortable: false,
-        searchable: false,
-        render: function(value) {
-          const { parent_id, is_recurring, is_capitalized, occurrence_date, property_id } = JSON.parse(value);
-          const recurIcon = is_recurring
-            ? ` <i class="bi bi-arrow-repeat text-primary ms-1" title="${i18n.recurring}"></i>`
-            : '';
-          const capitalizedIcon = is_capitalized
-            ? ` <i class="bi bi-box-seam text-warning ms-1" title="${i18n.capitalized}"></i>`
-            : '';
-          return buildActionButtons({ parent_id, is_recurring, occurrence_date, property_id }) + recurIcon + capitalizedIcon;
-        }
-      }
-    ]
+function injectHTML(container, html) {
+  container.innerHTML = html;
+  container.querySelectorAll('script').forEach(function(oldScript) {
+    const newScript = document.createElement('script');
+    Array.from(oldScript.attributes).forEach(function(attr) { newScript.setAttribute(attr.name, attr.value); });
+    newScript.textContent = oldScript.textContent;
+    oldScript.parentNode.replaceChild(newScript, oldScript);
   });
+}
 
-  // Add column filter selects after table is initialised
-  datatable.on('datatable.init', function() {
-    const headers = datatable.dom.querySelectorAll('thead th');
+const loadedPanels = new Set();
+function loadPanel(panelId) {
+  if (loadedPanels.has(panelId) || !PANEL_URLS[panelId]) return;
+  loadedPanels.add(panelId);
+  const container = document.getElementById(panelId + '-panel');
+  if (!container) return;
+  fetch(PANEL_URLS[panelId])
+    .then(function(r) { return r.ok ? r.text() : Promise.reject(r.status); })
+    .then(function(html) { injectHTML(container, html); })
+    .catch(function() {
+      container.innerHTML = '<div class="alert alert-danger m-3">{% translate "Could not load panel." %}</div>';
+    });
+}
 
-    // Column 1 (Kind) — select replaces the header title
-    const kindTh = headers[1];
-    const kindSelect = document.createElement('select');
-    kindSelect.className = 'form-select form-select-sm mt-1';
-    kindSelect.innerHTML = `<option value="">{% translate 'Kind' %}</option><option value="expense">${i18n.expenses}</option><option value="income">${i18n.incomes}</option>`;
-    kindSelect.addEventListener('click', function(e) { e.stopPropagation(); });
-    kindSelect.addEventListener('change', function() {
-      const val = this.value;
-      datatable.multiSearch(val ? [{ terms: [val], columns: [1] }] : [], 'kind');
-    });
-    kindTh.replaceChildren(kindSelect);
+// Load default cashflow panel immediately
+document.addEventListener('DOMContentLoaded', function() { loadPanel('cashflow'); });
 
-    // Column 2 (Category) — select with unique values replaces the header title
-    const catTh = headers[2];
-    const categories = [...new Set(allTransactions.map(r => r.category).filter(Boolean))].sort();
-    const catSelect = document.createElement('select');
-    catSelect.className = 'form-select form-select-sm mt-1';
-    catSelect.innerHTML = `<option value="">{% translate 'Category' %}</option>`;
-    categories.forEach(function(cat) {
-      const opt = document.createElement('option');
-      // value must be the normalized form (same as what searchMethod receives in terms[])
-      opt.value = cat.toLowerCase()
-        .normalize('NFD').replace(/\p{Diacritic}/gu, '')
-        .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '');
-      opt.textContent = cat;
-      catSelect.appendChild(opt);
-    });
-    catSelect.addEventListener('click', function(e) { e.stopPropagation(); });
-    catSelect.addEventListener('change', function() {
-      const val = this.value;
-      datatable.multiSearch(val ? [{ terms: [val], columns: [2] }] : [], 'category');
-    });
-    catTh.replaceChildren(catSelect);
+// Load other panels on first tab click
+document.querySelectorAll('#propertyTabs [data-bs-toggle="tab"]').forEach(function(btn) {
+  btn.addEventListener('shown.bs.tab', function() {
+    const panelId = this.getAttribute('data-bs-target').replace('#', '').replace('-panel', '');
+    loadPanel(panelId);
   });
 });
-
-// ── Charts ───────────────────────────────────────────────────────────────────
-const valueHistorySeries = JSON.parse(document.getElementById('value-history-series').textContent);
-const debtHistorySeries = JSON.parse(document.getElementById('debt-history-series').textContent);
-const netHistorySeries = JSON.parse(document.getElementById('net-history-series').textContent);
-const valueProjectionSeries = JSON.parse(document.getElementById('value-projection-series').textContent);
-const debtProjectionSeries = JSON.parse(document.getElementById('debt-projection-series').textContent);
-const netProjectionSeries = JSON.parse(document.getElementById('net-projection-series').textContent);
-const cashflowRevenueSeries = JSON.parse(document.getElementById('cashflow-revenue-series').textContent);
-const cashflowExpenseSeries = JSON.parse(document.getElementById('cashflow-expense-series').textContent);
-const cashflowExpenseByTypeSeries = JSON.parse(document.getElementById('cashflow-expense-by-type-series').textContent);
-const cashflowLoanInterestSeries = JSON.parse(document.getElementById('cashflow-loan-interest-series').textContent);
-const cashflowLoanPrincipalSeries = JSON.parse(document.getElementById('cashflow-loan-principal-series').textContent);
-const cashflowLoanInsuranceSeries = JSON.parse(document.getElementById('cashflow-loan-insurance-series').textContent);
-const cashflowTotalExpensesSeries = JSON.parse(document.getElementById('cashflow-total-expenses-series').textContent);
-const projectionStartDate = '{{ projection_start_date }}';
 
 function getCurrentTheme() {
   return document.documentElement.getAttribute('data-bs-theme') || 'light';
 }
 
-const projectionChartOptions = {
-  chart: {
-    type: 'line',
-    height: 340,
-    toolbar: { show: false },
-    background: 'transparent'
-  },
-  series: [
-    { name: '{% translate "Property value (history)" %}', data: valueHistorySeries },
-    { name: '{% translate "Property value (projection)" %}', data: valueProjectionSeries },
-    { name: '{% translate "Debt amortization (history)" %}', data: debtHistorySeries },
-    { name: '{% translate "Debt amortization (projection)" %}', data: debtProjectionSeries },
-    { name: '{% translate "Net value (history)" %}', data: netHistorySeries },
-    { name: '{% translate "Net value (projection)" %}', data: netProjectionSeries }
-  ],
-  xaxis: { type: 'datetime' },
-  dataLabels: { enabled: false },
-  stroke: {
-    curve: ['smooth', 'smooth', 'straight', 'straight', 'smooth', 'smooth'],
-    width: [3, 3, 3, 3, 3, 3],
-    dashArray: [0, 7, 0, 7, 0, 7]
-  },
-  colors: ['#0d6efd', '#3d8bfd', '#dc3545', '#f16a7f', '#198754', '#5cb85c'],
-  markers: { size: 0 },
-  annotations: {
-    xaxis: [{
-      x: new Date(projectionStartDate).getTime(),
-      borderColor: '#6c757d',
-      label: { style: { background: '#6c757d', color: '#fff' } }
-    }]
-  },
-  yaxis: {
-    labels: { formatter: function(v) { return Math.round(v).toLocaleString(); } }
-  },
-  tooltip: {
-    theme: getCurrentTheme(),
-    x: { format: 'dd MMM yyyy' },
-    y: { formatter: function(v) { return Math.round(v).toLocaleString(); } }
-  },
-  theme: { mode: getCurrentTheme() }
-};
-
-const projectionChart = new ApexCharts(document.querySelector('#property-projection-chart'), projectionChartOptions);
-projectionChart.render();
-
-var min = new Date();
-min.setFullYear(min.getFullYear() - 1);
-var defaultRange = new Date().getTime() - min.getTime();
-
-const cashflowDifferenceSeries = cashflowRevenueSeries.map(function(rev) {
-  const expPoint = cashflowTotalExpensesSeries.find(function(e) { return e.x === rev.x; });
-  return { x: rev.x, y: rev.y - (expPoint ? expPoint.y : 0) };
-});
-
-const cashflowNegatedExpensesSeries = cashflowTotalExpensesSeries.map(function(p) { return { x: p.x, y: -p.y }; });
-const cashflowNegatedLoanInterestSeries = cashflowLoanInterestSeries.map(function(p) { return { x: p.x, y: -p.y }; });
-const cashflowNegatedLoanPrincipalSeries = cashflowLoanPrincipalSeries.map(function(p) { return { x: p.x, y: -p.y }; });
-const cashflowNegatedLoanInsuranceSeries = cashflowLoanInsuranceSeries.map(function(p) { return { x: p.x, y: -p.y }; });
-
-const expenseTypeColorPalette = ['#ffc107', '#e74c3c', '#9b59b6', '#3498db', '#1abc9c', '#e91e63'];
-const cashflowBreakdownExpenseSeries = cashflowExpenseByTypeSeries.map(function(s) {
-  return { name: s.label, data: s.data.map(function(p) { return { x: p.x, y: -p.y }; }) };
-});
-const cashflowBreakdownExpenseColors = cashflowExpenseByTypeSeries.map(function(s, i) {
-  return expenseTypeColorPalette[i % expenseTypeColorPalette.length];
-});
-
-const sharedXaxis = { type: 'datetime', range: defaultRange };
-const sharedYaxisFormatter = function(v) { return Math.round(v).toLocaleString(); };
-const sharedTooltip = {
-  theme: getCurrentTheme(),
-  x: { format: 'MMM yyyy' },
-  y: { formatter: sharedYaxisFormatter }
-};
-
-const cashflowOverviewChartOptions = {
-  chart: {
-    id: 'cashflow-overview',
-    group: 'cashflow',
-    type: 'line',
-    height: 260,
-    stacked: false,
-    toolbar: { show: false },
-    background: 'transparent',
-    events: { beforeZoom: function(ctx) { ctx.w.config.xaxis.range = undefined; } }
-  },
-  series: [
-    { name: '{% translate "Incomes" %}', data: cashflowRevenueSeries, type: 'bar' },
-    { name: '{% translate "Total expenses" %}', data: cashflowNegatedExpensesSeries, type: 'bar' },
-    { name: '{% translate "Difference" %}', data: cashflowDifferenceSeries, type: 'line' }
-  ],
-  plotOptions: { bar: { columnWidth: '55%' } },
-  dataLabels: { enabled: false },
-  stroke: { width: [0, 0, 2], curve: 'smooth' },
-  xaxis: sharedXaxis,
-  yaxis: { labels: { formatter: sharedYaxisFormatter } },
-  colors: ['#198754', '#dc3545', '#0d6efd'],
-  tooltip: sharedTooltip,
-  theme: { mode: getCurrentTheme() }
-};
-
-const cashflowBreakdownChartOptions = {
-  chart: {
-    id: 'cashflow-breakdown',
-    group: 'cashflow',
-    type: 'bar',
-    height: 260,
-    stacked: true,
-    toolbar: { show: false },
-    background: 'transparent',
-    events: { beforeZoom: function(ctx) { ctx.w.config.xaxis.range = undefined; } }
-  },
-  series: [
-    ...cashflowBreakdownExpenseSeries,
-    { name: '{% translate "Loan interest" %}', data: cashflowNegatedLoanInterestSeries },
-    { name: '{% translate "Loan principal" %}', data: cashflowNegatedLoanPrincipalSeries },
-    { name: '{% translate "Loan insurance" %}', data: cashflowNegatedLoanInsuranceSeries }
-  ],
-  plotOptions: { bar: { columnWidth: '55%' } },
-  dataLabels: { enabled: false },
-  xaxis: sharedXaxis,
-  yaxis: { labels: { formatter: sharedYaxisFormatter } },
-  colors: [...cashflowBreakdownExpenseColors, '#fd7e14', '#0dcaf0', '#20c997'],
-  tooltip: {
-    ...sharedTooltip,
-    shared: true,
-    intersect: false
-  },
-  theme: { mode: getCurrentTheme() }
-};
-
-const cashflowOverviewChart = new ApexCharts(document.querySelector('#property-cashflow-overview-chart'), cashflowOverviewChartOptions);
-cashflowOverviewChart.render();
-
-const cashflowBreakdownChart = new ApexCharts(document.querySelector('#property-cashflow-breakdown-chart'), cashflowBreakdownChartOptions);
-cashflowBreakdownChart.render();
-
-// Re-render charts when tabs become visible (ApexCharts needs visible container)
-document.getElementById('projection-tab').addEventListener('shown.bs.tab', function() {
-  projectionChart.updateOptions({});
-});
-document.getElementById('cashflow-tab').addEventListener('shown.bs.tab', function() {
-  cashflowOverviewChart.updateOptions({});
-  cashflowBreakdownChart.updateOptions({});
-});
-
-{% if show_amortization_tab %}
-// ── Amortization tab: dotation chart + schedule DataTable (lazy-init) ────────
-let amortizationInitialized = false;
-document.getElementById('amortization-tab').addEventListener('shown.bs.tab', function() {
-  if (amortizationInitialized) return;
-  amortizationInitialized = true;
-
-  const assetSeriesRaw = document.getElementById('amortization-asset-series');
-  const assetSeries = assetSeriesRaw ? JSON.parse(assetSeriesRaw.textContent) : [];
-
-  const currentYear = new Date().getFullYear();
-  const defaultYear = currentYear - 1;
-  const amortChartOptions = {
-    chart: {
-      type: 'bar',
-      stacked: true,
-      height: 300,
-      toolbar: {
-        show: true,
-        tools: { download: false, selection: false, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true }
-      },
-      zoom: { enabled: true, type: 'x' },
-      background: 'transparent'
-    },
-    series: assetSeries.map(function(s) {
-      return {
-        name: s.label,
-        data: s.data.map(function(r) {
-          return { x: r.year, y: parseFloat(r.dotation.toFixed(2)) };
-        })
-      };
-    }),
-    plotOptions: {
-      bar: {
-        columnWidth: '70%',
-        dataLabels: { position: 'top', total: {
-          enabled: true,
-          style: { fontSize: '11px', fontWeight: 600 },
-          formatter: function(v) { return Math.round(v).toLocaleString('fr-FR') + ' €'; }
-        }}
-      }
-    },
-    dataLabels: { enabled: false },
-    legend: { show: true, position: 'top' },
-    xaxis: {
-      type: 'numeric',
-      min: defaultYear,
-      max: defaultYear + 9,
-      labels: {
-        rotate: -45,
-        style: { fontSize: '11px' },
-        formatter: function(v) { return Math.round(v); }
-      },
-      tickPlacement: 'on'
-    },
-    yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString() + ' €'; } } },
-    annotations: {
-      xaxis: [{
-        x: defaultYear,
-        borderColor: '#0d6efd',
-        label: { text: String(defaultYear), style: { color: '#fff', background: '#0d6efd' } }
-      }]
-    },
-    tooltip: {
-      theme: getCurrentTheme(),
-      x: { formatter: function(v) { return Math.round(v); } },
-      y: { formatter: function(v) { return v.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }); } }
-    },
-    theme: { mode: getCurrentTheme() }
-  };
-  const amortChart = new ApexCharts(document.querySelector('#amortization-dotation-chart'), amortChartOptions);
-  amortChart.render();
-});
-{% endif %}
+function updateChartsTheme(themeName) {
+  (window._propertyPanelCharts || []).forEach(function(c) {
+    if (c) c.updateOptions({ theme: { mode: themeName }, tooltip: { theme: themeName } });
+  });
+}
 
 // ── Activate tab from URL hash (deferred so all listeners are registered) ────
 (function () {
@@ -1236,56 +672,6 @@ document.getElementById('amortization-tab').addEventListener('shown.bs.tab', fun
     if (target) {
       bootstrap.Tab.getOrCreateInstance(target).show();
     }
-  }
-})();
-
-function updateChartsTheme(themeName) {
-  [projectionChart, cashflowOverviewChart, cashflowBreakdownChart].forEach(function(c) {
-    if (c) c.updateOptions({ theme: { mode: themeName }, tooltip: { theme: themeName } });
-  });
-}
-
-// ── Map (lazy-init on tab show) ───────────────────────────────────────────────
-let mapInitialized = false;
-document.getElementById('info-tab').addEventListener('shown.bs.tab', function() {
-  if (mapInitialized) return;
-  mapInitialized = true;
-
-  const propertyAddress = '{{ property.address|default:""|escapejs }}';
-  const map = L.map('property-map', { zoomControl: true, scrollWheelZoom: false }).setView([48.8566, 2.3522], 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  if (propertyAddress) {
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(propertyAddress)}`)
-      .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const lat = parseFloat(data[0].lat);
-          const lon = parseFloat(data[0].lon);
-          map.setView([lat, lon], 15);
-          L.marker([lat, lon]).addTo(map).bindPopup(propertyAddress).openPopup();
-        }
-      })
-      .catch(() => {});
-  }
-  // Force Leaflet to recalculate size after tab reveal
-  setTimeout(function() { map.invalidateSize(); }, 100);
-});
-
-// ── Auto-activate tab from URL hash (e.g. after prev/next navigation) ────────
-(function() {
-  const hash = window.location.hash;
-  if (!hash) return;
-  // Find the tab button whose data-bs-target matches the hash
-  const tabBtn = document.querySelector('[data-bs-target="' + hash + '"]');
-  if (tabBtn) {
-    const tab = new bootstrap.Tab(tabBtn);
-    tab.show();
-    // Scroll to top of tab content so the panel is visible
-    tabBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 })();
 
@@ -1378,26 +764,6 @@ document.getElementById('info-tab').addEventListener('shown.bs.tab', function() 
     // Initial state
     updateRecurrenceEnd();
   }
-
-  // ── EDIT modals: apply filtering on page load and on flow type change ─────
-  document.querySelectorAll('.edit-mgmt-cat').forEach(function(editMgmtSel) {
-    const flowType = editMgmtSel.dataset.flow;
-    // Apply initial optgroup filter based on current flow type
-    applyMgmtFilter(editMgmtSel, flowType);
-
-    // Find the parent modal to scope the radio listeners
-    const parentModal = editMgmtSel.closest('.modal');
-    if (!parentModal) return;
-
-    // Wire up flow type radio buttons within this edit modal
-    parentModal.querySelectorAll('input[name="flow_type"]').forEach(function(radio) {
-      radio.addEventListener('change', function() {
-        const newFlow = this.value;
-        editMgmtSel.dataset.flow = newFlow;
-        applyMgmtFilter(editMgmtSel, newFlow);
-      });
-    });
-  });
 })();
 
 // ── Tabs overflow → "More" dropdown (mobile) ─────────────────────────────────

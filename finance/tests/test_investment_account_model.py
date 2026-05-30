@@ -421,19 +421,7 @@ def test_holding_quantity_property(active_investment_account):
 
 
 @pytest.mark.django_db
-def test_holding_history_str(active_investment_account):
+def test_holding_history_str(investment_holding_history):
     """InvestmentAccountHoldingHistory __str__ includes value and date."""
-    holding = InvestmentAccountHolding.objects.create(
-        account=active_investment_account,
-        name="Fund H",
-        is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
-    )
-    history = InvestmentAccountHoldingHistory.objects.create(
-        holding=holding,
-        value=Money(Decimal("300"), "EUR"),
-        quantity=Decimal("3"),
-        valuation_date=datetime.datetime(2025, 5, 10, 12, 0, 0),
-    )
-    s = str(history)
+    s = str(investment_holding_history)
     assert "300" in s or "2025" in s

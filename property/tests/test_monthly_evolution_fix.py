@@ -9,6 +9,11 @@ from moneyed import Money
 from property.models import Property, PropertyLoan
 
 
+def _months_between(start_date, end_date):
+    """Return the number of complete months from start_date to end_date."""
+    return (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
+
+
 class MonthlyEvolutionFixTest(TestCase):
     """Test that the monthly evolution fix works correctly."""
 
@@ -40,15 +45,15 @@ class MonthlyEvolutionFixTest(TestCase):
         )
 
     def test_monthly_evolution_in_dashboard(self):
-        """Test that the dashboard shows proper monthly evolution."""
+        """Test that the patrimony chart API shows proper monthly evolution."""
         self.client.login(username="testuser", password="testpass123")
 
-        response = self.client.get("/")
+        response = self.client.get("/api/patrimony-chart/")
         self.assertEqual(response.status_code, 200)
 
-        context = response.context
-        net_evolution = context["patrimony_evolution_properties_net"]
-        loan_evolution = context["patrimony_evolution_properties_gross"]
+        data = response.json()
+        net_evolution = data["properties_net"]
+        loan_evolution = data["properties_loans"]
 
         print(f"Dashboard net evolution: {net_evolution}")
         print(f"Dashboard loan evolution: {loan_evolution}")
@@ -144,13 +149,9 @@ class MonthlyEvolutionFixTest(TestCase):
         for test_date, description in test_cases:
             with self.subTest(date=test_date):
                 # Calculate expected values manually
-                months_since_start = (
-                    test_date.year - self.loan.start_date.year
-                ) * 12 + (test_date.month - self.loan.start_date.month)
+                months_since_start = _months_between(self.loan.start_date, test_date)
 
-                total_months = (
-                    self.loan.end_date.year - self.loan.start_date.year
-                ) * 12 + (self.loan.end_date.month - self.loan.start_date.month)
+                total_months = _months_between(self.loan.start_date, self.loan.end_date)
 
                 self.assertGreater(total_months, 0)
 

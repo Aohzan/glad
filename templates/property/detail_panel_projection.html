@@ -48,3 +48,63 @@
     </tbody>
   </table>
 </div>
+
+{# ── JSON data for chart ──────────────────────────────────────────────────── #}
+{{ value_history_series|json_script:"value-history-series" }}
+{{ debt_history_series|json_script:"debt-history-series" }}
+{{ net_history_series|json_script:"net-history-series" }}
+{{ value_projection_series|json_script:"value-projection-series" }}
+{{ debt_projection_series|json_script:"debt-projection-series" }}
+{{ net_projection_series|json_script:"net-projection-series" }}
+
+<script>
+(function () {
+  var valueHistorySeries    = JSON.parse(document.getElementById('value-history-series').textContent);
+  var debtHistorySeries     = JSON.parse(document.getElementById('debt-history-series').textContent);
+  var netHistorySeries      = JSON.parse(document.getElementById('net-history-series').textContent);
+  var valueProjectionSeries = JSON.parse(document.getElementById('value-projection-series').textContent);
+  var debtProjectionSeries  = JSON.parse(document.getElementById('debt-projection-series').textContent);
+  var netProjectionSeries   = JSON.parse(document.getElementById('net-projection-series').textContent);
+  var projectionStartDate   = '{{ projection_start_date }}';
+
+  function getCurrentTheme() {
+    return document.documentElement.getAttribute('data-bs-theme') || 'light';
+  }
+
+  var projectionChart = new ApexCharts(document.querySelector('#property-projection-chart'), {
+    chart: { type: 'line', height: 340, toolbar: { show: false }, background: 'transparent' },
+    series: [
+      { name: '{% translate "Property value (history)" %}',       data: valueHistorySeries },
+      { name: '{% translate "Property value (projection)" %}',    data: valueProjectionSeries },
+      { name: '{% translate "Debt amortization (history)" %}',    data: debtHistorySeries },
+      { name: '{% translate "Debt amortization (projection)" %}', data: debtProjectionSeries },
+      { name: '{% translate "Net value (history)" %}',            data: netHistorySeries },
+      { name: '{% translate "Net value (projection)" %}',         data: netProjectionSeries }
+    ],
+    xaxis: { type: 'datetime' },
+    dataLabels: { enabled: false },
+    stroke: {
+      curve: ['smooth', 'smooth', 'straight', 'straight', 'smooth', 'smooth'],
+      width: [3, 3, 3, 3, 3, 3],
+      dashArray: [0, 7, 0, 7, 0, 7]
+    },
+    colors: ['#0d6efd', '#3d8bfd', '#dc3545', '#f16a7f', '#198754', '#5cb85c'],
+    markers: { size: 0 },
+    annotations: {
+      xaxis: [{ x: new Date(projectionStartDate).getTime(), borderColor: '#6c757d', label: { style: { background: '#6c757d', color: '#fff' } } }]
+    },
+    yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString(); } } },
+    tooltip: {
+      theme: getCurrentTheme(),
+      x: { format: 'dd MMM yyyy' },
+      y: { formatter: function(v) { return Math.round(v).toLocaleString(); } }
+    },
+    theme: { mode: getCurrentTheme() }
+  });
+  projectionChart.render();
+
+  // Register for theme updates
+  window._propertyPanelCharts = window._propertyPanelCharts || [];
+  window._propertyPanelCharts.push(projectionChart);
+})();
+</script>

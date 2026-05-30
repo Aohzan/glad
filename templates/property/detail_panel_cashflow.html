@@ -43,3 +43,473 @@
     </tbody>
   </table>
 </div>
+
+{# ── Entry edit/delete modals (one per ledger entry) ─────────────────────── #}
+{% for item in entries_with_forms %}
+<div class="modal fade" id="editEntryModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="post" action="{% url 'property:edit_entry' property.pk item.obj.pk %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">
+            {% if item.obj.flow_type == "expense" %}
+              <i class="bi bi-arrow-up-circle me-2 text-danger"></i>{% translate "Edit expense" %}
+            {% else %}
+              <i class="bi bi-arrow-down-circle me-2 text-success"></i>{% translate "Edit income" %}
+            {% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          {% if item.obj.recurrence_type != 'none' %}
+            <div class="alert alert-info py-2">
+              <i class="bi bi-info-circle me-1"></i> {% translate "This is a recurring entry. Changes will apply to all occurrences." %}
+            </div>
+          {% endif %}
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              <i class="bi bi-arrow-left-right me-1 text-secondary"></i>{% translate "Type" %}
+            </label>
+            <div class="d-flex gap-2">
+              <input type="radio" class="btn-check"
+                     name="{{ item.edit_form.flow_type.html_name }}"
+                     id="flowTypeIncome{{ item.obj.pk }}"
+                     value="income"
+                     autocomplete="off"
+                     {% if item.obj.flow_type == "income" %}checked{% endif %}>
+              <label class="btn btn-outline-success flex-fill" for="flowTypeIncome{{ item.obj.pk }}">
+                {% translate "Income" %}
+              </label>
+              <input type="radio" class="btn-check"
+                     name="{{ item.edit_form.flow_type.html_name }}"
+                     id="flowTypeExpense{{ item.obj.pk }}"
+                     value="expense"
+                     autocomplete="off"
+                     {% if item.obj.flow_type == "expense" %}checked{% endif %}>
+              <label class="btn btn-outline-danger flex-fill" for="flowTypeExpense{{ item.obj.pk }}">
+                {% translate "Expense" %}
+              </label>
+            </div>
+            {% if item.edit_form.flow_type.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.flow_type.errors }}</div>{% endif %}
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.amount.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-currency-euro me-1 text-secondary"></i>{% translate "Amount" %}
+              </label>
+              {{ item.edit_form.amount }}
+              {% if item.edit_form.amount.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.amount.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.entry_date.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-calendar3 me-1 text-secondary"></i>{% translate "Date" %}
+              </label>
+              {{ item.edit_form.entry_date }}
+              {% if item.edit_form.entry_date.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.entry_date.errors }}</div>{% endif %}
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.reference_period.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-calendar-range me-1 text-secondary"></i>{% translate "Reference period" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ item.edit_form.reference_period }}
+              {% if item.edit_form.reference_period.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.reference_period.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.lease.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-file-text me-1 text-secondary"></i>{% translate "Lease" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ item.edit_form.lease }}
+              {% if item.edit_form.lease.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.lease.errors }}</div>{% endif %}
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="edit_mgmt_cat_{{ item.obj.pk }}" class="form-label fw-semibold">
+                <i class="bi bi-tag me-1 text-secondary"></i>{% translate "Category" %}
+              </label>
+              <select name="{{ item.edit_form.management_category.html_name }}"
+                      id="edit_mgmt_cat_{{ item.obj.pk }}"
+                      class="form-select edit-mgmt-cat"
+                      data-flow="{{ item.obj.flow_type }}">
+                <option value="">— {% translate "Select a category" %} —</option>
+                <optgroup label="{% translate 'Income' %}" class="mgmt-income-group">
+                  {% for value, label in ledger_income_categories %}
+                  <option value="{{ value }}" {% if item.obj.management_category == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </optgroup>
+                <optgroup label="{% translate 'Expenses' %}" class="mgmt-expense-group">
+                  {% for value, label in ledger_expense_categories %}
+                  <option value="{{ value }}" {% if item.obj.management_category == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </optgroup>
+              </select>
+              {% if item.edit_form.management_category.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.management_category.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="{{ item.edit_form.third_party.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-secondary"></i>{% translate "Third party" %}
+                <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+              </label>
+              {{ item.edit_form.third_party }}
+              {% if item.edit_form.third_party.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.third_party.errors }}</div>{% endif %}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="{{ item.edit_form.description.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-chat-left-text me-1 text-secondary"></i>{% translate "Description" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ item.edit_form.description }}
+          </div>
+          <div class="mb-3">
+            <label for="{{ item.edit_form.notes.id_for_label }}" class="form-label fw-semibold">
+              <i class="bi bi-sticky me-1 text-secondary"></i>{% translate "Notes" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ item.edit_form.notes }}
+          </div>
+          <div class="border rounded p-3 bg-body-tertiary">
+            <p class="small fw-semibold text-body-secondary mb-2">
+              <i class="bi bi-arrow-repeat me-1"></i>{% translate "Recurrence" %}
+            </p>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="{{ item.edit_form.recurrence_type.id_for_label }}" class="form-label small">
+                  {% translate "Frequency" %}
+                </label>
+                {{ item.edit_form.recurrence_type }}
+              </div>
+              <div class="col-md-6">
+                <label for="{{ item.edit_form.recurrence_end_date.id_for_label }}" class="form-label small">
+                  {% translate "End date" %}
+                  <span class="text-body-secondary fw-normal">({% translate "optional" %})</span>
+                </label>
+                {{ item.edit_form.recurrence_end_date }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{% translate "Save changes" %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="deleteEntryModal{{ item.obj.pk }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'property:delete_entry' property.pk item.obj.pk %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">
+            {% if item.obj.flow_type == "expense" %}{% translate "Delete expense" %}{% else %}{% translate "Delete income" %}{% endif %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          {% if item.obj.recurrence_type != 'none' %}
+            <div class="alert alert-warning">
+              <i class="bi bi-exclamation-triangle"></i> {% translate "This is a recurring entry. All occurrences will be deleted." %}
+            </div>
+          {% endif %}
+          <p>{% blocktranslate with amount=item.obj.amount|format_money date=item.obj.entry_date %}Are you sure you want to delete the entry of {{ amount }} dated {{ date }}?{% endblocktranslate %}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
+          <button type="submit" class="btn btn-danger">{% translate "Delete" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{# ── JSON data for charts and DataTable ──────────────────────────────────── #}
+{{ transactions_json|json_script:"transactions-data" }}
+{{ cashflow_revenue_series|json_script:"cashflow-revenue-series" }}
+{{ cashflow_expense_series|json_script:"cashflow-expense-series" }}
+{{ cashflow_expense_by_type_series|json_script:"cashflow-expense-by-type-series" }}
+{{ cashflow_loan_interest_series|json_script:"cashflow-loan-interest-series" }}
+{{ cashflow_loan_principal_series|json_script:"cashflow-loan-principal-series" }}
+{{ cashflow_loan_insurance_series|json_script:"cashflow-loan-insurance-series" }}
+{{ cashflow_total_expenses_series|json_script:"cashflow-total-expenses-series" }}
+
+<script>
+(function () {
+  var _cfI18n = {
+    expense:     "{% translate 'Expense' %}",
+    income:      "{% translate 'Income' %}",
+    recurring:   "{% translate 'Recurring' %}",
+    capitalized: "{% translate 'Linked to an amortization asset' %}",
+    edit:        "{% translate 'Edit' %}",
+    delete:      "{% translate 'Delete' %}",
+    noData:      "{% translate 'No transactions found' %}",
+    search:      "{% translate 'Search' %}",
+    expenses:    "{% translate 'Expenses' %}",
+    incomes:     "{% translate 'Incomes' %}",
+    kind:        "{% translate 'Kind' %}",
+    category:    "{% translate 'Category' %}",
+  };
+  var _INCOME_MGMT  = [{% for value, label in ledger_income_categories %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+  var _EXPENSE_MGMT = [{% for value, label in ledger_expense_categories %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+
+  var allTransactions = JSON.parse(document.getElementById('transactions-data').textContent);
+
+  function formatAmount(amount) {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(amount);
+  }
+
+  function buildActionButtons(row) {
+    if (row.is_recurring && row.occurrence_date) {
+      var editUrl = '/property/' + row.property_id + '/entry/' + row.parent_id + '/occurrence/' + row.occurrence_date + '/edit/';
+      var delUrl  = '/property/' + row.property_id + '/entry/' + row.parent_id + '/occurrence/' + row.occurrence_date + '/delete/';
+      return '<div class="btn-group btn-group-sm" role="group">' +
+        '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _cfI18n.edit + '"><i class="bi bi-pencil"></i></a>' +
+        '<a href="' + delUrl  + '" class="btn btn-outline-danger" title="' + _cfI18n.delete + '"><i class="bi bi-trash"></i></a>' +
+        '</div>';
+    }
+    var editTarget = '#editEntryModal' + row.parent_id;
+    var delTarget  = '#deleteEntryModal' + row.parent_id;
+    return '<div class="btn-group btn-group-sm" role="group">' +
+      '<button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="' + editTarget + '" title="' + _cfI18n.edit + '"><i class="bi bi-pencil"></i></button>' +
+      '<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="' + delTarget + '" title="' + _cfI18n.delete + '"><i class="bi bi-trash"></i></button>' +
+      '</div>';
+  }
+
+  function buildKindBadge(kind) {
+    if (kind === 'expense') {
+      return '<span class="badge text-bg-danger-subtle text-danger-emphasis"><i class="bi bi-arrow-up-circle me-1"></i>' + _cfI18n.expense + '</span>';
+    }
+    return '<span class="badge text-bg-success-subtle text-success-emphasis"><i class="bi bi-arrow-down-circle me-1"></i>' + _cfI18n.income + '</span>';
+  }
+
+  // ── DataTable ──────────────────────────────────────────────────────────────
+  var tableRows = allTransactions.map(function(row) {
+    return [
+      row.date,
+      row.kind,
+      row.category || '',
+      String(row.amount),
+      row.description || '',
+      JSON.stringify({ parent_id: row.parent_id, is_recurring: row.is_recurring, is_capitalized: row.is_capitalized, occurrence_date: row.occurrence_date, property_id: row.property_id }),
+    ];
+  });
+
+  var datatable = new simpleDatatables.DataTable('#transactions-table', {
+    data: { data: tableRows },
+    perPage: 10,
+    perPageSelect: [5, 10, 20, 50, 100],
+    searchable: true,
+    sortable: true,
+    labels: {
+      placeholder: _cfI18n.search,
+      noRows: _cfI18n.noData,
+      noResults: _cfI18n.noData,
+    },
+    columns: [
+      {
+        select: 0, sort: 'desc', type: 'date', format: 'YYYY-MM-DD',
+        render: function(value) {
+          return new Date(value).toLocaleDateString('fr-FR');
+        }
+      },
+      {
+        select: 1, type: 'string', sortable: false,
+        render: function(value) { return buildKindBadge(value); },
+        searchMethod: function(terms, cell) {
+          if (!terms || !terms.length) return true;
+          return terms.includes(String(cell.data));
+        }
+      },
+      {
+        select: 2, type: 'string', sortable: false,
+        searchMethod: function(terms, cell) {
+          if (!terms || !terms.length) return true;
+          var normalized = String(cell.data).toLowerCase()
+            .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+            .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '');
+          return terms.includes(normalized);
+        }
+      },
+      {
+        select: 3, type: 'number', cellClass: 'text-end',
+        render: function(value) { return formatAmount(parseFloat(value)); }
+      },
+      {
+        select: 4, type: 'string',
+        render: function(value) { return value || '\u2014'; }
+      },
+      {
+        select: 5, type: 'string', sortable: false, searchable: false,
+        render: function(value) {
+          var d = JSON.parse(value);
+          var recurIcon = d.is_recurring ? ' <i class="bi bi-arrow-repeat text-primary ms-1" title="' + _cfI18n.recurring + '"></i>' : '';
+          var capitalizedIcon = d.is_capitalized ? ' <i class="bi bi-box-seam text-warning ms-1" title="' + _cfI18n.capitalized + '"></i>' : '';
+          return buildActionButtons(d) + recurIcon + capitalizedIcon;
+        }
+      }
+    ]
+  });
+
+  datatable.on('datatable.init', function() {
+    var headers = datatable.dom.querySelectorAll('thead th');
+
+    var kindTh = headers[1];
+    var kindSelect = document.createElement('select');
+    kindSelect.className = 'form-select form-select-sm mt-1';
+    kindSelect.innerHTML = '<option value="">' + _cfI18n.kind + '</option><option value="expense">' + _cfI18n.expenses + '</option><option value="income">' + _cfI18n.incomes + '</option>';
+    kindSelect.addEventListener('click', function(e) { e.stopPropagation(); });
+    kindSelect.addEventListener('change', function() {
+      var val = this.value;
+      datatable.multiSearch(val ? [{ terms: [val], columns: [1] }] : [], 'kind');
+    });
+    kindTh.replaceChildren(kindSelect);
+
+    var catTh = headers[2];
+    var categories = Array.from(new Set(allTransactions.map(function(r) { return r.category; }).filter(Boolean))).sort();
+    var catSelect = document.createElement('select');
+    catSelect.className = 'form-select form-select-sm mt-1';
+    catSelect.innerHTML = '<option value="">' + _cfI18n.category + '</option>';
+    categories.forEach(function(cat) {
+      var opt = document.createElement('option');
+      opt.value = cat.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '');
+      opt.textContent = cat;
+      catSelect.appendChild(opt);
+    });
+    catSelect.addEventListener('click', function(e) { e.stopPropagation(); });
+    catSelect.addEventListener('change', function() {
+      var val = this.value;
+      datatable.multiSearch(val ? [{ terms: [val], columns: [2] }] : [], 'category');
+    });
+    catTh.replaceChildren(catSelect);
+  });
+
+  // ── Cashflow charts ────────────────────────────────────────────────────────
+  var cashflowRevenueSeries      = JSON.parse(document.getElementById('cashflow-revenue-series').textContent);
+  var cashflowExpenseByTypeSeries = JSON.parse(document.getElementById('cashflow-expense-by-type-series').textContent);
+  var cashflowLoanInterestSeries  = JSON.parse(document.getElementById('cashflow-loan-interest-series').textContent);
+  var cashflowLoanPrincipalSeries = JSON.parse(document.getElementById('cashflow-loan-principal-series').textContent);
+  var cashflowLoanInsuranceSeries = JSON.parse(document.getElementById('cashflow-loan-insurance-series').textContent);
+  var cashflowTotalExpensesSeries = JSON.parse(document.getElementById('cashflow-total-expenses-series').textContent);
+
+  function getCurrentTheme() {
+    return document.documentElement.getAttribute('data-bs-theme') || 'light';
+  }
+
+  var min = new Date();
+  min.setFullYear(min.getFullYear() - 1);
+  var defaultRange = new Date().getTime() - min.getTime();
+
+  var cashflowDifferenceSeries = cashflowRevenueSeries.map(function(rev) {
+    var expPoint = cashflowTotalExpensesSeries.find(function(e) { return e.x === rev.x; });
+    return { x: rev.x, y: rev.y - (expPoint ? expPoint.y : 0) };
+  });
+  var cashflowNegatedExpensesSeries   = cashflowTotalExpensesSeries.map(function(p) { return { x: p.x, y: -p.y }; });
+  var cashflowNegatedLoanInterestSeries  = cashflowLoanInterestSeries.map(function(p) { return { x: p.x, y: -p.y }; });
+  var cashflowNegatedLoanPrincipalSeries = cashflowLoanPrincipalSeries.map(function(p) { return { x: p.x, y: -p.y }; });
+  var cashflowNegatedLoanInsuranceSeries = cashflowLoanInsuranceSeries.map(function(p) { return { x: p.x, y: -p.y }; });
+
+  var expenseTypeColorPalette = ['#ffc107', '#e74c3c', '#9b59b6', '#3498db', '#1abc9c', '#e91e63'];
+  var cashflowBreakdownExpenseSeries = cashflowExpenseByTypeSeries.map(function(s) {
+    return { name: s.label, data: s.data.map(function(p) { return { x: p.x, y: -p.y }; }) };
+  });
+  var cashflowBreakdownExpenseColors = cashflowExpenseByTypeSeries.map(function(s, i) {
+    return expenseTypeColorPalette[i % expenseTypeColorPalette.length];
+  });
+
+  var sharedXaxis = { type: 'datetime', range: defaultRange };
+  var sharedYaxisFormatter = function(v) { return Math.round(v).toLocaleString(); };
+  var sharedTooltip = {
+    theme: getCurrentTheme(),
+    x: { format: 'MMM yyyy' },
+    y: { formatter: sharedYaxisFormatter }
+  };
+
+  var cashflowOverviewChart = new ApexCharts(document.querySelector('#property-cashflow-overview-chart'), {
+    chart: {
+      id: 'cashflow-overview', group: 'cashflow', type: 'line', height: 260, stacked: false,
+      toolbar: { show: false }, background: 'transparent',
+      events: { beforeZoom: function(ctx) { ctx.w.config.xaxis.range = undefined; } }
+    },
+    series: [
+      { name: '{% translate "Incomes" %}', data: cashflowRevenueSeries, type: 'bar' },
+      { name: '{% translate "Total expenses" %}', data: cashflowNegatedExpensesSeries, type: 'bar' },
+      { name: '{% translate "Difference" %}', data: cashflowDifferenceSeries, type: 'line' }
+    ],
+    plotOptions: { bar: { columnWidth: '55%' } },
+    dataLabels: { enabled: false },
+    stroke: { width: [0, 0, 2], curve: 'smooth' },
+    xaxis: sharedXaxis,
+    yaxis: { labels: { formatter: sharedYaxisFormatter } },
+    colors: ['#198754', '#dc3545', '#0d6efd'],
+    tooltip: sharedTooltip,
+    theme: { mode: getCurrentTheme() }
+  });
+  cashflowOverviewChart.render();
+
+  var cashflowBreakdownChart = new ApexCharts(document.querySelector('#property-cashflow-breakdown-chart'), {
+    chart: {
+      id: 'cashflow-breakdown', group: 'cashflow', type: 'bar', height: 260, stacked: true,
+      toolbar: { show: false }, background: 'transparent',
+      events: { beforeZoom: function(ctx) { ctx.w.config.xaxis.range = undefined; } }
+    },
+    series: cashflowBreakdownExpenseSeries.concat([
+      { name: '{% translate "Loan interest" %}', data: cashflowNegatedLoanInterestSeries },
+      { name: '{% translate "Loan principal" %}', data: cashflowNegatedLoanPrincipalSeries },
+      { name: '{% translate "Loan insurance" %}', data: cashflowNegatedLoanInsuranceSeries }
+    ]),
+    plotOptions: { bar: { columnWidth: '55%' } },
+    dataLabels: { enabled: false },
+    xaxis: sharedXaxis,
+    yaxis: { labels: { formatter: sharedYaxisFormatter } },
+    colors: cashflowBreakdownExpenseColors.concat(['#fd7e14', '#0dcaf0', '#20c997']),
+    tooltip: Object.assign({}, sharedTooltip, { shared: true, intersect: false }),
+    theme: { mode: getCurrentTheme() }
+  });
+  cashflowBreakdownChart.render();
+
+  // Register charts for theme updates
+  window._propertyPanelCharts = window._propertyPanelCharts || [];
+  window._propertyPanelCharts.push(cashflowOverviewChart, cashflowBreakdownChart);
+
+  // ── Edit modal optgroup filtering ──────────────────────────────────────────
+  function _applyMgmtFilter(mgmtSelect, flowType) {
+    if (!mgmtSelect) return;
+    var incomeGroup  = mgmtSelect.querySelector('.mgmt-income-group');
+    var expenseGroup = mgmtSelect.querySelector('.mgmt-expense-group');
+    if (incomeGroup)  incomeGroup.style.display  = (flowType === 'income')  ? '' : 'none';
+    if (expenseGroup) expenseGroup.style.display = (flowType === 'expense') ? '' : 'none';
+    var val = mgmtSelect.value;
+    if (flowType === 'income'  && _EXPENSE_MGMT.includes(val)) mgmtSelect.value = '';
+    if (flowType === 'expense' && _INCOME_MGMT.includes(val))  mgmtSelect.value = '';
+  }
+
+  document.querySelectorAll('.edit-mgmt-cat').forEach(function(editMgmtSel) {
+    var flowType = editMgmtSel.dataset.flow;
+    _applyMgmtFilter(editMgmtSel, flowType);
+    var parentModal = editMgmtSel.closest('.modal');
+    if (!parentModal) return;
+    parentModal.querySelectorAll('input[name="flow_type"]').forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        editMgmtSel.dataset.flow = this.value;
+        _applyMgmtFilter(editMgmtSel, this.value);
+      });
+    });
+  });
+
+  // Init Bootstrap tooltips for newly injected content
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+    new bootstrap.Tooltip(el);
+  });
+})();
+</script>

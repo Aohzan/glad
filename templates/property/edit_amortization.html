@@ -26,11 +26,7 @@
     </h1>
   </div>
 
-  {% if form.errors %}
-    <div class="alert alert-danger">
-      <i class="bi bi-exclamation-triangle me-1"></i>{% translate "Please correct the errors below." %}
-    </div>
-  {% endif %}
+  {% include "property/_form_error_alert.html" %}
 
   <form method="post">
     {% csrf_token %}
@@ -119,7 +115,7 @@
           <div class="row g-3">
 
             <div class="col-6 col-md-3">
-              <p class="fw-semibold text-body-secondary text-uppercase mb-1" style="font-size:.7rem;">
+              <p class="fw-semibold text-body-secondary text-uppercase mb-1 prop-label">
                 {% translate "Terrains" %}
               </p>
               <ul class="list-unstyled mb-0">
@@ -128,7 +124,7 @@
             </div>
 
             <div class="col-6 col-md-3">
-              <p class="fw-semibold text-body-secondary text-uppercase mb-1" style="font-size:.7rem;">
+              <p class="fw-semibold text-body-secondary text-uppercase mb-1 prop-label">
                 {% translate "Constructions" %}
               </p>
               <ul class="list-unstyled mb-0">
@@ -140,7 +136,7 @@
             </div>
 
             <div class="col-6 col-md-3">
-              <p class="fw-semibold text-body-secondary text-uppercase mb-1" style="font-size:.7rem;">
+              <p class="fw-semibold text-body-secondary text-uppercase mb-1 prop-label">
                 {% translate "Installations générales" %}
               </p>
               <ul class="list-unstyled mb-0">
@@ -153,7 +149,7 @@
             </div>
 
             <div class="col-6 col-md-3">
-              <p class="fw-semibold text-body-secondary text-uppercase mb-1" style="font-size:.7rem;">
+              <p class="fw-semibold text-body-secondary text-uppercase mb-1 prop-label">
                 {% translate "Autres immobilisations corporelles" %}
               </p>
               <ul class="list-unstyled mb-0">

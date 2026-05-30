@@ -12,6 +12,8 @@ import pytest
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountCash,
+    InvestmentAccountHolding,
+    InvestmentAccountHoldingHistory,
     InvestmentAccountType,
 )
 from finance.models.saving_account import (
@@ -19,38 +21,6 @@ from finance.models.saving_account import (
     SavingAccountType,
     SavingAccountValue,
 )
-from tests.conftest import (
-    ADMIN_PASSWORD,
-    ADMIN_USER,
-    TEST_PASSWORD,
-    TEST_USER,
-    admin_client,
-    admin_user,
-    client,
-    user,
-    user_client,
-)
-
-# Re-export all fixtures from the central conftest.py
-__all__ = [
-    "ADMIN_USER",
-    "ADMIN_PASSWORD",
-    "TEST_USER",
-    "TEST_PASSWORD",
-    "admin_user",
-    "user",
-    "client",
-    "admin_client",
-    "user_client",
-    "saving_account_type",
-    "active_saving_account",
-    "inactive_saving_account",
-    "saving_account_value",
-    "investment_account_type",
-    "active_investment_account",
-    "inactive_investment_account",
-    "investment_account_cash",
-]
 
 
 @pytest.fixture
@@ -155,3 +125,46 @@ def investment_account_cash(active_investment_account):
         value_date=datetime.datetime.today() - datetime.timedelta(days=15),
     )
     return cash
+
+
+@pytest.fixture
+def investment_holding_history(active_investment_account):
+    """Create an InvestmentAccountHolding with one history entry for testing."""
+    from djmoney.money import Money
+
+    holding = InvestmentAccountHolding.objects.create(
+        account=active_investment_account,
+        name="Test Holding",
+        is_active=True,
+        initial_value=Money(Decimal("100"), "EUR"),
+    )
+    return InvestmentAccountHoldingHistory.objects.create(
+        holding=holding,
+        value=Money(Decimal("300"), "EUR"),
+        quantity=Decimal("3"),
+        valuation_date=datetime.datetime(2025, 2, 1, 10, 0, 0),
+    )
+
+
+@pytest.fixture
+def declining_saving_account(saving_account_type):
+    """Create a saving account whose value has declined over the past 35 days."""
+    from djmoney.money import Money
+
+    acc = SavingAccount.objects.create(
+        name="Declining",
+        account_type=saving_account_type,
+        opening_value=Money(0, "EUR"),
+        is_active=True,
+    )
+    SavingAccountValue.objects.create(
+        account=acc,
+        value=Money(2000, "EUR"),
+        value_date=datetime.date.today() - datetime.timedelta(days=35),
+    )
+    SavingAccountValue.objects.create(
+        account=acc,
+        value=Money(1000, "EUR"),
+        value_date=datetime.date.today(),
+    )
+    return acc

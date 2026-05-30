@@ -9,6 +9,11 @@ from moneyed import Money
 from property.models import Property, PropertyLoan
 
 
+def _months_between(start_date, end_date):
+    """Return the number of complete months from start_date to end_date."""
+    return (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
+
+
 class DashboardHistoricalDataTest(TestCase):
     """Test the dashboard view with historical property data."""
 
@@ -41,26 +46,20 @@ class DashboardHistoricalDataTest(TestCase):
         )
 
     def test_dashboard_property_evolution_data(self):
-        """Test that the dashboard provides property evolution data that changes over time."""
+        """Test that the patrimony chart API provides property evolution data that changes over time."""
         # Log in the user
         self.client.login(username="testuser", password="testpass123")
 
-        # Get the dashboard view
-        response = self.client.get("/")  # Base URL since no namespace
+        # Get the patrimony chart API endpoint
+        response = self.client.get("/api/patrimony-chart/")
         self.assertEqual(response.status_code, 200)
 
-        # Check that context contains the evolution data
-        context = response.context
-        self.assertIn("patrimony_evolution_properties_net", context)
-        self.assertIn("patrimony_evolution_properties_gross", context)
+        data = response.json()
+        self.assertIn("properties_net", data)
+        self.assertIn("properties_loans", data)
 
-        # Get the evolution data
-        net_evolution = context["patrimony_evolution_properties_net"]
-        loan_evolution = context["patrimony_evolution_properties_gross"]
-
-        # Debug: print the values to see what's happening
-        print(f"Net evolution: {net_evolution}")
-        print(f"Loan evolution: {loan_evolution}")
+        net_evolution = data["properties_net"]
+        loan_evolution = data["properties_loans"]
 
         # The data should have 25 data points (24 months + current)
         self.assertEqual(len(net_evolution), 25)
@@ -99,12 +98,8 @@ class DashboardHistoricalDataTest(TestCase):
         for test_date in test_dates:
             with self.subTest(date=test_date):
                 # Calculate expected values
-                months_since_start = (
-                    test_date.year - self.loan.start_date.year
-                ) * 12 + (test_date.month - self.loan.start_date.month)
-                total_months = (
-                    self.loan.end_date.year - self.loan.start_date.year
-                ) * 12 + (self.loan.end_date.month - self.loan.start_date.month)
+                months_since_start = _months_between(self.loan.start_date, test_date)
+                total_months = _months_between(self.loan.start_date, self.loan.end_date)
 
                 if months_since_start >= 0 and months_since_start <= total_months:
                     # With no interest rate set, amortization follows fixed

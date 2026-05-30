@@ -27,18 +27,7 @@
       <form method="post" action="{% url 'property:csv_import' property.pk %}" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <div class="mb-3">
-          <label for="{{ form.csv_file.id_for_label }}" class="form-label">
-            {{ form.csv_file.label }}
-          </label>
-          {{ form.csv_file }}
-          <div class="form-text">{{ form.csv_file.help_text }}</div>
-          {% if form.csv_file.errors %}
-            <div class="invalid-feedback d-block">
-              {{ form.csv_file.errors }}
-            </div>
-          {% endif %}
-        </div>
+        {% include "_form_field.html" with field=form.csv_file %}
 
         <div class="mt-4">
           <button type="submit" class="btn btn-primary">
@@ -99,22 +88,8 @@
       </table>
 
       <h5>{% translate 'Valid category values' %}</h5>
-      <table class="table table-sm table-bordered">
-        <thead class="table-light">
-          <tr>
-            <th>{% translate 'Value (use in CSV)' %}</th>
-            <th>{% translate 'Label' %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for value, label in valid_categories %}
-            <tr>
-              <td><code>{{ value }}</code></td>
-              <td>{{ label }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      {% translate 'Value (use in CSV)' as value_header %}
+      {% include "property/_valid_categories_table.html" with table_class="table table-sm table-bordered" value_header=value_header %}
 
       <div class="alert alert-warning mt-3" role="alert">
         <i class="bi bi-exclamation-triangle me-2"></i>

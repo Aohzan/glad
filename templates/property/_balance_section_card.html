@@ -1,0 +1,40 @@
+{% load i18n format_money %}
+<div class="col-12 col-lg-4">
+  <div class="card h-100">
+    <div class="card-header py-2 {{ card_header_bg }}">
+      <h6 class="mb-0 {{ header_text_class }}">
+        <i class="bi {{ header_icon }} me-1"></i>{{ section_title }}
+      </h6>
+    </div>
+    <div class="card-body p-0">
+      {% if section_rows %}
+        <table class="table table-sm align-middle mb-0">
+          <tbody>
+            {% if show_occupancy_rate %}
+              <tr>
+                <td class="ps-3">{% translate "Occupancy rate" %}</td>
+                <td class="text-end pe-3 fw-bold">{{ balance_sheet.occupancy_rate|floatformat:0 }} %
+                  <span class="text-body-secondary small fw-normal">({{ balance_sheet.months_with_rent }}/{{ balance_sheet.months_count }} {% translate "months" %})</span>
+                </td>
+              </tr>
+            {% endif %}
+            {% for row in section_rows %}
+              <tr>
+                <td class="ps-3">{{ row.label }}</td>
+                <td class="text-end pe-3 fw-semibold">{{ row.amount|format_money_amount:property.currency }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th class="ps-3">{% translate "Total" %}</th>
+              <th class="text-end pe-3">{{ section_total|format_money_amount:property.currency }}</th>
+            </tr>
+          </tfoot>
+        </table>
+      {% else %}
+        <p class="text-body-secondary text-center py-3 mb-0 small">{{ empty_message }}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>

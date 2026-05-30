@@ -1,4 +1,4 @@
-"""Models for finance-related entities such as accounts, account types, and values."""
+"""Models for saving accounts, account types, values, and deposits."""
 
 import datetime
 from decimal import Decimal
@@ -47,17 +47,12 @@ class SavingAccount(AbstractAccount):
     opening_value = MoneyField(max_digits=10, decimal_places=2, default=0, null=False)
 
     @property
-    def current_value(self) -> Money:
-        """Lazily get the current value using get_value()."""
-        return self.get_value()
-
-    @property
     def currency(self) -> str:
         """Get the currency of the initial value."""
         return str(self.opening_value.currency)
 
     def __str__(self) -> str:
-        """String representation of the Account model."""
+        """String representation of the saving account — uses type name without code."""
         account_name: str = ""
         if self.name and self.name in [self.account_type.name, self.account_type.code]:
             account_name = str(self.name)

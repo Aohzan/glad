@@ -192,16 +192,16 @@ def _is_valid_occurrence(
     return any(occ["date"] == occurrence_date for occ in entry.generate_occurrences())
 
 
-def edit_ledger_entry_occurrence(
+def _get_entry_and_occurrence(
     request: HttpRequest,
     property_pk: int,
     entry_pk: int,
     occurrence_date: str,
-) -> HttpResponse:
-    """Edit a single occurrence (or this-and-future) of a recurring ledger entry."""
+) -> tuple:
+    """Resolve property, entry and occurrence date; return (property_obj, entry, occ_date, error_response)."""
     property_obj, response = _get_property_or_redirect(request, property_pk)
     if response:
-        return response
+        return None, None, None, response
     assert property_obj is not None
 
     entry, response = _get_related_or_redirect(
@@ -212,13 +212,32 @@ def edit_ledger_entry_occurrence(
         property_obj=property_obj,
     )
     if response:
-        return response
+        return None, None, None, response
     assert entry is not None
 
     occ_date = _parse_occurrence_date(occurrence_date)
     if occ_date is None or not _is_valid_occurrence(entry, occ_date):
         messages.error(request, _("Invalid occurrence date."))
-        return redirect("property:detail", pk=property_pk)
+        return None, None, None, redirect("property:detail", pk=property_pk)
+
+    return property_obj, entry, occ_date, None
+
+
+def edit_ledger_entry_occurrence(
+    request: HttpRequest,
+    property_pk: int,
+    entry_pk: int,
+    occurrence_date: str,
+) -> HttpResponse:
+    """Edit a single occurrence (or this-and-future) of a recurring ledger entry."""
+    property_obj, entry, occ_date, error = _get_entry_and_occurrence(
+        request, property_pk, entry_pk, occurrence_date
+    )
+    if error:
+        return error
+    assert property_obj is not None
+    assert entry is not None
+    assert occ_date is not None
 
     # Load existing exception if any
     existing_exc = PropertyLedgerEntryException.objects.filter(
@@ -311,26 +330,14 @@ def delete_ledger_entry_occurrence(
     occurrence_date: str,
 ) -> HttpResponse:
     """Show scope-selection page (GET) or delete a single occurrence (POST)."""
-    property_obj, response = _get_property_or_redirect(request, property_pk)
-    if response:
-        return response
-    assert property_obj is not None
-
-    entry, response = _get_related_or_redirect(
-        request,
-        model=PropertyLedgerEntry,
-        related_name=str(_("Entry")),
-        object_pk=entry_pk,
-        property_obj=property_obj,
+    property_obj, entry, occ_date, error = _get_entry_and_occurrence(
+        request, property_pk, entry_pk, occurrence_date
     )
-    if response:
-        return response
+    if error:
+        return error
+    assert property_obj is not None
     assert entry is not None
-
-    occ_date = _parse_occurrence_date(occurrence_date)
-    if occ_date is None or not _is_valid_occurrence(entry, occ_date):
-        messages.error(request, _("Invalid occurrence date."))
-        return redirect("property:detail", pk=property_pk)
+    assert occ_date is not None
 
     if request.method == "GET":
         context = {
@@ -383,6 +390,73 @@ def delete_ledger_entry_occurrence(
     )
 
 
+# ─── Shared helpers for simple property-related CRUD ─────────────────────────
+
+
+def _edit_property_related(
+    request: HttpRequest,
+    *,
+    property_pk: int,
+    model,
+    object_pk: int | None,
+    form_class,
+    template: str,
+    context_key: str,
+    success_message: str,
+    anchor: str,
+) -> HttpResponse:
+    """Shared create/edit logic for models that belong to a Property."""
+    property_obj = get_object_or_404(Property, pk=property_pk)
+    obj = (
+        get_object_or_404(model, pk=object_pk, property=property_obj)
+        if object_pk
+        else None
+    )
+
+    if request.method == "POST":
+        form = form_class(request.POST, instance=obj)
+        if form.is_valid():
+            created = form.save(commit=False)
+            created.property = property_obj
+            created.save()
+            messages.success(request, success_message)
+            return HttpResponseRedirect(
+                reverse("property:detail", kwargs={"pk": property_pk}) + anchor
+            )
+        messages.error(request, _("Please correct the errors below."))
+    else:
+        form = form_class(instance=obj)
+
+    return render(
+        request,
+        template,
+        {"property": property_obj, context_key: obj, "form": form},
+    )
+
+
+def _delete_property_related(
+    request: HttpRequest,
+    *,
+    property_pk: int,
+    model,
+    object_pk: int,
+    success_message: str,
+    anchor: str,
+) -> HttpResponse:
+    """Shared delete logic for models that belong to a Property."""
+    if request.method != "POST":
+        messages.error(request, _("Invalid request method."))
+        return redirect("property:detail", pk=property_pk)
+
+    property_obj = get_object_or_404(Property, pk=property_pk)
+    obj = get_object_or_404(model, pk=object_pk, property=property_obj)
+    obj.delete()
+    messages.success(request, success_message)
+    return HttpResponseRedirect(
+        reverse("property:detail", kwargs={"pk": property_pk}) + anchor
+    )
+
+
 # ─── Lease CRUD ───────────────────────────────────────────────────────────────
 
 
@@ -390,80 +464,48 @@ def edit_lease(
     request: HttpRequest, property_pk: int, lease_pk: int | None = None
 ) -> HttpResponse:
     """Create or edit a lease for a property."""
-    property_obj = get_object_or_404(Property, pk=property_pk)
-    lease = (
-        get_object_or_404(Lease, pk=lease_pk, property=property_obj)
-        if lease_pk
-        else None
-    )
-
-    if request.method == "POST":
-        form = LeaseForm(request.POST, instance=lease)
-        if form.is_valid():
-            created = form.save(commit=False)
-            created.property = property_obj
-            created.save()
-            messages.success(request, _("Lease saved."))
-            return HttpResponseRedirect(
-                reverse("property:detail", kwargs={"pk": property_pk}) + "#leases-panel"
-            )
-        messages.error(request, _("Please correct the errors below."))
-    else:
-        form = LeaseForm(instance=lease)
-
-    return render(
+    return _edit_property_related(
         request,
-        "property/edit_lease.html",
-        {"property": property_obj, "lease": lease, "form": form},
+        property_pk=property_pk,
+        model=Lease,
+        object_pk=lease_pk,
+        form_class=LeaseForm,
+        template="property/edit_lease.html",
+        context_key="lease",
+        success_message=str(_("Lease saved.")),
+        anchor="#leases-panel",
     )
 
 
 def delete_lease(request: HttpRequest, property_pk: int, lease_pk: int) -> HttpResponse:
     """Delete a lease. Only accepts POST."""
-    if request.method != "POST":
-        messages.error(request, _("Invalid request method."))
-        return redirect("property:detail", pk=property_pk)
-
-    property_obj = get_object_or_404(Property, pk=property_pk)
-    lease = get_object_or_404(Lease, pk=lease_pk, property=property_obj)
-    lease.delete()
-    messages.success(request, _("Lease deleted successfully."))
-    return HttpResponseRedirect(
-        reverse("property:detail", kwargs={"pk": property_pk}) + "#leases-panel"
+    return _delete_property_related(
+        request,
+        property_pk=property_pk,
+        model=Lease,
+        object_pk=lease_pk,
+        success_message=str(_("Lease deleted successfully.")),
+        anchor="#leases-panel",
     )
 
 
 # ─── ManagementMandate CRUD ───────────────────────────────────────────────────
+
+
 def edit_mandate(
     request: HttpRequest, property_pk: int, mandate_pk: int | None = None
 ) -> HttpResponse:
     """Create or edit a management mandate for a property."""
-    property_obj = get_object_or_404(Property, pk=property_pk)
-    mandate = (
-        get_object_or_404(ManagementMandate, pk=mandate_pk, property=property_obj)
-        if mandate_pk
-        else None
-    )
-
-    if request.method == "POST":
-        form = ManagementMandateForm(request.POST, instance=mandate)
-        if form.is_valid():
-            created = form.save(commit=False)
-            created.property = property_obj
-            created.save()
-            messages.success(request, _("Mandate saved."))
-            return HttpResponseRedirect(
-                reverse("property:detail", kwargs={"pk": property_pk})
-                + "#mandate-panel"
-            )
-        messages.error(request, _("Please correct the errors below."))
-    else:
-        form = ManagementMandateForm(instance=mandate)
-
-    return render(
+    return _edit_property_related(
         request,
-        "property/edit_mandate.html",
-        {"property": property_obj, "mandate": mandate, "form": form},
+        property_pk=property_pk,
+        model=ManagementMandate,
+        object_pk=mandate_pk,
+        form_class=ManagementMandateForm,
+        template="property/edit_mandate.html",
+        context_key="mandate",
+        success_message=str(_("Mandate saved.")),
+        anchor="#mandate-panel",
     )
 
 
@@ -471,14 +513,11 @@ def delete_mandate(
     request: HttpRequest, property_pk: int, mandate_pk: int
 ) -> HttpResponse:
     """Delete a management mandate. Only accepts POST."""
-    if request.method != "POST":
-        messages.error(request, _("Invalid request method."))
-        return redirect("property:detail", pk=property_pk)
-
-    property_obj = get_object_or_404(Property, pk=property_pk)
-    mandate = get_object_or_404(ManagementMandate, pk=mandate_pk, property=property_obj)
-    mandate.delete()
-    messages.success(request, _("Mandate deleted successfully."))
-    return HttpResponseRedirect(
-        reverse("property:detail", kwargs={"pk": property_pk}) + "#mandate-panel"
+    return _delete_property_related(
+        request,
+        property_pk=property_pk,
+        model=ManagementMandate,
+        object_pk=mandate_pk,
+        success_message=str(_("Mandate deleted successfully.")),
+        anchor="#mandate-panel",
     )

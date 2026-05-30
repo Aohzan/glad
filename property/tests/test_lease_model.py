@@ -80,8 +80,9 @@ class TestLeaseModel:
     def test_is_active_at_on_start_date(self, lease):
         assert lease.is_active_at(datetime.date(2022, 1, 1)) is True
 
-    def test_is_active_at_after_end_date(self, property_obj):
-        lease = Lease.objects.create(
+    @staticmethod
+    def _make_ended_lease(property_obj):
+        return Lease.objects.create(
             property=property_obj,
             first_name="Marie",
             last_name="Curie",
@@ -91,19 +92,13 @@ class TestLeaseModel:
             end_date=datetime.date(2022, 12, 31),
             rent_amount=Money(Decimal("800.00"), "EUR"),
         )
+
+    def test_is_active_at_after_end_date(self, property_obj):
+        lease = self._make_ended_lease(property_obj)
         assert lease.is_active_at(datetime.date(2023, 1, 1)) is False
 
     def test_is_active_at_on_end_date(self, property_obj):
-        lease = Lease.objects.create(
-            property=property_obj,
-            first_name="Marie",
-            last_name="Curie",
-            lease_type=Lease.LeaseType.FURNISHED,
-            status=Lease.Status.ENDED,
-            start_date=datetime.date(2022, 1, 1),
-            end_date=datetime.date(2022, 12, 31),
-            rent_amount=Money(Decimal("800.00"), "EUR"),
-        )
+        lease = self._make_ended_lease(property_obj)
         # end_date < date means inactive; on end_date itself it's still active
         assert lease.is_active_at(datetime.date(2022, 12, 31)) is True
 

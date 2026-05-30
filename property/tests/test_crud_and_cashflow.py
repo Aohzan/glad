@@ -255,9 +255,7 @@ def test_delete_valuation_unknown_valuation_shows_error(user_client):
 # ─── edit_ledger_entry POST path ─────────────────────────────────────────────
 
 
-@pytest.mark.django_db
-def test_edit_ledger_entry_post_saves_and_redirects(user_client):
-    prop = _make_property()
+def _make_edit_entry_url(prop):
     entry = PropertyLedgerEntry.objects.create(
         property=prop,
         description="Rent",
@@ -269,6 +267,13 @@ def test_edit_ledger_entry_post_saves_and_redirects(user_client):
     url = reverse(
         "property:edit_entry", kwargs={"property_pk": prop.pk, "entry_pk": entry.pk}
     )
+    return entry, url
+
+
+@pytest.mark.django_db
+def test_edit_ledger_entry_post_saves_and_redirects(user_client):
+    prop = _make_property()
+    entry, url = _make_edit_entry_url(prop)
     response = user_client.post(
         url,
         {
@@ -289,17 +294,7 @@ def test_edit_ledger_entry_post_saves_and_redirects(user_client):
 @pytest.mark.django_db
 def test_edit_ledger_entry_post_invalid_shows_error(user_client):
     prop = _make_property()
-    entry = PropertyLedgerEntry.objects.create(
-        property=prop,
-        description="Rent",
-        flow_type=PropertyLedgerEntry.FlowType.INCOME,
-        management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-        amount=Money(800, "EUR"),
-        entry_date=datetime.date(2022, 3, 15),
-    )
-    url = reverse(
-        "property:edit_entry", kwargs={"property_pk": prop.pk, "entry_pk": entry.pk}
-    )
+    _, url = _make_edit_entry_url(prop)
     response = user_client.post(url, {"description": ""})
     assert response.status_code == 200
     msgs = list(get_messages(response.wsgi_request))
@@ -502,7 +497,7 @@ def test_build_balance_sheet_gross_yield():
 def test_detail_view_balance_sheet_default_range(user_client):
     """No date params → default is current civil year (Jan 1 – Dec 31)."""
     prop = _make_property()
-    url = reverse("property:detail", kwargs={"pk": prop.pk})
+    url = reverse("property:panel_balance", kwargs={"pk": prop.pk})
     response = user_client.get(url)
     assert response.status_code == 200
     today = datetime.date.today()
@@ -514,7 +509,7 @@ def test_detail_view_balance_sheet_default_range(user_client):
 def test_detail_view_balance_sheet_invalid_dates_use_defaults(user_client):
     """Invalid start_date/end_date params fall back to current-year defaults."""
     prop = _make_property()
-    url = reverse("property:detail", kwargs={"pk": prop.pk})
+    url = reverse("property:panel_balance", kwargs={"pk": prop.pk})
     response = user_client.get(url, {"start_date": "notadate", "end_date": "also-bad"})
     assert response.status_code == 200
     today = datetime.date.today()
@@ -526,7 +521,7 @@ def test_detail_view_balance_sheet_invalid_dates_use_defaults(user_client):
 def test_detail_view_balance_sheet_valid_date_range(user_client):
     """Valid start_date/end_date are normalised to month boundaries."""
     prop = _make_property()
-    url = reverse("property:detail", kwargs={"pk": prop.pk})
+    url = reverse("property:panel_balance", kwargs={"pk": prop.pk})
     # Supply mid-month dates; they must be clamped to month boundaries.
     response = user_client.get(
         url, {"start_date": "2023-04-15", "end_date": "2023-06-20"}
@@ -540,7 +535,7 @@ def test_detail_view_balance_sheet_valid_date_range(user_client):
 def test_detail_view_balance_sheet_inverted_range_uses_defaults(user_client):
     """start_date > end_date falls back to current-year defaults."""
     prop = _make_property()
-    url = reverse("property:detail", kwargs={"pk": prop.pk})
+    url = reverse("property:panel_balance", kwargs={"pk": prop.pk})
     response = user_client.get(
         url, {"start_date": "2023-12-01", "end_date": "2023-01-31"}
     )
@@ -554,7 +549,7 @@ def test_detail_view_balance_sheet_inverted_range_uses_defaults(user_client):
 def test_detail_view_balance_sheet_full_year_range(user_client):
     """A full-year range (Jan 1 – Dec 31) is preserved correctly."""
     prop = _make_property()
-    url = reverse("property:detail", kwargs={"pk": prop.pk})
+    url = reverse("property:panel_balance", kwargs={"pk": prop.pk})
     response = user_client.get(
         url, {"start_date": "2023-01-01", "end_date": "2023-12-31"}
     )

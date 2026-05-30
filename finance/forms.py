@@ -78,18 +78,16 @@ class BaseValueUpdateForm(forms.Form):
     )
 
 
-class UpdateSavingAccountAddValueForm(BaseValueUpdateForm):
-    """Form for a saving account in the update view."""
+class UpdateAccountAddValueForm(BaseValueUpdateForm):
+    """Form for a saving or investment cash account in the update view."""
 
     account_id = forms.IntegerField(widget=forms.HiddenInput())
     account_name = forms.CharField(widget=forms.HiddenInput())
 
 
-class UpdateInvestmentCashAddValueForm(BaseValueUpdateForm):
-    """Form for an investment cash account in the update view."""
-
-    account_id = forms.IntegerField(widget=forms.HiddenInput())
-    account_name = forms.CharField(widget=forms.HiddenInput())
+# Backward-compatible aliases kept for external references.
+UpdateSavingAccountAddValueForm = UpdateAccountAddValueForm
+UpdateInvestmentCashAddValueForm = UpdateAccountAddValueForm
 
 
 class UpdateInvestmentAccountHoldingAddValueForm(BaseValueUpdateForm):

@@ -39,8 +39,8 @@ class PropertyValueQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
 # ─── Ledger entries (unified income + expense) ────────────────────────────────
 
 
-class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
-    """Quick create form for ledger entries (modal on detail view)."""
+class PropertyLedgerEntryBaseForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Shared base for ledger entry create/edit forms."""
 
     entry_date = date_field(with_class=True)
     recurrence_end_date = recurrence_end_field(with_class=True)
@@ -66,62 +66,6 @@ class PropertyLedgerEntryQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
             "description",
             "recurrence_type",
             "recurrence_end_date",
-            "notes",
-        ]
-        widgets = {
-            "flow_type": forms.Select(
-                attrs={"class": "form-select", "id": "id_flow_type"}
-            ),
-            "management_category": forms.Select(
-                attrs={"class": "form-select", "id": "id_management_category"}
-            ),
-            "recurrence_type": forms.Select(
-                attrs={"class": "form-select", "id": "id_recurrence_type"}
-            ),
-            "description": forms.TextInput(attrs={"class": "form-control"}),
-            "third_party": forms.TextInput(attrs={"class": "form-control"}),
-            "lease": forms.Select(attrs={"class": "form-select"}),
-            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
-        }
-
-    def __init__(self, *args, property_obj=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        lease_field = self.fields["lease"]
-        assert isinstance(lease_field, forms.ModelChoiceField)
-        if property_obj is not None:
-            lease_field.queryset = Lease.objects.filter(property=property_obj)
-        else:
-            lease_field.queryset = Lease.objects.none()
-        lease_field.required = False
-
-
-class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
-    """Full edit form for ledger entries."""
-
-    entry_date = date_field(with_class=True)
-    recurrence_end_date = recurrence_end_field(with_class=True)
-    reference_period = forms.DateField(
-        required=False,
-        widget=forms.DateInput(
-            attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
-        ),
-        input_formats=["%Y-%m-%d"],
-        label=_("Reference period"),
-    )
-
-    class Meta:
-        model = PropertyLedgerEntry
-        fields = [
-            "flow_type",
-            "amount",
-            "entry_date",
-            "reference_period",
-            "management_category",
-            "third_party",
-            "description",
-            "recurrence_type",
-            "recurrence_end_date",
-            "lease",
             "notes",
         ]
         widgets = {
@@ -130,8 +74,8 @@ class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "recurrence_type": forms.Select(attrs={"class": "form-select"}),
             "description": forms.TextInput(attrs={"class": "form-control"}),
             "third_party": forms.TextInput(attrs={"class": "form-control"}),
-            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
             "lease": forms.Select(attrs={"class": "form-select"}),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
 
     def __init__(self, *args, property_obj=None, **kwargs):
@@ -143,6 +87,14 @@ class PropertyLedgerEntryEditForm(MoneyInputGroupMixin, forms.ModelForm):
         else:
             lease_field.queryset = Lease.objects.none()
         lease_field.required = False
+
+
+class PropertyLedgerEntryQuickCreateForm(PropertyLedgerEntryBaseForm):
+    """Quick create form for ledger entries (modal on detail view)."""
+
+
+class PropertyLedgerEntryEditForm(PropertyLedgerEntryBaseForm):
+    """Full edit form for ledger entries."""
 
 
 class PropertyLedgerEntryOccurrenceForm(MoneyInputGroupMixin, forms.ModelForm):

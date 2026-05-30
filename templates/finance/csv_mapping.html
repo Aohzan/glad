@@ -12,26 +12,7 @@
     </div>
     <div class="card-body">
       <h4 class="mb-3">{% translate 'CSV Preview' %}</h4>
-      <div class="table-responsive mb-4">
-        <table class="table table-finance table-striped table-bordered">
-          <thead>
-            <tr>
-              {% for col in header %}
-                <th>{{ col }}</th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in preview_rows %}
-              <tr>
-                {% for cell in row %}
-                  <td>{{ cell }}</td>
-                {% endfor %}
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+      {% include "_csv_preview_table.html" with table_class="table table-finance table-striped table-bordered" thead_class="" %}
 
       <form method="post" action="{% url 'finance:csv_import_confirm' %}">
         {% csrf_token %}

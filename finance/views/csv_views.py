@@ -36,7 +36,7 @@ def csv_export(request):
             from finance.models.investment_account import InvestmentAccount
             from finance.models.saving_account import SavingAccount
 
-            accounts = []
+            accounts: list[InvestmentAccount | SavingAccount] = []
             if selected:
                 for value in selected:
                     if value.startswith("investment-"):
@@ -75,10 +75,10 @@ def csv_export(request):
             if csv_type == "saving_value":
                 writer.writerow(["account", "value", "date"])
                 for account in accounts:
-                    if hasattr(account, "savingaccountvalue_set"):
-                        for value in account.savingaccountvalue_set.all().order_by(
-                            "-value_date"
-                        ):
+                    if isinstance(account, SavingAccount):
+                        for value in SavingAccountValue.objects.filter(
+                            account=account
+                        ).order_by("-value_date"):
                             writer.writerow(
                                 [
                                     str(account),
@@ -90,10 +90,10 @@ def csv_export(request):
             elif csv_type == "investment_cash":
                 writer.writerow(["account", "value", "date"])
                 for account in accounts:
-                    if hasattr(account, "investmentaccountcash_set"):
-                        for cash in account.investmentaccountcash_set.all().order_by(
-                            "-value_date"
-                        ):
+                    if isinstance(account, InvestmentAccount):
+                        for cash in InvestmentAccountCash.objects.filter(
+                            account=account
+                        ).order_by("-value_date"):
                             writer.writerow(
                                 [
                                     str(account),
@@ -113,13 +113,15 @@ def csv_export(request):
                     ]
                 )
                 for account in accounts:
-                    if hasattr(account, "investmentaccountholding_set"):
-                        for holding in account.investmentaccountholding_set.filter(
-                            is_active=True
+                    if isinstance(account, InvestmentAccount):
+                        for holding in InvestmentAccountHolding.objects.filter(
+                            account=account, is_active=True
                         ):
-                            for history in holding.investmentaccountholdinghistory_set.all().order_by(
-                                "-valuation_date"
-                            ):
+                            for (
+                                history
+                            ) in InvestmentAccountHoldingHistory.objects.filter(
+                                holding=holding
+                            ).order_by("-valuation_date"):
                                 writer.writerow(
                                     [
                                         str(account),
@@ -170,7 +172,7 @@ def csv_import(request):
             # Build and check according to csv_type
             unique_account_names = []
             app_account_choices = []
-            if csv_type == "saving_value":
+            if csv_type in ("saving_value", "investment_cash"):
                 # Accept both new and old header formats for backward compatibility
                 required_headers = ["account", "value", "date"]
                 legacy_headers = ["account_name", "value", "value_date"]
@@ -188,38 +190,16 @@ def csv_import(request):
                     )
                     return render(request, "finance/csv_import.html", {"form": form})
 
-                app_account_choices = [
-                    (a.id, str(a)) for a in SavingAccount.objects.filter(is_active=True)
-                ]
-
-                # Use appropriate header names
-                account_header = "account" if has_required else "account_name"
-                unique_account_names = set(
-                    row[header.index(account_header)] for row in csv_data_list
-                )
-
-            elif csv_type == "investment_cash":
-                # Accept both new and old header formats for backward compatibility
-                required_headers = ["account", "value", "date"]
-                legacy_headers = ["account_name", "value", "value_date"]
-
-                # Check if we have the required headers or legacy headers
-                has_required = all(h in header for h in required_headers)
-                has_legacy = all(h in header for h in legacy_headers)
-
-                if not (has_required or has_legacy):
-                    messages.error(
-                        request,
-                        _(
-                            "CSV file is missing required columns for the selected type."
-                        ),
-                    )
-                    return render(request, "finance/csv_import.html", {"form": form})
-
-                app_account_choices = [
-                    (a.id, str(a))
-                    for a in InvestmentAccount.objects.filter(is_active=True)
-                ]
+                if csv_type == "saving_value":
+                    app_account_choices = [
+                        (a.id, str(a))
+                        for a in SavingAccount.objects.filter(is_active=True)
+                    ]
+                else:
+                    app_account_choices = [
+                        (a.id, str(a))
+                        for a in InvestmentAccount.objects.filter(is_active=True)
+                    ]
 
                 # Use appropriate header names
                 account_header = "account" if has_required else "account_name"
