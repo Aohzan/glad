@@ -1,0 +1,19 @@
+{% load i18n %}
+<div class="col-md-6">
+  <label class="form-label fw-semibold">{% translate "Amount" %}</label>
+  {{ form.amount }}
+  {% if form.amount.errors %}<div class="invalid-feedback d-block">{{ form.amount.errors }}</div>{% endif %}
+</div>
+<div class="col-md-6">
+  <label for="{{ form.deposit_date.id_for_label }}" class="form-label fw-semibold">{% translate "Date" %}</label>
+  {{ form.deposit_date }}
+  {% if form.deposit_date.errors %}<div class="invalid-feedback d-block">{{ form.deposit_date.errors }}</div>{% endif %}
+</div>
+<div class="col-md-6">
+  <label for="{{ form.source.id_for_label }}" class="form-label fw-semibold">
+    {% translate "Source" %}
+    <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+  </label>
+  {{ form.source }}
+  {% if form.source.errors %}<div class="invalid-feedback d-block">{{ form.source.errors }}</div>{% endif %}
+</div>

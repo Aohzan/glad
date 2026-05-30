@@ -9,6 +9,7 @@ from property.utils.date_utils import (
 )
 from property.utils.loan_utils import (
     build_loan_amortization_balance,
+    build_loan_maps_from_loan_obj,
     build_loan_monthly_maps,
     calculate_monthly_payment,
 )
@@ -25,6 +26,7 @@ __all__ = [
     # loan math
     "calculate_monthly_payment",
     "build_loan_amortization_balance",
+    "build_loan_maps_from_loan_obj",
     "build_loan_monthly_maps",
     # recurrence
     "generate_recurring_occurrences",

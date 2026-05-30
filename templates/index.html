@@ -127,32 +127,35 @@
         </div>
       </div>
       <div class="col-12 col-lg-8">
-        <div class="card shadow-sm rounded-4 h-100">
-          <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-            <h3 class="section-title mb-0"><i class="bi bi-bank me-2 text-primary"></i>{% translate 'Accounts' %}</h3>
-            <div class="btn-group btn-group-sm" id="accounts-filter-group">
-              <button type="button" class="btn btn-outline-secondary active" data-filter="all">{% translate 'All' %}</button>
-              <button type="button" class="btn btn-outline-secondary" data-filter="investment">{% translate 'Investments' %}</button>
-              <button type="button" class="btn btn-outline-secondary" data-filter="savings">{% translate 'Savings' %}</button>
-            </div>
-          </div>
-          <div class="card-body pt-2">
-            <div id="accounts-list" class="placeholder-glow">
-              {% for i in "123" %}
-              <div class="account-card mb-2 d-flex align-items-center gap-3">
-                <span class="placeholder rounded-circle flex-shrink-0" style="width:38px;height:38px"></span>
-                <div class="flex-grow-1">
-                  <span class="placeholder d-block col-6 mb-1" style="height:.8rem"></span>
-                  <span class="placeholder d-block col-4" style="height:.7rem"></span>
-                </div>
-                <div class="text-end">
-                  <span class="placeholder d-block col-8 mb-1" style="height:.9rem"></span>
-                  <span class="placeholder d-block col-5 ms-auto" style="height:.7rem"></span>
+        <div class="row g-3 h-100">
+          {# Investments column #}
+          <div class="col-12 col-md-6">
+            <div class="card shadow-sm rounded-4 h-100">
+              <div class="card-header border-0 pb-0">
+                <h3 class="section-title mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>{% translate 'Investments' %}</h3>
+              </div>
+              <div class="card-body pt-2">
+                <div id="accounts-list-investment" class="accounts-scroll placeholder-glow">
+                  {% include "_account_placeholder_skeleton.html" %}
                 </div>
               </div>
-              {% endfor %}
             </div>
-            <div id="alerts-list" class="mt-2"></div>
+          </div>
+          {# Savings column #}
+          <div class="col-12 col-md-6">
+            <div class="card shadow-sm rounded-4 h-100">
+              <div class="card-header border-0 pb-0">
+                <h3 class="section-title mb-0"><i class="bi bi-piggy-bank me-2 text-primary"></i>{% translate 'Savings' %}</h3>
+              </div>
+              <div class="card-body pt-2">
+                <div id="accounts-list-savings" class="accounts-scroll placeholder-glow">
+                  {% include "_account_placeholder_skeleton.html" %}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div id="alerts-list"></div>
           </div>
         </div>
       </div>
@@ -179,7 +182,7 @@
             <span class="placeholder col-8 d-block"></span>
           </div>
         </div>
-        <div class="card property-card shadow-sm d-none" id="prop-card-{{ pk }}"></div>
+        <a href="{% url 'property:detail' pk=pk %}" class="card property-card shadow-sm d-none text-decoration-none text-reset" id="prop-card-{{ pk }}"></a>
       </div>
       {% endfor %}
     </div>
@@ -373,60 +376,61 @@ function renderBreakdown(data) {
 }
 
 /* ── Section 2: Finance — accounts list ────────────────────────────────── */
-function renderAccountsList(filterType) {
-  const list = document.getElementById('accounts-list');
-  const filtered = filterType === 'all' ? accountsData : accountsData.filter(a => a.type === filterType);
-  if (!filtered.length) {
-    if (!accountsData.length) {
-      list.innerHTML = `
-        <div class="text-center py-4">
-          <i class="bi bi-bank display-6 text-muted mb-2"></i>
-          <p class="text-muted small mb-3">${i18n.noAccounts}</p>
-          <a href="${i18n.financeUrl}" class="btn btn-sm btn-primary">
-            <i class="bi bi-plus-lg me-1"></i>${i18n.addAccount}
-          </a>
-        </div>`;
-    } else {
-      list.innerHTML = `<p class="text-muted text-center small py-3">—</p>`;
-    }
-    return;
-  }
-
+function renderAccountCard(a) {
   const iconBg = { success: '#d1fae5', danger: '#fee2e2', secondary: '#f3f4f6' };
   const iconBgDark = { success: '#064e3b', danger: '#7f1d1d', secondary: '#1f2937' };
   const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-
-  list.innerHTML = filtered.map(a => {
-    const pctFmt = `${a.progression >= 0 ? '+' : ''}${a.progression.toFixed(2)}%`;
-    const bg = (isDark ? iconBgDark : iconBg)[a.progression_css] || (isDark ? '#1f2937' : '#f3f4f6');
-    const badgeBg = a.progression_css === 'success' ? 'rgba(25,135,84,.15)' :
-                    a.progression_css === 'danger'  ? 'rgba(220,53,69,.15)' : 'rgba(108,117,125,.1)';
-    const badgeColor = a.progression_css === 'success' ? '#198754' :
-                       a.progression_css === 'danger'  ? '#dc3545' : '#6c757d';
-    return `
-    <div class="account-card mb-2 d-flex align-items-center gap-3">
-      <div class="account-icon-circle flex-shrink-0" style="background:${bg}">
-        <i class="bi ${a.icon}" style="color:${badgeColor}"></i>
-      </div>
-      <div class="flex-grow-1 overflow-hidden">
+  const pctFmt = `${a.progression >= 0 ? '+' : ''}${a.progression.toFixed(2)}%`;
+  const bg = (isDark ? iconBgDark : iconBg)[a.progression_css] || (isDark ? '#1f2937' : '#f3f4f6');
+  const badgeBg = a.progression_css === 'success' ? 'rgba(25,135,84,.15)' :
+                  a.progression_css === 'danger'  ? 'rgba(220,53,69,.15)' : 'rgba(108,117,125,.1)';
+  const badgeColor = a.progression_css === 'success' ? '#198754' :
+                     a.progression_css === 'danger'  ? '#dc3545' : '#6c757d';
+  return `
+  <a href="${a.detail_url}" class="account-card mb-2 d-flex align-items-center gap-3 text-decoration-none text-reset">
+    <div class="account-icon-circle flex-shrink-0" style="background:${bg}">
+      <i class="bi ${a.icon}" style="color:${badgeColor}"></i>
+    </div>
+    <div class="flex-grow-1 overflow-hidden">
+      <div class="d-flex align-items-center gap-1">
         <div class="fw-semibold text-truncate small">${a.name}</div>
-        <div class="text-muted" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em">${a.type === 'savings' ? i18n.savings : i18n.investments}${a.owner ? ' · ' + a.owner : ''}</div>
+        ${a.is_favorite ? '<i class="bi bi-star-fill text-warning flex-shrink-0" style="font-size:.65rem"></i>' : ''}
       </div>
-      <div class="text-end flex-shrink-0">
-        <div class="account-value">${fmt(a.value, 'EUR')}</div>
-        <div class="progression-badge mt-1" style="background:${badgeBg};color:${badgeColor}">
-          <i class="bi ${a.progression >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right'}"></i> ${pctFmt}
-        </div>
+      <div class="text-muted" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em">${a.owner || ''}</div>
+    </div>
+    <div class="text-end flex-shrink-0">
+      <div class="account-value">${fmt(a.value, 'EUR')}</div>
+      <div class="progression-badge mt-1" style="background:${badgeBg};color:${badgeColor}">
+        <i class="bi ${a.progression >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right'}"></i> ${pctFmt}
       </div>
+    </div>
+  </a>`;
+}
+
+function renderAccountsList() {
+  const investList = document.getElementById('accounts-list-investment');
+  const savingsList = document.getElementById('accounts-list-savings');
+  const investments = accountsData.filter(a => a.type === 'investment');
+  const savings = accountsData.filter(a => a.type === 'savings');
+
+  const emptyHtml = `
+    <div class="text-center py-4">
+      <i class="bi bi-bank display-6 text-muted mb-2"></i>
+      <p class="text-muted small mb-3">${i18n.noAccounts}</p>
+      <a href="${i18n.financeUrl}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>${i18n.addAccount}
+      </a>
     </div>`;
-  }).join('');
+
+  investList.innerHTML = investments.length ? investments.map(renderAccountCard).join('') : emptyHtml;
+  savingsList.innerHTML = savings.length ? savings.map(renderAccountCard).join('') : emptyHtml;
 }
 
 function loadAccountsSummary() {
   apiFetch(API.accountsSummary).then(data => {
     accountsData = data.accounts;
     renderBreakdown(data);
-    renderAccountsList('all');
+    renderAccountsList();
     if (data.alerts && data.alerts.length) {
       document.getElementById('alerts-list').innerHTML = data.alerts.map(a => `
         <div class="alert alert-${a.type_css} py-2 px-3 mb-1 small">
@@ -485,9 +489,9 @@ function loadPropertyCard(pk) {
     const card = document.getElementById(`prop-card-${pk}`);
     card.innerHTML = `
       <div class="${propGradient(data.icon)} property-card-header">
-        <div class="d-flex justify-content-between align-items-start mb-1">
+        <div class="mb-1">
           <span class="badge property-type-badge" style="background:rgba(0,0,0,.12)">${data.property_type_display}</span>
-          <a href="/property/${data.pk}/" class="btn btn-sm p-1" style="color:inherit"><i class="bi bi-arrow-right-circle"></i></a>
+          ${data.is_favorite ? '<i class="bi bi-star-fill text-warning ms-1" style="font-size:.8rem"></i>' : ''}
         </div>
         <h3 class="fw-bold mb-0" style="font-size:1.05rem">${data.name}</h3>
         ${data.address ? `<p class="small mb-0 mt-1 opacity-75">${data.address}</p>` : ''}
@@ -582,22 +586,14 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEvolutionChart(chartAllData, parseInt(btn.dataset.range) || 0);
   });
 
-  document.getElementById('accounts-filter-group').addEventListener('click', e => {
-    const btn = e.target.closest('[data-filter]');
-    if (!btn) return;
-    document.querySelectorAll('#accounts-filter-group [data-filter]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderAccountsList(btn.dataset.filter);
-  });
+
 });
 
 /* ── Theme change support ───────────────────────────────────────────────── */
 function updateChartsTheme(themeName) {
   const isDark = themeName === 'dark';
   if (chartBreakdown) chartBreakdown.updateOptions({ theme: { mode: isDark ? 'dark' : 'light' }, tooltip: { theme: themeName } });
-  if (accountsData.length) renderAccountsList(
-    document.querySelector('#accounts-filter-group .active')?.dataset.filter || 'all'
-  );
+  if (accountsData.length) renderAccountsList();
 }
 </script>
 {% endblock %}

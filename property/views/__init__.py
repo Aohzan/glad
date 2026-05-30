@@ -31,6 +31,7 @@ from property.views.edit_views import (
     generate_loan_amortization,
     import_loan_amortization,
     manage_property_loans,
+    toggle_property_favorite,
 )
 from property.views.fiscal_views import (
     accounting_lmnp_reel,
@@ -62,6 +63,7 @@ __all__ = [
     "delete_lease",
     "edit_mandate",
     "delete_mandate",
+    "toggle_property_favorite",
     "accounting_lmnp_reel",
     "report_view",
     "initialize_amortization",

@@ -314,3 +314,12 @@ def clear_loan_amortization(
     count, _deleted = PropertyLoanAmortizationEntry.objects.filter(loan=loan).delete()
     messages.success(request, _("%(n)d entries cleared.") % {"n": count})
     return redirect(reverse("property:detail", kwargs={"pk": pk}) + _LOANS_ANCHOR)
+
+
+@require_POST  # type: ignore
+def toggle_property_favorite(request: HttpRequest, pk: int) -> HttpResponse:
+    """Toggle the is_favorite flag for a property."""
+    prop = get_object_or_404(Property, pk=pk)
+    prop.is_favorite = not prop.is_favorite
+    prop.save(update_fields=["is_favorite"])
+    return redirect(request.META.get("HTTP_REFERER") or reverse("property:index"))

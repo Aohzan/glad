@@ -1,0 +1,6 @@
+{% load i18n %}
+<div class="col-md-6">
+  <label class="form-label fw-semibold">{% translate "Value" %}</label>
+  {{ form.value }}
+  {% if form.value.errors %}<div class="invalid-feedback d-block">{{ form.value.errors }}</div>{% endif %}
+</div>

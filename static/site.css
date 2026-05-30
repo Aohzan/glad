@@ -112,6 +112,16 @@ footer {
   font-size: 1rem;
 }
 
+/* Scrollable account columns */
+.accounts-scroll {
+  max-height: 340px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.accounts-scroll::-webkit-scrollbar { width: 5px; }
+.accounts-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 3px; }
+[data-bs-theme="dark"] .accounts-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); }
+
 /* Account cards */
 .account-card {
   border-radius: .75rem;

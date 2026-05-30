@@ -30,6 +30,7 @@ class SavingAccount(AbstractAccount):
     """Saving account has a value."""
 
     deposits: models.Manager["SavingAccountDeposit"]
+    values: models.Manager["SavingAccountValue"]
 
     class Meta(AbstractAccount.Meta):
         verbose_name = _("saving account")
@@ -140,7 +141,12 @@ class SavingAccountDeposit(BaseModel):
     account = models.ForeignKey(
         SavingAccount, related_name="deposits", on_delete=models.CASCADE, null=False
     )
-    amount = MoneyField(max_digits=10, decimal_places=2, default=0)
+    amount = MoneyField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text=_("Use a negative value to record a withdrawal"),
+    )
     deposit_date = models.DateTimeField(default=datetime.datetime.now, null=False)
     source = models.TextField(null=True, blank=True)
     update_account_value = models.BooleanField(

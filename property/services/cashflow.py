@@ -64,7 +64,7 @@ def build_balance_sheet(
     """
     from property.models import PropertyLedgerEntry, PropertyLoan
     from property.utils import (
-        build_loan_monthly_maps,
+        build_loan_maps_from_loan_obj,
         iter_month_starts,
         month_end,
         month_start,
@@ -129,17 +129,8 @@ def build_balance_sheet(
                 total_loan_principal += entry.capital.amount
             # Insurance still derived from loan params (not in amortization entries).
             if insurance_amount > Decimal("0") and loan.start_date and loan.end_date:
-                _, _, insurance_map = build_loan_monthly_maps(
-                    start_date=loan.start_date,
-                    end_date=loan.end_date,
-                    original_amount=loan.original_amount.amount,
-                    monthly_payment=loan.monthly_payment.amount
-                    if loan.monthly_payment is not None
-                    else Decimal("0"),
-                    interest_rate=loan.interest_rate,
-                    insurance_amount=insurance_amount,
-                    disbursement_date=loan.start_date,
-                    first_payment_date=loan.first_payment_date,
+                _, _, insurance_map = build_loan_maps_from_loan_obj(
+                    loan, insurance_amount
                 )
                 for month in iter_month_starts(start_month, end_month):
                     key = (month.year, month.month)
@@ -149,15 +140,8 @@ def build_balance_sheet(
         # Fallback: compute from loan parameters when no amortization entries.
         if loan.monthly_payment is None:
             continue
-        interest_map, principal_map, insurance_map = build_loan_monthly_maps(
-            start_date=loan.start_date,
-            end_date=loan.end_date,
-            original_amount=loan.original_amount.amount,
-            monthly_payment=loan.monthly_payment.amount,
-            interest_rate=loan.interest_rate,
-            insurance_amount=insurance_amount,
-            disbursement_date=loan.start_date,
-            first_payment_date=loan.first_payment_date,
+        interest_map, principal_map, insurance_map = build_loan_maps_from_loan_obj(
+            loan, insurance_amount
         )
 
         for month in iter_month_starts(start_month, end_month):

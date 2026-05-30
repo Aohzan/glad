@@ -1,0 +1,140 @@
+{% load i18n %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const CHART_URL = '{{ chart_url }}';
+  const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+  function formatCurrency(val) {
+    return new Intl.NumberFormat(navigator.language || 'en-US', {
+      style: 'currency', currency: '{{ account.currency }}', maximumFractionDigits: 0
+    }).format(val);
+  }
+
+  fetch(CHART_URL, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
+
+      const holdingPalette = ['#6f42c1', '#20c997', '#e83e8c', '#17a2b8', '#fd7e14', '#6610f2'];
+
+      // Sort holdings descending by last value: largest first = rendered at bottom of stack
+      const rawHoldings = (data.holdings_series || []).slice().sort(function(a, b) {
+        var lastA = a.data.length ? a.data[a.data.length - 1].value : 0;
+        var lastB = b.data.length ? b.data[b.data.length - 1].value : 0;
+        return lastB - lastA;
+      });
+
+      const series = rawHoldings.map(function(h) {
+        return { name: h.name, data: h.data.map(function(d) { return { x: d.date, y: d.value }; }) };
+      });
+      const colors = rawHoldings.map(function(_, i) { return holdingPalette[i % holdingPalette.length]; });
+
+      // Pre-compute a date→total lookup from data.values (includes cash) for the tooltip
+      const totalByDate = {};
+      (data.values || []).forEach(function(v) { totalByDate[v.date] = v.value; });
+
+      // Pre-compute a date→invested lookup for the tooltip
+      const investedByDate = {};
+      (data.invested || []).forEach(function(v) { investedByDate[v.date] = v.value; });
+
+      const chart = new ApexCharts(document.getElementById('accountChart'), {
+        chart: {
+          type: 'area',
+          height: 350,
+          background: 'transparent',
+          toolbar: { show: true },
+          zoom: { enabled: true },
+          stacked: true,
+          animations: { enabled: true, speed: 600 },
+        },
+        theme: { mode: isDark ? 'dark' : 'light' },
+        series: series,
+        xaxis: { type: 'datetime', labels: { datetimeUTC: false } },
+        yaxis: { labels: { formatter: formatCurrency } },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 2 },
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 } },
+        colors: colors,
+        tooltip: {
+          theme: isDark ? 'dark' : 'light',
+          shared: true,
+          intersect: false,
+          custom: function(opts) {
+            var s = opts.series, dpi = opts.dataPointIndex, w = opts.w;
+            var bg = isDark ? '#1e1e2e' : '#fff';
+            var border = isDark ? '#444' : '#dee2e6';
+            var textMuted = isDark ? '#adb5bd' : '#6c757d';
+
+            // Get date string for lookup
+            var dateStr = '';
+            try {
+              var ts = w.globals.seriesX[0][dpi];
+              dateStr = new Date(ts).toISOString().slice(0, 10);
+            } catch(e) {}
+
+            // Total from data.values (includes cash) – fall back to sum of holdings
+            var holdingsSum = 0;
+            for (var i = 0; i < s.length; i++) { holdingsSum += (s[i][dpi] || 0); }
+            var total = totalByDate[dateStr] != null ? totalByDate[dateStr] : holdingsSum;
+
+            var label = '';
+            try { label = new Date(w.globals.seriesX[0][dpi]).toLocaleDateString(navigator.language || 'fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch(e) {}
+
+            // Holdings rows (reverse order = smallest at top of tooltip, matching stack order)
+            var rows = '';
+            for (var j = s.length - 1; j >= 0; j--) {
+              var val = s[j][dpi];
+              if (val == null) continue;
+              var color = w.globals.colors[j];
+              rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">' +
+                '<span style="display:flex;align-items:center;gap:6px;color:' + textMuted + ';font-size:12px;">' +
+                  '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + color + ';flex-shrink:0;"></span>' +
+                  w.globals.seriesNames[j] +
+                '</span>' +
+                '<span style="font-weight:600;font-size:12px;">' + formatCurrency(val) + '</span>' +
+              '</div>';
+            }
+
+            // Invested row (from pre-computed lookup)
+            var invVal = investedByDate[dateStr];
+            if (invVal != null) {
+              rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 0;margin-top:4px;border-top:1px solid ' + border + ';">' +
+                '<span style="color:' + textMuted + ';font-size:12px;">{% translate "Invested" %}</span>' +
+                '<span style="font-weight:600;font-size:12px;">' + formatCurrency(invVal) + '</span>' +
+              '</div>';
+            }
+
+            return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:10px 14px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.15);">' +
+              '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' + label + '</div>' +
+              '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 6px;border-bottom:1px solid ' + border + ';margin-bottom:6px;">' +
+                '<span style="font-size:13px;font-weight:600;">{% translate "Total" %}</span>' +
+                '<span style="font-size:13px;font-weight:700;">' + formatCurrency(total) + '</span>' +
+              '</div>' +
+              rows +
+            '</div>';
+          },
+        },
+        grid: { borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)' },
+        legend: { show: false },
+      });
+
+      chart.render().then(function() {
+        var chartColors = chart.w.globals.colors;
+        var chartNames = chart.w.globals.seriesNames;
+        var colorMap = {};
+        chartNames.forEach(function(name, i) { colorMap[name] = chartColors[i]; });
+        document.querySelectorAll('[data-holding-name]').forEach(function(el) {
+          if (el.tagName !== 'TD') return;
+          var color = colorMap[el.dataset.holdingName];
+          if (!color) return;
+          var sq = document.createElement('span');
+          sq.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:2px;background:' + color + ';margin-right:6px;vertical-align:middle;flex-shrink:0;';
+          el.insertBefore(sq, el.firstChild);
+        });
+      });
+    })
+    .catch(function() {
+      document.getElementById('accountChart').innerHTML = '<p class="text-center text-muted py-4"><i class="bi bi-exclamation-circle me-1"></i>{% translate "Could not load chart data." %}</p>';
+    });
+});
+</script>

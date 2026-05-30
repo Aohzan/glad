@@ -503,6 +503,159 @@ def generate_investmentaccount() -> str:
     value_currency: USD
     quantity: 2
     valuation_date: {ds(RECENT)}
+# ── Cash history: account 1 (EUR) ────────────────────────────────────────────
+- model: finance.investmentaccountcash
+  pk: 1
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    account_id: 1
+    value: 500
+    value_currency: EUR
+    value_date: {ds(M24)}
+- model: finance.investmentaccountcash
+  pk: 2
+  fields:
+    created_at: {dt(M18)}
+    updated_at: {dt(M18)}
+    account_id: 1
+    value: 1000
+    value_currency: EUR
+    value_date: {ds(M18)}
+- model: finance.investmentaccountcash
+  pk: 3
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    account_id: 1
+    value: 1500
+    value_currency: EUR
+    value_date: {ds(M12)}
+- model: finance.investmentaccountcash
+  pk: 4
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    account_id: 1
+    value: 2000
+    value_currency: EUR
+    value_date: {ds(M6)}
+- model: finance.investmentaccountcash
+  pk: 5
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    account_id: 1
+    value: 1500
+    value_currency: EUR
+    value_date: {ds(RECENT)}
+# ── Cash history: account 2 (USD) ────────────────────────────────────────────
+- model: finance.investmentaccountcash
+  pk: 6
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    account_id: 2
+    value: 1000
+    value_currency: USD
+    value_date: {ds(M24)}
+- model: finance.investmentaccountcash
+  pk: 7
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    account_id: 2
+    value: 1500
+    value_currency: USD
+    value_date: {ds(M12)}
+- model: finance.investmentaccountcash
+  pk: 8
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    account_id: 2
+    value: 2000
+    value_currency: USD
+    value_date: {ds(RECENT)}
+# ── Deposits: account 1 (EUR) ─────────────────────────────────────────────────
+- model: finance.investmentaccountdeposit
+  pk: 1
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    account_id: 1
+    amount: 500
+    amount_currency: EUR
+    deposit_date: {ds(M24)}
+    source: Virement bancaire
+    update_account_cash: true
+- model: finance.investmentaccountdeposit
+  pk: 2
+  fields:
+    created_at: {dt(M18)}
+    updated_at: {dt(M18)}
+    account_id: 1
+    amount: 500
+    amount_currency: EUR
+    deposit_date: {ds(M18)}
+    source: Virement bancaire
+    update_account_cash: true
+- model: finance.investmentaccountdeposit
+  pk: 3
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    account_id: 1
+    amount: 500
+    amount_currency: EUR
+    deposit_date: {ds(M12)}
+    source: Virement bancaire
+    update_account_cash: true
+- model: finance.investmentaccountdeposit
+  pk: 4
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    account_id: 1
+    amount: 500
+    amount_currency: EUR
+    deposit_date: {ds(M6)}
+    source: Virement bancaire
+    update_account_cash: true
+# ── Deposits: account 2 (USD) ─────────────────────────────────────────────────
+- model: finance.investmentaccountdeposit
+  pk: 5
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    account_id: 2
+    amount: 1000
+    amount_currency: USD
+    deposit_date: {ds(M24)}
+    source: Wire transfer
+    update_account_cash: true
+- model: finance.investmentaccountdeposit
+  pk: 6
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    account_id: 2
+    amount: 500
+    amount_currency: USD
+    deposit_date: {ds(M12)}
+    source: Wire transfer
+    update_account_cash: true
+- model: finance.investmentaccountdeposit
+  pk: 7
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    account_id: 2
+    amount: 500
+    amount_currency: USD
+    deposit_date: {ds(RECENT)}
+    source: Wire transfer
+    update_account_cash: false
 """
 
 
@@ -666,6 +819,119 @@ def generate_savingaccount() -> str:
     value: 23850
     value_currency: EUR
     value_date: {ds(M6)}
+# ── Deposits: account 1 (Livret A - Mister) ──────────────────────────────────
+- model: finance.savingaccountdeposit
+  pk: 1
+  fields:
+    created_at: {dt(M18)}
+    updated_at: {dt(M18)}
+    account_id: 1
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {dt(M18)}
+    source: Virement mensuel
+    update_account_value: true
+- model: finance.savingaccountdeposit
+  pk: 2
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    account_id: 1
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {dt(M12)}
+    source: Virement mensuel
+    update_account_value: true
+- model: finance.savingaccountdeposit
+  pk: 3
+  fields:
+    created_at: {dt(M9)}
+    updated_at: {dt(M9)}
+    account_id: 1
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {dt(M9)}
+    source: Virement mensuel
+    update_account_value: true
+- model: finance.savingaccountdeposit
+  pk: 4
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    account_id: 1
+    amount: 100
+    amount_currency: EUR
+    deposit_date: {dt(RECENT)}
+    source: Virement mensuel
+    update_account_value: true
+# ── Deposits: account 2 (LDDS - Mister) ──────────────────────────────────────
+- model: finance.savingaccountdeposit
+  pk: 5
+  fields:
+    created_at: {dt(M15)}
+    updated_at: {dt(M15)}
+    account_id: 2
+    amount: 200
+    amount_currency: EUR
+    deposit_date: {dt(M15)}
+    source: Virement mensuel
+    update_account_value: true
+- model: finance.savingaccountdeposit
+  pk: 6
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    account_id: 2
+    amount: 200
+    amount_currency: EUR
+    deposit_date: {dt(M12)}
+    source: Virement mensuel
+    update_account_value: true
+- model: finance.savingaccountdeposit
+  pk: 7
+  fields:
+    created_at: {dt(M9)}
+    updated_at: {dt(M9)}
+    account_id: 2
+    amount: 200
+    amount_currency: EUR
+    deposit_date: {dt(M9)}
+    source: Virement mensuel
+    update_account_value: true
+# ── Deposits: account 3 (Livret A - Madame) ──────────────────────────────────
+- model: finance.savingaccountdeposit
+  pk: 8
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    account_id: 3
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {dt(M12)}
+    source: Virement mensuel
+    update_account_value: true
+- model: finance.savingaccountdeposit
+  pk: 9
+  fields:
+    created_at: {dt(M9)}
+    updated_at: {dt(M9)}
+    account_id: 3
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {dt(M9)}
+    source: Virement mensuel
+    update_account_value: true
+- model: finance.savingaccountdeposit
+  pk: 10
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    account_id: 3
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {dt(M6)}
+    source: Virement mensuel
+    update_account_value: true
 """
 
 

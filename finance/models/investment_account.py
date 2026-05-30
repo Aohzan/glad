@@ -31,6 +31,7 @@ class InvestmentAccount(AbstractAccount):
     """Investment account has a cash value and multiple holdings."""
 
     deposits: models.Manager["InvestmentAccountDeposit"]
+    cash_values: models.Manager["InvestmentAccountCash"]
 
     class Meta(AbstractAccount.Meta):
         verbose_name = _("investment account")
@@ -190,7 +191,12 @@ class InvestmentAccountDeposit(BaseModel):
     account = models.ForeignKey(
         InvestmentAccount, related_name="deposits", on_delete=models.CASCADE, null=False
     )
-    amount = MoneyField(max_digits=10, decimal_places=2, null=False)
+    amount = MoneyField(
+        max_digits=10,
+        decimal_places=2,
+        null=False,
+        help_text=_("Use a negative value to record a withdrawal"),
+    )
     deposit_date = models.DateField(default=datetime.date.today, null=False)
     source = models.TextField(null=True, blank=True)
     update_account_cash = models.BooleanField(
@@ -318,6 +324,8 @@ class InvestmentAccountHolding(BaseModel):
 
 class InvestmentAccountHoldingHistory(BaseModel):
     """Model representing the value of an account holding."""
+
+    holding_id: int
 
     class Meta:
         verbose_name = _("history of holding")

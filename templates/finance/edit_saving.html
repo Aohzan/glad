@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% if account %}{% translate "Edit saving account" %}{% else %}{% translate "New saving account" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+
+  {% translate "Edit saving account" as edit_title %}
+  {% translate "New saving account" as new_title %}
+  {% include "finance/_edit_page_header.html" with is_edit=account edit_title=edit_title new_title=new_title back_url=account_back_url back_label=account_back_label %}
+
+  {% include "finance/_form_error_alert.html" %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    {% include "finance/_edit_account_info_card.html" %}
+
+    {# ── Savings rate and amounts ────────────────────────────────────────────── #}
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-percent me-1"></i>{% translate "Rate and amounts" %}</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="{{ form.interest_rate.id_for_label }}" class="form-label fw-semibold">{% translate "Interest rate (%)" %}</label>
+            {{ form.interest_rate }}
+            {% if form.interest_rate.errors %}<div class="invalid-feedback d-block">{{ form.interest_rate.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">{% translate "Opening value" %}</label>
+            {{ form.opening_value }}
+            {% if form.opening_value.errors %}<div class="invalid-feedback d-block">{{ form.opening_value.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% include "finance/_edit_account_dates_card.html" %}
+
+    {% include "finance/_edit_comments_card.html" %}
+
+    {% include "finance/_edit_form_footer.html" with cancel_url=account_cancel_url %}
+  </form>
+
+</div>
+{% endblock %}

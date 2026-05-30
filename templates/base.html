@@ -47,6 +47,25 @@
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'finance:csv_import' %}"><i class="bi bi-file-earmark-arrow-up me-2"></i>{% translate "CSV Import" %}</a></li>
                                 <li><a class="dropdown-item" href="{% url 'finance:csv_export' %}"><i class="bi bi-file-earmark-arrow-down me-2"></i>{% translate "CSV Export" %}</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">{% translate "Favorite accounts" %}</h6></li>
+                                {% if nav_accounts_saving %}
+                                {% for account in nav_accounts_saving %}
+                                <li><a class="dropdown-item" href="{% url 'finance:saving_detail' account.pk %}"><i class="bi bi-piggy-bank me-2"></i>{{ account }}</a></li>
+                                {% endfor %}
+                                {% endif %}
+                                {% if nav_accounts_investment %}
+                                {% for account in nav_accounts_investment %}
+                                <li><a class="dropdown-item" href="{% url 'finance:investment_detail' account.pk %}"><i class="bi bi-graph-up me-2"></i>{{ account }}</a></li>
+                                {% endfor %}
+                                {% endif %}
+                                {% if not nav_accounts_saving and not nav_accounts_investment %}
+                                {% if nav_accounts_any %}
+                                <li><span class="dropdown-item-text text-body-secondary small fst-italic">{% translate "Add favorites to show them here" %}</span></li>
+                                {% else %}
+                                <li><a class="dropdown-item" href="{% url 'finance:new_saving' %}"><i class="bi bi-plus-circle me-2"></i>{% translate "Add your first account" %}</a></li>
+                                {% endif %}
+                                {% endif %}
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -67,14 +86,15 @@
                                         <i class="bi bi-file-earmark-bar-graph me-2"></i>{% translate "Income & Expenses Report" %}
                                     </a>
                                 </li>
-                                {% if nav_properties %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">{% translate "My properties" %}</h6></li>
+                                <li><h6 class="dropdown-header">{% translate "Favorite properties" %}</h6></li>
+                                {% if nav_properties %}
                                 {% for prop in nav_properties %}
                                 <li><a class="dropdown-item" href="{% url 'property:detail' prop.pk %}"><i class="bi bi-{{ prop.icon | default:"building" }} me-2"></i>{{ prop.name }}</a></li>
                                 {% endfor %}
+                                {% elif nav_properties_any %}
+                                <li><span class="dropdown-item-text text-body-secondary small fst-italic">{% translate "Add favorites to show them here" %}</span></li>
                                 {% else %}
-                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'property:create' %}"><i class="bi bi-plus-circle me-2"></i>{% translate "Add your first property" %}</a></li>
                                 {% endif %}
                             </ul>

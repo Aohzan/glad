@@ -287,6 +287,13 @@ class Property(BaseModel):
         verbose_name=_("Active"),
         help_text=_("Whether this property is currently owned (e.g. not sold)."),
     )
+    is_favorite = models.BooleanField(
+        default=False,
+        verbose_name=_("Favorite"),
+        help_text=_(
+            "Mark this property as a favorite for quick access in the navigation menu."
+        ),
+    )
     buying_value = MoneyField(
         max_digits=10,
         decimal_places=0,

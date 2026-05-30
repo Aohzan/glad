@@ -61,7 +61,9 @@ class IndexView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         property_pks = list(
-            Property.objects.filter(is_active=True).values_list("pk", flat=True)
+            Property.objects.filter(is_active=True)
+            .order_by("-is_favorite", "name")
+            .values_list("pk", flat=True)
         )
         return render(request, self.template_name, {"property_pks": property_pks})
 
@@ -69,3 +71,23 @@ class IndexView(TemplateView):
 def healthcheck(request):
     """Handle GET requests for health check."""
     return JsonResponse({"status": "OK"}, status=200)
+
+
+def error_400(request, exception=None):
+    """Render the 400 Bad Request error page."""
+    return render(request, "400.html", status=400)
+
+
+def error_403(request, exception=None):
+    """Render the 403 Forbidden error page."""
+    return render(request, "403.html", status=403)
+
+
+def error_404(request, exception=None):
+    """Render the 404 Not Found error page."""
+    return render(request, "404.html", status=404)
+
+
+def error_500(request):
+    """Render the 500 Internal Server Error page."""
+    return render(request, "500.html", status=500)

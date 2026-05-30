@@ -15,6 +15,11 @@ urlpatterns = [
     path("new/", views.create_property, name="create"),
     path("<int:pk>/", views.PropertyDetailView.as_view(), name="detail"),
     path("<int:pk>/edit/", views.edit_property, name="edit"),
+    path(
+        "<int:pk>/favorite/",
+        cast(Callable[..., HttpResponseBase], views.toggle_property_favorite),
+        name="toggle_favorite",
+    ),
     path("<int:pk>/loans/", views.manage_property_loans, name="loans"),
     path(
         "<int:pk>/loans/<int:loan_pk>/amortization/import/",

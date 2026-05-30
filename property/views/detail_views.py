@@ -30,6 +30,7 @@ from property.models import (
 from property.services.cashflow import build_balance_sheet
 from property.utils import (
     add_years_safe,
+    build_loan_maps_from_loan_obj,
     build_loan_monthly_maps,
     iter_month_starts,
     month_end,
@@ -286,17 +287,8 @@ class PropertyDetailView(DetailView):
                     and loan.start_date
                     and loan.end_date
                 ):
-                    _, _, insurance_map = build_loan_monthly_maps(
-                        start_date=loan.start_date,
-                        end_date=loan.end_date,
-                        original_amount=loan.original_amount.amount,
-                        monthly_payment=loan.monthly_payment.amount
-                        if loan.monthly_payment is not None
-                        else Decimal("0"),
-                        interest_rate=loan.interest_rate,
-                        insurance_amount=insurance_amount,
-                        disbursement_date=loan.start_date,
-                        first_payment_date=loan.first_payment_date,
+                    _, _, insurance_map = build_loan_maps_from_loan_obj(
+                        loan, insurance_amount
                     )
                     for key, value in insurance_map.items():
                         loan_insurance_by_month[key] = (
@@ -308,15 +300,8 @@ class PropertyDetailView(DetailView):
             if loan.monthly_payment is None:
                 continue
 
-            interest_map, principal_map, insurance_map = build_loan_monthly_maps(
-                start_date=loan.start_date,
-                end_date=loan.end_date,
-                original_amount=loan.original_amount.amount,
-                monthly_payment=loan.monthly_payment.amount,
-                interest_rate=loan.interest_rate,
-                insurance_amount=insurance_amount,
-                disbursement_date=loan.start_date,
-                first_payment_date=loan.first_payment_date,
+            interest_map, principal_map, insurance_map = build_loan_maps_from_loan_obj(
+                loan, insurance_amount
             )
 
             for key, value in interest_map.items():

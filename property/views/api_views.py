@@ -79,5 +79,6 @@ class PropertyDashboardCardApiView(View):
                     "occupancy_rate": float(cashflow["occupancy_rate"]),
                 },
                 "active_lease": lease_data,
+                "is_favorite": prop.is_favorite,
             }
         )

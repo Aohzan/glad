@@ -75,6 +75,13 @@ class AbstractAccount(BaseModel):
     commentaire = models.TextField(null=True, blank=True)
     opening_date = models.DateField(default=datetime.date.today, null=False)
     is_active = models.BooleanField(default=True)
+    is_favorite = models.BooleanField(
+        default=False,
+        verbose_name=_("Favorite"),
+        help_text=_(
+            "Mark this account as a favorite for quick access in the navigation menu."
+        ),
+    )
     closing_date = models.DateField(null=True, blank=True)
 
     @property

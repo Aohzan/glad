@@ -2,6 +2,7 @@
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 
@@ -15,8 +16,12 @@ class AccountsSummaryApiView(View):
 
     def get(self, request):
         days = 30
-        saving_accounts = SavingAccount.objects.filter(is_active=True)
-        investment_accounts = InvestmentAccount.objects.filter(is_active=True)
+        saving_accounts = SavingAccount.objects.filter(is_active=True).order_by(
+            "-is_favorite", "name"
+        )
+        investment_accounts = InvestmentAccount.objects.filter(is_active=True).order_by(
+            "-is_favorite", "name"
+        )
 
         # Breakdown (donut chart)
         total_savings = sum((float(a.get_value().amount) for a in saving_accounts), 0.0)
@@ -32,6 +37,10 @@ class AccountsSummaryApiView(View):
             prog = account.get_progression(days)
             accounts.append(
                 {
+                    "pk": account.pk,
+                    "detail_url": reverse(
+                        "finance:saving_detail", kwargs={"pk": account.pk}
+                    ),
                     "name": str(account),
                     "value": float(account.get_value().amount),
                     "progression": float(prog.gross_progression),
@@ -48,6 +57,7 @@ class AccountsSummaryApiView(View):
                     "icon": "bi-piggy-bank",
                     "type": "savings",
                     "owner": account.owner or "",
+                    "is_favorite": account.is_favorite,
                 }
             )
 
@@ -55,6 +65,10 @@ class AccountsSummaryApiView(View):
             prog = account.get_progression(days)
             accounts.append(
                 {
+                    "pk": account.pk,
+                    "detail_url": reverse(
+                        "finance:investment_detail", kwargs={"pk": account.pk}
+                    ),
                     "name": str(account),
                     "value": float(account.current_value.amount),
                     "progression": float(prog.gross_progression),
@@ -71,6 +85,7 @@ class AccountsSummaryApiView(View):
                     "icon": "bi-bar-chart-line",
                     "type": "investment",
                     "owner": account.owner or "",
+                    "is_favorite": account.is_favorite,
                 }
             )
 

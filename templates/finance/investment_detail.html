@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% load i18n format_money static %}
+
+{% block title %}{{ account }}{% endblock %}
+
+{% block extra_head %}
+<script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {# ── Header ──────────────────────────────────────────────────────────────── #}
+  {% url 'finance:edit_investment' account.pk as account_edit_url %}
+  {% include "finance/_account_detail_header.html" with account_icon="bi-cash-coin" account_edit_url=account_edit_url %}
+
+  {# ── Info card ───────────────────────────────────────────────────────────── #}
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row">
+        {% include "finance/_account_detail_common_info.html" %}
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Status" %}</small>
+          <div>
+            {% if account.is_active %}
+              <span class="badge bg-success">{% translate "Active" %}</span>
+            {% else %}
+              <span class="badge bg-secondary">{% translate "Closed" %}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Opening cash value" %}</small>
+          <div>{{ account.opening_cash_value|format_money }}</div>
+        </div>
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Current cash" %}</small>
+          <div>{{ account.current_cash_value|format_money }}</div>
+        </div>
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Total value" %}</small>
+          <div><strong>{{ account.current_value|format_money }}</strong></div>
+        </div>
+      </div>
+      {% if account.commentaire %}
+      <div class="row mt-3">
+        <div class="col-12">
+          <small class="text-body-secondary">{% translate "Comments" %}</small>
+          <div>{{ account.commentaire }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% include "finance/_account_stats.html" %}
+    </div>
+  </div>
+
+  {# ── Chart panel ─────────────────────────────────────────────────────────── #}
+  {% include "finance/_account_chart_panel.html" %}
+
+  {# ── Holdings ────────────────────────────────────────────────────────────── #}
+  <div class="card mb-4" id="holdings-panel">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>{% translate "Holdings" %}</h5>
+      <a href="{% url 'finance:new_holding' account.pk %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-plus-lg me-1"></i>{% translate "Add holding" %}
+      </a>
+    </div>
+    <div class="card-body">
+      {% if holdings %}
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>{% translate "Name" %}</th>
+              <th>{% translate "Code" %}</th>
+              <th>{% translate "Quantity" %}</th>
+              <th>{% translate "Value" %}</th>
+              <th>{% translate "Fees" %}</th>
+              <th>{% translate "Status" %}</th>
+              <th class="text-end">{% translate "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for h in holdings %}
+            <tr data-bs-toggle="collapse" data-bs-target="#holding-history-{{ h.pk }}" style="cursor: pointer;" data-holding-name="{{ h.short_name }}">
+              <td data-holding-name="{{ h.short_name }}">{{ h.name|default:"-" }}</td>
+              <td>{{ h.code|default:"-" }}</td>
+              <td>{{ h.quantity|default:"-" }}</td>
+              <td>{{ h.value|format_money }}</td>
+              <td>{{ h.fees }}%</td>
+              <td>
+                {% if h.is_active %}
+                  <span class="badge bg-success">{% translate "Active" %}</span>
+                {% else %}
+                  <span class="badge bg-secondary">{% translate "Closed" %}</span>
+                {% endif %}
+              </td>
+              <td class="text-end" onclick="event.stopPropagation();">
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'finance:new_holding_history' account.pk h.pk %}" class="btn btn-outline-primary" title="{% translate 'Add history' %}">
+                    <i class="bi bi-plus-lg"></i>
+                  </a>
+                  <a href="{% url 'finance:edit_holding' account.pk h.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteHolding{{ h.pk }}" title="{% translate 'Delete' %}">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+                {% url 'finance:delete_holding' account.pk h.pk as delete_url %}
+                {% translate "Delete holding" as modal_title %}
+                {% translate "Are you sure you want to delete this holding and all its history?" as confirm_text %}
+                {% include "finance/_delete_modal.html" with modal_id="deleteHolding"|add:h.pk|stringformat:"s" delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
+              </td>
+            </tr>
+            {# Collapsible holding history rows #}
+            <tr class="collapse" id="holding-history-{{ h.pk }}">
+              <td colspan="7">
+                <table class="table table-sm table-borderless mb-0">
+                  <thead>
+                    <tr class="text-body-secondary">
+                      <th>{% translate "Date" %}</th>
+                      <th>{% translate "Value" %}</th>
+                      <th>{% translate "Quantity" %}</th>
+                      <th>{% translate "Cash used" %}</th>
+                      <th class="text-end">{% translate "Actions" %}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for hh in h.investmentaccountholdinghistory_set.all %}
+                    <tr>
+                      <td>{{ hh.valuation_date }}</td>
+                      <td>{{ hh.value|format_money }}</td>
+                      <td>{{ hh.quantity|default:"-" }}</td>
+                      <td>{% if hh.cash_used %}{{ hh.cash_used|format_money }}{% else %}-{% endif %}</td>
+                      <td class="text-end">
+                        {% url 'finance:edit_holding_history' account.pk h.pk hh.pk as edit_url %}
+                        {% url 'finance:delete_holding_history' account.pk h.pk hh.pk as delete_url %}
+                        {% include "finance/_item_actions.html" with edit_url=edit_url delete_modal_id="deleteHistory"|add:hh.pk|stringformat:"s" %}
+                        {% translate "Delete history entry" as modal_title %}
+                        {% translate "Are you sure you want to delete this history entry?" as confirm_text %}
+                        {% include "finance/_delete_modal.html" with modal_id="deleteHistory"|add:hh.pk|stringformat:"s" delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
+                      </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                      <td colspan="5" class="text-center"><em>{% translate "No history entries." %}</em></td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-body-secondary mb-0"><em>{% translate "No holdings yet." %}</em></p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Deposits ────────────────────────────────────────────────────────────── #}
+  <div class="card mb-4" id="deposits-panel">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-cash-stack me-2"></i>{% translate "Deposits" %}</h5>
+      <a href="{% url 'finance:new_investment_deposit' account.pk %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-plus-lg me-1"></i>{% translate "Add deposit" %}
+      </a>
+    </div>
+    <div class="card-body">
+      {% if deposits %}
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>{% translate "Date" %}</th>
+              <th>{% translate "Amount" %}</th>
+              <th>{% translate "Source" %}</th>
+              <th class="text-end">{% translate "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in deposits %}
+            <tr>
+              <td>{{ d.deposit_date }}</td>
+              <td>{{ d.amount|format_money }}</td>
+              <td>{{ d.source|default:"-" }}</td>
+              <td class="text-end">
+                {% url 'finance:edit_investment_deposit' account.pk d.pk as edit_url %}
+                {% url 'finance:delete_investment_deposit' account.pk d.pk as delete_url %}
+                {% include "finance/_item_actions.html" with edit_url=edit_url delete_modal_id="deleteDeposit"|add:d.pk|stringformat:"s" %}
+                {% translate "Delete deposit" as modal_title %}
+                {% translate "Are you sure you want to delete this deposit?" as confirm_text %}
+                {% include "finance/_delete_modal.html" with modal_id="deleteDeposit"|add:d.pk|stringformat:"s" delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-body-secondary mb-0"><em>{% translate "No deposits yet." %}</em></p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Cash history ────────────────────────────────────────────────────────── #}
+  <div class="card mb-4" id="cash-panel">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-cash me-2"></i>{% translate "Cash history" %}</h5>
+    </div>
+    <div class="card-body">
+      {% if cash_values %}
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>{% translate "Date" %}</th>
+              <th>{% translate "Value" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in cash_values %}
+            <tr>
+              <td>{{ c.value_date }}</td>
+              <td>{{ c.value|format_money }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-body-secondary mb-0"><em>{% translate "No cash history yet." %}</em></p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Delete account modal ───────────────────────────────────────────────── #}
+  {% url 'finance:delete_investment' account.pk as delete_account_url %}
+  {% translate "Delete investment account" as del_title %}
+  {% translate "Are you sure you want to delete this investment account and all its data?" as del_text %}
+  {% include "finance/_delete_modal.html" with modal_id="deleteAccountModal" delete_url=delete_account_url modal_title=del_title confirm_text=del_text %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% url "finance:chart_data" data_type="investment_account" object_id=account.pk as chart_url %}
+{% include "finance/_account_chart_script.html" with chart_url=chart_url %}
+{% endblock %}

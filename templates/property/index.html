@@ -61,10 +61,7 @@
     <div class="card-header border-0 d-flex justify-content-between align-items-center">
       <h2 class="section-title mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>{% translate 'Value Evolution' %}</h2>
       <div class="btn-group btn-group-sm" role="group">
-        <button type="button" class="btn btn-outline-secondary active" data-months="12">1Y</button>
-        <button type="button" class="btn btn-outline-secondary" data-months="24">2Y</button>
-        <button type="button" class="btn btn-outline-secondary" data-months="60">5Y</button>
-        <button type="button" class="btn btn-outline-secondary" data-months="120">10Y</button>
+        {% include "_chart_range_buttons.html" %}
         <button type="button" class="btn btn-outline-secondary" data-months="240">20Y</button>
         <button type="button" class="btn btn-outline-secondary" data-months="">{% translate 'All' %}</button>
       </div>
@@ -90,61 +87,71 @@
       {% for prop in properties %}
       <div class="col-12 col-sm-6 col-lg-4 prop-grid-item {% if not prop.model.is_active %}inactive-property d-none{% endif %}"
            data-active="{{ prop.model.is_active|lower }}">
-        <a href="{% url 'property:detail' prop.model.pk %}" class="text-decoration-none">
-          <div class="card property-card shadow-sm">
-            <div class="property-card-header prop-gradient-{{ prop.model.icon }}{% if prop.model.icon == 'question-circle' %} prop-gradient-other{% endif %}">
-              <div class="d-flex justify-content-between align-items-start mb-1">
-                <span class="badge property-type-badge" style="background:rgba(0,0,0,.12)">
-                  {{ prop.model.get_property_type_display }}
-                </span>
-                {% if not prop.model.is_active %}
-                  <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size:.65rem">{% translate "Inactive" %}</span>
+        <div class="position-relative">
+          <a href="{% url 'property:detail' prop.model.pk %}" class="text-decoration-none">
+            <div class="card property-card shadow-sm">
+              <div class="property-card-header prop-gradient-{{ prop.model.icon }}{% if prop.model.icon == 'question-circle' %} prop-gradient-other{% endif %}">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <span class="badge property-type-badge" style="background:rgba(0,0,0,.12)">
+                    {{ prop.model.get_property_type_display }}
+                  </span>
+                  {% if not prop.model.is_active %}
+                    <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size:.65rem">{% translate "Inactive" %}</span>
+                  {% endif %}
+                </div>
+                <h3 class="fw-bold mb-0" style="font-size:1.05rem">{{ prop.model.name }}</h3>
+                {% if prop.model.address %}
+                  <p class="small mb-0 mt-1 opacity-75">{{ prop.model.address }}</p>
                 {% endif %}
               </div>
-              <h3 class="fw-bold mb-0" style="font-size:1.05rem">{{ prop.model.name }}</h3>
-              {% if prop.model.address %}
-                <p class="small mb-0 mt-1 opacity-75">{{ prop.model.address }}</p>
-              {% endif %}
+              <div class="card-body pt-3 pb-2">
+                <div class="d-flex justify-content-between align-items-baseline mb-2">
+                  <div>
+                    <span class="fw-bold fs-5">{{ prop.net_value|format_money }}</span>
+                    <span class="ms-1 small text-muted">{% translate "equity" %}</span>
+                  </div>
+                  <span class="small {{ prop.progression.css_class }}">
+                    <i class="bi bi-graph-up me-1"></i>{% if prop.progression.progression >= 0 %}+{% endif %}{{ prop.progression.progression }}%
+                  </span>
+                </div>
+                {% if prop.loans_count %}
+                <div class="mb-2">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small text-muted">{% translate "Loans" %}</span>
+                    <span class="small fw-semibold">{{ prop.loans_count }} {% translate "active" %}</span>
+                  </div>
+                </div>
+                {% endif %}
+                <div class="d-flex gap-2 text-center small mt-2 pt-2 border-top">
+                  <div class="flex-fill">
+                    <div class="text-muted" style="font-size:.65rem">{% translate "Gross" %}</div>
+                    <div class="fw-semibold" style="font-size:.85rem">{{ prop.gross_value|format_money }}</div>
+                  </div>
+                  {% if prop.model.floor_area %}
+                  <div class="flex-fill">
+                    <div class="text-muted" style="font-size:.65rem">m²</div>
+                    <div class="fw-semibold" style="font-size:.85rem">{{ prop.model.floor_area|floatformat:0 }}</div>
+                  </div>
+                  {% endif %}
+                  {% if prop.model.number_of_rooms %}
+                  <div class="flex-fill">
+                    <div class="text-muted" style="font-size:.65rem">{% translate "Rooms" %}</div>
+                    <div class="fw-semibold" style="font-size:.85rem">{{ prop.model.number_of_rooms }}</div>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
             </div>
-            <div class="card-body pt-3 pb-2">
-              <div class="d-flex justify-content-between align-items-baseline mb-2">
-                <div>
-                  <span class="fw-bold fs-5">{{ prop.net_value|format_money }}</span>
-                  <span class="ms-1 small text-muted">{% translate "equity" %}</span>
-                </div>
-                <span class="small {{ prop.progression.css_class }}">
-                  <i class="bi bi-graph-up me-1"></i>{% if prop.progression.progression >= 0 %}+{% endif %}{{ prop.progression.progression }}%
-                </span>
-              </div>
-              {% if prop.loans_count %}
-              <div class="mb-2">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="small text-muted">{% translate "Loans" %}</span>
-                  <span class="small fw-semibold">{{ prop.loans_count }} {% translate "active" %}</span>
-                </div>
-              </div>
-              {% endif %}
-              <div class="d-flex gap-2 text-center small mt-2 pt-2 border-top">
-                <div class="flex-fill">
-                  <div class="text-muted" style="font-size:.65rem">{% translate "Gross" %}</div>
-                  <div class="fw-semibold" style="font-size:.85rem">{{ prop.gross_value|format_money }}</div>
-                </div>
-                {% if prop.model.floor_area %}
-                <div class="flex-fill">
-                  <div class="text-muted" style="font-size:.65rem">m²</div>
-                  <div class="fw-semibold" style="font-size:.85rem">{{ prop.model.floor_area|floatformat:0 }}</div>
-                </div>
-                {% endif %}
-                {% if prop.model.number_of_rooms %}
-                <div class="flex-fill">
-                  <div class="text-muted" style="font-size:.65rem">{% translate "Rooms" %}</div>
-                  <div class="fw-semibold" style="font-size:.85rem">{{ prop.model.number_of_rooms }}</div>
-                </div>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        </a>
+          </a>
+          <form method="post" action="{% url 'property:toggle_favorite' prop.model.pk %}" class="position-absolute" style="top: 0.5rem; right: 0.5rem; z-index: 1;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm {% if prop.model.is_favorite %}btn-warning{% else %}btn-outline-light{% endif %} rounded-circle p-1 lh-1"
+                    style="width:1.8rem;height:1.8rem;"
+                    title="{% if prop.model.is_favorite %}{% translate 'Remove from favorites' %}{% else %}{% translate 'Add to favorites' %}{% endif %}">
+              <i class="bi bi-star{% if prop.model.is_favorite %}-fill{% endif %}"></i>
+            </button>
+          </form>
+        </div>
       </div>
       {% endfor %}
     </div>
