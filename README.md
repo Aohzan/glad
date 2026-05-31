@@ -23,8 +23,8 @@
 - **Ledger** — categorized income and expense entries (rent, management fees, works, insurance, property tax, etc.) with recurring support and CSV import
 - **Management mandates** — track property managers with fee structures
 - **Financial reporting** — monthly balance sheets, accounting dashboard, income/expense summaries with deductible breakdown
-- **LMNP amortization** — depreciation schedules for structure, fixtures, and custom assets
-- **LMNP tax declaration** — generate tax declaration forms (2031, 2033) with pre-filled data and export options
+- **LMNP** (*beta*) — accounting support
+- **SCPI** (*coming soon*) — track SCPI shares with valuation and income
 
 ### Web application
 

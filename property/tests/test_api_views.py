@@ -312,3 +312,61 @@ def test_card_api_cashflow_with_entries(admin_client, prop):
     assert cf["income"] == 850.0
     assert cf["expenses"] == 100.0
     assert cf["net"] == pytest.approx(750.0, rel=1e-2)
+
+
+# ── SCPIDashboardCardApiView ────────────────────────────────────────────────
+
+
+def scpi_card_url(pk):
+    return reverse("property:api_scpi_dashboard_card", kwargs={"pk": pk})
+
+
+@pytest.fixture
+def scpi_fund():
+    from property.models.scpi import SCPI
+
+    return SCPI.objects.create(name="Corum Eurion", management_company="Corum AM")
+
+
+@pytest.mark.django_db
+def test_scpi_card_api_requires_login(client, scpi_fund):
+    response = client.get(scpi_card_url(scpi_fund.pk))
+    assert response.status_code == 302
+    assert "/accounts/login/" in response.url
+
+
+@pytest.mark.django_db
+def test_scpi_card_api_404_unknown(admin_client):
+    response = admin_client.get(scpi_card_url(99999))
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_scpi_card_api_basic_structure(admin_client, scpi_fund):
+    response = admin_client.get(scpi_card_url(scpi_fund.pk))
+    assert response.status_code == 200
+    data = response.json()
+    for key in (
+        "pk",
+        "name",
+        "management_company",
+        "total_resale",
+        "total_invested",
+        "total_dividends",
+        "gain_pct",
+        "net_rentability",
+        "currency",
+    ):
+        assert key in data, f"Missing key: {key}"
+
+
+@pytest.mark.django_db
+def test_scpi_card_api_values(admin_client, scpi_fund):
+    response = admin_client.get(scpi_card_url(scpi_fund.pk))
+    data = response.json()
+    assert data["name"] == "Corum Eurion"
+    assert data["management_company"] == "Corum AM"
+    assert data["total_resale"] is None
+    assert data["total_invested"] is None
+    assert data["gain_pct"] is None
+    assert data["net_rentability"] == 0.0

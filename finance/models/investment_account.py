@@ -53,6 +53,11 @@ class InvestmentAccount(AbstractAccount):
         return str(self.opening_cash_value.currency)
 
     @property
+    def opening_amount(self) -> Money:
+        """Return opening_cash_value as the canonical opening amount."""
+        return self.opening_cash_value
+
+    @property
     def current_cash_value(self) -> Money:
         """Lazily get the current cash amount."""
         return self.get_cash_value()

@@ -103,6 +103,7 @@ def test_patrimony_chart_structure(admin_client):
     assert "savings" in data
     assert "properties_net" in data
     assert "properties_loans" in data
+    assert "scpi" in data
     assert len(data["months"]) == 25  # 24 historical + current month
 
 
@@ -115,6 +116,7 @@ def test_patrimony_chart_series_length(admin_client):
     assert len(data["savings"]) == length
     assert len(data["properties_net"]) == length
     assert len(data["properties_loans"]) == length
+    assert len(data["scpi"]) == length
 
 
 # ── RecentOperationsApiView ────────────────────────────────────────────────

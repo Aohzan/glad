@@ -83,10 +83,15 @@ footer {
 .prop-gradient-building { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; }
 .prop-gradient-tree     { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
 .prop-gradient-other    { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); color: #374151; }
+.prop-gradient-scpi     { background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: #fff; }
 [data-bs-theme="dark"] .prop-gradient-house    { background: linear-gradient(135deg, #064e3b, #065f46); color: #a7f3d0; }
 [data-bs-theme="dark"] .prop-gradient-building { background: linear-gradient(135deg, #1e3a5f, #1e40af); color: #bfdbfe; }
 [data-bs-theme="dark"] .prop-gradient-tree     { background: linear-gradient(135deg, #451a03, #78350f); color: #fde68a; }
 [data-bs-theme="dark"] .prop-gradient-other    { background: linear-gradient(135deg, #1f2937, #374151); color: #e5e7eb; }
+[data-bs-theme="dark"] .prop-gradient-scpi     { background: linear-gradient(135deg, #4c1d95, #3730a3); color: #ddd6fe; }
+
+/* SCPI card top accent border */
+.property-card:has(.prop-gradient-scpi) { border-top: 3px solid #a78bfa !important; }
 
 /* Property horizontal scroll */
 .prop-scroll-track {

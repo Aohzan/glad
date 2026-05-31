@@ -6,7 +6,7 @@ from decimal import Decimal
 import pytest
 from moneyed import Money
 
-from property.models import PropertyLoan
+from property.models import Property, PropertyLoan
 from tests.conftest import (
     ADMIN_PASSWORD,
     ADMIN_USER,
@@ -18,6 +18,23 @@ from tests.conftest import (
     user,
     user_client,
 )
+
+
+@pytest.fixture
+def make_property():
+    """Factory fixture to create a Property instance for tests."""
+
+    def _inner(name, is_active=True, is_favorite=False):
+        return Property.objects.create(
+            name=name,
+            property_type=Property.APARTMENT,
+            buying_value=Money(100000, "EUR"),
+            buying_date=datetime.date(2020, 1, 1),
+            is_active=is_active,
+            is_favorite=is_favorite,
+        )
+
+    return _inner
 
 
 @pytest.fixture
@@ -46,4 +63,5 @@ __all__ = [
     "admin_client",
     "user_client",
     "loan",
+    "make_property",
 ]

@@ -1,13 +1,11 @@
 """Views for saving account CRUD operations."""
 
 from django.contrib import messages
-from django.db.models import Sum
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
-from moneyed import Money
 
 from finance.forms import (
     SavingAccountDepositForm,
@@ -33,15 +31,7 @@ def saving_detail(request: HttpRequest, pk: int) -> HttpResponse:
     values = account.values.order_by("-value_date")  # type: ignore[union-attr]
     deposits = account.deposits.order_by("-deposit_date")
     progression = account.get_progression(days=30)
-
-    # Compute total deposits and capital gain
-    total_deposits_amount = deposits.aggregate(total=Sum("amount"))["total"] or 0
-    total_deposits = Money(total_deposits_amount, account.currency)
-    current_value = account.current_value
-    capital_gain = Money(
-        current_value.amount - account.opening_value.amount - total_deposits_amount,
-        account.currency,
-    )
+    total_deposits, capital_gain = account.compute_capital_gain()
 
     return render(
         request,

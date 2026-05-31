@@ -46,12 +46,12 @@ def index(request: HttpRequest) -> HttpResponse:
     properties_gross_evolution = []
     properties_net_evolution = []
 
+    now = datetime.date.today()
     earliest_date = None
     if properties_active:
         earliest_date = min(prop.buying_date for prop in properties_active)
 
     if earliest_date:
-        now = datetime.date.today()
         chart_currency = (
             str(total_gross_value.currency) if total_gross_value is not None else None
         )

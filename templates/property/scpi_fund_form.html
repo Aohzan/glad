@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% if scpi %}
+    {% translate 'Edit SCPI fund' %}
+  {% else %}
+    {% translate 'New SCPI fund' %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="container py-4" style="max-width: 680px;">
+    {% url 'property:scpi_list' as back_url %}
+    {% translate 'Edit SCPI fund' as edit_title %}
+    {% translate 'New SCPI fund' as new_title %}
+    {% include 'property/_edit_page_header.html' with is_edit=scpi edit_title=edit_title new_title=new_title back_url=back_url back_label=_('SCPI') %}
+
+    {% include 'property/_form_error_alert.html' %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="card mb-3">
+        <div class="card-header py-2">
+          <h6 class="mb-0"><i class="bi bi-building me-1"></i>{% translate 'Fund information' %}</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12">
+              {% include '_form_field.html' with field=form.name %}
+            </div>
+            <div class="col-12">
+              {% include '_form_field.html' with field=form.management_company %}
+            </div>
+            <div class ="col-md-6">
+              {% include '_form_field.html' with field=form.dividend_recurrence %}
+            </div>
+            <div class="col-md-6">
+              {% include '_form_field.html' with field=form.management_fee_rate %}
+            </div>
+            <div class="col-md-6">
+              {% include '_form_field.html' with field=form.entry_fee_rate %}
+            </div>
+            <div class="col-md-6">
+              {% include '_form_field.html' with field=form.exit_fee_rate %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% include 'property/_edit_form_footer.html' with cancel_url=back_url %}
+    </form>
+  </div>
+{% endblock %}

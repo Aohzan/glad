@@ -10,6 +10,7 @@ from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
 
 from property.models import Property
+from property.models.scpi import SCPI
 
 
 def get_object_or_redirect(
@@ -65,7 +66,15 @@ class IndexView(TemplateView):
             .order_by("-is_favorite", "name")
             .values_list("pk", flat=True)
         )
-        return render(request, self.template_name, {"property_pks": property_pks})
+        scpi_pks = list(SCPI.objects.order_by("name").values_list("pk", flat=True))
+        return render(
+            request,
+            self.template_name,
+            {
+                "property_pks": property_pks,
+                "scpi_pks": scpi_pks,
+            },
+        )
 
 
 def healthcheck(request):

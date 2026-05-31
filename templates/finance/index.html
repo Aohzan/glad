@@ -262,7 +262,7 @@ function getCurrentTheme() {
   var total = (invest || 0) + (saving || 0);
   if (total > 0) {
     document.getElementById('kpi-total').textContent = new Intl.NumberFormat(
-      navigator.language || 'fr-FR', { style: 'currency', currency: currency }
+      document.documentElement.lang || navigator.language, { style: 'currency', currency: currency }
     ).format(total);
   }
 })();
@@ -319,8 +319,8 @@ var optionsFinanceEvolution = {
     intersect: false,
     custom: function({ series, seriesIndex, dataPointIndex, w }) {
       var isDark = getCurrentTheme() === 'dark';
-      var bg = isDark ? '#1e1e2e' : '#fff';
-      var border = isDark ? '#444' : '#dee2e6';
+      var bg = isDark ? '#0f172a' : '#fff';
+      var border = isDark ? 'rgba(255,255,255,.12)' : '#dee2e6';
       var textMuted = isDark ? '#adb5bd' : '#6c757d';
       var total = 0;
       series.forEach(function(s) { total += (s[dataPointIndex] || 0); });
@@ -349,7 +349,7 @@ var optionsFinanceEvolution = {
       '</div>';
     }
   },
-  grid: { borderColor: getCurrentTheme() === 'dark' ? '#444' : '#e0e0e0' },
+  grid: { borderColor: getCurrentTheme() === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
   legend: { show: false },
 };
 
@@ -405,7 +405,7 @@ function updateChartsTheme(themeName) {
     chartFinanceEvolution.updateOptions({
       theme: { mode: isDark ? 'dark' : 'light' },
       chart: { background: 'transparent' },
-      grid: { borderColor: isDark ? '#444' : '#e0e0e0' },
+      grid: { borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
     });
   }
 }

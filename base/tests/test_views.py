@@ -7,6 +7,7 @@ from django.urls import reverse
 from moneyed import Money
 
 from property.models import Property
+from property.models.scpi import SCPI
 from tests.conftest import ADMIN_USER
 
 
@@ -55,6 +56,16 @@ def test_index_view_no_properties(admin_client):
     response = admin_client.get(reverse("index"))
     assert response.status_code == 200
     assert response.context["property_pks"] == []
+    assert response.context["scpi_pks"] == []
+
+
+@pytest.mark.django_db
+def test_index_view_context_has_scpi_pks(admin_client):
+    """Index view context contains SCPI PKs ordered by name."""
+    scpi = SCPI.objects.create(name="Corum Eurion")
+    response = admin_client.get(reverse("index"))
+    assert response.status_code == 200
+    assert scpi.pk in response.context["scpi_pks"]
 
 
 def test_error_400(client):

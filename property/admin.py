@@ -3,6 +3,7 @@
 from django.contrib import admin
 
 from property.models import (
+    SCPI,
     AmortizationAsset,
     AmortizationSetup,
     Lease,
@@ -12,6 +13,9 @@ from property.models import (
     PropertyLoan,
     PropertyLoanAmortizationEntry,
     PropertyValue,
+    SCPIDividend,
+    SCPIInvestment,
+    SCPISharePrice,
 )
 
 
@@ -208,3 +212,82 @@ class AmortizationAssetAdmin(admin.ModelAdmin):
 class AmortizationSetupAdmin(admin.ModelAdmin):
     list_display = ("property", "total_value", "land_percentage")
     search_fields = ("property__name",)
+
+
+# ── SCPI ──────────────────────────────────────────────────────────────────────
+
+
+class SCPISharePriceInline(admin.TabularInline):
+    model = SCPISharePrice
+    extra = 0
+    readonly_fields = ("created_at", "updated_at")
+    fields = ("date", "subscription_value", "withdrawal_value")
+    ordering = ("-date",)
+
+
+class SCPIInvestmentInline(admin.TabularInline):
+    model = SCPIInvestment
+    extra = 0
+    readonly_fields = ("created_at", "updated_at")
+    fields = (
+        "subscription_date",
+        "shares_count",
+        "unit_purchase_price",
+        "ownership_type",
+    )
+
+
+class SCPIDividendInline(admin.TabularInline):
+    model = SCPIDividend
+    extra = 0
+    readonly_fields = ("created_at", "updated_at")
+    fields = ("payment_date", "gross_amount", "net_amount", "notes")
+    ordering = ("-payment_date",)
+
+
+@admin.register(SCPI)
+class SCPIAdmin(admin.ModelAdmin):
+    inlines = [SCPISharePriceInline, SCPIInvestmentInline, SCPIDividendInline]
+    list_display = (
+        "name",
+        "management_company",
+        "current_subscription_value",
+        "current_withdrawal_value",
+        "entry_fee_rate",
+        "exit_fee_rate",
+    )
+    search_fields = ("name", "management_company")
+    readonly_fields = ("current_subscription_value", "current_withdrawal_value")
+
+
+class SCPIDividendInlineForInvestment(admin.TabularInline):
+    model = SCPIDividend
+    fk_name = "scpi"
+    extra = 0
+
+
+@admin.register(SCPIInvestment)
+class SCPIInvestmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "scpi",
+        "subscription_date",
+        "shares_count",
+        "unit_purchase_price",
+        "ownership_type",
+    )
+    list_filter = ("scpi", "ownership_type")
+    search_fields = ("scpi__name",)
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(SCPIDividend)
+class SCPIDividendAdmin(admin.ModelAdmin):
+    list_display = (
+        "scpi",
+        "payment_date",
+        "gross_amount",
+        "net_amount",
+    )
+    list_filter = ("scpi",)
+    search_fields = ("scpi__name",)
+    readonly_fields = ("created_at", "updated_at")

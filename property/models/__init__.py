@@ -15,6 +15,7 @@ from property.models.ledger import (
     PropertyLedgerEntryException,
 )
 from property.models.management import ManagementMandate
+from property.models.scpi import SCPI, SCPIDividend, SCPIInvestment, SCPISharePrice
 
 __all__ = [
     "AmortizationAsset",
@@ -28,4 +29,8 @@ __all__ = [
     "ManagementMandate",
     "PropertyLedgerEntry",
     "PropertyLedgerEntryException",
+    "SCPI",
+    "SCPIDividend",
+    "SCPIInvestment",
+    "SCPISharePrice",
 ]

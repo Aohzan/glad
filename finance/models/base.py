@@ -1,9 +1,13 @@
 """Abstract base models shared by investment and saving account models."""
 
 import datetime
+from typing import TYPE_CHECKING
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+if TYPE_CHECKING:
+    from moneyed import Money
 
 from base.models import BaseModel
 from finance.utils import AccountProgression
@@ -110,6 +114,36 @@ class AbstractAccount(BaseModel):
         if not self.is_active:
             suffix += f" {_('(closed)')}"
         return suffix
+
+    @property
+    def opening_amount(self) -> "Money":
+        """Return the opening value as a Money object.
+
+        Concrete subclasses must override this property to point to their
+        specific opening-value field (e.g. ``opening_cash_value`` or
+        ``opening_value``).
+        """
+        raise NotImplementedError  # pragma: no cover
+
+    def compute_capital_gain(self) -> "tuple[Money, Money]":
+        """Compute and return ``(total_deposits, capital_gain)`` as Money objects.
+
+        Uses the deposits queryset common to all account types and the
+        subclass-provided ``opening_amount`` property.
+        """
+        from django.db.models import Sum
+        from moneyed import Money
+
+        total_deposits_amount = (
+            self.deposits.aggregate(total=Sum("amount"))["total"] or 0  # ty: ignore[unresolved-attribute]
+        )
+        total_deposits = Money(total_deposits_amount, self.currency)  # ty: ignore[unresolved-attribute]
+        current_value = self.current_value
+        capital_gain = Money(
+            current_value.amount - self.opening_amount.amount - total_deposits_amount,
+            self.currency,  # ty: ignore[unresolved-attribute]
+        )
+        return total_deposits, capital_gain
 
     def get_progression(self, days: int) -> "AccountProgression":
         """Return the value progression over *days* days, net of deposits.

@@ -1,27 +1,11 @@
 """Tests for property favorite toggle functionality."""
 
-import datetime
-
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.urls import reverse
-from moneyed import Money
 
 from property.context_processors import nav_properties
-from property.models import Property
-
-
-def _make_property(name, is_active=True, is_favorite=False):
-    return Property.objects.create(
-        name=name,
-        property_type=Property.APARTMENT,
-        buying_value=Money(100000, "EUR"),
-        buying_date=datetime.date(2020, 1, 1),
-        is_active=is_active,
-        is_favorite=is_favorite,
-    )
-
 
 # ─── Context processor ───────────────────────────────────────────────────────
 
@@ -40,11 +24,11 @@ def test_nav_properties_unauthenticated_returns_empty():
 
 
 @pytest.mark.django_db
-def test_nav_properties_shows_only_favorites(user):
+def test_nav_properties_shows_only_favorites(user, make_property):
     """Only active + favorite properties should appear in nav."""
-    _make_property("Favorite", is_favorite=True)
-    _make_property("Not Favorite", is_favorite=False)
-    _make_property("Inactive Favorite", is_active=False, is_favorite=True)
+    make_property("Favorite", is_favorite=True)
+    make_property("Not Favorite", is_favorite=False)
+    make_property("Inactive Favorite", is_active=False, is_favorite=True)
 
     factory = RequestFactory()
     request = factory.get("/")
@@ -57,9 +41,9 @@ def test_nav_properties_shows_only_favorites(user):
 
 
 @pytest.mark.django_db
-def test_nav_properties_any_true_when_active_exist(user):
+def test_nav_properties_any_true_when_active_exist(user, make_property):
     """nav_properties_any should be True when active properties exist."""
-    _make_property("Active", is_favorite=False)
+    make_property("Active", is_favorite=False)
 
     factory = RequestFactory()
     request = factory.get("/")
@@ -72,9 +56,9 @@ def test_nav_properties_any_true_when_active_exist(user):
 
 
 @pytest.mark.django_db
-def test_nav_properties_any_false_when_no_active(user):
+def test_nav_properties_any_false_when_no_active(user, make_property):
     """nav_properties_any should be False when no active properties exist."""
-    _make_property("Inactive", is_active=False, is_favorite=False)
+    make_property("Inactive", is_active=False, is_favorite=False)
 
     factory = RequestFactory()
     request = factory.get("/")
@@ -86,10 +70,10 @@ def test_nav_properties_any_false_when_no_active(user):
 
 
 @pytest.mark.django_db
-def test_nav_properties_ordered_by_name(user):
+def test_nav_properties_ordered_by_name(user, make_property):
     """Favorite properties should be ordered alphabetically."""
-    _make_property("Zeta", is_favorite=True)
-    _make_property("Alpha", is_favorite=True)
+    make_property("Zeta", is_favorite=True)
+    make_property("Alpha", is_favorite=True)
 
     factory = RequestFactory()
     request = factory.get("/")
@@ -105,9 +89,9 @@ def test_nav_properties_ordered_by_name(user):
 
 
 @pytest.mark.django_db
-def test_toggle_favorite_adds_favorite(user_client):
+def test_toggle_favorite_adds_favorite(user_client, make_property):
     """POST to toggle_favorite should set is_favorite=True on a non-favorite."""
-    prop = _make_property("Test Property", is_favorite=False)
+    prop = make_property("Test Property", is_favorite=False)
 
     url = reverse("property:toggle_favorite", kwargs={"pk": prop.pk})
     response = user_client.post(url)
@@ -118,9 +102,9 @@ def test_toggle_favorite_adds_favorite(user_client):
 
 
 @pytest.mark.django_db
-def test_toggle_favorite_removes_favorite(user_client):
+def test_toggle_favorite_removes_favorite(user_client, make_property):
     """POST to toggle_favorite should set is_favorite=False on a favorite."""
-    prop = _make_property("Test Property", is_favorite=True)
+    prop = make_property("Test Property", is_favorite=True)
 
     url = reverse("property:toggle_favorite", kwargs={"pk": prop.pk})
     response = user_client.post(url)
@@ -131,9 +115,9 @@ def test_toggle_favorite_removes_favorite(user_client):
 
 
 @pytest.mark.django_db
-def test_toggle_favorite_get_not_allowed(user_client):
+def test_toggle_favorite_get_not_allowed(user_client, make_property):
     """GET request to toggle_favorite should return 405."""
-    prop = _make_property("Test Property")
+    prop = make_property("Test Property")
 
     url = reverse("property:toggle_favorite", kwargs={"pk": prop.pk})
     response = user_client.get(url)
@@ -142,9 +126,9 @@ def test_toggle_favorite_get_not_allowed(user_client):
 
 
 @pytest.mark.django_db
-def test_toggle_favorite_requires_login(client):
+def test_toggle_favorite_requires_login(client, make_property):
     """Unauthenticated POST should redirect to login."""
-    prop = _make_property("Test Property")
+    prop = make_property("Test Property")
 
     url = reverse("property:toggle_favorite", kwargs={"pk": prop.pk})
     response = client.post(url)

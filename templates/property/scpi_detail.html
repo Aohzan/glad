@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{{ investment.scpi }} — {% translate "Investment detail" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {# ── Header ──────────────────────────────────────────────────────────────── #}
+  {% url 'property:scpi_list' as back_url %}
+  {% translate "Investment detail" as page_title %}
+  {% include "property/_edit_page_header.html" with back_url=back_url back_label=_("SCPI") page_title=page_title title_icon_class="bi-building-check" %}
+
+  {# ── Summary cards ───────────────────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Purchase value" %}</p>
+          <p class="fs-5 fw-bold mb-0">{{ purchase_value|format_money }}</p>
+          {% if investment.scpi.entry_fee_rate %}
+          <p class="text-body-secondary small mb-0">+ {{ entry_fees|format_money }} {% translate "fees" %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Total invested" %}</p>
+          <p class="fs-5 fw-bold mb-0">{{ total_invested|format_money }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
+        <div class="card-body py-3 px-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Estimated value" %}</p>
+          <p class="fs-5 fw-bold mb-0">{{ estimated_value|format_money }}</p>
+          <p class="text-body-secondary small mb-0">{% translate "Gross:" %} {{ current_full_value|format_money }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm rounded-4 h-100 border-0 {% if capital_gain.amount >= 0 %}border-success-subtle bg-success-subtle{% else %}border-danger-subtle bg-danger-subtle{% endif %}">
+        <div class="card-body py-3 px-3">
+          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Capital gain (latent)" %}</p>
+          <p class="fs-5 fw-bold mb-0 {% if capital_gain.amount >= 0 %}text-success{% else %}text-danger{% endif %}">{{ capital_gain|format_money }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Resale estimate ─────────────────────────────────────────────────────── #}
+  <div class="card shadow-sm rounded-4 mb-4">
+    <div class="card-header border-0">
+      <h2 class="h5 mb-0"><i class="bi bi-tag me-2 text-primary"></i>{% translate "Estimated resale" %}</h2>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <p class="text-body-secondary small mb-1">{% translate "Gross resale (withdrawal price × shares)" %}</p>
+          <p class="fw-semibold mb-0">
+            {% with gross=estimated_resale.amount|add:exit_fees.amount %}
+            {{ estimated_resale|format_money }}{% if investment.scpi.exit_fee_rate %} + {{ exit_fees|format_money }} {% translate "exit fees" %}{% endif %}
+            {% endwith %}
+          </p>
+        </div>
+        <div class="col-md-4">
+          <p class="text-body-secondary small mb-1">{% translate "Exit fee rate" %}</p>
+          <p class="fw-semibold mb-0">{% if investment.scpi.exit_fee_rate %}{{ investment.scpi.exit_fee_rate }}%{% else %}—{% endif %}</p>
+        </div>
+        <div class="col-md-4">
+          <p class="text-body-secondary small mb-1">{% translate "Net estimated resale" %}</p>
+          <p class="fw-bold fs-5 mb-0">{{ estimated_resale|format_money }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Investment details ───────────────────────────────────────────────────── #}
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm rounded-4 h-100">
+        <div class="card-header border-0">
+          <h2 class="h5 mb-0"><i class="bi bi-info-circle me-2 text-primary"></i>{% translate "Investment details" %}</h2>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-6 text-body-secondary">{% translate "SCPI fund" %}</dt>
+            <dd class="col-sm-6">{{ scpi }}</dd>
+            <dt class="col-sm-6 text-body-secondary">{% translate "Subscription date" %}</dt>
+            <dd class="col-sm-6">{{ investment.subscription_date }}</dd>
+            <dt class="col-sm-6 text-body-secondary">{% translate "Shares count" %}</dt>
+            <dd class="col-sm-6">{{ investment.shares_count }}</dd>
+            <dt class="col-sm-6 text-body-secondary">{% translate "Unit purchase price" %}</dt>
+            <dd class="col-sm-6">{{ investment.unit_purchase_price|format_money }}</dd>
+            <dt class="col-sm-6 text-body-secondary">{% translate "Entry fee rate" %}</dt>
+            <dd class="col-sm-6">{% if scpi.entry_fee_rate %}{{ scpi.entry_fee_rate }}%{% else %}—{% endif %}</dd>
+            {% if investment.enjoyment_date %}
+            <dt class="col-sm-6 text-body-secondary">{% translate "Enjoyment date" %}</dt>
+            <dd class="col-sm-6">{{ investment.enjoyment_date }}</dd>
+            {% endif %}
+            <dt class="col-sm-6 text-body-secondary">{% translate "Ownership type" %}</dt>
+            <dd class="col-sm-6">
+              <span class="badge {% if investment.ownership_type == 'full' %}bg-success-subtle text-success-emphasis{% elif investment.ownership_type == 'bare' %}bg-warning-subtle text-warning-emphasis{% else %}bg-info-subtle text-info-emphasis{% endif %}">
+                {{ investment.get_ownership_type_display }}
+              </span>
+            </dd>
+            {% if investment.ownership_type != 'full' %}
+            <dt class="col-sm-6 text-body-secondary">{% translate "Dismemberment period" %}</dt>
+            <dd class="col-sm-6">{{ investment.dismemberment_start_date }} → {{ investment.dismemberment_end_date }}</dd>
+            <dt class="col-sm-6 text-body-secondary">{% translate "Bare ownership ratio" %}</dt>
+            <dd class="col-sm-6">{{ investment.bare_ownership_ratio }}%</dd>
+            {% endif %}
+          </dl>
+        </div>
+        <div class="card-footer border-0 bg-transparent d-flex gap-2">
+          <a href="{% url 'property:scpi_investment_edit' investment_pk=investment.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+          </a>
+          <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteInvModal">
+            <i class="bi bi-trash me-1"></i>{% translate "Delete" %}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm rounded-4 h-100">
+        <div class="card-header border-0">
+          <h2 class="h5 mb-0"><i class="bi bi-building me-2 text-primary"></i>{% translate "SCPI" %}</h2>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-6 text-body-secondary">{% translate "Name" %}</dt>
+            <dd class="col-sm-6">{{ scpi }}</dd>
+            <dt class="col-sm-6 text-body-secondary">{% translate "Management company" %}</dt>
+            <dd class="col-sm-6">{{ scpi.management_company|default:"—" }}</dd>
+            <dt class="col-sm-6 text-body-secondary">{% translate "Subscription value" %}</dt>
+            <dd class="col-sm-6">{{ scpi.current_subscription_value|format_money|default:"—" }}</dd>
+            <dt class="col-sm-6 text-body-secondary">{% translate "Withdrawal value" %}</dt>
+            <dd class="col-sm-6">{{ scpi.current_withdrawal_value|format_money|default:"—" }}</dd>
+          </dl>
+        </div>
+        <div class="card-footer border-0 bg-transparent">
+          <a href="{% url 'property:scpi_edit' scpi_pk=scpi.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i>{% translate "Edit fund" %}
+          </a>
+          <a href="{% url 'property:scpi_share_price_add' scpi_pk=scpi.pk %}" class="btn btn-sm btn-outline-primary ms-2">
+            <i class="bi bi-plus me-1"></i>{% translate "Add share price" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Dividends ────────────────────────────────────────────────────────────── #}
+  <div class="card shadow-sm rounded-4">
+    <div class="card-header border-0 d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0"><i class="bi bi-cash-stack me-2 text-primary"></i>{% translate "Dividends" %}
+        <span class="badge bg-secondary ms-1">{{ dividends|length }}</span>
+      </h2>
+      <a href="{% url 'property:scpi_dividend_add' scpi_pk=investment.scpi.pk %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>{% translate "Add dividend" %}
+      </a>
+    </div>
+    {% if dividends %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% translate "Payment date" %}</th>
+            <th class="text-end">{% translate "Gross amount" %}</th>
+            <th class="text-end">{% translate "Net amount" %}</th>
+            <th>{% translate "Notes" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for div in dividends %}
+          <tr>
+            <td>{{ div.payment_date }}</td>
+            <td class="text-end">{% if div.gross_amount %}{{ div.gross_amount|format_money }}{% else %}—{% endif %}</td>
+            <td class="text-end fw-semibold">{{ div.net_amount|format_money }}</td>
+            <td class="text-body-secondary small">{{ div.notes|default:"" }}</td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <a href="{% url 'property:scpi_dividend_edit' scpi_pk=investment.scpi.pk dividend_pk=div.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteDiv{{ div.pk }}" title="{% translate 'Delete' %}">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+              {% url 'property:scpi_dividend_delete' scpi_pk=investment.scpi.pk dividend_pk=div.pk as del_div_url %}
+              {% include "property/_delete_modal.html" with modal_id="deleteDiv"|add:div.pk|stringformat:"s" delete_url=del_div_url modal_title=_("Delete dividend") confirm_text=_("Are you sure you want to delete this dividend?") %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-light fw-semibold">
+          <tr>
+            <td>{% translate "Total" %}</td>
+            <td></td>
+            <td class="text-end">{{ total_dividends|format_money }} <span class="muted">({{ last_year_dividends|format_money }})</span></td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    {% else %}
+    <div class="card-body text-body-secondary">
+      {% translate "No dividends recorded yet." %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{# ── Delete investment modal ───────────────────────────────────────────────── #}
+{% url 'property:scpi_investment_delete' investment_pk=investment.pk as del_inv_url %}
+{% include "property/_delete_modal.html" with modal_id="deleteInvModal" delete_url=del_inv_url modal_title=_("Delete investment") confirm_text=_("Are you sure you want to delete this SCPI investment? All dividends will also be deleted.") %}
+
+{% endblock %}

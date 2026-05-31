@@ -12,4 +12,9 @@
       <i class="bi bi-plus-circle me-1"></i>{{ new_title }}
     {% endif %}
   </h1>
+  {% if edit_url %}
+    <a href="{{ edit_url }}" class="btn btn-sm btn-outline-primary ms-auto">
+      <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+    </a>
+  {% endif %}
 </div>

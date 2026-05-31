@@ -8,6 +8,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from property.models import Property
+from property.models.scpi import SCPI
 from property.services.cashflow import build_balance_sheet
 from property.utils import month_end, month_start
 
@@ -80,5 +81,48 @@ class PropertyDashboardCardApiView(View):
                 },
                 "active_lease": lease_data,
                 "is_favorite": prop.is_favorite,
+            }
+        )
+
+
+@method_decorator(login_required, name="dispatch")
+class SCPIDashboardCardApiView(View):
+    """Return data needed to render a single SCPI fund card on the dashboard."""
+
+    def get(self, request, pk: int):
+        from property.views.scpi_views import (
+            _compute_fund_data,  # avoid circular import
+        )
+
+        fund = (
+            SCPI.objects.prefetch_related("share_prices", "investments", "dividends")
+            .filter(pk=pk)
+            .first()
+        )
+        if fund is None:
+            return JsonResponse({"error": "Not found"}, status=404)
+
+        today = datetime.date.today()
+        data = _compute_fund_data(fund, today)
+
+        return JsonResponse(
+            {
+                "pk": fund.pk,
+                "name": fund.name,
+                "management_company": fund.management_company or "",
+                "total_resale": float(data["total_resale"].amount)
+                if data["total_resale"]
+                else None,
+                "total_invested": float(data["total_invested"].amount)
+                if data["total_invested"]
+                else None,
+                "total_dividends": float(data["total_dividends"].amount)
+                if data["total_dividends"]
+                else None,
+                "gain_pct": float(data["gain_pct"])
+                if data["gain_pct"] is not None
+                else None,
+                "net_rentability": float(data["net_rentability"]),
+                "currency": data["currency"],
             }
         )

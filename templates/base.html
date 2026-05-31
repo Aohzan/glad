@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html data-bs-theme="light">
 {% load i18n static %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<html data-bs-theme="light" lang="{{ CURRENT_LANGUAGE }}">
 
 <head>
     <meta charset="utf-8">
@@ -71,19 +72,20 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="propertyDropdown" role="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-building me-2"></i>{% translate "Properties" %}
+                                <i class="bi bi-buildings me-2"></i>{% translate "Properties" %}
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="propertyDropdown">
-                                <li><a class="dropdown-item" href="{% url 'property:index' %}"><i class="bi bi-bar-chart-line me-2"></i>{% translate "Overview" %}</a></li>
+                                <li><a class="dropdown-item" href="{% url 'property:index' %}"><i class="bi bi-building me-2"></i>{% translate "Estate" %}</a></li>
+                                <li><a class="dropdown-item" href="{% url 'property:scpi_list' %}"><i class="bi bi-file-earmark-text me-2"></i>{% translate "SCPI" %}</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'property:lmnp_accounting' %}">
-                                        <i class="bi bi-calculator me-2"></i>{% translate "LMNP Accounting" %}
-                                    </a>
-                                </li>
                                 <li>
                                     <a class="dropdown-item" href="{% url 'property:report' %}">
                                         <i class="bi bi-file-earmark-bar-graph me-2"></i>{% translate "Income & Expenses Report" %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'property:lmnp_accounting' %}">
+                                        <i class="bi bi-calculator me-2"></i>{% translate "LMNP Accounting" %}
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -191,11 +193,44 @@
 
     <script src="{% static 'vendors/bootstrap/bootstrap.bundle.min.js' %}"></script>
 
+    <!-- Global ApexCharts defaults — hero palette -->
+    <script>
+        // Hero-palette color set (blue-400, emerald-400, violet-400, orange-400, pink-400, yellow-400)
+        var APEX_HERO_COLORS = ['#60a5fa', '#34d399', '#a78bfa', '#fb923c', '#f472b6', '#facc15'];
+
+        function applyApexGlobalDefaults(themeName) {
+            var isDark = themeName === 'dark';
+            window.Apex = {
+                colors: APEX_HERO_COLORS,
+                chart: {
+                    background: 'transparent',
+                    foreColor: isDark ? 'rgba(255,255,255,.6)' : 'rgba(15,23,42,.6)',
+                    fontFamily: 'inherit',
+                },
+                theme: { mode: isDark ? 'dark' : 'light' },
+                tooltip: { theme: isDark ? 'dark' : 'light' },
+                grid: { borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
+                xaxis: {
+                    axisBorder: { color: isDark ? 'rgba(255,255,255,.1)' : 'rgba(15,23,42,.1)' },
+                    axisTicks: { color: isDark ? 'rgba(255,255,255,.1)' : 'rgba(15,23,42,.1)' },
+                    labels: { style: { colors: isDark ? 'rgba(255,255,255,.5)' : 'rgba(15,23,42,.5)' } },
+                },
+                yaxis: {
+                    labels: { style: { colors: isDark ? 'rgba(255,255,255,.5)' : 'rgba(15,23,42,.5)' } },
+                },
+                legend: {
+                    labels: { colors: isDark ? 'rgba(255,255,255,.7)' : 'rgba(15,23,42,.7)' },
+                },
+            };
+        }
+    </script>
+
     <!-- Dark mode toggle script -->
     <script>
         // Function to set the theme
         function setTheme(themeName, savePreference = true) {
             document.documentElement.setAttribute('data-bs-theme', themeName);
+            applyApexGlobalDefaults(themeName);
 
             // Only save to localStorage if this is a manual user preference
             if (savePreference) {

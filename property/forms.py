@@ -8,6 +8,7 @@ from moneyed import Money
 
 from base.forms import MoneyInputGroupMixin, date_field, recurrence_end_field
 from property.models import (
+    SCPI,
     AmortizationAsset,
     AmortizationSetup,
     Lease,
@@ -17,6 +18,9 @@ from property.models import (
     PropertyLedgerEntryException,
     PropertyLoan,
     PropertyValue,
+    SCPIDividend,
+    SCPIInvestment,
+    SCPISharePrice,
 )
 from property.utils import add_months_safe, calculate_monthly_payment
 
@@ -448,9 +452,170 @@ class AmortizationInitForm(forms.Form):
         value = self.cleaned_data.get("extra_amount")
         return value if value is not None else Decimal("0")
 
-    def clean_land_percentage(self) -> Decimal:
-        value = self.cleaned_data.get("land_percentage")
-        return value if value is not None else Decimal("15.00")
+
+# ─── SCPI ────────────────────────────────────────────────────────────────────────────────
+
+
+class SCPIForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for creating and editing a SCPI fund."""
+
+    class Meta:
+        model = SCPI
+        fields = [
+            "name",
+            "management_company",
+            "entry_fee_rate",
+            "exit_fee_rate",
+            "management_fee_rate",
+            "dividend_recurrence",
+            "notes",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "management_company": forms.TextInput(attrs={"class": "form-control"}),
+            "entry_fee_rate": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "max": "100",
+                }
+            ),
+            "exit_fee_rate": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "max": "100",
+                }
+            ),
+            "management_fee_rate": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "max": "100",
+                }
+            ),
+            "dividend_recurrence": forms.Select(attrs={"class": "form-select"}),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["management_company"].required = False
+        self.fields["entry_fee_rate"].required = False
+        self.fields["exit_fee_rate"].required = False
+        self.fields["management_fee_rate"].required = False
+        self.fields["notes"].required = False
+
+
+class SCPISharePriceForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for recording a new share price for a SCPI fund."""
+
+    class Meta:
+        model = SCPISharePrice
+        fields = ["date", "subscription_value", "withdrawal_value"]
+        widgets = {
+            "date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["withdrawal_value"].required = False
+
+
+class SCPIInvestmentForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for creating and editing a SCPI investment line.
+
+    Dismemberment fields are conditionally required when ownership_type is BARE or USUFRUCT.
+    The template uses JS to show/hide these fields based on the selected ownership type.
+    """
+
+    class Meta:
+        model = SCPIInvestment
+        fields = [
+            "scpi",
+            "subscription_date",
+            "shares_count",
+            "unit_purchase_price",
+            "enjoyment_date",
+            "ownership_type",
+            "dismemberment_start_date",
+            "dismemberment_end_date",
+            "bare_ownership_ratio",
+            "notes",
+        ]
+        widgets = {
+            "scpi": forms.Select(attrs={"class": "form-select"}),
+            "subscription_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+            "shares_count": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.0001", "min": "0"}
+            ),
+            "enjoyment_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+            "ownership_type": forms.Select(
+                attrs={"class": "form-select", "id": "id_ownership_type"}
+            ),
+            "dismemberment_start_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                    "id": "id_dismemberment_start_date",
+                },
+                format="%Y-%m-%d",
+            ),
+            "dismemberment_end_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                    "id": "id_dismemberment_end_date",
+                },
+                format="%Y-%m-%d",
+            ),
+            "bare_ownership_ratio": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "max": "100",
+                    "id": "id_bare_ownership_ratio",
+                }
+            ),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["enjoyment_date"].required = False
+        self.fields["dismemberment_start_date"].required = False
+        self.fields["dismemberment_end_date"].required = False
+        self.fields["bare_ownership_ratio"].required = False
+        self.fields["notes"].required = False
+
+
+class SCPIDividendForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for recording a dividend payment for a SCPI fund."""
+
+    class Meta:
+        model = SCPIDividend
+        fields = ["payment_date", "gross_amount", "net_amount", "notes"]
+        widgets = {
+            "payment_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["gross_amount"].required = False
+        self.fields["notes"].required = False
 
 
 # ─── Income & Expenses Report ────────────────────────────────────────────────

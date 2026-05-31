@@ -15,7 +15,7 @@
   {# ── Page header ─────────────────────────────────────────────────────────── #}
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="mb-0 h3"><i class="bi bi-house-door me-2 text-primary"></i>{% translate 'Properties' %}</h1>
-    <a href="{% url 'property:create' %}" class="btn btn-primary">
+    <a class="btn btn-outline-secondary" type="button"  href="{% url 'property:create' %}">
       <i class="bi bi-plus-circle me-1"></i>{% translate 'Add property' %}
     </a>
   </div>
@@ -199,7 +199,7 @@ var optionsPropertiesEvolution = {
   }],
   stroke: { curve: 'smooth', width: 2 },
   fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: .35, opacityTo: .05 } },
-  colors: ['#0d6efd', '#20c997'],
+  colors: ['#60a5fa', '#34d399'],
   dataLabels: { enabled: false },
   xaxis: { categories: allPropertiesMonths },
   yaxis: {
@@ -209,7 +209,7 @@ var optionsPropertiesEvolution = {
     theme: getCurrentTheme(),
     y: { formatter: val => Math.round(val).toLocaleString() }
   },
-  grid: { borderColor: getCurrentTheme() === 'dark' ? '#444' : '#e0e0e0' },
+  grid: { borderColor: getCurrentTheme() === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
   legend: { position: 'top', fontSize: '11px' },
 };
 var chartPropertiesEvolution = new ApexCharts(
@@ -266,7 +266,7 @@ function updateChartsTheme(themeName) {
       theme: { mode: isDark ? 'dark' : 'light' },
       chart: { background: 'transparent' },
       tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: val => Math.round(val).toLocaleString() } },
-      grid: { borderColor: isDark ? '#444' : '#e0e0e0' },
+      grid: { borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
     });
   }
 }

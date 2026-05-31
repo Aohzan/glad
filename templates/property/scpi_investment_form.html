@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if investment %}{% translate "Edit investment" %}{% else %}{% translate "New SCPI investment" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+
+  {% url 'property:scpi_list' as back_url %}
+  {% translate "Edit investment" as edit_title %}
+  {% translate "New SCPI investment" as new_title %}
+  {% include "property/_edit_page_header.html" with is_edit=investment edit_title=edit_title new_title=new_title back_url=back_url back_label=_("SCPI") %}
+
+  {% include "property/_form_error_alert.html" %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    {# ── SCPI & subscription ──────────────────────────────────────────────── #}
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-building me-1"></i>{% translate "Fund & subscription" %}</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12">{% include "_form_field.html" with field=form.scpi %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.subscription_date %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.enjoyment_date %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.shares_count %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.unit_purchase_price %}</div>
+          <div class="col-12">
+            <div class="alert alert-info small mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              {% blocktranslate %}Enter the <strong>total price paid per share</strong>, including any entry fees you have already paid.{% endblocktranslate %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Ownership type ───────────────────────────────────────────────────── #}
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-person-check me-1"></i>{% translate "Ownership" %}</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12">{% include "_form_field.html" with field=form.ownership_type %}</div>
+        </div>
+
+        {# ── Dismemberment fields (shown/hidden via JS) ────────────────────── #}
+        <div id="dismemberment-fields" class="row g-3 mt-1" style="display:none;">
+          <div class="col-md-6">{% include "_form_field.html" with field=form.dismemberment_start_date %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.dismemberment_end_date %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.bare_ownership_ratio %}</div>
+          <div class="col-12">
+            <div class="alert alert-info small mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              {% blocktranslate %}
+                The <strong>bare ownership ratio</strong> is the percentage of the full share value attributed to bare ownership at the time of purchase (e.g. 65% if you paid 65% of the share price for the bare ownership). The estimated value increases linearly to 100% by the dismemberment end date.
+              {% endblocktranslate %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Notes ────────────────────────────────────────────────────────────── #}
+    <div class="card mb-3">
+      <div class="card-body">
+        {% include "_form_field.html" with field=form.notes %}
+      </div>
+    </div>
+
+    {% include "property/_form_submit_buttons.html" %}
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const ownershipField = document.getElementById('id_ownership_type');
+  const dismembermentDiv = document.getElementById('dismemberment-fields');
+
+  function toggleDismemberment() {
+    const val = ownershipField ? ownershipField.value : '';
+    if (val === 'bare' || val === 'usufruct') {
+      dismembermentDiv.style.display = '';
+    } else {
+      dismembermentDiv.style.display = 'none';
+    }
+  }
+
+  if (ownershipField) {
+    ownershipField.addEventListener('change', toggleDismemberment);
+    toggleDismemberment();
+  }
+})();
+</script>
+{% endblock %}

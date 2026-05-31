@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n static %}
+{% load i18n format_money static %}
 
 {% block title %}{% translate 'Dashboard' %}{% endblock %}
 
@@ -14,6 +14,7 @@
     overflow: hidden;
   }
   .hero-net-worth { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -1px; }
+  .hero-net-worth-extras { font-size: clamp(1rem, 2.5vw, 1.4rem); font-weight: 600; opacity: 0.65; margin-top: 0.15rem; }
   .hero-stat-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; opacity: .55; }
   .hero-stat-value { font-size: 1.05rem; font-weight: 700; }
   .hero-divider { border-color: rgba(255,255,255,.12); margin: .75rem 0; }
@@ -27,6 +28,7 @@
   {# Inline data for JS #}
   <script>
     const PROPERTY_PKS = {{ property_pks|safe }};
+    const SCPI_PKS = {{ scpi_pks|safe }};
     const API = {
       netWorth:        "{% url 'api_net_worth' %}",
       patrimonyChart:  "{% url 'api_patrimony_chart' %}",
@@ -34,6 +36,7 @@
       alerts:          "{% url 'api_alerts' %}",
       accountsSummary: "{% url 'finance:api_accounts_summary' %}",
       propertyCard:    (pk) => `/property/${pk}/api/dashboard-card/`,
+      scpiCard:        (pk) => `/property/scpi/${pk}/api/dashboard-card/`,
     };
     const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || "";
     const i18n = {
@@ -45,6 +48,7 @@
       investments: "{% translate 'Investments' %}",
       savings:     "{% translate 'Savings' %}",
       properties:  "{% translate 'Properties' %}",
+      scpi:        "{% translate 'SCPI' %}",
       occupancy:   "{% translate 'Occupancy' %}",
       rooms:       "{% translate 'rooms' %}",
       repaid:      "{% translate 'repaid' %}",
@@ -60,6 +64,10 @@
       noAccounts:  "{% translate 'No accounts yet.' %}",
       addAccount:  "{% translate 'Add your first account' %}",
       financeUrl:  "{% url 'finance:update' %}",
+      invested:    "{% translate 'Invested' %}",
+      dividends:   "{% translate 'Dividends' %}",
+      yield_:      "{% translate 'Yield' %}",
+      est:         "{% translate 'est.' %}",
     };
   </script>
 
@@ -173,17 +181,8 @@
     </div>
     <div class="prop-scroll-track" id="properties-grid">
       {% for pk in property_pks %}
-      <div class="prop-scroll-item">
-        <div class="card property-card shadow-sm placeholder-glow skeleton-card" id="prop-skeleton-{{ pk }}">
-          <div class="card-body p-4">
-            <span class="placeholder col-7 mb-2 d-block"></span>
-            <span class="placeholder col-4 mb-3 d-block"></span>
-            <span class="placeholder col-10 mb-2 d-block"></span>
-            <span class="placeholder col-8 d-block"></span>
-          </div>
-        </div>
-        <a href="{% url 'property:detail' pk=pk %}" class="card property-card shadow-sm d-none text-decoration-none text-reset" id="prop-card-{{ pk }}"></a>
-      </div>
+      {% url 'property:detail' pk=pk as card_url %}
+      {% include "_prop_scroll_item.html" with skeleton_prefix="prop-skeleton" card_prefix="prop-card" pk=pk card_url=card_url %}
       {% endfor %}
     </div>
   </section>
@@ -199,7 +198,25 @@
   </section>
   {% endif %}
 
-  {# ── Section 4: Recent operations ── #}
+  {# ── Section 4: SCPI ── #}
+  {% if scpi_pks %}
+  <section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title mb-0"><i class="bi bi-building me-2 text-primary"></i>{% translate 'SCPI' %}</h2>
+      <a href="{% url 'property:scpi_list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-right me-1"></i>{% translate 'View all' %}
+      </a>
+    </div>
+    <div class="prop-scroll-track" id="scpi-grid">
+      {% for pk in scpi_pks %}
+      {% url 'property:scpi_fund_detail' scpi_pk=pk as card_url %}
+      {% include "_prop_scroll_item.html" with skeleton_prefix="scpi-skeleton" card_prefix="scpi-card" pk=pk card_url=card_url %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# ── Section 5: Recent operations ── #}
   <section class="mb-4">
     <div class="card shadow-sm rounded-4">
       <div class="card-header d-flex justify-content-between align-items-center">
@@ -230,7 +247,7 @@
 /* ── Utilities ─────────────────────────────────────────────────────────── */
 function fmt(amount, currency) {
   try {
-    return new Intl.NumberFormat(navigator.language, {
+    return new Intl.NumberFormat(document.documentElement.lang || navigator.language, {
       style: 'currency', currency: currency || 'EUR', maximumFractionDigits: 0
     }).format(amount);
   } catch(e) { return amount.toFixed(0); }
@@ -261,29 +278,34 @@ function loadHero() {
     const prog   = data.global_progression;
     const extras = Object.entries(data.net_worth_by_currency)
       .filter(([c]) => c !== cur)
-      .map(([c, v]) => `<span class="ms-2 small opacity-60">${fmt(v, c)}</span>`)
+      .map(([c, v]) => `<span class="me-3">${fmt(v, c)}</span>`)
       .join('');
     document.getElementById('hero-stats').innerHTML = `
       <div class="row g-3 align-items-center">
         <div class="col-12 col-md-5">
-          <p class="hero-stat-label mb-1">${i18n.investments.toUpperCase()} · ${i18n.savings.toUpperCase()} · ${i18n.properties.toUpperCase()}</p>
-          <div class="hero-net-worth">${fmt(data.total_net_worth, cur)}${extras}</div>
+          <p class="hero-stat-label mb-1">${i18n.investments.toUpperCase()} · ${i18n.savings.toUpperCase()} · ${i18n.properties.toUpperCase()} · ${i18n.scpi.toUpperCase()}</p>
+          <div class="hero-net-worth">${fmt(data.total_net_worth, cur)}</div>
+          ${extras ? `<div class="hero-net-worth-extras">${extras}</div>` : ''}
           <div class="mt-1">${fmtDelta(prog)} <span class="small opacity-60">${i18n.days30}</span></div>
         </div>
         <div class="col-12 col-md-7">
-          <div class="row g-2 text-center">
-            <div class="col-4">
+          <div class="row g-2 text-center justify-content-end">
+            ${data.has_investments ? `<div class="col-md-3 col-sm-6 overflow-auto">
               <p class="hero-stat-label mb-0"><i class="bi bi-bar-chart-line me-1"></i>${i18n.investments}</p>
               <p class="hero-stat-value mb-0">${fmt(data.total_investments, cur)}</p>
-            </div>
-            <div class="col-4">
+            </div>` : ''}
+            ${data.has_savings ? `<div class="col-md-3 col-sm-6 overflow-auto">
               <p class="hero-stat-label mb-0"><i class="bi bi-piggy-bank me-1"></i>${i18n.savings}</p>
               <p class="hero-stat-value mb-0">${fmt(data.total_savings, cur)}</p>
-            </div>
-            <div class="col-4">
+            </div>` : ''}
+            ${data.has_properties ? `<div class="col-md-3 col-sm-6 overflow-auto">
               <p class="hero-stat-label mb-0"><i class="bi bi-house-door me-1"></i>${i18n.properties}</p>
               <p class="hero-stat-value mb-0">${fmt(data.total_properties_net, cur)}</p>
-            </div>
+            </div>` : ''}
+            ${data.has_scpi ? `<div class="col-md-3 col-sm-6 overflow-auto">
+              <p class="hero-stat-label mb-0"><i class="bi bi-building me-1"></i>${i18n.scpi}</p>
+              <p class="hero-stat-value mb-0">${fmt(data.total_scpi, cur)}</p>
+            </div>` : ''}
           </div>
         </div>
       </div>`;
@@ -300,10 +322,12 @@ function renderEvolutionChart(data, rangeMonths) {
   const total  = data.months.length;
   const start  = rangeMonths ? Math.max(0, total - rangeMonths) : 0;
   const months = data.months.slice(start);
+  const hasSCPI = data.scpi && data.scpi.some(v => v > 0);
   const series = [
     { name: i18n.investments, data: data.investments.slice(start) },
     { name: i18n.savings,     data: data.savings.slice(start) },
     { name: i18n.properties,  data: data.properties_net.slice(start) },
+    ...(hasSCPI ? [{ name: i18n.scpi, data: data.scpi.slice(start) }] : []),
   ];
   const options = {
     chart: {
@@ -323,7 +347,7 @@ function renderEvolutionChart(data, rangeMonths) {
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth', width: 2 },
     fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: .45, opacityTo: .05 } },
-    colors: ['#60a5fa', '#34d399', '#a78bfa'],
+    colors: ['#60a5fa', '#34d399', '#fdba74', '#a78bfa'],
     tooltip: {
       theme: 'dark', shared: true, intersect: false,
       y: { formatter: v => fmt(v, 'EUR') },
@@ -366,7 +390,18 @@ function renderBreakdown(data) {
     theme: { mode: isDark ? 'dark' : 'light' },
     series: data.breakdown_values,
     labels: data.breakdown_labels,
-    colors: ['#0d6efd', '#198754', '#6f42c1', '#ffc107'],
+    colors: ['#60a5fa', '#34d399', '#a78bfa', '#fb923c'],
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: isDark ? 'dark' : 'light',
+        type: 'diagonal1',
+        shadeIntensity: 0.4,
+        opacityFrom: 1,
+        opacityTo: 0.75,
+      },
+    },
+    stroke: { width: 0 },
     legend: { position: 'bottom', fontSize: '11px' },
     plotOptions: { pie: { donut: { size: '58%' } } },
     tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: v => fmt(v, 'EUR') } },
@@ -532,7 +567,54 @@ function loadPropertyCard(pk) {
   });
 }
 
-/* ── Section 4: Recent operations ──────────────────────────────────────── */
+/* ── Section 4: SCPI cards ──────────────────────────────────────────────── */
+function loadScpiCard(pk) {
+  apiFetch(API.scpiCard(pk)).then(data => {
+    const cur = data.currency;
+    const gainCls = data.gain_pct !== null ? (data.gain_pct >= 0 ? 'text-success' : 'text-danger') : '';
+
+    const card = document.getElementById(`scpi-card-${pk}`);
+    card.innerHTML = `
+      <div class="prop-gradient-scpi property-card-header">
+        <div class="mb-1">
+          <span class="badge property-type-badge" style="background:rgba(0,0,0,.12)">SCPI</span>
+        </div>
+        <h3 class="fw-bold mb-0" style="font-size:1.05rem">${data.name}</h3>
+        ${data.management_company ? `<p class="small mb-0 mt-1 opacity-75">${data.management_company}</p>` : ''}
+      </div>
+      <div class="card-body pt-3 pb-2">
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+          <div>
+            <span class="fw-bold fs-5">${data.total_resale !== null ? fmt(data.total_resale, cur) : '—'}</span>
+            <span class="ms-1 small text-muted">${i18n.est}</span>
+          </div>
+          ${data.gain_pct !== null ? `<span class="small ${gainCls}"><i class="bi bi-graph-up me-1"></i>${data.gain_pct >= 0 ? '+' : ''}${data.gain_pct.toFixed(2)}%</span>` : ''}
+        </div>
+        <div class="d-flex gap-2 text-center small mt-2 pt-2 border-top">
+          <div class="flex-fill">
+            <div class="text-muted" style="font-size:.65rem">${i18n.invested}</div>
+            <div class="fw-semibold" style="font-size:.85rem">${data.total_invested !== null ? fmt(data.total_invested, cur) : '—'}</div>
+          </div>
+          <div class="flex-fill">
+            <div class="text-muted" style="font-size:.65rem">${i18n.dividends}</div>
+            <div class="fw-semibold" style="font-size:.85rem">${data.total_dividends !== null ? fmt(data.total_dividends, cur) : '—'}</div>
+          </div>
+          <div class="flex-fill">
+            <div class="text-muted" style="font-size:.65rem">${i18n.yield_}</div>
+            <div class="fw-semibold" style="font-size:.85rem">${data.net_rentability.toFixed(2)}%</div>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById(`scpi-skeleton-${pk}`).classList.add('d-none');
+    card.classList.remove('d-none');
+  }).catch(() => {
+    const sk = document.getElementById(`scpi-skeleton-${pk}`);
+    sk.classList.remove('placeholder-glow');
+    showError(sk, i18n.error);
+  });
+}
+
+/* ── Section 5: Recent operations ──────────────────────────────────────── */
 function loadRecentOps() {
   apiFetch(API.recentOps).then(data => {
     const ops = data.operations;
@@ -569,6 +651,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAccountsSummary();
   loadRecentOps();
   PROPERTY_PKS.forEach(pk => loadPropertyCard(pk));
+  SCPI_PKS.forEach(pk => loadScpiCard(pk));
 
   document.getElementById('chart-range-group').addEventListener('click', e => {
     const btn = e.target.closest('[data-range]');

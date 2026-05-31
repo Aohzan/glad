@@ -52,6 +52,11 @@ class SavingAccount(AbstractAccount):
         """Get the currency of the initial value."""
         return str(self.opening_value.currency)
 
+    @property
+    def opening_amount(self) -> Money:
+        """Return opening_value as the canonical opening amount."""
+        return self.opening_value
+
     def __str__(self) -> str:
         """String representation of the saving account — uses type name without code."""
         account_name: str = ""

@@ -1,6 +1,9 @@
 """Views for the property app — re-exported from sub-modules."""
 
-from property.views.api_views import PropertyDashboardCardApiView
+from property.views.api_views import (
+    PropertyDashboardCardApiView,
+    SCPIDashboardCardApiView,
+)
 from property.views.crud_views import (
     delete_lease,
     delete_ledger_entry,
@@ -44,6 +47,21 @@ from property.views.fiscal_views import (
 from property.views.index_views import index
 
 property_dashboard_card_api = PropertyDashboardCardApiView.as_view()
+scpi_dashboard_card_api = SCPIDashboardCardApiView.as_view()
+
+# SCPI views
+from property.views.scpi_views import (  # noqa: E402
+    add_scpi_share_price,
+    delete_scpi,
+    delete_scpi_dividend,
+    delete_scpi_investment,
+    delete_scpi_share_price,
+    edit_scpi,
+    edit_scpi_dividend,
+    edit_scpi_investment,
+    scpi_fund_detail,
+    scpi_list,
+)
 
 __all__ = [
     "index",
@@ -73,6 +91,7 @@ __all__ = [
     "csv_import",
     "csv_import_confirm",
     "property_dashboard_card_api",
+    "scpi_dashboard_card_api",
     "property_panel_cashflow",
     "property_panel_projection",
     "property_panel_balance",
@@ -81,4 +100,14 @@ __all__ = [
     "property_panel_leases",
     "property_panel_mandate",
     "property_panel_amortization",
+    "scpi_list",
+    "edit_scpi",
+    "delete_scpi",
+    "add_scpi_share_price",
+    "delete_scpi_share_price",
+    "edit_scpi_investment",
+    "delete_scpi_investment",
+    "edit_scpi_dividend",
+    "delete_scpi_dividend",
+    "scpi_fund_detail",
 ]

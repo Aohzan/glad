@@ -52,7 +52,7 @@ repos:
         always_run: true
       - id: django-compilemessages
         name: django-compilemessages
-        entry: uv run manage.py compilemessages
+        entry: uv run manage.py compilemessages --locale fr
         language: system
         pass_filenames: false
         always_run: true

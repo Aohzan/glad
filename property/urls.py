@@ -130,6 +130,11 @@ urlpatterns = [
         views.property_dashboard_card_api,
         name="api_dashboard_card",
     ),
+    path(
+        "scpi/<int:pk>/api/dashboard-card/",
+        views.scpi_dashboard_card_api,
+        name="api_scpi_dashboard_card",
+    ),
     # Async panel fragments
     path(
         "<int:pk>/panel/cashflow/", views.property_panel_cashflow, name="panel_cashflow"
@@ -148,5 +153,51 @@ urlpatterns = [
         "<int:pk>/panel/amortization/",
         views.property_panel_amortization,
         name="panel_amortization",
+    ),
+    # SCPI
+    path("scpi/", views.scpi_list, name="scpi_list"),
+    path("scpi/new/", views.edit_scpi, name="scpi_new"),
+    path("scpi/<int:scpi_pk>/", views.scpi_fund_detail, name="scpi_fund_detail"),
+    path("scpi/<int:scpi_pk>/edit/", views.edit_scpi, name="scpi_edit"),
+    path("scpi/<int:scpi_pk>/delete/", views.delete_scpi, name="scpi_delete"),
+    path(
+        "scpi/<int:scpi_pk>/price/add/",
+        views.add_scpi_share_price,
+        name="scpi_share_price_add",
+    ),
+    path(
+        "scpi/<int:scpi_pk>/price/<int:price_pk>/delete/",
+        views.delete_scpi_share_price,
+        name="scpi_share_price_delete",
+    ),
+    path(
+        "scpi/investment/new/",
+        views.edit_scpi_investment,
+        name="scpi_investment_new",
+    ),
+    path(
+        "scpi/investment/<int:investment_pk>/edit/",
+        views.edit_scpi_investment,
+        name="scpi_investment_edit",
+    ),
+    path(
+        "scpi/investment/<int:investment_pk>/delete/",
+        views.delete_scpi_investment,
+        name="scpi_investment_delete",
+    ),
+    path(
+        "scpi/<int:scpi_pk>/dividend/add/",
+        views.edit_scpi_dividend,
+        name="scpi_dividend_add",
+    ),
+    path(
+        "scpi/<int:scpi_pk>/dividend/<int:dividend_pk>/edit/",
+        views.edit_scpi_dividend,
+        name="scpi_dividend_edit",
+    ),
+    path(
+        "scpi/<int:scpi_pk>/dividend/<int:dividend_pk>/delete/",
+        views.delete_scpi_dividend,
+        name="scpi_dividend_delete",
     ),
 ]

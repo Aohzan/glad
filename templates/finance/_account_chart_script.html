@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
 
   function formatCurrency(val) {
-    return new Intl.NumberFormat(navigator.language || 'en-US', {
+    return new Intl.NumberFormat(document.documentElement.lang || navigator.language, {
       style: 'currency', currency: '{{ account.currency }}', maximumFractionDigits: 0
     }).format(val);
   }
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(data => {
       if (!data.success) return;
 
-      const holdingPalette = ['#6f42c1', '#20c997', '#e83e8c', '#17a2b8', '#fd7e14', '#6610f2'];
+      const holdingPalette = ['#a78bfa', '#34d399', '#f472b6', '#60a5fa', '#fb923c', '#facc15'];
 
       // Sort holdings descending by last value: largest first = rendered at bottom of stack
       const rawHoldings = (data.holdings_series || []).slice().sort(function(a, b) {
@@ -61,8 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
           intersect: false,
           custom: function(opts) {
             var s = opts.series, dpi = opts.dataPointIndex, w = opts.w;
-            var bg = isDark ? '#1e1e2e' : '#fff';
-            var border = isDark ? '#444' : '#dee2e6';
+            var bg = isDark ? '#0f172a' : '#fff';
+            var border = isDark ? 'rgba(255,255,255,.12)' : '#dee2e6';
             var textMuted = isDark ? '#adb5bd' : '#6c757d';
 
             // Get date string for lookup
@@ -118,20 +118,64 @@ document.addEventListener('DOMContentLoaded', function() {
         legend: { show: false },
       });
 
-      chart.render().then(function() {
-        var chartColors = chart.w.globals.colors;
-        var chartNames = chart.w.globals.seriesNames;
-        var colorMap = {};
-        chartNames.forEach(function(name, i) { colorMap[name] = chartColors[i]; });
-        document.querySelectorAll('[data-holding-name]').forEach(function(el) {
-          if (el.tagName !== 'TD') return;
-          var color = colorMap[el.dataset.holdingName];
-          if (!color) return;
-          var sq = document.createElement('span');
-          sq.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:2px;background:' + color + ';margin-right:6px;vertical-align:middle;flex-shrink:0;';
-          el.insertBefore(sq, el.firstChild);
+      // ── Donut — current holdings breakdown ──────────────────────────────
+      const donutEl = document.getElementById('accountDonut');
+      if (donutEl && rawHoldings.length) {
+        const donutValues = rawHoldings.map(function(h) {
+          return h.data.length ? h.data[h.data.length - 1].value : 0;
         });
-      });
+        const donutLabels = rawHoldings.map(function(h) { return h.name; });
+        const donutColors = rawHoldings.map(function(_, i) { return holdingPalette[i % holdingPalette.length]; });
+        const donut = new ApexCharts(donutEl, {
+          chart: { type: 'donut', height: 260, background: 'transparent', animations: { enabled: true, speed: 600 } },
+          series: donutValues,
+          labels: donutLabels,
+          colors: donutColors,
+          fill: {
+            type: 'gradient',
+            gradient: {
+              shade: isDark ? 'dark' : 'light',
+              type: 'diagonal1',
+              shadeIntensity: 0.4,
+              opacityFrom: 1,
+              opacityTo: 0.75,
+            },
+          },
+          plotOptions: { pie: { donut: { size: '62%', labels: {
+            show: true,
+            total: {
+              show: true,
+              label: '{% translate "Total" %}',
+              fontSize: '12px',
+              fontWeight: 600,
+              formatter: function(w) {
+                var sum = w.globals.seriesTotals.reduce(function(a, b) { return a + b; }, 0);
+                return formatCurrency(sum);
+              },
+            },
+            value: { fontSize: '13px', fontWeight: 700, formatter: formatCurrency },
+          } } } },
+          dataLabels: { enabled: false },
+          legend: { show: false },
+          tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: formatCurrency } },
+          stroke: { width: 0 },
+        });
+        donut.render().then(function() {
+          var donutColors = donut.w.globals.colors;
+          var colorMap = {};
+          donutLabels.forEach(function(name, i) { colorMap[name] = donutColors[i]; });
+          document.querySelectorAll('[data-holding-name]').forEach(function(el) {
+            if (el.tagName !== 'TD') return;
+            var color = colorMap[el.dataset.holdingName];
+            if (!color) return;
+            var sq = document.createElement('span');
+            sq.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:2px;background:' + color + ';margin-right:6px;vertical-align:middle;flex-shrink:0;';
+            el.insertBefore(sq, el.firstChild);
+          });
+        });
+      }
+
+      chart.render();
     })
     .catch(function() {
       document.getElementById('accountChart').innerHTML = '<p class="text-center text-muted py-4"><i class="bi bi-exclamation-circle me-1"></i>{% translate "Could not load chart data." %}</p>';
