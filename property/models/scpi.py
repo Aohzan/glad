@@ -47,28 +47,29 @@ class SCPI(BaseModel):
         verbose_name=_("Management company"),
     )
     entry_fee_rate = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
+        max_digits=6,
+        decimal_places=4,
         null=True,
         blank=True,
         verbose_name=_("Entry fee rate (%)"),
-        help_text=_("Subscription fee as a percentage, e.g. 8.00 for 8%."),
+        help_text=_("Subscription fee as a percentage, e.g. 8.0000 for 8%."),
+
     )
     exit_fee_rate = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
+        max_digits=6,
+        decimal_places=4,
         null=True,
         blank=True,
         verbose_name=_("Exit fee rate (%)"),
-        help_text=_("Redemption fee as a percentage, e.g. 0.00 for 0%."),
+        help_text=_("Redemption fee as a percentage, e.g. 0.0000 for 0%."),
     )
     management_fee_rate = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
+        max_digits=6,
+        decimal_places=4,
         null=True,
         blank=True,
         verbose_name=_("Management fee rate (%)"),
-        help_text=_("Annual management fee as a percentage, e.g. 10.00 for 10%."),
+        help_text=_("Annual management fee as a percentage, e.g. 10.0000 for 10%."),
     )
     notes = models.TextField(blank=True, default="", verbose_name=_("Notes"))
     dividend_recurrence = models.CharField(
@@ -210,7 +211,7 @@ class SCPIInvestment(BaseModel):
     )
     shares_count = models.DecimalField(
         max_digits=10,
-        decimal_places=4,
+        decimal_places=6,
         verbose_name=_("Number of shares"),
         help_text=_("Number of shares held, e.g. 100.0000."),
     )

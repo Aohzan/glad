@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
             model_name="investmentaccountholding",
             name="initial_quantity",
             field=models.DecimalField(
-                blank=True, decimal_places=4, max_digits=10, null=True
+                blank=True, decimal_places=6, max_digits=10, null=True
             ),
         ),
         migrations.AlterField(
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             name="quantity",
             field=models.DecimalField(
                 blank=True,
-                decimal_places=4,
+                decimal_places=6,
                 help_text="Quantity of the holding at the moment of valuation",
                 max_digits=10,
                 null=True,

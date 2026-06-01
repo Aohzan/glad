@@ -1930,9 +1930,9 @@ def generate_scpi() -> str:
     updated_at: {dt(RECENT)}
     name: PierPap Basic
     management_company: PierPap
-    entry_fee_rate: "9.00"
-    exit_fee_rate: "0.00"
-    management_fee_rate: "10.00"
+    entry_fee_rate: "9.1230"
+    exit_fee_rate: "0.0000"
+    management_fee_rate: "10.0000"
     notes: ""
     dividend_recurrence: quarterly
 - model: property.scpishareprice

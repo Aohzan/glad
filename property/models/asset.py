@@ -342,7 +342,7 @@ class Property(BaseModel):
     )
     shares_count = models.DecimalField(
         max_digits=10,
-        decimal_places=4,
+        decimal_places=6,
         null=True,
         blank=True,
         help_text=_("Number of shares in the property (if applicable)"),

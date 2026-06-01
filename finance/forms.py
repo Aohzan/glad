@@ -110,14 +110,14 @@ class UpdateInvestmentAccountHoldingAddValueForm(BaseValueUpdateForm):
     holding_name = forms.CharField(widget=forms.HiddenInput())
     current_quantity = forms.DecimalField(
         max_digits=10,
-        decimal_places=4,
+        decimal_places=6,
         label=_("Current quantity"),
         widget=forms.HiddenInput(),
         required=False,
     )
     new_quantity = forms.DecimalField(
         max_digits=10,
-        decimal_places=4,
+        decimal_places=6,
         label=_("New quantity"),
         localize=True,
         widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal"}),
@@ -305,7 +305,7 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
             "issuer": forms.TextInput(attrs={"class": "form-control"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "initial_quantity": forms.NumberInput(
-                attrs={"class": "form-control", "step": "0.0001"}
+                attrs={"class": "form-control", "step": "0.000001"}
             ),
             "initial_valuation_date": DATE_WIDGET,
         }
@@ -335,6 +335,6 @@ class InvestmentAccountHoldingHistoryForm(MoneyInputGroupMixin, forms.ModelForm)
         widgets = {
             "valuation_date": DATETIME_WIDGET,
             "quantity": forms.NumberInput(
-                attrs={"class": "form-control", "step": "0.0001"}
+                attrs={"class": "form-control", "step": "0.000001"}
             ),
         }

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 01:18+0200\n"
+"POT-Creation-Date: 2026-06-01 09:54+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -50,7 +50,7 @@ msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
 #: base/forms.py:53 property/models/ledger.py:299 property/models/scpi.py:161
-#: templates/finance/_deposits_panel.html:17
+#: templates/finance/_deposits_panel.html:15
 #: templates/finance/_edit_deposit_fields.html:8
 #: templates/finance/edit_saving_value.html:29
 #: templates/finance/investment_detail.html:115
@@ -1220,7 +1220,7 @@ msgstr "Bail"
 msgid "Flow type"
 msgstr "Type de flux"
 
-#: property/models/ledger.py:295 templates/finance/_deposits_panel.html:18
+#: property/models/ledger.py:295 templates/finance/_deposits_panel.html:16
 #: templates/finance/_edit_deposit_fields.html:3
 #: templates/property/_report_category_table.html:12
 #: templates/property/detail.html:447
@@ -1415,7 +1415,7 @@ msgstr "Société de gestion"
 
 #: property/models/scpi.py:54
 msgid "Entry fee rate (%)"
-msgstr "Taux d'entrée (%%)"
+msgstr "Taux d'entrée (%)"
 
 #: property/models/scpi.py:55
 msgid "Subscription fee as a percentage, e.g. 8.00 for 8%."
@@ -1423,7 +1423,7 @@ msgstr "Frais de souscription en pourcentage, ex. 8,00 pour 8 %."
 
 #: property/models/scpi.py:62
 msgid "Exit fee rate (%)"
-msgstr "Taux de sortie (%%)"
+msgstr "Taux de sortie (%)"
 
 #: property/models/scpi.py:63
 msgid "Redemption fee as a percentage, e.g. 0.00 for 0%."
@@ -1431,7 +1431,7 @@ msgstr "Frais de rachat en pourcentage, ex. 0,00 pour 0 %."
 
 #: property/models/scpi.py:70
 msgid "Management fee rate (%)"
-msgstr "Taux de gestion (%%)"
+msgstr "Taux de gestion (%)"
 
 #: property/models/scpi.py:71
 msgid "Annual management fee as a percentage, e.g. 10.00 for 10%."
@@ -2424,20 +2424,20 @@ msgstr "Brut"
 msgid "Currently:"
 msgstr "Actuellement :"
 
-#: templates/finance/_deposits_panel.html:6
+#: templates/finance/_deposits_panel.html:4
 msgid "Deposits"
 msgstr "Dépôts"
 
-#: templates/finance/_deposits_panel.html:8
+#: templates/finance/_deposits_panel.html:6
 msgid "Add deposit"
 msgstr "Ajouter un dépôt"
 
-#: templates/finance/_deposits_panel.html:19
+#: templates/finance/_deposits_panel.html:17
 #: templates/finance/_edit_deposit_fields.html:14
 msgid "Source"
 msgstr "Source"
 
-#: templates/finance/_deposits_panel.html:20
+#: templates/finance/_deposits_panel.html:18
 #: templates/finance/investment_detail.html:73
 #: templates/finance/investment_detail.html:119
 #: templates/finance/saving_detail.html:73 templates/property/detail.html:553
@@ -2446,15 +2446,15 @@ msgstr "Source"
 msgid "Actions"
 msgstr "Actions"
 
-#: templates/finance/_deposits_panel.html:33
+#: templates/finance/_deposits_panel.html:31
 msgid "Delete deposit"
 msgstr "Supprimer le dépôt"
 
-#: templates/finance/_deposits_panel.html:34
+#: templates/finance/_deposits_panel.html:32
 msgid "Are you sure you want to delete this deposit?"
 msgstr "Êtes-vous sûr de vouloir supprimer ce dépôt ?"
 
-#: templates/finance/_deposits_panel.html:43
+#: templates/finance/_deposits_panel.html:41
 msgid "No deposits yet."
 msgstr "Aucun dépôt actuellement."
 

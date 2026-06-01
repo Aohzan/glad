@@ -476,7 +476,7 @@ class SCPIForm(MoneyInputGroupMixin, forms.ModelForm):
             "entry_fee_rate": forms.NumberInput(
                 attrs={
                     "class": "form-control",
-                    "step": "0.01",
+                    "step": "0.0001",
                     "min": "0",
                     "max": "100",
                 }
@@ -484,7 +484,7 @@ class SCPIForm(MoneyInputGroupMixin, forms.ModelForm):
             "exit_fee_rate": forms.NumberInput(
                 attrs={
                     "class": "form-control",
-                    "step": "0.01",
+                    "step": "0.0001",
                     "min": "0",
                     "max": "100",
                 }
@@ -492,7 +492,7 @@ class SCPIForm(MoneyInputGroupMixin, forms.ModelForm):
             "management_fee_rate": forms.NumberInput(
                 attrs={
                     "class": "form-control",
-                    "step": "0.01",
+                    "step": "0.0001",
                     "min": "0",
                     "max": "100",
                 }
@@ -554,7 +554,7 @@ class SCPIInvestmentForm(MoneyInputGroupMixin, forms.ModelForm):
                 attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
             ),
             "shares_count": forms.NumberInput(
-                attrs={"class": "form-control", "step": "0.0001", "min": "0"}
+                attrs={"class": "form-control", "step": "0.000001", "min": "0"}
             ),
             "enjoyment_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"

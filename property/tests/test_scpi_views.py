@@ -17,8 +17,8 @@ def scpi():
     return SCPI.objects.create(
         name="Test SCPI",
         management_company="Test AM",
-        entry_fee_rate=Decimal("8.00"),
-        exit_fee_rate=Decimal("0.00"),
+        entry_fee_rate=Decimal("8.0000"),
+        exit_fee_rate=Decimal("0.0000"),
     )
 
 
@@ -116,7 +116,7 @@ class TestEditSCPI:
         data = {
             "name": "New Fund",
             "management_company": "Fund AM",
-            "entry_fee_rate": "7.50",
+            "entry_fee_rate": "7.5000",
             "exit_fee_rate": "",
             "dividend_recurrence": "quarterly",
         }
@@ -134,7 +134,7 @@ class TestEditSCPI:
         data = {
             "name": "Renamed Fund",
             "management_company": "Test AM",
-            "entry_fee_rate": "8.00",
+            "entry_fee_rate": "8.0000",
             "exit_fee_rate": "0.00",
             "dividend_recurrence": "quarterly",
         }
