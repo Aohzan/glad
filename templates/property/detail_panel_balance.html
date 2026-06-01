@@ -1,0 +1,102 @@
+{% load i18n format_money %}
+{# ── Date range picker https://github.com/Wernfried/daterangepicker #}
+<div class="d-flex justify-content-end gap-2 mb-3">
+  <form method="get" class="d-flex gap-2 align-items-right flex-wrap" id="bsRangeForm">
+    {% if request.GET.growth_rate %}<input type="hidden" name="growth_rate" value="{{ request.GET.growth_rate }}">{% endif %}
+    <input type="hidden" name="start_date" id="bs_start_date" value="{{ bs_date_from|date:'Y-m-d' }}">
+    <input type="hidden" name="end_date"   id="bs_end_date"   value="{{ bs_date_to|date:'Y-m-d' }}">
+
+    <label class="form-label mb-0 align-self-center" for="bs_daterange_picker">{% translate "Period" %}</label>
+    <div class="input-group input-group-sm" style="width:auto;">
+      <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+      <input type="text" id="bs_daterange_picker" class="form-control form-control-sm" style="min-width:220px;" readonly>
+    </div>
+
+    <button type="submit" class="btn btn-sm btn-primary">{% translate "Apply" %}</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  const DateTime = luxon.DateTime;
+  luxon.Settings.defaultLocale = '{{ request.LANGUAGE_CODE }}';
+
+  const startDate = DateTime.fromISO('{{ bs_date_from|date:"Y-m-d" }}');
+  const endDate   = DateTime.fromISO('{{ bs_date_to|date:"Y-m-d" }}');
+
+  const ranges = {};
+  ranges[new Date().getFullYear()] = [DateTime.now().startOf('year'), DateTime.now().endOf('year')];
+  ranges[DateTime.now().minus({years: 1}).year] = [DateTime.now().minus({years: 1}).startOf('year'), DateTime.now().minus({years: 1}).endOf('year')];
+  ranges["{% translate 'Last 1 year' %}"] = [DateTime.now().minus({months: 11}).startOf('month'), DateTime.now().endOf('month')];
+  ranges["{% translate 'Last 2 years' %}"] = [DateTime.now().minus({months: 23}).startOf('month'), DateTime.now().endOf('month')];
+  ranges["{% translate 'Last 5 years' %}"]  = [DateTime.now().minus({years: 4}).startOf('year'), DateTime.now().endOf('year')];
+  ranges["{% translate 'Last 10 years' %}"]  = [DateTime.now().minus({years: 9}).startOf('year'), DateTime.now().endOf('year')];
+
+  DateRangePicker.daterangepicker('#bs_daterange_picker', {
+    startDate: startDate,
+    endDate:   endDate,
+    ranges:    ranges,
+    alwaysShowCalendars: true,
+    locale: {
+      applyLabel:       "{% translate 'Apply' %}",
+      cancelLabel:      "{% translate 'Cancel' %}",
+      customRangeLabel: "{% translate 'Custom range' %}",
+    },
+    opens: 'left',
+    autoApply: false,
+    showDropdowns: true,
+  }, function (start, end) {
+    // Normalise to first/last day of month
+    const normStart = start.startOf('month');
+    const normEnd   = end.endOf('month');
+    document.getElementById('bs_start_date').value = normStart.toFormat('yyyy-MM-dd');
+    document.getElementById('bs_end_date').value   = normEnd.toFormat('yyyy-MM-dd');
+    // Update visible label using the locale-aware short date format
+    document.getElementById('bs_daterange_picker').value =
+      normStart.toLocaleString(DateTime.DATE_SHORT) + ' – ' + normEnd.toLocaleString(DateTime.DATE_SHORT);
+  });
+})();
+</script>
+
+{# ── Breakdown ───────────────────────────────────────────────── #}
+<div class="row g-3">
+
+  {% translate "Income" as income_title %}
+  {% translate "No income in this period." as no_income_msg %}
+  {% include "property/_balance_section_card.html" with card_header_bg="bg-success-subtle" header_text_class="text-success-emphasis" header_icon="bi-arrow-down-circle" section_title=income_title section_rows=balance_sheet.income_rows section_total=balance_sheet.total_income empty_message=no_income_msg show_occupancy_rate=True %}
+
+  {% translate "Expenses" as expenses_title %}
+  {% translate "No expenses in this period." as no_expenses_msg %}
+  {% include "property/_balance_section_card.html" with card_header_bg="bg-danger-subtle" header_text_class="text-danger-emphasis" header_icon="bi-arrow-up-circle" section_title=expenses_title section_rows=balance_sheet.expense_rows section_total=balance_sheet.total_expenses empty_message=no_expenses_msg %}
+
+  {% translate "Loan costs" as loan_costs_title %}
+  {% translate "No loan costs in this period." as no_loan_costs_msg %}
+  {% include "property/_balance_section_card.html" with card_header_bg="bg-warning-subtle" header_text_class="text-warning-emphasis" header_icon="bi-bank" section_title=loan_costs_title section_rows=balance_sheet.loan_rows section_total=balance_sheet.total_loan_costs empty_message=no_loan_costs_msg %}
+
+</div><!-- end .row breakdown -->
+
+{# ── Net result summary bar ───────────────────────────────────────────── #}
+<div class="mt-3 p-3 rounded border">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <span class="fw-semibold">{% translate "Net cashflow" %}</span>
+      <span class="text-body-secondary small ms-2">
+        ({% translate "income" %} − {% translate "expenses" %} − {% translate "loan costs" %})
+      </span>
+    </div>
+    <span class="fs-5 fw-bold
+      {% if balance_sheet.net_cashflow >= 0 %}text-success{% else %}text-danger{% endif %}">
+      {{ balance_sheet.net_cashflow|format_money_amount:property.currency }}
+    </span>
+  </div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+    <div>
+      <span class="fw-semibold text-body-secondary small">{% translate "Operating result" %}</span>
+      <span class="text-body-secondary small ms-1">({% translate "excl. principal repayment" %})</span>
+    </div>
+    <span class="fw-semibold small
+      {% if balance_sheet.net_operating >= 0 %}text-success{% else %}text-danger{% endif %}">
+      {{ balance_sheet.net_operating|format_money_amount:property.currency }}
+    </span>
+  </div>
+</div>

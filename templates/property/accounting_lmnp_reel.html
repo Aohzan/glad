@@ -1,0 +1,1264 @@
+{% extends "base.html" %}
+{% load format_money %}
+
+{% block title %}Comptabilité — LMNP réel — {{ year }}{% endblock %}
+
+{% block content %}
+<style>
+  .cerfa-section-header,
+  .cerfa-section-header th {
+    background-color: #346898 !important;
+    color: white !important;
+  }
+</style>
+<div class="container-fluid py-4">
+
+  {# ── Header ────────────────────────────────────────────────────────────── #}
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <h1 class="h4 mb-0">
+      <i class="bi bi-calculator me-2"></i>LMNP réel — Comptabilité
+    </h1>
+
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <i class="bi bi-info-circle me-1"></i><i>Ces informations font office d'aide mais peuvent comporter des erreurs, vérifiez toujours avec votre comptable ou expert-comptable.</i>
+    </div>
+
+    <form method="get" class="d-flex align-items-center gap-2 ms-auto">
+      <label for="year-select" class="form-label mb-0 fw-semibold">Exercice fiscal</label>
+      <select id="year-select" name="year" class="form-select form-select-sm" style="width: auto;"
+              onchange="this.form.submit()">
+        {% for y in year_range %}
+          <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  {% if not lmnp_properties %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-1"></i>
+    Aucun bien actif avec le régime fiscal LMNP réel.
+    Définissez le régime fiscal sur un bien pour voir ses données ici.
+  </div>
+  {% else %}
+  {# Tooltip helper macro: show per-property breakdown #}
+  {# We use Bootstrap data-bs-toggle="popover" with HTML content #}
+
+  {# ── Tabs for each cerfa form ─────────────────────────────────────────── #}
+  <ul class="nav nav-tabs mb-0" id="cerfaTabs" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active d-flex align-items-center gap-1" data-bs-toggle="tab" data-bs-target="#tab-checklist" type="button">
+        Checklist
+        {% if checklist.overall_status == "incomplete" %}
+          <span class="badge bg-danger rounded-pill">{{ checklist.total_issues }}</span>
+        {% elif checklist.overall_status == "warning" %}
+          <span class="badge bg-warning text-dark rounded-pill">{{ checklist.total_issues }}</span>
+        {% else %}
+          <i class="bi bi-check-circle-fill text-success ms-1" style="font-size:.85rem;"></i>
+        {% endif %}
+      </button>
+    </li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2031" type="button">2031</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2031bis" type="button">2031-BIS</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033a" type="button">2033-A</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033b" type="button">2033-B</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033c" type="button">2033-C</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033d" type="button">2033-D</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-suiv39c" type="button">SUIV39C</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2042c" type="button">2042-C PRO</button></li>
+  </ul>
+
+  <div class="tab-content border border-top-0 rounded-bottom p-3 bg-body mb-4">
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# Checklist — Vérification des données                                  #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade show active" id="tab-checklist">
+      <h5 class="mb-3">Liste de vérification des données</h5>
+
+      {# ── Form readiness badges ──────────────────────────────────────────── #}
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        {% for form in checklist.forms %}
+          {% if form.required %}
+            {% if form.status == "ok" %}
+              <span class="badge rounded-pill bg-success fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+                <i class="bi bi-check-circle me-1"></i>{{ form.name }}
+              </span>
+            {% elif form.status == "warning" %}
+              <span class="badge rounded-pill bg-warning text-dark fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+                <i class="bi bi-exclamation-circle me-1"></i>{{ form.name }}
+              </span>
+            {% elif form.status == "incomplete" %}
+              <span class="badge rounded-pill bg-danger fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+                <i class="bi bi-x-circle me-1"></i>{{ form.name }}
+              </span>
+            {% else %}{# auto #}
+              <span class="badge rounded-pill bg-secondary fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+                <i class="bi bi-robot me-1"></i>{{ form.name }}
+              </span>
+            {% endif %}
+          {% else %}
+            <span class="badge rounded-pill bg-light text-secondary border fs-6 fw-normal px-3 py-2" title="{{ form.label }} — Déposé à néant">
+              {{ form.name }} <small class="opacity-75">à néant</small>
+            </span>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      {# ── Per-property checks ────────────────────────────────────────────── #}
+      {% if not checklist.properties %}
+        <p class="text-body-secondary">Aucun bien LMNP.</p>
+      {% else %}
+      {% for prop_data in checklist.properties %}
+      <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2 py-2">
+          <i class="bi bi-house-door"></i>
+          <a href="{% url 'property:detail' prop_data.property.pk %}" class="fw-semibold text-decoration-none">{{ prop_data.property.name }}</a>
+          {% if not prop_data.has_issues %}
+            <span class="badge bg-success ms-auto"><i class="bi bi-check-lg me-1"></i>Complet</span>
+          {% else %}
+            <span class="badge bg-danger ms-auto">{{ prop_data.issue_count }} problème(s)</span>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:2rem;"></th>
+                <th>Vérification</th>
+                <th>Détail</th>
+                <th>Formulaire</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for check in prop_data.checks %}
+              <tr>
+                <td class="text-center">
+                  {% if check.status == "ok" %}
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                  {% elif check.status == "warning" %}
+                    <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                  {% elif check.status == "missing" %}
+                    <i class="bi bi-x-circle-fill text-danger"></i>
+                  {% else %}{# na #}
+                    <i class="bi bi-dash-circle text-secondary"></i>
+                  {% endif %}
+                </td>
+                <td class="fw-semibold">{{ check.label }}</td>
+                <td class="text-body-secondary small">{{ check.detail }}</td>
+                <td><code class="small">{{ check.form_ref }}</code></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endfor %}
+
+      {# ── Legend ────────────────────────────────────────────────────────── #}
+      <div class="d-flex flex-wrap gap-3 mt-3 small text-body-secondary">
+        <span><i class="bi bi-check-circle-fill text-success me-1"></i>OK — données présentes</span>
+        <span><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Avertissement — données recommandées manquantes</span>
+        <span><i class="bi bi-x-circle-fill text-danger me-1"></i>Manquant — données requises absentes</span>
+        <span><i class="bi bi-dash-circle text-secondary me-1"></i>N/A — non applicable</span>
+        <span><i class="bi bi-robot text-secondary me-1"></i>Auto — calculé automatiquement</span>
+      </div>
+      {% endif %}
+    </div>{# /tab-checklist #}
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# 2033-A — Bilan simplifié                                               #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-2033a">
+      <h5 class="mb-3">2033-A — Bilan simplifié</h5>
+
+      {# ── ACTIF ── #}
+      <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">ACTIF</h6>
+      <div class="table-responsive mb-4">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th></th>
+              <th class="text-end" style="width:10rem;">Brut</th>
+              <th class="text-end" style="width:10rem;">Amortissements</th>
+              <th class="text-end" style="width:10rem;">Net (VNC)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-secondary">
+              <td colspan="4" class="fw-semibold text-uppercase small py-1">Actif immobilisé</td>
+            </tr>
+
+            {# Immobilisations corporelles #}
+            {% if accounting.form_2033a.per_prop|length > 1 %}
+            <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-immo" aria-expanded="false" style="cursor:pointer;">
+              <td>Immobilisations corporelles <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+              <td class="text-end">{{ accounting.form_2033a.immobilisations_brutes|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ accounting.form_2033a.amortissements_cumules|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:0 }} €</td>
+            </tr>
+            <tr class="collapse" id="a-immo">
+              <td colspan="4" class="p-0 ps-3">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033a.per_prop %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ p.bilan.immobilisations_brutes|floatformat:0 }} €</td>
+                      <td class="text-end text-danger">{{ p.bilan.amortissements_cumules|floatformat:0 }} €</td>
+                      <td class="text-end fw-semibold">{{ p.bilan.valeur_nette_comptable|floatformat:0 }} €</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td>Immobilisations corporelles</td>
+              <td class="text-end">{{ accounting.form_2033a.immobilisations_brutes|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ accounting.form_2033a.amortissements_cumules|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:0 }} €</td>
+            </tr>
+            {% endif %}
+          </tbody>
+          <tfoot class="table-light fw-semibold">
+            <tr>
+              <td>Total I — Actif immobilisé</td>
+              <td class="text-end">{{ accounting.form_2033a.immobilisations_brutes|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ accounting.form_2033a.amortissements_cumules|floatformat:0 }} €</td>
+              <td class="text-end">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:0 }} €</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {# ── PASSIF ── #}
+      <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">PASSIF</h6>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th></th>
+              <th class="text-end" style="width:12rem;">Montant</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-secondary">
+              <td colspan="2" class="fw-semibold text-uppercase small py-1">Capitaux propres</td>
+            </tr>
+
+            {# Capital social ou individuel #}
+            {% if accounting.form_2033a.per_prop|length > 1 %}
+            <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-capital" aria-expanded="false" style="cursor:pointer;">
+              <td>Capital social ou individuel <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+              <td class="text-end fw-semibold">{{ accounting.form_2033a.capital_individuel|floatformat:0 }} €</td>
+            </tr>
+            <tr class="collapse" id="a-capital">
+              <td colspan="2" class="p-0 ps-3">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033a.per_prop %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ p.bilan.capital_individuel|floatformat:0 }} €</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td>Capital social ou individuel</td>
+              <td class="text-end fw-semibold">{{ accounting.form_2033a.capital_individuel|floatformat:0 }} €</td>
+            </tr>
+            {% endif %}
+
+            {# Résultat de l'exercice #}
+            <tr>
+              <td>Résultat de l'exercice</td>
+              <td class="text-end fw-semibold text-primary">{{ accounting.form_2033a.resultat_exercice|floatformat:0 }} €</td>
+            </tr>
+
+            {# Total I — Capitaux propres #}
+            <tr class="table-light fw-semibold">
+              <td>Total I — Capitaux propres</td>
+              <td class="text-end">{{ accounting.form_2033a.total_capitaux_propres|floatformat:0 }} €</td>
+            </tr>
+
+            <tr class="table-secondary">
+              <td colspan="2" class="fw-semibold text-uppercase small py-1">Dettes</td>
+            </tr>
+
+            {# Emprunts et dettes assimilées #}
+            {% if accounting.form_2033a.per_prop|length > 1 %}
+            <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-emprunts" aria-expanded="false" style="cursor:pointer;">
+              <td>Emprunts et dettes assimilées <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+              <td class="text-end fw-semibold">{{ accounting.form_2033a.emprunts|floatformat:0 }} €</td>
+            </tr>
+            <tr class="collapse" id="a-emprunts">
+              <td colspan="2" class="p-0 ps-3">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033a.per_prop %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ p.bilan.emprunts|floatformat:0 }} €</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td>Emprunts et dettes assimilées</td>
+              <td class="text-end fw-semibold">{{ accounting.form_2033a.emprunts|floatformat:0 }} €</td>
+            </tr>
+            {% endif %}
+
+            <tr class="table-secondary">
+              <td colspan="2" class="fw-semibold text-uppercase small py-1">Renvois</td>
+            </tr>
+
+            {# (5) Coût de revient des immobilisations acquises ou créées au cours de l'exercice #}
+            {% if accounting.form_2033a.per_prop|length > 1 %}
+            <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-cout-revient" aria-expanded="false" style="cursor:pointer;">
+              <td>(5) Coût de revient des immobilisations acquises ou créées au cours de l'exercice <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+              <td class="text-end fw-semibold">{{ accounting.form_2033a.cout_revient_acquisitions|floatformat:0 }} €</td>
+            </tr>
+            <tr class="collapse" id="a-cout-revient">
+              <td colspan="2" class="p-0 ps-3">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033a.per_prop %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ p.bilan.cout_revient_acquisitions|floatformat:0 }} €</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td>(5) Coût de revient des immobilisations acquises ou créées au cours de l'exercice</td>
+              <td class="text-end fw-semibold">{{ accounting.form_2033a.cout_revient_acquisitions|floatformat:0 }} €</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# 2033-B — Compte de résultat simplifié                                 #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-2033b">
+      <h5 class="mb-3">2033-B — Compte de résultat simplifié</h5>
+
+
+      <h6>A - Résultat comptable</h6>
+      <table class="table table-sm table-hover">
+        <tbody>
+          <tr class="cerfa-section-header">
+            <th>Produits d'exploitation</th>
+            <th class="text-center" style="width:12rem;">Exercice N</th>
+          </tr>
+
+          {# — Production vendue — Services — #}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-recettes" aria-expanded="false" style="cursor:pointer;">
+            <td>Production vendue — Services <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+            <td class="text-end fw-semibold text-success">{{ accounting.form_2033b.recettes|floatformat:0 }} €</td>
+          </tr>
+          <tr class="collapse" id="b-recettes">
+            <td colspan="2" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  {% if accounting.form_2033b.per_prop|length > 1 %}
+                  <tr>
+                    <td class="text-body-secondary fw-semibold"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold text-success">{{ p.summary.recettes|floatformat:0 }} €</td>
+                  </tr>
+                  {% endif %}
+                  {% for cat in p.summary.by_line_categories.recettes %}
+                  <tr class="small">
+                    <td class="ps-3 {% if not cat.amount %}text-body-tertiary{% else %}text-body-secondary{% endif %}">{{ cat.label }}</td>
+                    <td class="text-end {% if cat.amount %}text-success{% else %}text-body-tertiary{% endif %}">{{ cat.amount|floatformat:0 }} €</td>
+                  </tr>
+                  {% endfor %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+
+          <tr class="cerfa-section-header">
+            <th>Charges d'exploitation</th>
+            <th></th>
+          </tr>
+          {# — Autres charges externes — #}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-autres-charges" aria-expanded="false" style="cursor:pointer;">
+            <td>Autres charges externes <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+            <td class="text-end text-danger">{{ accounting.form_2033b.autres_charges_externes|floatformat:0 }} €</td>
+          </tr>
+          <tr class="collapse" id="b-autres-charges">
+            <td colspan="2" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  {% if accounting.form_2033b.per_prop|length > 1 %}
+                  <tr>
+                    <td class="text-body-secondary fw-semibold"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold text-danger">{{ p.summary.by_line.242|default:"0"|floatformat:0 }} €</td>
+                  </tr>
+                  {% endif %}
+                  {% for cat in p.summary.by_line_categories.242 %}
+                  <tr class="small">
+                    <td class="ps-3 {% if not cat.amount %}text-body-tertiary{% else %}text-body-secondary{% endif %}">{{ cat.label }}</td>
+                    <td class="text-end {% if cat.amount %}text-danger{% else %}text-body-tertiary{% endif %}">{{ cat.amount|floatformat:0 }} €</td>
+                  </tr>
+                  {% endfor %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+
+          {# — Impôts et taxes — #}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-impots" aria-expanded="false" style="cursor:pointer;">
+            <td>Impôts, taxes et versements assimilés <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+            <td class="text-end text-danger">{{ accounting.form_2033b.impots_taxes|floatformat:0 }} €</td>
+          </tr>
+          <tr class="collapse" id="b-impots">
+            <td colspan="2" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  {% if accounting.form_2033b.per_prop|length > 1 %}
+                  <tr>
+                    <td class="text-body-secondary fw-semibold"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold text-danger">{{ p.summary.by_line.244|default:"0"|floatformat:0 }} €</td>
+                  </tr>
+                  {% endif %}
+                  {% for cat in p.summary.by_line_categories.244 %}
+                  <tr class="small">
+                    <td class="ps-3 {% if not cat.amount %}text-body-tertiary{% else %}text-body-secondary{% endif %}">{{ cat.label }}</td>
+                    <td class="text-end {% if cat.amount %}text-danger{% else %}text-body-tertiary{% endif %}">{{ cat.amount|floatformat:0 }} €</td>
+                  </tr>
+                  {% endfor %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% if accounting.form_2033b.cfe %}
+          <tr class="text-body-secondary small">
+            <td class="ps-3">dont TP/CFE, CVAE</td>
+            <td class="text-end">{{ accounting.form_2033b.cfe|floatformat:0 }} €</td>
+          </tr>
+          {% endif %}
+
+          {# — Dotation aux amortissements — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-dotation" aria-expanded="false" style="cursor:pointer;">
+            <td>Dotation aux amortissements <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr>
+            <td>Dotation aux amortissements</td>
+          {% endif %}
+            <td class="text-end text-body-secondary">{{ accounting.form_2033b.amortization_total|floatformat:0 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse" id="b-dotation">
+            <td colspan="2" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end text-body-secondary">{{ p.summary.amortization_total|floatformat:0 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          {# — Charges financières — #}
+          <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-financieres" aria-expanded="false" style="cursor:pointer;">
+            <td>Charges financières (V) <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+            <td class="text-end text-danger">{{ accounting.form_2033b.charges_financieres|floatformat:0 }} €</td>
+          </tr>
+          <tr class="collapse" id="b-financieres">
+            <td colspan="2" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  {% if accounting.form_2033b.per_prop|length > 1 %}
+                  <tr>
+                    <td class="text-body-secondary fw-semibold"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold text-danger">{{ p.summary.charges_financieres|floatformat:0 }} €</td>
+                  </tr>
+                  {% endif %}
+                  {% for cat in p.summary.by_line_categories.294 %}
+                  <tr class="small">
+                    <td class="ps-3 {% if not cat.amount %}text-body-tertiary{% else %}text-body-secondary{% endif %}">{{ cat.label }}</td>
+                    <td class="text-end {% if cat.amount %}text-danger{% else %}text-body-tertiary{% endif %}">{{ cat.amount|floatformat:0 }} €</td>
+                  </tr>
+                  {% endfor %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+
+          {# — Bénéfices ou pertes (310) — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="table-light fw-semibold" role="button" data-bs-toggle="collapse" data-bs-target="#b-310" aria-expanded="false" style="cursor:pointer;">
+            <td>2 - Bénéfices ou pertes — Produits (I+III+IV) – Charges (II+V+VI+VII)"<i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr class="table-light fw-semibold">
+            <td>2 - Bénéfices ou pertes — Produits (I+III+IV) – Charges (II+V+VI+VII)"</td>
+          {% endif %}
+            <td class="text-end {% if accounting.form_2033b.cerfa_310 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.cerfa_310|floatformat:0 }} €</td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse table-light" id="b-310">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold {% if p.summary.cerfa_310 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ p.summary.cerfa_310|floatformat:0 }} €</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+
+      <h6>B - Résultat fiscal</h6>
+      <table class="table table-sm table-hover">
+        <tbody>
+          <tr class="table-secondary">
+            <th></th>
+            <th class="text-center" style="width:12rem;">Bénéfice</th>
+            <th class="text-center" style="width:12rem;">Déficit</th>
+          </tr>
+
+          {# ── Réintégrations de l'exercice ── #}
+          <tr class="table-primary">
+            <td colspan="3" class="fw-semibold text-uppercase small py-1">Réintégrations de l'exercice</td>
+          </tr>
+
+          {# — Amortissements excédentaires (318) — #}
+          <tr>
+            <td>Amortissements excédentaires (art. 39-4 CGI) et autres amortissements non déductibles</td>
+            <td></td>
+            <td class="text-end text-body-secondary">{{ accounting.form_2033b.cerfa_318|floatformat:0 }} €</td>
+          </tr>
+
+          {# — Réintégrations diverses — #}
+          <tr>
+            <td>Réintégrations diverses</td>
+            <td></td>
+            <td class="text-end text-body-secondary">0 €</td>
+          </tr>
+
+          {# ── Déductions de l'exercice ── #}
+          <tr class="table-secondary">
+            <td colspan="3" class="fw-semibold text-uppercase small py-1">Déductions de l'exercice</td>
+          </tr>
+
+          {# — Déductions diverses — #}
+          <tr>
+            <td>Déductions diverses</td>
+            <td class="text-end text-body-secondary">0 €</td>
+            <td></td>
+          </tr>
+
+          {# — dont créance due au report en arrière du déficit — #}
+          <tr class="text-body-secondary small">
+            <td class="ps-3">dont créance due au report en arrière du déficit</td>
+            <td class="text-end">0 €</td>
+            <td></td>
+          </tr>
+
+          {# — Résultat fiscal avant déficits (352) — #}
+          <tr class="table-warning fw-semibold">
+            <td>1. Résultat fiscal avant imputation des déficits antérieurs</td>
+            <td></td>
+            <td class="text-end {% if accounting.form_2033b.cerfa_352 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.cerfa_352|floatformat:0 }} €</td>
+          </tr>
+
+          {# — Résultat fiscal final (370) — #}
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="table-primary fw-bold" role="button" data-bs-toggle="collapse" data-bs-target="#b-370" aria-expanded="false" style="cursor:pointer;">
+            <td>2. Résultat fiscal après imputation des déficits <i class="bi bi-chevron-right ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          {% else %}
+          <tr class="table-primary fw-bold">
+            <td>2. Résultat fiscal après imputation des déficits</td>
+          {% endif %}
+            <td class="text-end fs-5 {% if accounting.form_2033b.cerfa_370 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.cerfa_370|floatformat:0 }} €</td>
+            <td></td>
+          </tr>
+          {% if accounting.form_2033b.per_prop|length > 1 %}
+          <tr class="collapse table-primary" id="b-370">
+            <td colspan="3" class="p-0 ps-4">
+              <table class="table table-sm mb-0 table-borderless" style="background:transparent;">
+                <tbody>
+                  {% for p in accounting.form_2033b.per_prop %}
+                  <tr>
+                    <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                    <td class="text-end fw-semibold {% if p.summary.taxable_result >= 0 %}text-success{% else %}text-danger{% endif %}">{{ p.summary.taxable_result|floatformat:0 }} €</td>
+                    <td></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+        </tbody>
+      </table>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# 2033-C — Immobilisations & amortissements                              #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-2033c">
+      <h5 class="mb-3">2033-C — Immobilisations & amortissements</h5>
+
+      {# ── I. Immobilisations ── #}
+      <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2 mt-3">I — Immobilisations</h6>
+      <div class="table-responsive mb-4">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Nature</th>
+              <th class="text-end">Valeur brute début</th>
+              <th class="text-end text-success">Augmentations</th>
+              <th class="text-end text-danger">Diminutions</th>
+              <th class="text-end fw-semibold">Valeur brute fin</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% with agg=accounting.form_2033c.by_cerfa_category %}
+
+            {# Terrains #}
+            {% if agg.terrains.value_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-terrains" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>Terrains{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end">{{ agg.terrains.value_start|floatformat:0 }} €</td>
+              <td class="text-end text-success">{{ agg.terrains.acquisitions|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ agg.terrains.diminutions|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.terrains.value_end|floatformat:0 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ci-terrains">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.terrains %}{% if r.value_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ r.value_start|floatformat:0 }} €</td>
+                      <td class="text-end text-success">{{ r.acquisitions|floatformat:0 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.value_end|floatformat:0 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Constructions #}
+            {% if agg.constructions.value_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-constructions" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>Constructions{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end">{{ agg.constructions.value_start|floatformat:0 }} €</td>
+              <td class="text-end text-success">{{ agg.constructions.acquisitions|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ agg.constructions.diminutions|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.constructions.value_end|floatformat:0 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ci-constructions">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.constructions %}{% if r.value_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ r.value_start|floatformat:0 }} €</td>
+                      <td class="text-end text-success">{{ r.acquisitions|floatformat:0 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.value_end|floatformat:0 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Installations #}
+            {% if agg.installations.value_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-installations" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>Installations générales, agencements{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end">{{ agg.installations.value_start|floatformat:0 }} €</td>
+              <td class="text-end text-success">{{ agg.installations.acquisitions|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ agg.installations.diminutions|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.installations.value_end|floatformat:0 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ci-installations">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.installations %}{% if r.value_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ r.value_start|floatformat:0 }} €</td>
+                      <td class="text-end text-success">{{ r.acquisitions|floatformat:0 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.value_end|floatformat:0 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Autres #}
+            {% if agg.autres.value_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-autres" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>Autres immobilisations corporelles{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end">{{ agg.autres.value_start|floatformat:0 }} €</td>
+              <td class="text-end text-success">{{ agg.autres.acquisitions|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ agg.autres.diminutions|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.autres.value_end|floatformat:0 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ci-autres">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.autres %}{% if r.value_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end">{{ r.value_start|floatformat:0 }} €</td>
+                      <td class="text-end text-success">{{ r.acquisitions|floatformat:0 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.value_end|floatformat:0 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {% endwith %}
+          </tbody>
+          <tfoot class="table-light fw-bold">
+            {% with t=accounting.form_2033c.totals %}
+            <tr>
+              <td>TOTAL</td>
+              <td class="text-end">{{ t.value_start|floatformat:0 }} €</td>
+              <td class="text-end text-success">{{ t.acquisitions|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ t.diminutions|floatformat:0 }} €</td>
+              <td class="text-end">{{ t.value_end|floatformat:0 }} €</td>
+            </tr>
+            {% endwith %}
+          </tfoot>
+        </table>
+      </div>
+
+      {# ── II. Amortissements ── #}
+      <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">II — Amortissements</h6>
+      <div class="table-responsive mb-4">
+        <table class="table table-sm table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Nature</th>
+              <th class="text-end">Amort. début</th>
+              <th class="text-end text-primary">Dotations N</th>
+              <th class="text-end text-danger">Diminutions</th>
+              <th class="text-end fw-semibold">Amort. fin</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% with agg=accounting.form_2033c.by_cerfa_category %}
+
+            {# Terrains #}
+            {% if agg.terrains.amort_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-terrains" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>Terrains{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end text-body-secondary">{{ agg.terrains.amort_start|floatformat:0 }} €</td>
+              <td class="text-end text-primary">{{ agg.terrains.dotation|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ agg.terrains.diminutions|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.terrains.amort_end|floatformat:0 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ca-terrains">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.terrains %}{% if r.amort_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:0 }} €</td>
+                      <td class="text-end text-primary">{{ r.dotation|floatformat:0 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.amort_end|floatformat:0 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Constructions #}
+            {% if agg.constructions.amort_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-constructions" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>Constructions{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end text-body-secondary">{{ agg.constructions.amort_start|floatformat:0 }} €</td>
+              <td class="text-end text-primary">{{ agg.constructions.dotation|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ agg.constructions.diminutions|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.constructions.amort_end|floatformat:0 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ca-constructions">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.constructions %}{% if r.amort_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:0 }} €</td>
+                      <td class="text-end text-primary">{{ r.dotation|floatformat:0 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.amort_end|floatformat:0 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Installations #}
+            {% if agg.installations.amort_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-installations" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>Installations générales, agencements{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end text-body-secondary">{{ agg.installations.amort_start|floatformat:0 }} €</td>
+              <td class="text-end text-primary">{{ agg.installations.dotation|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ agg.installations.diminutions|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.installations.amort_end|floatformat:0 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ca-installations">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.installations %}{% if r.amort_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:0 }} €</td>
+                      <td class="text-end text-primary">{{ r.dotation|floatformat:0 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.amort_end|floatformat:0 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {# Autres #}
+            {% if agg.autres.amort_end %}
+            <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-autres" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+              <td>Autres immobilisations corporelles{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+              <td class="text-end text-body-secondary">{{ agg.autres.amort_start|floatformat:0 }} €</td>
+              <td class="text-end text-primary">{{ agg.autres.dotation|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ agg.autres.diminutions|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold">{{ agg.autres.amort_end|floatformat:0 }} €</td>
+            </tr>
+            {% if accounting.form_2033c.per_prop|length > 1 %}
+            <tr class="collapse" id="ca-autres">
+              <td colspan="5" class="p-0 ps-4">
+                <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+                  <tbody>
+                    {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.autres %}{% if r.amort_end %}
+                    <tr>
+                      <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.pk %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                      <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:0 }} €</td>
+                      <td class="text-end text-primary">{{ r.dotation|floatformat:0 }} €</td>
+                      <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                      <td class="text-end fw-semibold">{{ r.amort_end|floatformat:0 }} €</td>
+                    </tr>
+                    {% endif %}{% endwith %}{% endfor %}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            {% endif %}
+            {% endif %}
+
+            {% endwith %}
+          </tbody>
+          <tfoot class="table-light fw-bold">
+            {% with t=accounting.form_2033c.totals %}
+            <tr>
+              <td>TOTAL</td>
+              <td class="text-end text-body-secondary">{{ t.amort_start|floatformat:0 }} €</td>
+              <td class="text-end text-primary">{{ t.dotation|floatformat:0 }} €</td>
+              <td class="text-end text-danger">{{ t.diminutions|floatformat:0 }} €</td>
+              <td class="text-end">{{ t.amort_end|floatformat:0 }} €</td>
+            </tr>
+            {% endwith %}
+          </tfoot>
+        </table>
+      </div>
+
+      {# ── III. Plus-values / Moins-values ── #}
+      <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">III — Plus-values et moins-values</h6>
+      <div class="alert alert-secondary py-2 small mb-4">
+        <i class="bi bi-dash-circle me-1"></i>
+        Aucune cession d'actif enregistrée pour cette année.
+        Cette section se remplira automatiquement lors de la saisie d'une cession.
+      </div>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# 2033-D — Déficits reportables                                          #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-2033d">
+      <h5 class="mb-3">2033-D — Déficits reportables</h5>
+
+      {# ── Amortissements excédentaires non déductibles ─────────────────── #}
+      <h6 class="mt-3 mb-2">Amortissements excédentaires (art. 39-4 CGI) et autres amortissements non déductibles</h6>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle me-1"></i>
+        Les amortissements excédentaires correspondent aux dotations réintégrées fiscalement (ligne 318 du 2033-B) :
+        lorsque le résultat comptable est déficitaire, la fraction des amortissements qui crée ou aggrave la perte est réintégrée ;
+        lorsqu'il est bénéficiaire, la totalité de la dotation est réintégrée (car déduite via le mécanisme art. 39C).
+      </div>
+      <div class="card mb-4" style="max-width:700px;">
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Bien</th>
+                <th class="text-end">Dotation N</th>
+                <th class="text-end">Déduite N (art. 39C)</th>
+                <th class="text-end">Réintégration ligne 318</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in accounting.form_2033b.per_prop %}
+              <tr>
+                <td>{{ p.property.name }}</td>
+                <td class="text-end">{{ p.summary.amortization_total|floatformat:0 }} €</td>
+                <td class="text-end text-success">{{ p.summary.amortization_deductible|floatformat:0 }} €</td>
+                <td class="text-end {% if p.summary.cerfa_318 %}text-warning fw-semibold{% else %}text-body-secondary{% endif %}">
+                  {{ p.summary.cerfa_318|floatformat:0 }} €
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-body-secondary py-2">Aucun bien.</td></tr>
+              {% endfor %}
+            </tbody>
+            <tfoot class="table-light fw-bold">
+              <tr>
+                <td>Total (ligne 318)</td>
+                <td class="text-end">{{ accounting.form_2033b.amortization_total|floatformat:0 }} €</td>
+                <td class="text-end text-success">{{ accounting.form_2033b.amortization_deductible|floatformat:0 }} €</td>
+                <td class="text-end {% if accounting.form_2033b.cerfa_318 %}text-warning{% endif %}">
+                  {{ accounting.form_2033b.cerfa_318|floatformat:0 }} €
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {# ── Déficits fiscaux reportables ─────────────────────────────────── #}
+      <h6 class="mt-3 mb-2">Déficits fiscaux reportables (art. 156 I-1° bis CGI)</h6>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle me-1"></i>
+        Les déficits fiscaux LMNP sont reportables sur 10 ans et imputables sur les bénéfices LMNP futurs (art. 156 I-1° bis CGI).
+      </div>
+      {% if accounting.form_2042c.deficit_history %}
+      <div class="card" style="max-width:520px;">
+        <div class="card-header py-2"><h6 class="mb-0">Déficits en attente par année d'origine</h6></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Année d'origine</th>
+                <th>Expire après</th>
+                <th class="text-end">Déficit restant</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for origin_year, amount in accounting.form_2042c.deficit_history.items %}
+              <tr>
+                <td>{{ origin_year }}</td>
+                <td class="text-body-secondary small">{{ origin_year|add:10 }}</td>
+                <td class="text-end text-danger fw-semibold">{{ amount|floatformat:0 }} €</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot class="table-light fw-bold">
+              <tr>
+                <td colspan="2">Total reportable</td>
+                <td class="text-end text-danger">{{ accounting.form_2042c.deficit_carryforward|floatformat:0 }} €</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-body-secondary">Aucun déficit fiscal reportable en cours.</p>
+      {% endif %}
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# SUIV39C — Suivi des amortissements différés art. 39C                  #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-suiv39c">
+      <h5 class="mb-3">SUIV39C — Amortissements différés art. 39C</h5>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle me-1"></i>
+        L'amortissement ne peut pas créer ni augmenter un déficit d'exploitation (art. 39C CGI). Les dotations non utilisées sont différées et déduites lors des exercices bénéficiaires suivants.
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover" style="max-width:760px;">
+          <thead class="table-light">
+            <tr>
+              <th>Bien</th>
+              <th class="text-end">Report N-1</th>
+              <th class="text-end">Dotation N</th>
+              <th class="text-end">Déduit N</th>
+              <th class="text-end">Différé N</th>
+              <th class="text-end">Solde fin N</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in accounting.form_2033b.per_prop %}
+            <tr>
+              <td>
+                <a href="{% url 'property:detail' p.property.pk %}#amortization-panel">{{ p.property.name }}</a>
+              </td>
+              <td class="text-end text-body-secondary">{{ p.summary.deferred_prior|floatformat:0 }} €</td>
+              <td class="text-end">{{ p.summary.amortization_total|floatformat:0 }} €</td>
+              <td class="text-end text-success">{{ p.summary.amortization_deductible|floatformat:0 }} €</td>
+              <td class="text-end text-warning">{{ p.summary.amortization_deferred|floatformat:0 }} €</td>
+              <td class="text-end fw-semibold {% if p.summary.deferred_balance %}text-warning{% endif %}">{{ p.summary.deferred_balance|floatformat:0 }} €</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-body-secondary py-2">Aucun bien.</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="table-light fw-bold">
+            <tr>
+              <td>Total</td>
+              <td class="text-end text-body-secondary">{{ accounting.form_2033b.deferred_prior|floatformat:0 }} €</td>
+              <td class="text-end">{{ accounting.form_2033b.amortization_total|floatformat:0 }} €</td>
+              <td class="text-end text-success">{{ accounting.form_2033b.amortization_deductible|floatformat:0 }} €</td>
+              <td class="text-end text-warning">{{ accounting.form_2033b.amortization_deferred|floatformat:0 }} €</td>
+              <td class="text-end">—</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# 2031 — Déclaration de résultat BIC                                     #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-2031">
+      <h5 class="mb-3">2031 — Déclaration de résultat BIC</h5>
+      <div class="card">
+        <div class="card-body">
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr>
+                <td class="text-body-secondary">Activité principale</td>
+                <td class="fw-semibold">Location meublée non professionnelle</td>
+              </tr>
+              <tr>
+                <td class="text-body-secondary">Option pour la comptabilité super simplifiée</td>
+                <td class="fw-semibold">X</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p>Le reste est pré-rempli à partir du 2031-BIS.</p>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# 2031-BIS — Annexe                                                      #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-2031bis">
+      <h5 class="mb-3">2031-BIS — Annexe</h5>
+      <div class="row g-4">
+        <div class="card">
+          <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+              <thead class="table-light text-center">
+                <tr><th></th><th>Bénéfice</th><th>Déficit</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Autres locations meublées non professionnelles</td>
+                  <td class="text-end">{{ accounting.form_2033b.cerfa_370|floatformat:0 }} €</td>
+                  <td class="text-end">{{ accounting.form_2042c.case_5nz|floatformat:0 }} €</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    {# 2042-C PRO — Déclaration complémentaire                                #}
+    {# ══════════════════════════════════════════════════════════════════════ #}
+    <div class="tab-pane fade" id="tab-2042c">
+      <h5 class="mb-3">2042-C PRO — Déclaration complémentaire</h5>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle me-1"></i>
+        Reportez ces montants sur votre déclaration de revenus (2042-C PRO), rubrique « Revenus des locations meublées non professionnelles ».
+      </div>
+
+      {# 5CD — Durée de l'exercice #}
+      <div class="card mb-3" style="max-width:480px;">
+        <div class="card-body py-2 d-flex align-items-center gap-3">
+          <span class="fw-semibold"><code>5CD</code> Durée de l'exercice en mois</span>
+          <span class="fs-5 fw-bold ms-auto">{{ accounting.form_2042c.case_5cd }}</span>
+        </div>
+      </div>
+
+      {# Revenus imposables + Déficits cas général #}
+      <div class="card mb-3" style="max-width:560px;">
+        <div class="card-header py-2"><h6 class="mb-0">Revenus imposables et déficits cas général</h6></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr><th>Case</th><th>Description</th><th class="text-end">Montant</th></tr>
+            </thead>
+            <tbody>
+              <tr class="table-secondary">
+                <td colspan="3" class="fw-semibold small py-1">Revenus imposables cas général</td>
+              </tr>
+              <tr {% if accounting.form_2042c.is_benefice %}class="table-success fw-bold"{% endif %}>
+                <td><code>5NA</code></td>
+                <td>Bénéfice — Adhérent CGA / OGA</td>
+                <td class="text-end">{{ accounting.form_2042c.case_5na|floatformat:0 }} €</td>
+              </tr>
+              <tr {% if accounting.form_2042c.is_benefice %}class="fw-semibold"{% endif %}>
+                <td><code>5NK</code></td>
+                <td>Bénéfice — Non adhérent CGA <small class="text-body-secondary">(×1,25)</small></td>
+                <td class="text-end">{{ accounting.form_2042c.case_5nk|floatformat:0 }} €</td>
+              </tr>
+              <tr class="table-secondary">
+                <td colspan="3" class="fw-semibold small py-1">Déficits cas général</td>
+              </tr>
+              <tr {% if not accounting.form_2042c.is_benefice %}class="table-warning fw-bold"{% endif %}>
+                <td><code>5NY</code></td>
+                <td>Déficit — Adhérent CGA / OGA</td>
+                <td class="text-end">{{ accounting.form_2042c.case_5ny|floatformat:0 }} €</td>
+              </tr>
+              <tr {% if not accounting.form_2042c.is_benefice %}class="fw-semibold"{% endif %}>
+                <td><code>5NZ</code></td>
+                <td>Déficit — Non adhérent CGA</td>
+                <td class="text-end">{{ accounting.form_2042c.case_5nz|floatformat:0 }} €</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mb-3 small text-body-secondary">
+        <i class="bi bi-info-circle me-1"></i>
+        Note : Pour les non-adhérents CGA, le bénéfice imposable est multiplié par 1,25 par l'administration fiscale. Déclarez le montant avant cette majoration en case 5NK.
+      </div>
+
+      {# Déficits des années antérieures non encore déduits (5GJ..5GA) #}
+      <div class="card" style="max-width:560px;">
+        <div class="card-header py-2"><h6 class="mb-0">Déficits des années antérieures non encore déduits</h6></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Case</th>
+                <th>Année d'origine</th>
+                <th class="text-end">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entry in accounting.form_2042c.deficit_cases_list %}
+              <tr {% if not entry.amount %}class="text-body-tertiary"{% else %}class="fw-semibold"{% endif %}>
+                <td><code>{{ entry.label }}</code></td>
+                <td>{{ entry.origin_year }}</td>
+                <td class="text-end {% if entry.amount %}text-danger{% endif %}">{{ entry.amount|floatformat:0 }} €</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>{# end tab-content #}
+  {% endif %}{# lmnp_properties #}
+</div>
+
+<script>
+  // Initialize Bootstrap tooltips
+  document.addEventListener('DOMContentLoaded', function () {
+    const tooltipEls = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipEls.forEach(function (el) {
+      new bootstrap.Tooltip(el, { html: false, placement: 'left' });
+    });
+  });
+
+  // Rotate chevron when collapsible detail row opens/closes
+  document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (row) {
+    var target = document.querySelector(row.dataset.bsTarget);
+    if (!target) return;
+    var chevron = row.querySelector('.prop-chevron');
+    if (!chevron) return;
+    target.addEventListener('show.bs.collapse', function () {
+      chevron.style.transform = 'rotate(90deg)';
+    });
+    target.addEventListener('hide.bs.collapse', function () {
+      chevron.style.transform = 'rotate(0deg)';
+    });
+  });
+</script>
+{% endblock %}

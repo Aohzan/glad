@@ -1,0 +1,17 @@
+{% load i18n %}
+{# ── Chart panel ─────────────────────────────────────────────────────────── #}
+<div class="card mb-4">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>{% translate "Value evolution" %}</h5>
+  </div>
+  <div class="card-body">
+    <div class="row align-items-center g-3">
+      <div class="col-12 col-md-9">
+        <div id="accountChart" style="height: 350px;"></div>
+      </div>
+      <div class="col-12 col-md-3">
+        <div id="accountDonut" style="height: 260px;"></div>
+      </div>
+    </div>
+  </div>
+</div>

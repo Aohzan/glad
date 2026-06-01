@@ -1,0 +1,73 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [main, beta]
+
+jobs:
+  pre-commit-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "26"
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Run pre-commit hooks
+        run: uv run pre-commit run -a
+        env:
+          SKIP: pytest,django-compilemessages,django-makemessages
+
+  tests:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Run tests
+        run: uv run pytest --cov
+        env:
+          ENV_FILE: "${{ github.workspace }}/.env.dev"
+
+      - name: Coverage comment
+        id: coverage_comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Store Pull Request comment to be posted
+        uses: actions/upload-artifact@v4
+        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+        with:
+          name: python-coverage-comment-action
+          path: python-coverage-comment-action.txt

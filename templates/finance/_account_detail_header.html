@@ -1,0 +1,17 @@
+{% load i18n %}
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{% url 'finance:index' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{% translate "Finance" %}
+  </a>
+  <h1 class="h4 mb-0 ms-1">
+    <i class="bi {{ account_icon }} me-1"></i>{{ account }}
+  </h1>
+  <div class="ms-auto">
+    <a href="{{ account_edit_url }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+    </a>
+    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+      <i class="bi bi-trash me-1"></i>{% translate "Delete" %}
+    </button>
+  </div>
+</div>

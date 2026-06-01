@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{% if dividend %}{% translate "Edit dividend" %}{% else %}{% translate "Add dividend" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 680px;">
+
+  {% url 'property:scpi_fund_detail' scpi_pk=scpi.pk as back_url %}
+  {% translate "Edit dividend" as edit_title %}
+  {% translate "Add dividend" as new_title %}
+  {% include "property/_edit_page_header.html" with is_edit=dividend edit_title=edit_title new_title=new_title back_url=back_url back_label=scpi.name %}
+
+  {% include "property/_form_error_alert.html" %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-cash-stack me-1"></i>{{ scpi }}</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12">{% include "_form_field.html" with field=form.payment_date %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.gross_amount %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.net_amount %}</div>
+          <div class="col-12">{% include "_form_field.html" with field=form.notes %}</div>
+        </div>
+      </div>
+    </div>
+
+    {% include "property/_form_submit_buttons.html" %}
+  </form>
+</div>
+{% endblock %}

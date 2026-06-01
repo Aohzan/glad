@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% translate 'Finance - CSV data mapping' %}
+{% endblock %}
+
+{% block content %}
+  <div class="card card-finance mb-4">
+    <div class="card-header">
+      <h3 class="card-title mb-0">{% translate 'CSV data mapping' %}</h3>
+    </div>
+    <div class="card-body">
+      <h4 class="mb-3">{% translate 'CSV Preview' %}</h4>
+      {% include "_csv_preview_table.html" with table_class="table table-finance table-striped table-bordered" thead_class="" %}
+
+      <form method="post" action="{% url 'finance:csv_import_confirm' %}">
+        {% csrf_token %}
+        {{ account_formset.management_form }}
+
+        <h4 class="mb-3">{% translate 'Account Mapping' %}</h4>
+        <div class="alert alert-info" role="alert">
+          <i class="bi bi-info-circle me-2"></i>
+          {% translate 'Please map each account name from your CSV file to an actual account in the system.' %}
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-finance">
+            <thead>
+              <tr>
+                <th>{% translate 'CSV Account Name' %}</th>
+                <th>{% translate 'Account/Holding' %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for form in account_formset %}
+                <tr>
+                  <td>
+                    {{ form.csv_account_name }}{{ form.initial.csv_account_name }}
+                  </td>
+                  <td>
+                    {{ form.app_account_id }}
+                    {% if form.app_account_id.errors %}
+                      <div class="invalid-feedback d-block">
+                        {{ form.app_account_id.errors }}
+                      </div>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-4">
+          <a href="{% url 'finance:csv_import' %}" class="btn btn-secondary ms-2">
+            <i class="bi bi-arrow-left me-1"></i>{% translate 'Cancel' %}
+          </a>
+          <button type="submit" name="step" value="column_mapping" class="btn btn-primary">
+            <i class="bi bi-arrow-right me-1"></i>{% translate 'Import data' %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

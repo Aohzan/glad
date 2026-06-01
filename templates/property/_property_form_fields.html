@@ -1,0 +1,276 @@
+{% load i18n %}
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <label for="{{ property_form.name.id_for_label }}" class="form-label">
+      {{ property_form.name.label }}
+      {% if property_form.name.field.required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    {{ property_form.name }}
+    {% if property_form.name.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.name.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-6">
+    <label for="{{ property_form.property_type.id_for_label }}" class="form-label">
+      {{ property_form.property_type.label }}
+      {% if property_form.property_type.field.required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    {{ property_form.property_type }}
+    {% if property_form.property_type.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.property_type.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-12">
+    <label for="{{ property_form.address.id_for_label }}" class="form-label">
+      {{ property_form.address.label }}
+    </label>
+    {{ property_form.address }}
+    {% if property_form.address.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.address.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.buying_date.id_for_label }}" class="form-label">
+      {{ property_form.buying_date.label }}
+      {% if property_form.buying_date.field.required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    {{ property_form.buying_date }}
+    {% if property_form.buying_date.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.buying_date.errors.0 }}</div>
+    {% endif %}
+    {% if property_form.buying_date.help_text %}
+      <div class="form-text">{{ property_form.buying_date.help_text }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label text-body-secondary">{% translate "Total purchase cost" %}</label>
+    <div class="input-group flex-wrap">
+      <input type="text" id="id_total_purchase_cost" class="form-control" disabled tabindex="-1"
+             style="background-color: var(--bs-secondary-bg);">
+      <span class="input-group-text" id="id_total_purchase_cost_currency">EUR</span>
+    </div>
+    <div class="form-text">{% translate "Buying value + all fees (computed)" %}</div>
+  </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.buying_value.id_for_label }}" class="form-label">
+      {{ property_form.buying_value.label }}
+      {% if property_form.buying_value.field.required %}<span class="text-danger">*</span>{% endif %}
+    </label>
+    {{ property_form.buying_value }}
+    {% if property_form.buying_value.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.buying_value.errors.0 }}</div>
+    {% endif %}
+    {% if property_form.buying_value.help_text %}
+      <div class="form-text">{{ property_form.buying_value.help_text }}</div>
+    {% endif %}
+  </div>
+
+  <script>
+  (function () {
+    const amountFields = [
+      'id_buying_value_0',
+      'id_notary_fees_0',
+      'id_agency_fees_0',
+      'id_other_fees_0',
+      'id_credit_fees_0',
+    ];
+    const totalInput = document.getElementById('id_total_purchase_cost');
+    const currencySpan = document.getElementById('id_total_purchase_cost_currency');
+
+    function updateTotal() {
+      let total = 0;
+      amountFields.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) {
+          const val = parseFloat(el.value.replace(/\s/g, '').replace(',', '.'));
+          if (!isNaN(val)) total += val;
+        }
+      });
+      totalInput.value = total.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      const currencyEl = document.getElementById('id_buying_value_1');
+      if (currencyEl) currencySpan.textContent = currencyEl.value || 'EUR';
+    }
+
+    function attachListeners() {
+      amountFields.forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateTotal);
+      });
+      const currencyEl = document.getElementById('id_buying_value_1');
+      if (currencyEl) currencyEl.addEventListener('change', updateTotal);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () { attachListeners(); updateTotal(); });
+    } else {
+      attachListeners();
+      updateTotal();
+    }
+  })();
+  </script>
+
+  {# ── Purchase fees ────────────────────────────────────────────────────── #}
+  <div class="col-12">
+    <p class="text-uppercase text-body-secondary small fw-semibold mb-2 prop-label">{% translate "Purchase fees" %}</p>
+    <div class="row g-2">
+      <div class="col-md-3">
+        <label for="{{ property_form.notary_fees.id_for_label }}" class="form-label small">{{ property_form.notary_fees.label }}</label>
+        {{ property_form.notary_fees }}
+        {% if property_form.notary_fees.errors %}
+          <div class="invalid-feedback d-block">{{ property_form.notary_fees.errors.0 }}</div>
+        {% endif %}
+        {% if property_form.notary_fees.help_text %}
+          <div class="form-text">{{ property_form.notary_fees.help_text }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <label for="{{ property_form.agency_fees.id_for_label }}" class="form-label small">{{ property_form.agency_fees.label }}</label>
+        {{ property_form.agency_fees }}
+        {% if property_form.agency_fees.errors %}
+          <div class="invalid-feedback d-block">{{ property_form.agency_fees.errors.0 }}</div>
+        {% endif %}
+        {% if property_form.agency_fees.help_text %}
+          <div class="form-text">{{ property_form.agency_fees.help_text }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <label for="{{ property_form.other_fees.id_for_label }}" class="form-label small">{{ property_form.other_fees.label }}</label>
+        {{ property_form.other_fees }}
+        {% if property_form.other_fees.errors %}
+          <div class="invalid-feedback d-block">{{ property_form.other_fees.errors.0 }}</div>
+        {% endif %}
+        {% if property_form.other_fees.help_text %}
+          <div class="form-text">{{ property_form.other_fees.help_text }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <label for="{{ property_form.credit_fees.id_for_label }}" class="form-label small">{{ property_form.credit_fees.label }}</label>
+        {{ property_form.credit_fees }}
+        {% if property_form.credit_fees.errors %}
+          <div class="invalid-feedback d-block">{{ property_form.credit_fees.errors.0 }}</div>
+        {% endif %}
+        {% if property_form.credit_fees.help_text %}
+          <div class="form-text">{{ property_form.credit_fees.help_text }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.floor_area.id_for_label }}" class="form-label">
+      {{ property_form.floor_area.label }}
+    </label>
+    <div class="input-group">
+      {{ property_form.floor_area }}
+      <span class="input-group-text">m²</span>
+    </div>
+    {% if property_form.floor_area.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.floor_area.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.number_of_rooms.id_for_label }}" class="form-label">
+      {{ property_form.number_of_rooms.label }}
+    </label>
+    {{ property_form.number_of_rooms }}
+    {% if property_form.number_of_rooms.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.number_of_rooms.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.coproperty_share.id_for_label }}" class="form-label">
+      {{ property_form.coproperty_share.label }}
+    </label>
+    {{ property_form.coproperty_share }}
+    {% if property_form.coproperty_share.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.coproperty_share.errors.0 }}</div>
+    {% endif %}
+    {% if property_form.coproperty_share.help_text %}
+      <div class="form-text">{{ property_form.coproperty_share.help_text }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.shares_count.id_for_label }}" class="form-label">
+      {{ property_form.shares_count.label }}
+    </label>
+    {{ property_form.shares_count }}
+    {% if property_form.shares_count.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.shares_count.errors.0 }}</div>
+    {% endif %}
+    {% if property_form.shares_count.help_text %}
+      <div class="form-text">{{ property_form.shares_count.help_text }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.tax_regime.id_for_label }}" class="form-label">
+      {{ property_form.tax_regime.label }}
+    </label>
+    {{ property_form.tax_regime }}
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <label for="{{ property_form.selling_date.id_for_label }}" class="form-label">
+        {{ property_form.selling_date.label }}
+      </label>
+      {{ property_form.selling_date }}
+      {% if property_form.selling_date.errors %}
+        <div class="invalid-feedback d-block">{{ property_form.selling_date.errors.0 }}</div>
+      {% endif %}
+      {% if property_form.selling_date.help_text %}
+        <div class="form-text">{{ property_form.selling_date.help_text }}</div>
+      {% endif %}
+    </div>
+
+    <div class="col-md-4">
+      <label for="{{ property_form.selling_value.id_for_label }}" class="form-label">
+        {{ property_form.selling_value.label }}
+      </label>
+      {{ property_form.selling_value }}
+      {% if property_form.selling_value.errors %}
+        <div class="invalid-feedback d-block">{{ property_form.selling_value.errors.0 }}</div>
+      {% endif %}
+      {% if property_form.selling_value.help_text %}
+        <div class="form-text">{{ property_form.selling_value.help_text }}</div>
+      {% endif %}
+    </div>
+
+    <div class="col-md-4">
+      <label for="{{ property_form.is_active.id_for_label }}" class="form-label">
+        {{ property_form.is_active.label }}
+      </label>
+      {{ property_form.is_active }}
+      {% if property_form.is_active.errors %}
+        <div class="invalid-feedback d-block">{{ property_form.is_active.errors.0 }}</div>
+      {% endif %}
+      {% if property_form.is_active.help_text %}
+        <div class="form-text">{{ property_form.is_active.help_text }}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input:not([type="checkbox"]), select, textarea').forEach(input => {
+    if (!input.classList.contains('form-control') && !input.classList.contains('form-check-input')) {
+      input.classList.add('form-control');
+    }
+  });
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.classList.add('form-check-input'));
+  document.querySelectorAll('select').forEach(sel => {
+    sel.classList.remove('form-control');
+    sel.classList.add('form-select');
+  });
+});
+</script>

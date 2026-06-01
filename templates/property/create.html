@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% translate "Add property" %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1>{% translate "Add property" %}</h1>
+    </div>
+    <a href="{% url 'property:index' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> {% translate "Back" %}
+    </a>
+  </div>
+
+  {% url 'property:index' as cancel_url %}
+  {% translate "Create property" as submit_label %}
+  {% include "property/_property_form_card.html" with cancel_url=cancel_url submit_label=submit_label submit_icon_class="bi-plus-circle" %}
+</div>
+{% endblock %}

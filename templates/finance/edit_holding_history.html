@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% if history %}{% translate "Edit history entry" %}{% else %}{% translate "New history entry" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+
+  {% translate "Edit history entry" as edit_title %}
+  {% translate "New history entry" as new_title %}
+  {% url 'finance:investment_detail' account.pk as back_url %}
+  {% include "finance/_edit_page_header.html" with is_edit=history edit_title=edit_title new_title=new_title back_url=back_url back_label=holding.short_name %}
+
+  {% include "finance/_form_error_alert.html" %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0"><i class="bi bi-clock-history me-1"></i>{% translate "Holding history" %} — {{ holding.short_name }}</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          {% include "finance/_edit_value_field.html" %}
+          <div class="col-md-6">
+            <label for="{{ form.valuation_date.id_for_label }}" class="form-label fw-semibold">{% translate "Valuation date" %}</label>
+            {{ form.valuation_date }}
+            {% if form.valuation_date.errors %}<div class="invalid-feedback d-block">{{ form.valuation_date.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label for="{{ form.quantity.id_for_label }}" class="form-label fw-semibold">
+              {% translate "Quantity" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ form.quantity }}
+            {% if form.quantity.errors %}<div class="invalid-feedback d-block">{{ form.quantity.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">
+              {% translate "Cash used" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ form.cash_used }}
+            {% if form.cash_used.errors %}<div class="invalid-feedback d-block">{{ form.cash_used.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% url 'finance:investment_detail' account.pk as cancel_url %}
+    {% include "finance/_edit_form_footer.html" with cancel_url=cancel_url %}
+  </form>
+
+</div>
+{% endblock %}

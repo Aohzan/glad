@@ -1,0 +1,20 @@
+{% load i18n format_money %}
+{% with css=account.progression.css_class %}
+{% if css == "up" or css == "down" %}
+  <div class="{% if css == 'up' %}text-success{% else %}text-danger{% endif %}">
+    <i class="bi {% if css == 'up' %}bi-arrow-up{% else %}bi-arrow-down{% endif %}"></i>
+    <strong>{{ account.progression.net_progression }}%</strong>
+    <small class="text-muted fw-normal"><em>({{ account.progression.gross_progression }}%)</em></small>
+  </div>
+  <div class="small text-muted fw-normal">
+    <strong>{{ account.progression.net_difference | format_money }}</strong>
+    <em>({{ account.progression.gross_difference | format_money }})</em>
+  </div>
+{% else %}
+  <div class="text-secondary">
+    <i class="bi bi-dash"></i>
+    <strong>{{ account.progression.net_progression }}%</strong>
+    <small class="text-muted fw-normal"><em>({{ account.progression.gross_progression }}%)</em></small>
+  </div>
+{% endif %}
+{% endwith %}

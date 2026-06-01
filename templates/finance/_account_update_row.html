@@ -1,0 +1,33 @@
+{% load i18n format_money %}
+<div class="border rounded px-3 py-2 mb-2 {% if form.errors %}border-danger bg-danger-subtle{% endif %}" data-update-row>
+  {{ form.account_id }}
+  {% if form.non_field_errors %}
+    <div class="text-danger small mb-1">
+      <i class="bi bi-exclamation-triangle me-1"></i>{{ form.non_field_errors }}
+    </div>
+  {% endif %}
+  <div class="d-flex align-items-start gap-3">
+    <div class="form-check mt-2 flex-shrink-0">
+      {{ form.update_account }}
+      {% if form.update_account.errors %}
+        <div class="text-danger small">{{ form.update_account.errors }}</div>
+      {% endif %}
+    </div>
+    <div class="flex-grow-1">
+      <div class="fw-semibold mb-2">
+        {{ form.account_name }}{{ account_name_suffix }}
+      </div>
+      <div class="row g-2">
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="small text-muted mb-1">
+            {{ form.current_value }}{% translate 'Currently:' %} {{ form.initial.current_value_display | format_money }}
+          </div>
+          {{ form.new_value }}
+          {% if form.new_value.errors %}
+            <div class="invalid-feedback d-block">{{ form.new_value.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

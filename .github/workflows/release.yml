@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - beta
+  pull_request:
+    branches:
+      - main
+      - beta
+
+permissions:
+  contents: read # for checkout
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref || github.ref_name }}
+      - name: Action | Semantic Version Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v10
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          no_operation_mode: ${{ github.event_name == 'pull_request' }}
+
+      - name: Publish | Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: ${{ steps.release.outputs.released == 'true' }}
+        with:
+          packages-dir: dist
+          print-hash: true
+          verbose: true

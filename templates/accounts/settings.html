@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}- {% translate "Settings" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1 class="mb-4"><i class="bi bi-gear me-2"></i>{% translate "Settings" %}</h1>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>{% translate "Security" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <h6 class="mb-1">{% translate "Password" %}</h6>
+                        <p class="text-muted small mb-1">
+                            {% translate "Update your password to keep your account secure." %}
+                        </p>
+                    </div>
+                </div>
+                <button class="btn btn-outline-primary btn-sm mt-2" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#password-change" aria-expanded="{% if form.errors %}true{% else %}false{% endif %}"
+                    aria-controls="password-change">
+                    <i class="bi bi-key me-2"></i>{% translate "Change Password" %}
+                </button>
+                <div class="collapse mt-3{% if form.errors %} show{% endif %}" id="password-change">
+                    {% include "_form_non_field_errors.html" %}
+                    <form method="post">
+                        {% csrf_token %}
+                        {% include "_form_field.html" with field=form.old_password %}
+                        {% include "_form_field.html" with field=form.new_password1 %}
+                        {% include "_form_field.html" with field=form.new_password2 %}
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-key me-2"></i>{% translate "Change Password" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <hr>
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <h6 class="mb-1">{% translate "Passkey" %}</h6>
+                        <p class="text-muted small mb-1">
+                            {% translate "Register a passkey so you can log in with fingerprint or face recognition." %}
+                        </p>
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-info-circle me-1"></i>{% translate "You can replace your passkey at any time." %}
+                        </p>
+                    </div>
+                    <div class="d-flex flex-column gap-2 align-items-end">
+                        <button id="passkey-register" class="btn btn-outline-primary btn-sm" type="button">
+                            <i class="bi bi-key me-2"></i>{% translate "Register passkey" %}
+                        </button>
+                        <button id="passkey-delete" class="btn btn-outline-danger btn-sm" type="button">
+                            <i class="bi bi-trash me-2"></i>{% translate "Remove passkey" %}
+                        </button>
+                    </div>
+                </div>
+                <div id="passkey-status" class="mt-3 small" aria-live="polite"></div>
+                <hr>
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <h6 class="mb-1">{% translate "Auto-logout" %}</h6>
+                        <p class="text-muted small mb-0">
+                            {% translate "Automatically log out after a period of inactivity for security." %}
+                        </p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm" style="width: 80px;"
+                            id="session-timeout-input" min="5" max="1440" step="5"
+                            value="{{ session_timeout }}">
+                        <span class="text-muted small">{% translate "minutes" %}</span>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-2">
+                    <button id="session-timeout-save" class="btn btn-outline-primary btn-sm" type="button">
+                        <i class="bi bi-save me-2"></i>{% translate "Save" %}
+                    </button>
+                </div>
+                <div id="session-timeout-status" class="mt-2 small" aria-live="polite"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    'use strict';
+
+    const passkeyRegisterBtn = document.getElementById('passkey-register');
+    const passkeyDeleteBtn = document.getElementById('passkey-delete');
+    const passkeyStatusEl = document.getElementById('passkey-status');
+    const passkeyRegisterOptionsUrl = '{% url "accounts:passkey_register_options" %}';
+    const passkeyRegisterCompleteUrl = '{% url "accounts:passkey_register_complete" %}';
+    const passkeyDeleteUrl = '{% url "accounts:passkey_delete" %}';
+    const passkeyRegistered = {{ passkey_registered|yesno:"true,false" }};
+
+    function getCsrfToken() {
+        // First try to get token from meta tag (works with CSRF_COOKIE_HTTPONLY = True)
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) return metaTag.getAttribute('content');
+
+        // Fallback to cookie (only works if CSRF_COOKIE_HTTPONLY = False)
+        const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+        return match ? match[1] : null;
+    }
+
+    function showPasskeyStatus(msg, isError) {
+        passkeyStatusEl.textContent = msg;
+        passkeyStatusEl.className = 'mt-3 small ' + (isError ? 'text-danger' : 'text-success');
+    }
+
+    function clearPasskeyStatus() {
+        passkeyStatusEl.textContent = '';
+        passkeyStatusEl.className = 'mt-3 small';
+    }
+
+    function base64urlToUint8Array(value) {
+        const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64 + '==='.slice((base64.length + 3) % 4);
+        const binary = atob(padded);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+    }
+
+    function uint8ArrayToBase64url(bytes) {
+        let binary = '';
+        bytes.forEach((b) => { binary += String.fromCharCode(b); });
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    function updatePasskeyButtons(registered) {
+        passkeyDeleteBtn.disabled = !registered;
+        passkeyRegisterBtn.textContent = registered
+            ? '{% translate "Replace passkey" %}'
+            : '{% translate "Register passkey" %}';
+    }
+
+    if (passkeyRegisterBtn && passkeyDeleteBtn) {
+        updatePasskeyButtons(passkeyRegistered);
+        if (passkeyRegistered) {
+            {% translate "Passkey registered." as msg %}showPasskeyStatus('{{ msg|escapejs }}');
+        } else {
+            {% translate "No passkey registered yet." as msg %}showPasskeyStatus('{{ msg|escapejs }}');
+        }
+    }
+
+    if (passkeyRegisterBtn) {
+        passkeyRegisterBtn.addEventListener('click', async function () {
+            clearPasskeyStatus();
+
+            if (!window.PublicKeyCredential) {
+                {% translate "Passkeys are not supported on this browser." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+                return;
+            }
+
+            passkeyRegisterBtn.disabled = true;
+            try {
+                const csrfToken = getCsrfToken();
+                const optionsResponse = await fetch(passkeyRegisterOptionsUrl, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                });
+                if (!optionsResponse.ok) throw new Error('options_failed');
+
+                const options = await optionsResponse.json();
+                options.challenge = base64urlToUint8Array(options.challenge);
+                options.user.id = base64urlToUint8Array(options.user.id);
+                if (options.excludeCredentials) {
+                    options.excludeCredentials = options.excludeCredentials.map((cred) => ({
+                        ...cred,
+                        id: base64urlToUint8Array(cred.id),
+                    }));
+                }
+
+                const credential = await navigator.credentials.create({ publicKey: options });
+                const payload = {
+                    id: credential.id,
+                    rawId: uint8ArrayToBase64url(new Uint8Array(credential.rawId)),
+                    type: credential.type,
+                    response: {
+                        attestationObject: uint8ArrayToBase64url(
+                            new Uint8Array(credential.response.attestationObject)
+                        ),
+                        clientDataJSON: uint8ArrayToBase64url(
+                            new Uint8Array(credential.response.clientDataJSON)
+                        ),
+                    },
+                };
+
+                const verifyResponse = await fetch(passkeyRegisterCompleteUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (!verifyResponse.ok) {
+                    const errorData = await verifyResponse.json().catch(() => ({}));
+                    console.error('Verification failed:', errorData);
+                    throw new Error(errorData.error || 'verify_failed');
+                }
+
+                {% translate "Passkey registered successfully." as msg %}showPasskeyStatus('{{ msg|escapejs }}');
+                updatePasskeyButtons(true);
+            } catch (err) {
+                console.error('Passkey registration error:', err);
+                if (err.name === 'NotAllowedError') {
+                    {% translate "Passkey registration was cancelled." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+                } else if (err.message === 'options_failed') {
+                    {% translate "Failed to get registration options from server." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+                } else if (err.message === 'verify_failed') {
+                    {% translate "Failed to verify passkey with server." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+                } else {
+                    {% translate "Failed to register passkey:" as msg %}showPasskeyStatus('{{ msg|escapejs }}' + ' ' + (err.message || err.name || 'Unknown error'), true);
+                }
+            } finally {
+                passkeyRegisterBtn.disabled = false;
+            }
+        });
+    }
+
+    if (passkeyDeleteBtn) {
+        passkeyDeleteBtn.addEventListener('click', async function () {
+            clearPasskeyStatus();
+            passkeyDeleteBtn.disabled = true;
+            try {
+                const csrfToken = getCsrfToken();
+                const response = await fetch(passkeyDeleteUrl, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                });
+                if (!response.ok) throw new Error('delete_failed');
+                {% translate "Passkey removed." as msg %}showPasskeyStatus('{{ msg|escapejs }}');
+                updatePasskeyButtons(false);
+            } catch (err) {
+                {% translate "Failed to remove passkey." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+            } finally {
+                passkeyDeleteBtn.disabled = false;
+            }
+        });
+    }
+
+    // Session timeout
+    const sessionTimeoutInput = document.getElementById('session-timeout-input');
+    const sessionTimeoutSaveBtn = document.getElementById('session-timeout-save');
+    const sessionTimeoutStatusEl = document.getElementById('session-timeout-status');
+    const updateSessionTimeoutUrl = '{% url "accounts:update_session_timeout" %}';
+
+    if (sessionTimeoutSaveBtn && sessionTimeoutInput) {
+        sessionTimeoutSaveBtn.addEventListener('click', async function () {
+            const timeout = parseInt(sessionTimeoutInput.value, 10);
+            if (isNaN(timeout) || timeout < 5 || timeout > 1440) {
+                sessionTimeoutStatusEl.textContent = "{% translate "Please enter a value between 5 and 1440 minutes." %}";
+                sessionTimeoutStatusEl.className = 'mt-2 small text-danger';
+                return;
+            }
+            sessionTimeoutSaveBtn.disabled = true;
+            try {
+                const csrfToken = getCsrfToken();
+                const response = await fetch(updateSessionTimeoutUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ timeout }),
+                });
+                if (!response.ok) throw new Error('update_failed');
+                {% translate "Session timeout updated successfully." as msg %}
+                sessionTimeoutStatusEl.textContent = '{{ msg|escapejs }}';
+                sessionTimeoutStatusEl.className = 'mt-2 small text-success';
+            } catch (err) {
+                {% translate "Failed to update session timeout." as msg %}
+                sessionTimeoutStatusEl.textContent = '{{ msg|escapejs }}';
+                sessionTimeoutStatusEl.className = 'mt-2 small text-danger';
+            } finally {
+                sessionTimeoutSaveBtn.disabled = false;
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

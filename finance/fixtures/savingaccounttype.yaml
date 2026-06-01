@@ -1,0 +1,50 @@
+---
+- model: finance.savingaccounttype
+  pk: 1
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Compte courant
+    code: CPT
+- model: finance.savingaccounttype
+  pk: 2
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Livret A
+    code: LA
+- model: finance.savingaccounttype
+  pk: 3
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Livret jeune
+    code: LJ
+- model: finance.savingaccounttype
+  pk: 4
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Livret Développement Durable et Solidaire
+    code: LDDS
+- model: finance.savingaccounttype
+  pk: 5
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Plan d'épargne logement
+    code: PEL
+- model: finance.savingaccounttype
+  pk: 6
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Compte épargne logement
+    code: CEL
+- model: finance.savingaccounttype
+  pk: 7
+  fields:
+    created_at: 2025-01-01 00:00:00.000000
+    updated_at: 2025-01-01 00:00:00.000000
+    name: Compte épargne
+    code: DIV

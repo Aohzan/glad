@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Edit Entry" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+  <h1>{% translate "Edit Entry" %}</h1>
+  <form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-primary form-control">{% translate "Save" %}</button>
+  <a href="{% url 'property:detail' property.pk %}" class="btn btn-secondary form-control mt-2">{% translate "Cancel" %}</a>
+  </form>
+</div>
+{% endblock %}
