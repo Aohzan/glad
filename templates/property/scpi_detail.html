@@ -101,6 +101,10 @@
             <dt class="col-sm-6 text-body-secondary">{% translate "Enjoyment date" %}</dt>
             <dd class="col-sm-6">{{ investment.enjoyment_date }}</dd>
             {% endif %}
+            {% if investment.sold_date %}
+            <dt class="col-sm-6 text-body-secondary">{% translate "Sold date" %}</dt>
+            <dd class="col-sm-6">{{ investment.sold_date }}</dd>
+            {% endif %}
             <dt class="col-sm-6 text-body-secondary">{% translate "Ownership type" %}</dt>
             <dd class="col-sm-6">
               <span class="badge {% if investment.ownership_type == 'full' %}bg-success-subtle text-success-emphasis{% elif investment.ownership_type == 'bare' %}bg-warning-subtle text-warning-emphasis{% else %}bg-info-subtle text-info-emphasis{% endif %}">

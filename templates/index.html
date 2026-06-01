@@ -31,7 +31,7 @@
     const SCPI_PKS = {{ scpi_pks|safe }};
     const API = {
       netWorth:        "{% url 'api_net_worth' %}",
-      patrimonyChart:  "{% url 'api_patrimony_chart' %}",
+      patrimonyChart:  (range) => `{% url 'api_patrimony_chart' %}?range=${range}`,
       recentOps:       "{% url 'api_recent_operations' %}",
       alerts:          "{% url 'api_alerts' %}",
       accountsSummary: "{% url 'finance:api_accounts_summary' %}",
@@ -82,11 +82,9 @@
             <span class="placeholder d-block mb-2" style="height:2.8rem;width:55%;border-radius:.4rem"></span>
             <span class="placeholder d-block" style="height:.9rem;width:35%;border-radius:.3rem"></span>
           </div>
-          <div class="col-12 col-md-7">
+          <div class="col-12 col-md-7 justify-content-end">
             <div class="d-flex gap-4">
-              <span class="placeholder d-block" style="height:2.5rem;width:80px;border-radius:.3rem"></span>
-              <span class="placeholder d-block" style="height:2.5rem;width:80px;border-radius:.3rem"></span>
-              <span class="placeholder d-block" style="height:2.5rem;width:80px;border-radius:.3rem"></span>
+              <span class="placeholder d-block" style="height:3rem;width:100%;border-radius:.3rem"></span>
             </div>
           </div>
         </div>
@@ -98,10 +96,10 @@
       <div class="d-flex justify-content-between align-items-center mb-2">
         <span class="hero-chart-label"><i class="bi bi-graph-up me-1"></i>{% translate 'Patrimony Evolution' %}</span>
         <div class="btn-group btn-group-sm" id="chart-range-group">
-          <button type="button" class="btn btn-sm" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2)" data-range="12">1Y</button>
-          <button type="button" class="btn btn-sm" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2)" data-range="24">2Y</button>
-          <button type="button" class="btn btn-sm active" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.35)" data-range="60">5Y</button>
-          <button type="button" class="btn btn-sm" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2)" data-range="0">{% translate 'All' %}</button>
+          <button type="button" class="btn btn-sm" data-range="1">{% translate '1Y' %}</button>
+          <button type="button" class="btn btn-sm" data-range="2">{% translate '2Y' %}</button>
+          <button type="button" class="btn btn-sm" data-range="5">{% translate '5Y' %}</button>
+          <button type="button" class="btn btn-sm" data-range="10">{% translate '10Y' %}</button>
         </div>
       </div>
       <div id="chart-evolution-skeleton" class="placeholder-glow">
@@ -292,19 +290,19 @@ function loadHero() {
           <div class="row g-2 text-center justify-content-end">
             ${data.has_investments ? `<div class="col-md-3 col-sm-6 overflow-auto">
               <p class="hero-stat-label mb-0"><i class="bi bi-bar-chart-line me-1"></i>${i18n.investments}</p>
-              <p class="hero-stat-value mb-0">${fmt(data.total_investments, cur)}</p>
+              <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#60a5fa;font-size:.5rem;vertical-align:middle"></i>${fmt(data.total_investments, cur)}</p>
             </div>` : ''}
             ${data.has_savings ? `<div class="col-md-3 col-sm-6 overflow-auto">
               <p class="hero-stat-label mb-0"><i class="bi bi-piggy-bank me-1"></i>${i18n.savings}</p>
-              <p class="hero-stat-value mb-0">${fmt(data.total_savings, cur)}</p>
+              <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#34d399;font-size:.5rem;vertical-align:middle"></i>${fmt(data.total_savings, cur)}</p>
             </div>` : ''}
             ${data.has_properties ? `<div class="col-md-3 col-sm-6 overflow-auto">
               <p class="hero-stat-label mb-0"><i class="bi bi-house-door me-1"></i>${i18n.properties}</p>
-              <p class="hero-stat-value mb-0">${fmt(data.total_properties_net, cur)}</p>
+              <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#fdba74;font-size:.5rem;vertical-align:middle"></i>${fmt(data.total_properties_net, cur)}</p>
             </div>` : ''}
             ${data.has_scpi ? `<div class="col-md-3 col-sm-6 overflow-auto">
               <p class="hero-stat-label mb-0"><i class="bi bi-building me-1"></i>${i18n.scpi}</p>
-              <p class="hero-stat-value mb-0">${fmt(data.total_scpi, cur)}</p>
+              <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#a78bfa;font-size:.5rem;vertical-align:middle"></i>${fmt(data.total_scpi, cur)}</p>
             </div>` : ''}
           </div>
         </div>
@@ -318,7 +316,8 @@ function loadHero() {
 let chartEvolution = null;
 let chartAllData   = null;
 
-function renderEvolutionChart(data, rangeMonths) {
+function renderEvolutionChart(data, rangeYear) {
+  const rangeMonths = rangeYear * 12;
   const total  = data.months.length;
   const start  = rangeMonths ? Math.max(0, total - rangeMonths) : 0;
   const months = data.months.slice(start);
@@ -353,7 +352,7 @@ function renderEvolutionChart(data, rangeMonths) {
       y: { formatter: v => fmt(v, 'EUR') },
     },
     grid: { borderColor: 'rgba(255,255,255,.08)', padding: { left: 0, right: 0 } },
-    legend: { position: 'top', fontSize: '11px', labels: { colors: 'rgba(255,255,255,.7)' } },
+    legend: { show: false },
   };
   document.getElementById('chart-evolution-skeleton').style.display = 'none';
   const container = document.getElementById('chart-evolution');
@@ -363,14 +362,33 @@ function renderEvolutionChart(data, rangeMonths) {
   chartEvolution.render();
 }
 
-function loadPatrimonyChart() {
-  apiFetch(API.patrimonyChart).then(data => {
+function loadPatrimonyChart(range) {
+  const sk = document.getElementById('chart-evolution-skeleton');
+  const cv = document.getElementById('chart-evolution');
+  sk.classList.remove('placeholder-glow');
+  sk.innerHTML = '<div class="d-flex justify-content-center align-items-center" style="height:200px"><div class="spinner-border text-light opacity-50" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+  sk.style.display = 'block';
+  cv.style.display = 'none';
+  apiFetch(API.patrimonyChart(range)).then(data => {
     chartAllData = data;
-    renderEvolutionChart(data, 60);
+    renderEvolutionChart(data, range);
   }).catch(() => {
     const sk = document.getElementById('chart-evolution-skeleton');
     sk.classList.remove('placeholder-glow');
     sk.innerHTML = `<span class="text-white opacity-50 small d-block text-center py-4"><i class="bi bi-exclamation-circle me-1"></i>${i18n.error}</span>`;
+  });
+  document.querySelectorAll('#chart-range-group .btn').forEach(btn => {
+    if (btn.getAttribute('data-range') === range) {
+      btn.style.background = 'rgba(1, 1, 1, 0.15)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'rgba(255,255,255,.35)';
+      btn.classList.add('active');
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = 'rgba(255,255,255,.6)';
+      btn.style.borderColor = 'rgba(255,255,255,.2)';
+      btn.classList.remove('active');
+    }
   });
 }
 
@@ -647,29 +665,15 @@ function loadRecentOps() {
 /* ── Boot: fire all in parallel ─────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   loadHero();
-  loadPatrimonyChart();
+  loadPatrimonyChart('1');
   loadAccountsSummary();
   loadRecentOps();
   PROPERTY_PKS.forEach(pk => loadPropertyCard(pk));
   SCPI_PKS.forEach(pk => loadScpiCard(pk));
 
   document.getElementById('chart-range-group').addEventListener('click', e => {
-    const btn = e.target.closest('[data-range]');
-    if (!btn || !chartAllData) return;
-    document.querySelectorAll('#chart-range-group [data-range]').forEach(b => {
-      b.classList.remove('active');
-      b.style.background = '';
-      b.style.color = 'rgba(255,255,255,.6)';
-      b.style.borderColor = 'rgba(255,255,255,.2)';
-    });
-    btn.classList.add('active');
-    btn.style.background = 'rgba(255,255,255,.15)';
-    btn.style.color = '#fff';
-    btn.style.borderColor = 'rgba(255,255,255,.35)';
-    renderEvolutionChart(chartAllData, parseInt(btn.dataset.range) || 0);
+    loadPatrimonyChart(e.target.getAttribute('data-range'));
   });
-
-
 });
 
 /* ── Theme change support ───────────────────────────────────────────────── */

@@ -23,15 +23,22 @@
       </div>
       <div class="card-body">
         <div class="row g-3">
-          <div class="col-12">{% include "_form_field.html" with field=form.scpi %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.scpi %}</div>
           <div class="col-md-6">{% include "_form_field.html" with field=form.subscription_date %}</div>
           <div class="col-md-6">{% include "_form_field.html" with field=form.enjoyment_date %}</div>
-          <div class="col-md-6">{% include "_form_field.html" with field=form.shares_count %}</div>
-          <div class="col-md-6">{% include "_form_field.html" with field=form.unit_purchase_price %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.sold_date %}</div>
           <div class="col-12">
             <div class="alert alert-info small mb-0">
               <i class="bi bi-info-circle me-1"></i>
               {% blocktranslate %}Enter the <strong>total price paid per share</strong>, including any entry fees you have already paid.{% endblocktranslate %}
+            </div>
+          </div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.shares_count %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.unit_purchase_price %}</div>
+          <div id="computed-bought-value-container" class="col-12" style="display: none;">
+            <div class="alert alert-light small mb-0">
+              <i class="bi bi-wallet-fill me-1"></i>
+              {% blocktranslate %}Computed bought value:{% endblocktranslate %} <span id="computed-bought-value" class="fw-semibold"></span>
             </div>
           </div>
         </div>
@@ -96,6 +103,28 @@
     ownershipField.addEventListener('change', toggleDismemberment);
     toggleDismemberment();
   }
+
+  const sharesCountField = document.getElementById('{{ form.shares_count.id_for_label }}');
+  const unitPriceField = document.getElementById('id_unit_purchase_price_0');
+
+  function computeBoughtValue() {
+    const sharesCount = parseFloat(sharesCountField.value) || 0;
+    const unitPrice = parseFloat(unitPriceField.value) || 0;
+    const boughtValueElem = document.getElementById('computed-bought-value');
+    const currency = document.getElementById('id_unit_purchase_price_1').value;
+    if (sharesCount > 0 && unitPrice > 0) {
+      const total = sharesCount * unitPrice;
+      boughtValueElem.textContent = new Intl.NumberFormat(undefined, { style: 'currency', currency: currency }).format(total);
+      document.getElementById('computed-bought-value-container').style.display = '';
+    } else {
+      boughtValueElem.textContent = '';
+      document.getElementById('computed-bought-value-container').style.display = 'none';
+    }
+  }
+
+  sharesCountField.addEventListener("input", computeBoughtValue);
+  unitPriceField.addEventListener("input", computeBoughtValue);
+  computeBoughtValue();
 })();
 </script>
 {% endblock %}

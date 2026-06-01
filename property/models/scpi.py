@@ -53,7 +53,6 @@ class SCPI(BaseModel):
         blank=True,
         verbose_name=_("Entry fee rate (%)"),
         help_text=_("Subscription fee as a percentage, e.g. 8.0000 for 8%."),
-
     )
     exit_fee_rate = models.DecimalField(
         max_digits=6,
@@ -232,6 +231,12 @@ class SCPIInvestment(BaseModel):
             " after subscription)."
         ),
     )
+    sold_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Sold date"),
+        help_text=_("Date on which all the shares were sold, if applicable."),
+    )
     ownership_type = models.CharField(
         max_length=10,
         choices=OwnershipType.choices,
@@ -310,8 +315,13 @@ class SCPIInvestment(BaseModel):
             return str(self.unit_purchase_price.currency)
         return "EUR"  # pragma: no cover
 
-    def get_purchase_value(self) -> Money:
+    def get_purchase_value(self, as_of_date: datetime.date | None = None) -> Money:
         """Return the raw purchase value: shares × unit purchase price (excl. fees)."""
+        if as_of_date is not None and as_of_date < self.subscription_date:
+            return Money(
+                0,
+                self.currency,
+            )
         return Money(
             self.shares_count * self.unit_purchase_price.amount,
             self.currency,
@@ -355,9 +365,14 @@ class SCPIInvestment(BaseModel):
         """
         if as_of_date is None:
             as_of_date = datetime.date.today()
+        if self.sold_date and as_of_date > self.sold_date:
+            return Money(
+                0,
+                self.currency,
+            )
         sub_value = self._get_subscription_value_at(as_of_date)
         if sub_value is None:
-            return self.get_purchase_value()
+            return self.get_purchase_value(as_of_date)
         return Money(
             (self.shares_count * sub_value.amount).quantize(Decimal("0.01")),
             self.currency,

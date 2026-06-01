@@ -211,7 +211,7 @@ class NetWorthApiView(View):
 
 @method_decorator(login_required, name="dispatch")
 class PatrimonyChartApiView(View):
-    """Return 24-month patrimony evolution series for the evolution chart."""
+    """Return patrimony evolution series for the evolution chart."""
 
     def get(self, request):
         totals = _get_currency_totals()
@@ -222,6 +222,7 @@ class PatrimonyChartApiView(View):
         scpi_investments = totals["scpi_investments"]
 
         now = datetime.datetime.now()
+        months_range = int(request.GET.get("range", 2)) * 12
         months = []
         investments_series = []
         savings_series = []
@@ -229,7 +230,7 @@ class PatrimonyChartApiView(View):
         properties_loans_series = []
         scpi_series = []
 
-        for i in range(24, -1, -1):
+        for i in range(months_range, -1, -1):
             year = now.year
             month = now.month - i
             while month <= 0:

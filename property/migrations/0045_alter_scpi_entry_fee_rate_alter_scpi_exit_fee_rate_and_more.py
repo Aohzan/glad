@@ -4,25 +4,45 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('property', '0044_alter_property_shares_count_and_more'),
+        ("property", "0044_alter_property_shares_count_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='scpi',
-            name='entry_fee_rate',
-            field=models.DecimalField(blank=True, decimal_places=4, help_text='Subscription fee as a percentage, e.g. 8.0000 for 8%.', max_digits=6, null=True, verbose_name='Entry fee rate (%)'),
+            model_name="scpi",
+            name="entry_fee_rate",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=4,
+                help_text="Subscription fee as a percentage, e.g. 8.0000 for 8%.",
+                max_digits=6,
+                null=True,
+                verbose_name="Entry fee rate (%)",
+            ),
         ),
         migrations.AlterField(
-            model_name='scpi',
-            name='exit_fee_rate',
-            field=models.DecimalField(blank=True, decimal_places=4, help_text='Redemption fee as a percentage, e.g. 0.0000 for 0%.', max_digits=6, null=True, verbose_name='Exit fee rate (%)'),
+            model_name="scpi",
+            name="exit_fee_rate",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=4,
+                help_text="Redemption fee as a percentage, e.g. 0.0000 for 0%.",
+                max_digits=6,
+                null=True,
+                verbose_name="Exit fee rate (%)",
+            ),
         ),
         migrations.AlterField(
-            model_name='scpi',
-            name='management_fee_rate',
-            field=models.DecimalField(blank=True, decimal_places=4, help_text='Annual management fee as a percentage, e.g. 10.0000 for 10%.', max_digits=6, null=True, verbose_name='Management fee rate (%)'),
+            model_name="scpi",
+            name="management_fee_rate",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=4,
+                help_text="Annual management fee as a percentage, e.g. 10.0000 for 10%.",
+                max_digits=6,
+                null=True,
+                verbose_name="Management fee rate (%)",
+            ),
         ),
     ]

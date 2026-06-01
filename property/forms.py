@@ -542,6 +542,7 @@ class SCPIInvestmentForm(MoneyInputGroupMixin, forms.ModelForm):
             "shares_count",
             "unit_purchase_price",
             "enjoyment_date",
+            "sold_date",
             "ownership_type",
             "dismemberment_start_date",
             "dismemberment_end_date",
@@ -557,6 +558,9 @@ class SCPIInvestmentForm(MoneyInputGroupMixin, forms.ModelForm):
                 attrs={"class": "form-control", "step": "0.000001", "min": "0"}
             ),
             "enjoyment_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+            "sold_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
             ),
             "ownership_type": forms.Select(
