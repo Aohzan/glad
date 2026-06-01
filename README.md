@@ -6,6 +6,8 @@
 
 :fr: Glad est une application web pour suivre ses investissements et propriétés, principalement basés sur les finances et propriétés en France (glad vient du breton).
 
+![Dashboard screenshot](docs/images/dashboard_hero.png)
+
 ## Features
 
 ### Finance
@@ -13,6 +15,7 @@
 - **Savings accounts** — track values, interest rates, deposits, and historical progression
 - **Investment accounts** — manage cash and security holdings with price history and valuation charts
 - Portfolio dashboard with gain/loss tracking across all accounts
+- Batch update to easily update prices and valuations for multiple accounts at once
 - CSV import/export for bulk data entry
 
 ### Properties
@@ -24,7 +27,7 @@
 - **Management mandates** — track property managers with fee structures
 - **Financial reporting** — monthly balance sheets, accounting dashboard, income/expense summaries with deductible breakdown
 - **LMNP** (*beta*) — accounting support
-- **SCPI** (*coming soon*) — track SCPI shares with valuation and income
+- **SCPI** — track SCPI shares with valuation and dividend history
 
 ### Web application
 
@@ -33,6 +36,17 @@
 - Dark mode
 - Responsive design
 - Passwordless authentication with passkeys (WebAuthn)
+
+## Screenshots
+
+| | | |
+|---|---|---|
+| [![Dashboard](docs/images/dashboard.png)](docs/images/dashboard.png) | [![Finance home](docs/images/finance_home.png)](docs/images/finance_home.png) | [![Finance investments](docs/images/finance_invest.png)](docs/images/finance_invest.png) |
+| Dashboard | Finance home | Finance investments |
+| [![Finance batch update](docs/images/finance_batch_update.png)](docs/images/finance_batch_update.png) | [![Property home](docs/images/property_home.png)](docs/images/property_home.png) | [![Property details](docs/images/property_details.png)](docs/images/property_details.png) |
+| Finance batch update | Property home | Property details |
+| [![Property accounting](docs/images/property_accounting.png)](docs/images/property_accounting.png) | [![Property LMNP](docs/images/property_lmnp.png)](docs/images/property_lmnp.png) | [![SCPI](docs/images/scpi.png)](docs/images/scpi.png) |
+| Property accounting | Property LMNP | SCPI |
 
 ## Configuration
 
