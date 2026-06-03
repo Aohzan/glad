@@ -43,11 +43,3 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: uv run semantic-release -v version
-
-      - name: Publish | Upload package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        if: ${{ steps.release.outputs.released == 'true' }}
-        with:
-          packages-dir: dist
-          print-hash: true
-          verbose: true
