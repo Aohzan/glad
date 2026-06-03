@@ -1,0 +1,24 @@
+<script>
+function _gladDataTable(selector, rows, i18n, extraColumns) {
+  return new simpleDatatables.DataTable(selector, {
+    data: { data: rows },
+    perPage: 10,
+    perPageSelect: i18n.perPageSelect || [5, 10, 25, 50],
+    searchable: true,
+    sortable: true,
+    labels: {
+      placeholder: i18n.search,
+      noRows: i18n.noData,
+      noResults: i18n.noData,
+    },
+    columns: [
+      {
+        select: 0, sort: 'desc', type: 'date', format: 'YYYY-MM-DD',
+        render: function(value) {
+          return new Date(value).toLocaleDateString('fr-FR');
+        }
+      }
+    ].concat(extraColumns || [])
+  });
+}
+</script>
