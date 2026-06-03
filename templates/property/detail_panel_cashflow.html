@@ -245,6 +245,7 @@
 {{ cashflow_loan_principal_series|json_script:"cashflow-loan-principal-series" }}
 {{ cashflow_loan_insurance_series|json_script:"cashflow-loan-insurance-series" }}
 {{ cashflow_total_expenses_series|json_script:"cashflow-total-expenses-series" }}
+{% include "property/_datatable_helper.html" %}
 
 <script>
 (function () {
@@ -307,24 +308,9 @@
     ];
   });
 
-  var datatable = new simpleDatatables.DataTable('#transactions-table', {
-    data: { data: tableRows },
-    perPage: 10,
-    perPageSelect: [5, 10, 20, 50, 100],
-    searchable: true,
-    sortable: true,
-    labels: {
-      placeholder: _cfI18n.search,
-      noRows: _cfI18n.noData,
-      noResults: _cfI18n.noData,
-    },
-    columns: [
-      {
-        select: 0, sort: 'desc', type: 'date', format: 'YYYY-MM-DD',
-        render: function(value) {
-          return new Date(value).toLocaleDateString('fr-FR');
-        }
-      },
+  var datatable = _gladDataTable('#transactions-table', tableRows,
+    Object.assign({}, _cfI18n, { perPageSelect: [5, 10, 20, 50, 100] }),
+    [
       {
         select: 1, type: 'string', sortable: false,
         render: function(value) { return buildKindBadge(value); },
@@ -361,7 +347,7 @@
         }
       }
     ]
-  });
+  );
 
   datatable.on('datatable.init', function() {
     var headers = datatable.dom.querySelectorAll('thead th');

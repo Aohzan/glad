@@ -205,16 +205,7 @@
       </a>
     </div>
     <div class="table-responsive">
-      <table id="dividends-table" class="table table-hover align-middle mb-0 w-100">
-        <thead class="table-light">
-          <tr>
-            <th>{% translate "Payment date" %}</th>
-            <th class="text-end">{% translate "Gross amount" %}</th>
-            <th class="text-end">{% translate "Net amount" %}</th>
-            <th>{% translate "Notes" %}</th>
-            <th class="no-sort">{% translate "Actions" %}</th>
-          </tr>
-        </thead>
+      {% include "property/_dividend_table_header.html" with table_id="dividends-table" full_width=1 last_col_no_sort=1 show_actions_label=1 %}
         <tbody></tbody>
       </table>
     </div>
@@ -225,6 +216,7 @@
 
 {% block scripts %}
 {{ dividends_json|json_script:"dividends-data" }}
+{% include "property/_datatable_helper.html" %}
 
 <script>
 (function () {
@@ -266,49 +258,31 @@
     ];
   });
 
-  var datatable = new simpleDatatables.DataTable('#dividends-table', {
-    data: { data: tableRows },
-    perPage: 10,
-    perPageSelect: [5, 10, 25, 50],
-    searchable: true,
-    sortable: true,
-    labels: {
-      placeholder: _i18n.search,
-      noRows: _i18n.noData,
-      noResults: _i18n.noData,
+  var datatable = _gladDataTable('#dividends-table', tableRows, _i18n, [
+    {
+      select: 1, type: 'number', cellClass: 'text-end',
+      render: function(value) { return formatAmount(value || null); }
     },
-    columns: [
-      {
-        select: 0, sort: 'desc', type: 'date', format: 'YYYY-MM-DD',
-        render: function(value) {
-          return new Date(value).toLocaleDateString('fr-FR');
-        }
-      },
-      {
-        select: 1, type: 'number', cellClass: 'text-end',
-        render: function(value) { return formatAmount(value || null); }
-      },
-      {
-        select: 2, type: 'number', cellClass: 'text-end fw-semibold',
-        render: function(value) { return formatAmount(value); }
-      },
-      {
-        select: 3, type: 'string',
-        render: function(value) { return value || '\u2014'; }
-      },
-      {
-        select: 4, type: 'string', sortable: false, searchable: false,
-        render: function(value) {
-          var d = JSON.parse(value);
-          var editUrl = '/property/scpi/' + scpiPk + '/dividend/' + d.id + '/edit/';
-          return '<div class="btn-group btn-group-sm">' +
-            '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _i18n.edit + '"><i class="bi bi-pencil"></i></a>' +
-            '<button type="button" class="btn btn-outline-danger" onclick="if(confirm(\'' + _i18n.confirm + '\')) document.getElementById(\'deleteDiv\'+' + d.id + ').submit();" title="' + _i18n.delete + '"><i class="bi bi-trash"></i></button>' +
-            '</div>';
-        }
+    {
+      select: 2, type: 'number', cellClass: 'text-end fw-semibold',
+      render: function(value) { return formatAmount(value); }
+    },
+    {
+      select: 3, type: 'string',
+      render: function(value) { return value || '\u2014'; }
+    },
+    {
+      select: 4, type: 'string', sortable: false, searchable: false,
+      render: function(value) {
+        var d = JSON.parse(value);
+        var editUrl = '/property/scpi/' + scpiPk + '/dividend/' + d.id + '/edit/';
+        return '<div class="btn-group btn-group-sm">' +
+          '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _i18n.edit + '"><i class="bi bi-pencil"></i></a>' +
+          '<button type="button" class="btn btn-outline-danger" onclick="if(confirm(\'' + _i18n.confirm + '\')) document.getElementById(\'deleteDiv\'+' + d.id + ').submit();" title="' + _i18n.delete + '"><i class="bi bi-trash"></i></button>' +
+          '</div>';
       }
-    ]
-  });
+    }
+  ]);
   void datatable;
 
   {% if chart_months != "[]" %}

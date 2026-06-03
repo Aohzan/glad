@@ -171,16 +171,7 @@
     </div>
     {% if dividends %}
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>{% translate "Payment date" %}</th>
-            <th class="text-end">{% translate "Gross amount" %}</th>
-            <th class="text-end">{% translate "Net amount" %}</th>
-            <th>{% translate "Notes" %}</th>
-            <th></th>
-          </tr>
-        </thead>
+      {% include "property/_dividend_table_header.html" %}
         <tbody>
           {% for div in dividends %}
           <tr>

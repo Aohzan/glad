@@ -62,6 +62,42 @@ def _make_scpi_investment(name="Test SCPI", shares=10, price=Money(100, "EUR")):
     )
 
 
+def _make_property_with_value_and_patch():
+    from property.models import PropertyValue
+
+    prop = _make_property()
+    PropertyValue.objects.create(
+        property=prop,
+        value=Money(200000, "EUR"),
+        valuation_date=datetime.date.today(),
+    )
+    original = Property.net_value_at_date
+
+    def _raising_net_value_at_date(self, as_of_date=None):
+        if as_of_date is not None:
+            raise Exception("mock error")
+        return original(self, as_of_date=as_of_date)
+
+    return patch.object(Property, "net_value_at_date", _raising_net_value_at_date)
+
+
+def _make_multi_currency_data(saving_account_type, investment_account_type):
+    usd_inv = InvestmentAccount.objects.create(
+        account_type=investment_account_type,
+        name="USD Inv",
+        is_active=True,
+        opening_cash_value=Money(0, "USD"),
+        opening_date=datetime.date.today() - datetime.timedelta(days=60),
+    )
+    InvestmentAccountCash.objects.create(
+        account=usd_inv, value=Money(3000, "USD"), value_date=datetime.date.today()
+    )
+    eur_saving = _make_saving_account(saving_account_type, name="EUR Saving")
+    SavingAccountValue.objects.create(
+        account=eur_saving, value=Money(2000, "EUR"), value_date=datetime.date.today()
+    )
+
+
 # ── auth guards ────────────────────────────────────────────────────────────
 
 
@@ -712,22 +748,7 @@ def test_net_worth_investment_exception_fallback(admin_client, investment_accoun
 
 @pytest.mark.django_db
 def test_net_worth_property_exception_fallback(admin_client):
-    _make_property()
-    from property.models import PropertyValue
-
-    PropertyValue.objects.create(
-        property=Property.objects.first(),
-        value=Money(200000, "EUR"),
-        valuation_date=datetime.date.today(),
-    )
-    original = Property.net_value_at_date
-
-    def _raising_net_value_at_date(self, as_of_date=None):
-        if as_of_date is not None:
-            raise Exception("mock error")
-        return original(self, as_of_date=as_of_date)
-
-    with patch.object(Property, "net_value_at_date", _raising_net_value_at_date):
+    with _make_property_with_value_and_patch():
         response = get_json(admin_client, reverse("api_net_worth"))
     assert response.status_code == 200
 
@@ -815,22 +836,7 @@ def test_patrimony_chart_investment_exception_fallback(
 
 @pytest.mark.django_db
 def test_patrimony_chart_property_exception_fallback(admin_client):
-    prop = _make_property()
-    from property.models import PropertyValue
-
-    PropertyValue.objects.create(
-        property=prop,
-        value=Money(200000, "EUR"),
-        valuation_date=datetime.date.today(),
-    )
-    original = Property.net_value_at_date
-
-    def _raising_net_value_at_date(self, as_of_date=None):
-        if as_of_date is not None:
-            raise Exception("mock error")
-        return original(self, as_of_date=as_of_date)
-
-    with patch.object(Property, "net_value_at_date", _raising_net_value_at_date):
+    with _make_property_with_value_and_patch():
         response = get_json(admin_client, reverse("api_patrimony_chart"))
     assert response.status_code == 200
     data = response.json()
@@ -858,29 +864,7 @@ def test_patrimony_chart_scpi_exception_fallback(admin_client):
 def test_net_worth_multi_currency_skips_non_dc(
     admin_client, saving_account_type, investment_account_type
 ):
-    usd_saving = SavingAccount.objects.create(
-        name="USD Saving",
-        account_type=saving_account_type,
-        opening_value=Money(0, "USD"),
-        is_active=True,
-    )
-    SavingAccountValue.objects.create(
-        account=usd_saving, value=Money(5000, "USD"), value_date=datetime.date.today()
-    )
-    usd_inv = InvestmentAccount.objects.create(
-        account_type=investment_account_type,
-        name="USD Inv",
-        is_active=True,
-        opening_cash_value=Money(0, "USD"),
-        opening_date=datetime.date.today() - datetime.timedelta(days=60),
-    )
-    InvestmentAccountCash.objects.create(
-        account=usd_inv, value=Money(3000, "USD"), value_date=datetime.date.today()
-    )
-    eur_saving = _make_saving_account(saving_account_type, name="EUR Saving")
-    SavingAccountValue.objects.create(
-        account=eur_saving, value=Money(2000, "EUR"), value_date=datetime.date.today()
-    )
+    _make_multi_currency_data(saving_account_type, investment_account_type)
     response = get_json(admin_client, reverse("api_net_worth"))
     data = response.json()
     assert data["currency"] == "USD"
@@ -914,20 +898,7 @@ def test_net_worth_property_bought_after_30_days(admin_client):
 def test_patrimony_chart_multi_currency_skips_non_dc(
     admin_client, saving_account_type, investment_account_type
 ):
-    usd_inv = InvestmentAccount.objects.create(
-        account_type=investment_account_type,
-        name="USD Inv",
-        is_active=True,
-        opening_cash_value=Money(0, "USD"),
-        opening_date=datetime.date.today() - datetime.timedelta(days=60),
-    )
-    InvestmentAccountCash.objects.create(
-        account=usd_inv, value=Money(3000, "USD"), value_date=datetime.date.today()
-    )
-    eur_saving = _make_saving_account(saving_account_type, name="EUR Saving")
-    SavingAccountValue.objects.create(
-        account=eur_saving, value=Money(2000, "EUR"), value_date=datetime.date.today()
-    )
+    _make_multi_currency_data(saving_account_type, investment_account_type)
     response = get_json(admin_client, reverse("api_patrimony_chart"))
     data = response.json()
     assert data["savings"][0] == 0.0

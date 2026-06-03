@@ -1,0 +1,11 @@
+{% load i18n %}
+<table{% if table_id %} id="{{ table_id }}"{% endif %} class="table table-hover align-middle mb-0{% if full_width %} w-100{% endif %}">
+  <thead class="table-light">
+    <tr>
+      <th>{% translate "Payment date" %}</th>
+      <th class="text-end">{% translate "Gross amount" %}</th>
+      <th class="text-end">{% translate "Net amount" %}</th>
+      <th>{% translate "Notes" %}</th>
+      <th{% if last_col_no_sort %} class="no-sort"{% endif %}>{% if show_actions_label %}{% translate "Actions" %}{% endif %}</th>
+    </tr>
+  </thead>
