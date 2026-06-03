@@ -1,5 +1,6 @@
 """Tests for the context returned by the finance index view."""
 
+import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
@@ -115,6 +116,8 @@ def test_index_view_savings_accounts_structure(
     mock_saving = MagicMock()
     mock_saving.name = "Test Saving Account"
     mock_saving.current_value = Money(Decimal("1000.00"), "EUR")
+    mock_saving.opening_date = datetime.date(2024, 1, 1)
+    mock_saving.get_value.return_value = Money(Decimal("1000.00"), "EUR")
 
     # Create mock progression
     mock_progression = MagicMock(spec=AccountProgression)
@@ -167,6 +170,8 @@ def test_index_view_investment_accounts_structure(
     mock_investment = MagicMock()
     mock_investment.name = "Test Investment Account"
     mock_investment.current_value = Money(Decimal("2000.00"), "EUR")
+    mock_investment.opening_date = datetime.date(2024, 1, 1)
+    mock_investment.get_value.return_value = Money(Decimal("2000.00"), "EUR")
 
     # Create mock progression
     mock_progression = MagicMock(spec=AccountProgression)
@@ -219,6 +224,8 @@ def test_index_view_custom_days_progression(
     # Create mock accounts
     mock_saving = MagicMock()
     mock_saving.current_value = Money(Decimal("1000.00"), "EUR")
+    mock_saving.opening_date = datetime.date(2024, 1, 1)
+    mock_saving.get_value.return_value = Money(Decimal("1000.00"), "EUR")
     mock_saving.get_progression.return_value = MagicMock(
         spec=AccountProgression,
         progression=Money(Decimal("10.00"), "EUR"),
@@ -228,6 +235,8 @@ def test_index_view_custom_days_progression(
 
     mock_investment = MagicMock()
     mock_investment.current_value = Money(Decimal("2000.00"), "EUR")
+    mock_investment.opening_date = datetime.date(2024, 1, 1)
+    mock_investment.get_value.return_value = Money(Decimal("2000.00"), "EUR")
     mock_investment.get_progression.return_value = MagicMock(
         spec=AccountProgression,
         progression=Money(Decimal("5.00"), "EUR"),
