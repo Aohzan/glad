@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-build = ["uv>=0.7"]
+build = ["uv>=0.7", "python-semantic-release>=9.8.0"]
 
 [dependency-groups]
 dev = [
