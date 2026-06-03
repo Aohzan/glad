@@ -86,7 +86,7 @@ repos:
 
       - id: pytest
         name: pytest
-        entry: bash -c 'ENV_FILE=./.env.dev uv run pytest --picked --cov' # TODO --cov-fail-under=95'
+        entry: bash -c 'ENV_FILE=./.env.dev uv run pytest --picked --cov --cov-fail-under=90'
         exclude: ^migrations
         language: system
         types: [python]
