@@ -17,4 +17,4 @@ python manage.py collectstatic --noinput
 echo
 
 echo "Starting server..."
-exec uv run uvicorn --host 0.0.0.0 --port 8000 glad.asgi:application
+exec uvicorn --host 0.0.0.0 --port 8000 glad.asgi:application
