@@ -1,6 +1,8 @@
 """Signals for the accounts app."""
 
 import logging
+import socket
+import threading
 
 from django.contrib.auth.signals import user_logged_in
 from django.core.mail import EmailMultiAlternatives
@@ -10,6 +12,24 @@ from django.utils import timezone
 from .models import UserProfile
 
 _LOGGER = logging.getLogger(__name__)
+
+
+_EMAIL_TIMEOUT = 10
+
+
+def _send_email_async(subject, text_body, html_body, recipient):
+    socket.setdefaulttimeout(_EMAIL_TIMEOUT)
+    try:
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_body,
+            to=[recipient],
+        )
+        msg.attach_alternative(html_body, "text/html")
+        msg.send(fail_silently=True)
+        _LOGGER.info("Login notification sent to %s", recipient)
+    except Exception:
+        _LOGGER.exception("Failed to send login notification to %s", recipient)
 
 
 def send_login_notification(sender, user, request, **kwargs):
@@ -44,17 +64,14 @@ def send_login_notification(sender, user, request, **kwargs):
         text_body = render_to_string("accounts/emails/login_notification.txt", context)
         html_body = render_to_string("accounts/emails/login_notification.html", context)
 
-        msg = EmailMultiAlternatives(
-            subject=subject,
-            body=text_body,
-            to=[user.email],
+        thread = threading.Thread(
+            target=_send_email_async,
+            args=(subject, text_body, html_body, user.email),
+            daemon=True,
         )
-        msg.attach_alternative(html_body, "text/html")
-        msg.send(fail_silently=True)
-
-        _LOGGER.info("Login notification sent to %s", user.email)
+        thread.start()
     except Exception:
-        _LOGGER.exception("Failed to send login notification to %s", user.email)
+        _LOGGER.exception("Failed to prepare login notification to %s", user.email)
 
 
 def _get_client_ip(request):
