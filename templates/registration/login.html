@@ -12,11 +12,6 @@
 {% block auth_submit %}{% translate "Log In" %}{% endblock %}
 
 {% block auth_extra %}
-        <div class="d-grid mt-3">
-          <button id="passkey-login" type="button" class="btn btn-outline-primary">
-            <i class="bi bi-fingerprint me-2"></i>{% translate "Log in with passkey" %}
-          </button>
-        </div>
         <div id="passkey-login-status" class="small mt-2" aria-live="polite"></div>
 
         <div class="text-center mt-3">
@@ -29,15 +24,14 @@
 (function () {
   'use strict';
 
-  const passkeyBtn = document.getElementById('passkey-login');
-  const statusEl = document.getElementById('passkey-login-status');
-  const optionsUrl = '{% url "accounts:passkey_auth_options" %}';
-  const completeUrl = '{% url "accounts:passkey_auth_complete" %}';
+  var statusEl = document.getElementById('passkey-login-status');
+  var optionsUrl = '{% url "accounts:passkey_auth_options" %}';
+  var completeUrl = '{% url "accounts:passkey_auth_complete" %}';
 
   function getCsrfToken() {
-    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    var metaTag = document.querySelector('meta[name="csrf-token"]');
     if (metaTag) return metaTag.getAttribute('content');
-    const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
     return match ? match[1] : null;
   }
 
@@ -47,56 +41,40 @@
   }
 
   function base64urlToUint8Array(value) {
-    const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '==='.slice((base64.length + 3) % 4);
-    const binary = atob(padded);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
+    var base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+    var padded = base64 + '==='.slice((base64.length + 3) % 4);
+    var binary = atob(padded);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
     return bytes;
   }
 
   function uint8ArrayToBase64url(bytes) {
-    let binary = '';
-    bytes.forEach((b) => { binary += String.fromCharCode(b); });
+    var binary = '';
+    bytes.forEach(function (b) { binary += String.fromCharCode(b); });
     return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
   }
 
   function nextUrl() {
-    const params = new URLSearchParams(window.location.search);
+    var params = new URLSearchParams(window.location.search);
     return params.get('next') || '/';
   }
 
-  if (!window.PublicKeyCredential) {
-    passkeyBtn.disabled = true;
-    {% translate "Passkeys are not supported on this browser." as msg %}showStatus('{{ msg|escapejs }}', true);
-    return;
-  }
-
-  passkeyBtn.addEventListener('click', async function () {
-    showStatus('', false);
-    passkeyBtn.disabled = true;
-
-    try {
-      const csrfToken = getCsrfToken();
-      const optionsResponse = await fetch(optionsUrl, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrfToken },
-      });
-      if (!optionsResponse.ok) throw new Error('options_failed');
-
-      const options = await optionsResponse.json();
-      options.challenge = base64urlToUint8Array(options.challenge);
-      if (options.allowCredentials) {
-        options.allowCredentials = options.allowCredentials.map((cred) => ({
-          ...cred,
+  function authenticatePasskey(options) {
+    options.challenge = base64urlToUint8Array(options.challenge);
+    if (options.allowCredentials) {
+      options.allowCredentials = options.allowCredentials.map(function (cred) {
+        return {
           id: base64urlToUint8Array(cred.id),
-        }));
-      }
+          type: cred.type,
+        };
+      });
+    }
 
-      const assertion = await navigator.credentials.get({ publicKey: options });
-      const payload = {
+    return navigator.credentials.get({ publicKey: options }).then(function (assertion) {
+      var payload = {
         id: assertion.id,
         rawId: uint8ArrayToBase64url(new Uint8Array(assertion.rawId)),
         type: assertion.type,
@@ -114,7 +92,8 @@
         },
       };
 
-      const verifyResponse = await fetch(completeUrl, {
+      var csrfToken = getCsrfToken();
+      return fetch(completeUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,27 +101,52 @@
         },
         body: JSON.stringify(payload),
       });
+    }).then(function (verifyResponse) {
       if (!verifyResponse.ok) {
-        const errorData = await verifyResponse.json().catch(() => ({}));
-        console.error('Verification failed:', errorData);
-        throw new Error(errorData.error || 'verify_failed');
+        return verifyResponse.json().catch(function () { return {}; }).then(function (errorData) {
+          console.error('Verification failed:', errorData);
+          throw new Error(errorData.error || 'verify_failed');
+        });
       }
-
       window.location.href = nextUrl();
-    } catch (err) {
+    });
+  }
+
+  if (!window.PublicKeyCredential) {
+    return;
+  }
+
+  PublicKeyCredential.isConditionalMediationAvailable().then(function (available) {
+    if (!available) return;
+
+    var usernameField = document.getElementById('id_username');
+    if (usernameField) {
+      usernameField.setAttribute('autocomplete', 'webauthn');
+    }
+
+    var csrfToken = getCsrfToken();
+    if (!csrfToken) return;
+
+    fetch(optionsUrl, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken },
+    })
+    .then(function (response) {
+      if (!response.ok) throw new Error('options_failed');
+      return response.json();
+    })
+    .then(function (options) {
+      return authenticatePasskey(options);
+    })
+    .catch(function (err) {
+      if (err.name === 'NotAllowedError') return;
       console.error('Passkey login error:', err);
-      if (err.name === 'NotAllowedError') {
-        {% translate "Passkey login was cancelled." as msg %}showStatus('{{ msg|escapejs }}', true);
-      } else if (err.message === 'options_failed') {
-        {% translate "Failed to get authentication options from server." as msg %}showStatus('{{ msg|escapejs }}', true);
-      } else if (err.message === 'verify_failed') {
+      if (err.message === 'verify_failed') {
         {% translate "Failed to verify passkey with server." as msg %}showStatus('{{ msg|escapejs }}', true);
-      } else {
+      } else if (err.message !== 'options_failed') {
         {% translate "Passkey login failed:" as msg %}showStatus('{{ msg|escapejs }}' + ' ' + (err.message || err.name || 'Unknown error'), true);
       }
-    } finally {
-      passkeyBtn.disabled = false;
-    }
+    });
   });
 })();
 </script>
