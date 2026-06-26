@@ -358,3 +358,37 @@ def test_store_and_load_challenge_helpers(rf):
     views._store_challenge(request, "key2", "plain")
     assert views._load_challenge(request, "key2") == b"plain"
     assert views._load_challenge(request, "missing") is None
+
+
+@pytest.mark.django_db
+def test_login_page_has_no_passkey_button(client):
+    response = client.get(reverse("login"))
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'id="passkey-login"' not in content
+
+
+@pytest.mark.django_db
+def test_login_page_has_passkey_status_element(client):
+    response = client.get(reverse("login"))
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'id="passkey-login-status"' in content
+    assert 'aria-live="polite"' in content
+
+
+@pytest.mark.django_db
+def test_login_page_has_conditional_ui_script(client):
+    response = client.get(reverse("login"))
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "isConditionalMediationAvailable" in content
+
+
+@pytest.mark.django_db
+def test_login_page_conditional_ui_sets_autocomplete(client):
+    response = client.get(reverse("login"))
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "autocomplete" in content
+    assert "webauthn" in content
