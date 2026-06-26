@@ -9,6 +9,8 @@ from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_not_required, login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -305,4 +307,62 @@ def update_session_timeout(request):
         return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
     except Exception as e:
         _LOGGER.error(f"Session timeout update failed: {e}")
+        return JsonResponse({"success": False, "error": "update_failed"}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_email(request):
+    """Update the email address for the current user."""
+    try:
+        data = json.loads(request.body or "{}")
+        email = data.get("email", "").strip()
+
+        if not email:
+            return JsonResponse(
+                {"success": False, "error": "email_required"}, status=400
+            )
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            return JsonResponse(
+                {"success": False, "error": "invalid_email"}, status=400
+            )
+
+        request.user.email = email
+        request.user.save(update_fields=["email"])
+
+        return JsonResponse({"success": True, "email": request.user.email})
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
+    except Exception as e:
+        _LOGGER.error(f"Email update failed: {e}")
+        return JsonResponse({"success": False, "error": "update_failed"}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_notification_preferences(request):
+    """Update notification preferences for the current user."""
+    try:
+        data = json.loads(request.body or "{}")
+        notify_on_login = data.get("notify_on_login")
+
+        if notify_on_login is None or not isinstance(notify_on_login, bool):
+            return JsonResponse(
+                {"success": False, "error": "invalid_request"}, status=400
+            )
+
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile.notify_on_login = notify_on_login
+        profile.save(update_fields=["notify_on_login"])
+
+        return JsonResponse(
+            {"success": True, "notify_on_login": profile.notify_on_login}
+        )
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
+    except Exception as e:
+        _LOGGER.error(f"Notification preferences update failed: {e}")
         return JsonResponse({"success": False, "error": "update_failed"}, status=400)

@@ -10,6 +10,54 @@
 
         <div class="card mb-4">
             <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>{% translate "Profile" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <h6 class="mb-1">{% translate "Email address" %}</h6>
+                        <p class="text-muted small mb-0">
+                            {% translate "Your email address is used for notifications and password recovery." %}
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <input type="email" class="form-control form-control-sm" id="email-input"
+                        placeholder="{% translate 'Enter your email address' %}"
+                        value="{{ user.email }}">
+                </div>
+                <div class="d-flex justify-content-end mt-2">
+                    <button id="email-save" class="btn btn-outline-primary btn-sm" type="button">
+                        <i class="bi bi-save me-2"></i>{% translate "Save" %}
+                    </button>
+                </div>
+                <div id="email-status" class="mt-2 small" aria-live="polite"></div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bell me-2"></i>{% translate "Notifications" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <h6 class="mb-1">{% translate "Login notification" %}</h6>
+                        <p class="text-muted small mb-0">
+                            {% translate "Receive an email when someone logs in to your account." %}
+                        </p>
+                    </div>
+                    <div class="form-check form-switch flex-shrink-0">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                            id="notify-on-login-switch" {% if notify_on_login %}checked{% endif %}>
+                    </div>
+                </div>
+                <div id="notification-preferences-status" class="mt-2 small" aria-live="polite"></div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>{% translate "Security" %}</h5>
             </div>
             <div class="card-body">
@@ -93,6 +141,98 @@
 (function () {
     'use strict';
 
+    function getCsrfToken() {
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) return metaTag.getAttribute('content');
+        const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+        return match ? match[1] : null;
+    }
+
+    // --- Email ---
+    const emailInput = document.getElementById('email-input');
+    const emailSaveBtn = document.getElementById('email-save');
+    const emailStatusEl = document.getElementById('email-status');
+    const updateEmailUrl = '{% url "accounts:update_email" %}';
+
+    if (emailSaveBtn && emailInput) {
+        emailSaveBtn.addEventListener('click', async function () {
+            const email = emailInput.value.trim();
+            if (!email) {
+                {% translate "Please enter an email address." as msg %}
+                emailStatusEl.textContent = '{{ msg|escapejs }}';
+                emailStatusEl.className = 'mt-2 small text-danger';
+                return;
+            }
+            emailSaveBtn.disabled = true;
+            try {
+                const csrfToken = getCsrfToken();
+                const response = await fetch(updateEmailUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ email }),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    if (data.error === 'invalid_email') {
+                        {% translate "Please enter a valid email address." as msg %}
+                        emailStatusEl.textContent = '{{ msg|escapejs }}';
+                    } else {
+                        {% translate "Failed to update email address." as msg %}
+                        emailStatusEl.textContent = '{{ msg|escapejs }}';
+                    }
+                    emailStatusEl.className = 'mt-2 small text-danger';
+                    return;
+                }
+                {% translate "Email address updated successfully." as msg %}
+                emailStatusEl.textContent = '{{ msg|escapejs }}';
+                emailStatusEl.className = 'mt-2 small text-success';
+            } catch (err) {
+                {% translate "Failed to update email address." as msg %}
+                emailStatusEl.textContent = '{{ msg|escapejs }}';
+                emailStatusEl.className = 'mt-2 small text-danger';
+            } finally {
+                emailSaveBtn.disabled = false;
+            }
+        });
+    }
+
+    // --- Notification preferences ---
+    const notifyOnLoginSwitch = document.getElementById('notify-on-login-switch');
+    const notificationStatusEl = document.getElementById('notification-preferences-status');
+    const updateNotificationUrl = '{% url "accounts:update_notification_preferences" %}';
+
+    if (notifyOnLoginSwitch) {
+        notifyOnLoginSwitch.addEventListener('change', async function () {
+            const notifyOnLogin = notifyOnLoginSwitch.checked;
+            notifyOnLoginSwitch.disabled = true;
+            try {
+                const csrfToken = getCsrfToken();
+                const response = await fetch(updateNotificationUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ notify_on_login: notifyOnLogin }),
+                });
+                if (!response.ok) throw new Error('update_failed');
+                if (notifyOnLogin) {
+                    {% translate "Login notification enabled." as msg %}
+                    notificationStatusEl.textContent = '{{ msg|escapejs }}';
+                } else {
+                    {% translate "Login notification disabled." as msg %}
+                    notificationStatusEl.textContent = '{{ msg|escapejs }}';
+                }
+                notificationStatusEl.className = 'mt-2 small text-success';
+            } catch (err) {
+                notifyOnLoginSwitch.checked = !notifyOnLogin;
+                {% translate "Failed to update notification preferences." as msg %}
+                notificationStatusEl.textContent = '{{ msg|escapejs }}';
+                notificationStatusEl.className = 'mt-2 small text-danger';
+            } finally {
+                notifyOnLoginSwitch.disabled = false;
+            }
+        });
+    }
+
+    // --- Passkey ---
     const passkeyRegisterBtn = document.getElementById('passkey-register');
     const passkeyDeleteBtn = document.getElementById('passkey-delete');
     const passkeyStatusEl = document.getElementById('passkey-status');
@@ -100,16 +240,6 @@
     const passkeyRegisterCompleteUrl = '{% url "accounts:passkey_register_complete" %}';
     const passkeyDeleteUrl = '{% url "accounts:passkey_delete" %}';
     const passkeyRegistered = {{ passkey_registered|yesno:"true,false" }};
-
-    function getCsrfToken() {
-        // First try to get token from meta tag (works with CSRF_COOKIE_HTTPONLY = True)
-        const metaTag = document.querySelector('meta[name="csrf-token"]');
-        if (metaTag) return metaTag.getAttribute('content');
-
-        // Fallback to cookie (only works if CSRF_COOKIE_HTTPONLY = False)
-        const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
-        return match ? match[1] : null;
-    }
 
     function showPasskeyStatus(msg, isError) {
         passkeyStatusEl.textContent = msg;
@@ -251,7 +381,7 @@
         });
     }
 
-    // Session timeout
+    // --- Session timeout ---
     const sessionTimeoutInput = document.getElementById('session-timeout-input');
     const sessionTimeoutSaveBtn = document.getElementById('session-timeout-save');
     const sessionTimeoutStatusEl = document.getElementById('session-timeout-status');

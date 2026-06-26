@@ -1,0 +1,10 @@
+{% load i18n %}{% blocktranslate with username=user.username login_time=login_time|date:"l d F Y, H:i" ip=ip_address %}Hello {{ username }},
+
+A login to your account was detected on {{ login_time }}.
+
+IP address: {{ ip }}
+Browser: {{ user_agent }}
+
+If this was not you, please change your password immediately and review your security settings.
+
+You can manage your notification preferences at: {{ settings_url }}{% endblocktranslate %}
