@@ -9,5 +9,5 @@ from .models import UserProfile
 class UserProfileAdmin(admin.ModelAdmin):
     """Admin for UserProfile."""
 
-    list_display = ("user",)
+    list_display = ("user", "notify_on_login")
     search_fields = ("user__username",)

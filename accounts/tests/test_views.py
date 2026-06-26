@@ -85,6 +85,22 @@ def test_session_config_context_exception_path():
     context = session_config(request)
     assert context["session_timeout"] == 15
     assert context["passkey_registered"] is False
+    assert context["notify_on_login"] is True
+
+
+@pytest.mark.django_db
+def test_session_config_context_authenticated_notify_on_login(user):
+    request = RequestFactory().get("/")
+    request.user = user
+    context = session_config(request)
+    assert context["notify_on_login"] is True
+
+    profile = user.profile
+    profile.notify_on_login = False
+    profile.save()
+
+    context = session_config(request)
+    assert context["notify_on_login"] is False
 
 
 @pytest.mark.django_db
@@ -392,3 +408,215 @@ def test_login_page_conditional_ui_sets_autocomplete(client):
     content = response.content.decode()
     assert "autocomplete" in content
     assert "webauthn" in content
+
+
+@pytest.mark.django_db
+def test_update_email_success(user_client, user):
+    response = user_client.post(
+        reverse("accounts:update_email"),
+        data='{"email": "new@example.com"}',
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+    assert response.json()["email"] == "new@example.com"
+    user.refresh_from_db()
+    assert user.email == "new@example.com"
+
+
+@pytest.mark.django_db
+def test_update_email_empty(user_client):
+    response = user_client.post(
+        reverse("accounts:update_email"),
+        data='{"email": ""}',
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "email_required"
+
+
+@pytest.mark.django_db
+def test_update_email_invalid(user_client):
+    response = user_client.post(
+        reverse("accounts:update_email"),
+        data='{"email": "not-an-email"}',
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_email"
+
+
+@pytest.mark.django_db
+def test_update_email_invalid_json(user_client):
+    response = user_client.post(
+        reverse("accounts:update_email"),
+        data="{",
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_request"
+
+
+@pytest.mark.django_db
+def test_update_email_strips_whitespace(user_client, user):
+    response = user_client.post(
+        reverse("accounts:update_email"),
+        data='{"email": "  stripped@example.com  "}',
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.email == "stripped@example.com"
+
+
+@pytest.mark.django_db
+def test_update_notification_preferences_enable(user_client, user):
+    profile = user.profile
+    profile.notify_on_login = False
+    profile.save()
+
+    response = user_client.post(
+        reverse("accounts:update_notification_preferences"),
+        data='{"notify_on_login": true}',
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+    assert response.json()["notify_on_login"] is True
+    profile.refresh_from_db()
+    assert profile.notify_on_login is True
+
+
+@pytest.mark.django_db
+def test_update_notification_preferences_disable(user_client, user):
+    profile = user.profile
+    profile.notify_on_login = True
+    profile.save()
+
+    response = user_client.post(
+        reverse("accounts:update_notification_preferences"),
+        data='{"notify_on_login": false}',
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+    assert response.json()["notify_on_login"] is False
+    profile.refresh_from_db()
+    assert profile.notify_on_login is False
+
+
+@pytest.mark.django_db
+def test_update_notification_preferences_missing_field(user_client):
+    response = user_client.post(
+        reverse("accounts:update_notification_preferences"),
+        data="{}",
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_request"
+
+
+@pytest.mark.django_db
+def test_update_notification_preferences_invalid_type(user_client):
+    response = user_client.post(
+        reverse("accounts:update_notification_preferences"),
+        data='{"notify_on_login": "yes"}',
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_request"
+
+
+@pytest.mark.django_db
+def test_update_notification_preferences_invalid_json(user_client):
+    response = user_client.post(
+        reverse("accounts:update_notification_preferences"),
+        data="{",
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_request"
+
+
+@pytest.mark.django_db
+def test_settings_page_shows_email_field(user_client):
+    response = user_client.get(reverse("accounts:settings"))
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'id="email-input"' in content
+
+
+@pytest.mark.django_db
+def test_settings_page_shows_notification_toggle(user_client):
+    response = user_client.get(reverse("accounts:settings"))
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'id="notify-on-login-switch"' in content
+
+
+@pytest.mark.django_db
+def test_update_email_requires_authentication(client):
+    response = client.post(
+        reverse("accounts:update_email"),
+        data='{"email": "test@example.com"}',
+        content_type="application/json",
+    )
+    assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_update_notification_preferences_requires_authentication(client):
+    response = client.post(
+        reverse("accounts:update_notification_preferences"),
+        data='{"notify_on_login": true}',
+        content_type="application/json",
+    )
+    assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_update_session_timeout_exception(user_client, monkeypatch):
+    def _raise(*args, **kwargs):
+        raise RuntimeError("db error")
+
+    monkeypatch.setattr("accounts.views.UserProfile.objects.get_or_create", _raise)
+    response = user_client.post(
+        reverse("accounts:update_session_timeout"),
+        data='{"timeout": 30}',
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "update_failed"
+
+
+@pytest.mark.django_db
+def test_update_email_exception(user_client, monkeypatch):
+    def _raise(*args, **kwargs):
+        raise RuntimeError("db error")
+
+    monkeypatch.setattr(
+        "accounts.views.UserProfile.objects", type("M", (), {"get_or_create": _raise})()
+    )
+    monkeypatch.setattr("accounts.views.validate_email", _raise)
+    response = user_client.post(
+        reverse("accounts:update_email"),
+        data='{"email": "test@example.com"}',
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "update_failed"
+
+
+@pytest.mark.django_db
+def test_update_notification_preferences_exception(user_client, monkeypatch):
+    def _raise(*args, **kwargs):
+        raise RuntimeError("db error")
+
+    monkeypatch.setattr("accounts.views.UserProfile.objects.get_or_create", _raise)
+    response = user_client.post(
+        reverse("accounts:update_notification_preferences"),
+        data='{"notify_on_login": true}',
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "update_failed"
