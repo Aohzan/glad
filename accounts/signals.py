@@ -78,15 +78,21 @@ def _get_client_ip(request):
     """Extract the client IP address from the request."""
     if x_forwarded_for := request.META.get("HTTP_X_FORWARDED_FOR"):
         return x_forwarded_for.split(",")[0].strip()
+    if x_real_ip := request.META.get("HTTP_X_REAL_IP"):
+        return x_real_ip.strip()
     return request.META.get("REMOTE_ADDR", "")
 
 
 def _build_settings_url(request):
     """Build the full URL to the user settings page."""
     try:
+        from django.conf import settings
         from django.urls import reverse
 
         path = reverse("accounts:settings")
+        app_url = getattr(settings, "APP_URL", None)
+        if app_url:
+            return f"{app_url.rstrip('/')}{path}"
         scheme = "https" if request.is_secure() else "http"
         host = request.get_host()
         return f"{scheme}://{host}{path}"
