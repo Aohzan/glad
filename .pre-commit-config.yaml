@@ -12,11 +12,11 @@ repos:
         args:
           - --branch=main
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.17
+    rev: 0.11.26
     hooks:
       - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.15.20
     hooks:
       - id: ruff
         args:
