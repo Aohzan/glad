@@ -81,10 +81,10 @@
               <td class="text-end">
                 {% url 'finance:edit_saving_value' account.pk v.pk as edit_url %}
                 {% url 'finance:delete_saving_value' account.pk v.pk as delete_url %}
-                {% include "finance/_item_actions.html" with edit_url=edit_url delete_modal_id="deleteValue"|add:v.pk|stringformat:"s" %}
+                {% include "finance/_item_actions.html" with edit_url=edit_url modal_prefix="deleteValue" item_pk=v.pk %}
                 {% translate "Delete value entry" as modal_title %}
                 {% translate "Are you sure you want to delete this value entry?" as confirm_text %}
-                {% include "finance/_delete_modal.html" with modal_id="deleteValue"|add:v.pk|stringformat:"s" delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
+                {% include "finance/_delete_modal.html" with modal_prefix="deleteValue" item_pk=v.pk delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
               </td>
             </tr>
             {% endfor %}

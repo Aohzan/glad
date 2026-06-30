@@ -43,6 +43,13 @@ _app_url = os.environ.get("APP_URL", "").rstrip("/")
 _app_url_parsed = urlparse(_app_url) if _app_url else None
 _app_hostname = _app_url_parsed.hostname if _app_url_parsed else None
 
+APP_URL = _app_url
+
+if _app_url:
+    USE_X_FORWARDED_HOST = True
+    if _app_url_parsed and _app_url_parsed.scheme == "https":
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # Only set ALLOWED_HOSTS if explicitly configured in environment
 ALLOWED_HOSTS = (
     [x.strip() for x in os.environ["ALLOWED_HOSTS"].split(",")]
@@ -182,7 +189,29 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_REDIRECT_URL = "index"
 LOGOUT_REDIRECT_URL = "index"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Email configuration
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+if EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+    default_use_ssl = EMAIL_PORT == 465
+    default_use_tls = EMAIL_PORT == 587
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", str(default_use_tls)).lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", str(default_use_ssl)).lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Glad <glad@localhost>")
+EMAIL_SUBJECT_PREFIX = os.getenv("EMAIL_SUBJECT_PREFIX", "[Glad] ")
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

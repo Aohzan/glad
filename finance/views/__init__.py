@@ -1,16 +1,18 @@
 """Views for the finance app."""
 
 from .chart_views import chart_data
-from .csv_views import csv_export, csv_import, csv_import_confirm
+from .csv_views import csv_export, csv_export_synthesis, csv_import, csv_import_confirm
 from .index_views import index
 from .investment_views import (
     create_investment,
     delete_holding_history,
     delete_investment,
+    delete_investment_cash,
     delete_investment_deposit,
     delete_investment_holding,
     edit_holding_history,
     edit_investment,
+    edit_investment_cash,
     edit_investment_deposit,
     edit_investment_holding,
     investment_detail,
@@ -34,6 +36,7 @@ __all__ = [
     "update_accounts",
     "chart_data",
     "csv_export",
+    "csv_export_synthesis",
     "csv_import",
     "csv_import_confirm",
     "saving_detail",
@@ -52,6 +55,8 @@ __all__ = [
     "delete_investment_holding",
     "edit_investment_deposit",
     "delete_investment_deposit",
+    "edit_investment_cash",
+    "delete_investment_cash",
     "edit_holding_history",
     "delete_holding_history",
     "toggle_saving_favorite",

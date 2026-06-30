@@ -10,7 +10,20 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Tom Select CSS -->
+
+  <div class="card card-finance mb-4">
+    <div class="card-header">
+      <h3 class="card-title mb-0">{% translate 'Export synthesis' %}</h3>
+    </div>
+    <div class="card-body">
+      <p>{% translate 'Export a summary of all active saving and investment accounts with their current value.' %}</p>
+      <p class="text-muted">{% translate 'Columns: Type, Owner, Institution, Value at date.' %}</p>
+      <a href="{% url 'finance:csv_export_synthesis' %}" class="btn btn-primary">
+        <i class="bi bi-download me-1"></i>{% translate 'Export synthesis' %}
+      </a>
+    </div>
+  </div>
+
   <div class="card card-finance mb-4">
     <div class="card-header">
       <h3 class="card-title mb-0">{% translate 'Export data to CSV' %}</h3>

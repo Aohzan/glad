@@ -10,6 +10,7 @@ from djmoney.money import Money
 
 from finance.models.investment_account import (
     InvestmentAccount,
+    InvestmentAccountCash,
     InvestmentAccountDeposit,
     InvestmentAccountHolding,
     InvestmentAccountHoldingHistory,
@@ -73,6 +74,16 @@ def investment_deposit(investment_account):
         deposit_date=datetime.date.today() - datetime.timedelta(days=10),
         source="Transfer",
         update_account_cash=False,
+    )
+
+
+@pytest.fixture
+def investment_cash(investment_account):
+    """Create an investment account cash entry."""
+    return InvestmentAccountCash.objects.create(
+        account=investment_account,
+        value=Money(Decimal("6000.00"), "EUR"),
+        value_date=datetime.date.today() - datetime.timedelta(days=5),
     )
 
 
@@ -371,6 +382,142 @@ class TestInvestmentDepositCRUD:
         assert not InvestmentAccountDeposit.objects.filter(
             pk=investment_deposit.pk
         ).exists()
+
+
+# ─── Investment cash CRUD ──────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestInvestmentCashCRUD:
+    """Tests for investment account cash CRUD."""
+
+    def test_get_create_cash(self, user_client, investment_account):
+        """GET returns cash create form."""
+        url = reverse(
+            "finance:new_investment_cash",
+            kwargs={"account_pk": investment_account.pk},
+        )
+        response = user_client.get(url)
+        assert response.status_code == 200
+
+    def test_post_create_cash(self, user_client, investment_account):
+        """POST creates a cash entry."""
+        url = reverse(
+            "finance:new_investment_cash",
+            kwargs={"account_pk": investment_account.pk},
+        )
+        data = {
+            "value_0": "7000.00",
+            "value_1": "EUR",
+            "value_date": "2025-06-01",
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 302
+        assert InvestmentAccountCash.objects.filter(
+            account=investment_account, value_date=datetime.date(2025, 6, 1)
+        ).exists()
+
+    def test_get_edit_cash(self, user_client, investment_account, investment_cash):
+        """GET returns cash edit form."""
+        url = reverse(
+            "finance:edit_investment_cash",
+            kwargs={
+                "account_pk": investment_account.pk,
+                "cash_pk": investment_cash.pk,
+            },
+        )
+        response = user_client.get(url)
+        assert response.status_code == 200
+        assert response.context["cash_entry"] == investment_cash
+
+    def test_post_edit_cash(self, user_client, investment_account, investment_cash):
+        """POST updates the cash entry."""
+        url = reverse(
+            "finance:edit_investment_cash",
+            kwargs={
+                "account_pk": investment_account.pk,
+                "cash_pk": investment_cash.pk,
+            },
+        )
+        data = {
+            "value_0": "8000.00",
+            "value_1": "EUR",
+            "value_date": "2025-06-15",
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 302
+        investment_cash.refresh_from_db()
+        assert investment_cash.value.amount == Decimal("8000.00")
+
+    def test_post_delete_cash(self, user_client, investment_account, investment_cash):
+        """POST deletes the cash entry."""
+        url = reverse(
+            "finance:delete_investment_cash",
+            kwargs={
+                "account_pk": investment_account.pk,
+                "cash_pk": investment_cash.pk,
+            },
+        )
+        response = user_client.post(url)
+        assert response.status_code == 302
+        assert not InvestmentAccountCash.objects.filter(pk=investment_cash.pk).exists()
+
+    def test_get_delete_cash_rejected(
+        self, user_client, investment_account, investment_cash
+    ):
+        """GET is rejected for delete."""
+        url = reverse(
+            "finance:delete_investment_cash",
+            kwargs={
+                "account_pk": investment_account.pk,
+                "cash_pk": investment_cash.pk,
+            },
+        )
+        response = user_client.get(url)
+        assert response.status_code == 302
+        assert InvestmentAccountCash.objects.filter(pk=investment_cash.pk).exists()
+
+    def test_create_cash_invalid_data(self, user_client, investment_account):
+        """POST with invalid data re-renders the form."""
+        url = reverse(
+            "finance:new_investment_cash",
+            kwargs={"account_pk": investment_account.pk},
+        )
+        data = {
+            "value_0": "",
+            "value_1": "EUR",
+            "value_date": "",
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 200
+        assert response.context["form"].errors
+
+    def test_edit_cash_nonexistent(self, user_client, investment_account):
+        """Editing a nonexistent cash entry returns 404."""
+        url = reverse(
+            "finance:edit_investment_cash",
+            kwargs={"account_pk": investment_account.pk, "cash_pk": 99999},
+        )
+        response = user_client.get(url)
+        assert response.status_code == 404
+
+    def test_delete_cash_nonexistent(self, user_client, investment_account):
+        """Deleting a nonexistent cash entry returns 404."""
+        url = reverse(
+            "finance:delete_investment_cash",
+            kwargs={"account_pk": investment_account.pk, "cash_pk": 99999},
+        )
+        response = user_client.post(url)
+        assert response.status_code == 404
+
+    def test_detail_shows_cash_with_actions(
+        self, user_client, investment_account, investment_cash
+    ):
+        """Detail page includes cash entries in context."""
+        url = reverse("finance:investment_detail", kwargs={"pk": investment_account.pk})
+        response = user_client.get(url)
+        assert response.status_code == 200
+        assert investment_cash in response.context["cash_values"]
 
 
 # ─── Holding history CRUD ────────────────────────────────────────────────────

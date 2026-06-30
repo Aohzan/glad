@@ -10,6 +10,8 @@ from .views import (
     passkey_delete,
     passkey_register_complete,
     passkey_register_options,
+    update_email,
+    update_notification_preferences,
     update_session_timeout,
 )
 
@@ -47,5 +49,15 @@ urlpatterns = [
         "api/session-timeout/update/",
         update_session_timeout,
         name="update_session_timeout",
+    ),
+    path(
+        "api/email/update/",
+        update_email,
+        name="update_email",
+    ),
+    path(
+        "api/notification-preferences/update/",
+        update_notification_preferences,
+        name="update_notification_preferences",
     ),
 ]

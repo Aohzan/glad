@@ -8,6 +8,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from finance.forms import (
+    InvestmentAccountCashForm,
     InvestmentAccountDepositForm,
     InvestmentAccountForm,
     InvestmentAccountHoldingForm,
@@ -15,6 +16,7 @@ from finance.forms import (
 )
 from finance.models.investment_account import (
     InvestmentAccount,
+    InvestmentAccountCash,
     InvestmentAccountDeposit,
     InvestmentAccountHolding,
     InvestmentAccountHoldingHistory,
@@ -189,6 +191,44 @@ def delete_investment_deposit(
         success_message=_("Deposit deleted successfully."),
         detail_url_name=DETAIL_URL,
         anchor="#deposits-panel",
+    )
+
+
+# ─── Investment cash CRUD ────────────────────────────────────────────────────
+
+
+def edit_investment_cash(
+    request: HttpRequest, account_pk: int, cash_pk: int | None = None
+) -> HttpResponse:
+    """Create or edit an investment account cash entry."""
+    return _edit_account_related(
+        request,
+        account_pk=account_pk,
+        account_model=InvestmentAccount,
+        model=InvestmentAccountCash,
+        object_pk=cash_pk,
+        form_class=InvestmentAccountCashForm,
+        template="finance/edit_investment_cash.html",
+        context_key="cash_entry",
+        success_message=_("Cash entry saved successfully."),
+        detail_url_name=DETAIL_URL,
+        anchor="#cash-panel",
+    )
+
+
+def delete_investment_cash(
+    request: HttpRequest, account_pk: int, cash_pk: int
+) -> HttpResponse:
+    """Delete an investment account cash entry."""
+    return _delete_account_related(
+        request,
+        account_pk=account_pk,
+        account_model=InvestmentAccount,
+        model=InvestmentAccountCash,
+        object_pk=cash_pk,
+        success_message=_("Cash entry deleted successfully."),
+        detail_url_name=DETAIL_URL,
+        anchor="#cash-panel",
     )
 
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-26 22:15+0200\n"
+"POT-Creation-Date: 2026-06-30 23:58+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -26,35 +26,45 @@ msgstr ""
 "défaut : 15 minutes."
 
 #: accounts/models.py:25
+msgid "Notify on login"
+msgstr "Notification lors de la connexion"
+
+#: accounts/models.py:26
+msgid "Receive an email notification when you log in."
+msgstr "Recevoir un email lors de la connexion à votre compte."
+
+#: accounts/models.py:30
 msgid "User profile"
 msgstr "Profil utilisateur"
 
-#: accounts/models.py:26
+#: accounts/models.py:31
 msgid "User profiles"
 msgstr "Profils utilisateur"
 
-#: accounts/models.py:52
+#: accounts/models.py:57
 msgid "Passkey credential"
 msgstr "Identification via passkey"
 
-#: accounts/models.py:53
+#: accounts/models.py:58
 msgid "Passkey credentials"
 msgstr "Identification via passkey"
 
-#: accounts/views.py:63
+#: accounts/views.py:65
 msgid "Password updated successfully."
 msgstr "Mise à jour du mot de passe réussie"
 
-#: accounts/views.py:265
+#: accounts/views.py:267
 msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
 #: base/forms.py:53 property/models/ledger.py:299 property/models/scpi.py:161
+#: templates/accounts/emails/login_notification.html:16
 #: templates/finance/_deposits_panel.html:15
 #: templates/finance/_edit_deposit_fields.html:8
+#: templates/finance/edit_investment_cash.html:33
 #: templates/finance/edit_saving_value.html:29
 #: templates/finance/investment_detail.html:115
-#: templates/finance/investment_detail.html:171
+#: templates/finance/investment_detail.html:174
 #: templates/finance/saving_detail.html:71 templates/property/detail.html:454
 #: templates/property/detail.html:551
 #: templates/property/detail_panel_cashflow.html:33
@@ -91,79 +101,79 @@ msgstr "Mise à jour groupée de la date de valeur"
 msgid "New value date"
 msgstr "Nouvelle valeur"
 
-#: finance/forms.py:23
+#: finance/forms.py:24
 msgid "Saving Account value"
 msgstr "Valeur du compte d'épargne"
 
-#: finance/forms.py:24 templates/finance/csv_import.html:66
+#: finance/forms.py:25 templates/finance/csv_import.html:66
 msgid "Investment Account Cash"
 msgstr "Espèces du compte d'investissement"
 
-#: finance/forms.py:25 templates/finance/csv_import.html:83
+#: finance/forms.py:26 templates/finance/csv_import.html:83
 msgid "Investment Account Holding"
 msgstr "Titres du compte d'investissement"
 
-#: finance/forms.py:36
+#: finance/forms.py:37
 msgid "Number of days for progression calculation."
 msgstr "Nombre de jours pour calculer la progression"
 
-#: finance/forms.py:42
+#: finance/forms.py:43
 msgid "Active accounts only"
 msgstr "Comptes actifs seulement"
 
-#: finance/forms.py:45
+#: finance/forms.py:46
 msgid "Show only active accounts in the index view."
 msgstr "Afficher seulement les comptes actifs dans la vue d'index."
 
-#: finance/forms.py:54
+#: finance/forms.py:55
 msgid "Date of new values"
 msgstr "Date des nouvelles valeurs"
 
-#: finance/forms.py:78
+#: finance/forms.py:79
 msgid "Update account"
 msgstr "Mettre à jour le compte"
 
-#: finance/forms.py:86
+#: finance/forms.py:87
 msgid "New value"
 msgstr "Nouvelle valeur"
 
-#: finance/forms.py:114
+#: finance/forms.py:115
 msgid "Current quantity"
 msgstr "Quantité actuelle"
 
-#: finance/forms.py:121
+#: finance/forms.py:122
 msgid "New quantity"
 msgstr "Nouvelle quantité"
 
-#: finance/forms.py:132
+#: finance/forms.py:133
 msgid "Data type to export"
 msgstr "Type de données à exporter"
 
-#: finance/forms.py:150
+#: finance/forms.py:151
 msgid "Accounts to export"
 msgstr "Comptes à exporter"
 
-#: finance/forms.py:156
+#: finance/forms.py:157
 msgid "Investment"
 msgstr "Investissement"
 
-#: finance/forms.py:159
+#: finance/forms.py:160
 msgid "Saving"
 msgstr "Épargne"
 
-#: finance/forms.py:167
+#: finance/forms.py:168
 msgid "Data type to import"
 msgstr "Type de données à importer"
 
-#: finance/forms.py:173 property/forms.py:668
+#: finance/forms.py:174 property/forms.py:668
 msgid "CSV File"
 msgstr "Fichier CSV"
 
-#: finance/forms.py:174
+#: finance/forms.py:175
 msgid "Please upload a CSV file"
 msgstr "Merci d'envoyer un fichier CSV"
 
-#: finance/forms.py:184
+#: finance/forms.py:185
 msgid "Map to account"
 msgstr "Associer au compte"
 
@@ -336,9 +346,9 @@ msgstr "Données de type invalide"
 msgid "An error occurred while loading chart data"
 msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 
-#: finance/views/crud_views.py:43 finance/views/csv_views.py:320
-#: finance/views/investment_views.py:62 finance/views/investment_views.py:88
-#: finance/views/investment_views.py:227 finance/views/saving_views.py:58
+#: finance/views/crud_views.py:43 finance/views/csv_views.py:321
+#: finance/views/investment_views.py:64 finance/views/investment_views.py:90
+#: finance/views/investment_views.py:267 finance/views/saving_views.py:58
 #: finance/views/saving_views.py:84 finance/views/update_views.py:338
 #: property/views/crud_views.py:125 property/views/crud_views.py:310
 #: property/views/crud_views.py:426 property/views/edit_views.py:44
@@ -349,8 +359,8 @@ msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
 
-#: finance/views/crud_views.py:68 finance/views/investment_views.py:110
-#: finance/views/investment_views.py:251 finance/views/saving_views.py:104
+#: finance/views/crud_views.py:68 finance/views/investment_views.py:112
+#: finance/views/investment_views.py:291 finance/views/saving_views.py:104
 #: property/views/crud_views.py:69 property/views/crud_views.py:142
 #: property/views/crud_views.py:354 property/views/crud_views.py:448
 #: property/views/scpi_views.py:336 property/views/scpi_views.py:376
@@ -358,101 +368,145 @@ msgstr "Veuillez corriger les erreurs ci-dessous."
 msgid "Invalid request method."
 msgstr "Méthode de requête invalide."
 
-#: finance/views/csv_views.py:52 finance/views/csv_views.py:64
+#: finance/views/csv_views.py:53 finance/views/csv_views.py:65
 msgid "Some accounts could not be found."
 msgstr "Certains comptes n'ont pas été trouvés."
 
-#: finance/views/csv_views.py:67
+#: finance/views/csv_views.py:68
 msgid "No account selected or found for export."
 msgstr "Aucun compte sélectionné ou trouvé pour l'export"
 
-#: finance/views/csv_views.py:140
+#: finance/views/csv_views.py:141
 msgid "No data to export for selected accounts."
 msgstr "Aucune donnée à exporter pour les comptes sélectionnés."
 
-#: finance/views/csv_views.py:188 finance/views/csv_views.py:221
+#: finance/views/csv_views.py:189 finance/views/csv_views.py:222
 msgid "CSV file is missing required columns for the selected type."
 msgstr ""
 "Le fichier CSV n'a pas les noms de colonnes requises pour le type "
 "sélectionné."
 
-#: finance/views/csv_views.py:307 property/views/csv_views.py:129
+#: finance/views/csv_views.py:308 property/views/csv_views.py:129
 msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
-#: finance/views/csv_views.py:368
+#: finance/views/csv_views.py:369
 msgid "No mapping found for account"
 msgstr "Aucune correspondance trouvée pour le compte"
 
-#: finance/views/csv_views.py:456
+#: finance/views/csv_views.py:457
 msgid "No mapping found for holding"
 msgstr "Aucune correspondance trouvée pour le titre"
 
-#: finance/views/csv_views.py:494
+#: finance/views/csv_views.py:495
 msgid "An error occurred during import: "
 msgstr "Une erreur s'est produite pendant l'import : "
 
-#: finance/views/csv_views.py:509
+#: finance/views/csv_views.py:510
 #, python-brace-format
 msgid "Successfully imported {} records. {} duplicate records were ignored."
 msgstr "{} enregistrements importés avec succès. {} doublons ignorés."
 
-#: finance/views/csv_views.py:515
+#: finance/views/csv_views.py:516
 #, python-brace-format
 msgid "Successfully imported {} records."
 msgstr "Enregistrements {} importés avec succès."
 
-#: finance/views/csv_views.py:520
+#: finance/views/csv_views.py:521
 #, python-brace-format
 msgid "No new records imported. {} duplicate records were ignored."
 msgstr "Pas de nouvelle données importées. {} données existantes ignorées."
 
-#: finance/views/csv_views.py:526
+#: finance/views/csv_views.py:527
 msgid "Errors in rows: "
 msgstr "Erreurs dans les lignes : "
 
-#: finance/views/csv_views.py:530
+#: finance/views/csv_views.py:531
 #, python-brace-format
 msgid " and {} more errors"
 msgstr " et {} erreurs supplémentaires"
+
+#: finance/views/csv_views.py:543
+#: templates/finance/_account_detail_common_info.html:3
+#: templates/property/detail.html:382
+#: templates/property/detail_panel_cashflow.html:72
+#: templates/property/detail_panel_info.html:17
+#: templates/property/detail_panel_leases.html:48
+msgid "Type"
+msgstr "Type"
+
+#: finance/views/csv_views.py:544
+#: templates/finance/_account_detail_common_info.html:8
+#: templates/finance/_edit_account_info_card.html:24
+msgid "Owner"
+msgstr "Propriétaire"
+
+#: finance/views/csv_views.py:545
+#: templates/finance/_account_detail_common_info.html:14
+#: templates/finance/_edit_account_info_card.html:32
+msgid "Institution"
+msgstr "Établissement"
+
+#: finance/views/csv_views.py:546
+#, python-format
+msgid "Value at %(date)s"
+msgstr "Valeur au %(date)s"
+
+#: finance/views/csv_views.py:586
+#: templates/finance/_account_chart_script.html:110
+#: templates/finance/_account_chart_script.html:148
+#: templates/finance/index.html:61 templates/finance/index.html:345
+#: templates/property/_balance_section_card.html:30
+#: templates/property/_report_category_table.html:27
+#: templates/property/scpi_detail.html:199
+msgid "Total"
+msgstr "Total"
 
 #: finance/views/index_views.py:92 templates/finance/update.html:75
 msgid "Cash"
 msgstr "Espèces"
 
-#: finance/views/investment_views.py:60
+#: finance/views/investment_views.py:62
 msgid "Investment account created successfully."
 msgstr "Compte d'investissement créé avec succès."
 
-#: finance/views/investment_views.py:86
+#: finance/views/investment_views.py:88
 msgid "Investment account updated successfully."
 msgstr "Compte d'investissement mis à jour avec succès."
 
-#: finance/views/investment_views.py:115
+#: finance/views/investment_views.py:117
 msgid "Investment account deleted successfully."
 msgstr "Compte d'investissement supprimé avec succès."
 
-#: finance/views/investment_views.py:135
+#: finance/views/investment_views.py:137
 msgid "Holding saved successfully."
 msgstr "Titre enregistré avec succès."
 
-#: finance/views/investment_views.py:151
+#: finance/views/investment_views.py:153
 msgid "Holding deleted successfully."
 msgstr "Titre supprimé avec succès."
 
-#: finance/views/investment_views.py:173 finance/views/saving_views.py:167
+#: finance/views/investment_views.py:175 finance/views/saving_views.py:167
 msgid "Deposit saved successfully."
 msgstr "Dépôt enregistré avec succès."
 
-#: finance/views/investment_views.py:189 finance/views/saving_views.py:183
+#: finance/views/investment_views.py:191 finance/views/saving_views.py:183
 msgid "Deposit deleted successfully."
 msgstr "Dépôt supprimé avec succès."
 
-#: finance/views/investment_views.py:223
+#: finance/views/investment_views.py:213
+msgid "Cash entry saved successfully."
+msgstr "Écriture de valeur d'espèces enregistrée avec succès."
+
+#: finance/views/investment_views.py:229
+msgid "Cash entry deleted successfully."
+msgstr "Écriture de valeur d'espèces supprimée avec succès."
+
+#: finance/views/investment_views.py:263
 msgid "Holding history entry saved successfully."
 msgstr "Historique du titre enregistré avec succès."
 
-#: finance/views/investment_views.py:262
+#: finance/views/investment_views.py:302
 msgid "Holding history entry deleted successfully."
 msgstr "Historique du titre supprimé avec succès."
 
@@ -518,11 +572,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:197
+#: glad/settings.py:226
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:198
+#: glad/settings.py:227
 msgid "French"
 msgstr "Français"
 
@@ -575,8 +629,8 @@ msgstr ""
 "Part de terrain non amortissable en pourcentage de la valeur totale. "
 "Défaut : 15 %."
 
-#: property/forms.py:634 templates/base.html:75 templates/index.html:50
-#: templates/index.html:175 templates/property/edit_manager.html:13
+#: property/forms.py:634 templates/base.html:75 templates/index.html:53
+#: templates/index.html:178 templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:17
 msgid "Properties"
 msgstr "Immobilier"
@@ -1178,7 +1232,7 @@ msgstr "Autres charges non déductibles"
 msgid "ALUR works fund"
 msgstr "Fonds travaux (ALUR)"
 
-#: property/models/ledger.py:231 templates/index.html:44
+#: property/models/ledger.py:231 templates/index.html:47
 #: templates/property/detail.html:387 templates/property/detail.html:410
 #: templates/property/detail_panel_balance.html:64
 #: templates/property/detail_panel_cashflow.html:82
@@ -1385,8 +1439,8 @@ msgstr "Annuel"
 
 #: property/models/scpi.py:38 property/models/scpi.py:39
 #: property/models/scpi.py:159 property/models/scpi.py:205
-#: property/models/scpi.py:529 templates/base.html:79 templates/index.html:51
-#: templates/index.html:203 templates/property/scpi_detail.html:12
+#: property/models/scpi.py:529 templates/base.html:79 templates/index.html:54
+#: templates/index.html:206 templates/property/scpi_detail.html:12
 #: templates/property/scpi_detail.html:136
 #: templates/property/scpi_fund_detail.html:4
 #: templates/property/scpi_fund_detail.html:19
@@ -2066,65 +2120,96 @@ msgstr "Erreur serveur"
 msgid "An unexpected error occurred. Please try again later."
 msgstr "Une erreur inconnue est survenue. Merci de réessayer plus tard."
 
+#: templates/accounts/emails/login_notification.html:10
+#: templates/accounts/settings.html:45
+msgid "Login notification"
+msgstr "Notification de connexion"
+
+#: templates/accounts/emails/login_notification.html:11
+#, python-format
+msgid "Hello <strong>%(username)s</strong>,"
+msgstr "Bonjour <strong>%(username)s</strong>,"
+
+#: templates/accounts/emails/login_notification.html:12
+msgid "A login to your account was detected."
+msgstr "Une connexion à votre compte a été détectée."
+
+#: templates/accounts/emails/login_notification.html:20
+msgid "IP address"
+msgstr "Adresse IP"
+
+#: templates/accounts/emails/login_notification.html:24
+msgid "Browser"
+msgstr "Navigateur"
+
+#: templates/accounts/emails/login_notification.html:30
+msgid ""
+"If this was not you, please change your password immediately and review your "
+"security settings."
+msgstr ""
+"S'il ne s'agit pas de vous, veuillez changer votre mot de passe "
+"immédiatement et vérifier vos paramètres de sécurité."
+
+#: templates/accounts/emails/login_notification.html:36
+msgid "Manage notification preferences"
+msgstr "Gérer les préférences de notification"
+
+#: templates/accounts/emails/login_notification.txt:1
+#, python-format
+msgid ""
+"Hello %(username)s,\n"
+"\n"
+"A login to your account was detected on %(login_time)s.\n"
+"\n"
+"IP address: %(ip)s\n"
+"Browser: %(user_agent)s\n"
+"\n"
+"If this was not you, please change your password immediately and review your "
+"security settings.\n"
+"\n"
+"You can manage your notification preferences at: %(settings_url)s"
+msgstr ""
+"Bonjour %(username)s,\n"
+"\n"
+"Une connexion à votre compte a été détectée le %(login_time)s.\n"
+"\n"
+"Adresse IP : %(ip)s\n"
+"Navigateur : %(user_agent)s\n"
+"\n"
+"S'il ne s'agit pas de vous, veuillez changer votre mot de passe "
+"immédiatement et vérifier vos paramètres de sécurité.\n"
+"\n"
+"Vous pouvez gérer vos préférences de notification à : %(settings_url)s"
+
+#: templates/accounts/emails/login_notification_subject.txt:1
+#, python-format
+msgid "Login notification on %(site_name)s"
+msgstr "Notification de connexion sur %(site_name)s"
+
 #: templates/accounts/settings.html:4 templates/accounts/settings.html:9
 #: templates/base.html:119
 msgid "Settings"
 msgstr "Paramètres"
 
 #: templates/accounts/settings.html:13
-msgid "Security"
-msgstr "Sécurité"
+msgid "Profile"
+msgstr "Profil"
 
 #: templates/accounts/settings.html:18
-msgid "Password"
-msgstr "Mot de passe"
+msgid "Email address"
+msgstr "Adresse email"
 
 #: templates/accounts/settings.html:20
-msgid "Update your password to keep your account secure."
-msgstr "Mettez à jour votre mot de passe pour garder votre compte sécurisé."
-
-#: templates/accounts/settings.html:27 templates/accounts/settings.html:38
-msgid "Change Password"
-msgstr "Changer le mot de passe"
-
-#: templates/accounts/settings.html:46
-msgid "Passkey"
-msgstr "Passkey"
-
-#: templates/accounts/settings.html:48
-msgid ""
-"Register a passkey so you can log in with fingerprint or face recognition."
+msgid "Your email address is used for notifications and password recovery."
 msgstr ""
-"Enregistrer une passkey pour se connecter via empreinte ou reconnaissance "
-"faciale."
+"Votre adresse email est utilisée pour les notifications et la récupération "
+"de mot de passe."
 
-#: templates/accounts/settings.html:51
-msgid "You can replace your passkey at any time."
-msgstr "Vous pouvez remplacer votre passkey n'importe quand."
+#: templates/accounts/settings.html:26
+msgid "Enter your email address"
+msgstr "Saisissez votre adresse email"
 
-#: templates/accounts/settings.html:56 templates/accounts/settings.html:145
-msgid "Register passkey"
-msgstr "Enregistrer la passkey"
-
-#: templates/accounts/settings.html:59
-msgid "Remove passkey"
-msgstr "Supprimer la passkey"
-
-#: templates/accounts/settings.html:67
-msgid "Auto-logout"
-msgstr "Déconnexion automatique"
-
-#: templates/accounts/settings.html:69
-msgid "Automatically log out after a period of inactivity for security."
-msgstr ""
-"Déconnecter automatiquement après une période d'inactivité pour des raisons "
-"de sécurité."
-
-#: templates/accounts/settings.html:76
-msgid "minutes"
-msgstr "minutes"
-
-#: templates/accounts/settings.html:81
+#: templates/accounts/settings.html:31 templates/accounts/settings.html:129
 #: templates/finance/_edit_form_footer.html:4
 #: templates/property/_edit_form_footer.html:6
 #: templates/property/_form_submit_buttons.html:4
@@ -2135,59 +2220,148 @@ msgstr "minutes"
 msgid "Save"
 msgstr "Enregistrer"
 
-#: templates/accounts/settings.html:144
+#: templates/accounts/settings.html:40
+msgid "Notifications"
+msgstr "Notifications"
+
+#: templates/accounts/settings.html:47
+msgid "Receive an email when someone logs in to your account."
+msgstr "Recevoir un email lorsqu'une connexion à votre compte est détectée."
+
+#: templates/accounts/settings.html:61
+msgid "Security"
+msgstr "Sécurité"
+
+#: templates/accounts/settings.html:66
+msgid "Password"
+msgstr "Mot de passe"
+
+#: templates/accounts/settings.html:68
+msgid "Update your password to keep your account secure."
+msgstr "Mettez à jour votre mot de passe pour garder votre compte sécurisé."
+
+#: templates/accounts/settings.html:75 templates/accounts/settings.html:86
+msgid "Change Password"
+msgstr "Changer le mot de passe"
+
+#: templates/accounts/settings.html:94
+msgid "Passkey"
+msgstr "Passkey"
+
+#: templates/accounts/settings.html:96
+msgid ""
+"Register a passkey so you can log in with fingerprint or face recognition."
+msgstr ""
+"Enregistrer une passkey pour se connecter via empreinte ou reconnaissance "
+"faciale."
+
+#: templates/accounts/settings.html:99
+msgid "You can replace your passkey at any time."
+msgstr "Vous pouvez remplacer votre passkey n'importe quand."
+
+#: templates/accounts/settings.html:104 templates/accounts/settings.html:275
+msgid "Register passkey"
+msgstr "Enregistrer la passkey"
+
+#: templates/accounts/settings.html:107
+msgid "Remove passkey"
+msgstr "Supprimer la passkey"
+
+#: templates/accounts/settings.html:115
+msgid "Auto-logout"
+msgstr "Déconnexion automatique"
+
+#: templates/accounts/settings.html:117
+msgid "Automatically log out after a period of inactivity for security."
+msgstr ""
+"Déconnecter automatiquement après une période d'inactivité pour des raisons "
+"de sécurité."
+
+#: templates/accounts/settings.html:124
+msgid "minutes"
+msgstr "minutes"
+
+#: templates/accounts/settings.html:161
+msgid "Please enter an email address."
+msgstr "Veuillez saisir une adresse email."
+
+#: templates/accounts/settings.html:177
+msgid "Please enter a valid email address."
+msgstr "Veuillez saisir une adresse email valide."
+
+#: templates/accounts/settings.html:180 templates/accounts/settings.html:190
+msgid "Failed to update email address."
+msgstr "Échec de la mise à jour de l'adresse email."
+
+#: templates/accounts/settings.html:186
+msgid "Email address updated successfully."
+msgstr "Adresse email mise à jour avec succès."
+
+#: templates/accounts/settings.html:217
+msgid "Login notification enabled."
+msgstr "Notification de connexion activée."
+
+#: templates/accounts/settings.html:220
+msgid "Login notification disabled."
+msgstr "Notification de connexion désactivée."
+
+#: templates/accounts/settings.html:226
+msgid "Failed to update notification preferences."
+msgstr "Échec de la mise à jour des préférences de notification."
+
+#: templates/accounts/settings.html:274
 msgid "Replace passkey"
 msgstr "Remplacer la passkey"
 
-#: templates/accounts/settings.html:151
+#: templates/accounts/settings.html:281
 msgid "Passkey registered."
 msgstr "Passkey enregistrée."
 
-#: templates/accounts/settings.html:153
+#: templates/accounts/settings.html:283
 msgid "No passkey registered yet."
 msgstr "Pas de passkey enregistré actuellement."
 
-#: templates/accounts/settings.html:162
+#: templates/accounts/settings.html:292
 msgid "Passkeys are not supported on this browser."
 msgstr "Les passkeys ne sont pas prises en charge sur ce navigateur."
 
-#: templates/accounts/settings.html:214
+#: templates/accounts/settings.html:344
 msgid "Passkey registered successfully."
 msgstr "Passkey enregistrée avec succès."
 
-#: templates/accounts/settings.html:219
+#: templates/accounts/settings.html:349
 msgid "Passkey registration was cancelled."
 msgstr "L'enregistrement de la passkey a été annulé."
 
-#: templates/accounts/settings.html:221
+#: templates/accounts/settings.html:351
 msgid "Failed to get registration options from server."
 msgstr "Échec de récupération des options d'enregistrement depuis le serveur."
 
-#: templates/accounts/settings.html:223 templates/registration/login.html:145
+#: templates/accounts/settings.html:353 templates/registration/login.html:145
 msgid "Failed to verify passkey with server."
 msgstr "Échec de vérification de la passkey avec le serveur."
 
-#: templates/accounts/settings.html:225
+#: templates/accounts/settings.html:355
 msgid "Failed to register passkey:"
 msgstr "Échec d'enregistrement de la passkey :"
 
-#: templates/accounts/settings.html:244
+#: templates/accounts/settings.html:374
 msgid "Passkey removed."
 msgstr "Passkey supprimée."
 
-#: templates/accounts/settings.html:247
+#: templates/accounts/settings.html:377
 msgid "Failed to remove passkey."
 msgstr "Échec de suppression de la passkey."
 
-#: templates/accounts/settings.html:264
+#: templates/accounts/settings.html:394
 msgid "Please enter a value between 5 and 1440 minutes."
 msgstr "Veuillez saisir une valeur comprise entre 5 et 1440 minutes."
 
-#: templates/accounts/settings.html:277
+#: templates/accounts/settings.html:407
 msgid "Session timeout updated successfully."
 msgstr "Délai d'expiration de session mis à jour avec succès."
 
-#: templates/accounts/settings.html:281
+#: templates/accounts/settings.html:411
 msgid "Failed to update session timeout."
 msgstr "Échec de la mise à jour du délai d'expiration de session."
 
@@ -2234,7 +2408,7 @@ msgstr "Accueil"
 
 #: templates/base.html:43 templates/finance/_account_detail_header.html:4
 #: templates/finance/index.html:5 templates/finance/index.html:17
-#: templates/index.html:116
+#: templates/index.html:119
 msgid "Finance"
 msgstr "Finance"
 
@@ -2262,7 +2436,7 @@ msgstr "Comptes favoris"
 msgid "Add favorites to show them here"
 msgstr "Ajoutez des favoris pour les afficher ici"
 
-#: templates/base.html:67 templates/index.html:65
+#: templates/base.html:67 templates/index.html:68
 msgid "Add your first account"
 msgstr "Ajouter votre premier compte"
 
@@ -2283,7 +2457,7 @@ msgstr "Comptabilité LMNP"
 msgid "Favorite properties"
 msgstr "Propriétés favorites"
 
-#: templates/base.html:100 templates/index.html:193
+#: templates/base.html:100 templates/index.html:196
 #: templates/property/index.html:163
 msgid "Add your first property"
 msgstr "Ajouter votre première propriété"
@@ -2321,42 +2495,15 @@ msgstr "Changer"
 msgid "Value evolution"
 msgstr "Évolution de la valeur"
 
-#: templates/finance/_account_chart_script.html:102 templates/index.html:67
+#: templates/finance/_account_chart_script.html:102 templates/index.html:70
 #: templates/property/scpi_fund_detail.html:331
 #: templates/property/scpi_list.html:179
 msgid "Invested"
 msgstr "Investi"
 
-#: templates/finance/_account_chart_script.html:110
-#: templates/finance/_account_chart_script.html:148
-#: templates/finance/index.html:61 templates/finance/index.html:345
-#: templates/property/_balance_section_card.html:30
-#: templates/property/_report_category_table.html:27
-#: templates/property/scpi_detail.html:199
-msgid "Total"
-msgstr "Total"
-
 #: templates/finance/_account_chart_script.html:181
 msgid "Could not load chart data."
 msgstr "Impossible de charger les données du graphique."
-
-#: templates/finance/_account_detail_common_info.html:3
-#: templates/property/detail.html:382
-#: templates/property/detail_panel_cashflow.html:72
-#: templates/property/detail_panel_info.html:17
-#: templates/property/detail_panel_leases.html:48
-msgid "Type"
-msgstr "Type"
-
-#: templates/finance/_account_detail_common_info.html:8
-#: templates/finance/_edit_account_info_card.html:24
-msgid "Owner"
-msgstr "Propriétaire"
-
-#: templates/finance/_account_detail_common_info.html:14
-#: templates/finance/_edit_account_info_card.html:32
-msgid "Institution"
-msgstr "Établissement"
 
 #: templates/finance/_account_detail_header.html:11
 #: templates/finance/_item_actions.html:3
@@ -2401,10 +2548,12 @@ msgid "30-day progression"
 msgstr "Progression sur 30 jours"
 
 #: templates/finance/_account_table_header.html:5
-#: templates/finance/_edit_value_field.html:3 templates/finance/index.html:122
-#: templates/finance/index.html:209 templates/finance/investment_detail.html:70
+#: templates/finance/_edit_value_field.html:3
+#: templates/finance/edit_investment_cash.html:28
+#: templates/finance/index.html:122 templates/finance/index.html:209
+#: templates/finance/investment_detail.html:70
 #: templates/finance/investment_detail.html:116
-#: templates/finance/investment_detail.html:172
+#: templates/finance/investment_detail.html:175
 #: templates/finance/saving_detail.html:72
 #: templates/property/csv_confirm.html:53 templates/property/detail.html:347
 #: templates/property/detail.html:552
@@ -2419,7 +2568,7 @@ msgstr "Progression nette"
 
 #: templates/finance/_account_table_header.html:6
 #: templates/finance/index.html:123 templates/finance/index.html:210
-#: templates/index.html:58 templates/property/index.html:127
+#: templates/index.html:61 templates/property/index.html:127
 msgid "Gross"
 msgstr "Brut"
 
@@ -2444,6 +2593,7 @@ msgstr "Source"
 #: templates/finance/_deposits_panel.html:18
 #: templates/finance/investment_detail.html:73
 #: templates/finance/investment_detail.html:119
+#: templates/finance/investment_detail.html:176
 #: templates/finance/saving_detail.html:73
 #: templates/property/_dividend_table_header.html:9
 #: templates/property/detail.html:553
@@ -2552,21 +2702,36 @@ msgstr "Clôturé"
 msgid "Finance - Export CSV"
 msgstr "Finance - Export CSV"
 
-#: templates/finance/csv_export.html:16
+#: templates/finance/csv_export.html:16 templates/finance/csv_export.html:22
+msgid "Export synthesis"
+msgstr "Export synthèse"
+
+#: templates/finance/csv_export.html:19
+msgid ""
+"Export a summary of all active saving and investment accounts with their "
+"current value."
+msgstr ""
+"Exporter une synthèse de tous les comptes actif avec leur valeur actuelle."
+
+#: templates/finance/csv_export.html:20
+msgid "Columns: Type, Owner, Institution, Value at date."
+msgstr "Colonnes: Type, Propriétaire, Établissement, Valeur à date."
+
+#: templates/finance/csv_export.html:29
 msgid "Export data to CSV"
 msgstr "Exporter les données en CSV"
 
-#: templates/finance/csv_export.html:46
+#: templates/finance/csv_export.html:59
 msgid "Export"
 msgstr "Export"
 
-#: templates/finance/csv_export.html:49 templates/finance/csv_import.html:28
+#: templates/finance/csv_export.html:62 templates/finance/csv_import.html:28
 #: templates/property/create.html:15 templates/property/csv_confirm.html:13
 #: templates/property/edit.html:16
 msgid "Back"
 msgstr "Retour"
 
-#: templates/finance/csv_export.html:69
+#: templates/finance/csv_export.html:82
 msgid "Select accounts"
 msgstr "Choisir les comptes"
 
@@ -2726,6 +2891,20 @@ msgstr "Financier"
 #: templates/finance/investment_detail.html:26
 msgid "Opening cash value"
 msgstr "Valeur en espèces à l'ouverture"
+
+#: templates/finance/edit_investment_cash.html:5
+#: templates/finance/edit_investment_cash.html:11
+msgid "Edit investment cash entry"
+msgstr "Modifier l'écriture de valeur d'espèce"
+
+#: templates/finance/edit_investment_cash.html:5
+#: templates/finance/edit_investment_cash.html:12
+msgid "New investment cash entry"
+msgstr "Nouvelle écriture de valeur d'espèces"
+
+#: templates/finance/edit_investment_cash.html:23
+msgid "Cash entry"
+msgstr "Écriture de valeur d'espèces"
 
 #: templates/finance/edit_investment_deposit.html:5
 #: templates/finance/edit_investment_deposit.html:11
@@ -2959,15 +3138,27 @@ msgstr "Aucun titre actuellement."
 msgid "Cash history"
 msgstr "Historique des espèces"
 
-#: templates/finance/investment_detail.html:186
+#: templates/finance/investment_detail.html:165
+msgid "Add cash entry"
+msgstr "Ajouter une écriture d'espèces"
+
+#: templates/finance/investment_detail.html:188
+msgid "Delete cash entry"
+msgstr "Supprimer l'écriture d'espèces"
+
+#: templates/finance/investment_detail.html:189
+msgid "Are you sure you want to delete this cash entry?"
+msgstr "Êtes-vous sûr de vouloir supprimer cette écriture de valeur d'espèce ?"
+
+#: templates/finance/investment_detail.html:198
 msgid "No cash history yet."
 msgstr "Aucun historique d'espèces actuellement."
 
-#: templates/finance/investment_detail.html:193
+#: templates/finance/investment_detail.html:205
 msgid "Delete investment account"
 msgstr "Supprimer le compte d'investissement"
 
-#: templates/finance/investment_detail.html:194
+#: templates/finance/investment_detail.html:206
 msgid ""
 "Are you sure you want to delete this investment account and all its data?"
 msgstr ""
@@ -3028,85 +3219,85 @@ msgstr "Valider"
 msgid "Dashboard"
 msgstr "Tableau de bord"
 
-#: templates/index.html:43
+#: templates/index.html:46
 msgid "Could not load data."
 msgstr "Echec du chargement des données."
 
-#: templates/index.html:45 templates/property/detail.html:416
+#: templates/index.html:48 templates/property/detail.html:416
 #: templates/property/detail_panel_balance.html:68
 #: templates/property/detail_panel_cashflow.html:145
 #: templates/property/detail_panel_cashflow.html:261
 msgid "Expenses"
 msgstr "Dépenses"
 
-#: templates/index.html:46 templates/property/report.html:104
+#: templates/index.html:49 templates/property/report.html:104
 msgid "Net"
 msgstr "Net"
 
-#: templates/index.html:47 templates/property/detail.html:237
+#: templates/index.html:50 templates/property/detail.html:237
 #: templates/property/detail_panel_loans.html:22
 #: templates/property/index.html:120
 msgid "Loans"
 msgstr "Prêts"
 
-#: templates/index.html:48 templates/index.html:141
+#: templates/index.html:51 templates/index.html:144
 #: templates/property/scpi_fund_detail.html:131
 msgid "Investments"
 msgstr "Investissements"
 
-#: templates/index.html:49 templates/index.html:154
+#: templates/index.html:52 templates/index.html:157
 msgid "Savings"
 msgstr "Épargnes"
 
-#: templates/index.html:52
+#: templates/index.html:55
 msgid "Occupancy"
 msgstr "Occupation"
 
-#: templates/index.html:53
+#: templates/index.html:56
 msgid "rooms"
 msgstr "pièces"
 
-#: templates/index.html:54
+#: templates/index.html:57
 msgid "repaid"
 msgstr "remboursé"
 
-#: templates/index.html:55 templates/property/detail_panel_loans.html:32
+#: templates/index.html:58 templates/property/detail_panel_loans.html:32
 msgid "End"
 msgstr "Fin"
 
-#: templates/index.html:56 templates/property/edit_lease.html:30
+#: templates/index.html:59 templates/property/edit_lease.html:30
 msgid "Tenant"
 msgstr "Locataire"
 
-#: templates/index.html:57 templates/property/index.html:111
+#: templates/index.html:60 templates/property/index.html:111
 msgid "equity"
 msgstr "net"
 
-#: templates/index.html:59
+#: templates/index.html:62
 msgid "Acquisition"
 msgstr "Acquisition"
 
-#: templates/index.html:60
+#: templates/index.html:63
 msgid "30 days"
 msgstr "30 jours"
 
-#: templates/index.html:61
+#: templates/index.html:64
 msgid "No recent operations."
 msgstr "Aucune opération récente."
 
-#: templates/index.html:62 templates/index.html:97
+#: templates/index.html:65 templates/index.html:100
 msgid "Patrimony Evolution"
 msgstr "Évolution du patrimoine"
 
-#: templates/index.html:63 templates/index.html:125
+#: templates/index.html:66 templates/index.html:128
 msgid "Breakdown"
 msgstr "Répartition"
 
-#: templates/index.html:64
+#: templates/index.html:67
 msgid "No accounts yet."
 msgstr "Aucun compte actuellement."
 
-#: templates/index.html:68 templates/property/scpi_detail.html:165
+#: templates/index.html:71 templates/property/scpi_detail.html:165
 #: templates/property/scpi_fund_detail.html:201
 #: templates/property/scpi_fund_detail.html:310
 #: templates/property/scpi_fund_detail.html:335
@@ -3115,43 +3306,43 @@ msgstr "Aucun compte actuellement."
 msgid "Dividends"
 msgstr "Dividendes"
 
-#: templates/index.html:69
+#: templates/index.html:72
 msgid "Yield"
 msgstr "Rendement"
 
-#: templates/index.html:70
+#: templates/index.html:73
 msgid "est."
 msgstr "est."
 
-#: templates/index.html:99
+#: templates/index.html:102
 msgid "1Y"
 msgstr "1A"
 
-#: templates/index.html:100
+#: templates/index.html:103
 msgid "2Y"
 msgstr "2A"
 
-#: templates/index.html:101
+#: templates/index.html:104
 msgid "5Y"
 msgstr "5A"
 
-#: templates/index.html:102
+#: templates/index.html:105
 msgid "10Y"
 msgstr "10A"
 
-#: templates/index.html:118 templates/index.html:177 templates/index.html:205
+#: templates/index.html:121 templates/index.html:180 templates/index.html:208
 msgid "View all"
 msgstr "Voir tout"
 
-#: templates/index.html:191
+#: templates/index.html:194
 msgid "No properties yet."
 msgstr "Aucune propriété actuellement."
 
-#: templates/index.html:221
+#: templates/index.html:224
 msgid "Recent Operations"
 msgstr "Opérations récentes"
 
-#: templates/index.html:223
+#: templates/index.html:226
 msgid "See all"
 msgstr "Voir tout"
 

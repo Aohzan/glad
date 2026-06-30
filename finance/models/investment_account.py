@@ -239,7 +239,7 @@ class InvestmentAccountHolding(BaseModel):
     )
     is_active = models.BooleanField(default=True)
     initial_quantity = models.DecimalField(
-        max_digits=10, decimal_places=6, null=True, blank=True
+        max_digits=16, decimal_places=6, null=True, blank=True
     )
     initial_value = MoneyField(
         max_digits=10,
@@ -365,7 +365,7 @@ class InvestmentAccountHoldingHistory(BaseModel):
     )
     valuation_date = models.DateTimeField(default=datetime.datetime.now, null=False)
     quantity = models.DecimalField(
-        max_digits=10,
+        max_digits=16,
         decimal_places=6,
         null=True,
         blank=True,

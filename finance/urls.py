@@ -22,6 +22,9 @@ urlpatterns = [
     ),
     # CSV import/export
     path("csv/export", views.csv_export, name="csv_export"),
+    path(
+        "csv/export/synthesis", views.csv_export_synthesis, name="csv_export_synthesis"
+    ),
     path("csv/import", views.csv_import, name="csv_import"),
     path("csv/import/confirm", views.csv_import_confirm, name="csv_import_confirm"),
     # API
@@ -117,6 +120,22 @@ urlpatterns = [
         "investment/<int:account_pk>/deposit/<int:deposit_pk>/delete/",
         views.delete_investment_deposit,
         name="delete_investment_deposit",
+    ),
+    # Investment cash
+    path(
+        "investment/<int:account_pk>/cash/new/",
+        views.edit_investment_cash,
+        name="new_investment_cash",
+    ),
+    path(
+        "investment/<int:account_pk>/cash/<int:cash_pk>/edit/",
+        views.edit_investment_cash,
+        name="edit_investment_cash",
+    ),
+    path(
+        "investment/<int:account_pk>/cash/<int:cash_pk>/delete/",
+        views.delete_investment_cash,
+        name="delete_investment_cash",
     ),
     # Holding history
     path(

@@ -20,6 +20,11 @@ class UserProfile(models.Model):
             "Auto-logout after this many minutes of inactivity. Default: 15 minutes."
         ),
     )
+    notify_on_login = models.BooleanField(
+        default=True,
+        verbose_name=_("Notify on login"),
+        help_text=_("Receive an email notification when you log in."),
+    )
 
     class Meta:
         verbose_name = _("User profile")
