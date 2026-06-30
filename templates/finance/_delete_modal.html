@@ -1,5 +1,5 @@
 {% load i18n %}
-<div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="{{ modal_id }}{{ modal_prefix }}{{ item_pk }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <form method="post" action="{{ delete_url }}">

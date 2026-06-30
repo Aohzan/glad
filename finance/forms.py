@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from base.forms import MoneyInputGroupMixin
 from finance.models.investment_account import (
     InvestmentAccount,
+    InvestmentAccountCash,
     InvestmentAccountDeposit,
     InvestmentAccountHolding,
     InvestmentAccountHoldingHistory,
@@ -308,6 +309,17 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
                 attrs={"class": "form-control", "step": "0.000001"}
             ),
             "initial_valuation_date": DATE_WIDGET,
+        }
+
+
+class InvestmentAccountCashForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for creating/editing an investment account cash entry."""
+
+    class Meta:
+        model = InvestmentAccountCash
+        fields = ["value", "value_date"]
+        widgets = {
+            "value_date": DATE_WIDGET,
         }
 
 

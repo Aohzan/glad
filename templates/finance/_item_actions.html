@@ -3,7 +3,7 @@
   <a href="{{ edit_url }}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
     <i class="bi bi-pencil"></i>
   </a>
-  <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#{{ delete_modal_id }}" title="{% translate 'Delete' %}">
+  <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#{{ delete_modal_id }}{{ modal_prefix }}{{ item_pk }}" title="{% translate 'Delete' %}">
     <i class="bi bi-trash"></i>
   </button>
 </div>

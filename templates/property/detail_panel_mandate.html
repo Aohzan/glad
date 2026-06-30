@@ -20,8 +20,8 @@
           <span class="fw-semibold">{{ mandate.manager_name }}</span>
         </div>
         {% url 'property:edit_mandate' property.pk mandate.pk as edit_url %}
-        {% with delete_modal_id="deleteMandateModal"|add:mandate.pk|stringformat:"s" %}
-          {% include "property/_item_actions.html" with edit_url=edit_url delete_modal_id=delete_modal_id %}
+        {% with modal_prefix="deleteMandateModal" %}
+          {% include "property/_item_actions.html" with edit_url=edit_url modal_prefix=modal_prefix item_pk=mandate.pk %}
         {% endwith %}
       </div>
       <div class="card-body py-2">
@@ -61,7 +61,7 @@
     {% url 'property:delete_mandate' property.pk mandate.pk as delete_mandate_url %}
     {% translate "Delete mandate" as delete_mandate_title %}
     {% blocktranslate with manager=mandate.manager_name start=mandate.start_date asvar confirm_mandate_text %}Are you sure you want to delete the mandate with {{ manager }} starting {{ start }}?{% endblocktranslate %}
-    {% include "property/_delete_modal.html" with modal_id="deleteMandateModal"|add:mandate.pk|stringformat:"s" delete_url=delete_mandate_url modal_title=delete_mandate_title confirm_text=confirm_mandate_text %}
+    {% include "property/_delete_modal.html" with modal_prefix="deleteMandateModal" item_pk=mandate.pk delete_url=delete_mandate_url modal_title=delete_mandate_title confirm_text=confirm_mandate_text %}
   {% endfor %}
 {% else %}
   <div class="text-center py-5 text-body-secondary">

@@ -27,10 +27,10 @@
             <td class="text-end">
               {% url edit_deposit_url_name account.pk d.pk as edit_url %}
               {% url delete_deposit_url_name account.pk d.pk as delete_url %}
-              {% include "finance/_item_actions.html" with edit_url=edit_url delete_modal_id="deleteDeposit"|add:d.pk|stringformat:"s" %}
+              {% include "finance/_item_actions.html" with edit_url=edit_url modal_prefix="deleteDeposit" item_pk=d.pk %}
               {% translate "Delete deposit" as modal_title %}
               {% translate "Are you sure you want to delete this deposit?" as confirm_text %}
-              {% include "finance/_delete_modal.html" with modal_id="deleteDeposit"|add:d.pk|stringformat:"s" delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
+              {% include "finance/_delete_modal.html" with modal_prefix="deleteDeposit" item_pk=d.pk delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
             </td>
           </tr>
           {% endfor %}

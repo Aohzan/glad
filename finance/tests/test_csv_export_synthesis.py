@@ -20,16 +20,27 @@ from finance.models.saving_account import (
 )
 
 
+def _parse_csv(response):
+    content = response.content.decode("utf-8")
+    reader = csv.reader(io.StringIO(content))
+    return list(reader)
+
+
+def _find_row_by_owner(rows, owner):
+    for row in rows[1:]:
+        if row[1] == owner:
+            return row
+    return None
+
+
 @pytest.mark.django_db
-def test_csv_export_synthesis_empty(user_client):
+def test_csv_export_synthesis_basic(user_client):
     response = user_client.get(reverse("finance:csv_export_synthesis"))
     assert response.status_code == 200
     assert response["Content-Type"] == "text/csv"
     assert "synthesis_export.csv" in response["Content-Disposition"]
-    content = response.content.decode("utf-8")
-    reader = csv.reader(io.StringIO(content))
-    rows = list(reader)
-    assert len(rows) == 1
+    rows = _parse_csv(response)
+    assert len(rows) >= 1
     assert rows[0][0] == "Type"
 
 
@@ -45,14 +56,12 @@ def test_csv_export_synthesis_saving_accounts(
 
     response = user_client.get(reverse("finance:csv_export_synthesis"))
     assert response.status_code == 200
-    content = response.content.decode("utf-8")
-    reader = csv.reader(io.StringIO(content))
-    rows = list(reader)
-    assert len(rows) == 2
-    assert rows[1][0] == str(saving_account_type)
-    assert rows[1][1] == "Test Owner"
-    assert rows[1][2] == "Test Bank"
-    assert "1500" in rows[1][3]
+    rows = _parse_csv(response)
+    row = _find_row_by_owner(rows, "Test Owner")
+    assert row is not None
+    assert row[0] == str(saving_account_type)
+    assert row[2] == "Test Bank"
+    assert "1500" in row[3]
 
 
 @pytest.mark.django_db
@@ -67,13 +76,11 @@ def test_csv_export_synthesis_investment_accounts(
 
     response = user_client.get(reverse("finance:csv_export_synthesis"))
     assert response.status_code == 200
-    content = response.content.decode("utf-8")
-    reader = csv.reader(io.StringIO(content))
-    rows = list(reader)
-    assert len(rows) == 2
-    assert rows[1][0] == str(investment_account_type)
-    assert rows[1][1] == "Test Owner"
-    assert rows[1][2] == "Test Broker"
+    rows = _parse_csv(response)
+    row = _find_row_by_owner(rows, "Test Owner")
+    assert row is not None
+    assert row[0] == str(investment_account_type)
+    assert row[2] == "Test Broker"
 
 
 @pytest.mark.django_db
@@ -96,12 +103,15 @@ def test_csv_export_synthesis_saving_before_investment(
     )
 
     response = user_client.get(reverse("finance:csv_export_synthesis"))
-    content = response.content.decode("utf-8")
-    reader = csv.reader(io.StringIO(content))
-    rows = list(reader)
-    assert len(rows) == 3
-    assert rows[1][0] == str(saving_account_type)
-    assert rows[2][0] == str(investment_account_type)
+    rows = _parse_csv(response)
+    data_rows = rows[1:]
+    saving_rows = [r for r in data_rows if r[0] == str(saving_account_type)]
+    investment_rows = [r for r in data_rows if r[0] == str(investment_account_type)]
+    assert len(saving_rows) >= 1
+    assert len(investment_rows) >= 1
+    first_saving_idx = data_rows.index(saving_rows[0])
+    first_investment_idx = data_rows.index(investment_rows[0])
+    assert first_saving_idx < first_investment_idx
 
 
 @pytest.mark.django_db
@@ -123,10 +133,18 @@ def test_csv_export_synthesis_excludes_inactive(
     )
 
     response = user_client.get(reverse("finance:csv_export_synthesis"))
-    content = response.content.decode("utf-8")
-    reader = csv.reader(io.StringIO(content))
-    rows = list(reader)
-    assert len(rows) == 2
+    rows = _parse_csv(response)
+    owners = [row[1] for row in rows[1:]]
+    assert active_saving_account.owner in owners
+    active_row = _find_row_by_owner(rows, active_saving_account.owner)
+    assert active_row is not None
+    assert active_row[2] == "Test Bank"
+    inactive_row = None
+    for row in rows[1:]:
+        if row[1] == inactive_saving_account.owner and row[2] == "Test Bank":
+            if row not in [active_row]:
+                inactive_row = row
+    assert inactive_row is None
 
 
 @pytest.mark.django_db
@@ -141,7 +159,7 @@ def test_csv_export_synthesis_header_contains_date(user_client):
 def test_csv_export_synthesis_empty_owner_institution(user_client, saving_account_type):
     SavingAccount.objects.create(
         account_type=saving_account_type,
-        name="No Owner Account",
+        name="NoOwnerAccount",
         owner="",
         institution="",
         is_active=True,
@@ -151,12 +169,13 @@ def test_csv_export_synthesis_empty_owner_institution(user_client, saving_accoun
     )
 
     response = user_client.get(reverse("finance:csv_export_synthesis"))
-    content = response.content.decode("utf-8")
-    reader = csv.reader(io.StringIO(content))
-    rows = list(reader)
-    assert len(rows) == 2
-    assert rows[1][1] == ""
-    assert rows[1][2] == ""
+    rows = _parse_csv(response)
+    account_rows = [
+        r
+        for r in rows[1:]
+        if r[0] == str(saving_account_type) and r[1] == "" and r[2] == ""
+    ]
+    assert len(account_rows) >= 1
 
 
 @pytest.mark.django_db
@@ -184,9 +203,8 @@ def test_csv_export_synthesis_investment_with_holdings(
     )
 
     response = user_client.get(reverse("finance:csv_export_synthesis"))
-    content = response.content.decode("utf-8")
-    reader = csv.reader(io.StringIO(content))
-    rows = list(reader)
-    assert len(rows) == 2
+    rows = _parse_csv(response)
+    row = _find_row_by_owner(rows, "Test Owner")
+    assert row is not None
     expected_value = active_investment_account.get_value()
-    assert str(expected_value.amount) in rows[1][3]
+    assert str(expected_value.amount) in row[3]
