@@ -22,6 +22,9 @@ urlpatterns = [
     ),
     # CSV import/export
     path("csv/export", views.csv_export, name="csv_export"),
+    path(
+        "csv/export/synthesis", views.csv_export_synthesis, name="csv_export_synthesis"
+    ),
     path("csv/import", views.csv_import, name="csv_import"),
     path("csv/import/confirm", views.csv_import_confirm, name="csv_import_confirm"),
     # API

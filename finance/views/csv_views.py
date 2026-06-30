@@ -1,6 +1,7 @@
 """CSV import/export views for the finance app."""
 
 import csv
+import datetime
 import io
 import logging
 from typing import cast
@@ -531,3 +532,62 @@ def csv_import_confirm(request):
             messages.warning(request, error_message)
 
     return redirect("finance:csv_import")
+
+
+def csv_export_synthesis(request):
+    """Export a synthesis CSV of all active saving and investment accounts."""
+    now = datetime.datetime.now()
+    today = now.date()
+    date_str = today.strftime("%d/%m/%Y")
+    header = [
+        _("Type"),
+        _("Owner"),
+        _("Institution"),
+        _("Value at %(date)s") % {"date": date_str},
+    ]
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="synthesis_export.csv"'
+    writer = csv.writer(response)
+    writer.writerow(header)
+
+    total = 0
+
+    for account in SavingAccount.objects.filter(is_active=True).order_by(
+        "account_type", "name", "owner", "institution"
+    ):
+        value = account.get_value(max_date=now)
+        total += value.amount
+        writer.writerow(
+            [
+                str(account.account_type),
+                account.owner or "",
+                account.institution or "",
+                str(value.amount),
+            ]
+        )
+
+    for account in InvestmentAccount.objects.filter(is_active=True).order_by(
+        "account_type", "name", "owner", "institution"
+    ):
+        value = account.get_value(max_date=now)
+        total += value.amount
+        writer.writerow(
+            [
+                str(account.account_type),
+                account.owner or "",
+                account.institution or "",
+                str(value.amount),
+            ]
+        )
+
+    writer.writerow(
+        [
+            _("Total"),
+            "",
+            "",
+            str(total),
+        ]
+    )
+
+    return response
