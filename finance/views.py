@@ -7,7 +7,12 @@ from django.shortcuts import render
 from finance.models.investment_account import InvestmentAccount
 from finance.models.saving_account import SavingAccount
 from finance.views.chart_views import chart_data
-from finance.views.csv_views import csv_export, csv_import, csv_import_confirm
+from finance.views.csv_views import (
+    csv_export,
+    csv_export_synthesis,
+    csv_import,
+    csv_import_confirm,
+)
 from finance.views.index_views import index
 from finance.views.update_views import update_accounts
 
@@ -17,6 +22,7 @@ __all__ = [
     "update_accounts",
     "chart_data",
     "csv_export",
+    "csv_export_synthesis",
     "csv_import",
     "csv_import_confirm",
     "render",  # For test mocking

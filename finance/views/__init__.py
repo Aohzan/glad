@@ -1,7 +1,7 @@
 """Views for the finance app."""
 
 from .chart_views import chart_data
-from .csv_views import csv_export, csv_import, csv_import_confirm
+from .csv_views import csv_export, csv_export_synthesis, csv_import, csv_import_confirm
 from .index_views import index
 from .investment_views import (
     create_investment,
@@ -34,6 +34,7 @@ __all__ = [
     "update_accounts",
     "chart_data",
     "csv_export",
+    "csv_export_synthesis",
     "csv_import",
     "csv_import_confirm",
     "saving_detail",

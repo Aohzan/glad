@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 09:13+0200\n"
+"POT-Creation-Date: 2026-06-30 21:30+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -345,7 +345,7 @@ msgstr "Données de type invalide"
 msgid "An error occurred while loading chart data"
 msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 
-#: finance/views/crud_views.py:43 finance/views/csv_views.py:320
+#: finance/views/crud_views.py:43 finance/views/csv_views.py:321
 #: finance/views/investment_views.py:62 finance/views/investment_views.py:88
 #: finance/views/investment_views.py:227 finance/views/saving_views.py:58
 #: finance/views/saving_views.py:84 finance/views/update_views.py:338
@@ -367,63 +367,100 @@ msgstr "Veuillez corriger les erreurs ci-dessous."
 msgid "Invalid request method."
 msgstr "Méthode de requête invalide."
 
-#: finance/views/csv_views.py:52 finance/views/csv_views.py:64
+#: finance/views/csv_views.py:53 finance/views/csv_views.py:65
 msgid "Some accounts could not be found."
 msgstr "Certains comptes n'ont pas été trouvés."
 
-#: finance/views/csv_views.py:67
+#: finance/views/csv_views.py:68
 msgid "No account selected or found for export."
 msgstr "Aucun compte sélectionné ou trouvé pour l'export"
 
-#: finance/views/csv_views.py:140
+#: finance/views/csv_views.py:141
 msgid "No data to export for selected accounts."
 msgstr "Aucune donnée à exporter pour les comptes sélectionnés."
 
-#: finance/views/csv_views.py:188 finance/views/csv_views.py:221
+#: finance/views/csv_views.py:189 finance/views/csv_views.py:222
 msgid "CSV file is missing required columns for the selected type."
 msgstr ""
 "Le fichier CSV n'a pas les noms de colonnes requises pour le type "
 "sélectionné."
 
-#: finance/views/csv_views.py:307 property/views/csv_views.py:129
+#: finance/views/csv_views.py:308 property/views/csv_views.py:129
 msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
-#: finance/views/csv_views.py:368
+#: finance/views/csv_views.py:369
 msgid "No mapping found for account"
 msgstr "Aucune correspondance trouvée pour le compte"
 
-#: finance/views/csv_views.py:456
+#: finance/views/csv_views.py:457
 msgid "No mapping found for holding"
 msgstr "Aucune correspondance trouvée pour le titre"
 
-#: finance/views/csv_views.py:494
+#: finance/views/csv_views.py:495
 msgid "An error occurred during import: "
 msgstr "Une erreur s'est produite pendant l'import : "
 
-#: finance/views/csv_views.py:509
+#: finance/views/csv_views.py:510
 #, python-brace-format
 msgid "Successfully imported {} records. {} duplicate records were ignored."
 msgstr "{} enregistrements importés avec succès. {} doublons ignorés."
 
-#: finance/views/csv_views.py:515
+#: finance/views/csv_views.py:516
 #, python-brace-format
 msgid "Successfully imported {} records."
 msgstr "Enregistrements {} importés avec succès."
 
-#: finance/views/csv_views.py:520
+#: finance/views/csv_views.py:521
 #, python-brace-format
 msgid "No new records imported. {} duplicate records were ignored."
 msgstr "Pas de nouvelle données importées. {} données existantes ignorées."
 
-#: finance/views/csv_views.py:526
+#: finance/views/csv_views.py:527
 msgid "Errors in rows: "
 msgstr "Erreurs dans les lignes : "
 
-#: finance/views/csv_views.py:530
+#: finance/views/csv_views.py:531
 #, python-brace-format
 msgid " and {} more errors"
 msgstr " et {} erreurs supplémentaires"
+
+#: finance/views/csv_views.py:543
+#: templates/finance/_account_detail_common_info.html:3
+#: templates/property/detail.html:382
+#: templates/property/detail_panel_cashflow.html:72
+#: templates/property/detail_panel_info.html:17
+#: templates/property/detail_panel_leases.html:48
+msgid "Type"
+msgstr "Type"
+
+#: finance/views/csv_views.py:544
+#: templates/finance/_account_detail_common_info.html:8
+#: templates/finance/_edit_account_info_card.html:24
+msgid "Owner"
+msgstr "Propriétaire"
+
+#: finance/views/csv_views.py:545
+#: templates/finance/_account_detail_common_info.html:14
+#: templates/finance/_edit_account_info_card.html:32
+msgid "Institution"
+msgstr "Établissement"
+
+#: finance/views/csv_views.py:546
+#, fuzzy, python-format
+#| msgid "Valuation date"
+msgid "Value at %(date)s"
+msgstr "Date d'évaluation"
+
+#: finance/views/csv_views.py:586
+#: templates/finance/_account_chart_script.html:110
+#: templates/finance/_account_chart_script.html:148
+#: templates/finance/index.html:61 templates/finance/index.html:345
+#: templates/property/_balance_section_card.html:30
+#: templates/property/_report_category_table.html:27
+#: templates/property/scpi_detail.html:199
+msgid "Total"
+msgstr "Total"
 
 #: finance/views/index_views.py:92 templates/finance/update.html:75
 msgid "Cash"
@@ -527,11 +564,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:233
+#: glad/settings.py:219
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:234
+#: glad/settings.py:220
 msgid "French"
 msgstr "Français"
 
@@ -2456,36 +2493,9 @@ msgstr "Évolution de la valeur"
 msgid "Invested"
 msgstr "Investi"
 
-#: templates/finance/_account_chart_script.html:110
-#: templates/finance/_account_chart_script.html:148
-#: templates/finance/index.html:61 templates/finance/index.html:345
-#: templates/property/_balance_section_card.html:30
-#: templates/property/_report_category_table.html:27
-#: templates/property/scpi_detail.html:199
-msgid "Total"
-msgstr "Total"
-
 #: templates/finance/_account_chart_script.html:181
 msgid "Could not load chart data."
 msgstr "Impossible de charger les données du graphique."
-
-#: templates/finance/_account_detail_common_info.html:3
-#: templates/property/detail.html:382
-#: templates/property/detail_panel_cashflow.html:72
-#: templates/property/detail_panel_info.html:17
-#: templates/property/detail_panel_leases.html:48
-msgid "Type"
-msgstr "Type"
-
-#: templates/finance/_account_detail_common_info.html:8
-#: templates/finance/_edit_account_info_card.html:24
-msgid "Owner"
-msgstr "Propriétaire"
-
-#: templates/finance/_account_detail_common_info.html:14
-#: templates/finance/_edit_account_info_card.html:32
-msgid "Institution"
-msgstr "Établissement"
 
 #: templates/finance/_account_detail_header.html:11
 #: templates/finance/_item_actions.html:3
@@ -2695,7 +2705,22 @@ msgstr "Export"
 msgid "Back"
 msgstr "Retour"
 
-#: templates/finance/csv_export.html:69
+#: templates/finance/csv_export.html:58 templates/finance/csv_export.html:64
+msgid "Export synthesis"
+msgstr "Export synthèse"
+
+#: templates/finance/csv_export.html:61
+msgid ""
+"Export a summary of all active saving and investment accounts with their "
+"current value."
+msgstr ""
+"Exporter une synthèse de tous les comptes actif avec leur valeur actuelle."
+
+#: templates/finance/csv_export.html:62
+msgid "Columns: Type, Owner, Institution, Value at date."
+msgstr "Colonnes: Type, Propriétaire, Établissement, Valeur à date."
+
+#: templates/finance/csv_export.html:82
 msgid "Select accounts"
 msgstr "Choisir les comptes"
 

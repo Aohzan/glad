@@ -76,8 +76,7 @@ def send_login_notification(sender, user, request, **kwargs):
 
 def _get_client_ip(request):
     """Extract the client IP address from the request."""
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
+    if x_forwarded_for := request.META.get("HTTP_X_FORWARDED_FOR"):
         return x_forwarded_for.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR", "")
 
