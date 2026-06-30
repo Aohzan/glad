@@ -179,6 +179,34 @@ def test_login_notification_settings_url(user, settings):
         assert "/accounts/settings/" in args[2]
 
 
+@pytest.mark.django_db
+def test_login_notification_settings_url_uses_app_url(user, settings):
+    settings.APP_URL = "https://glad.bourgain.me"
+    settings.ALLOWED_HOSTS = ["glad.bourgain.me", "localhost", "127.0.0.1"]
+    user.email = "test@example.com"
+    user.save()
+    profile = UserProfile.objects.get(user=user)
+    profile.notify_on_login = True
+    profile.save()
+
+    request = RequestFactory().get("/", HTTP_HOST="127.0.0.1:5006")
+    request.META["HTTP_USER_AGENT"] = "TestBrowser/1.0"
+
+    with patch("accounts.signals.threading.Thread") as MockThread:
+        instance = MockThread.return_value
+        instance.start.return_value = None
+
+        user_logged_in.send(sender=user.__class__, user=user, request=request)
+
+        MockThread.assert_called_once()
+        call_kwargs = MockThread.call_args
+        args = call_kwargs[1]["args"]
+        assert "https://glad.bourgain.me/accounts/settings/" in args[1]
+        assert "https://glad.bourgain.me/accounts/settings/" in args[2]
+        assert "127.0.0.1:5006" not in args[1]
+        assert "127.0.0.1:5006" not in args[2]
+
+
 def test_get_client_ip_no_forwarded():
     from accounts.signals import _get_client_ip
 
@@ -191,6 +219,27 @@ def test_get_client_ip_with_forwarded():
 
     request = RequestFactory().get(
         "/", REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR="9.8.7.6, 10.0.0.1"
+    )
+    assert _get_client_ip(request) == "9.8.7.6"
+
+
+def test_get_client_ip_with_x_real_ip():
+    from accounts.signals import _get_client_ip
+
+    request = RequestFactory().get(
+        "/", REMOTE_ADDR="172.22.1.1", HTTP_X_REAL_IP="203.0.113.50"
+    )
+    assert _get_client_ip(request) == "203.0.113.50"
+
+
+def test_get_client_ip_x_forwarded_for_takes_priority_over_x_real_ip():
+    from accounts.signals import _get_client_ip
+
+    request = RequestFactory().get(
+        "/",
+        REMOTE_ADDR="172.22.1.1",
+        HTTP_X_FORWARDED_FOR="9.8.7.6",
+        HTTP_X_REAL_IP="203.0.113.50",
     )
     assert _get_client_ip(request) == "9.8.7.6"
 
@@ -309,6 +358,33 @@ def test_login_notification_thread_is_daemon(user):
 
 def test_email_timeout_is_10_seconds():
     assert _EMAIL_TIMEOUT == 10
+
+
+def test_build_settings_url_uses_app_url(settings):
+    from accounts.signals import _build_settings_url
+
+    settings.APP_URL = "https://glad.bourgain.me"
+    request = RequestFactory().get("/", HTTP_HOST="127.0.0.1:5006")
+    url = _build_settings_url(request)
+    assert url == "https://glad.bourgain.me/accounts/settings/"
+
+
+@pytest.mark.django_db
+def test_build_settings_url_fallback_to_request(settings):
+    from accounts.signals import _build_settings_url
+
+    settings.APP_URL = ""
+    settings.ALLOWED_HOSTS = ["example.com"]
+    request = RequestFactory().get("/", HTTP_HOST="example.com")
+    url = _build_settings_url(request)
+    assert url == "http://example.com/accounts/settings/"
+
+
+def test_build_settings_url_handles_exception():
+    from accounts.signals import _build_settings_url
+
+    url = _build_settings_url(None)
+    assert url == ""
 
 
 @pytest.mark.django_db
