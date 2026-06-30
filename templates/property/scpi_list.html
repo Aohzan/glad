@@ -134,7 +134,7 @@
 
     {# ── Delete modal ───────────────────────────────────────────────────────── #}
     {% url 'property:scpi_delete' scpi_pk=fund.pk as del_scpi_url %}
-    {% include "property/_delete_modal.html" with modal_id="deleteScpi"|add:fund.pk|stringformat:"s" delete_url=del_scpi_url modal_title=_("Delete SCPI fund") confirm_text=_("Are you sure? This will also delete all related investments and dividends.") %}
+    {% include "property/_delete_modal.html" with modal_prefix="deleteScpi" item_pk=fund.pk delete_url=del_scpi_url modal_title=_("Delete SCPI fund") confirm_text=_("Are you sure? This will also delete all related investments and dividends.") %}
   </div>
   {% endwith %}
   {% empty %}

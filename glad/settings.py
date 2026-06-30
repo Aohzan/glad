@@ -43,6 +43,13 @@ _app_url = os.environ.get("APP_URL", "").rstrip("/")
 _app_url_parsed = urlparse(_app_url) if _app_url else None
 _app_hostname = _app_url_parsed.hostname if _app_url_parsed else None
 
+APP_URL = _app_url
+
+if _app_url:
+    USE_X_FORWARDED_HOST = True
+    if _app_url_parsed and _app_url_parsed.scheme == "https":
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # Only set ALLOWED_HOSTS if explicitly configured in environment
 ALLOWED_HOSTS = (
     [x.strip() for x in os.environ["ALLOWED_HOSTS"].split(",")]

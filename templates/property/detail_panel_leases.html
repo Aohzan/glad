@@ -38,8 +38,8 @@
           <span class="fw-semibold">{{ lease.name }}</span>
         </div>
         {% url 'property:edit_lease' property.pk lease.pk as edit_url %}
-        {% with delete_modal_id="deleteLeaseModal"|add:lease.pk|stringformat:"s" %}
-          {% include "property/_item_actions.html" with edit_url=edit_url delete_modal_id=delete_modal_id %}
+        {% with modal_prefix="deleteLeaseModal" %}
+          {% include "property/_item_actions.html" with edit_url=edit_url modal_prefix=modal_prefix item_pk=lease.pk %}
         {% endwith %}
       </div>
       <div class="card-body py-2">
@@ -86,7 +86,7 @@
     {% url 'property:delete_lease' property.pk lease.pk as delete_lease_url %}
     {% translate "Delete lease" as delete_lease_title %}
     {% blocktranslate with start=lease.start_date asvar confirm_lease_text %}Are you sure you want to delete the lease starting {{ start }}?{% endblocktranslate %}
-    {% include "property/_delete_modal.html" with modal_id="deleteLeaseModal"|add:lease.pk|stringformat:"s" delete_url=delete_lease_url modal_title=delete_lease_title confirm_text=confirm_lease_text %}
+    {% include "property/_delete_modal.html" with modal_prefix="deleteLeaseModal" item_pk=lease.pk delete_url=delete_lease_url modal_title=delete_lease_title confirm_text=confirm_lease_text %}
   {% endfor %}
 {% else %}
   <div class="text-center py-5 text-body-secondary">

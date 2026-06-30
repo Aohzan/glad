@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-30 21:30+0200\n"
+"POT-Creation-Date: 2026-06-30 23:47+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -61,9 +61,10 @@ msgstr "Passkey supprimé avec succès."
 #: templates/accounts/emails/login_notification.html:16
 #: templates/finance/_deposits_panel.html:15
 #: templates/finance/_edit_deposit_fields.html:8
+#: templates/finance/edit_investment_cash.html:33
 #: templates/finance/edit_saving_value.html:29
 #: templates/finance/investment_detail.html:115
-#: templates/finance/investment_detail.html:171
+#: templates/finance/investment_detail.html:174
 #: templates/finance/saving_detail.html:71 templates/property/detail.html:454
 #: templates/property/detail.html:551
 #: templates/property/detail_panel_cashflow.html:33
@@ -100,79 +101,79 @@ msgstr "Mise à jour groupée de la date de valeur"
 msgid "New value date"
 msgstr "Nouvelle valeur"
 
-#: finance/forms.py:23
+#: finance/forms.py:24
 msgid "Saving Account value"
 msgstr "Valeur du compte d'épargne"
 
-#: finance/forms.py:24 templates/finance/csv_import.html:66
+#: finance/forms.py:25 templates/finance/csv_import.html:66
 msgid "Investment Account Cash"
 msgstr "Espèces du compte d'investissement"
 
-#: finance/forms.py:25 templates/finance/csv_import.html:83
+#: finance/forms.py:26 templates/finance/csv_import.html:83
 msgid "Investment Account Holding"
 msgstr "Titres du compte d'investissement"
 
-#: finance/forms.py:36
+#: finance/forms.py:37
 msgid "Number of days for progression calculation."
 msgstr "Nombre de jours pour calculer la progression"
 
-#: finance/forms.py:42
+#: finance/forms.py:43
 msgid "Active accounts only"
 msgstr "Comptes actifs seulement"
 
-#: finance/forms.py:45
+#: finance/forms.py:46
 msgid "Show only active accounts in the index view."
 msgstr "Afficher seulement les comptes actifs dans la vue d'index."
 
-#: finance/forms.py:54
+#: finance/forms.py:55
 msgid "Date of new values"
 msgstr "Date des nouvelles valeurs"
 
-#: finance/forms.py:78
+#: finance/forms.py:79
 msgid "Update account"
 msgstr "Mettre à jour le compte"
 
-#: finance/forms.py:86
+#: finance/forms.py:87
 msgid "New value"
 msgstr "Nouvelle valeur"
 
-#: finance/forms.py:114
+#: finance/forms.py:115
 msgid "Current quantity"
 msgstr "Quantité actuelle"
 
-#: finance/forms.py:121
+#: finance/forms.py:122
 msgid "New quantity"
 msgstr "Nouvelle quantité"
 
-#: finance/forms.py:132
+#: finance/forms.py:133
 msgid "Data type to export"
 msgstr "Type de données à exporter"
 
-#: finance/forms.py:150
+#: finance/forms.py:151
 msgid "Accounts to export"
 msgstr "Comptes à exporter"
 
-#: finance/forms.py:156
+#: finance/forms.py:157
 msgid "Investment"
 msgstr "Investissement"
 
-#: finance/forms.py:159
+#: finance/forms.py:160
 msgid "Saving"
 msgstr "Épargne"
 
-#: finance/forms.py:167
+#: finance/forms.py:168
 msgid "Data type to import"
 msgstr "Type de données à importer"
 
-#: finance/forms.py:173 property/forms.py:668
+#: finance/forms.py:174 property/forms.py:668
 msgid "CSV File"
 msgstr "Fichier CSV"
 
-#: finance/forms.py:174
+#: finance/forms.py:175
 msgid "Please upload a CSV file"
 msgstr "Merci d'envoyer un fichier CSV"
 
-#: finance/forms.py:184
+#: finance/forms.py:185
 msgid "Map to account"
 msgstr "Associer au compte"
 
@@ -346,8 +347,8 @@ msgid "An error occurred while loading chart data"
 msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 
 #: finance/views/crud_views.py:43 finance/views/csv_views.py:321
-#: finance/views/investment_views.py:62 finance/views/investment_views.py:88
-#: finance/views/investment_views.py:227 finance/views/saving_views.py:58
+#: finance/views/investment_views.py:64 finance/views/investment_views.py:90
+#: finance/views/investment_views.py:267 finance/views/saving_views.py:58
 #: finance/views/saving_views.py:84 finance/views/update_views.py:338
 #: property/views/crud_views.py:125 property/views/crud_views.py:310
 #: property/views/crud_views.py:426 property/views/edit_views.py:44
@@ -358,8 +359,8 @@ msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
 
-#: finance/views/crud_views.py:68 finance/views/investment_views.py:110
-#: finance/views/investment_views.py:251 finance/views/saving_views.py:104
+#: finance/views/crud_views.py:68 finance/views/investment_views.py:112
+#: finance/views/investment_views.py:291 finance/views/saving_views.py:104
 #: property/views/crud_views.py:69 property/views/crud_views.py:142
 #: property/views/crud_views.py:354 property/views/crud_views.py:448
 #: property/views/scpi_views.py:336 property/views/scpi_views.py:376
@@ -447,10 +448,9 @@ msgid "Institution"
 msgstr "Établissement"
 
 #: finance/views/csv_views.py:546
-#, fuzzy, python-format
-#| msgid "Valuation date"
+#, python-format
 msgid "Value at %(date)s"
-msgstr "Date d'évaluation"
+msgstr "Valeur au %(date)s"
 
 #: finance/views/csv_views.py:586
 #: templates/finance/_account_chart_script.html:110
@@ -466,39 +466,47 @@ msgstr "Total"
 msgid "Cash"
 msgstr "Espèces"
 
-#: finance/views/investment_views.py:60
+#: finance/views/investment_views.py:62
 msgid "Investment account created successfully."
 msgstr "Compte d'investissement créé avec succès."
 
-#: finance/views/investment_views.py:86
+#: finance/views/investment_views.py:88
 msgid "Investment account updated successfully."
 msgstr "Compte d'investissement mis à jour avec succès."
 
-#: finance/views/investment_views.py:115
+#: finance/views/investment_views.py:117
 msgid "Investment account deleted successfully."
 msgstr "Compte d'investissement supprimé avec succès."
 
-#: finance/views/investment_views.py:135
+#: finance/views/investment_views.py:137
 msgid "Holding saved successfully."
 msgstr "Titre enregistré avec succès."
 
-#: finance/views/investment_views.py:151
+#: finance/views/investment_views.py:153
 msgid "Holding deleted successfully."
 msgstr "Titre supprimé avec succès."
 
-#: finance/views/investment_views.py:173 finance/views/saving_views.py:167
+#: finance/views/investment_views.py:175 finance/views/saving_views.py:167
 msgid "Deposit saved successfully."
 msgstr "Dépôt enregistré avec succès."
 
-#: finance/views/investment_views.py:189 finance/views/saving_views.py:183
+#: finance/views/investment_views.py:191 finance/views/saving_views.py:183
 msgid "Deposit deleted successfully."
 msgstr "Dépôt supprimé avec succès."
 
-#: finance/views/investment_views.py:223
+#: finance/views/investment_views.py:213
+msgid "Cash entry saved successfully."
+msgstr "Écriture de valeur d'espèces enregistrée avec succès."
+
+#: finance/views/investment_views.py:229
+msgid "Cash entry deleted successfully."
+msgstr "Écriture de valeur d'espèces supprimée avec succès."
+
+#: finance/views/investment_views.py:263
 msgid "Holding history entry saved successfully."
 msgstr "Historique du titre enregistré avec succès."
 
-#: finance/views/investment_views.py:262
+#: finance/views/investment_views.py:302
 msgid "Holding history entry deleted successfully."
 msgstr "Historique du titre supprimé avec succès."
 
@@ -2540,10 +2548,12 @@ msgid "30-day progression"
 msgstr "Progression sur 30 jours"
 
 #: templates/finance/_account_table_header.html:5
-#: templates/finance/_edit_value_field.html:3 templates/finance/index.html:122
-#: templates/finance/index.html:209 templates/finance/investment_detail.html:70
+#: templates/finance/_edit_value_field.html:3
+#: templates/finance/edit_investment_cash.html:28
+#: templates/finance/index.html:122 templates/finance/index.html:209
+#: templates/finance/investment_detail.html:70
 #: templates/finance/investment_detail.html:116
-#: templates/finance/investment_detail.html:172
+#: templates/finance/investment_detail.html:175
 #: templates/finance/saving_detail.html:72
 #: templates/property/csv_confirm.html:53 templates/property/detail.html:347
 #: templates/property/detail.html:552
@@ -2583,6 +2593,7 @@ msgstr "Source"
 #: templates/finance/_deposits_panel.html:18
 #: templates/finance/investment_detail.html:73
 #: templates/finance/investment_detail.html:119
+#: templates/finance/investment_detail.html:176
 #: templates/finance/saving_detail.html:73
 #: templates/property/_dividend_table_header.html:9
 #: templates/property/detail.html:553
@@ -2691,34 +2702,34 @@ msgstr "Clôturé"
 msgid "Finance - Export CSV"
 msgstr "Finance - Export CSV"
 
-#: templates/finance/csv_export.html:16
-msgid "Export data to CSV"
-msgstr "Exporter les données en CSV"
-
-#: templates/finance/csv_export.html:46
-msgid "Export"
-msgstr "Export"
-
-#: templates/finance/csv_export.html:49 templates/finance/csv_import.html:28
-#: templates/property/create.html:15 templates/property/csv_confirm.html:13
-#: templates/property/edit.html:16
-msgid "Back"
-msgstr "Retour"
-
-#: templates/finance/csv_export.html:58 templates/finance/csv_export.html:64
+#: templates/finance/csv_export.html:16 templates/finance/csv_export.html:22
 msgid "Export synthesis"
 msgstr "Export synthèse"
 
-#: templates/finance/csv_export.html:61
+#: templates/finance/csv_export.html:19
 msgid ""
 "Export a summary of all active saving and investment accounts with their "
 "current value."
 msgstr ""
 "Exporter une synthèse de tous les comptes actif avec leur valeur actuelle."
 
-#: templates/finance/csv_export.html:62
+#: templates/finance/csv_export.html:20
 msgid "Columns: Type, Owner, Institution, Value at date."
 msgstr "Colonnes: Type, Propriétaire, Établissement, Valeur à date."
+
+#: templates/finance/csv_export.html:29
+msgid "Export data to CSV"
+msgstr "Exporter les données en CSV"
+
+#: templates/finance/csv_export.html:59
+msgid "Export"
+msgstr "Export"
+
+#: templates/finance/csv_export.html:62 templates/finance/csv_import.html:28
+#: templates/property/create.html:15 templates/property/csv_confirm.html:13
+#: templates/property/edit.html:16
+msgid "Back"
+msgstr "Retour"
 
 #: templates/finance/csv_export.html:82
 msgid "Select accounts"
@@ -2880,6 +2891,20 @@ msgstr "Financier"
 #: templates/finance/investment_detail.html:26
 msgid "Opening cash value"
 msgstr "Valeur en espèces à l'ouverture"
+
+#: templates/finance/edit_investment_cash.html:5
+#: templates/finance/edit_investment_cash.html:11
+msgid "Edit investment cash entry"
+msgstr "Modifier l'écriture de valeur d'espèce"
+
+#: templates/finance/edit_investment_cash.html:5
+#: templates/finance/edit_investment_cash.html:12
+msgid "New investment cash entry"
+msgstr "Nouvelle écriture de valeur d'espèces"
+
+#: templates/finance/edit_investment_cash.html:23
+msgid "Cash entry"
+msgstr "Écriture de valeur d'espèces"
 
 #: templates/finance/edit_investment_deposit.html:5
 #: templates/finance/edit_investment_deposit.html:11
@@ -3113,15 +3138,27 @@ msgstr "Aucun titre actuellement."
 msgid "Cash history"
 msgstr "Historique des espèces"
 
-#: templates/finance/investment_detail.html:186
+#: templates/finance/investment_detail.html:165
+msgid "Add cash entry"
+msgstr "Ajouter une écriture d'espèces"
+
+#: templates/finance/investment_detail.html:188
+msgid "Delete cash entry"
+msgstr "Supprimer l'écriture d'espèces"
+
+#: templates/finance/investment_detail.html:189
+msgid "Are you sure you want to delete this cash entry?"
+msgstr "Êtes-vous sûr de vouloir supprimer cette écriture de valeur d'espèce ?"
+
+#: templates/finance/investment_detail.html:198
 msgid "No cash history yet."
 msgstr "Aucun historique d'espèces actuellement."
 
-#: templates/finance/investment_detail.html:193
+#: templates/finance/investment_detail.html:205
 msgid "Delete investment account"
 msgstr "Supprimer le compte d'investissement"
 
-#: templates/finance/investment_detail.html:194
+#: templates/finance/investment_detail.html:206
 msgid ""
 "Are you sure you want to delete this investment account and all its data?"
 msgstr ""

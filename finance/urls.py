@@ -121,6 +121,22 @@ urlpatterns = [
         views.delete_investment_deposit,
         name="delete_investment_deposit",
     ),
+    # Investment cash
+    path(
+        "investment/<int:account_pk>/cash/new/",
+        views.edit_investment_cash,
+        name="new_investment_cash",
+    ),
+    path(
+        "investment/<int:account_pk>/cash/<int:cash_pk>/edit/",
+        views.edit_investment_cash,
+        name="edit_investment_cash",
+    ),
+    path(
+        "investment/<int:account_pk>/cash/<int:cash_pk>/delete/",
+        views.delete_investment_cash,
+        name="delete_investment_cash",
+    ),
     # Holding history
     path(
         "investment/<int:account_pk>/holding/<int:holding_pk>/history/new/",
