@@ -109,14 +109,14 @@ class UpdateInvestmentAccountHoldingAddValueForm(BaseValueUpdateForm):
     holding_id = forms.IntegerField(widget=forms.HiddenInput())
     holding_name = forms.CharField(widget=forms.HiddenInput())
     current_quantity = forms.DecimalField(
-        max_digits=10,
+        max_digits=16,
         decimal_places=6,
         label=_("Current quantity"),
         widget=forms.HiddenInput(),
         required=False,
     )
     new_quantity = forms.DecimalField(
-        max_digits=10,
+        max_digits=16,
         decimal_places=6,
         label=_("New quantity"),
         localize=True,
