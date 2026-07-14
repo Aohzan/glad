@@ -13,9 +13,6 @@ from moneyed import Money
 
 from base.models import BaseModel
 
-if TYPE_CHECKING:
-    pass
-
 
 class SCPI(BaseModel):
     """A SCPI fund (the investment vehicle).
@@ -187,6 +184,9 @@ class SCPIInvestment(BaseModel):
     Supports full ownership, bare ownership (nue-propriété) and usufruct
     (usufruit) as part of a dismemberment (démembrement) operation.
     """
+
+    if TYPE_CHECKING:
+        theoretical_values: Manager["SCPIBareOwnershipTheoreticalValue"]
 
     class OwnershipType(models.TextChoices):
         FULL = "full", _("Full ownership")
@@ -406,32 +406,19 @@ class SCPIInvestment(BaseModel):
             self.OwnershipType.BARE,
             self.OwnershipType.USUFRUCT,
         ):
-            if (
-                self.dismemberment_start_date is None
-                or self.dismemberment_end_date is None
-                or self.bare_ownership_ratio is None
-            ):
+            # Check for a manually recorded theoretical value first (only if saved)
+            if self.pk is not None:
+                theoretical = (
+                    self.theoretical_values.filter(date__lte=as_of_date)
+                    .order_by("-date")
+                    .first()
+                )
+                if theoretical is not None:
+                    return Money(theoretical.value.amount, self.currency)
+
+            ratio = self._get_ownership_ratio(as_of_date)
+            if ratio is None:
                 return full_value
-
-            bare_ratio = self.bare_ownership_ratio
-            start = self.dismemberment_start_date
-            end = self.dismemberment_end_date
-            total_days = (end - start).days
-
-            if total_days <= 0:
-                # Degenerate case: treat as fully reconstituted
-                ratio = Decimal("100")
-            elif as_of_date >= end:
-                ratio = Decimal("100")
-            else:
-                elapsed = max(0, (as_of_date - start).days)
-                ratio = bare_ratio + (Decimal("100") - bare_ratio) * Decimal(
-                    elapsed
-                ) / Decimal(total_days)
-
-            if self.ownership_type == self.OwnershipType.USUFRUCT:
-                # Usufruct pct = 100 - bare pct
-                ratio = Decimal("100") - ratio
 
             return Money(
                 (full_value.amount * ratio / Decimal("100")).quantize(Decimal("0.01")),
@@ -440,15 +427,50 @@ class SCPIInvestment(BaseModel):
 
         return full_value  # pragma: no cover
 
+    def _get_ownership_ratio(self, as_of_date: datetime.date) -> Decimal | None:
+        """Return the effective ownership percentage (0–100) at as_of_date.
+
+        Returns None when dismemberment fields are incomplete (caller should
+        fall back to full value).  Does not consult theoretical_values.
+        """
+        if (
+            self.dismemberment_start_date is None
+            or self.dismemberment_end_date is None
+            or self.bare_ownership_ratio is None
+        ):
+            return None
+
+        bare_ratio = self.bare_ownership_ratio
+        start = self.dismemberment_start_date
+        end = self.dismemberment_end_date
+        total_days = (end - start).days
+
+        if total_days <= 0:
+            ratio = Decimal("100")
+        elif as_of_date >= end:
+            ratio = Decimal("100")
+        else:
+            elapsed = max(0, (as_of_date - start).days)
+            ratio = bare_ratio + (Decimal("100") - bare_ratio) * Decimal(
+                elapsed
+            ) / Decimal(total_days)
+
+        if self.ownership_type == self.OwnershipType.USUFRUCT:
+            ratio = Decimal("100") - ratio
+
+        return ratio
+
     def get_estimated_resale_value(
         self, as_of_date: datetime.date | None = None
     ) -> Money:
-        """Return the estimated net resale proceeds.
+        """Return the estimated net resale proceeds, adjusted for ownership type.
 
-        Formula: shares × withdrawal price × (1 - exit fee %) - entry fees on purchase value.
+        For bare ownership and usufruct, the gross resale is scaled by the
+        effective ownership ratio at as_of_date (same logic as get_estimated_value,
+        including manually recorded theoretical values).
 
-        The entry fees (sunk cost) are deducted from the gross resale to give
-        the true economic recovery relative to the total amount invested.
+        Formula: shares × withdrawal price × ownership_ratio% × (1 - exit fee %) - entry fees.
+
         Uses the withdrawal value at as_of_date (falls back to subscription value
         when no separate withdrawal price is recorded).
         Uses purchase value as fallback when no share price history is available.
@@ -464,6 +486,38 @@ class SCPIInvestment(BaseModel):
                 (self.shares_count * withdrawal.amount).quantize(Decimal("0.01")),
                 self.currency,
             )
+
+        # Apply dismemberment ratio for bare/usufruct ownership
+        if self.ownership_type in (
+            self.OwnershipType.BARE,
+            self.OwnershipType.USUFRUCT,
+        ):
+            # Check for a manually recorded theoretical value first (only if saved)
+            if self.pk is not None:
+                theoretical = (
+                    self.theoretical_values.filter(date__lte=as_of_date)
+                    .order_by("-date")
+                    .first()
+                )
+                if theoretical is not None:
+                    # Theoretical value already represents the ownership-adjusted amount;
+                    # deduct exit fees and entry fees on top of it.
+                    gross = Money(theoretical.value.amount, self.currency)
+                    exit_rate = self.scpi.exit_fee_rate
+                    if exit_rate:
+                        exit_fee_amount = (
+                            gross.amount * exit_rate / Decimal("100")
+                        ).quantize(Decimal("0.01"))
+                        gross = Money(gross.amount - exit_fee_amount, self.currency)
+                    entry_fees = self.get_entry_fees()
+                    return Money(gross.amount - entry_fees.amount, self.currency)
+
+            ratio = self._get_ownership_ratio(as_of_date)
+            if ratio is not None:
+                gross = Money(
+                    (gross.amount * ratio / Decimal("100")).quantize(Decimal("0.01")),
+                    self.currency,
+                )
 
         exit_rate = self.scpi.exit_fee_rate
         if exit_rate:
@@ -508,6 +562,43 @@ class SCPIInvestment(BaseModel):
             - self.get_total_invested().amount,
             self.currency,
         )
+
+
+class SCPIBareOwnershipTheoreticalValue(BaseModel):
+    """A theoretical value snapshot for a bare ownership (nue-propriété) investment.
+
+    Allows overriding the linear interpolation with a manually recorded value
+    at a specific date (e.g. from a SCPI statement or notarial assessment).
+    The most recent record on or before a given date takes precedence over
+    the automatic linear calculation in get_estimated_value().
+    """
+
+    class Meta:
+        verbose_name = _("Bare ownership theoretical value")
+        verbose_name_plural = _("Bare ownership theoretical values")
+        ordering = ["-date"]
+        unique_together = [("investment", "date")]
+
+    investment = models.ForeignKey(
+        "SCPIInvestment",
+        on_delete=models.CASCADE,
+        related_name="theoretical_values",
+        verbose_name=_("Investment"),
+    )
+    date = models.DateField(verbose_name=_("Date"))
+    value = MoneyField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name=_("Theoretical value"),
+        help_text=_(
+            "Estimated value of the bare ownership at this date,"
+            " as provided by the SCPI or a notarial assessment."
+        ),
+    )
+    notes = models.TextField(blank=True, default="", verbose_name=_("Notes"))
+
+    def __str__(self) -> str:
+        return f"{self.investment} — {self.date} — {self.value}"
 
 
 class SCPIDividend(BaseModel):

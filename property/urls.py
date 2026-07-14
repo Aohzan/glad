@@ -200,4 +200,19 @@ urlpatterns = [
         views.delete_scpi_dividend,
         name="scpi_dividend_delete",
     ),
+    path(
+        "scpi/investment/<int:investment_pk>/theoretical-value/add/",
+        views.edit_scpi_theoretical_value,
+        name="scpi_theoretical_value_add",
+    ),
+    path(
+        "scpi/investment/<int:investment_pk>/theoretical-value/<int:value_pk>/edit/",
+        views.edit_scpi_theoretical_value,
+        name="scpi_theoretical_value_edit",
+    ),
+    path(
+        "scpi/investment/<int:investment_pk>/theoretical-value/<int:value_pk>/delete/",
+        views.delete_scpi_theoretical_value,
+        name="scpi_theoretical_value_delete",
+    ),
 ]

@@ -71,6 +71,7 @@
       dividends:   "{% translate 'Dividends' %}",
       yield_:      "{% translate 'Yield' %}",
       est:         "{% translate 'est.' %}",
+      resale:      "{% translate 'Resale' %}",
     };
   </script>
 
@@ -606,11 +607,12 @@ function loadScpiCard(pk) {
       <div class="card-body pt-3 pb-2">
         <div class="d-flex justify-content-between align-items-baseline mb-2">
           <div>
-            <span class="fw-bold fs-5">${data.total_resale !== null ? fmt(data.total_resale, cur) : '—'}</span>
+            <span class="fw-bold fs-5">${data.total_estimated_value !== null ? fmt(data.total_estimated_value, cur) : (data.total_resale !== null ? fmt(data.total_resale, cur) : '—')}</span>
             <span class="ms-1 small text-muted">${i18n.est}</span>
           </div>
           ${data.gain_pct !== null ? `<span class="small ${gainCls}"><i class="bi bi-graph-up me-1"></i>${data.gain_pct >= 0 ? '+' : ''}${data.gain_pct.toFixed(2)}%</span>` : ''}
         </div>
+        ${data.total_estimated_value !== null && data.total_resale !== null && data.total_estimated_value !== data.total_resale ? `<div class="small text-muted mb-1">${i18n.resale}: ${fmt(data.total_resale, cur)}</div>` : ''}
         <div class="d-flex gap-2 text-center small mt-2 pt-2 border-top">
           <div class="flex-fill">
             <div class="text-muted" style="font-size:.65rem">${i18n.invested}</div>

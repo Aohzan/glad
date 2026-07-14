@@ -89,12 +89,12 @@ def _build_settings_url(request):
         from django.conf import settings
         from django.urls import reverse
 
+        if request is None:
+            return ""
         path = reverse("accounts:settings")
         app_url = getattr(settings, "APP_URL", None)
         if app_url:
             return f"{app_url.rstrip('/')}{path}"
-        if request is None:
-            return ""
         scheme = "https" if request.is_secure() else "http"
         host = request.get_host()
         return f"{scheme}://{host}{path}"

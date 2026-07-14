@@ -56,9 +56,11 @@ from property.views.scpi_views import (  # noqa: E402
     delete_scpi_dividend,
     delete_scpi_investment,
     delete_scpi_share_price,
+    delete_scpi_theoretical_value,
     edit_scpi,
     edit_scpi_dividend,
     edit_scpi_investment,
+    edit_scpi_theoretical_value,
     scpi_fund_detail,
     scpi_list,
 )
@@ -109,5 +111,7 @@ __all__ = [
     "delete_scpi_investment",
     "edit_scpi_dividend",
     "delete_scpi_dividend",
+    "edit_scpi_theoretical_value",
+    "delete_scpi_theoretical_value",
     "scpi_fund_detail",
 ]

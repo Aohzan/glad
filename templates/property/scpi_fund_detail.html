@@ -53,15 +53,20 @@
 
   {# ── KPI strip ───────────────────────────────────────────────────────────── #}
   <div class="row g-3 mb-4">
-    {# a. Total invested + estimated resell #}
+    {# a. Total invested + estimated value #}
     <div class="col-6 col-md-3">
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Total invested" %}</p>
           <p class="fs-4 fw-bold mb-0">{{ total_invested|format_money|default:"—" }}</p>
+          {% if total_estimated_value %}
+          <p class="small mb-0 text-body-secondary">
+            {% translate "Est. value" %}: <span class="fw-semibold">{{ total_estimated_value|format_money }}</span>
+          </p>
+          {% endif %}
           {% if total_resale %}
           <p class="small mb-0 text-body-secondary">
-            {{ total_resale|format_money }}
+            {% translate "Resale" %}: {{ total_resale|format_money }}
             {% if gain_pct is not None %}
             <span class="{% if gain_pct >= 0 %}text-success{% else %}text-danger{% endif %} fw-semibold">
               ({% if gain_pct >= 0 %}+{% endif %}{{ gain_pct }}%)
@@ -117,7 +122,7 @@
   {% if chart_months != "[]" %}
   <div class="card shadow-sm rounded-4 mb-4">
     <div class="card-header border-0">
-      <h2 class="h5 mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>{% translate "Invested & dividends over time" %}</h2>
+      <h2 class="h5 mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>{% translate "Invested, estimated value & dividends over time" %}</h2>
     </div>
     <div class="card-body pt-0">
       <div id="scpi-fund-chart" style="height: 300px;"></div>
@@ -143,6 +148,7 @@
             <th>{% translate "Unit price" %}</th>
             <th>{% translate "Ownership" %}</th>
             <th class="text-end">{% translate "Total invested" %}</th>
+            <th class="text-end">{% translate "Estimated value" %}</th>
             <th class="text-end">{% translate "Estimated resale" %}</th>
             <th class="text-end">{% translate "Capital gain" %}</th>
             <th></th>
@@ -164,6 +170,12 @@
               </span>
             </td>
             <td class="text-end">{{ row.total_invested|format_money }}</td>
+            <td class="text-end">
+              {{ row.estimated_value|format_money }}
+              {% if row.theoretical_values %}
+              <br><small class="text-body-secondary" title="{% translate 'Based on theoretical value' %}"><i class="bi bi-bookmark-check"></i> {{ row.theoretical_values.0.date }}</small>
+              {% endif %}
+            </td>
             <td class="text-end">{{ row.estimated_resale|format_money }}</td>
             <td class="text-end {% if row.capital_gain.amount >= 0 %}text-success{% else %}text-danger{% endif %}">
               {{ row.capital_gain|format_money }}
@@ -173,6 +185,11 @@
                 <a href="{% url 'property:scpi_investment_edit' investment_pk=inv.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
                   <i class="bi bi-pencil"></i>
                 </a>
+                {% if inv.ownership_type != 'full' %}
+                <a href="{% url 'property:scpi_theoretical_value_add' investment_pk=inv.pk %}" class="btn btn-outline-primary" title="{% translate 'Theoretical values' %}">
+                  <i class="bi bi-bookmark-plus"></i>
+                </a>
+                {% endif %}
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteInv{{ inv.pk }}" title="{% translate 'Delete' %}">
                   <i class="bi bi-trash"></i>
                 </button>
@@ -294,6 +311,7 @@
 
     var chartMonths = {{ chart_months|safe }};
     var chartInvested = {{ chart_invested_monthly|safe }};
+    var chartEstimated = {{ chart_estimated_monthly|safe }};
     var chartDividends = {{ chart_dividend_monthly|safe }};
 
     var options = {
@@ -307,11 +325,12 @@
       theme: { mode: getCurrentTheme() },
       series: [
         { name: '{% translate "Cumulative invested" %}', type: 'line', data: chartInvested },
+        { name: '{% translate "Estimated value" %}', type: 'line', data: chartEstimated },
         { name: '{% translate "Dividends" %}', type: 'bar', data: chartDividends }
       ],
-      stroke: { curve: 'stepline', width: [2, 0] },
-      fill: { opacity: [1, 0.85] },
-      colors: ['#60a5fa', '#34d399'],
+      stroke: { curve: 'smooth', width: [2, 2, 0] },
+      fill: { opacity: [1, 1, 0.85] },
+      colors: ['#60a5fa', '#a78bfa', '#34d399'],
       dataLabels: { enabled: false },
       xaxis: {
         categories: chartMonths,
@@ -328,7 +347,12 @@
       yaxis: [
         {
           seriesName: '{% translate "Cumulative invested" %}',
-          title: { text: '{% translate "Invested" %} (' + currency + ')' },
+          title: { text: '{% translate "Value" %} (' + currency + ')' },
+          labels: { formatter: function(v) { return Math.round(v).toLocaleString('fr-FR'); } }
+        },
+        {
+          seriesName: '{% translate "Estimated value" %}',
+          show: false,
           labels: { formatter: function(v) { return Math.round(v).toLocaleString('fr-FR'); } }
         },
         {

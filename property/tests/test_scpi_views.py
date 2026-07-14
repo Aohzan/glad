@@ -7,7 +7,13 @@ import pytest
 from django.urls import reverse
 from moneyed import Money
 
-from property.models.scpi import SCPI, SCPIDividend, SCPIInvestment, SCPISharePrice
+from property.models.scpi import (
+    SCPI,
+    SCPIBareOwnershipTheoreticalValue,
+    SCPIDividend,
+    SCPIInvestment,
+    SCPISharePrice,
+)
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -86,6 +92,15 @@ class TestSCPIFundDetailView:
         response = user_client.get(url)
         assert response.status_code == 200
         assert b"Test SCPI" in response.content
+
+    def test_fund_detail_has_estimated_value_in_context(self, user_client, investment):
+        url = reverse(
+            "property:scpi_fund_detail", kwargs={"scpi_pk": investment.scpi.pk}
+        )
+        response = user_client.get(url)
+        assert response.status_code == 200
+        assert "total_estimated_value" in response.context
+        assert "chart_estimated_monthly" in response.context
 
     def test_get_fund_detail_not_found(self, user_client):
         url = reverse("property:scpi_fund_detail", kwargs={"scpi_pk": 9999})
@@ -383,3 +398,136 @@ class TestSCPIViewsCoverage:
         url = reverse("property:scpi_investment_new")
         response = user_client.post(url, {})  # empty → invalid
         assert response.status_code == 200
+
+
+# ── Theoretical value views ───────────────────────────────────────────────────
+
+
+@pytest.fixture
+def investment_bare(scpi, share_price):
+    return SCPIInvestment.objects.create(
+        scpi=scpi,
+        subscription_date=datetime.date(2020, 1, 1),
+        shares_count=Decimal("20.0000"),
+        unit_purchase_price=Money(Decimal("650.00"), "EUR"),
+        ownership_type=SCPIInvestment.OwnershipType.BARE,
+        dismemberment_start_date=datetime.date(2020, 1, 1),
+        dismemberment_end_date=datetime.date(2030, 1, 1),
+        bare_ownership_ratio=Decimal("65.00"),
+    )
+
+
+@pytest.fixture
+def theoretical_value(investment_bare):
+    return SCPIBareOwnershipTheoreticalValue.objects.create(
+        investment=investment_bare,
+        date=datetime.date(2023, 1, 1),
+        value=Money(Decimal("14000.00"), "EUR"),
+    )
+
+
+@pytest.mark.django_db
+class TestSCPITheoreticalValueViews:
+    def test_get_add_theoretical_value_form(self, user_client, investment_bare):
+        url = reverse(
+            "property:scpi_theoretical_value_add",
+            kwargs={"investment_pk": investment_bare.pk},
+        )
+        response = user_client.get(url)
+        assert response.status_code == 200
+
+    def test_post_add_theoretical_value(self, user_client, investment_bare):
+        url = reverse(
+            "property:scpi_theoretical_value_add",
+            kwargs={"investment_pk": investment_bare.pk},
+        )
+        data = {
+            "date": "2024-01-01",
+            "value_0": "15000.00",
+            "value_1": "EUR",
+            "notes": "",
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 302
+        assert SCPIBareOwnershipTheoreticalValue.objects.filter(
+            investment=investment_bare
+        ).exists()
+
+    def test_get_edit_theoretical_value_form(
+        self, user_client, investment_bare, theoretical_value
+    ):
+        url = reverse(
+            "property:scpi_theoretical_value_edit",
+            kwargs={
+                "investment_pk": investment_bare.pk,
+                "value_pk": theoretical_value.pk,
+            },
+        )
+        response = user_client.get(url)
+        assert response.status_code == 200
+
+    def test_post_edit_theoretical_value(
+        self, user_client, investment_bare, theoretical_value
+    ):
+        url = reverse(
+            "property:scpi_theoretical_value_edit",
+            kwargs={
+                "investment_pk": investment_bare.pk,
+                "value_pk": theoretical_value.pk,
+            },
+        )
+        data = {
+            "date": "2023-01-01",
+            "value_0": "16000.00",
+            "value_1": "EUR",
+            "notes": "updated",
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 302
+        theoretical_value.refresh_from_db()
+        assert theoretical_value.value.amount == Decimal("16000.00")
+
+    def test_post_delete_theoretical_value(
+        self, user_client, investment_bare, theoretical_value
+    ):
+        pk = theoretical_value.pk
+        url = reverse(
+            "property:scpi_theoretical_value_delete",
+            kwargs={"investment_pk": investment_bare.pk, "value_pk": pk},
+        )
+        response = user_client.post(url)
+        assert response.status_code == 302
+        assert not SCPIBareOwnershipTheoreticalValue.objects.filter(pk=pk).exists()
+
+    def test_get_delete_theoretical_value_redirects(
+        self, user_client, investment_bare, theoretical_value
+    ):
+        url = reverse(
+            "property:scpi_theoretical_value_delete",
+            kwargs={
+                "investment_pk": investment_bare.pk,
+                "value_pk": theoretical_value.pk,
+            },
+        )
+        response = user_client.get(url)
+        assert response.status_code == 302
+
+    def test_post_invalid_add_theoretical_value(self, user_client, investment_bare):
+        url = reverse(
+            "property:scpi_theoretical_value_add",
+            kwargs={"investment_pk": investment_bare.pk},
+        )
+        response = user_client.post(url, {})  # empty → invalid
+        assert response.status_code == 200
+
+    def test_fund_detail_shows_theoretical_value_indicator(
+        self, user_client, investment_bare, theoretical_value
+    ):
+        """Fund detail page shows the theoretical value indicator on bare investment."""
+        url = reverse(
+            "property:scpi_fund_detail",
+            kwargs={"scpi_pk": investment_bare.scpi.pk},
+        )
+        response = user_client.get(url)
+        assert response.status_code == 200
+        assert b"bi-bookmark-check" in response.content

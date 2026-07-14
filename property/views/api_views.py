@@ -113,6 +113,9 @@ class SCPIDashboardCardApiView(View):
                 "total_resale": float(data["total_resale"].amount)
                 if data["total_resale"]
                 else None,
+                "total_estimated_value": float(data["total_estimated_value"].amount)
+                if data["total_estimated_value"]
+                else None,
                 "total_invested": float(data["total_invested"].amount)
                 if data["total_invested"]
                 else None,
