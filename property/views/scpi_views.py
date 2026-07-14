@@ -1,5 +1,6 @@
 """CRUD views for SCPI investments, share prices, and dividends."""
 
+import calendar
 import datetime
 import json
 from decimal import Decimal
@@ -11,12 +12,19 @@ from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
 from property.forms import (
+    SCPIBareOwnershipTheoreticalValueForm,
     SCPIDividendForm,
     SCPIForm,
     SCPIInvestmentForm,
     SCPISharePriceForm,
 )
-from property.models import SCPI, SCPIDividend, SCPIInvestment, SCPISharePrice
+from property.models import (
+    SCPI,
+    SCPIBareOwnershipTheoreticalValue,
+    SCPIDividend,
+    SCPIInvestment,
+    SCPISharePrice,
+)
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -35,23 +43,26 @@ def _iter_months(start: datetime.date, end: datetime.date):
 
 def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
     """Compute aggregate stats and chart data for a single SCPI fund."""
-    investments = list(fund.investments.all())
+    investments = list(fund.investments.prefetch_related("theoretical_values").all())
     dividends = list(fund.dividends.order_by("-payment_date"))
 
     total_invested: Money | None = None
     total_resale: Money | None = None
+    total_estimated_value: Money | None = None
     min_subscription_date: datetime.date | None = None
     currency = "EUR"
 
     for inv in investments:
         invested = inv.get_total_invested()
         resale = inv.get_estimated_resale_value(today)
+        estimated = inv.get_estimated_value(today)
         if hasattr(invested, "currency"):
             currency = str(invested.currency)
 
         if total_invested is None:
             total_invested = invested
             total_resale = resale
+            total_estimated_value = estimated
         else:
             total_invested = Money(
                 total_invested.amount + invested.amount, str(total_invested.currency)
@@ -60,6 +71,11 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
             total_resale = Money(
                 total_resale.amount + resale.amount,
                 str(total_resale.currency),
+            )
+            assert total_estimated_value is not None  # noqa: S101
+            total_estimated_value = Money(
+                total_estimated_value.amount + estimated.amount,
+                str(total_estimated_value.currency),
             )
 
         if (
@@ -128,9 +144,11 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
 
     # ── Monthly chart data ────────────────────────────────────────────────────
     # Line: cumulative invested per month since first acquisition
+    # Line: estimated value per month
     # Bar: total dividends per month (on second y-axis)
     chart_months: list[str] = []
     chart_invested_monthly: list[float] = []
+    chart_estimated_monthly: list[float] = []
     chart_dividend_monthly: list[float] = []
 
     if min_subscription_date is not None:
@@ -145,6 +163,8 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
         cumulative = Decimal("0")
         inv_idx = 0
         for year, month in _iter_months(min_subscription_date, today):
+            last_day = calendar.monthrange(year, month)[1]
+            month_date = datetime.date(year, month, last_day)
             while inv_idx < len(sorted_investments):
                 sub = sorted_investments[inv_idx].subscription_date
                 if sub.year < year or (sub.year == year and sub.month <= month):
@@ -154,9 +174,18 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
                     inv_idx += 1
                 else:
                     break
+            estimated_at_month = sum(
+                (
+                    inv.get_estimated_value(month_date).amount
+                    for inv in investments
+                    if inv.subscription_date <= month_date
+                ),
+                Decimal("0"),
+            )
             month_label = f"{year}-{month:02d}"
             chart_months.append(month_label)
             chart_invested_monthly.append(float(cumulative))
+            chart_estimated_monthly.append(float(estimated_at_month))
             chart_dividend_monthly.append(
                 float(div_by_month.get((year, month), Decimal("0")))
             )
@@ -178,6 +207,7 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
         "investments": investments,
         "total_invested": total_invested,
         "total_resale": total_resale,
+        "total_estimated_value": total_estimated_value,
         "total_dividends": total_dividends,
         "last_year_dividends": last_year_dividends,
         "capital_gain": capital_gain,
@@ -189,6 +219,7 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
         "currency": currency,
         "chart_months": json.dumps(chart_months),
         "chart_invested_monthly": json.dumps(chart_invested_monthly),
+        "chart_estimated_monthly": json.dumps(chart_estimated_monthly),
         "chart_dividend_monthly": json.dumps(chart_dividend_monthly),
         "dividends_json": dividends_json,
     }
@@ -285,8 +316,12 @@ def scpi_fund_detail(request: HttpRequest, scpi_pk: int) -> HttpResponse:
             {
                 "obj": inv,
                 "total_invested": inv.get_total_invested(),
+                "estimated_value": inv.get_estimated_value(today),
                 "estimated_resale": inv.get_estimated_resale_value(today),
                 "capital_gain": inv.get_capital_gain(today),
+                "theoretical_values": list(inv.theoretical_values.order_by("-date"))
+                if inv.ownership_type != inv.OwnershipType.FULL
+                else [],
             }
         )
 
@@ -482,3 +517,68 @@ def delete_scpi_dividend(
     dividend.delete()
     messages.success(request, _("Dividend deleted successfully."))
     return redirect("property:scpi_fund_detail", scpi_pk=scpi_obj.pk)
+
+
+# ─── Bare ownership theoretical values CRUD ───────────────────────────────────
+
+
+def edit_scpi_theoretical_value(
+    request: HttpRequest,
+    investment_pk: int,
+    value_pk: int | None = None,
+) -> HttpResponse:
+    """Create or edit a theoretical value for a bare ownership investment."""
+    investment = get_object_or_404(SCPIInvestment, pk=investment_pk)
+    theoretical_value = (
+        get_object_or_404(
+            SCPIBareOwnershipTheoreticalValue, pk=value_pk, investment=investment
+        )
+        if value_pk
+        else None
+    )
+
+    if request.method == "POST":
+        form = SCPIBareOwnershipTheoreticalValueForm(
+            request.POST, instance=theoretical_value
+        )
+        if form.is_valid():
+            saved = form.save(commit=False)
+            saved.investment = investment
+            saved.save()
+            messages.success(
+                request,
+                _("Theoretical value updated successfully.")
+                if theoretical_value
+                else _("Theoretical value recorded successfully."),
+            )
+            return redirect("property:scpi_fund_detail", scpi_pk=investment.scpi.pk)
+        messages.error(request, _("Please correct the errors below."))
+    else:
+        form = SCPIBareOwnershipTheoreticalValueForm(instance=theoretical_value)
+
+    return render(
+        request,
+        "property/scpi_theoretical_value_form.html",
+        {
+            "form": form,
+            "investment": investment,
+            "theoretical_value": theoretical_value,
+        },
+    )
+
+
+def delete_scpi_theoretical_value(
+    request: HttpRequest, investment_pk: int, value_pk: int
+) -> HttpResponse:
+    """Delete a theoretical value record. Only accepts POST."""
+    if request.method != "POST":
+        messages.error(request, _("Invalid request method."))
+        return redirect("property:scpi_list")
+
+    investment = get_object_or_404(SCPIInvestment, pk=investment_pk)
+    theoretical_value = get_object_or_404(
+        SCPIBareOwnershipTheoreticalValue, pk=value_pk, investment=investment
+    )
+    theoretical_value.delete()
+    messages.success(request, _("Theoretical value deleted successfully."))
+    return redirect("property:scpi_fund_detail", scpi_pk=investment.scpi.pk)

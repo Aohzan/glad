@@ -18,6 +18,7 @@ from property.models import (
     PropertyLedgerEntryException,
     PropertyLoan,
     PropertyValue,
+    SCPIBareOwnershipTheoreticalValue,
     SCPIDividend,
     SCPIInvestment,
     SCPISharePrice,
@@ -600,6 +601,24 @@ class SCPIInvestmentForm(MoneyInputGroupMixin, forms.ModelForm):
         self.fields["dismemberment_start_date"].required = False
         self.fields["dismemberment_end_date"].required = False
         self.fields["bare_ownership_ratio"].required = False
+        self.fields["notes"].required = False
+
+
+class SCPIBareOwnershipTheoreticalValueForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for recording a theoretical value for a bare ownership investment."""
+
+    class Meta:
+        model = SCPIBareOwnershipTheoreticalValue
+        fields = ["date", "value", "notes"]
+        widgets = {
+            "date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fields["notes"].required = False
 
 

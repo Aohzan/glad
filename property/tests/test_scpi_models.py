@@ -7,7 +7,13 @@ import pytest
 from django.core.exceptions import ValidationError
 from moneyed import Money
 
-from property.models.scpi import SCPI, SCPIDividend, SCPIInvestment, SCPISharePrice
+from property.models.scpi import (
+    SCPI,
+    SCPIBareOwnershipTheoreticalValue,
+    SCPIDividend,
+    SCPIInvestment,
+    SCPISharePrice,
+)
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -355,6 +361,44 @@ class TestSCPIInvestmentResaleValue:
             Decimal("5000.00"), "EUR"
         )
 
+    def test_resale_bare_ownership_applies_dismemberment_ratio(self, investment_bare):
+        """For bare ownership, the resale value is scaled by the current ownership ratio."""
+        # At 2025-01-01: ratio ≈ 82.4965% (same as get_estimated_value linear calc)
+        # full_gross = 20 × 1020 = 20_400 (withdrawal = 1020)
+        # gross_after_ratio = 20_400 × ratio / 100
+        # no exit fee, entry_fees = 20 × 650 × 8% = 1040
+        date = datetime.date(2025, 1, 1)
+        result = investment_bare.get_estimated_resale_value(date)
+        # Compute expected: ratio from get_estimated_value test = 17821.03 / (20*1080) = ...
+        # Let's derive from _get_ownership_ratio logic:
+        # total_days = (2030-01-01)-(2020-01-01) = 3652
+        # elapsed = (2025-01-01)-(2020-01-01) = 1826
+        # ratio = 65 + 35*1826/3652 = 65 + 17.4965... = 82.4965...
+        # gross = 20 × 1020 × ratio/100 - entry_fees (1040)
+        from decimal import Decimal as D
+
+        total_days = (datetime.date(2030, 1, 1) - datetime.date(2020, 1, 1)).days
+        elapsed = (datetime.date(2025, 1, 1) - datetime.date(2020, 1, 1)).days
+        ratio = D("65") + D("35") * D(elapsed) / D(total_days)
+        gross = (D("20") * D("1020") * ratio / D("100")).quantize(D("0.01"))
+        entry_fees = (D("20") * D("650") * D("8") / D("100")).quantize(D("0.01"))
+        expected = gross - entry_fees
+        assert result == Money(expected, "EUR")
+
+    def test_resale_bare_ownership_with_theoretical_value(self, investment_bare):
+        """Theoretical value is used as gross base for bare ownership resale."""
+        SCPIBareOwnershipTheoreticalValue.objects.create(
+            investment=investment_bare,
+            date=datetime.date(2023, 1, 1),
+            value=Money(Decimal("14000.00"), "EUR"),
+        )
+        date = datetime.date(2025, 1, 1)
+        result = investment_bare.get_estimated_resale_value(date)
+        # theoretical = 14_000 ; no exit fee ; entry_fees = 20*650*8% = 1040
+        entry_fees = Decimal("20") * Decimal("650") * Decimal("8") / Decimal("100")
+        expected = Decimal("14000.00") - entry_fees
+        assert result == Money(expected.quantize(Decimal("0.01")), "EUR")
+
 
 # ── SCPIInvestment — capital gain ─────────────────────────────────────────────
 
@@ -565,3 +609,95 @@ class TestSCPIModelCoverage:
         assert inv.get_exit_fees(datetime.date(2025, 1, 1)) == Money(
             Decimal("190.00"), "EUR"
         )
+
+
+# ── SCPIBareOwnershipTheoreticalValue ─────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestSCPIBareOwnershipTheoreticalValue:
+    def test_str(self, investment_bare):
+        tv = SCPIBareOwnershipTheoreticalValue.objects.create(
+            investment=investment_bare,
+            date=datetime.date(2023, 1, 1),
+            value=Money(Decimal("14000.00"), "EUR"),
+        )
+        result = str(tv)
+        assert "2023-01-01" in result
+
+    def test_theoretical_value_used_in_get_estimated_value(self, investment_bare):
+        """When a theoretical value exists on or before the date, it takes precedence."""
+        SCPIBareOwnershipTheoreticalValue.objects.create(
+            investment=investment_bare,
+            date=datetime.date(2023, 1, 1),
+            value=Money(Decimal("14000.00"), "EUR"),
+        )
+        result = investment_bare.get_estimated_value(datetime.date(2025, 1, 1))
+        assert result == Money(Decimal("14000.00"), "EUR")
+
+    def test_most_recent_theoretical_value_used(self, investment_bare):
+        """The most recent theoretical value on or before the date is used."""
+        SCPIBareOwnershipTheoreticalValue.objects.create(
+            investment=investment_bare,
+            date=datetime.date(2022, 1, 1),
+            value=Money(Decimal("13000.00"), "EUR"),
+        )
+        SCPIBareOwnershipTheoreticalValue.objects.create(
+            investment=investment_bare,
+            date=datetime.date(2023, 6, 1),
+            value=Money(Decimal("15000.00"), "EUR"),
+        )
+        result = investment_bare.get_estimated_value(datetime.date(2025, 1, 1))
+        assert result == Money(Decimal("15000.00"), "EUR")
+
+    def test_future_theoretical_value_not_used(self, investment_bare):
+        """A theoretical value dated after as_of_date is not used."""
+        SCPIBareOwnershipTheoreticalValue.objects.create(
+            investment=investment_bare,
+            date=datetime.date(2026, 1, 1),
+            value=Money(Decimal("20000.00"), "EUR"),
+        )
+        # No theoretical value on or before 2025-01-01 → falls back to linear calc
+        result = investment_bare.get_estimated_value(datetime.date(2025, 1, 1))
+        assert result == Money(Decimal("17821.03"), "EUR")
+
+    def test_no_theoretical_value_falls_back_to_linear(self, investment_bare):
+        """Without any theoretical value, the linear calculation is used."""
+        result = investment_bare.get_estimated_value(datetime.date(2025, 1, 1))
+        assert result == Money(Decimal("17821.03"), "EUR")
+
+    def test_theoretical_value_exact_date_match(self, investment_bare):
+        """A theoretical value on the exact as_of_date is used."""
+        SCPIBareOwnershipTheoreticalValue.objects.create(
+            investment=investment_bare,
+            date=datetime.date(2025, 6, 15),
+            value=Money(Decimal("16500.00"), "EUR"),
+        )
+        result = investment_bare.get_estimated_value(datetime.date(2025, 6, 15))
+        assert result == Money(Decimal("16500.00"), "EUR")
+
+    def test_theoretical_value_not_used_for_full_ownership(
+        self, investment_full, scpi_with_price
+    ):
+        """Theoretical values have no effect on full ownership investments."""
+        # investment_full doesn't have theoretical_values related manager for full type
+        # get_estimated_value for full type returns full value directly, ignoring theoretical_values
+        result_before = investment_full.get_estimated_value(datetime.date(2025, 1, 1))
+        # Full: 10 × 1080 = 10800
+        assert result_before == Money(Decimal("10800.00"), "EUR")
+
+    def test_unique_together_investment_date(self, investment_bare):
+        """Cannot create two theoretical values for the same investment+date."""
+        from django.db import IntegrityError
+
+        SCPIBareOwnershipTheoreticalValue.objects.create(
+            investment=investment_bare,
+            date=datetime.date(2023, 1, 1),
+            value=Money(Decimal("14000.00"), "EUR"),
+        )
+        with pytest.raises(IntegrityError):
+            SCPIBareOwnershipTheoreticalValue.objects.create(
+                investment=investment_bare,
+                date=datetime.date(2023, 1, 1),
+                value=Money(Decimal("15000.00"), "EUR"),
+            )

@@ -351,6 +351,7 @@ def test_scpi_card_api_basic_structure(admin_client, scpi_fund):
         "name",
         "management_company",
         "total_resale",
+        "total_estimated_value",
         "total_invested",
         "total_dividends",
         "gain_pct",
