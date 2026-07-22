@@ -213,6 +213,77 @@ class PropertyLoan(BaseModel):
         paid = self.original_amount.amount - self.remaining_balance().amount
         return Money(paid, str(self.original_amount.currency))
 
+    def interest_paid_to_date(self, as_of_date: datetime.date | None = None) -> Money:
+        """Calculate the cumulative interest paid on the loan as of a given date.
+
+        If an amortization table has been imported, it takes priority.
+        Otherwise falls back to auto-calculation from loan parameters.
+        """
+        from property.utils import build_loan_maps_from_loan_obj
+
+        if as_of_date is None:
+            as_of_date = datetime.date.today()
+
+        currency = str(self.original_amount.currency)
+
+        if self.pk and PropertyLoanAmortizationEntry.objects.filter(loan=self).exists():
+            result = PropertyLoanAmortizationEntry.objects.filter(
+                loan=self, date__lte=as_of_date
+            ).aggregate(total=models.Sum("interest"))
+            return Money(result["total"] or Decimal("0"), currency)
+
+        if (
+            self.monthly_payment is None
+            or self.start_date is None
+            or self.end_date is None
+        ):
+            return Money(Decimal("0"), currency)
+
+        interest_map, _principal_map, _insurance_map = build_loan_maps_from_loan_obj(
+            self, Decimal("0")
+        )
+        as_of_key = (as_of_date.year, as_of_date.month)
+        total = sum(
+            (value for key, value in interest_map.items() if key <= as_of_key),
+            Decimal("0"),
+        )
+        return Money(total, currency)
+
+    def insurance_paid_to_date(self, as_of_date: datetime.date | None = None) -> Money:
+        """Calculate the cumulative insurance premiums paid as of a given date.
+
+        Insurance is a fixed monthly amount independent of the amortization
+        table (imported amortization entries don't carry an insurance column),
+        so this simply counts elapsed months since the first payment.
+        """
+        if as_of_date is None:
+            as_of_date = datetime.date.today()
+
+        currency = str(self.original_amount.currency)
+
+        if (
+            self.insurance is None
+            or self.insurance.amount <= Decimal("0")
+            or self.start_date is None
+        ):
+            return Money(Decimal("0"), currency)
+
+        loop_start = self.first_payment_date or self.start_date
+        if as_of_date < loop_start:
+            return Money(Decimal("0"), currency)
+
+        months_elapsed = (
+            (as_of_date.year - loop_start.year) * 12
+            + (as_of_date.month - loop_start.month)
+            + 1
+        )
+        duration = self.get_duration_months()
+        if duration:
+            months_elapsed = min(months_elapsed, duration)
+
+        total = self.insurance.amount * max(0, months_elapsed)
+        return Money(total, currency)
+
 
 class PropertyLoanAmortizationEntry(BaseModel):
     """One row of an amortization table (bank import or auto-generated).

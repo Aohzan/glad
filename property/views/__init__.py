@@ -45,6 +45,7 @@ from property.views.fiscal_views import (
     report_view,
 )
 from property.views.index_views import index
+from property.views.loans_views import all_loans_view
 
 property_dashboard_card_api = PropertyDashboardCardApiView.as_view()
 scpi_dashboard_card_api = SCPIDashboardCardApiView.as_view()
@@ -86,6 +87,7 @@ __all__ = [
     "toggle_property_favorite",
     "accounting_lmnp_reel",
     "report_view",
+    "all_loans_view",
     "initialize_amortization",
     "create_amortization_asset",
     "edit_amortization_asset",

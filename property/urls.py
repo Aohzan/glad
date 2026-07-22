@@ -102,6 +102,8 @@ urlpatterns = [
     path("lmnp_accounting/", views.accounting_lmnp_reel, name="lmnp_accounting"),
     # Income & expenses report
     path("report/", views.report_view, name="report"),
+    # All loans dashboard
+    path("loans/", views.all_loans_view, name="all_loans"),
     # Amortization initialization
     path(
         "<int:pk>/amortization/initialize/",

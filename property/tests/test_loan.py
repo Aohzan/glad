@@ -206,6 +206,114 @@ class PropertyLoanTestCase(TestCase):
             places=2,
         )
 
+    def test_interest_paid_to_date_no_interest_rate(self):
+        """A zero-interest loan should have no interest paid."""
+        interest_paid = self.short_loan.interest_paid_to_date().amount
+        self.assertEqual(interest_paid, Decimal("0"))
+
+    def test_interest_paid_to_date_with_interest_rate(self):
+        """Interest paid should be positive for an active loan with a rate."""
+        interest_paid = self.loan.interest_paid_to_date().amount
+        self.assertGreater(interest_paid, Decimal("0"))
+
+    def test_interest_paid_to_date_future_loan(self):
+        """A loan that hasn't started should have no interest paid."""
+        future_loan = PropertyLoan.objects.create(
+            property=self.property,
+            name="Future Loan",
+            start_date=datetime.date.today() + datetime.timedelta(days=30),
+            end_date=datetime.date.today() + datetime.timedelta(days=365),
+            original_amount=Money(20000, "EUR"),
+            monthly_payment=Money(200, "EUR"),
+            interest_rate=Decimal("2.0"),
+        )
+        self.assertEqual(
+            future_loan.interest_paid_to_date().amount,
+            Decimal("0"),
+        )
+
+    def test_interest_paid_to_date_uses_amortization_entries(self):
+        """When amortization entries exist, interest paid should sum them."""
+        from property.models import PropertyLoanAmortizationEntry
+
+        loan = PropertyLoan.objects.create(
+            property=self.property,
+            name="Amortized Loan",
+            start_date=datetime.date.today() - datetime.timedelta(days=60),
+            end_date=datetime.date.today() + datetime.timedelta(days=300),
+            original_amount=Money(10000, "EUR"),
+            monthly_payment=Money(300, "EUR"),
+            interest_rate=Decimal("2.0"),
+        )
+        PropertyLoanAmortizationEntry.objects.create(
+            loan=loan,
+            date=datetime.date.today() - datetime.timedelta(days=30),
+            capital=Money(280, "EUR"),
+            interest=Money(20, "EUR"),
+            remaining_balance_amount=Money(9720, "EUR"),
+        )
+        PropertyLoanAmortizationEntry.objects.create(
+            loan=loan,
+            date=datetime.date.today() + datetime.timedelta(days=10),
+            capital=Money(281, "EUR"),
+            interest=Money(19, "EUR"),
+            remaining_balance_amount=Money(9439, "EUR"),
+        )
+        # Only the entry in the past should be counted (future entry excluded)
+        self.assertEqual(
+            loan.interest_paid_to_date().amount,
+            Decimal("20"),
+        )
+
+    def test_insurance_paid_to_date_no_insurance(self):
+        """A loan without an insurance premium has no insurance paid."""
+        self.assertEqual(self.loan.insurance_paid_to_date().amount, Decimal("0"))
+
+    def test_insurance_paid_to_date_with_insurance(self):
+        """Insurance paid should be positive and bounded for an active loan."""
+        loan = PropertyLoan.objects.create(
+            property=self.property,
+            name="Insured Loan",
+            start_date=datetime.date.today() - datetime.timedelta(days=90),
+            end_date=datetime.date.today() + datetime.timedelta(days=3650),
+            original_amount=Money(100000, "EUR"),
+            monthly_payment=Money(400, "EUR"),
+            interest_rate=Decimal("2.0"),
+            insurance=Money(25, "EUR"),
+        )
+        paid = loan.insurance_paid_to_date().amount
+        self.assertGreater(paid, Decimal("0"))
+        # ~90 days elapsed: at most 5 months of insurance premiums.
+        self.assertLessEqual(paid, Decimal("25") * 5)
+
+    def test_insurance_paid_to_date_future_loan(self):
+        """A loan that hasn't started yet has no insurance paid."""
+        future_loan = PropertyLoan.objects.create(
+            property=self.property,
+            name="Future Insured Loan",
+            start_date=datetime.date.today() + datetime.timedelta(days=30),
+            end_date=datetime.date.today() + datetime.timedelta(days=365),
+            original_amount=Money(20000, "EUR"),
+            monthly_payment=Money(200, "EUR"),
+            insurance=Money(15, "EUR"),
+        )
+        self.assertEqual(future_loan.insurance_paid_to_date().amount, Decimal("0"))
+
+    def test_insurance_paid_to_date_caps_at_duration(self):
+        """Insurance paid never exceeds monthly insurance x total loan duration."""
+        loan = PropertyLoan.objects.create(
+            property=self.property,
+            name="Old Completed Loan",
+            start_date=datetime.date.today() - datetime.timedelta(days=3650),
+            end_date=datetime.date.today() - datetime.timedelta(days=3000),
+            original_amount=Money(5000, "EUR"),
+            monthly_payment=Money(250, "EUR"),
+            insurance=Money(10, "EUR"),
+        )
+        duration = loan.get_duration_months()
+        paid = loan.insurance_paid_to_date().amount
+        self.assertEqual(paid, Decimal("10") * duration)
+
 
 class PropertyWithLoansTestCase(TestCase):
     """Test cases for Property model with loan functionality."""
