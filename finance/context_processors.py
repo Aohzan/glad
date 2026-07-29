@@ -6,7 +6,7 @@ from finance.models.saving_account import SavingAccount
 
 def nav_accounts(request):
     """Expose favorite active accounts for the global navigation dropdown."""
-    if not request.user.is_authenticated:
+    if not hasattr(request, "user") or not request.user.is_authenticated:
         return {"nav_accounts": [], "nav_accounts_any": False}
     saving_favorites = list(
         SavingAccount.objects.filter(is_active=True, is_favorite=True).order_by(

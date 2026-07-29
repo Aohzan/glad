@@ -481,7 +481,7 @@ class PropertyDetailView(DetailView):
             .select_related("lease")
             .prefetch_related("exceptions", "capitalized_as")
         )
-        rows = []
+        rows: list[dict] = []
         for entry in entries_qs:
             cat_label = entry.get_management_category_display()
             lease_name = entry.lease.name if entry.lease else ""
