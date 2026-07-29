@@ -5,7 +5,7 @@ from .models import PasskeyCredential
 
 def session_config(request):
     """Expose session timeout and notification configuration for the base template."""
-    if not request.user.is_authenticated:
+    if not hasattr(request, "user") or not request.user.is_authenticated:
         return {
             "session_timeout": 15,
             "passkey_registered": False,
