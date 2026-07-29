@@ -1102,7 +1102,7 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
             "form_ref": form_ref,
         }
 
-    prop_results = []
+    prop_results: list[dict] = []
     all_checks: list[list[dict]] = []
 
     for prop in properties:
