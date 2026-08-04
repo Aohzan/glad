@@ -6,6 +6,8 @@ import json
 from decimal import Decimal
 
 from django.contrib import messages
+from django.db import transaction
+from django.forms import formset_factory
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
@@ -13,6 +15,8 @@ from moneyed import Money
 
 from property.forms import (
     SCPIBareOwnershipTheoreticalValueForm,
+    SCPIDividendBatchForm,
+    SCPIDividendBatchGlobalForm,
     SCPIDividendForm,
     SCPIForm,
     SCPIInvestmentForm,
@@ -496,6 +500,8 @@ def edit_scpi_dividend(
         messages.error(request, _("Please correct the errors below."))
     else:
         form = SCPIDividendForm(instance=dividend)
+        if dividend is None:
+            form.fields["payment_date"].initial = datetime.date.today()
 
     return render(
         request,
@@ -517,6 +523,85 @@ def delete_scpi_dividend(
     dividend.delete()
     messages.success(request, _("Dividend deleted successfully."))
     return redirect("property:scpi_fund_detail", scpi_pk=scpi_obj.pk)
+
+
+# ─── Dividend batch ──────────────────────────────────────────────────────────
+
+
+def batch_scpi_dividends(request: HttpRequest) -> HttpResponse:
+    """Batch-enter dividends for all SCPI funds at once."""
+    scpi_funds = SCPI.objects.order_by("name")
+
+    BatchFormSet = formset_factory(SCPIDividendBatchForm, extra=0)
+
+    initial_data = [
+        {
+            "scpi_id": fund.id,
+            "scpi_name": fund.name,
+        }
+        for fund in scpi_funds
+    ]
+
+    if request.method == "POST":
+        global_form = SCPIDividendBatchGlobalForm(request.POST)
+        formset = BatchFormSet(request.POST, prefix="dividends", initial=initial_data)
+
+        is_valid = global_form.is_valid()
+
+        for form in formset:
+            if form.is_valid():
+                continue
+            update_dividend = form.data.get(f"{form.prefix}-update_dividend")
+            if update_dividend:
+                is_valid = False
+                break
+
+        if is_valid:
+            payment_date = global_form.cleaned_data["payment_date"]
+            created_count = 0
+
+            with transaction.atomic():
+                for form in formset:
+                    if not form.cleaned_data.get("update_dividend"):
+                        continue
+                    scpi_obj = SCPI.objects.get(pk=form.cleaned_data["scpi_id"])
+                    net = form.cleaned_data.get("net_amount")
+                    if net is None:
+                        continue
+                    gross = form.cleaned_data.get("gross_amount")
+                    SCPIDividend.objects.create(
+                        scpi=scpi_obj,
+                        payment_date=payment_date,
+                        gross_amount=Money(gross, "EUR") if gross else None,
+                        net_amount=Money(net, "EUR"),
+                    )
+                    created_count += 1
+
+            if created_count > 0:
+                messages.success(
+                    request,
+                    _("{count} dividend(s) recorded successfully.").format(
+                        count=created_count
+                    ),
+                )
+            else:
+                messages.info(request, _("No dividends were entered."))
+            return redirect("property:scpi_list")
+        else:
+            messages.error(request, _("Please correct the errors below."))
+    else:
+        global_form = SCPIDividendBatchGlobalForm()
+        formset = BatchFormSet(prefix="dividends", initial=initial_data)
+
+    return render(
+        request,
+        "property/scpi_dividend_batch.html",
+        {
+            "global_form": global_form,
+            "formset": formset,
+            "scpi_funds": scpi_funds,
+        },
+    )
 
 
 # ─── Bare ownership theoretical values CRUD ───────────────────────────────────

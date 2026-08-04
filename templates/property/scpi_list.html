@@ -14,6 +14,9 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0"><i class="bi bi-building-check me-2 text-primary"></i>{% translate "SCPI" %}</h1>
     <div class="d-flex gap-2">
+      <a href="{% url 'property:scpi_dividend_batch' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-cash-stack me-1"></i>{% translate "Batch dividends" %}
+      </a>
       <a href="{% url 'property:scpi_new' %}" class="btn btn-outline-secondary">
         <i class="bi bi-building me-1"></i>{% translate "Add SCPI" %}
       </a>

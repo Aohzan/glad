@@ -53,6 +53,7 @@ scpi_dashboard_card_api = SCPIDashboardCardApiView.as_view()
 # SCPI views
 from property.views.scpi_views import (  # noqa: E402
     add_scpi_share_price,
+    batch_scpi_dividends,
     delete_scpi,
     delete_scpi_dividend,
     delete_scpi_investment,
@@ -105,6 +106,7 @@ __all__ = [
     "property_panel_mandate",
     "property_panel_amortization",
     "scpi_list",
+    "batch_scpi_dividends",
     "edit_scpi",
     "delete_scpi",
     "add_scpi_share_price",

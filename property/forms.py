@@ -1,5 +1,6 @@
 """Forms for property management actions."""
 
+import datetime
 from decimal import Decimal
 
 from django import forms
@@ -639,6 +640,52 @@ class SCPIDividendForm(MoneyInputGroupMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["gross_amount"].required = False
         self.fields["notes"].required = False
+        if not self.instance.pk and not self.is_bound:
+            self.fields["payment_date"].initial = datetime.date.today()
+
+
+class SCPIDividendBatchGlobalForm(forms.Form):
+    """Global form providing the shared payment date for the batch dividend view."""
+
+    payment_date = forms.DateField(
+        label=_("Payment date"),
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound or not self.data.get("payment_date"):
+            self.fields["payment_date"].initial = datetime.date.today()
+
+
+class SCPIDividendBatchForm(forms.Form):
+    """Per-SCPI row form for the batch dividend entry view."""
+
+    update_dividend = forms.BooleanField(
+        label=_("Update"),
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+    scpi_id = forms.IntegerField(widget=forms.HiddenInput())
+    scpi_name = forms.CharField(widget=forms.HiddenInput())
+    gross_amount = forms.DecimalField(
+        label=_("Gross amount"),
+        max_digits=12,
+        decimal_places=2,
+        required=False,
+        localize=True,
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal"}),
+    )
+    net_amount = forms.DecimalField(
+        label=_("Net amount"),
+        max_digits=12,
+        decimal_places=2,
+        required=False,
+        localize=True,
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal"}),
+    )
 
 
 # ─── Income & Expenses Report ────────────────────────────────────────────────

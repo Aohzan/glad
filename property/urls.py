@@ -159,6 +159,11 @@ urlpatterns = [
     # SCPI
     path("scpi/", views.scpi_list, name="scpi_list"),
     path("scpi/new/", views.edit_scpi, name="scpi_new"),
+    path(
+        "scpi/dividend/batch/",
+        views.batch_scpi_dividends,
+        name="scpi_dividend_batch",
+    ),
     path("scpi/<int:scpi_pk>/", views.scpi_fund_detail, name="scpi_fund_detail"),
     path("scpi/<int:scpi_pk>/edit/", views.edit_scpi, name="scpi_edit"),
     path("scpi/<int:scpi_pk>/delete/", views.delete_scpi, name="scpi_delete"),
