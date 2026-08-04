@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{% translate "Batch dividend entry" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+
+  {% url 'property:scpi_list' as back_url %}
+  {% include "property/_edit_page_header.html" with new_title=_("Batch dividend entry") back_url=back_url back_label=_("SCPI") %}
+
+  {% include "property/_form_error_alert.html" %}
+
+  <form method="post" action="{% url 'property:scpi_dividend_batch' %}">
+    {% csrf_token %}
+
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h3 class="card-title mb-0">
+          <i class="bi bi-cash-stack me-1"></i>{% translate "Enter dividends for all SCPI" %}
+        </h3>
+      </div>
+      <div class="card-body">
+
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label for="{{ global_form.payment_date.id_for_label }}" class="form-label">
+              {{ global_form.payment_date.label }}
+            </label>
+            {{ global_form.payment_date }}
+            {% if global_form.payment_date.errors %}
+              <div class="invalid-feedback d-block">{{ global_form.payment_date.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        {{ formset.management_form }}
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th style="width: 50px;"></th>
+                <th>{% translate "SCPI" %}</th>
+                <th style="width: 180px;">{% translate "Gross amount" %}</th>
+                <th style="width: 180px;">{% translate "Net amount" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for form in formset %}
+              <tr class="{% if form.errors %}table-danger{% endif %}" data-update-row>
+                {{ form.scpi_id }}
+                {{ form.scpi_name }}
+                <td class="text-center">
+                  {{ form.update_dividend }}
+                </td>
+                <td>{{ form.initial.scpi_name }}</td>
+                <td>{{ form.gross_amount }}</td>
+                <td>{{ form.net_amount }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-3">
+                  {% translate "No SCPI funds yet." %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{% url 'property:scpi_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-circle me-1"></i>{% translate "Cancel" %}
+      </a>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle me-1"></i>{% translate "Valider" %}
+      </button>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[name$="gross_amount"], input[name$="net_amount"]').forEach(function(input) {
+      input.addEventListener('focus', function() {
+        input.select();
+        const row = this.closest('[data-update-row]');
+        if (row) {
+          const checkbox = row.querySelector('input[name$="update_dividend"]');
+          if (checkbox) checkbox.checked = true;
+        }
+      });
+      input.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9.,]/g, '');
+      });
+    });
+  });
+</script>
+{% endblock %}

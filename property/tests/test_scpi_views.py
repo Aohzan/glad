@@ -375,6 +375,141 @@ class TestSCPIDividendViews:
         response = user_client.post(url, {})  # empty form
         assert response.status_code == 200
 
+    def test_add_dividend_form_defaults_date_to_today(self, user_client, scpi):
+        """The add-dividend form should default payment_date to today."""
+        url = reverse("property:scpi_dividend_add", kwargs={"scpi_pk": scpi.pk})
+        response = user_client.get(url)
+        assert response.status_code == 200
+        today_str = datetime.date.today().strftime("%Y-%m-%d")
+        assert today_str.encode() in response.content
+
+
+# ── Dividend batch ──────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def scpi2():
+    return SCPI.objects.create(name="Second SCPI", management_company="Other AM")
+
+
+@pytest.mark.django_db
+class TestSCPIDividendBatch:
+    def test_get_batch_form_empty(self, user_client):
+        url = reverse("property:scpi_dividend_batch")
+        response = user_client.get(url)
+        assert response.status_code == 200
+
+    def test_get_batch_form_with_funds(self, user_client, scpi, scpi2):
+        url = reverse("property:scpi_dividend_batch")
+        response = user_client.get(url)
+        assert response.status_code == 200
+        assert b"Test SCPI" in response.content
+        assert b"Second SCPI" in response.content
+
+    def test_get_batch_form_defaults_date_to_today(self, user_client, scpi):
+        url = reverse("property:scpi_dividend_batch")
+        response = user_client.get(url)
+        assert response.status_code == 200
+        today_str = datetime.date.today().strftime("%Y-%m-%d")
+        assert today_str.encode() in response.content
+
+    def test_requires_login(self, client):
+        url = reverse("property:scpi_dividend_batch")
+        response = client.get(url)
+        assert response.status_code == 302
+
+    def test_post_creates_dividends(self, user_client, scpi, scpi2):
+        url = reverse("property:scpi_dividend_batch")
+        data = {
+            "payment_date": "2024-06-30",
+            "dividends-TOTAL_FORMS": "2",
+            "dividends-INITIAL_FORMS": "0",
+            "dividends-MIN_NUM_FORMS": "0",
+            "dividends-MAX_NUM_FORMS": "1000",
+            "dividends-0-update_dividend": "on",
+            "dividends-0-scpi_id": str(scpi.pk),
+            "dividends-0-scpi_name": scpi.name,
+            "dividends-0-gross_amount": "150.00",
+            "dividends-0-net_amount": "120.00",
+            "dividends-1-update_dividend": "on",
+            "dividends-1-scpi_id": str(scpi2.pk),
+            "dividends-1-scpi_name": scpi2.name,
+            "dividends-1-gross_amount": "",
+            "dividends-1-net_amount": "80.00",
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 302
+        assert SCPIDividend.objects.filter(scpi=scpi).count() == 1
+        assert SCPIDividend.objects.filter(scpi=scpi2).count() == 1
+        div0 = SCPIDividend.objects.get(scpi=scpi)
+        assert div0.payment_date == datetime.date(2024, 6, 30)
+        assert div0.gross_amount.amount == Decimal("150.00")
+        assert div0.net_amount.amount == Decimal("120.00")
+        div1 = SCPIDividend.objects.get(scpi=scpi2)
+        assert div1.gross_amount is None
+        assert div1.net_amount.amount == Decimal("80.00")
+
+    def test_post_skips_unchecked_rows(self, user_client, scpi, scpi2):
+        url = reverse("property:scpi_dividend_batch")
+        data = {
+            "payment_date": "2024-06-30",
+            "dividends-TOTAL_FORMS": "2",
+            "dividends-INITIAL_FORMS": "0",
+            "dividends-MIN_NUM_FORMS": "0",
+            "dividends-MAX_NUM_FORMS": "1000",
+            "dividends-0-update_dividend": "on",
+            "dividends-0-scpi_id": str(scpi.pk),
+            "dividends-0-scpi_name": scpi.name,
+            "dividends-0-gross_amount": "",
+            "dividends-0-net_amount": "100.00",
+            "dividends-1-update_dividend": "",
+            "dividends-1-scpi_id": str(scpi2.pk),
+            "dividends-1-scpi_name": scpi2.name,
+            "dividends-1-gross_amount": "",
+            "dividends-1-net_amount": "",
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 302
+        assert SCPIDividend.objects.filter(scpi=scpi).count() == 1
+        assert SCPIDividend.objects.filter(scpi=scpi2).count() == 0
+
+    def test_post_nothing_checked_shows_info(self, user_client, scpi):
+        url = reverse("property:scpi_dividend_batch")
+        data = {
+            "payment_date": "2024-06-30",
+            "dividends-TOTAL_FORMS": "1",
+            "dividends-INITIAL_FORMS": "0",
+            "dividends-MIN_NUM_FORMS": "0",
+            "dividends-MAX_NUM_FORMS": "1000",
+            "dividends-0-update_dividend": "",
+            "dividends-0-scpi_id": str(scpi.pk),
+            "dividends-0-scpi_name": scpi.name,
+            "dividends-0-gross_amount": "",
+            "dividends-0-net_amount": "",
+        }
+        response = user_client.post(url, data, follow=True)
+        assert response.status_code == 200
+        assert SCPIDividend.objects.filter(scpi=scpi).count() == 0
+
+    def test_post_checked_without_net_amount_skips(self, user_client, scpi):
+        """If checkbox is checked but net_amount is empty, row is skipped."""
+        url = reverse("property:scpi_dividend_batch")
+        data = {
+            "payment_date": "2024-06-30",
+            "dividends-TOTAL_FORMS": "1",
+            "dividends-INITIAL_FORMS": "0",
+            "dividends-MIN_NUM_FORMS": "0",
+            "dividends-MAX_NUM_FORMS": "1000",
+            "dividends-0-update_dividend": "on",
+            "dividends-0-scpi_id": str(scpi.pk),
+            "dividends-0-scpi_name": scpi.name,
+            "dividends-0-gross_amount": "",
+            "dividends-0-net_amount": "",
+        }
+        response = user_client.post(url, data, follow=True)
+        assert response.status_code == 200
+        assert SCPIDividend.objects.filter(scpi=scpi).count() == 0
+
 
 # ── Additional coverage ────────────────────────────────────────────────────────
 
