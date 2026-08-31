@@ -45,90 +45,115 @@ def chart_data(request, data_type, object_id):
 
 
 def _get_investment_account_chart_data(request, account_id):
-    """Get chart data for an investment account."""
+    """Get chart data for an investment account.
+
+    All series (holdings + cash) are aligned to the same set of dates with
+    forward-filled values so the stacked area chart renders correctly.
+    """
     account = get_object_or_404(InvestmentAccount, id=account_id)
 
-    # Group by date and sum values
-    date_values: dict[str, float] = {}
-    holdings_initial_values = list(
-        InvestmentAccountHolding.objects.filter(account=account)
-    )
-    for holding in holdings_initial_values:
-        date_str = holding.initial_valuation_date.isoformat()
-        if date_str not in date_values:
-            date_values[date_str] = 0.0
-        date_values[date_str] += float(holding.initial_value.amount)
+    holdings = list(InvestmentAccountHolding.objects.filter(account=account))
     holding_histories = list(
         InvestmentAccountHoldingHistory.objects.filter(
             holding__account=account
         ).order_by("valuation_date")
     )
-    # Group histories by holding for per-holding series
+
+    # Group histories by holding (already sorted by valuation_date)
     holding_hist_by_id: dict[int, list] = defaultdict(list)
     for history in holding_histories:
-        date_str = history.valuation_date.date().isoformat()
-        if date_str not in date_values:
-            date_values[date_str] = 0.0
-        date_values[date_str] += float(history.value.amount)
         holding_hist_by_id[history.holding_id].append(history)  # type: ignore[attr-defined]
 
-    # Get deposit amounts for the account
-    date_deposits: dict[str, float] = {}
-    deposits = InvestmentAccountDeposit.objects.filter(account=account).order_by(
-        "deposit_date"
+    # Cash entries for forward-fill
+    cash_entries = list(account.cash_values.order_by("value_date"))
+
+    # Deposits — fetched early so deposit dates are included in all_dates,
+    # ensuring every chart in the group shares the same x-axis points.
+    deposits = list(
+        InvestmentAccountDeposit.objects.filter(account=account).order_by(
+            "deposit_date"
+        )
     )
+
+    # Collect all unique dates from holdings, histories, cash entries and deposits
+    all_dates_set: set[datetime.date] = set()
+    for holding in holdings:
+        all_dates_set.add(holding.initial_valuation_date)
+    for history in holding_histories:
+        all_dates_set.add(history.valuation_date.date())
+    for cash in cash_entries:
+        all_dates_set.add(cash.value_date)
     for deposit in deposits:
-        deposit_date_str = deposit.deposit_date.isoformat()
-        if deposit_date_str not in date_deposits:
-            date_deposits[deposit_date_str] = 0.0
-        date_deposits[deposit_date_str] += float(deposit.amount.amount)
+        all_dates_set.add(deposit.deposit_date)
+    all_dates = sorted(all_dates_set)
 
-    # Add cash value for each date
-    for date_str in list(date_values.keys()):
-        cash_value = account.get_cash_value(datetime.datetime.fromisoformat(date_str))
-        date_values[date_str] += float(cash_value.amount)
+    # Build per-holding forward-filled series aligned to all_dates
+    holdings_series: list[dict] = []
+    total_by_date: dict[str, float] = {d.isoformat(): 0.0 for d in all_dates}
 
-    history_data = []
-    deposits_data = []
-    for date_str, total_value in sorted(date_values.items()):
-        history_data.append({"date": date_str, "value": total_value})
-    for date_str, total_value in sorted(date_deposits.items()):
-        deposits_data.append({"date": date_str, "value": total_value})
+    for holding in holdings:
+        holding_data: list[dict] = []
+        hist_list = holding_hist_by_id.get(holding.id, [])
+        hist_idx = 0
+        current_value = float(holding.initial_value.amount)
+        for d in all_dates:
+            if d < holding.initial_valuation_date:
+                continue
+            while (
+                hist_idx < len(hist_list)
+                and hist_list[hist_idx].valuation_date.date() <= d
+            ):
+                current_value = float(hist_list[hist_idx].value.amount)
+                hist_idx += 1
+            date_str = d.isoformat()
+            holding_data.append({"date": date_str, "value": current_value})
+            total_by_date[date_str] += current_value
+        if holding_data:
+            holdings_series.append({"name": holding.short_name, "data": holding_data})
 
-    # Build per-holding series for chart
-    holdings_series = []
-    for holding in holdings_initial_values:
-        holding_data = [
-            {
-                "date": holding.initial_valuation_date.isoformat(),
-                "value": float(holding.initial_value.amount),
-            }
-        ]
-        for history in holding_hist_by_id[holding.id]:
-            holding_data.append(
-                {
-                    "date": history.valuation_date.date().isoformat(),
-                    "value": float(history.value.amount),
-                }
-            )
-        holdings_series.append({"name": holding.short_name, "data": holding_data})
+    # Build cash series (forward-filled) and add to totals
+    cash_data: list[dict] = []
+    cash_idx = 0
+    current_cash = float(account.opening_cash_value.amount)
+    for d in all_dates:
+        while cash_idx < len(cash_entries) and cash_entries[cash_idx].value_date <= d:
+            current_cash = float(cash_entries[cash_idx].value.amount)
+            cash_idx += 1
+        date_str = d.isoformat()
+        cash_data.append({"date": date_str, "value": current_cash})
+        total_by_date[date_str] += current_cash
+    holdings_series.append({"name": str(_("Cash")), "data": cash_data})
+
+    # Build total values (holdings + cash at each date)
+    history_data = [
+        {"date": date_str, "value": total}
+        for date_str, total in sorted(total_by_date.items())
+    ]
+
+    # Get deposit amounts for the account
+    deposits_data = [
+        {
+            "date": deposit.deposit_date.isoformat(),
+            "value": float(deposit.amount.amount),
+        }
+        for deposit in deposits
+    ]
 
     # Cumulative invested capital: initial holding values + deposits accumulated over time
-    # Use the union of history dates and event dates so deposits/withdrawals
-    # always create a step even when there is no value snapshot on that day.
-    investment_events = []
-    for holding in holdings_initial_values:
-        investment_events.append(
-            (
-                holding.initial_valuation_date.isoformat(),
-                float(holding.initial_value.amount),
-            )
+    investment_events = [
+        (
+            holding.initial_valuation_date.isoformat(),
+            float(holding.initial_value.amount),
         )
+        for holding in holdings
+    ]
     for deposit in deposits:
         investment_events.append(
             (deposit.deposit_date.isoformat(), float(deposit.amount.amount))
         )
-    invested_data = _build_invested_data(investment_events, set(date_values.keys()))
+    invested_data = _build_invested_data(
+        investment_events, set(d.isoformat() for d in all_dates)
+    )
 
     return JsonResponse(
         {

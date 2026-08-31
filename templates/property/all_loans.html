@@ -249,6 +249,16 @@
   if (chartEl) {
     var chart = new ApexCharts(chartEl, options);
     chart.render();
+
+    window.updateChartsTheme = function(themeName) {
+      var dark = themeName === 'dark';
+      chart.updateOptions({
+        theme: { mode: dark ? 'dark' : 'light' },
+        chart: { background: 'transparent' },
+        tooltip: { theme: dark ? 'dark' : 'light' },
+        grid: { strokeDashArray: 4 },
+      });
+    };
   }
 })();
 </script>
