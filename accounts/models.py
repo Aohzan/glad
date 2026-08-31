@@ -25,6 +25,14 @@ class UserProfile(models.Model):
         verbose_name=_("Notify on login"),
         help_text=_("Receive an email notification when you log in."),
     )
+    live_data_enabled = models.BooleanField(
+        default=True,
+        verbose_name=_("Enable live market data"),
+        help_text=_(
+            "Fetch real-time market data from Yahoo Finance for holdings and "
+            "ISIN autofill. Disable to avoid external network calls."
+        ),
+    )
 
     class Meta:
         verbose_name = _("User profile")

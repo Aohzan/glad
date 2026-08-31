@@ -149,7 +149,11 @@
               <tr>
                 <td class="ps-4 text-body-secondary fw-normal">
                   <i class="bi {% if entry.id == 'cash' %}bi-cash{% else %}bi-graph-up{% endif %} me-2 opacity-50"></i>
-                  {{ entry.name }}
+                  {% if entry.id == 'cash' %}
+                    {{ entry.name }}
+                  {% else %}
+                    <a href="{% url 'finance:holding_detail' account.model.id entry.id %}" class="text-decoration-none">{{ entry.name }}</a>
+                  {% endif %}
                 </td>
                 <td class="text-body-secondary fw-normal">{{ entry.value | format_money }}</td>
                 <td>

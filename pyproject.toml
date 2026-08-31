@@ -20,6 +20,7 @@ dependencies = [
     "dateparser>=1.2.2",
     "django-money>=3.5.4",
     "webauthn>=2.1.0",
+    "yfinance>=1.7.0",
 ]
 
 [project.optional-dependencies]

@@ -38,6 +38,7 @@
       recentOps:       "{% url 'api_recent_operations' %}",
       alerts:          "{% url 'api_alerts' %}",
       accountsSummary: "{% url 'finance:api_accounts_summary' %}",
+      investmentsLiveChange: "{% url 'finance:api_investments_live_change' %}",
       propertyCard:    (pk) => `/property/${pk}/api/dashboard-card/`,
       scpiCard:        (pk) => `/property/scpi/${pk}/api/dashboard-card/`,
     };
@@ -67,6 +68,7 @@
       noAccounts:  "{% translate 'No accounts yet.' %}",
       addAccount:  "{% translate 'Add your first account' %}",
       financeUrl:  "{% url 'finance:update' %}",
+      today:       "{% translate 'today' %}",
       invested:    "{% translate 'Invested' %}",
       dividends:   "{% translate 'Dividends' %}",
       yield_:      "{% translate 'Yield' %}",
@@ -460,8 +462,32 @@ function renderAccountCard(a) {
       <div class="progression-badge mt-1" style="background:${badgeBg};color:${badgeColor}">
         <i class="bi ${a.progression >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right'}"></i> ${pctFmt}
       </div>
+      ${a.type === 'investment' ? `<div class="live-change-badge small mt-1 d-none" data-live-badge="${a.pk}"></div>` : ''}
     </div>
   </a>`;
+}
+
+function loadLiveChange() {
+  apiFetch(API.investmentsLiveChange).then(data => {
+    if (!data.enabled) return;
+    Object.entries(data.accounts).forEach(([pk, info]) => {
+      const el = document.querySelector(`[data-live-badge="${pk}"]`);
+      if (!el || info.live_change_percent === null || info.live_change_percent === undefined) return;
+      const pct = info.live_change_percent;
+      const css = pct > 0 ? 'success' : pct < 0 ? 'danger' : 'secondary';
+      const color = css === 'success' ? '#198754' : css === 'danger' ? '#dc3545' : '#6c757d';
+      el.style.color = color;
+      el.innerHTML = `<i class="bi bi-broadcast"></i> ${pct >= 0 ? '+' : ''}${pct.toFixed(2)}% ${i18n.today || ''}`;
+      el.classList.remove('d-none');
+    });
+    if (data.alerts && data.alerts.length) {
+      const alertsList = document.getElementById('alerts-list');
+      alertsList.innerHTML += data.alerts.map(a => `
+        <div class="alert alert-${a.type_css} py-2 px-3 mb-1 small">
+          <i class="bi bi-exclamation-triangle me-1"></i><strong>${a.account}</strong> — ${a.message}
+        </div>`).join('');
+    }
+  }).catch(() => { /* live-change is a non-critical enhancement, fail silently */ });
 }
 
 function renderAccountsList() {
@@ -494,6 +520,7 @@ function loadAccountsSummary() {
           <i class="bi bi-exclamation-triangle me-1"></i><strong>${a.account}</strong> — ${a.message}
         </div>`).join('');
     }
+    loadLiveChange();
   }).catch(() => {
     showError(document.getElementById('accounts-list'), i18n.error);
     document.getElementById('chart-breakdown-skeleton').classList.remove('placeholder-glow');

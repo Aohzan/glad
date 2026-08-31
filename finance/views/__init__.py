@@ -4,6 +4,7 @@ from .chart_views import chart_data
 from .csv_views import csv_export, csv_export_synthesis, csv_import, csv_import_confirm
 from .index_views import index
 from .investment_views import (
+    backfill_holding_history,
     create_investment,
     delete_holding_history,
     delete_investment,
@@ -15,6 +16,7 @@ from .investment_views import (
     edit_investment_cash,
     edit_investment_deposit,
     edit_investment_holding,
+    holding_detail,
     investment_detail,
     toggle_investment_favorite,
 )
@@ -48,6 +50,7 @@ __all__ = [
     "edit_saving_deposit",
     "delete_saving_deposit",
     "investment_detail",
+    "holding_detail",
     "create_investment",
     "edit_investment",
     "delete_investment",
@@ -59,6 +62,7 @@ __all__ = [
     "delete_investment_cash",
     "edit_holding_history",
     "delete_holding_history",
+    "backfill_holding_history",
     "toggle_saving_favorite",
     "toggle_investment_favorite",
 ]

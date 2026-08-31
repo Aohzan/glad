@@ -144,6 +144,7 @@ def generate_investmentaccount() -> str:
     account_id: 1
     name: ETF MSCI World
     code: WRLD
+    isin: IE00B4L5Y983
     is_active: true
     initial_quantity: 200
     initial_value: 28000

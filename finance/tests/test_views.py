@@ -298,6 +298,90 @@ def test_update_view_authenticated_get(
 
 
 @pytest.mark.django_db
+def test_update_view_holding_initial_data_includes_isin_and_account_id(
+    user_client, active_investment_account
+):
+    """Holding initial data exposes isin/account_id for the live-fetch button."""
+    from finance.models.investment_account import InvestmentAccountHolding
+
+    holding = InvestmentAccountHolding.objects.create(
+        account=active_investment_account,
+        name="World ETF",
+        isin="LU1681043599",
+        is_active=True,
+        initial_quantity=Decimal("10"),
+        initial_value=Money(Decimal("100.00"), "EUR"),
+    )
+    response = user_client.get(reverse("finance:update"))
+    holdings_formset = response.context["investment_accounts_formsets"][
+        str(active_investment_account)
+    ]["holdings"]
+    initial = holdings_formset.forms[0].initial
+    assert initial["holding_id"] == holding.id
+    assert initial["isin"] == "LU1681043599"
+    assert initial["account_id"] == active_investment_account.id
+
+
+@pytest.mark.django_db
+def test_update_view_shows_fetch_button_when_isin_and_live_data_enabled(
+    user_client, active_investment_account
+):
+    """The Fetch button renders only when the holding has an ISIN."""
+    from finance.models.investment_account import InvestmentAccountHolding
+
+    InvestmentAccountHolding.objects.create(
+        account=active_investment_account,
+        name="World ETF",
+        isin="LU1681043599",
+        is_active=True,
+        initial_quantity=Decimal("10"),
+        initial_value=Money(Decimal("100.00"), "EUR"),
+    )
+    response = user_client.get(reverse("finance:update"))
+    assert b"fetch-live-value-btn" in response.content
+    assert b"data-live-info-url" in response.content
+
+
+@pytest.mark.django_db
+def test_update_view_hides_fetch_button_without_isin(
+    user_client, active_investment_account
+):
+    """The Fetch button is absent for holdings without an ISIN."""
+    from finance.models.investment_account import InvestmentAccountHolding
+
+    InvestmentAccountHolding.objects.create(
+        account=active_investment_account,
+        name="No ISIN Holding",
+        is_active=True,
+        initial_quantity=Decimal("10"),
+        initial_value=Money(Decimal("100.00"), "EUR"),
+    )
+    response = user_client.get(reverse("finance:update"))
+    assert b"data-live-info-url" not in response.content
+
+
+@pytest.mark.django_db
+def test_update_view_hides_fetch_button_when_live_data_disabled(
+    user_client, user, active_investment_account
+):
+    """The Fetch button is hidden when the user disabled live market data."""
+    from finance.models.investment_account import InvestmentAccountHolding
+
+    user.profile.live_data_enabled = False
+    user.profile.save()
+    InvestmentAccountHolding.objects.create(
+        account=active_investment_account,
+        name="World ETF",
+        isin="LU1681043599",
+        is_active=True,
+        initial_quantity=Decimal("10"),
+        initial_value=Money(Decimal("100.00"), "EUR"),
+    )
+    response = user_client.get(reverse("finance:update"))
+    assert b"data-live-info-url" not in response.content
+
+
+@pytest.mark.django_db
 def test_update_view_update_all_accounts(
     user_client,
     active_saving_account,

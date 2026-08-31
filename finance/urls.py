@@ -6,7 +6,12 @@ from django.http import HttpResponseBase
 from django.urls import path
 
 from finance import views
-from finance.views.api_views import AccountsSummaryApiView
+from finance.views.api_views import (
+    AccountsSummaryApiView,
+    HoldingAutofillApiView,
+    HoldingLiveInfoApiView,
+    InvestmentLiveChangeApiView,
+)
 
 app_name = "finance"
 
@@ -32,6 +37,21 @@ urlpatterns = [
         "api/accounts-summary/",
         AccountsSummaryApiView.as_view(),
         name="api_accounts_summary",
+    ),
+    path(
+        "api/holding-autofill/",
+        HoldingAutofillApiView.as_view(),
+        name="api_holding_autofill",
+    ),
+    path(
+        "api/investment/<int:account_pk>/holding/<int:holding_pk>/live-info/",
+        HoldingLiveInfoApiView.as_view(),
+        name="api_holding_live_info",
+    ),
+    path(
+        "api/investments/live-change/",
+        InvestmentLiveChangeApiView.as_view(),
+        name="api_investments_live_change",
     ),
     # ─── Saving accounts ─────────────────────────────────────────────────────
     path("saving/new/", views.create_saving, name="new_saving"),
@@ -96,6 +116,11 @@ urlpatterns = [
         name="new_holding",
     ),
     path(
+        "investment/<int:account_pk>/holding/<int:holding_pk>/",
+        views.holding_detail,
+        name="holding_detail",
+    ),
+    path(
         "investment/<int:account_pk>/holding/<int:holding_pk>/edit/",
         views.edit_investment_holding,
         name="edit_holding",
@@ -152,5 +177,10 @@ urlpatterns = [
         "investment/<int:account_pk>/holding/<int:holding_pk>/history/<int:history_pk>/delete/",
         views.delete_holding_history,
         name="delete_holding_history",
+    ),
+    path(
+        "investment/<int:account_pk>/holding/<int:holding_pk>/history/backfill/",
+        views.backfill_holding_history,
+        name="backfill_holding_history",
     ),
 ]

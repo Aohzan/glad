@@ -25,7 +25,23 @@
       </div>
       <div class="card-body">
         <div class="row g-3">
-          <div class="col-md-6">
+          <div class="col-md-4">
+            <label for="{{ form.isin.id_for_label }}" class="form-label fw-semibold">
+              {% translate "ISIN" %}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            <div class="input-group">
+              {{ form.isin }}
+              {% if live_data_enabled %}
+              <button type="button" id="holdingAutofillBtn" class="btn btn-outline-primary">
+                <span id="holdingAutofillSpinner" class="spinner-border spinner-border-sm me-1 d-none"></span>{% translate "Autofill" %}
+              </button>
+              {% endif %}
+            </div>
+            {% if form.isin.errors %}<div class="invalid-feedback d-block">{{ form.isin.errors }}</div>{% endif %}
+            <div id="holdingAutofillError" class="text-danger small mt-1 d-none"></div>
+          </div>
+          <div class="col-md-5">
             <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">
               {% translate "Name" %}
               <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
@@ -40,14 +56,6 @@
             </label>
             {{ form.code }}
             {% if form.code.errors %}<div class="invalid-feedback d-block">{{ form.code.errors }}</div>{% endif %}
-          </div>
-          <div class="col-md-3">
-            <label for="{{ form.isin.id_for_label }}" class="form-label fw-semibold">
-              {% translate "ISIN" %}
-              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
-            </label>
-            {{ form.isin }}
-            {% if form.isin.errors %}<div class="invalid-feedback d-block">{{ form.isin.errors }}</div>{% endif %}
           </div>
           <div class="col-md-6">
             <label for="{{ form.issuer.id_for_label }}" class="form-label fw-semibold">
@@ -106,4 +114,65 @@
   </form>
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var isinInput = document.getElementById('{{ form.isin.id_for_label }}');
+  var autofillBtn = document.getElementById('holdingAutofillBtn');
+  if (!autofillBtn) { return; }
+  var spinner = document.getElementById('holdingAutofillSpinner');
+  var errorEl = document.getElementById('holdingAutofillError');
+  var targets = {
+    code: document.getElementById('{{ form.code.id_for_label }}'),
+    name: document.getElementById('{{ form.name.id_for_label }}'),
+    issuer: document.getElementById('{{ form.issuer.id_for_label }}'),
+    fees: document.getElementById('{{ form.fees.id_for_label }}'),
+    // initial_value is a MoneyField (amount + currency sub-widgets), id_for_label is empty
+    initial_value: document.getElementById('{{ form.initial_value.auto_id }}_0'),
+  };
+
+  autofillBtn.addEventListener('click', function () {
+    var isin = isinInput.value.trim();
+    errorEl.classList.add('d-none');
+    if (!isin) {
+      errorEl.textContent = "{% translate 'Please enter an ISIN first.' %}";
+      errorEl.classList.remove('d-none');
+      return;
+    }
+
+    autofillBtn.disabled = true;
+    spinner.classList.remove('d-none');
+
+    fetch("{% url 'finance:api_holding_autofill' %}?isin=" + encodeURIComponent(isin), {
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
+    })
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (result) {
+        if (!result.ok) {
+          errorEl.textContent = result.data.error || "{% translate 'Could not fetch data for this ISIN.' %}";
+          errorEl.classList.remove('d-none');
+          return;
+        }
+        var data = result.data;
+        // Keep existing field values when the API has no data for them.
+        if (data.code !== null) targets.code.value = data.code;
+        if (data.name !== null) targets.name.value = data.name;
+        if (data.issuer !== null) targets.issuer.value = data.issuer;
+        if (data.fees !== null) targets.fees.value = data.fees;
+        if (data.initial_value !== null) targets.initial_value.value = data.initial_value;
+      })
+      .catch(function () {
+        errorEl.textContent = "{% translate 'Could not fetch data for this ISIN.' %}";
+        errorEl.classList.remove('d-none');
+      })
+      .finally(function () {
+        autofillBtn.disabled = false;
+        spinner.classList.add('d-none');
+      });
+  });
+})();
+</script>
 {% endblock %}
