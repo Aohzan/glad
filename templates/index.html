@@ -425,7 +425,7 @@ function renderBreakdown(data) {
     },
     stroke: { width: 0 },
     legend: { position: 'bottom', fontSize: '11px' },
-    plotOptions: { pie: { donut: { size: '58%' } } },
+    plotOptions: { pie: { donut: { size: '58%' }, borderRadius: 5, spacing: 2 } },
     tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: v => fmt(v, 'EUR') } },
     dataLabels: { enabled: false },
   });

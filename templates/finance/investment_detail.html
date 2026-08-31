@@ -54,9 +54,14 @@
   <div class="card mb-4" id="holdings-panel">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>{% translate "Holdings" %}</h5>
-      <a href="{% url 'finance:new_holding' account.pk %}" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-plus-lg me-1"></i>{% translate "Add holding" %}
-      </a>
+      <div class="btn-group btn-group-sm" role="group">
+        <button type="button" id="toggleClosedHoldings" class="btn btn-outline-secondary" title="{% translate 'Show/hide closed holdings' %}" data-collapsed="true">
+          <i class="bi bi-archive"></i>
+        </button>
+        <a href="{% url 'finance:new_holding' account.pk %}" class="btn btn-outline-primary">
+          <i class="bi bi-plus-lg me-1"></i>{% translate "Add holding" %}
+        </a>
+      </div>
     </div>
     <div class="card-body">
       {% if holdings %}
@@ -75,7 +80,7 @@
           </thead>
           <tbody>
             {% for h in holdings %}
-            <tr data-bs-toggle="collapse" data-bs-target="#holding-history-{{ h.pk }}" style="cursor: pointer;" data-holding-name="{{ h.short_name }}">
+            <tr data-bs-toggle="collapse" data-bs-target="#holding-history-{{ h.pk }}" style="cursor: pointer;" data-holding-name="{{ h.short_name }}" class="holding-row{% if not h.is_active %} holding-closed{% endif %}">
               <td data-holding-name="{{ h.short_name }}">{{ h.name|default:"-" }}</td>
               <td>{{ h.code|default:"-" }}</td>
               <td>{{ h.quantity|default:"-" }}</td>
@@ -107,7 +112,7 @@
               </td>
             </tr>
             {# Collapsible holding history rows #}
-            <tr class="collapse" id="holding-history-{{ h.pk }}">
+            <tr class="collapse holding-history-row{% if not h.is_active %} holding-closed{% endif %}" id="holding-history-{{ h.pk }}">
               <td colspan="7">
                 <table class="table table-sm table-borderless mb-0">
                   <thead>
@@ -212,4 +217,23 @@
 {% block scripts %}
 {% url "finance:chart_data" data_type="investment_account" object_id=account.pk as chart_url %}
 {% include "finance/_account_chart_script.html" with chart_url=chart_url %}
+<script>
+(function () {
+  var btn = document.getElementById('toggleClosedHoldings');
+  if (!btn) return;
+  var closedRows = document.querySelectorAll('#holdings-panel .holding-closed');
+  function apply() {
+    var collapsed = btn.dataset.collapsed === 'true';
+    closedRows.forEach(function (row) {
+      row.style.display = collapsed ? 'none' : '';
+    });
+    btn.querySelector('i').className = collapsed ? 'bi bi-archive' : 'bi bi-archive-fill';
+  }
+  btn.addEventListener('click', function () {
+    btn.dataset.collapsed = btn.dataset.collapsed === 'true' ? 'false' : 'true';
+    apply();
+  });
+  apply();
+})();
+</script>
 {% endblock %}

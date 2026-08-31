@@ -688,6 +688,7 @@
   if (chartEl) {
     var chart = new ApexCharts(chartEl, options);
     chart.render();
+    (window._propertyPanelCharts = window._propertyPanelCharts || []).push(chart);
 
     // Re-render when tab becomes visible
     var loansTab = document.getElementById('loans-tab');

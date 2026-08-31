@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 20:09+0200\n"
+"POT-Creation-Date: 2026-08-04 23:24+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -64,8 +64,8 @@ msgstr "Passkey supprimé avec succès."
 #: templates/finance/_edit_deposit_fields.html:8
 #: templates/finance/edit_investment_cash.html:33
 #: templates/finance/edit_saving_value.html:29
-#: templates/finance/investment_detail.html:115
-#: templates/finance/investment_detail.html:174
+#: templates/finance/investment_detail.html:120
+#: templates/finance/investment_detail.html:179
 #: templates/finance/saving_detail.html:71 templates/property/detail.html:454
 #: templates/property/detail.html:551
 #: templates/property/detail_panel_cashflow.html:33
@@ -348,6 +348,12 @@ msgstr "Données de type invalide"
 msgid "An error occurred while loading chart data"
 msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 
+#: finance/views/chart_views.py:125 finance/views/index_views.py:92
+#: templates/finance/_account_chart_script.html:83
+#: templates/finance/update.html:75
+msgid "Cash"
+msgstr "Espèces"
+
 #: finance/views/crud_views.py:43 finance/views/csv_views.py:321
 #: finance/views/investment_views.py:64 finance/views/investment_views.py:90
 #: finance/views/investment_views.py:267 finance/views/saving_views.py:58
@@ -457,18 +463,17 @@ msgid "Value at %(date)s"
 msgstr "Valeur au %(date)s"
 
 #: finance/views/csv_views.py:586
-#: templates/finance/_account_chart_script.html:110
-#: templates/finance/_account_chart_script.html:148
+#: templates/finance/_account_chart_script.html:248
+#: templates/finance/_account_chart_script.html:274
+#: templates/finance/_account_chart_script.html:340
+#: templates/finance/_account_chart_script.html:349
+#: templates/finance/_account_chart_script.html:426
 #: templates/finance/index.html:61 templates/finance/index.html:345
 #: templates/property/_balance_section_card.html:30
 #: templates/property/_report_category_table.html:27
 #: templates/property/scpi_detail.html:199
 msgid "Total"
 msgstr "Total"
-
-#: finance/views/index_views.py:92 templates/finance/update.html:75
-msgid "Cash"
-msgstr "Espèces"
 
 #: finance/views/investment_views.py:62
 msgid "Investment account created successfully."
@@ -792,6 +797,9 @@ msgid "Land"
 msgstr "Terrain"
 
 #: property/models/asset.py:345 property/models/lease.py:29
+#: templates/finance/_account_chart_script.html:108
+#: templates/finance/_account_chart_script.html:123
+#: templates/finance/_account_chart_script.html:403
 #: templates/property/detail_panel_info.html:94
 msgid "Other"
 msgstr "Autre"
@@ -804,7 +812,7 @@ msgstr "Type de propriété"
 #: templates/finance/_edit_account_dates_card.html:25
 #: templates/finance/_status_badge.html:6
 #: templates/finance/edit_investment_holding.html:68
-#: templates/finance/investment_detail.html:86
+#: templates/finance/investment_detail.html:91
 #: templates/property/detail_panel_leases.html:30
 #: templates/property/detail_panel_mandate.html:16
 msgid "Active"
@@ -1132,7 +1140,7 @@ msgid "Lease type"
 msgstr "Type de bail"
 
 #: property/models/lease.py:62 templates/finance/_status_badge.html:3
-#: templates/finance/investment_detail.html:72
+#: templates/finance/investment_detail.html:77
 #: templates/property/edit_lease.html:84
 msgid "Status"
 msgstr "Statut"
@@ -1478,7 +1486,7 @@ msgstr "SCPI"
 #: property/models/scpi.py:39 templates/finance/_account_table_header.html:4
 #: templates/finance/edit_investment_holding.html:30
 #: templates/finance/index.html:121 templates/finance/index.html:208
-#: templates/finance/investment_detail.html:67
+#: templates/finance/investment_detail.html:72
 #: templates/property/all_loans.html:100
 #: templates/property/detail_panel_loans.html:29
 #: templates/property/edit_manager.html:31
@@ -2556,18 +2564,28 @@ msgstr "Changer"
 msgid "Value evolution"
 msgstr "Évolution de la valeur"
 
-#: templates/finance/_account_chart_script.html:102 templates/index.html:70
+#: templates/finance/_account_chart_script.html:231
+#: templates/finance/_account_chart_script.html:280
+#: templates/finance/_account_chart_script.html:341
+#: templates/finance/_account_chart_script.html:357 templates/index.html:70
 #: templates/property/scpi_list.html:182
 msgid "Invested"
 msgstr "Investi"
 
-#: templates/finance/_account_chart_script.html:181
+#: templates/finance/_account_chart_script.html:236
+#: templates/finance/_account_chart_script.html:367
+#: templates/finance/_account_stats.html:8
+#: templates/property/scpi_fund_detail.html:153
+msgid "Capital gain"
+msgstr "Plus-value"
+
+#: templates/finance/_account_chart_script.html:498
 msgid "Could not load chart data."
 msgstr "Impossible de charger les données du graphique."
 
 #: templates/finance/_account_detail_header.html:11
 #: templates/finance/_item_actions.html:3
-#: templates/finance/investment_detail.html:96
+#: templates/finance/investment_detail.html:101
 #: templates/property/_edit_page_header.html:17
 #: templates/property/detail.html:51
 #: templates/property/detail_panel_cashflow.html:257
@@ -2583,7 +2601,7 @@ msgstr "Modifier"
 #: templates/finance/_account_detail_header.html:14
 #: templates/finance/_delete_modal.html:16
 #: templates/finance/_item_actions.html:6
-#: templates/finance/investment_detail.html:99
+#: templates/finance/investment_detail.html:104
 #: templates/property/detail.html:565
 #: templates/property/detail_panel_cashflow.html:230
 #: templates/property/detail_panel_cashflow.html:258
@@ -2599,11 +2617,6 @@ msgstr "Supprimer"
 msgid "Total deposits"
 msgstr "Total des dépôts"
 
-#: templates/finance/_account_stats.html:8
-#: templates/property/scpi_fund_detail.html:153
-msgid "Capital gain"
-msgstr "Plus-value"
-
 #: templates/finance/_account_stats.html:17
 msgid "30-day progression"
 msgstr "Progression sur 30 jours"
@@ -2612,9 +2625,9 @@ msgstr "Progression sur 30 jours"
 #: templates/finance/_edit_value_field.html:3
 #: templates/finance/edit_investment_cash.html:28
 #: templates/finance/index.html:122 templates/finance/index.html:209
-#: templates/finance/investment_detail.html:70
-#: templates/finance/investment_detail.html:116
-#: templates/finance/investment_detail.html:175
+#: templates/finance/investment_detail.html:75
+#: templates/finance/investment_detail.html:121
+#: templates/finance/investment_detail.html:180
 #: templates/finance/saving_detail.html:72
 #: templates/property/csv_confirm.html:53 templates/property/detail.html:347
 #: templates/property/detail.html:552
@@ -2654,9 +2667,9 @@ msgid "Source"
 msgstr "Source"
 
 #: templates/finance/_deposits_panel.html:18
-#: templates/finance/investment_detail.html:73
-#: templates/finance/investment_detail.html:119
-#: templates/finance/investment_detail.html:176
+#: templates/finance/investment_detail.html:78
+#: templates/finance/investment_detail.html:124
+#: templates/finance/investment_detail.html:181
 #: templates/finance/saving_detail.html:73
 #: templates/property/_dividend_table_header.html:9
 #: templates/property/detail.html:553
@@ -2757,7 +2770,7 @@ msgid "Current qty:"
 msgstr "Quantité actuelle :"
 
 #: templates/finance/_status_badge.html:8
-#: templates/finance/investment_detail.html:88
+#: templates/finance/investment_detail.html:93
 msgid "Closed"
 msgstr "Clôturé"
 
@@ -2926,13 +2939,13 @@ msgid "Valuation date"
 msgstr "Date d'évaluation"
 
 #: templates/finance/edit_holding_history.html:35
-#: templates/finance/investment_detail.html:69
-#: templates/finance/investment_detail.html:117
+#: templates/finance/investment_detail.html:74
+#: templates/finance/investment_detail.html:122
 msgid "Quantity"
 msgstr "Quantité"
 
 #: templates/finance/edit_holding_history.html:43
-#: templates/finance/investment_detail.html:118
+#: templates/finance/investment_detail.html:123
 msgid "Cash used"
 msgstr "Espèces utilisées"
 
@@ -2998,7 +3011,7 @@ msgid "Holding information"
 msgstr "Informations sur le titre"
 
 #: templates/finance/edit_investment_holding.html:38
-#: templates/finance/investment_detail.html:68
+#: templates/finance/investment_detail.html:73
 msgid "Code"
 msgstr "Code"
 
@@ -3161,67 +3174,71 @@ msgid "Holdings"
 msgstr "Titres"
 
 #: templates/finance/investment_detail.html:58
+msgid "Show/hide closed holdings"
+msgstr "Afficher/masquer les titres clôturés"
+
+#: templates/finance/investment_detail.html:62
 msgid "Add holding"
 msgstr "Ajouter un titre"
 
-#: templates/finance/investment_detail.html:71
+#: templates/finance/investment_detail.html:76
 #: templates/property/edit_mandate.html:82
 msgid "Fees"
 msgstr "Honoraires"
 
-#: templates/finance/investment_detail.html:93
+#: templates/finance/investment_detail.html:98
 msgid "Add history"
 msgstr "Ajouter un historique"
 
-#: templates/finance/investment_detail.html:104
+#: templates/finance/investment_detail.html:109
 msgid "Delete holding"
 msgstr "Supprimer le titre"
 
-#: templates/finance/investment_detail.html:105
+#: templates/finance/investment_detail.html:110
 msgid "Are you sure you want to delete this holding and all its history?"
 msgstr "Êtes-vous sûr de vouloir supprimer ce titre et tout son historique ?"
 
-#: templates/finance/investment_detail.html:133
+#: templates/finance/investment_detail.html:138
 msgid "Delete history entry"
 msgstr "Supprimer l'entrée de l'historique"
 
-#: templates/finance/investment_detail.html:134
+#: templates/finance/investment_detail.html:139
 msgid "Are you sure you want to delete this history entry?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette entrée de l'historique ?"
 
-#: templates/finance/investment_detail.html:140
+#: templates/finance/investment_detail.html:145
 msgid "No history entries."
 msgstr "Aucune entrée d'historique."
 
-#: templates/finance/investment_detail.html:152
+#: templates/finance/investment_detail.html:157
 msgid "No holdings yet."
 msgstr "Aucun titre actuellement."
 
-#: templates/finance/investment_detail.html:163
+#: templates/finance/investment_detail.html:168
 msgid "Cash history"
 msgstr "Historique des espèces"
 
-#: templates/finance/investment_detail.html:165
+#: templates/finance/investment_detail.html:170
 msgid "Add cash entry"
 msgstr "Ajouter une écriture d'espèces"
 
-#: templates/finance/investment_detail.html:188
+#: templates/finance/investment_detail.html:193
 msgid "Delete cash entry"
 msgstr "Supprimer l'écriture d'espèces"
 
-#: templates/finance/investment_detail.html:189
+#: templates/finance/investment_detail.html:194
 msgid "Are you sure you want to delete this cash entry?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette écriture de valeur d'espèce ?"
 
-#: templates/finance/investment_detail.html:198
+#: templates/finance/investment_detail.html:203
 msgid "No cash history yet."
 msgstr "Aucun historique d'espèces actuellement."
 
-#: templates/finance/investment_detail.html:205
+#: templates/finance/investment_detail.html:210
 msgid "Delete investment account"
 msgstr "Supprimer le compte d'investissement"
 
-#: templates/finance/investment_detail.html:206
+#: templates/finance/investment_detail.html:211
 msgid ""
 "Are you sure you want to delete this investment account and all its data?"
 msgstr ""
