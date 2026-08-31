@@ -56,7 +56,7 @@
             <td>
               <form method="post" action="{% url 'property:scpi_share_price_delete' scpi_pk=scpi.pk price_pk=price.pk %}" class="d-inline">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% translate "Delete this share price?" %}')">
+                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% filter escapejs %}{% translate "Delete this share price?" %}{% endfilter %}')">
                   <i class="bi bi-trash"></i>
                 </button>
               </form>

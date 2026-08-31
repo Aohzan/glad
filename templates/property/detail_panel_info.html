@@ -29,6 +29,17 @@
         </div>
       </div>
       {% endif %}
+      {% if property.total_surface %}
+      <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:120px">
+        <div class="account-icon-circle" style="background:rgba(25,135,84,.1)">
+          <i class="bi bi-bounding-box text-success"></i>
+        </div>
+        <div>
+          <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Total surface" %}</div>
+          <div class="fw-semibold small">{{ property.total_surface|floatformat:0 }} m²</div>
+        </div>
+      </div>
+      {% endif %}
       {% if property.number_of_rooms %}
       <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:120px">
         <div class="account-icon-circle" style="background:rgba(111,66,193,.1)">
@@ -58,10 +69,22 @@
     </div>
 
     {# ── Address ── #}
-    {% if property.address %}
+    {% if property.full_address %}
     <div class="mb-3">
       <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Address" %}</p>
-      <p class="mb-0"><i class="bi bi-geo-alt me-1 text-muted"></i>{{ property.address }}</p>
+      <p class="mb-0"><i class="bi bi-geo-alt me-1 text-muted"></i>{{ property.full_address }}</p>
+    </div>
+    {% endif %}
+
+    {# ── Cadastral info ── #}
+    {% if property.insee_code or property.cadastral_section or property.cadastral_parcel_number %}
+    <div class="mb-3">
+      <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Cadastral information" %}</p>
+      <p class="mb-0 small">
+        {% if property.insee_code %}<span class="badge bg-secondary-subtle text-secondary-emphasis me-1">INSEE: {{ property.insee_code }}</span>{% endif %}
+        {% if property.cadastral_section %}<span class="badge bg-secondary-subtle text-secondary-emphasis me-1">{% translate "Section" %}: {{ property.cadastral_section }}</span>{% endif %}
+        {% if property.cadastral_parcel_number %}<span class="badge bg-secondary-subtle text-secondary-emphasis me-1">{% translate "Parcel" %}: {{ property.cadastral_parcel_number }}</span>{% endif %}
+      </p>
     </div>
     {% endif %}
 
@@ -120,30 +143,33 @@
   </div>
   <div class="card-body p-0">
     <div id="property-map" class="rounded-bottom-4" style="height: 320px;"></div>
+    {% if property.latitude is None or property.longitude is None %}
+    <div class="text-center py-4 text-body-secondary">
+      <i class="bi bi-geo-alt fs-3"></i>
+      <p class="small mb-0">{% translate "No location set. Fill the address in the property edit form to display the map." %}</p>
+    </div>
+    {% endif %}
   </div>
 </div>
 
 <script>
 (function () {
-  var propertyAddress = '{{ property.address|default:""|escapejs }}';
-  var map = L.map('property-map', { zoomControl: true, scrollWheelZoom: false }).setView([48.8566, 2.3522], 12);
+  var lat = {{ property.latitude|default_if_none:"null" }};
+  var lon = {{ property.longitude|default_if_none:"null" }};
+  var hasCoords = lat !== null && lon !== null;
+  var defaultLat = 46.6034;
+  var defaultLon = 1.8883;
+  var map = L.map('property-map', { zoomControl: true, scrollWheelZoom: false }).setView(
+    hasCoords ? [lat, lon] : [defaultLat, defaultLon],
+    hasCoords ? 15 : 5
+  );
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '\u00a9 OpenStreetMap contributors'
   }).addTo(map);
 
-  if (propertyAddress) {
-    fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(propertyAddress))
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (Array.isArray(data) && data.length > 0) {
-          var lat = parseFloat(data[0].lat);
-          var lon = parseFloat(data[0].lon);
-          map.setView([lat, lon], 15);
-          L.marker([lat, lon]).addTo(map).bindPopup(propertyAddress).openPopup();
-        }
-      })
-      .catch(function() {});
+  if (hasCoords) {
+    L.marker([lat, lon]).addTo(map).bindPopup('{{ property.full_address|escapejs }}').openPopup();
   }
   // Force Leaflet to recalculate size after panel is revealed
   setTimeout(function() { map.invalidateSize(); }, 100);

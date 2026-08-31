@@ -346,7 +346,7 @@ var optionsFinanceEvolution = {
       return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:10px 14px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.15);">' +
         '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' + label + '</div>' +
         '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 6px;border-bottom:1px solid ' + border + ';margin-bottom:6px;">' +
-          '<span style="font-size:13px;font-weight:600;">{% translate "Total" %}</span>' +
+          '<span style="font-size:13px;font-weight:600;">{% filter escapejs %}{% translate "Total" %}{% endfilter %}</span>' +
           '<span style="font-size:13px;font-weight:700;">' + Math.round(total).toLocaleString() + '</span>' +
         '</div>' +
         rows +

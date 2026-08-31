@@ -47,7 +47,7 @@ def test_chart_data_investment_account(user_client, active_investment_account):
         account=active_investment_account,
         name="ETF World",
         code="WLD",
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
         initial_value=Money(Decimal("100.00"), "EUR"),
         initial_valuation_date=datetime.date.today() - datetime.timedelta(days=10),
         is_active=True,
@@ -55,7 +55,7 @@ def test_chart_data_investment_account(user_client, active_investment_account):
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
         value=Money(Decimal("110.00"), "EUR"),
-        quantity=Decimal("11"),
+        quantity=Decimal(11),
         valuation_date=datetime.datetime.now() - datetime.timedelta(days=5),
     )
     InvestmentAccountDeposit.objects.create(
@@ -121,7 +121,7 @@ def test_chart_data_investment_account_negative_deposit(
         account=active_investment_account,
         name="ETF World",
         code="WLD",
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
         initial_value=Money(Decimal("1000.00"), "EUR"),
         initial_valuation_date=datetime.date.today() - datetime.timedelta(days=10),
         is_active=True,
@@ -129,7 +129,7 @@ def test_chart_data_investment_account_negative_deposit(
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
         value=Money(Decimal("1100.00"), "EUR"),
-        quantity=Decimal("10"),
+        quantity=Decimal(10),
         valuation_date=datetime.datetime.now() - datetime.timedelta(days=5),
     )
     # Withdrawal recorded as negative deposit
@@ -226,7 +226,7 @@ def test_chart_data_investment_account_aligned_holdings(
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding_a,
         value=Money(Decimal("150.00"), "EUR"),
-        quantity=Decimal("10"),
+        quantity=Decimal(10),
         valuation_date=datetime.datetime.now() - datetime.timedelta(days=10),
     )
 
@@ -242,7 +242,7 @@ def test_chart_data_investment_account_aligned_holdings(
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding_b,
         value=Money(Decimal("250.00"), "EUR"),
-        quantity=Decimal("5"),
+        quantity=Decimal(5),
         valuation_date=datetime.datetime.now() - datetime.timedelta(days=5),
     )
 
@@ -350,7 +350,7 @@ def test_chart_data_holding(user_client, active_investment_account):
     holding = InvestmentAccountHolding.objects.create(
         account=active_investment_account,
         name="Holding One",
-        initial_quantity=Decimal("2"),
+        initial_quantity=Decimal(2),
         initial_value=Money(Decimal("50.00"), "EUR"),
         initial_valuation_date=datetime.date.today() - datetime.timedelta(days=4),
         is_active=True,

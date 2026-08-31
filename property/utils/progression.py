@@ -56,7 +56,7 @@ class PropertyRentability:
     rentability_percent: Decimal
     css_class: str
 
-    def __init__(self, property: "Property") -> None:
+    def __init__(self, property: Property) -> None:
         raise NotImplementedError("PropertyRentability calculation not implemented yet")
 
     def __str__(self) -> str:

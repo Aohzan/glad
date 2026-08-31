@@ -20,9 +20,9 @@ class AccountProgressionTestCase(TestCase):
         progression = AccountProgression(current_value, old_value)
 
         self.assertEqual(progression.gross_progression, Decimal("10.0"))
-        self.assertEqual(progression.gross_difference.amount, Decimal("100"))
+        self.assertEqual(progression.gross_difference.amount, Decimal(100))
         self.assertEqual(progression.net_progression, Decimal("10.0"))
-        self.assertEqual(progression.net_difference.amount, Decimal("100"))
+        self.assertEqual(progression.net_difference.amount, Decimal(100))
         self.assertEqual(progression.css_class, "up")
 
     def test_progression_with_deposits(self):
@@ -35,11 +35,11 @@ class AccountProgressionTestCase(TestCase):
 
         # Gross progression: (1300 - 1000) / 1000 = 30%
         self.assertEqual(progression.gross_progression, Decimal("30.0"))
-        self.assertEqual(progression.gross_difference.amount, Decimal("300"))
+        self.assertEqual(progression.gross_difference.amount, Decimal(300))
 
         # Net progression: (1300 - 1000 - 200) / 1000 = 10%
         self.assertEqual(progression.net_progression, Decimal("10.0"))
-        self.assertEqual(progression.net_difference.amount, Decimal("100"))
+        self.assertEqual(progression.net_difference.amount, Decimal(100))
         self.assertEqual(progression.css_class, "up")
 
     def test_negative_progression_with_deposits(self):
@@ -52,11 +52,11 @@ class AccountProgressionTestCase(TestCase):
 
         # Gross progression: (1050 - 1000) / 1000 = 5%
         self.assertEqual(progression.gross_progression, Decimal("5.0"))
-        self.assertEqual(progression.gross_difference.amount, Decimal("50"))
+        self.assertEqual(progression.gross_difference.amount, Decimal(50))
 
         # Net progression: (1050 - 1000 - 100) / 1000 = -5%
         self.assertEqual(progression.net_progression, Decimal("-5.0"))
-        self.assertEqual(progression.net_difference.amount, Decimal("-50"))
+        self.assertEqual(progression.net_difference.amount, Decimal(-50))
         self.assertEqual(progression.css_class, "down")
 
     def test_zero_old_value(self):
@@ -94,7 +94,7 @@ class AccountProgressionTestCase(TestCase):
         progression = AccountProgression(current_value, old_value, deposits)
 
         # Net progression: (1000 - 1000 - 50) / 1000 = -5%, but net difference rounds to -50
-        self.assertEqual(progression.net_difference.amount, Decimal("-50"))
+        self.assertEqual(progression.net_difference.amount, Decimal(-50))
         self.assertEqual(progression.css_class, "down")
 
     def test_invalid_input_types(self):

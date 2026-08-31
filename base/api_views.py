@@ -26,11 +26,11 @@ def _resolve_default_currency(
     total_properties_value_by_currency: dict,
 ) -> str:
     if total_investment_accounts_by_currency:
-        return list(total_investment_accounts_by_currency.keys())[0]
+        return next(iter(total_investment_accounts_by_currency.keys()))
     if total_saving_accounts_by_currency:
-        return list(total_saving_accounts_by_currency.keys())[0]
+        return next(iter(total_saving_accounts_by_currency.keys()))
     if total_properties_value_by_currency:
-        return list(total_properties_value_by_currency.keys())[0]
+        return next(iter(total_properties_value_by_currency.keys()))
     return DEFAULT_CURRENCY
 
 

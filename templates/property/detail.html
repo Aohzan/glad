@@ -40,9 +40,9 @@
               {% endif %}
             </div>
             <h1 class="mb-0 h4 fw-bold">{{ property.name }}</h1>
-            {% if property.address %}
+            {% if property.full_address %}
               <p class="small mb-0 mt-1 opacity-75">
-                <i class="bi bi-geo-alt me-1"></i>{{ property.address }}
+                <i class="bi bi-geo-alt me-1"></i>{{ property.full_address }}
               </p>
             {% endif %}
           </div>
@@ -92,6 +92,9 @@
             <div class="btn-group btn-group-sm ms-auto">
               <button class="btn btn-outline-secondary btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#valueModal" title="{% translate 'Add valuation' %}">
                 <i class="bi bi-plus" style="font-size:.8rem;"></i>
+              </button>
+              <button class="btn btn-outline-secondary btn-sm py-0 px-1" id="btnDvfEstimate" title="{% translate 'DVF estimate' %}">
+                <i class="bi bi-graph-up-arrow" style="font-size:.8rem;"></i>
               </button>
               <button class="btn btn-outline-secondary btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#valueHistoryModal" title="{% translate 'Value history' %}">
                 <i class="bi bi-clock-history" style="font-size:.8rem;"></i>
@@ -272,49 +275,49 @@
     {# ── Cash flow tab ──────────────────────────────────────────────────────── #}
     <div class="tab-pane fade show active" id="cashflow-panel" role="tabpanel" aria-labelledby="cashflow-tab">
       <div class="panel-loading text-center py-5">
-        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading..." %}</span></div>
       </div>
     </div>
 
     {# ── Value & Projection tab ─────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="projection-panel" role="tabpanel" aria-labelledby="projection-tab">
       <div class="panel-loading text-center py-5">
-        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading..." %}</span></div>
       </div>
     </div>
 
     {# ── Balance sheet tab ──────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="balance-panel" role="tabpanel" aria-labelledby="balance-tab">
       <div class="panel-loading text-center py-5">
-        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading..." %}</span></div>
       </div>
     </div>
 
     {# ── Leases tab ──────────────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="leases-panel" role="tabpanel" aria-labelledby="leases-tab">
       <div class="panel-loading text-center py-5">
-        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading..." %}</span></div>
       </div>
     </div>
 
     {# ── Mandate tab ─────────────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="mandate-panel" role="tabpanel" aria-labelledby="mandate-tab">
       <div class="panel-loading text-center py-5">
-        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading..." %}</span></div>
       </div>
     </div>
 
     {# ── Info tab ────────────────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="info-panel" role="tabpanel" aria-labelledby="info-tab">
       <div class="panel-loading text-center py-5">
-        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading..." %}</span></div>
       </div>
     </div>
 
     {# ── Loans tab ──────────────────────────────────────────────────────────── #}
     <div class="tab-pane fade" id="loans-panel" role="tabpanel" aria-labelledby="loans-tab">
       <div class="panel-loading text-center py-5">
-        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading..." %}</span></div>
       </div>
     </div>
 
@@ -322,7 +325,7 @@
     {% if show_amortization_tab %}
     <div class="tab-pane fade" id="amortization-panel" role="tabpanel" aria-labelledby="amortization-tab">
       <div class="panel-loading text-center py-5">
-        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading…" %}</span></div>
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">{% translate "Loading..." %}</span></div>
       </div>
     </div>
     {% endif %}
@@ -348,6 +351,7 @@
             {{ value_form.value.subwidgets.0 }}
           </div>
           <input type="hidden" name="value_1" value="{{ property.currency }}">
+          <input type="hidden" name="source" value="manual" id="id_value_source">
           <div class="mb-3">
             <label for="id_valuation_date" class="form-label">{% translate "Valuation date" %}</label>
             {{ value_form.valuation_date }}
@@ -583,6 +587,84 @@
   </div>
 </div>
 
+{# ── DVF Estimate modal ─────────────────────────────────────────────────────── #}
+<div class="modal fade" id="dvfEstimateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-graph-up-arrow me-2 text-primary"></i>{% translate "DVF price estimation" %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="dvfEstimateBody">
+        <div class="text-center py-3" id="dvfLoading">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="text-body-secondary mt-2 mb-0">{% translate "Fetching comparable sales data..." %}</p>
+        </div>
+        <div id="dvfResult" style="display:none">
+          <div id="dvfError" class="alert alert-warning" style="display:none"></div>
+          <div id="dvfSuccess" style="display:none">
+            <p class="text-body-secondary mb-2">
+              {% translate "Estimated value based on comparable sales in the same cadastral section over the last 5 years:" %}
+            </p>
+            <p class="fs-3 fw-bold text-primary mb-2" id="dvfEstimatedValue"></p>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <div class="card border-0 bg-body-secondary rounded-3 p-2">
+                  <div class="text-uppercase text-body-secondary small">{% translate "Median price/m²" %}</div>
+                  <div class="fw-bold" id="dvfMedianPrice"></div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="card border-0 bg-body-secondary rounded-3 p-2">
+                  <div class="text-uppercase text-body-secondary small">{% translate "Comparable sales" %}</div>
+                  <div class="fw-bold" id="dvfComparableCount"></div>
+                </div>
+              </div>
+            </div>
+            <p class="text-body-secondary small mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              {% blocktranslate %}This estimation is based on the French DVF (Demandes de Valeurs Foncières) public dataset. It is indicative and should not replace a professional appraisal.{% endblocktranslate %}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" id="dvfFooter">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Close" %}</button>
+        <button type="button" class="btn btn-primary" id="dvfSaveBtn" style="display:none">
+          <i class="bi bi-check-lg me-1"></i>{% translate "Save as valuation" %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Stale DVF estimate popup ────────────────────────────────────────────── #}
+{% if dvf_estimate_stale %}
+<div class="modal fade" id="dvfStaleModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-arrow-repeat me-2 text-primary"></i>{% translate "Price estimation update" %}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">{% blocktranslate %}The DVF price estimation for this property hasn't been updated in over 6 months. Would you like to refresh it now?{% endblocktranslate %}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Later" %}</button>
+        <button type="button" class="btn btn-primary" id="dvfStaleRefreshBtn">
+          <i class="bi bi-graph-up-arrow me-1"></i>{% translate "Update estimation" %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block scripts %}
@@ -705,9 +787,9 @@ function updateChartsTheme(themeName) {
     if (!flowType) return;
     if (modalTitle) {
       if (flowType === 'income') {
-        modalTitle.innerHTML = '<i class="bi bi-arrow-down-circle me-2 text-success"></i>{% translate "Add income" %}';
+        modalTitle.innerHTML = '<i class="bi bi-arrow-down-circle me-2 text-success"></i>{% filter escapejs %}{% translate "Add income" %}{% endfilter %}';
       } else {
-        modalTitle.innerHTML = '<i class="bi bi-arrow-up-circle me-2 text-danger"></i>{% translate "Add expense" %}';
+        modalTitle.innerHTML = '<i class="bi bi-arrow-up-circle me-2 text-danger"></i>{% filter escapejs %}{% translate "Add expense" %}{% endfilter %}';
       }
     }
     applyMgmtFilter(mgmtSelect, flowType);
@@ -748,7 +830,7 @@ function updateChartsTheme(themeName) {
     entryModal.addEventListener('show.bs.modal', function() {
       entryModal.querySelectorAll('input[name="flow_type"]').forEach(function(r) { r.checked = false; });
       if (modalTitle) {
-        modalTitle.innerHTML = '<i class="bi bi-plus-circle me-2 text-primary"></i>{% translate "Add income / expense" %}';
+        modalTitle.innerHTML = '<i class="bi bi-plus-circle me-2 text-primary"></i>{% filter escapejs %}{% translate "Add income / expense" %}{% endfilter %}';
       }
       if (mgmtSelect) {
         const ig = mgmtSelect.querySelector('.mgmt-income-group');
@@ -832,6 +914,109 @@ function updateChartsTheme(themeName) {
 
   window.addEventListener('resize', checkTabsOverflow);
   setTimeout(checkTabsOverflow, 0);
+})();
+
+// ── DVF estimate ──────────────────────────────────────────────────────────────
+(function () {
+  const btn = document.getElementById('btnDvfEstimate');
+  if (!btn) return;
+  const modal = document.getElementById('dvfEstimateModal');
+  const loading = document.getElementById('dvfLoading');
+  const result = document.getElementById('dvfResult');
+  const errorDiv = document.getElementById('dvfError');
+  const successDiv = document.getElementById('dvfSuccess');
+  const saveBtn = document.getElementById('dvfSaveBtn');
+  const estimatedValueEl = document.getElementById('dvfEstimatedValue');
+  const medianPriceEl = document.getElementById('dvfMedianPrice');
+  const comparableCountEl = document.getElementById('dvfComparableCount');
+
+  const estimateUrl = "{% url 'property:api_dvf_estimate' property.pk %}";
+  let pendingEstimate = null;
+
+  btn.addEventListener('click', function () {
+    new bootstrap.Modal(modal).show();
+    loading.style.display = '';
+    result.style.display = 'none';
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    saveBtn.style.display = 'none';
+
+    fetch(estimateUrl)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        loading.style.display = 'none';
+        result.style.display = '';
+        if (data.reason) {
+          var msg = {
+            'missing_floor_area': '{% filter escapejs %}{% translate "Floor area is required for estimation." %}{% endfilter %}',
+            'missing_cadastral_info': '{% filter escapejs %}{% translate "Cadastral information (INSEE code and section) is required. Fill the address and look up cadastral info in the property edit form." %}{% endfilter %}',
+            'unsupported_property_type': '{% filter escapejs %}{% translate "This property type is not supported by the DVF estimation." %}{% endfilter %}',
+            'no_comparable_sales': '{% filter escapejs %}{% translate "No comparable sales found in this area for the last 5 years." %}{% endfilter %}',
+          }[data.reason] || '{% filter escapejs %}{% translate "Estimation unavailable." %}{% endfilter %}';
+          errorDiv.textContent = msg;
+          errorDiv.style.display = '';
+          if (data.reason === 'no_comparable_sales' && data.total_mutations > 0) {
+            var detail = document.createElement('div');
+            detail.className = 'mt-2 small text-muted';
+            detail.innerHTML = '{% filter escapejs %}{% translate "Search details:" %}{% endfilter %}<br>' +
+              '{% filter escapejs %}{% translate "Total mutations found:" %}{% endfilter %} ' + data.total_mutations + '<br>' +
+              '{% filter escapejs %}{% translate "Excluded by type:" %}{% endfilter %} ' + data.filtered_by_type + '<br>' +
+              '{% filter escapejs %}{% translate "Excluded (older than 5 years):" %}{% endfilter %} ' + data.filtered_by_date + '<br>' +
+              '{% filter escapejs %}{% translate "Excluded (invalid data):" %}{% endfilter %} ' + data.filtered_by_invalid;
+            errorDiv.appendChild(detail);
+          }
+        } else {
+          pendingEstimate = data;
+          var currency = data.currency || 'EUR';
+          estimatedValueEl.textContent = new Intl.NumberFormat('fr-FR', {
+            style: 'currency', currency: currency, maximumFractionDigits: 0
+          }).format(data.estimated_value);
+          medianPriceEl.textContent = new Intl.NumberFormat('fr-FR', {
+            style: 'currency', currency: currency, maximumFractionDigits: 0
+          }).format(data.median_price_per_sqm) + ' /m²';
+          comparableCountEl.textContent = data.comparable_count;
+          successDiv.style.display = '';
+          saveBtn.style.display = '';
+        }
+      })
+      .catch(function () {
+        loading.style.display = 'none';
+        result.style.display = '';
+        errorDiv.textContent = '{% filter escapejs %}{% translate "An error occurred while fetching the estimation." %}{% endfilter %}';
+        errorDiv.style.display = '';
+      });
+  });
+
+  saveBtn.addEventListener('click', function () {
+    if (!pendingEstimate) return;
+    var today = new Date().toISOString().split('T')[0];
+    var valueInput = document.querySelector('#valueModal input[name="value_0"]');
+    var dateInput = document.querySelector('#valueModal input[name="valuation_date"]');
+    var sourceInput = document.getElementById('id_value_source');
+    if (valueInput) valueInput.value = Math.round(pendingEstimate.estimated_value);
+    if (dateInput) dateInput.value = today;
+    if (sourceInput) sourceInput.value = 'dvf_estimate';
+    bootstrap.Modal.getInstance(modal).hide();
+    new bootstrap.Modal(document.getElementById('valueModal')).show();
+  });
+
+  {% if dvf_estimate_stale %}
+  // ── Stale DVF popup: auto-show and trigger refresh ───────────────────────
+  (function () {
+    var staleModal = document.getElementById('dvfStaleModal');
+    if (!staleModal) return;
+    var staleRefreshBtn = document.getElementById('dvfStaleRefreshBtn');
+
+    document.addEventListener('DOMContentLoaded', function () {
+      new bootstrap.Modal(staleModal).show();
+    });
+
+    staleRefreshBtn.addEventListener('click', function () {
+      bootstrap.Modal.getInstance(staleModal).hide();
+      btn.click();
+    });
+  })();
+  {% endif %}
 })();
 </script>
 {% endblock %}

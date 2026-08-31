@@ -12,7 +12,7 @@ def test_format_money_filter_empty_values():
 
 
 def test_format_money_filter_invalid_value_type():
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         format_money_filter("10")
 
 

@@ -24,18 +24,18 @@ from property.models.scpi import (
 )
 
 __all__ = [
+    "SCPI",
     "AmortizationAsset",
     "AmortizationSetup",
-    "Property",
-    "PropertyLoan",
-    "PropertyLoanAmortizationEntry",
-    "PropertyValue",
     "Lease",
     "ManagementCategory",
     "ManagementMandate",
+    "Property",
     "PropertyLedgerEntry",
     "PropertyLedgerEntryException",
-    "SCPI",
+    "PropertyLoan",
+    "PropertyLoanAmortizationEntry",
+    "PropertyValue",
     "SCPIBareOwnershipTheoreticalValue",
     "SCPIDividend",
     "SCPIInvestment",

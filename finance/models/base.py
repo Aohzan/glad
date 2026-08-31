@@ -116,7 +116,7 @@ class AbstractAccount(BaseModel):
         return suffix
 
     @property
-    def opening_amount(self) -> "Money":
+    def opening_amount(self) -> Money:
         """Return the opening value as a Money object.
 
         Concrete subclasses must override this property to point to their
@@ -125,7 +125,7 @@ class AbstractAccount(BaseModel):
         """
         raise NotImplementedError  # pragma: no cover
 
-    def compute_capital_gain(self) -> "tuple[Money, Money]":
+    def compute_capital_gain(self) -> tuple[Money, Money]:
         """Compute and return ``(total_deposits, capital_gain)`` as Money objects.
 
         Uses the deposits queryset common to all account types and the
@@ -145,7 +145,7 @@ class AbstractAccount(BaseModel):
         )
         return total_deposits, capital_gain
 
-    def get_progression(self, days: int) -> "AccountProgression":
+    def get_progression(self, days: int) -> AccountProgression:
         """Return the value progression over *days* days, net of deposits.
 
         Concrete subclasses may override this method if their deposit model

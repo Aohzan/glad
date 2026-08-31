@@ -96,37 +96,37 @@ class TestDepreciableBase:
 @pytest.mark.django_db
 class TestGetAnnualAmortization:
     def test_zero_before_acquisition_year(self, structure_asset):
-        assert structure_asset.get_annual_amortization(2019) == Decimal("0")
+        assert structure_asset.get_annual_amortization(2019) == Decimal(0)
 
     def test_zero_after_useful_life(self, structure_asset):
         # beginning_date=2020-01-01, duration=75 → last active year=2094, exclusive end=2095
-        assert structure_asset.get_annual_amortization(2095) == Decimal("0")
-        assert structure_asset.get_annual_amortization(2096) == Decimal("0")
+        assert structure_asset.get_annual_amortization(2095) == Decimal(0)
+        assert structure_asset.get_annual_amortization(2096) == Decimal(0)
 
     def test_full_year_middle(self, structure_asset):
         """Middle year: full annual dotation."""
         # 170000 / 75 ≈ 2266.67
         dotation = structure_asset.get_annual_amortization(2025)
-        expected = (Decimal("170000") / Decimal("75")).quantize(Decimal("0.01"))
+        expected = (Decimal(170000) / Decimal(75)).quantize(Decimal("0.01"))
         assert dotation == expected
 
     def test_first_year_prorata_january(self, structure_asset):
         """Acquisition on January 1: prorata = 12/12 = full year."""
         dotation = structure_asset.get_annual_amortization(2020)
-        expected = (Decimal("170000") / Decimal("75")).quantize(Decimal("0.01"))
+        expected = (Decimal(170000) / Decimal(75)).quantize(Decimal("0.01"))
         assert dotation == expected
 
     def test_first_year_prorata_july(self, fittings_asset):
         """Acquisition on July 1: day-based prorata = 183/365 of annual."""
         dotation = fittings_asset.get_annual_amortization(2020)
-        annual = Decimal("10000") / Decimal("12")
+        annual = Decimal(10000) / Decimal(12)
         # July 1 to Dec 31 = 183 days
-        expected = (annual * Decimal("183") / Decimal("365")).quantize(Decimal("0.01"))
+        expected = (annual * Decimal(183) / Decimal(365)).quantize(Decimal("0.01"))
         assert dotation == expected
 
     def test_middle_years_fittings(self, fittings_asset):
         """Years 2021–2031 are full years for fittings asset (12-year life, July start)."""
-        annual = (Decimal("10000") / Decimal("12")).quantize(Decimal("0.01"))
+        annual = (Decimal(10000) / Decimal(12)).quantize(Decimal("0.01"))
         for y in range(2021, 2032):
             assert fittings_asset.get_annual_amortization(y) == annual
 
@@ -134,13 +134,13 @@ class TestGetAnnualAmortization:
         """Fittings asset acquired July 2020 (12 years): last year is 2032, complement prorata."""
         # July 1 to Dec 31 = 183 days → last year = 365 - 183 = 182 days
         dotation = fittings_asset.get_annual_amortization(2032)
-        annual = Decimal("10000") / Decimal("12")
-        expected = (annual * Decimal("182") / Decimal("365")).quantize(Decimal("0.01"))
+        annual = Decimal(10000) / Decimal(12)
+        expected = (annual * Decimal(182) / Decimal(365)).quantize(Decimal("0.01"))
         assert dotation == expected
 
     def test_zero_after_last_partial_year(self, fittings_asset):
         """Year 2033 and beyond must return 0 for fittings asset (July 2020, 12 years)."""
-        assert fittings_asset.get_annual_amortization(2033) == Decimal("0")
+        assert fittings_asset.get_annual_amortization(2033) == Decimal(0)
 
     def test_first_year_prorata_mid_month(self, property_obj):
         """Acquisition on Oct 16: day-based prorata = 76/365 of annual."""
@@ -152,9 +152,9 @@ class TestGetAnnualAmortization:
             duration_years=70,
         )
         dotation = asset.get_annual_amortization(2025)
-        annual = Decimal("44025") / Decimal("70")
+        annual = Decimal(44025) / Decimal(70)
         # Oct 16 to Dec 31 = 76 days
-        expected = (annual * Decimal("76") / Decimal("365")).quantize(Decimal("0.01"))
+        expected = (annual * Decimal(76) / Decimal(365)).quantize(Decimal("0.01"))
         assert dotation == expected
         assert dotation == Decimal("130.95")
 
@@ -181,7 +181,7 @@ class TestGetAnnualAmortization:
     def test_last_full_year_january_asset_returns_annual(self, structure_asset):
         """For a January-start asset, the final active year (2094) must return a full dotation."""
         dotation = structure_asset.get_annual_amortization(2094)
-        expected = (Decimal("170000") / Decimal("75")).quantize(Decimal("0.01"))
+        expected = (Decimal(170000) / Decimal(75)).quantize(Decimal("0.01"))
         assert dotation == expected
 
 
@@ -193,7 +193,7 @@ class TestCumulativeAmortization:
         assert cumul_2021 > cumul_2020
 
     def test_cumulative_zero_before_acquisition(self, structure_asset):
-        assert structure_asset.cumulative_amortization(2019) == Decimal("0")
+        assert structure_asset.cumulative_amortization(2019) == Decimal(0)
 
     def test_cumulative_sums_correctly(self, fittings_asset):
         d2020 = fittings_asset.get_annual_amortization(2020)
@@ -305,7 +305,7 @@ class TestGetAmortizationTable:
 @pytest.mark.django_db
 class TestGetTotalAmortization:
     def test_total_zero_no_assets(self, property_obj):
-        assert get_total_amortization(property_obj.pk, 2025) == Decimal("0")
+        assert get_total_amortization(property_obj.pk, 2025) == Decimal(0)
 
     def test_total_sums_all_assets(self, structure_asset, fittings_asset, property_obj):
         total = get_total_amortization(property_obj.pk, 2025)
@@ -342,11 +342,11 @@ class TestGetLmnpSummaryArt39C:
         self._add_rent(property_obj, "12000")
         self._add_expense(property_obj, "2000")
         summary = get_lmnp_summary(property_obj.pk, 2025)
-        assert summary["recettes"] == Decimal("12000")
-        assert summary["charges"] == Decimal("2000")
-        assert summary["result"] == Decimal("10000")
-        assert summary["amortization_total"] == Decimal("0")
-        assert summary["taxable_result"] == Decimal("10000")
+        assert summary["recettes"] == Decimal(12000)
+        assert summary["charges"] == Decimal(2000)
+        assert summary["result"] == Decimal(10000)
+        assert summary["amortization_total"] == Decimal(0)
+        assert summary["taxable_result"] == Decimal(10000)
 
     def test_amortization_fully_deductible(self, property_obj):
         asset = AmortizationAsset.objects.create(
@@ -361,10 +361,10 @@ class TestGetLmnpSummaryArt39C:
         summary = get_lmnp_summary(property_obj.pk, 2025)
         amort = asset.get_annual_amortization(2025)
         assert summary["amortization_total"] == amort
-        assert summary["deferred_prior"] == Decimal("0")
+        assert summary["deferred_prior"] == Decimal(0)
         assert summary["amortization_deductible"] == amort
-        assert summary["amortization_deferred"] == Decimal("0")
-        assert summary["taxable_result"] == Decimal("10000") - amort
+        assert summary["amortization_deferred"] == Decimal(0)
+        assert summary["taxable_result"] == Decimal(10000) - amort
 
     def test_amortization_partially_deferred(self, property_obj):
         asset = AmortizationAsset.objects.create(
@@ -377,11 +377,11 @@ class TestGetLmnpSummaryArt39C:
         self._add_rent(property_obj, "3000")
         self._add_expense(property_obj, "2000")
         summary = get_lmnp_summary(property_obj.pk, 2025)
-        assert summary["amortization_deductible"] == Decimal("1000")
+        assert summary["amortization_deductible"] == Decimal(1000)
         assert summary["amortization_deferred"] == asset.get_annual_amortization(
             2025
-        ) - Decimal("1000")
-        assert summary["taxable_result"] == Decimal("0")
+        ) - Decimal(1000)
+        assert summary["taxable_result"] == Decimal(0)
 
     def test_amortization_fully_deferred_when_operating_deficit(self, property_obj):
         asset = AmortizationAsset.objects.create(
@@ -394,11 +394,11 @@ class TestGetLmnpSummaryArt39C:
         self._add_rent(property_obj, "1000")
         self._add_expense(property_obj, "2000")
         summary = get_lmnp_summary(property_obj.pk, 2025)
-        assert summary["result"] == Decimal("-1000")
-        assert summary["amortization_deductible"] == Decimal("0")
+        assert summary["result"] == Decimal(-1000)
+        assert summary["amortization_deductible"] == Decimal(0)
         assert summary["amortization_deferred"] == asset.get_annual_amortization(2025)
         # Art. 39C: amort is deferred but the operating deficit remains
-        assert summary["taxable_result"] == Decimal("-1000")
+        assert summary["taxable_result"] == Decimal(-1000)
 
     def test_taxable_result_not_worsened_by_amort(self, property_obj):
         """Art. 39C: amortization cannot create or deepen a deficit.
@@ -417,7 +417,7 @@ class TestGetLmnpSummaryArt39C:
         # result_before_amort = 500 > 0, amort ~2267
         # amort_deductible = min(2267, 500) = 500
         # taxable_result = 500 - 500 = 0 (not negative — amort didn't create deficit)
-        assert summary["taxable_result"] == Decimal("0")
+        assert summary["taxable_result"] == Decimal(0)
 
     def test_result_key_is_before_amortization(self, property_obj):
         AmortizationAsset.objects.create(
@@ -430,7 +430,7 @@ class TestGetLmnpSummaryArt39C:
         self._add_rent(property_obj, "6000")
         self._add_expense(property_obj, "1000")
         summary = get_lmnp_summary(property_obj.pk, 2025)
-        assert summary["result"] == Decimal("5000")
+        assert summary["result"] == Decimal(5000)
 
     def test_deferred_prior_carried_forward(self, property_obj, structure_asset):
         self._add_rent(property_obj, "3000", year=2025)
@@ -450,10 +450,10 @@ class TestGetLmnpSummaryArt39C:
 @pytest.mark.django_db
 class TestGetDeferredAmortizationBalance:
     def test_no_assets_returns_zero(self, property_obj):
-        assert get_deferred_amortization_balance(property_obj.pk, 2025) == Decimal("0")
+        assert get_deferred_amortization_balance(property_obj.pk, 2025) == Decimal(0)
 
     def test_zero_before_first_acquisition(self, structure_asset, property_obj):
-        assert get_deferred_amortization_balance(property_obj.pk, 2019) == Decimal("0")
+        assert get_deferred_amortization_balance(property_obj.pk, 2019) == Decimal(0)
 
     def test_full_deferral_accumulates(self, property_obj, structure_asset):
         balance_2020 = get_deferred_amortization_balance(property_obj.pk, 2020)
@@ -465,11 +465,11 @@ class TestGetDeferredAmortizationBalance:
             property=property_obj,
             flow_type=PropertyLedgerEntry.FlowType.INCOME,
             management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            amount=Money(Decimal("1000000"), "EUR"),
+            amount=Money(Decimal(1000000), "EUR"),
             entry_date=datetime.date(2025, 1, 1),
         )
         balance_2025 = get_deferred_amortization_balance(property_obj.pk, 2025)
-        assert balance_2025 == Decimal("0")
+        assert balance_2025 == Decimal(0)
 
 
 # ─── Accounting dashboard ─────────────────────────────────────────────────────
@@ -509,7 +509,7 @@ class TestGetAccountingData:
 
     def test_empty_properties_list(self):
         data = get_accounting_data([], 2025)
-        assert data["form_2033b"]["recettes"] == Decimal("0")
+        assert data["form_2033b"]["recettes"] == Decimal(0)
         assert data["form_2042c"]["is_benefice"] is True  # 0 is non-negative
 
 
@@ -598,9 +598,9 @@ class TestInitializeAmortizationView:
         admin_client.post(url, {"extra_amount": "15000", "land_percentage": "15"})
         setup = AmortizationSetup.objects.get(property=property_obj)
         assert setup.total_value.amount == property_obj.buying_value.amount + Decimal(
-            "15000"
+            15000
         )
-        assert setup.land_percentage == Decimal("15")
+        assert setup.land_percentage == Decimal(15)
 
     def test_post_with_custom_land_percentage(self, admin_client, property_obj):
         """land_percentage is stored on the setup."""
@@ -609,7 +609,7 @@ class TestInitializeAmortizationView:
         )
         admin_client.post(url, {"extra_amount": "0", "land_percentage": "20"})
         setup = AmortizationSetup.objects.get(property=property_obj)
-        assert setup.land_percentage == Decimal("20")
+        assert setup.land_percentage == Decimal(20)
 
     def test_post_with_fees_and_existing_setup_updates_setup(
         self, admin_client, property_obj
@@ -626,7 +626,7 @@ class TestInitializeAmortizationView:
         admin_client.post(url, {"extra_amount": "5000", "land_percentage": "15"})
         setup = AmortizationSetup.objects.get(property=property_obj)
         assert setup.total_value.amount == property_obj.buying_value.amount + Decimal(
-            "5000"
+            5000
         )
 
     def test_post_invalid_form_does_not_create_setup(self, admin_client, property_obj):
@@ -898,7 +898,7 @@ class TestGetAmortizationContextViaDetailView:
         assert response.status_code == 200
         assert len(response.context["amortization_table"]) == 1
         assert response.context["amortization_end_year"] == 2094
-        assert response.context["amortization_total_base"] == Decimal("170000")
+        assert response.context["amortization_total_base"] == Decimal(170000)
 
     def test_detail_view_with_amortization_setup_no_setup_raises_does_not_exist(
         self, admin_client, property_obj
@@ -933,7 +933,7 @@ class TestGetAmortizationContextViaDetailView:
         url = reverse("property:panel_amortization", kwargs={"pk": prop.pk})
         response = admin_client.get(url)
         assert response.status_code == 200
-        assert response.context["acquisition_fees_total"] == Decimal("20000")
+        assert response.context["acquisition_fees_total"] == Decimal(20000)
         assert len(response.context["acquisition_fees_breakdown"]) == 3
 
     def test_detail_view_context_no_fees_shows_zero(self, admin_client, property_obj):
@@ -941,7 +941,7 @@ class TestGetAmortizationContextViaDetailView:
         url = reverse("property:panel_amortization", kwargs={"pk": property_obj.pk})
         response = admin_client.get(url)
         assert response.status_code == 200
-        assert response.context["acquisition_fees_total"] == Decimal("0")
+        assert response.context["acquisition_fees_total"] == Decimal(0)
         assert response.context["acquisition_fees_breakdown"] == {}
 
 
@@ -984,11 +984,11 @@ class TestTerrainAsset:
         assert structure_asset.is_depreciable is True
 
     def test_annual_amortization_zero_for_terrain(self, terrain_asset):
-        assert terrain_asset.get_annual_amortization(2020) == Decimal("0")
-        assert terrain_asset.get_annual_amortization(2025) == Decimal("0")
+        assert terrain_asset.get_annual_amortization(2020) == Decimal(0)
+        assert terrain_asset.get_annual_amortization(2025) == Decimal(0)
 
     def test_cumulative_amortization_zero_for_terrain(self, terrain_asset):
-        assert terrain_asset.cumulative_amortization(2025) == Decimal("0")
+        assert terrain_asset.cumulative_amortization(2025) == Decimal(0)
 
     def test_schedule_excludes_terrain_from_chart_series(
         self, property_obj, structure_asset, terrain_asset
@@ -1013,14 +1013,14 @@ class TestTerrainAsset:
         schedule = get_amortization_schedule(property_obj.pk)
         assert schedule["rows"] == []
         assert schedule["asset_series"] == []
-        assert schedule["total_depreciable_base"] == Decimal("0")
+        assert schedule["total_depreciable_base"] == Decimal(0)
 
     def test_table_row_has_is_depreciable_false(self, property_obj, terrain_asset):
         table = get_amortization_table(property_obj.pk, 2025)
         assert len(table) == 1
         assert table[0]["is_depreciable"] is False
-        assert table[0]["annual_dotation"] == Decimal("0")
-        assert table[0]["pct_amortized"] == Decimal("0")
+        assert table[0]["annual_dotation"] == Decimal(0)
+        assert table[0]["pct_amortized"] == Decimal(0)
 
     def test_terrain_without_duration_saves(self, property_obj):
         """Terrain asset can be created without duration_years."""

@@ -27,7 +27,7 @@ def _build_loans_with_totals(loans: list[PropertyLoan]) -> list[dict]:
         if loan.monthly_payment is not None and duration > 0:
             monthly = loan.monthly_payment.amount
             insurance = (
-                loan.insurance.amount if loan.insurance is not None else Decimal("0")
+                loan.insurance.amount if loan.insurance is not None else Decimal(0)
             )
             total_repaid = Money(
                 (monthly + insurance) * duration, loan.original_amount.currency
@@ -81,13 +81,13 @@ def _build_all_loans_chart_data(loans: list[PropertyLoan]) -> dict:
             for entry in loan.amortization_entries.all():
                 key = (entry.date.year, entry.date.month)
                 capital_map[key] = (
-                    capital_map.get(key, Decimal("0")) + entry.capital.amount
+                    capital_map.get(key, Decimal(0)) + entry.capital.amount
                 )
                 interest_map[key] = (
-                    interest_map.get(key, Decimal("0")) + entry.interest.amount
+                    interest_map.get(key, Decimal(0)) + entry.interest.amount
                 )
         elif loan.monthly_payment is not None and loan.interest_rate is not None:
-            insurance_amount = loan.insurance.amount if loan.insurance else Decimal("0")
+            insurance_amount = loan.insurance.amount if loan.insurance else Decimal(0)
             interest_map, capital_map, insurance_map = build_loan_monthly_maps(
                 start_date=loan.start_date,
                 end_date=loan.end_date,
@@ -105,16 +105,16 @@ def _build_all_loans_chart_data(loans: list[PropertyLoan]) -> dict:
         total_map: dict[tuple[int, int], Decimal] = {}
         for key in all_months:
             total = (
-                capital_map.get(key, Decimal("0"))
-                + interest_map.get(key, Decimal("0"))
-                + insurance_map.get(key, Decimal("0"))
+                capital_map.get(key, Decimal(0))
+                + interest_map.get(key, Decimal(0))
+                + insurance_map.get(key, Decimal(0))
             )
             total_map[key] = total
-            all_capital[key] = all_capital.get(key, Decimal("0")) + capital_map.get(
-                key, Decimal("0")
+            all_capital[key] = all_capital.get(key, Decimal(0)) + capital_map.get(
+                key, Decimal(0)
             )
-            all_interest[key] = all_interest.get(key, Decimal("0")) + interest_map.get(
-                key, Decimal("0")
+            all_interest[key] = all_interest.get(key, Decimal(0)) + interest_map.get(
+                key, Decimal(0)
             )
 
         sorted_months = sorted(total_map.keys())
@@ -130,11 +130,11 @@ def _build_all_loans_chart_data(loans: list[PropertyLoan]) -> dict:
 
     all_months_sorted = sorted(set(all_capital) | set(all_interest))
     total_capital_series = [
-        {"x": f"{y}-{m:02d}-01", "y": float(all_capital.get((y, m), Decimal("0")))}
+        {"x": f"{y}-{m:02d}-01", "y": float(all_capital.get((y, m), Decimal(0)))}
         for y, m in all_months_sorted
     ]
     total_interest_series = [
-        {"x": f"{y}-{m:02d}-01", "y": float(all_interest.get((y, m), Decimal("0")))}
+        {"x": f"{y}-{m:02d}-01", "y": float(all_interest.get((y, m), Decimal(0)))}
         for y, m in all_months_sorted
     ]
 
@@ -154,11 +154,11 @@ def _compute_summary(loans_with_totals: list[dict]) -> dict:
     """
     today = datetime.date.today()
     currency: str | None = None
-    total_mensuality = Decimal("0")
-    total_capital_paid = Decimal("0")
-    total_interest_paid = Decimal("0")
-    total_insurance_paid = Decimal("0")
-    total_remaining = Decimal("0")
+    total_mensuality = Decimal(0)
+    total_capital_paid = Decimal(0)
+    total_interest_paid = Decimal(0)
+    total_insurance_paid = Decimal(0)
+    total_remaining = Decimal(0)
 
     for item in loans_with_totals:
         loan = item["loan"]
@@ -178,7 +178,7 @@ def _compute_summary(loans_with_totals: list[dict]) -> dict:
         )
         if is_active and loan.monthly_payment is not None:
             insurance = (
-                loan.insurance.amount if loan.insurance is not None else Decimal("0")
+                loan.insurance.amount if loan.insurance is not None else Decimal(0)
             )
             total_mensuality += loan.monthly_payment.amount + insurance
 

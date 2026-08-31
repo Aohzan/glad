@@ -79,7 +79,7 @@
       allAccountOptions.push({value: opt.value, text: opt.text, group: group});
     });
     var select = new MultiSelect('#{{ form.accounts.id_for_label }}', {
-      placeholder: '{% translate "Select accounts" %}',
+      placeholder: '{% filter escapejs %}{% translate "Select accounts" %}{% endfilter %}',
       search: true,
       selectAll: true,
       listAll: false,

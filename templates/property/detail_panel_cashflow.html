@@ -430,9 +430,9 @@
       events: { beforeZoom: function(ctx) { ctx.w.config.xaxis.range = undefined; } }
     },
     series: [
-      { name: '{% translate "Incomes" %}', data: cashflowRevenueSeries, type: 'bar' },
-      { name: '{% translate "Total expenses" %}', data: cashflowNegatedExpensesSeries, type: 'bar' },
-      { name: '{% translate "Difference" %}', data: cashflowDifferenceSeries, type: 'line' }
+      { name: '{% filter escapejs %}{% translate "Incomes" %}{% endfilter %}', data: cashflowRevenueSeries, type: 'bar' },
+      { name: '{% filter escapejs %}{% translate "Total expenses" %}{% endfilter %}', data: cashflowNegatedExpensesSeries, type: 'bar' },
+      { name: '{% filter escapejs %}{% translate "Difference" %}{% endfilter %}', data: cashflowDifferenceSeries, type: 'line' }
     ],
     plotOptions: { bar: { columnWidth: '55%' } },
     dataLabels: { enabled: false },
@@ -452,9 +452,9 @@
       events: { beforeZoom: function(ctx) { ctx.w.config.xaxis.range = undefined; } }
     },
     series: cashflowBreakdownExpenseSeries.concat([
-      { name: '{% translate "Loan interest" %}', data: cashflowNegatedLoanInterestSeries },
-      { name: '{% translate "Loan principal" %}', data: cashflowNegatedLoanPrincipalSeries },
-      { name: '{% translate "Loan insurance" %}', data: cashflowNegatedLoanInsuranceSeries }
+      { name: '{% filter escapejs %}{% translate "Loan interest" %}{% endfilter %}', data: cashflowNegatedLoanInterestSeries },
+      { name: '{% filter escapejs %}{% translate "Loan principal" %}{% endfilter %}', data: cashflowNegatedLoanPrincipalSeries },
+      { name: '{% filter escapejs %}{% translate "Loan insurance" %}{% endfilter %}', data: cashflowNegatedLoanInsuranceSeries }
     ]),
     plotOptions: { bar: { columnWidth: '55%' } },
     dataLabels: { enabled: false },

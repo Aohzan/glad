@@ -74,12 +74,12 @@
   var projectionChart = new ApexCharts(document.querySelector('#property-projection-chart'), {
     chart: { type: 'line', height: 340, toolbar: { show: false }, background: 'transparent' },
     series: [
-      { name: '{% translate "Property value (history)" %}',       data: valueHistorySeries },
-      { name: '{% translate "Property value (projection)" %}',    data: valueProjectionSeries },
-      { name: '{% translate "Debt amortization (history)" %}',    data: debtHistorySeries },
-      { name: '{% translate "Debt amortization (projection)" %}', data: debtProjectionSeries },
-      { name: '{% translate "Net value (history)" %}',            data: netHistorySeries },
-      { name: '{% translate "Net value (projection)" %}',         data: netProjectionSeries }
+      { name: '{% filter escapejs %}{% translate "Property value (history)" %}{% endfilter %}',       data: valueHistorySeries },
+      { name: '{% filter escapejs %}{% translate "Property value (projection)" %}{% endfilter %}',    data: valueProjectionSeries },
+      { name: '{% filter escapejs %}{% translate "Debt amortization (history)" %}{% endfilter %}',    data: debtHistorySeries },
+      { name: '{% filter escapejs %}{% translate "Debt amortization (projection)" %}{% endfilter %}', data: debtProjectionSeries },
+      { name: '{% filter escapejs %}{% translate "Net value (history)" %}{% endfilter %}',            data: netHistorySeries },
+      { name: '{% filter escapejs %}{% translate "Net value (projection)" %}{% endfilter %}',         data: netProjectionSeries }
     ],
     xaxis: { type: 'datetime' },
     dataLabels: { enabled: false },

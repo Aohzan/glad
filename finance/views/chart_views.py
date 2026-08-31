@@ -152,7 +152,7 @@ def _get_investment_account_chart_data(request, account_id):
             (deposit.deposit_date.isoformat(), float(deposit.amount.amount))
         )
     invested_data = _build_invested_data(
-        investment_events, set(d.isoformat() for d in all_dates)
+        investment_events, {d.isoformat() for d in all_dates}
     )
 
     return JsonResponse(
