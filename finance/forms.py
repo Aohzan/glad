@@ -301,7 +301,15 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "code": forms.TextInput(attrs={"class": "form-control"}),
-            "isin": forms.TextInput(attrs={"class": "form-control"}),
+            "isin": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _(
+                        "e.g. FR0010315770 — Autofill will fetch code, "
+                        "name, issuer, fees & initial value"
+                    ),
+                }
+            ),
             "fees": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "issuer": forms.TextInput(attrs={"class": "form-control"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -355,3 +363,34 @@ class InvestmentAccountHoldingHistoryForm(MoneyInputGroupMixin, forms.ModelForm)
                 attrs={"class": "form-control", "step": "0.000001"}
             ),
         }
+
+
+BACKFILL_MAX_RANGE_YEARS = 10
+
+
+class BackfillHoldingHistoryForm(forms.Form):
+    """Form to pick a date range to fill missing monthly history entries."""
+
+    start_date = forms.DateField(
+        label=_("Start date"), widget=DATE_WIDGET, input_formats=["%Y-%m-%d"]
+    )
+    end_date = forms.DateField(
+        label=_("End date"), widget=DATE_WIDGET, input_formats=["%Y-%m-%d"]
+    )
+
+    def clean(self):
+        cleaned_data = super().clean() or {}
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+        if start_date and end_date:
+            if start_date > end_date:
+                raise forms.ValidationError(
+                    _("Start date must be before the end date.")
+                )
+            if (end_date - start_date).days > BACKFILL_MAX_RANGE_YEARS * 366:
+                raise forms.ValidationError(
+                    _("The date range cannot exceed {years} years.").format(
+                        years=BACKFILL_MAX_RANGE_YEARS
+                    )
+                )
+        return cleaned_data

@@ -10,6 +10,7 @@ def session_config(request):
             "session_timeout": 15,
             "passkey_registered": False,
             "notify_on_login": True,
+            "live_data_enabled": True,
         }
 
     try:
@@ -22,10 +23,12 @@ def session_config(request):
             "session_timeout": timeout,
             "passkey_registered": passkey_registered,
             "notify_on_login": profile.notify_on_login,
+            "live_data_enabled": profile.live_data_enabled,
         }
     except Exception:
         return {
             "session_timeout": 15,
             "passkey_registered": False,
             "notify_on_login": True,
+            "live_data_enabled": True,
         }

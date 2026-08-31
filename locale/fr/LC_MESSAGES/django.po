@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 22:05+0200\n"
+"POT-Creation-Date: 2026-09-01 00:34+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -34,18 +34,31 @@ msgid "Receive an email notification when you log in."
 msgstr "Recevoir un email lors de la connexion à votre compte."
 
 #: accounts/models.py:30
+msgid "Enable live market data"
+msgstr "Activer les données de marché en direct"
+
+#: accounts/models.py:32
+msgid ""
+"Fetch real-time market data from Yahoo Finance for holdings and ISIN "
+"autofill. Disable to avoid external network calls."
+msgstr ""
+"Récupère les données de marché en temps réel depuis Yahoo Finance pour les "
+"titres et le remplissage automatique de l'ISIN. Désactivez pour éviter les "
+"appels réseau externes."
+
+#: accounts/models.py:38
 msgid "User profile"
 msgstr "Profil utilisateur"
 
-#: accounts/models.py:31
+#: accounts/models.py:39
 msgid "User profiles"
 msgstr "Profils utilisateur"
 
-#: accounts/models.py:57
+#: accounts/models.py:65
 msgid "Passkey credential"
 msgstr "Identification via passkey"
 
-#: accounts/models.py:58
+#: accounts/models.py:66
 msgid "Passkey credentials"
 msgstr "Identification via passkey"
 
@@ -64,8 +77,8 @@ msgstr "Passkey supprimé avec succès."
 #: templates/finance/_edit_deposit_fields.html:8
 #: templates/finance/edit_investment_cash.html:33
 #: templates/finance/edit_saving_value.html:29
-#: templates/finance/investment_detail.html:120
-#: templates/finance/investment_detail.html:179
+#: templates/finance/holding_detail.html:140
+#: templates/finance/investment_detail.html:144
 #: templates/finance/saving_detail.html:71 templates/property/detail.html:454
 #: templates/property/detail.html:551
 #: templates/property/detail_panel_cashflow.html:33
@@ -178,6 +191,43 @@ msgstr "Merci d'envoyer un fichier CSV"
 #: finance/forms.py:185
 msgid "Map to account"
 msgstr "Associer au compte"
+
+#: finance/forms.py:308
+msgid ""
+"e.g. FR0010315770 — Autofill will fetch code, name, issuer, fees & initial "
+"value"
+msgstr ""
+"ex. FR0010315770 — Le remplissage automatique récupérera le code, le nom, "
+"l'émetteur, les frais et la valeur initiale"
+
+#: finance/forms.py:375 property/forms.py:705 property/models/lease.py:64
+#: property/models/management.py:46
+#: templates/property/detail_panel_amortization.html:126
+#: templates/property/detail_panel_leases.html:52
+#: templates/property/detail_panel_mandate.html:30
+#: templates/property/edit_lease.html:109
+#: templates/property/edit_mandate.html:61
+msgid "Start date"
+msgstr "Date de début"
+
+#: finance/forms.py:378 property/forms.py:713 property/models/lease.py:65
+#: property/models/management.py:50 templates/property/detail.html:516
+#: templates/property/detail_panel_cashflow.html:189
+#: templates/property/detail_panel_leases.html:56
+#: templates/property/detail_panel_mandate.html:34
+#: templates/property/edit_lease.html:116
+#: templates/property/edit_mandate.html:68
+msgid "End date"
+msgstr "Date de fin"
+
+#: finance/forms.py:388
+msgid "Start date must be before the end date."
+msgstr "La date de début doit être antérieure à la date de fin."
+
+#: finance/forms.py:392
+#, python-brace-format
+msgid "The date range cannot exceed {years} years."
+msgstr "La plage de dates ne peut pas dépasser {years} ans."
 
 #: finance/models/base.py:65
 msgid "Name of the account (optional)"
@@ -340,6 +390,38 @@ msgstr "dépôts sur comptes d'épargne"
 msgid "Add this deposit amount to the account value"
 msgstr "Ajouter le montant de ce dépôt au compte"
 
+#: finance/services/market_data.py:67
+#, python-brace-format
+msgid "Could not fetch market data for ISIN {isin}: {error}"
+msgstr ""
+"Impossible de récupérer les données de marché pour l'ISIN {isin} : {error}"
+
+#: finance/services/market_data.py:74
+#, python-brace-format
+msgid "No price data available for ISIN {isin}"
+msgstr "Aucune donnée de prix disponible pour l'ISIN {isin}"
+
+#: finance/services/market_data.py:131
+#, python-brace-format
+msgid "Could not fetch data for ISIN {isin}: {error}"
+msgstr "Impossible de récupérer les données pour l'ISIN {isin} : {error}"
+
+#: finance/services/market_data.py:139
+#, python-brace-format
+msgid "Could not resolve a ticker symbol for ISIN {isin}"
+msgstr "Impossible de résoudre le symbole boursier pour l'ISIN {isin}"
+
+#: finance/services/market_data.py:195
+#, python-brace-format
+msgid "Could not fetch historical data for ISIN {isin}: {error}"
+msgstr ""
+"Impossible de récupérer les données historiques pour l'ISIN {isin} : {error}"
+
+#: finance/services/market_data.py:202
+#, python-brace-format
+msgid "No historical data available for ISIN {isin}"
+msgstr "Aucune donnée historique disponible pour l'ISIN {isin}"
+
 #: finance/views/chart_views.py:37
 msgid "Invalid data type"
 msgstr "Données de type invalide"
@@ -355,21 +437,22 @@ msgid "Cash"
 msgstr "Espèces"
 
 #: finance/views/crud_views.py:43 finance/views/csv_views.py:321
-#: finance/views/investment_views.py:64 finance/views/investment_views.py:90
-#: finance/views/investment_views.py:267 finance/views/saving_views.py:58
-#: finance/views/saving_views.py:84 finance/views/update_views.py:338
-#: property/views/crud_views.py:125 property/views/crud_views.py:310
-#: property/views/crud_views.py:426 property/views/edit_views.py:44
-#: property/views/edit_views.py:82 property/views/edit_views.py:99
-#: property/views/scpi_views.py:399 property/views/scpi_views.py:447
-#: property/views/scpi_views.py:500 property/views/scpi_views.py:591
-#: property/views/scpi_views.py:640 templates/finance/_form_error_alert.html:4
+#: finance/views/investment_views.py:71 finance/views/investment_views.py:97
+#: finance/views/investment_views.py:297 finance/views/investment_views.py:437
+#: finance/views/saving_views.py:58 finance/views/saving_views.py:84
+#: finance/views/update_views.py:340 property/views/crud_views.py:125
+#: property/views/crud_views.py:310 property/views/crud_views.py:426
+#: property/views/edit_views.py:44 property/views/edit_views.py:82
+#: property/views/edit_views.py:99 property/views/scpi_views.py:399
+#: property/views/scpi_views.py:447 property/views/scpi_views.py:500
+#: property/views/scpi_views.py:591 property/views/scpi_views.py:640
+#: templates/finance/_form_error_alert.html:4
 #: templates/property/_form_error_alert.html:4
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
 
-#: finance/views/crud_views.py:68 finance/views/investment_views.py:112
-#: finance/views/investment_views.py:291 finance/views/saving_views.py:104
+#: finance/views/crud_views.py:68 finance/views/investment_views.py:119
+#: finance/views/investment_views.py:338 finance/views/saving_views.py:104
 #: property/views/crud_views.py:69 property/views/crud_views.py:142
 #: property/views/crud_views.py:354 property/views/crud_views.py:448
 #: property/views/scpi_views.py:375 property/views/scpi_views.py:415
@@ -468,56 +551,78 @@ msgstr "Valeur au %(date)s"
 #: templates/finance/_account_chart_script.html:340
 #: templates/finance/_account_chart_script.html:349
 #: templates/finance/_account_chart_script.html:426
-#: templates/finance/index.html:61 templates/finance/index.html:345
+#: templates/finance/index.html:61 templates/finance/index.html:349
 #: templates/property/_balance_section_card.html:30
 #: templates/property/_report_category_table.html:27
 #: templates/property/scpi_detail.html:199
 msgid "Total"
 msgstr "Total"
 
-#: finance/views/investment_views.py:62
+#: finance/views/investment_views.py:69
 msgid "Investment account created successfully."
 msgstr "Compte d'investissement créé avec succès."
 
-#: finance/views/investment_views.py:88
+#: finance/views/investment_views.py:95
 msgid "Investment account updated successfully."
 msgstr "Compte d'investissement mis à jour avec succès."
 
-#: finance/views/investment_views.py:117
+#: finance/views/investment_views.py:124
 msgid "Investment account deleted successfully."
 msgstr "Compte d'investissement supprimé avec succès."
 
-#: finance/views/investment_views.py:137
+#: finance/views/investment_views.py:144
 msgid "Holding saved successfully."
 msgstr "Titre enregistré avec succès."
 
-#: finance/views/investment_views.py:153
+#: finance/views/investment_views.py:160
 msgid "Holding deleted successfully."
 msgstr "Titre supprimé avec succès."
 
-#: finance/views/investment_views.py:175 finance/views/saving_views.py:167
+#: finance/views/investment_views.py:203 finance/views/saving_views.py:167
 msgid "Deposit saved successfully."
 msgstr "Dépôt enregistré avec succès."
 
-#: finance/views/investment_views.py:191 finance/views/saving_views.py:183
+#: finance/views/investment_views.py:219 finance/views/saving_views.py:183
 msgid "Deposit deleted successfully."
 msgstr "Dépôt supprimé avec succès."
 
-#: finance/views/investment_views.py:213
+#: finance/views/investment_views.py:241
 msgid "Cash entry saved successfully."
 msgstr "Écriture de valeur d'espèces enregistrée avec succès."
 
-#: finance/views/investment_views.py:229
+#: finance/views/investment_views.py:257
 msgid "Cash entry deleted successfully."
 msgstr "Écriture de valeur d'espèces supprimée avec succès."
 
-#: finance/views/investment_views.py:263
+#: finance/views/investment_views.py:295
 msgid "Holding history entry saved successfully."
 msgstr "Historique du titre enregistré avec succès."
 
-#: finance/views/investment_views.py:302
+#: finance/views/investment_views.py:349
 msgid "Holding history entry deleted successfully."
 msgstr "Historique du titre supprimé avec succès."
+
+#: finance/views/investment_views.py:372
+msgid "Live market data is not available for this holding."
+msgstr "Les données de marché en direct ne sont pas disponibles pour ce titre."
+
+#: finance/views/investment_views.py:393
+#, python-brace-format
+msgid ""
+"Quote currency ({quote}) differs from the account currency ({account}); no "
+"entries were created."
+msgstr ""
+"La devise de cotation ({quote}) diffère de la devise du compte ({account}) ; "
+"aucune entrée n'a été créée."
+
+#: finance/views/investment_views.py:432
+#, python-brace-format
+msgid "{count} history entries created."
+msgstr "{count} entrées d'historique créées."
+
+#: finance/views/investment_views.py:435
+msgid "No new history entries were created."
+msgstr "Aucune nouvelle entrée d'historique n'a été créée."
 
 #: finance/views/saving_views.py:56
 msgid "Saving account created successfully."
@@ -539,7 +644,7 @@ msgstr "Écriture de valeur enregistrée avec succès."
 msgid "Value entry deleted successfully."
 msgstr "Écriture de valeur supprimée avec succès."
 
-#: finance/views/update_views.py:229
+#: finance/views/update_views.py:231
 #, python-brace-format
 msgid ""
 "Duplicate value ignored for account '{account}': a value of {value} already "
@@ -548,7 +653,7 @@ msgstr ""
 "Valeur en double ignorée pour le compte '{account}' : une valeur de {value} "
 "existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:266
+#: finance/views/update_views.py:268
 #, python-brace-format
 msgid ""
 "Duplicate cash value ignored for account '{account}': a value of {value} "
@@ -557,7 +662,7 @@ msgstr ""
 "Valeur d'espèces en double ignorée pour le compte '{account}' : une valeur "
 "de {value} existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:304
+#: finance/views/update_views.py:306
 #, python-brace-format
 msgid ""
 "Duplicate holding value ignored for '{holding}': a value of {value} with "
@@ -566,18 +671,18 @@ msgstr ""
 "Valeur de titre en double ignorée pour '{holding}' : une valeur de {value} "
 "avec une quantité de {quantity} existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:319
+#: finance/views/update_views.py:321
 #, python-brace-format
 msgid "{count} account(s) updated successfully."
 msgstr "{count} compte(s) mis à jour avec succès."
 
-#: finance/views/update_views.py:327
+#: finance/views/update_views.py:329
 msgid "No updates were made. All values already exist for the selected date."
 msgstr ""
 "Aucune mise à jour effectuée. Toutes les valeurs existent déjà pour la date "
 "sélectionnée."
 
-#: finance/views/update_views.py:333
+#: finance/views/update_views.py:335
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
@@ -659,31 +764,11 @@ msgstr "Montant brut"
 msgid "Net amount"
 msgstr "Montant net"
 
-#: property/forms.py:700 templates/base.html:75 templates/index.html:53
-#: templates/index.html:179 templates/property/edit_manager.html:13
+#: property/forms.py:700 templates/base.html:75 templates/index.html:54
+#: templates/index.html:181 templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:17
 msgid "Properties"
 msgstr "Immobilier"
-
-#: property/forms.py:705 property/models/lease.py:64
-#: property/models/management.py:46
-#: templates/property/detail_panel_amortization.html:126
-#: templates/property/detail_panel_leases.html:52
-#: templates/property/detail_panel_mandate.html:30
-#: templates/property/edit_lease.html:109
-#: templates/property/edit_mandate.html:61
-msgid "Start date"
-msgstr "Date de début"
-
-#: property/forms.py:713 property/models/lease.py:65
-#: property/models/management.py:50 templates/property/detail.html:516
-#: templates/property/detail_panel_cashflow.html:189
-#: templates/property/detail_panel_leases.html:56
-#: templates/property/detail_panel_mandate.html:34
-#: templates/property/edit_lease.html:116
-#: templates/property/edit_mandate.html:68
-msgid "End date"
-msgstr "Date de fin"
 
 #: property/forms.py:736
 msgid ""
@@ -810,9 +895,9 @@ msgstr "Type de propriété"
 
 #: property/models/asset.py:354 property/models/scpi.py:39
 #: templates/finance/_account_table_header.html:4
-#: templates/finance/edit_investment_holding.html:30
-#: templates/finance/index.html:121 templates/finance/index.html:208
-#: templates/finance/investment_detail.html:72
+#: templates/finance/edit_investment_holding.html:46
+#: templates/finance/holding_detail.html:61 templates/finance/index.html:121
+#: templates/finance/index.html:212 templates/finance/investment_detail.html:72
 #: templates/property/all_loans.html:100
 #: templates/property/detail_panel_loans.html:29
 #: templates/property/edit_manager.html:31
@@ -830,7 +915,7 @@ msgstr "Adresse"
 #: property/models/asset.py:360 property/models/lease.py:21
 #: templates/finance/_edit_account_dates_card.html:25
 #: templates/finance/_status_badge.html:6
-#: templates/finance/edit_investment_holding.html:68
+#: templates/finance/edit_investment_holding.html:76
 #: templates/finance/investment_detail.html:91
 #: templates/property/detail_panel_leases.html:30
 #: templates/property/detail_panel_mandate.html:16
@@ -1009,7 +1094,8 @@ msgstr "Date de début"
 msgid "Date of the beginning of the asset's useful life."
 msgstr "Date de début de l'amortissement."
 
-#: property/models/asset.py:813 templates/finance/investment_detail.html:34
+#: property/models/asset.py:813 templates/finance/holding_detail.html:93
+#: templates/finance/investment_detail.html:34
 msgid "Total value"
 msgstr "Valeur totale"
 
@@ -1290,7 +1376,7 @@ msgstr "Autres charges non déductibles"
 msgid "ALUR works fund"
 msgstr "Fonds travaux (ALUR)"
 
-#: property/models/ledger.py:231 templates/index.html:47
+#: property/models/ledger.py:231 templates/index.html:48
 #: templates/property/detail.html:387 templates/property/detail.html:410
 #: templates/property/detail_panel_balance.html:64
 #: templates/property/detail_panel_cashflow.html:82
@@ -1491,8 +1577,8 @@ msgstr "Annuel"
 
 #: property/models/scpi.py:35 property/models/scpi.py:36
 #: property/models/scpi.py:156 property/models/scpi.py:205
-#: property/models/scpi.py:620 templates/base.html:79 templates/index.html:54
-#: templates/index.html:207 templates/property/scpi_detail.html:12
+#: property/models/scpi.py:620 templates/base.html:79 templates/index.html:55
+#: templates/index.html:209 templates/property/scpi_detail.html:12
 #: templates/property/scpi_detail.html:136
 #: templates/property/scpi_dividend_batch.html:10
 #: templates/property/scpi_dividend_batch.html:44
@@ -2286,7 +2372,7 @@ msgstr ""
 msgid "Enter your email address"
 msgstr "Saisissez votre adresse email"
 
-#: templates/accounts/settings.html:31 templates/accounts/settings.html:129
+#: templates/accounts/settings.html:31 templates/accounts/settings.html:150
 #: templates/finance/_edit_form_footer.html:4
 #: templates/property/_edit_form_footer.html:6
 #: templates/property/_form_submit_buttons.html:4
@@ -2306,139 +2392,168 @@ msgid "Receive an email when someone logs in to your account."
 msgstr "Recevoir un email lorsqu'une connexion à votre compte est détectée."
 
 #: templates/accounts/settings.html:61
+msgid "Data"
+msgstr "Données"
+
+#: templates/accounts/settings.html:66 templates/finance/holding_detail.html:34
+msgid "Live market data"
+msgstr "Données de marché en direct"
+
+#: templates/accounts/settings.html:68
+msgid ""
+"Fetch real-time market data from Yahoo Finance for holdings and ISIN "
+"autofill."
+msgstr ""
+"Récupère les données de marché en temps réel depuis Yahoo Finance pour les "
+"titres et le remplissage automatique de l'ISIN."
+
+#: templates/accounts/settings.html:82
 msgid "Security"
 msgstr "Sécurité"
 
-#: templates/accounts/settings.html:66
+#: templates/accounts/settings.html:87
 msgid "Password"
 msgstr "Mot de passe"
 
-#: templates/accounts/settings.html:68
+#: templates/accounts/settings.html:89
 msgid "Update your password to keep your account secure."
 msgstr "Mettez à jour votre mot de passe pour garder votre compte sécurisé."
 
-#: templates/accounts/settings.html:75 templates/accounts/settings.html:86
+#: templates/accounts/settings.html:96 templates/accounts/settings.html:107
 msgid "Change Password"
 msgstr "Changer le mot de passe"
 
-#: templates/accounts/settings.html:94
+#: templates/accounts/settings.html:115
 msgid "Passkey"
 msgstr "Passkey"
 
-#: templates/accounts/settings.html:96
+#: templates/accounts/settings.html:117
 msgid ""
 "Register a passkey so you can log in with fingerprint or face recognition."
 msgstr ""
 "Enregistrer une passkey pour se connecter via empreinte ou reconnaissance "
 "faciale."
 
-#: templates/accounts/settings.html:99
+#: templates/accounts/settings.html:120
 msgid "You can replace your passkey at any time."
 msgstr "Vous pouvez remplacer votre passkey n'importe quand."
 
-#: templates/accounts/settings.html:104 templates/accounts/settings.html:275
+#: templates/accounts/settings.html:125 templates/accounts/settings.html:332
 msgid "Register passkey"
 msgstr "Enregistrer la passkey"
 
-#: templates/accounts/settings.html:107
+#: templates/accounts/settings.html:128
 msgid "Remove passkey"
 msgstr "Supprimer la passkey"
 
-#: templates/accounts/settings.html:115
+#: templates/accounts/settings.html:136
 msgid "Auto-logout"
 msgstr "Déconnexion automatique"
 
-#: templates/accounts/settings.html:117
+#: templates/accounts/settings.html:138
 msgid "Automatically log out after a period of inactivity for security."
 msgstr ""
 "Déconnecter automatiquement après une période d'inactivité pour des raisons "
 "de sécurité."
 
-#: templates/accounts/settings.html:124
+#: templates/accounts/settings.html:145
 msgid "minutes"
 msgstr "minutes"
 
-#: templates/accounts/settings.html:161
+#: templates/accounts/settings.html:182
 msgid "Please enter an email address."
 msgstr "Veuillez saisir une adresse email."
 
-#: templates/accounts/settings.html:177
+#: templates/accounts/settings.html:198
 msgid "Please enter a valid email address."
 msgstr "Veuillez saisir une adresse email valide."
 
-#: templates/accounts/settings.html:180 templates/accounts/settings.html:190
+#: templates/accounts/settings.html:201 templates/accounts/settings.html:211
 msgid "Failed to update email address."
 msgstr "Échec de la mise à jour de l'adresse email."
 
-#: templates/accounts/settings.html:186
+#: templates/accounts/settings.html:207
 msgid "Email address updated successfully."
 msgstr "Adresse email mise à jour avec succès."
 
-#: templates/accounts/settings.html:217
+#: templates/accounts/settings.html:238
 msgid "Login notification enabled."
 msgstr "Notification de connexion activée."
 
-#: templates/accounts/settings.html:220
+#: templates/accounts/settings.html:241
 msgid "Login notification disabled."
 msgstr "Notification de connexion désactivée."
 
-#: templates/accounts/settings.html:226
+#: templates/accounts/settings.html:247
 msgid "Failed to update notification preferences."
 msgstr "Échec de la mise à jour des préférences de notification."
 
 #: templates/accounts/settings.html:274
+msgid "Live market data enabled."
+msgstr "Données de marché en direct activées."
+
+#: templates/accounts/settings.html:277
+msgid "Live market data disabled."
+msgstr "Données de marché en direct désactivées."
+
+#: templates/accounts/settings.html:283
+msgid "Failed to update live market data preference."
+msgstr ""
+"Échec de la mise à jour de la préférence de données de marché en direct."
+
+#: templates/accounts/settings.html:331
 msgid "Replace passkey"
 msgstr "Remplacer la passkey"
 
-#: templates/accounts/settings.html:281
+#: templates/accounts/settings.html:338
 msgid "Passkey registered."
 msgstr "Passkey enregistrée."
 
-#: templates/accounts/settings.html:283
+#: templates/accounts/settings.html:340
 msgid "No passkey registered yet."
 msgstr "Pas de passkey enregistré actuellement."
 
-#: templates/accounts/settings.html:292
+#: templates/accounts/settings.html:349
 msgid "Passkeys are not supported on this browser."
 msgstr "Les passkeys ne sont pas prises en charge sur ce navigateur."
 
-#: templates/accounts/settings.html:344
+#: templates/accounts/settings.html:401
 msgid "Passkey registered successfully."
 msgstr "Passkey enregistrée avec succès."
 
-#: templates/accounts/settings.html:349
+#: templates/accounts/settings.html:406
 msgid "Passkey registration was cancelled."
 msgstr "L'enregistrement de la passkey a été annulé."
 
-#: templates/accounts/settings.html:351
+#: templates/accounts/settings.html:408
 msgid "Failed to get registration options from server."
 msgstr "Échec de récupération des options d'enregistrement depuis le serveur."
 
-#: templates/accounts/settings.html:353 templates/registration/login.html:145
+#: templates/accounts/settings.html:410 templates/registration/login.html:145
 msgid "Failed to verify passkey with server."
 msgstr "Échec de vérification de la passkey avec le serveur."
 
-#: templates/accounts/settings.html:355
+#: templates/accounts/settings.html:412
 msgid "Failed to register passkey:"
 msgstr "Échec d'enregistrement de la passkey :"
 
-#: templates/accounts/settings.html:374
+#: templates/accounts/settings.html:431
 msgid "Passkey removed."
 msgstr "Passkey supprimée."
 
-#: templates/accounts/settings.html:377
+#: templates/accounts/settings.html:434
 msgid "Failed to remove passkey."
 msgstr "Échec de suppression de la passkey."
 
-#: templates/accounts/settings.html:394
+#: templates/accounts/settings.html:451
 msgid "Please enter a value between 5 and 1440 minutes."
 msgstr "Veuillez saisir une valeur comprise entre 5 et 1440 minutes."
 
-#: templates/accounts/settings.html:407
+#: templates/accounts/settings.html:464
 msgid "Session timeout updated successfully."
 msgstr "Délai d'expiration de session mis à jour avec succès."
 
-#: templates/accounts/settings.html:411
+#: templates/accounts/settings.html:468
 msgid "Failed to update session timeout."
 msgstr "Échec de la mise à jour du délai d'expiration de session."
 
@@ -2482,7 +2597,7 @@ msgstr "Accueil"
 
 #: templates/base.html:43 templates/finance/_account_detail_header.html:4
 #: templates/finance/index.html:5 templates/finance/index.html:17
-#: templates/index.html:120
+#: templates/index.html:122
 msgid "Finance"
 msgstr "Finance"
 
@@ -2510,7 +2625,7 @@ msgstr "Comptes favoris"
 msgid "Add favorites to show them here"
 msgstr "Ajoutez des favoris pour les afficher ici"
 
-#: templates/base.html:67 templates/index.html:68
+#: templates/base.html:67 templates/index.html:69
 msgid "Add your first account"
 msgstr "Ajouter votre premier compte"
 
@@ -2536,7 +2651,7 @@ msgstr "Comptabilité LMNP"
 msgid "Favorite properties"
 msgstr "Propriétés favorites"
 
-#: templates/base.html:105 templates/index.html:197
+#: templates/base.html:105 templates/index.html:199
 #: templates/property/index.html:163
 msgid "Add your first property"
 msgstr "Ajouter votre première propriété"
@@ -2571,13 +2686,14 @@ msgid "Change"
 msgstr "Changer"
 
 #: templates/finance/_account_chart_panel.html:5
+#: templates/finance/holding_detail.html:112
 msgid "Value evolution"
 msgstr "Évolution de la valeur"
 
 #: templates/finance/_account_chart_script.html:231
 #: templates/finance/_account_chart_script.html:280
 #: templates/finance/_account_chart_script.html:341
-#: templates/finance/_account_chart_script.html:357 templates/index.html:70
+#: templates/finance/_account_chart_script.html:357 templates/index.html:72
 #: templates/property/scpi_list.html:182
 msgid "Invested"
 msgstr "Investi"
@@ -2595,7 +2711,8 @@ msgstr "Impossible de charger les données du graphique."
 
 #: templates/finance/_account_detail_header.html:11
 #: templates/finance/_item_actions.html:3
-#: templates/finance/investment_detail.html:101
+#: templates/finance/holding_detail.html:23
+#: templates/finance/investment_detail.html:104
 #: templates/property/_edit_page_header.html:17
 #: templates/property/detail.html:51
 #: templates/property/detail_panel_cashflow.html:257
@@ -2611,7 +2728,8 @@ msgstr "Modifier"
 #: templates/finance/_account_detail_header.html:14
 #: templates/finance/_delete_modal.html:16
 #: templates/finance/_item_actions.html:6
-#: templates/finance/investment_detail.html:104
+#: templates/finance/holding_detail.html:26
+#: templates/finance/investment_detail.html:107
 #: templates/property/detail.html:565
 #: templates/property/detail_panel_cashflow.html:230
 #: templates/property/detail_panel_cashflow.html:258
@@ -2634,10 +2752,13 @@ msgstr "Progression sur 30 jours"
 #: templates/finance/_account_table_header.html:5
 #: templates/finance/_edit_value_field.html:3
 #: templates/finance/edit_investment_cash.html:28
-#: templates/finance/index.html:122 templates/finance/index.html:209
-#: templates/finance/investment_detail.html:75
-#: templates/finance/investment_detail.html:121
-#: templates/finance/investment_detail.html:180
+#: templates/finance/holding_detail.html:141
+#: templates/finance/holding_detail.html:207
+#: templates/finance/holding_detail.html:213
+#: templates/finance/holding_detail.html:214
+#: templates/finance/holding_detail.html:218 templates/finance/index.html:122
+#: templates/finance/index.html:213 templates/finance/investment_detail.html:75
+#: templates/finance/investment_detail.html:145
 #: templates/finance/saving_detail.html:72
 #: templates/property/csv_confirm.html:53 templates/property/detail.html:347
 #: templates/property/detail.html:552
@@ -2648,18 +2769,18 @@ msgid "Value"
 msgstr "Valeur"
 
 #: templates/finance/_account_table_header.html:6
-#: templates/finance/index.html:123 templates/finance/index.html:210
+#: templates/finance/index.html:123 templates/finance/index.html:214
 msgid "Net progression"
 msgstr "Progression nette"
 
 #: templates/finance/_account_table_header.html:6
-#: templates/finance/index.html:123 templates/finance/index.html:210
-#: templates/index.html:61 templates/property/index.html:127
+#: templates/finance/index.html:123 templates/finance/index.html:214
+#: templates/index.html:62 templates/property/index.html:127
 msgid "Gross"
 msgstr "Brut"
 
 #: templates/finance/_account_update_row.html:23
-#: templates/finance/_holding_update_row.html:25
+#: templates/finance/_holding_update_row.html:34
 msgid "Currently:"
 msgstr "Actuellement :"
 
@@ -2677,9 +2798,9 @@ msgid "Source"
 msgstr "Source"
 
 #: templates/finance/_deposits_panel.html:18
+#: templates/finance/holding_detail.html:144
 #: templates/finance/investment_detail.html:78
-#: templates/finance/investment_detail.html:124
-#: templates/finance/investment_detail.html:181
+#: templates/finance/investment_detail.html:146
 #: templates/finance/saving_detail.html:73
 #: templates/property/_dividend_table_header.html:9
 #: templates/property/detail.html:553
@@ -2720,10 +2841,10 @@ msgstr "Date de clôture"
 #: templates/finance/edit_holding_history.html:36
 #: templates/finance/edit_holding_history.html:44
 #: templates/finance/edit_investment_holding.html:31
-#: templates/finance/edit_investment_holding.html:39
 #: templates/finance/edit_investment_holding.html:47
 #: templates/finance/edit_investment_holding.html:55
-#: templates/finance/edit_investment_holding.html:85
+#: templates/finance/edit_investment_holding.html:63
+#: templates/finance/edit_investment_holding.html:93
 #: templates/property/_contact_card.html:12
 #: templates/property/_contact_card.html:23
 #: templates/property/_contact_card.html:36
@@ -2775,7 +2896,11 @@ msgstr "Commentaires"
 msgid "Deposit"
 msgstr "Dépôt"
 
-#: templates/finance/_holding_update_row.html:34
+#: templates/finance/_holding_update_row.html:26
+msgid "Fetch"
+msgstr "Récupérer"
+
+#: templates/finance/_holding_update_row.html:43
 msgid "Current qty:"
 msgstr "Quantité actuelle :"
 
@@ -2783,6 +2908,25 @@ msgstr "Quantité actuelle :"
 #: templates/finance/investment_detail.html:93
 msgid "Closed"
 msgstr "Clôturé"
+
+#: templates/finance/backfill_holding_history.html:4
+#: templates/finance/backfill_holding_history.html:9
+#: templates/finance/holding_detail.html:126
+msgid "Fill history gaps"
+msgstr "Combler les lacunes de l'historique"
+
+#: templates/finance/backfill_holding_history.html:20
+#: templates/finance/edit_holding_history.html:23
+msgid "Holding history"
+msgstr "Historique du titre"
+
+#: templates/finance/backfill_holding_history.html:24
+msgid ""
+"Fetches one closing price per month for this holding's ISIN and creates a "
+"history entry for any month that doesn't already have one."
+msgstr ""
+"Récupère un cours de clôture par mois pour l'ISIN de ce titre et crée une "
+"entrée d'historique pour chaque mois qui n'en a pas déjà une."
 
 #: templates/finance/csv_export.html:5
 msgid "Finance - Export CSV"
@@ -2939,23 +3083,21 @@ msgstr "Modifier l'entrée d'historique"
 msgid "New history entry"
 msgstr "Nouvelle entrée d'historique"
 
-#: templates/finance/edit_holding_history.html:23
-msgid "Holding history"
-msgstr "Historique du titre"
-
 #: templates/finance/edit_holding_history.html:29
 #: templates/property/detail.html:352
 msgid "Valuation date"
 msgstr "Date d'évaluation"
 
 #: templates/finance/edit_holding_history.html:35
+#: templates/finance/holding_detail.html:142
+#: templates/finance/holding_detail.html:209
+#: templates/finance/holding_detail.html:223
 #: templates/finance/investment_detail.html:74
-#: templates/finance/investment_detail.html:122
 msgid "Quantity"
 msgstr "Quantité"
 
 #: templates/finance/edit_holding_history.html:43
-#: templates/finance/investment_detail.html:123
+#: templates/finance/holding_detail.html:143
 msgid "Cash used"
 msgstr "Espèces utilisées"
 
@@ -3020,39 +3162,52 @@ msgstr "Nouveau titre"
 msgid "Holding information"
 msgstr "Informations sur le titre"
 
-#: templates/finance/edit_investment_holding.html:38
+#: templates/finance/edit_investment_holding.html:30
+msgid "ISIN"
+msgstr "ISIN"
+
+#: templates/finance/edit_investment_holding.html:37
+msgid "Autofill"
+msgstr "Remplissage automatique"
+
+#: templates/finance/edit_investment_holding.html:54
 #: templates/finance/investment_detail.html:73
 msgid "Code"
 msgstr "Code"
 
-#: templates/finance/edit_investment_holding.html:46
-msgid "ISIN"
-msgstr "ISIN"
-
-#: templates/finance/edit_investment_holding.html:54
+#: templates/finance/edit_investment_holding.html:62
 msgid "Issuer"
 msgstr "Émetteur"
 
-#: templates/finance/edit_investment_holding.html:61
+#: templates/finance/edit_investment_holding.html:69
 #, python-format
 msgid "Fees (%%)"
 msgstr "Frais (%%)"
 
-#: templates/finance/edit_investment_holding.html:78
+#: templates/finance/edit_investment_holding.html:86
 msgid "Initial values"
 msgstr "Valeurs initiales"
 
-#: templates/finance/edit_investment_holding.html:84
+#: templates/finance/edit_investment_holding.html:92
 msgid "Initial quantity"
 msgstr "Quantité initiale"
 
-#: templates/finance/edit_investment_holding.html:91
+#: templates/finance/edit_investment_holding.html:99
 msgid "Initial value"
 msgstr "Valeur initiale"
 
-#: templates/finance/edit_investment_holding.html:96
+#: templates/finance/edit_investment_holding.html:104
 msgid "Initial valuation date"
 msgstr "Date d'évaluation initiale"
+
+#: templates/finance/edit_investment_holding.html:140
+msgid "Please enter an ISIN first."
+msgstr "Veuillez d'abord saisir un ISIN."
+
+#: templates/finance/edit_investment_holding.html:155
+#: templates/finance/edit_investment_holding.html:168
+msgid "Could not fetch data for this ISIN."
+msgstr "Impossible de récupérer les données pour cet ISIN."
 
 #: templates/finance/edit_saving.html:5 templates/finance/edit_saving.html:11
 msgid "Edit saving account"
@@ -3105,6 +3260,115 @@ msgstr "Nouvelle écriture de valeur"
 msgid "Value entry"
 msgstr "Écriture de valeur"
 
+#: templates/finance/holding_detail.html:38
+msgid "Use as new valuation"
+msgstr "Utiliser comme nouvelle évaluation"
+
+#: templates/finance/holding_detail.html:40
+msgid "Refresh"
+msgstr "Actualiser"
+
+#: templates/finance/holding_detail.html:49
+msgid "Live market data fetching is disabled in your"
+msgstr ""
+"La récupération des données de marché en direct est désactivée dans vos"
+
+#: templates/finance/holding_detail.html:49
+msgid "settings"
+msgstr "paramètres"
+
+#: templates/finance/holding_detail.html:52
+msgid "No ISIN configured for this holding."
+msgstr "Aucun ISIN configuré pour ce titre."
+
+#: templates/finance/holding_detail.html:55 templates/property/detail.html:275
+#: templates/property/detail.html:282 templates/property/detail.html:289
+#: templates/property/detail.html:296 templates/property/detail.html:303
+#: templates/property/detail.html:310 templates/property/detail.html:317
+#: templates/property/detail.html:325
+msgid "Loading…"
+msgstr "Chargement…"
+
+#: templates/finance/holding_detail.html:65
+msgid "Price"
+msgstr "Prix"
+
+#: templates/finance/holding_detail.html:69
+msgid "Previous close"
+msgstr "Clôture précédente"
+
+#: templates/finance/holding_detail.html:73
+msgid "Day high / low"
+msgstr "Haut / bas du jour"
+
+#: templates/finance/holding_detail.html:77
+msgid "Exchange"
+msgstr "Bourse"
+
+#: templates/finance/holding_detail.html:81
+msgid "52-week high / low"
+msgstr "Haut / bas sur 52 semaines"
+
+#: templates/finance/holding_detail.html:85
+msgid "50-day average"
+msgstr "Moyenne sur 50 jours"
+
+#: templates/finance/holding_detail.html:89
+msgid "200-day average"
+msgstr "Moyenne sur 200 jours"
+
+#: templates/finance/holding_detail.html:102
+msgid "As of"
+msgstr "Au"
+
+#: templates/finance/holding_detail.html:122
+msgid "History"
+msgstr "Historique"
+
+#: templates/finance/holding_detail.html:130
+#: templates/finance/investment_detail.html:98
+msgid "Add history"
+msgstr "Ajouter un historique"
+
+#: templates/finance/holding_detail.html:158
+msgid "Delete history entry"
+msgstr "Supprimer l'entrée de l'historique"
+
+#: templates/finance/holding_detail.html:159
+msgid "Are you sure you want to delete this history entry?"
+msgstr "Êtes-vous sûr de vouloir supprimer cette entrée de l'historique ?"
+
+#: templates/finance/holding_detail.html:168
+msgid "No history entries."
+msgstr "Aucune entrée d'historique."
+
+#: templates/finance/holding_detail.html:175
+#: templates/finance/investment_detail.html:112
+msgid "Delete holding"
+msgstr "Supprimer le titre"
+
+#: templates/finance/holding_detail.html:176
+#: templates/finance/investment_detail.html:113
+msgid "Are you sure you want to delete this holding and all its history?"
+msgstr "Êtes-vous sûr de vouloir supprimer ce titre et tout son historique ?"
+
+#: templates/finance/holding_detail.html:208
+msgid "Live value"
+msgstr "Valeur en direct"
+
+#: templates/finance/holding_detail.html:279
+#: templates/finance/holding_detail.html:320
+msgid "Could not load live data."
+msgstr "Impossible de charger les données en direct."
+
+#: templates/finance/holding_detail.html:298
+msgid "Quote currency"
+msgstr "Devise de cotation"
+
+#: templates/finance/holding_detail.html:299
+msgid "differs from the account currency"
+msgstr "diffère de la devise du compte"
+
 #: templates/finance/index.html:26
 msgid "Batch update"
 msgstr "Mise à jour groupée"
@@ -3149,29 +3413,29 @@ msgstr "Actifs seulement"
 msgid "Investment accounts"
 msgstr "Comptes d'investissement"
 
-#: templates/finance/index.html:137 templates/finance/index.html:223
+#: templates/finance/index.html:137 templates/finance/index.html:227
 #: templates/property/index.html:150
 msgid "Remove from favorites"
 msgstr "Retirer des favoris"
 
-#: templates/finance/index.html:137 templates/finance/index.html:223
+#: templates/finance/index.html:137 templates/finance/index.html:227
 #: templates/property/index.html:150
 msgid "Add to favorites"
 msgstr "Ajouter aux favoris"
 
-#: templates/finance/index.html:180
+#: templates/finance/index.html:184
 msgid "No holdings found for this account."
 msgstr "Aucun titre trouvé pour ce compte."
 
-#: templates/finance/index.html:188
+#: templates/finance/index.html:192
 msgid "No investment accounts found."
 msgstr "Aucun compte d'investissement trouvé."
 
-#: templates/finance/index.html:201 templates/finance/update.html:49
+#: templates/finance/index.html:205 templates/finance/update.html:49
 msgid "Saving accounts"
 msgstr "Comptes d'épargne"
 
-#: templates/finance/index.html:237
+#: templates/finance/index.html:241
 msgid "No saving accounts found."
 msgstr "Aucun compte d'épargne trouvé."
 
@@ -3196,59 +3460,39 @@ msgstr "Ajouter un titre"
 msgid "Fees"
 msgstr "Honoraires"
 
-#: templates/finance/investment_detail.html:98
-msgid "Add history"
-msgstr "Ajouter un historique"
+#: templates/finance/investment_detail.html:101
+msgid "View details"
+msgstr "Voir les détails"
 
-#: templates/finance/investment_detail.html:109
-msgid "Delete holding"
-msgstr "Supprimer le titre"
-
-#: templates/finance/investment_detail.html:110
-msgid "Are you sure you want to delete this holding and all its history?"
-msgstr "Êtes-vous sûr de vouloir supprimer ce titre et tout son historique ?"
-
-#: templates/finance/investment_detail.html:138
-msgid "Delete history entry"
-msgstr "Supprimer l'entrée de l'historique"
-
-#: templates/finance/investment_detail.html:139
-msgid "Are you sure you want to delete this history entry?"
-msgstr "Êtes-vous sûr de vouloir supprimer cette entrée de l'historique ?"
-
-#: templates/finance/investment_detail.html:145
-msgid "No history entries."
-msgstr "Aucune entrée d'historique."
-
-#: templates/finance/investment_detail.html:157
+#: templates/finance/investment_detail.html:122
 msgid "No holdings yet."
 msgstr "Aucun titre actuellement."
 
-#: templates/finance/investment_detail.html:168
+#: templates/finance/investment_detail.html:133
 msgid "Cash history"
 msgstr "Historique des espèces"
 
-#: templates/finance/investment_detail.html:170
+#: templates/finance/investment_detail.html:135
 msgid "Add cash entry"
 msgstr "Ajouter une écriture d'espèces"
 
-#: templates/finance/investment_detail.html:193
+#: templates/finance/investment_detail.html:158
 msgid "Delete cash entry"
 msgstr "Supprimer l'écriture d'espèces"
 
-#: templates/finance/investment_detail.html:194
+#: templates/finance/investment_detail.html:159
 msgid "Are you sure you want to delete this cash entry?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette écriture de valeur d'espèce ?"
 
-#: templates/finance/investment_detail.html:203
+#: templates/finance/investment_detail.html:168
 msgid "No cash history yet."
 msgstr "Aucun historique d'espèces actuellement."
 
-#: templates/finance/investment_detail.html:210
+#: templates/finance/investment_detail.html:175
 msgid "Delete investment account"
 msgstr "Supprimer le compte d'investissement"
 
-#: templates/finance/investment_detail.html:211
+#: templates/finance/investment_detail.html:176
 msgid ""
 "Are you sure you want to delete this investment account and all its data?"
 msgstr ""
@@ -3306,91 +3550,99 @@ msgstr "Mettre à jour tous vos comptes"
 msgid "Valider"
 msgstr "Valider"
 
+#: templates/finance/update.html:143 templates/finance/update.html:153
+msgid "Could not fetch a live value for this holding."
+msgstr "Impossible de récupérer une valeur en direct pour ce titre."
+
 #: templates/index.html:4
 msgid "Dashboard"
 msgstr "Tableau de bord"
 
-#: templates/index.html:46
+#: templates/index.html:47
 msgid "Could not load data."
 msgstr "Echec du chargement des données."
 
-#: templates/index.html:48 templates/property/detail.html:416
+#: templates/index.html:49 templates/property/detail.html:416
 #: templates/property/detail_panel_balance.html:68
 #: templates/property/detail_panel_cashflow.html:145
 #: templates/property/detail_panel_cashflow.html:261
 msgid "Expenses"
 msgstr "Dépenses"
 
-#: templates/index.html:49 templates/property/report.html:104
+#: templates/index.html:50 templates/property/report.html:104
 msgid "Net"
 msgstr "Net"
 
-#: templates/index.html:50 templates/property/all_loans.html:92
+#: templates/index.html:51 templates/property/all_loans.html:92
 #: templates/property/detail.html:237
 #: templates/property/detail_panel_loans.html:22
 #: templates/property/index.html:120
 msgid "Loans"
 msgstr "Prêts"
 
-#: templates/index.html:51 templates/index.html:145
+#: templates/index.html:52 templates/index.html:147
 #: templates/property/scpi_fund_detail.html:136
 msgid "Investments"
 msgstr "Investissements"
 
-#: templates/index.html:52 templates/index.html:158
+#: templates/index.html:53 templates/index.html:160
 msgid "Savings"
 msgstr "Épargnes"
 
-#: templates/index.html:55
+#: templates/index.html:56
 msgid "Occupancy"
 msgstr "Occupation"
 
-#: templates/index.html:56
+#: templates/index.html:57
 msgid "rooms"
 msgstr "pièces"
 
-#: templates/index.html:57
+#: templates/index.html:58
 msgid "repaid"
 msgstr "remboursé"
 
-#: templates/index.html:58 templates/property/all_loans.html:103
+#: templates/index.html:59 templates/property/all_loans.html:103
 #: templates/property/detail_panel_loans.html:32
 msgid "End"
 msgstr "Fin"
 
-#: templates/index.html:59 templates/property/edit_lease.html:30
+#: templates/index.html:60 templates/property/edit_lease.html:30
 msgid "Tenant"
 msgstr "Locataire"
 
-#: templates/index.html:60 templates/property/index.html:111
+#: templates/index.html:61 templates/property/index.html:111
 msgid "equity"
 msgstr "net"
 
-#: templates/index.html:62
+#: templates/index.html:63
 msgid "Acquisition"
 msgstr "Acquisition"
 
-#: templates/index.html:63
+#: templates/index.html:64
 msgid "30 days"
 msgstr "30 jours"
 
-#: templates/index.html:64
+#: templates/index.html:65
 msgid "No recent operations."
 msgstr "Aucune opération récente."
 
-#: templates/index.html:65 templates/index.html:101
+#: templates/index.html:66 templates/index.html:103
 msgid "Patrimony Evolution"
 msgstr "Évolution du patrimoine"
 
-#: templates/index.html:66 templates/index.html:129
+#: templates/index.html:67 templates/index.html:131
 msgid "Breakdown"
 msgstr "Répartition"
 
-#: templates/index.html:67
+#: templates/index.html:68
 msgid "No accounts yet."
 msgstr "Aucun compte actuellement."
 
-#: templates/index.html:71 templates/property/scpi_detail.html:165
+#: templates/index.html:71
+msgid "today"
+msgstr "aujourd'hui"
+
+#: templates/index.html:73 templates/property/scpi_detail.html:165
 #: templates/property/scpi_fund_detail.html:218
 #: templates/property/scpi_fund_detail.html:329
 #: templates/property/scpi_fund_detail.html:359
@@ -3399,47 +3651,47 @@ msgstr "Aucun compte actuellement."
 msgid "Dividends"
 msgstr "Dividendes"
 
-#: templates/index.html:72
+#: templates/index.html:74
 msgid "Yield"
 msgstr "Rendement"
 
-#: templates/index.html:73
+#: templates/index.html:75
 msgid "est."
 msgstr "est."
 
-#: templates/index.html:74 templates/property/scpi_fund_detail.html:69
+#: templates/index.html:76 templates/property/scpi_fund_detail.html:69
 msgid "Resale"
 msgstr "Revente"
 
-#: templates/index.html:103
+#: templates/index.html:105
 msgid "1Y"
 msgstr "1A"
 
-#: templates/index.html:104
+#: templates/index.html:106
 msgid "2Y"
 msgstr "2A"
 
-#: templates/index.html:105
+#: templates/index.html:107
 msgid "5Y"
 msgstr "5A"
 
-#: templates/index.html:106
+#: templates/index.html:108
 msgid "10Y"
 msgstr "10A"
 
-#: templates/index.html:122 templates/index.html:181 templates/index.html:209
+#: templates/index.html:124 templates/index.html:183 templates/index.html:211
 msgid "View all"
 msgstr "Voir tout"
 
-#: templates/index.html:195
+#: templates/index.html:197
 msgid "No properties yet."
 msgstr "Aucune propriété actuellement."
 
-#: templates/index.html:225
+#: templates/index.html:227
 msgid "Recent Operations"
 msgstr "Opérations récentes"
 
-#: templates/index.html:227
+#: templates/index.html:229
 msgid "See all"
 msgstr "Voir tout"
 
@@ -3832,13 +4084,6 @@ msgstr "Amortissement"
 #: templates/property/detail.html:263
 msgid "More"
 msgstr "Plus"
-
-#: templates/property/detail.html:275 templates/property/detail.html:282
-#: templates/property/detail.html:289 templates/property/detail.html:296
-#: templates/property/detail.html:303 templates/property/detail.html:310
-#: templates/property/detail.html:317 templates/property/detail.html:325
-msgid "Loading…"
-msgstr "Chargement…"
 
 #: templates/property/detail.html:342
 msgid "Add property valuation"

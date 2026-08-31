@@ -366,3 +366,30 @@ def update_notification_preferences(request):
     except Exception as e:
         _LOGGER.error(f"Notification preferences update failed: {e}")
         return JsonResponse({"success": False, "error": "update_failed"}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_live_data_preferences(request):
+    """Update the live market data fetching preference for the current user."""
+    try:
+        data = json.loads(request.body or "{}")
+        live_data_enabled = data.get("live_data_enabled")
+
+        if live_data_enabled is None or not isinstance(live_data_enabled, bool):
+            return JsonResponse(
+                {"success": False, "error": "invalid_request"}, status=400
+            )
+
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile.live_data_enabled = live_data_enabled
+        profile.save(update_fields=["live_data_enabled"])
+
+        return JsonResponse(
+            {"success": True, "live_data_enabled": profile.live_data_enabled}
+        )
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
+    except Exception as e:
+        _LOGGER.error(f"Live data preferences update failed: {e}")
+        return JsonResponse({"success": False, "error": "update_failed"}, status=400)

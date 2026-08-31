@@ -1,5 +1,6 @@
 {% load i18n format_money %}
-<div class="border rounded px-3 py-2 mb-2 {% if form.errors %}border-danger bg-danger-subtle{% endif %}" data-update-row>
+<div class="border rounded px-3 py-2 mb-2 {% if form.errors %}border-danger bg-danger-subtle{% endif %}" data-update-row
+  {% if form.initial.isin and live_data_enabled %}data-live-info-url="{% url 'finance:api_holding_live_info' form.initial.account_id form.initial.holding_id %}"{% endif %}>
   {{ form.holding_id }}
   {% if form.non_field_errors %}
     <div class="text-danger small mb-1">
@@ -15,8 +16,16 @@
       {% endif %}
     </div>
     <div class="flex-grow-1">
-      <div class="fw-semibold mb-2">
-        {{ form.holding_name }}{{ form.initial.holding_name }}
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="fw-semibold">
+          {{ form.holding_name }}{{ form.initial.holding_name }}
+        </div>
+        {% if form.initial.isin and live_data_enabled %}
+        <button type="button" class="btn btn-sm btn-outline-secondary fetch-live-value-btn py-0 px-2">
+          <span class="fetch-live-value-spinner spinner-border spinner-border-sm me-1 d-none"></span><i class="bi bi-broadcast me-1"></i>{% translate "Fetch" %}
+        </button>
+        <span class="fetch-live-value-error text-danger small d-none"></span>
+        {% endif %}
       </div>
       <div class="row g-2">
         <div class="col-6 col-md-4">
@@ -38,6 +47,7 @@
           {% endif %}
         </div>
       </div>
+
     </div>
   </div>
 </div>

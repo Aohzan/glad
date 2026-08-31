@@ -1,13 +1,19 @@
 """Views for investment account CRUD operations."""
 
+import datetime
+from decimal import Decimal, InvalidOperation
+
 from django.contrib import messages
+from django.db import IntegrityError, transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
+from moneyed import Money
 
 from finance.forms import (
+    BackfillHoldingHistoryForm,
     InvestmentAccountCashForm,
     InvestmentAccountDepositForm,
     InvestmentAccountForm,
@@ -21,6 +27,7 @@ from finance.models.investment_account import (
     InvestmentAccountHolding,
     InvestmentAccountHoldingHistory,
 )
+from finance.services.market_data import MarketDataError, fetch_historical_prices
 from finance.views.crud_views import _delete_account_related, _edit_account_related
 
 DETAIL_URL = "finance:investment_detail"
@@ -156,6 +163,27 @@ def delete_investment_holding(
     )
 
 
+def holding_detail(
+    request: HttpRequest, account_pk: int, holding_pk: int
+) -> HttpResponse:
+    """Detail view for an investment account holding."""
+    account = get_object_or_404(InvestmentAccount, pk=account_pk)
+    holding = get_object_or_404(
+        InvestmentAccountHolding, pk=holding_pk, account=account
+    )
+    history = holding.investmentaccountholdinghistory_set.all()  # ty: ignore[unresolved-attribute]
+
+    return render(
+        request,
+        "finance/holding_detail.html",
+        {
+            "account": account,
+            "holding": holding,
+            "history": history,
+        },
+    )
+
+
 # ─── Investment deposit CRUD ─────────────────────────────────────────────────
 
 
@@ -253,6 +281,10 @@ def edit_holding_history(
         if history_pk
         else None
     )
+    holding_detail_url = reverse(
+        "finance:holding_detail",
+        kwargs={"account_pk": account_pk, "holding_pk": holding_pk},
+    )
 
     if request.method == "POST":
         form = InvestmentAccountHoldingHistoryForm(request.POST, instance=obj)
@@ -261,12 +293,23 @@ def edit_holding_history(
             created.holding = holding
             created.save()
             messages.success(request, _("Holding history entry saved successfully."))
-            return HttpResponseRedirect(
-                reverse(DETAIL_URL, kwargs={"pk": account_pk}) + "#holdings-panel"
-            )
+            return HttpResponseRedirect(holding_detail_url)
         messages.error(request, _("Please correct the errors below."))
     else:
-        form = InvestmentAccountHoldingHistoryForm(instance=obj)
+        initial = {}
+        if obj is None:
+            prefill_value = request.GET.get("prefill_value")
+            prefill_quantity = request.GET.get("prefill_quantity")
+            if prefill_value:
+                try:
+                    initial["value"] = Money(
+                        Decimal(prefill_value), holding.account.currency
+                    )
+                except InvalidOperation:
+                    pass
+            if prefill_quantity:
+                initial["quantity"] = prefill_quantity
+        form = InvestmentAccountHoldingHistoryForm(instance=obj, initial=initial)
 
     return render(
         request,
@@ -287,9 +330,13 @@ def delete_holding_history(
     history_pk: int,
 ) -> HttpResponse:
     """Delete an investment holding history entry."""
+    holding_detail_url = reverse(
+        "finance:holding_detail",
+        kwargs={"account_pk": account_pk, "holding_pk": holding_pk},
+    )
     if request.method != "POST":
         messages.error(request, _("Invalid request method."))
-        return redirect(DETAIL_URL, pk=account_pk)
+        return HttpResponseRedirect(holding_detail_url)
 
     account = get_object_or_404(InvestmentAccount, pk=account_pk)
     holding = get_object_or_404(
@@ -300,8 +347,106 @@ def delete_holding_history(
     )
     obj.delete()
     messages.success(request, _("Holding history entry deleted successfully."))
-    return HttpResponseRedirect(
-        reverse(DETAIL_URL, kwargs={"pk": account_pk}) + "#holdings-panel"
+    return HttpResponseRedirect(holding_detail_url)
+
+
+def backfill_holding_history(
+    request: HttpRequest, account_pk: int, holding_pk: int
+) -> HttpResponse:
+    """Fill missing monthly history entries for a holding from live market data."""
+    account = get_object_or_404(InvestmentAccount, pk=account_pk)
+    holding = get_object_or_404(
+        InvestmentAccountHolding, pk=holding_pk, account=account
+    )
+    holding_detail_url = reverse(
+        "finance:holding_detail",
+        kwargs={"account_pk": account_pk, "holding_pk": holding_pk},
+    )
+
+    if not holding.isin or not getattr(
+        request.user.profile,  # ty: ignore[unresolved-attribute]
+        "live_data_enabled",
+        True,
+    ):
+        messages.error(
+            request, _("Live market data is not available for this holding.")
+        )
+        return HttpResponseRedirect(holding_detail_url)
+
+    if request.method == "POST":
+        form = BackfillHoldingHistoryForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data["start_date"]
+            end_date = form.cleaned_data["end_date"]
+            try:
+                points, currency = fetch_historical_prices(
+                    holding.isin, start_date, end_date
+                )
+            except MarketDataError as exc:
+                messages.error(request, str(exc))
+                return HttpResponseRedirect(holding_detail_url)
+
+            if currency != account.currency:
+                messages.warning(
+                    request,
+                    _(
+                        "Quote currency ({quote}) differs from the account"
+                        " currency ({account}); no entries were created."
+                    ).format(quote=currency, account=account.currency),
+                )
+                return HttpResponseRedirect(holding_detail_url)
+
+            created_count = 0
+            skipped_existing = 0
+            for point in points:
+                month_exists = InvestmentAccountHoldingHistory.objects.filter(
+                    holding=holding,
+                    valuation_date__year=point.date.year,
+                    valuation_date__month=point.date.month,
+                ).exists()
+                if month_exists:
+                    skipped_existing += 1
+                    continue
+
+                quantity = holding.get_quantity(max_date=point.date)
+                if not quantity:
+                    continue
+
+                try:
+                    with transaction.atomic():
+                        InvestmentAccountHoldingHistory.objects.create(
+                            holding=holding,
+                            value=Money(point.price * quantity, account.currency),
+                            quantity=quantity,
+                            valuation_date=datetime.datetime.combine(
+                                point.date, datetime.time.min
+                            ),
+                        )
+                    created_count += 1
+                except IntegrityError:
+                    skipped_existing += 1
+
+            if created_count:
+                messages.success(
+                    request,
+                    _("{count} history entries created.").format(count=created_count),
+                )
+            else:
+                messages.info(request, _("No new history entries were created."))
+            return HttpResponseRedirect(holding_detail_url)
+        messages.error(request, _("Please correct the errors below."))
+    else:
+        form = BackfillHoldingHistoryForm(
+            initial={
+                "start_date": holding.initial_valuation_date,
+                "end_date": datetime.date.today(),
+            }
+        )
+
+    return render(
+        request,
+        "finance/backfill_holding_history.html",
+        {"account": account, "holding": holding, "form": form},
     )
 
 

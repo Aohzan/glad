@@ -120,6 +120,41 @@
           this.value = this.value.replace(/[^0-9.,]/g, '');
         });
       });
+
+      document.querySelectorAll('.fetch-live-value-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const row = btn.closest('[data-update-row]');
+          const url = row.dataset.liveInfoUrl;
+          const spinner = row.querySelector('.fetch-live-value-spinner');
+          const errorEl = row.querySelector('.fetch-live-value-error');
+          const valueInput = row.querySelector('input[name$="new_value"]');
+          const checkbox = row.querySelector('input[name$="update_account"]');
+
+          errorEl.classList.add('d-none');
+          spinner.classList.remove('d-none');
+          btn.disabled = true;
+
+          fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+            .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+            .then(function(result) {
+              spinner.classList.add('d-none');
+              btn.disabled = false;
+              if (!result.ok || result.data.currency_mismatch || result.data.total_value === null) {
+                errorEl.textContent = result.data.error || "{% translate 'Could not fetch a live value for this holding.' %}";
+                errorEl.classList.remove('d-none');
+                return;
+              }
+              valueInput.value = result.data.total_value;
+              if (checkbox) checkbox.checked = true;
+            })
+            .catch(function() {
+              spinner.classList.add('d-none');
+              btn.disabled = false;
+              errorEl.textContent = "{% translate 'Could not fetch a live value for this holding.' %}";
+              errorEl.classList.remove('d-none');
+            });
+        });
+      });
     });
   </script>
 {% endblock %}

@@ -91,6 +91,8 @@ def update_accounts(request):
                     "new_value": holding.value.amount,
                     "current_quantity": holding.quantity,
                     "new_quantity": holding.quantity,
+                    "isin": holding.isin,  # For the live-fetch button, not a form field
+                    "account_id": account.id,  # For the live-fetch button URL
                 }
             )
         investment_accounts_initial_data[str(account)]["holdings"] = holding_data

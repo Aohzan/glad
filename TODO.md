@@ -11,5 +11,3 @@
 - Automatic estimation : add a button on the detail view to check current price of property with the French DVF API and add the value as a new entry if user confirms
 
 ## Finance
-
-- In the finance, add the real time value of a holding using https://github.com/ranaroussi/yfinance
