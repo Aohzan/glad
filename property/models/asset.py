@@ -351,8 +351,10 @@ class Property(BaseModel):
         default=HOUSE,
         verbose_name=_("Property Type"),
     )
-    name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255, null=True, blank=True)
+    name = models.CharField(max_length=255, verbose_name=_("Name"))
+    address = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name=_("Address")
+    )
     is_active = models.BooleanField(
         default=True,
         verbose_name=_("Active"),
@@ -416,6 +418,7 @@ class Property(BaseModel):
         decimal_places=6,
         null=True,
         blank=True,
+        verbose_name=_("Shares count"),
         help_text=_("Number of shares in the property (if applicable)"),
     )
     buying_date = models.DateField(
@@ -425,7 +428,13 @@ class Property(BaseModel):
     selling_date = models.DateField(
         null=True, blank=True, verbose_name=_("Selling Date")
     )
-    selling_value = MoneyField(max_digits=10, decimal_places=0, null=True, blank=True)
+    selling_value = MoneyField(
+        max_digits=10,
+        decimal_places=0,
+        null=True,
+        blank=True,
+        verbose_name=_("Selling value"),
+    )
     floor_area = models.DecimalField(
         max_digits=7,
         decimal_places=2,
