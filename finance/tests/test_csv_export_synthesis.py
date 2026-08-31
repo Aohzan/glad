@@ -141,9 +141,12 @@ def test_csv_export_synthesis_excludes_inactive(
     assert active_row[2] == "Test Bank"
     inactive_row = None
     for row in rows[1:]:
-        if row[1] == inactive_saving_account.owner and row[2] == "Test Bank":
-            if row not in [active_row]:
-                inactive_row = row
+        if (
+            row[1] == inactive_saving_account.owner
+            and row[2] == "Test Bank"
+            and row not in [active_row]
+        ):
+            inactive_row = row
     assert inactive_row is None
 
 

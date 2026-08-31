@@ -94,6 +94,10 @@ M72 = months_ago(72)
 M84 = months_ago(84)
 M96 = months_ago(96)
 
+# Property loan first payment dates (≈ 1 month after disbursement)
+LOAN1_FIRST_PAYMENT = months_ago(95)
+LOAN2_FIRST_PAYMENT = months_ago(47)
+
 # Property loan end dates
 LOAN1_END = years_ahead(20, M96)  # Property 1 — 20-year loan started 8 years ago
 LOAN2A_END = years_ahead(
@@ -1919,7 +1923,8 @@ def generate_scpi() -> str:
 
     SCPI 1: PierPap Basic — 20k€, full ownership, 3 years ago, quarterly dividends 4-6%
     SCPI 2: PierPap Full — 10k€, full ownership, 18 months ago, monthly dividends 3-5%
-    SCPI 3: NosBureaux — 15k€, bare ownership (nue-propriété), 2 years ago
+    SCPI 3: NosBureaux — 15k€, bare ownership (nue-propriété), 2 years ago,
+            with 2 theoretical value snapshots overriding the linear interpolation
     """
     return f"""# generated with scripts/generate_fixtures.py
 ---
@@ -2392,10 +2397,32 @@ def generate_scpi() -> str:
     dismemberment_end_date: {ds(SCPI3_RECO)}
     bare_ownership_ratio: "75.00"
     notes: "Démembrement 10 ans — reconstitution prévue en {SCPI3_RECO}"
+# Theoretical value snapshots for SCPI 3 bare ownership investment
+#   Manual override of the linear interpolation at two points in time
+- model: property.scpibareownershiptheoreticalvalue
+  pk: 1
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    investment: 3
+    date: {ds(M12)}
+    value: 11750.00
+    value_currency: EUR
+    notes: "Estimation annuelle SCPI — revaluation démembrement"
+- model: property.scpibareownershiptheoreticalvalue
+  pk: 2
+  fields:
+    created_at: {dt(M3)}
+    updated_at: {dt(M3)}
+    investment: 3
+    date: {ds(M3)}
+    value: 12500.00
+    value_currency: EUR
+    notes: "Estimation annuelle SCPI — revaluation démembrement"
 """
 
 
-def generate_property() -> str:  # noqa: PLR0915
+def generate_property() -> str:
     """Generate property.yaml with dynamic dates.
 
     Properties:
@@ -2419,7 +2446,16 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(RECENT)}
     property_type: HO
     name: Résidence principale
-    address: 12 rue de la Liberté, 75014 Paris, France
+    street_number: "12"
+    street_name: rue de la Liberté
+    postal_code: "75014"
+    city: Paris
+    country: France
+    latitude: 48.832501
+    longitude: 2.327763
+    insee_code: "75114"
+    cadastral_section: "AR"
+    cadastral_parcel_number: "0042"
     is_active: true
     buying_value: 320000.00
     buying_value_currency: EUR
@@ -2433,7 +2469,11 @@ def generate_property() -> str:  # noqa: PLR0915
     credit_fees_currency: EUR
     buying_date: {ds(M96)}
     selling_date: null
+    selling_value: null
+    selling_value_currency: EUR
     floor_area: "112.50"
+    total_surface: "135.00"
+    number_of_rooms: 5
     tax_regime: none
 - model: property.propertyvalue
   pk: 1
@@ -2443,6 +2483,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 1
     value: 320000.00
     valuation_date: {ds(M96)}
+    source: manual
 - model: property.propertyvalue
   pk: 2
   fields:
@@ -2451,6 +2492,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 1
     value: 345000.00
     valuation_date: {ds(M48)}
+    source: manual
 - model: property.propertyvalue
   pk: 3
   fields:
@@ -2459,6 +2501,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 1
     value: 375000.00
     valuation_date: {ds(RECENT)}
+    source: dvf_estimate
 # Loan 1 — standard 20-year mortgage at 1.85 %
 - model: property.propertyloan
   pk: 1
@@ -2478,6 +2521,8 @@ def generate_property() -> str:  # noqa: PLR0915
     monthly_payment_currency: EUR
     insurance: 38.40
     insurance_currency: EUR
+    bank_reference: "CA-2024-001234"
+    first_payment_date: {ds(LOAN1_FIRST_PAYMENT)}
 # Transactions — Property 1
 - model: property.propertyledgerentry
   pk: 1
@@ -2527,6 +2572,7 @@ def generate_property() -> str:  # noqa: PLR0915
     reference_period: null
     management_category: works
     description: Rénovation salle de bain
+    third_party: SARL Rénov'Bath
     notes: "Remplacement baignoire, carrelage et robinetterie"
     recurrence_type: none
     recurrence_end_date: null
@@ -2560,7 +2606,16 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(RECENT)}
     property_type: AP
     name: Appartement locatif Nice
-    address: 8 avenue des Fleurs, 06000 Nice, France
+    street_number: "8"
+    street_name: avenue des Fleurs
+    postal_code: "06000"
+    city: Nice
+    country: France
+    latitude: 43.703398
+    longitude: 7.262694
+    insee_code: "06088"
+    cadastral_section: "AK"
+    cadastral_parcel_number: "0156"
     is_active: true
     is_favorite: true
     buying_value: 185000.00
@@ -2575,7 +2630,13 @@ def generate_property() -> str:  # noqa: PLR0915
     credit_fees_currency: EUR
     buying_date: {ds(M48)}
     selling_date: null
+    selling_value: null
+    selling_value_currency: EUR
     floor_area: "42.00"
+    total_surface: "55.00"
+    number_of_rooms: 2
+    coproperty_share: "250.00"
+    shares_count: "1000.000000"
     tax_regime: lmnp_reel
 - model: property.propertyvalue
   pk: 4
@@ -2585,6 +2646,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 2
     value: 185000.00
     valuation_date: {ds(M48)}
+    source: manual
 - model: property.propertyvalue
   pk: 5
   fields:
@@ -2593,6 +2655,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 2
     value: 190000.00
     valuation_date: {ds(M24)}
+    source: manual
 - model: property.propertyvalue
   pk: 6
   fields:
@@ -2601,6 +2664,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 2
     value: 195000.00
     valuation_date: {ds(RECENT)}
+    source: dvf_estimate
 # Loan 2A — smoothed 10-year
 #   Schedule total: 1×834.00 + 59×667.00 + 60×666.67 = 834.00 + 39353.00 + 40000.20 ≈ 80000
 #   Tranches: first month higher (setup fee), then two equal halves
@@ -2626,6 +2690,8 @@ def generate_property() -> str:  # noqa: PLR0915
     monthly_payment_currency: EUR
     insurance: null
     insurance_currency: EUR
+    bank_reference: "CM-2024-005678"
+    first_payment_date: {ds(LOAN2_FIRST_PAYMENT)}
 # Amortization entries — Loan 2A (80 000 EUR, 2.95 %, 120 months)
 - model: property.propertyloanamortizationentry
   pk: 1
@@ -2700,6 +2766,8 @@ def generate_property() -> str:  # noqa: PLR0915
     monthly_payment_currency: EUR
     insurance: null
     insurance_currency: EUR
+    bank_reference: "CM-2024-005679"
+    first_payment_date: {ds(LOAN2_FIRST_PAYMENT)}
 # Amortization entries — Loan 2B (105 000 EUR, 3.10 %, 240 months)
 - model: property.propertyloanamortizationentry
   pk: 5
@@ -2792,6 +2860,7 @@ def generate_property() -> str:  # noqa: PLR0915
     reference_period: null
     management_category: deposit_in
     description: Dépôt de garantie
+    third_party: Sophie Martin
     notes: ""
     recurrence_type: none
     recurrence_end_date: null
@@ -2809,6 +2878,7 @@ def generate_property() -> str:  # noqa: PLR0915
     reference_period: null
     management_category: rent_collected
     description: Loyer mensuel
+    third_party: Sophie Martin
     notes: ""
     recurrence_type: monthly
     recurrence_end_date: null
@@ -2826,6 +2896,7 @@ def generate_property() -> str:  # noqa: PLR0915
     reference_period: null
     management_category: charges_collected
     description: Provision pour charges
+    third_party: Sophie Martin
     notes: ""
     recurrence_type: monthly
     recurrence_end_date: null
@@ -2894,6 +2965,7 @@ def generate_property() -> str:  # noqa: PLR0915
     reference_period: null
     management_category: maintenance
     description: Réparation plomberie — fuite salle de bain
+    third_party: Plombier Nice
     notes: "Intervention plombier + remplacement joint"
     recurrence_type: none
     recurrence_end_date: null
@@ -2944,7 +3016,16 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(RECENT)}
     property_type: AP
     name: Studio meublé Lyon
-    address: 3 rue Mercière, 69002 Lyon, France
+    street_number: "3"
+    street_name: rue Mercière
+    postal_code: "69002"
+    city: Lyon
+    country: France
+    latitude: 45.758901
+    longitude: 4.831344
+    insee_code: "69382"
+    cadastral_section: "AB"
+    cadastral_parcel_number: "0089"
     is_active: true
     is_favorite: true
     buying_value: 95000.00
@@ -2959,7 +3040,13 @@ def generate_property() -> str:  # noqa: PLR0915
     credit_fees_currency: EUR
     buying_date: {ds(M48)}
     selling_date: null
+    selling_value: null
+    selling_value_currency: EUR
     floor_area: "22.00"
+    total_surface: "28.00"
+    number_of_rooms: 1
+    coproperty_share: "75.00"
+    shares_count: "10000.000000"
     tax_regime: lmnp_reel
 - model: property.propertyvalue
   pk: 7
@@ -2969,6 +3056,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 3
     value: 95000.00
     valuation_date: {ds(M48)}
+    source: manual
 - model: property.propertyvalue
   pk: 8
   fields:
@@ -2977,6 +3065,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 3
     value: 102000.00
     valuation_date: {ds(RECENT)}
+    source: dvf_estimate
 # Loan 3 — standard 8-year loan at 2.40 % (started 4 years ago, ends in ~4 years)
 - model: property.propertyloan
   pk: 4
@@ -2996,6 +3085,8 @@ def generate_property() -> str:  # noqa: PLR0915
     monthly_payment_currency: EUR
     insurance: 13.20
     insurance_currency: EUR
+    bank_reference: "BNP-2024-009012"
+    first_payment_date: {ds(LOAN2_FIRST_PAYMENT)}
 # Lease 2 — Lyon studio (active furnished)
 - model: property.lease
   pk: 2
@@ -3035,6 +3126,7 @@ def generate_property() -> str:  # noqa: PLR0915
     reference_period: null
     management_category: deposit_in
     description: Dépôt de garantie
+    third_party: Lucas Dupont
     notes: ""
     recurrence_type: none
     recurrence_end_date: null
@@ -3052,6 +3144,7 @@ def generate_property() -> str:  # noqa: PLR0915
     reference_period: null
     management_category: rent_collected
     description: Loyer mensuel
+    third_party: Lucas Dupont
     notes: ""
     recurrence_type: monthly
     recurrence_end_date: null
@@ -3069,6 +3162,7 @@ def generate_property() -> str:  # noqa: PLR0915
     reference_period: null
     management_category: charges_collected
     description: Provision pour charges
+    third_party: Lucas Dupont
     notes: ""
     recurrence_type: monthly
     recurrence_end_date: null
@@ -3152,7 +3246,15 @@ def generate_property() -> str:  # noqa: PLR0915
     updated_at: {dt(RECENT)}
     property_type: HO
     name: Maison de campagne
-    address: Le Bourg, 24200 Sarlat-la-Canéda, France
+    street_name: Le Bourg
+    postal_code: "24200"
+    city: Sarlat-la-Canéda
+    country: France
+    latitude: 44.864165
+    longitude: 1.216070
+    insee_code: "24520"
+    cadastral_section: "ZC"
+    cadastral_parcel_number: "0123"
     is_active: true
     buying_value: 145000.00
     buying_value_currency: EUR
@@ -3166,7 +3268,11 @@ def generate_property() -> str:  # noqa: PLR0915
     credit_fees_currency: EUR
     buying_date: {ds(M72)}
     selling_date: null
+    selling_value: null
+    selling_value_currency: EUR
     floor_area: "95.00"
+    total_surface: "115.00"
+    number_of_rooms: 4
     tax_regime: none
 - model: property.propertyvalue
   pk: 9
@@ -3176,6 +3282,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 4
     value: 145000.00
     valuation_date: {ds(M72)}
+    source: manual
 - model: property.propertyvalue
   pk: 10
   fields:
@@ -3184,6 +3291,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 4
     value: 155000.00
     valuation_date: {ds(M36)}
+    source: manual
 - model: property.propertyvalue
   pk: 11
   fields:
@@ -3192,6 +3300,7 @@ def generate_property() -> str:  # noqa: PLR0915
     property: 4
     value: 162000.00
     valuation_date: {ds(RECENT)}
+    source: dvf_estimate
 # Transactions — Property 4
 - model: property.propertyledgerentry
   pk: 21
@@ -3367,13 +3476,13 @@ def generate_property() -> str:  # noqa: PLR0915
 # ─────────────────────────────────────────────────────────────────────────────
 # LMNP RÉEL — Appartement locatif Nice (property 2)
 #   AmortizationSetup: total_value = buying price, land = 15 %
-#   Depreciable base = 85 % × 185 000 = 157 250 EUR
-#   Standard components (% of depreciable base, duration in years):
-#     structure      45 % × 157 250 = 70 762.50 EUR  /  75 ans
-#     electrical      6 % × 157 250 =  9 435.00 EUR  /  30 ans
-#     waterproofing   7 % × 157 250 = 11 007.50 EUR  /  25 ans
-#     roof            8 % × 157 250 = 12 580.00 EUR  /  25 ans
-#     fittings       19 % × 157 250 = 29 877.50 EUR  /  12 ans
+#   Standard components (% of total value, duration in years):
+#     terrain        15 % × 185 000 = 27 750.00 EUR  /  non dépreciable
+#     structure      45 % × 185 000 = 83 250.00 EUR  /  75 ans
+#     waterproofing   7 % × 185 000 = 12 950.00 EUR  /  25 ans
+#     roof            8 % × 185 000 = 14 800.00 EUR  /  25 ans
+#     fittings       19 % × 185 000 = 35 150.00 EUR  /  12 ans
+#     electrical      6 % × 185 000 = 11 100.00 EUR  /  30 ans
 #   Extra immobilisation: cuisine équipée (2 400 EUR / 10 ans)
 # ─────────────────────────────────────────────────────────────────────────────
 - model: property.amortizationsetup
@@ -3391,62 +3500,86 @@ def generate_property() -> str:  # noqa: PLR0915
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    label: Gros œuvre
+    label: Terrain
     beginning_date: {ds(M48)}
-    value_total: 70762.50
+    value_total: 27750.00
     value_total_currency: EUR
-    duration_years: 75
+    duration_years: null
     is_initial_component: true
+    cerfa_category: terrains
+    notes: "Part non dépreciable (15 %)"
 - model: property.amortizationasset
   pk: 2
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    label: Installations électriques
+    label: Gros œuvre
     beginning_date: {ds(M48)}
-    value_total: 9435.00
+    value_total: 83250.00
     value_total_currency: EUR
-    duration_years: 30
+    duration_years: 75
     is_initial_component: true
+    cerfa_category: constructions
+    notes: ""
 - model: property.amortizationasset
   pk: 3
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    label: Étanchéité
+    label: Installations électriques
     beginning_date: {ds(M48)}
-    value_total: 11007.50
+    value_total: 11100.00
     value_total_currency: EUR
-    duration_years: 25
+    duration_years: 30
     is_initial_component: true
+    cerfa_category: installations
+    notes: ""
 - model: property.amortizationasset
   pk: 4
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    label: Toiture
+    label: Étanchéité
     beginning_date: {ds(M48)}
-    value_total: 12580.00
+    value_total: 12950.00
     value_total_currency: EUR
     duration_years: 25
     is_initial_component: true
+    cerfa_category: constructions
+    notes: ""
 - model: property.amortizationasset
   pk: 5
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
+    label: Toiture
+    beginning_date: {ds(M48)}
+    value_total: 14800.00
+    value_total_currency: EUR
+    duration_years: 25
+    is_initial_component: true
+    cerfa_category: constructions
+    notes: ""
+- model: property.amortizationasset
+  pk: 6
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 2
     label: Agencements intérieurs
     beginning_date: {ds(M48)}
-    value_total: 29877.50
+    value_total: 35150.00
     value_total_currency: EUR
     duration_years: 12
     is_initial_component: true
+    cerfa_category: installations
+    notes: ""
 - model: property.amortizationasset
-  pk: 6
+  pk: 7
   fields:
     created_at: {dt(M24)}
     updated_at: {dt(M24)}
@@ -3457,17 +3590,19 @@ def generate_property() -> str:  # noqa: PLR0915
     value_total_currency: EUR
     duration_years: 10
     is_initial_component: false
+    cerfa_category: installations
+    notes: "Immobilisation complémentaire — facture Mars 2024"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # LMNP RÉEL — Studio meublé Lyon (property 3)
 #   AmortizationSetup: total_value = buying price, land = 15 %
-#   Depreciable base = 85 % × 95 000 = 80 750 EUR
-#   Standard components (% of depreciable base, duration in years):
-#     structure      45 % × 80 750 = 36 337.50 EUR  /  75 ans
-#     electrical      6 % × 80 750 =  4 845.00 EUR  /  30 ans
-#     waterproofing   7 % × 80 750 =  5 652.50 EUR  /  25 ans
-#     roof            8 % × 80 750 =  6 460.00 EUR  /  25 ans
-#     fittings       19 % × 80 750 = 15 342.50 EUR  /  12 ans
+#   Standard components (% of total value, duration in years):
+#     terrain        15 % × 95 000 = 14 250.00 EUR  /  non dépreciable
+#     structure      45 % × 95 000 = 42 750.00 EUR  /  75 ans
+#     waterproofing   7 % × 95 000 =  6 650.00 EUR  /  25 ans
+#     roof            8 % × 95 000 =  7 600.00 EUR  /  25 ans
+#     fittings       19 % × 95 000 = 18 050.00 EUR  /  12 ans
+#     electrical      6 % × 95 000 =  5 700.00 EUR  /  30 ans
 #   Extra immobilisation: mobilier et électroménager (3 800 EUR / 7 ans)
 # ─────────────────────────────────────────────────────────────────────────────
 - model: property.amortizationsetup
@@ -3480,67 +3615,91 @@ def generate_property() -> str:  # noqa: PLR0915
     total_value_currency: EUR
     land_percentage: "15.00"
 - model: property.amortizationasset
-  pk: 7
-  fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
-    property: 3
-    label: Gros œuvre
-    beginning_date: {ds(M48)}
-    value_total: 36337.50
-    value_total_currency: EUR
-    duration_years: 75
-    is_initial_component: true
-- model: property.amortizationasset
   pk: 8
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 3
-    label: Installations électriques
+    label: Terrain
     beginning_date: {ds(M48)}
-    value_total: 4845.00
+    value_total: 14250.00
     value_total_currency: EUR
-    duration_years: 30
+    duration_years: null
     is_initial_component: true
+    cerfa_category: terrains
+    notes: "Part non dépreciable (15 %)"
 - model: property.amortizationasset
   pk: 9
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 3
-    label: Étanchéité
+    label: Gros œuvre
     beginning_date: {ds(M48)}
-    value_total: 5652.50
+    value_total: 42750.00
     value_total_currency: EUR
-    duration_years: 25
+    duration_years: 75
     is_initial_component: true
+    cerfa_category: constructions
+    notes: ""
 - model: property.amortizationasset
   pk: 10
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 3
-    label: Toiture
+    label: Installations électriques
     beginning_date: {ds(M48)}
-    value_total: 6460.00
+    value_total: 5700.00
     value_total_currency: EUR
-    duration_years: 25
+    duration_years: 30
     is_initial_component: true
+    cerfa_category: installations
+    notes: ""
 - model: property.amortizationasset
   pk: 11
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 3
+    label: Étanchéité
+    beginning_date: {ds(M48)}
+    value_total: 6650.00
+    value_total_currency: EUR
+    duration_years: 25
+    is_initial_component: true
+    cerfa_category: constructions
+    notes: ""
+- model: property.amortizationasset
+  pk: 12
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
+    label: Toiture
+    beginning_date: {ds(M48)}
+    value_total: 7600.00
+    value_total_currency: EUR
+    duration_years: 25
+    is_initial_component: true
+    cerfa_category: constructions
+    notes: ""
+- model: property.amortizationasset
+  pk: 13
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    property: 3
     label: Agencements intérieurs
     beginning_date: {ds(M48)}
-    value_total: 15342.50
+    value_total: 18050.00
     value_total_currency: EUR
     duration_years: 12
     is_initial_component: true
+    cerfa_category: installations
+    notes: ""
 - model: property.amortizationasset
-  pk: 12
+  pk: 14
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
@@ -3551,6 +3710,48 @@ def generate_property() -> str:  # noqa: PLR0915
     value_total_currency: EUR
     duration_years: 7
     is_initial_component: false
+    cerfa_category: autres
+    notes: "Pack mobilier studio — facture entreprise"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MANAGEMENT MANDATES
+#   Mandate 1: property 2 (Nice) — active, percentage fee
+#   Mandate 2: property 3 (Lyon) — active, mixed fee
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.managementmandate
+  pk: 1
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    property: 2
+    manager_name: GestImmo Côte d'Azur
+    manager_address: "12 rue Paul Déroulade, 06000 Nice"
+    manager_phone: "0493000000"
+    manager_email: contact@gestimmo-nice.fr
+    start_date: {ds(M36)}
+    end_date: null
+    fee_type: percentage
+    fee_percentage: "7.50"
+    fixed_fee: null
+    fixed_fee_currency: EUR
+    notes: "Mandat de gestion locative meublée"
+- model: property.managementmandate
+  pk: 2
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    property: 3
+    manager_name: Rhône Gestion
+    manager_address: "45 rue de la République, 69002 Lyon"
+    manager_phone: "0478000000"
+    manager_email: lyon@rhone-gestion.fr
+    start_date: {ds(M24)}
+    end_date: null
+    fee_type: mixed
+    fee_percentage: "5.00"
+    fixed_fee: 15.00
+    fixed_fee_currency: EUR
+    notes: "Mandat mixte — pourcentage + frais fixes mensuels"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # LEDGER ENTRY EXCEPTIONS

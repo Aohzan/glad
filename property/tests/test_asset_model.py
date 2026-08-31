@@ -92,7 +92,7 @@ class TestPropertyLoanComputeMonthlyPayment:
 class TestPropertyLoanTaegRate:
     def test_taeg_rate_standard_loan(self, loan):
         taeg = loan.taeg_rate()
-        assert taeg > Decimal("0")
+        assert taeg > Decimal(0)
 
     def test_taeg_rate_no_monthly_payment_returns_zero(self, property_obj):
         loan = PropertyLoan.objects.create(
@@ -125,11 +125,11 @@ class TestPropertyLoanRemainingBalance:
 
     def test_remaining_balance_after_end(self, loan):
         balance = loan.remaining_balance(datetime.date(2041, 1, 1))
-        assert balance.amount == Decimal("0")
+        assert balance.amount == Decimal(0)
 
     def test_remaining_balance_mid_loan(self, loan):
         balance = loan.remaining_balance(datetime.date(2030, 1, 1))
-        assert Decimal("0") < balance.amount < loan.original_amount.amount
+        assert Decimal(0) < balance.amount < loan.original_amount.amount
 
     def test_remaining_balance_no_payment_sequence(self, property_obj):
         loan = PropertyLoan.objects.create(
@@ -142,14 +142,14 @@ class TestPropertyLoanRemainingBalance:
         )
         balance = loan.remaining_balance(datetime.date(2030, 1, 1))
         # Fallback linear approximation
-        assert Decimal("0") < balance.amount < Decimal("100000")
+        assert Decimal(0) < balance.amount < Decimal(100000)
 
 
 @pytest.mark.django_db
 class TestPropertyLoanAmountPaid:
     def test_amount_paid(self, loan):
         paid = loan.amount_paid()
-        assert paid.amount >= Decimal("0")
+        assert paid.amount >= Decimal(0)
         assert paid.amount <= loan.original_amount.amount
 
 
@@ -179,7 +179,7 @@ class TestPropertyModel:
 
     def test_get_value_no_valuations(self, property_obj):
         value = property_obj.get_value()
-        assert value.amount == Decimal("300000")
+        assert value.amount == Decimal(300000)
 
     def test_get_value_with_valuation(self, property_obj):
         PropertyValue.objects.create(
@@ -188,7 +188,7 @@ class TestPropertyModel:
             valuation_date=datetime.date(2023, 1, 1),
         )
         value = property_obj.get_value()
-        assert value.amount == Decimal("350000")
+        assert value.amount == Decimal(350000)
 
     def test_get_value_with_max_date(self, property_obj):
         PropertyValue.objects.create(
@@ -198,35 +198,35 @@ class TestPropertyModel:
         )
         # Before the valuation date, should return buying_value
         value = property_obj.get_value(max_date=datetime.datetime(2022, 1, 1))
-        assert value.amount == Decimal("300000")
+        assert value.amount == Decimal(300000)
 
     def test_total_remaining_loans_no_loans(self, property_obj):
         total = property_obj.total_remaining_loans
-        assert total.amount == Decimal("0")
+        assert total.amount == Decimal(0)
 
     def test_total_remaining_loans_with_loan(self, property_obj, loan):
         total = property_obj.total_remaining_loans
-        assert total.amount > Decimal("0")
+        assert total.amount > Decimal(0)
 
     def test_total_paid_loans_no_loans(self, property_obj):
         total = property_obj.total_paid_loans
-        assert total.amount == Decimal("0")
+        assert total.amount == Decimal(0)
 
     def test_total_paid_loans_with_loan(self, property_obj, loan):
         total = property_obj.total_paid_loans
-        assert total.amount >= Decimal("0")
+        assert total.amount >= Decimal(0)
 
     def test_gross_value(self, property_obj):
-        assert property_obj.gross_value.amount == Decimal("300000")
+        assert property_obj.gross_value.amount == Decimal(300000)
 
     def test_net_value(self, property_obj, loan):
         net = property_obj.net_value
-        assert net.amount >= Decimal("0")
+        assert net.amount >= Decimal(0)
         assert net.amount <= property_obj.gross_value.amount
 
     def test_net_value_at_date(self, property_obj, loan):
         net = property_obj.net_value_at_date(datetime.date(2030, 1, 1))
-        assert net.amount >= Decimal("0")
+        assert net.amount >= Decimal(0)
 
     def test_get_progression_no_years(self, property_obj):
         progression = property_obj.get_progression()
@@ -248,18 +248,18 @@ class TestPropertyModel:
         # buying_value_gross = 215000; no PropertyValue → gross_value = buying_value = 200000
         # difference should be negative (current < acquisition cost)
         assert progression is not None
-        assert progression.difference.amount < Decimal("0")
+        assert progression.difference.amount < Decimal(0)
 
     def test_str(self, property_obj):
         assert str(property_obj) == "Asset Test Property"
 
     def test_total_remaining_loans_at_date(self, property_obj, loan):
         total = property_obj.total_remaining_loans_at_date(datetime.date(2030, 1, 1))
-        assert total.amount > Decimal("0")
+        assert total.amount > Decimal(0)
 
     def test_buying_value_gross_no_fees(self, property_obj):
         """When no fees are set, buying_value_gross equals buying_value."""
-        assert property_obj.buying_value_gross.amount == Decimal("300000")
+        assert property_obj.buying_value_gross.amount == Decimal(300000)
         assert (
             property_obj.buying_value_gross.currency
             == property_obj.buying_value.currency
@@ -276,7 +276,7 @@ class TestPropertyModel:
             credit_fees=Money(1000, "EUR"),
             buying_date=datetime.date(2020, 1, 1),
         )
-        assert prop.buying_value_gross.amount == Decimal("221500")
+        assert prop.buying_value_gross.amount == Decimal(221500)
 
     def test_buying_value_gross_partial_fees(self):
         prop = Property.objects.create(
@@ -286,7 +286,7 @@ class TestPropertyModel:
             notary_fees=Money(8000, "EUR"),
             buying_date=datetime.date(2021, 1, 1),
         )
-        assert prop.buying_value_gross.amount == Decimal("108000")
+        assert prop.buying_value_gross.amount == Decimal(108000)
 
     def test_cash_deposit_no_loans(self, property_obj):
         """With no loans, cash_deposit equals buying_value_gross."""
@@ -311,10 +311,10 @@ class TestPropertyModel:
             property=prop,
             original_amount=Money(150000, "EUR"),
             interest_rate=Decimal("1.5"),
-            insurance_rate=Decimal("0"),
+            insurance_rate=Decimal(0),
             start_date=datetime.date(2020, 1, 1),
             end_date=datetime.date(2040, 1, 1),
             monthly_payment=Money(Decimal("750.00"), "EUR"),
         )
         # gross = 215000, loan = 150000, deposit = 65000
-        assert prop.cash_deposit.amount == Decimal("65000")
+        assert prop.cash_deposit.amount == Decimal(65000)

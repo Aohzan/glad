@@ -308,13 +308,15 @@ def test_send_email_async_constructs_email(user):
 
 @pytest.mark.django_db
 def test_send_email_async_logs_on_failure():
-    with patch(
-        "accounts.signals.EmailMultiAlternatives.send",
-        side_effect=Exception("SMTP error"),
+    with (
+        patch(
+            "accounts.signals.EmailMultiAlternatives.send",
+            side_effect=Exception("SMTP error"),
+        ),
+        patch("accounts.signals._LOGGER") as mock_logger,
     ):
-        with patch("accounts.signals._LOGGER") as mock_logger:
-            _send_email_async("Subject", "Body", "<p>Body</p>", "fail@example.com")
-            mock_logger.exception.assert_called_once()
+        _send_email_async("Subject", "Body", "<p>Body</p>", "fail@example.com")
+        mock_logger.exception.assert_called_once()
 
 
 @pytest.mark.django_db

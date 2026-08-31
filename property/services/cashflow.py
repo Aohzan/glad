@@ -24,10 +24,10 @@ def get_annual_cashflow(property_id: int, year: int) -> dict:
 
     income = qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME).aggregate(
         total=Sum("amount")
-    )["total"] or Decimal("0")
+    )["total"] or Decimal(0)
     expenses = qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE).aggregate(
         total=Sum("amount")
-    )["total"] or Decimal("0")
+    )["total"] or Decimal(0)
 
     return {
         "year": year,
@@ -95,26 +95,26 @@ def build_balance_sheet(
 
             if entry.flow_type == PropertyLedgerEntry.FlowType.INCOME:
                 if cat not in income_by_cat:
-                    income_by_cat[cat] = {"label": cat_label, "amount": Decimal("0")}
+                    income_by_cat[cat] = {"label": cat_label, "amount": Decimal(0)}
                 income_by_cat[cat]["amount"] += amount
                 if cat == PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED:
                     months_with_rent.add((occ_date.year, occ_date.month))
             else:
                 if cat not in expense_by_cat:
-                    expense_by_cat[cat] = {"label": cat_label, "amount": Decimal("0")}
+                    expense_by_cat[cat] = {"label": cat_label, "amount": Decimal(0)}
                 expense_by_cat[cat]["amount"] += amount
 
     # ── Loan costs in range ───────────────────────────────────────────────────
     from property.models import PropertyLoanAmortizationEntry
 
     loans_qs = PropertyLoan.objects.filter(property=property_obj)
-    total_loan_interest = Decimal("0")
-    total_loan_principal = Decimal("0")
-    total_loan_insurance = Decimal("0")
+    total_loan_interest = Decimal(0)
+    total_loan_principal = Decimal(0)
+    total_loan_insurance = Decimal(0)
 
     for loan in loans_qs:
         insurance_amount = (
-            loan.insurance.amount if loan.insurance is not None else Decimal("0")
+            loan.insurance.amount if loan.insurance is not None else Decimal(0)
         )
 
         # When amortization entries exist, use them for interest and principal.
@@ -128,13 +128,13 @@ def build_balance_sheet(
                 total_loan_interest += entry.interest.amount
                 total_loan_principal += entry.capital.amount
             # Insurance still derived from loan params (not in amortization entries).
-            if insurance_amount > Decimal("0") and loan.start_date and loan.end_date:
+            if insurance_amount > Decimal(0) and loan.start_date and loan.end_date:
                 _, _, insurance_map = build_loan_maps_from_loan_obj(
                     loan, insurance_amount
                 )
                 for month in iter_month_starts(start_month, end_month):
                     key = (month.year, month.month)
-                    total_loan_insurance += insurance_map.get(key, Decimal("0"))
+                    total_loan_insurance += insurance_map.get(key, Decimal(0))
             continue
 
         # Fallback: compute from loan parameters when no amortization entries.
@@ -146,13 +146,13 @@ def build_balance_sheet(
 
         for month in iter_month_starts(start_month, end_month):
             key = (month.year, month.month)
-            total_loan_interest += interest_map.get(key, Decimal("0"))
-            total_loan_principal += principal_map.get(key, Decimal("0"))
-            total_loan_insurance += insurance_map.get(key, Decimal("0"))
+            total_loan_interest += interest_map.get(key, Decimal(0))
+            total_loan_principal += principal_map.get(key, Decimal(0))
+            total_loan_insurance += insurance_map.get(key, Decimal(0))
 
     # ── Totals ────────────────────────────────────────────────────────────────
-    total_income = sum((v["amount"] for v in income_by_cat.values()), Decimal("0"))
-    total_expenses = sum((v["amount"] for v in expense_by_cat.values()), Decimal("0"))
+    total_income = sum((v["amount"] for v in income_by_cat.values()), Decimal(0))
+    total_expenses = sum((v["amount"] for v in expense_by_cat.values()), Decimal(0))
     total_loan_costs = total_loan_interest + total_loan_principal + total_loan_insurance
     net_cashflow = total_income - total_expenses - total_loan_costs
     # Operating result excludes loan principal repayment (non-deductible capital)
@@ -164,18 +164,18 @@ def build_balance_sheet(
     all_months = iter_month_starts(start_month, end_month)
     months_count = len(all_months)
     occupancy_rate = (
-        Decimal(len(months_with_rent)) / Decimal(months_count) * Decimal("100")
+        Decimal(len(months_with_rent)) / Decimal(months_count) * Decimal(100)
         if months_count > 0
-        else Decimal("0")
+        else Decimal(0)
     )
 
     # ── Gross yield (annualised) ──────────────────────────────────────────────
     gross_yield_annual: Decimal | None = None
     property_value = property_obj.get_value()
     if property_value and property_value.amount > 0 and months_count > 0:
-        annualised_income = total_income * Decimal("12") / Decimal(months_count)
+        annualised_income = total_income * Decimal(12) / Decimal(months_count)
         gross_yield_annual = (
-            annualised_income / property_value.amount * Decimal("100")
+            annualised_income / property_value.amount * Decimal(100)
         ).quantize(Decimal("0.01"))
 
     # ── Build sorted row lists ────────────────────────────────────────────────

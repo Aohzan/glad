@@ -66,8 +66,8 @@ def index(request: HttpRequest) -> HttpResponse:
                 p for p in properties_active if p.buying_date <= current_date
             ]
 
-            month_property_net_total = Decimal("0")
-            month_property_gross_total = Decimal("0")
+            month_property_net_total = Decimal(0)
+            month_property_gross_total = Decimal(0)
             for property_item in month_properties:
                 try:
                     net_value = property_item.net_value_at_date(current_date)

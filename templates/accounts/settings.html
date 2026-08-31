@@ -328,8 +328,8 @@
     function updatePasskeyButtons(registered) {
         passkeyDeleteBtn.disabled = !registered;
         passkeyRegisterBtn.textContent = registered
-            ? '{% translate "Replace passkey" %}'
-            : '{% translate "Register passkey" %}';
+            ? '{% filter escapejs %}{% translate "Replace passkey" %}{% endfilter %}'
+            : '{% filter escapejs %}{% translate "Register passkey" %}{% endfilter %}';
     }
 
     if (passkeyRegisterBtn && passkeyDeleteBtn) {

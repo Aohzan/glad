@@ -100,8 +100,8 @@
                   {% endif %}
                 </div>
                 <h3 class="fw-bold mb-0" style="font-size:1.05rem">{{ prop.model.name }}</h3>
-                {% if prop.model.address %}
-                  <p class="small mb-0 mt-1 opacity-75">{{ prop.model.address }}</p>
+                {% if prop.model.full_address %}
+                  <p class="small mb-0 mt-1 opacity-75">{{ prop.model.full_address }}</p>
                 {% endif %}
               </div>
               <div class="card-body pt-3 pb-2">
@@ -191,10 +191,10 @@ var optionsPropertiesEvolution = {
     mode: getCurrentTheme()
   },
   series: [{
-    name: '{% translate "Gross Value" %}',
+    name: '{% filter escapejs %}{% translate "Gross Value" %}{% endfilter %}',
     data: allPropertiesGrossEvolution
   }, {
-    name: '{% translate "Net Value" %}',
+    name: '{% filter escapejs %}{% translate "Net Value" %}{% endfilter %}',
     data: allPropertiesNetEvolution
   }],
   stroke: { curve: 'smooth', width: 2 },
@@ -223,8 +223,8 @@ function updatePropertiesChartRange(monthsToShow) {
   chartPropertiesEvolution.updateOptions({
     xaxis: { categories: allPropertiesMonths.slice(start) },
     series: [
-      { name: '{% translate "Gross Value" %}', data: allPropertiesGrossEvolution.slice(start) },
-      { name: '{% translate "Net Value" %}',   data: allPropertiesNetEvolution.slice(start) },
+      { name: '{% filter escapejs %}{% translate "Gross Value" %}{% endfilter %}', data: allPropertiesGrossEvolution.slice(start) },
+      { name: '{% filter escapejs %}{% translate "Net Value" %}{% endfilter %}',   data: allPropertiesNetEvolution.slice(start) },
     ]
   });
 }
@@ -248,8 +248,8 @@ if (toggleBtn) {
     });
     document.getElementById('toggle-icon').className = inactiveHidden ? 'bi bi-eye-slash me-1' : 'bi bi-eye me-1';
     document.getElementById('toggle-text').textContent = inactiveHidden
-      ? '{% translate "Show inactive" %} ({{ inactive_properties_count }})'
-      : '{% translate "Hide inactive" %}';
+      ? '{% filter escapejs %}{% translate "Show inactive" %}{% endfilter %} ({{ inactive_properties_count }})'
+      : '{% filter escapejs %}{% translate "Hide inactive" %}{% endfilter %}';
   });
 }
 

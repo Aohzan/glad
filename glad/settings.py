@@ -32,7 +32,7 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 if ENVIRONMENT == "production" and DEBUG:
-    logging.warning(
+    logging.getLogger("glad").warning(
         "DEBUG is set to True in production environment. "
         "Please set DEBUG to False for production."
     )

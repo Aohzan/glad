@@ -16,13 +16,13 @@ from tests.conftest import (
 )
 
 __all__ = [
-    "ADMIN_USER",
     "ADMIN_PASSWORD",
-    "TEST_USER",
+    "ADMIN_USER",
     "TEST_PASSWORD",
-    "admin_user",
-    "user",
-    "client",
+    "TEST_USER",
     "admin_client",
+    "admin_user",
+    "client",
+    "user",
     "user_client",
 ]

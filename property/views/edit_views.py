@@ -131,7 +131,7 @@ def _normalize_col(name: str) -> str:
 def _parse_amount(raw: str) -> Decimal:
     cleaned = raw.strip().replace("\xa0", "").replace(" ", "").replace(",", ".")
     if cleaned == "":
-        return Decimal("0")
+        return Decimal(0)
     try:
         return Decimal(cleaned)
     except InvalidOperation:
@@ -266,7 +266,7 @@ def generate_loan_amortization(
         return redirect(redirect_url)
 
     insurance_amount = (
-        loan.insurance.amount if loan.insurance is not None else Decimal("0")
+        loan.insurance.amount if loan.insurance is not None else Decimal(0)
     )
     interest_map, principal_map, _insurance_map = build_loan_monthly_maps(
         start_date=loan.start_date,
@@ -284,9 +284,9 @@ def generate_loan_amortization(
     balance = loan.original_amount.amount
     for key in sorted(interest_map.keys()):
         year, month = key
-        capital = principal_map.get(key, Decimal("0"))
-        interest = interest_map.get(key, Decimal("0"))
-        balance = max(Decimal("0"), balance - capital)
+        capital = principal_map.get(key, Decimal(0))
+        interest = interest_map.get(key, Decimal(0))
+        balance = max(Decimal(0), balance - capital)
         entries.append(
             PropertyLoanAmortizationEntry(
                 loan=loan,

@@ -71,12 +71,12 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
             total_invested = Money(
                 total_invested.amount + invested.amount, str(total_invested.currency)
             )
-            assert total_resale is not None  # noqa: S101 — set together with total_invested
+            assert total_resale is not None
             total_resale = Money(
                 total_resale.amount + resale.amount,
                 str(total_resale.currency),
             )
-            assert total_estimated_value is not None  # noqa: S101
+            assert total_estimated_value is not None
             total_estimated_value = Money(
                 total_estimated_value.amount + estimated.amount,
                 str(total_estimated_value.currency),
@@ -103,32 +103,32 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
         )
         if total_invested.amount > 0:
             gain_pct = (
-                capital_gain.amount / total_invested.amount * Decimal("100")
+                capital_gain.amount / total_invested.amount * Decimal(100)
             ).quantize(Decimal("0.01"))
 
     # Net rentability (last 12 months dividends / total invested)
-    net_rentability: Decimal = Decimal("0")
+    net_rentability: Decimal = Decimal(0)
     if total_invested is not None and total_invested.amount > 0:
         net_rentability = (
-            last_year_dividends.amount / total_invested.amount * Decimal("100")
+            last_year_dividends.amount / total_invested.amount * Decimal(100)
         ).quantize(Decimal("0.01"))
 
     # Total net rentability (all-time dividends / total invested)
-    total_net_rentability: Decimal = Decimal("0")
+    total_net_rentability: Decimal = Decimal(0)
     if total_invested is not None and total_invested.amount > 0:
         total_net_rentability = (
-            total_dividends.amount / total_invested.amount * Decimal("100")
+            total_dividends.amount / total_invested.amount * Decimal(100)
         ).quantize(Decimal("0.01"))
 
     # Growth rentability (annualized capital gain since first investment)
-    growth_rentability: Decimal = Decimal("0")
+    growth_rentability: Decimal = Decimal(0)
     if gain_pct is not None and min_subscription_date is not None:
         years = Decimal(str((today - min_subscription_date).days)) / Decimal("365.25")
         if years > 0:
             growth_rentability = (gain_pct / years).quantize(Decimal("0.01"))
 
     # Last 12 months growth (share price change over past year)
-    last_12mo_growth_pct: Decimal = Decimal("0")
+    last_12mo_growth_pct: Decimal = Decimal(0)
     if total_invested is not None and total_invested.amount > 0:
         resale_12mo_ago: Money | None = None
         date_12mo_ago = today - datetime.timedelta(days=365)
@@ -143,7 +143,7 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
         if resale_12mo_ago is not None and total_resale is not None:
             last_12mo_gain = total_resale.amount - resale_12mo_ago.amount
             last_12mo_growth_pct = (
-                last_12mo_gain / total_invested.amount * Decimal("100")
+                last_12mo_gain / total_invested.amount * Decimal(100)
             ).quantize(Decimal("0.01"))
 
     # ── Monthly chart data ────────────────────────────────────────────────────
@@ -161,10 +161,10 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
         for div in dividends:
             key = (div.payment_date.year, div.payment_date.month)
             div_by_month[key] = (
-                div_by_month.get(key, Decimal("0")) + div.net_amount.amount
+                div_by_month.get(key, Decimal(0)) + div.net_amount.amount
             )
 
-        cumulative = Decimal("0")
+        cumulative = Decimal(0)
         inv_idx = 0
         for year, month in _iter_months(min_subscription_date, today):
             last_day = calendar.monthrange(year, month)[1]
@@ -184,14 +184,14 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
                     for inv in investments
                     if inv.subscription_date <= month_date
                 ),
-                Decimal("0"),
+                Decimal(0),
             )
             month_label = f"{year}-{month:02d}"
             chart_months.append(month_label)
             chart_invested_monthly.append(float(cumulative))
             chart_estimated_monthly.append(float(estimated_at_month))
             chart_dividend_monthly.append(
-                float(div_by_month.get((year, month), Decimal("0")))
+                float(div_by_month.get((year, month), Decimal(0)))
             )
 
     # ── Dividend table JSON ────────────────────────────────────────────────────
@@ -280,10 +280,10 @@ def scpi_list(request: HttpRequest) -> HttpResponse:
     ):
         global_capital_gain = global_total_resale.amount - global_total_invested.amount
         global_gain_pct = (
-            global_capital_gain / global_total_invested.amount * Decimal("100")
+            global_capital_gain / global_total_invested.amount * Decimal(100)
         ).quantize(Decimal("0.01"))
 
-    global_net_rentability: Decimal = Decimal("0")
+    global_net_rentability: Decimal = Decimal(0)
     funds_with_net_rentability = [d for d in fund_data if d["net_rentability"] > 0]
     if funds_with_net_rentability:
         global_net_rentability = (

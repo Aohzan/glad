@@ -32,7 +32,7 @@ def _make_saving(saving_type, name, is_active=True, is_favorite=False):
         name=name,
         is_active=is_active,
         is_favorite=is_favorite,
-        opening_value=Money(Decimal("1000"), "EUR"),
+        opening_value=Money(Decimal(1000), "EUR"),
         opening_date=datetime.date.today(),
     )
 
@@ -43,7 +43,7 @@ def _make_investment(investment_type, name, is_active=True, is_favorite=False):
         name=name,
         is_active=is_active,
         is_favorite=is_favorite,
-        opening_cash_value=Money(Decimal("5000"), "EUR"),
+        opening_cash_value=Money(Decimal(5000), "EUR"),
         opening_date=datetime.date.today(),
     )
 

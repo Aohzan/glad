@@ -236,8 +236,8 @@ class InvestmentLiveChangeApiView(View):
         accounts_data = {}
         alerts = []
         for account in InvestmentAccount.objects.filter(is_active=True):
-            current_total = Decimal("0")
-            previous_total = Decimal("0")
+            current_total = Decimal(0)
+            previous_total = Decimal(0)
             as_of = None
             holdings = InvestmentAccountHolding.objects.filter(
                 account=account, is_active=True
@@ -251,7 +251,7 @@ class InvestmentLiveChangeApiView(View):
                     continue
                 if quote.currency != account.currency or quote.previous_close is None:
                     continue
-                quantity = holding.get_quantity() or Decimal("0")
+                quantity = holding.get_quantity() or Decimal(0)
                 current_total += quote.price * quantity
                 previous_total += quote.previous_close * quantity
                 as_of = quote.as_of

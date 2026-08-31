@@ -183,8 +183,8 @@
 
   // Line series for capital and interest totals
   var lineSeries = [
-    { name: '{% translate "Total capital" %}', type: 'line', data: chartData.total_capital },
-    { name: '{% translate "Total interest" %}', type: 'line', data: chartData.total_interest },
+    { name: '{% filter escapejs %}{% translate "Total capital" %}{% endfilter %}', type: 'line', data: chartData.total_capital },
+    { name: '{% filter escapejs %}{% translate "Total interest" %}{% endfilter %}', type: 'line', data: chartData.total_interest },
   ];
 
   var allSeries = barSeries.concat(lineSeries);
@@ -198,8 +198,8 @@
   for (var i = 1; i < barSeries.length; i++) {
     yaxis.push({ seriesName: barSeries[0].name, show: false });
   }
-  yaxis.push({ seriesName: '{% translate "Total capital" %}', show: false });
-  yaxis.push({ seriesName: '{% translate "Total interest" %}', show: false });
+  yaxis.push({ seriesName: '{% filter escapejs %}{% translate "Total capital" %}{% endfilter %}', show: false });
+  yaxis.push({ seriesName: '{% filter escapejs %}{% translate "Total interest" %}{% endfilter %}', show: false });
 
   var options = {
     series: allSeries,

@@ -309,7 +309,7 @@ def test_update_view_holding_initial_data_includes_isin_and_account_id(
         name="World ETF",
         isin="LU1681043599",
         is_active=True,
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
         initial_value=Money(Decimal("100.00"), "EUR"),
     )
     response = user_client.get(reverse("finance:update"))
@@ -334,7 +334,7 @@ def test_update_view_shows_fetch_button_when_isin_and_live_data_enabled(
         name="World ETF",
         isin="LU1681043599",
         is_active=True,
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
         initial_value=Money(Decimal("100.00"), "EUR"),
     )
     response = user_client.get(reverse("finance:update"))
@@ -353,7 +353,7 @@ def test_update_view_hides_fetch_button_without_isin(
         account=active_investment_account,
         name="No ISIN Holding",
         is_active=True,
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
         initial_value=Money(Decimal("100.00"), "EUR"),
     )
     response = user_client.get(reverse("finance:update"))
@@ -374,7 +374,7 @@ def test_update_view_hides_fetch_button_when_live_data_disabled(
         name="World ETF",
         isin="LU1681043599",
         is_active=True,
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
         initial_value=Money(Decimal("100.00"), "EUR"),
     )
     response = user_client.get(reverse("finance:update"))
@@ -401,7 +401,7 @@ def test_update_view_update_all_accounts(
         account=active_investment_account,
         name="Test Holding",
         is_active=True,
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
         initial_value=Money(Decimal("100.00"), "EUR"),
     )
 
@@ -687,7 +687,7 @@ def test_update_view_duplicate_values_branch(
         account=active_investment_account,
         name="Duplicate Holding",
         is_active=True,
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
         initial_value=Money(Decimal("100.00"), "EUR"),
     )
 
@@ -704,7 +704,7 @@ def test_update_view_duplicate_values_branch(
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
         value=Money(Decimal("150.00"), "EUR"),
-        quantity=Decimal("15"),
+        quantity=Decimal(15),
         valuation_date=fixed_date,
     )
 

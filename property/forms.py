@@ -34,11 +34,12 @@ class PropertyValueQuickCreateForm(MoneyInputGroupMixin, forms.ModelForm):
 
     class Meta:
         model = PropertyValue
-        fields = ["value", "valuation_date"]
+        fields = ["value", "valuation_date", "source"]
         widgets = {
             "valuation_date": forms.DateInput(
                 attrs={"type": "date"}, format="%Y-%m-%d"
             ),
+            "source": forms.HiddenInput(),
         }
 
 
@@ -134,10 +135,21 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
         fields = [
             "property_type",
             "name",
-            "address",
+            "street_number",
+            "street_name",
+            "additional_address",
+            "postal_code",
+            "city",
+            "country",
+            "latitude",
+            "longitude",
+            "insee_code",
+            "cadastral_section",
+            "cadastral_parcel_number",
             "is_active",
             "tax_regime",
             "floor_area",
+            "total_surface",
             "number_of_rooms",
             "buying_value",
             "notary_fees",
@@ -152,7 +164,23 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
         widgets = {
             "buying_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "selling_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
-            "address": forms.Textarea(attrs={"rows": 2}),
+            "street_number": forms.TextInput(attrs={"class": "form-control"}),
+            "street_name": forms.TextInput(attrs={"class": "form-control"}),
+            "additional_address": forms.TextInput(attrs={"class": "form-control"}),
+            "postal_code": forms.TextInput(attrs={"class": "form-control"}),
+            "city": forms.TextInput(attrs={"class": "form-control"}),
+            "country": forms.TextInput(attrs={"class": "form-control"}),
+            "latitude": forms.HiddenInput(),
+            "longitude": forms.HiddenInput(),
+            "insee_code": forms.TextInput(
+                attrs={"class": "form-control", "readonly": "readonly"}
+            ),
+            "cadastral_section": forms.TextInput(
+                attrs={"class": "form-control", "readonly": "readonly"}
+            ),
+            "cadastral_parcel_number": forms.TextInput(
+                attrs={"class": "form-control", "readonly": "readonly"}
+            ),
         }
 
 
@@ -169,7 +197,7 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
         required=True,
         label=_("Duration (months)"),
         help_text=_("e.g. 240 for 20 years"),
-        widget=forms.NumberInput(attrs={"placeholder": "240"}),
+        widget=forms.NumberInput(attrs={"placeholder": "240", "class": "form-control"}),
     )
 
     class Meta:
@@ -186,11 +214,20 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             "insurance_rate",
         ]
         widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "lender": forms.TextInput(attrs={"class": "form-control"}),
+            "bank_reference": forms.TextInput(attrs={"class": "form-control"}),
             "start_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
             ),
             "first_payment_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+            "interest_rate": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01"}
+            ),
+            "insurance_rate": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01"}
             ),
         }
 
@@ -199,6 +236,13 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
         # interest_rate and insurance_rate are optional (default to 0)
         self.fields["interest_rate"].required = False
         self.fields["insurance_rate"].required = False
+        # Add form-control to the MoneyField amount sub-widget
+        original_amount = self.fields.get("original_amount")
+        if original_amount and hasattr(original_amount.widget, "widgets"):
+            amount_widget = original_amount.widget.widgets[0]
+            existing_class = amount_widget.attrs.get("class", "")
+            if "form-control" not in existing_class:
+                amount_widget.attrs["class"] = f"{existing_class} form-control".strip()
         # Pre-fill duration_months from existing instance
         if self.instance and self.instance.pk:
             duration = self.instance.get_duration_months()
@@ -223,7 +267,7 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             monthly_pi, monthly_ins, _ = calculate_monthly_payment(
                 original_amount=original_amount.amount,
                 annual_interest_rate=interest_rate,
-                annual_insurance_rate=insurance_rate or Decimal("0"),
+                annual_insurance_rate=insurance_rate or Decimal(0),
                 duration_months=duration_months,
             )
             currency = str(original_amount.currency)
@@ -245,7 +289,7 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             instance.insurance = self.cleaned_data["insurance"]
         # insurance_rate defaults to 0 if not provided
         if instance.insurance_rate is None:
-            instance.insurance_rate = Decimal("0")
+            instance.insurance_rate = Decimal(0)
         if commit:
             instance.save()
         return instance
@@ -416,10 +460,10 @@ class AmortizationInitForm(forms.Form):
             "Additional amount to add to the purchase price for depreciation "
             "(notary fees, agency fees, miscellaneous). Set to 0 to exclude."
         ),
-        min_value=Decimal("0"),
+        min_value=Decimal(0),
         decimal_places=2,
         max_digits=12,
-        initial=Decimal("0"),
+        initial=Decimal(0),
         required=False,
         widget=forms.NumberInput(
             attrs={
@@ -434,8 +478,8 @@ class AmortizationInitForm(forms.Form):
         help_text=_(
             "Non-depreciable land share as a percentage of total value. Default: 15 %."
         ),
-        min_value=Decimal("0"),
-        max_value=Decimal("100"),
+        min_value=Decimal(0),
+        max_value=Decimal(100),
         decimal_places=2,
         max_digits=5,
         initial=Decimal("15.00"),
@@ -452,7 +496,7 @@ class AmortizationInitForm(forms.Form):
 
     def clean_extra_amount(self) -> Decimal:
         value = self.cleaned_data.get("extra_amount")
-        return value if value is not None else Decimal("0")
+        return value if value is not None else Decimal(0)
 
 
 # ─── SCPI ────────────────────────────────────────────────────────────────────────────────

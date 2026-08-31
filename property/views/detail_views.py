@@ -47,6 +47,40 @@ class PropertyDetailView(DetailView):
     template_name = "property/detail.html"
     context_object_name = "property"
 
+    _DVF_STALE_MONTHS = 6
+
+    def _is_dvf_estimate_stale(self, property_obj: Property) -> bool:
+        """Return True if the latest DVF estimate is older than 6 months (or absent).
+
+        Only properties that *could* have a DVF estimate (house, apartment, condo
+        with floor area and cadastral info) are considered.  Properties without
+        the required data are not flagged.
+        """
+        if not (property_obj.total_surface or property_obj.floor_area):
+            return False
+        if not property_obj.insee_code or not property_obj.cadastral_section:
+            return False
+        if property_obj.property_type not in (
+            Property.HOUSE,
+            Property.APARTMENT,
+            Property.CONDO,
+        ):
+            return False
+        latest_dvf = (
+            PropertyValue.objects.filter(
+                property=property_obj,
+                source=PropertyValue.Source.DVF_ESTIMATE,
+            )
+            .order_by("-valuation_date")
+            .first()
+        )
+        if latest_dvf is None:
+            return True
+        cutoff = datetime.date.today() - datetime.timedelta(
+            days=30 * self._DVF_STALE_MONTHS
+        )
+        return latest_dvf.valuation_date < cutoff
+
     def _parse_balance_sheet_range(
         self,
     ) -> tuple[datetime.date, datetime.date]:
@@ -107,8 +141,8 @@ class PropertyDetailView(DetailView):
 
         try:
             value = Decimal(raw_growth_rate)
-            if value > Decimal("1"):
-                value = value / Decimal("100")
+            if value > Decimal(1):
+                value = value / Decimal(100)
             if value < Decimal("-0.99"):
                 return default_rate
             return value
@@ -125,7 +159,7 @@ class PropertyDetailView(DetailView):
         for years in projection_years:
             as_of_date = add_years_safe(today, years)
             projected_amount = current_value.amount * (
-                (Decimal("1") + growth_rate) ** years
+                (Decimal(1) + growth_rate) ** years
             )
             projected_value = Money(projected_amount, str(current_value.currency))
             projected_debt = property_obj.total_remaining_loans_at_date(as_of_date)
@@ -176,7 +210,7 @@ class PropertyDetailView(DetailView):
                 )
             historical_debt = property_obj.total_remaining_loans_at_date(chart_date)
             net_amount = max(
-                Decimal("0"), historical_value.amount - historical_debt.amount
+                Decimal(0), historical_value.amount - historical_debt.amount
             )
             value_history_series.append(
                 {"x": chart_date.isoformat(), "y": float(historical_value.amount)}
@@ -188,7 +222,7 @@ class PropertyDetailView(DetailView):
                 {"x": chart_date.isoformat(), "y": float(net_amount)}
             )
 
-        current_net = max(Decimal("0"), current_value.amount - current_debt.amount)
+        current_net = max(Decimal(0), current_value.amount - current_debt.amount)
         value_projection_series = [
             {"x": today.isoformat(), "y": float(current_value.amount)}
         ]
@@ -245,7 +279,7 @@ class PropertyDetailView(DetailView):
             for occurrence in entry.generate_occurrences(end_date=end_of_month):
                 key = (occurrence["date"].year, occurrence["date"].month)
                 by_month[key] = (
-                    by_month.get(key, Decimal("0")) + occurrence["amount"].amount
+                    by_month.get(key, Decimal(0)) + occurrence["amount"].amount
                 )
         return by_month
 
@@ -263,7 +297,7 @@ class PropertyDetailView(DetailView):
 
         for loan in loans_qs:
             insurance_amount = (
-                loan.insurance.amount if loan.insurance is not None else Decimal("0")
+                loan.insurance.amount if loan.insurance is not None else Decimal(0)
             )
 
             # When amortization entries exist, use them for interest and principal.
@@ -274,25 +308,21 @@ class PropertyDetailView(DetailView):
                 for entry in amort_entries:
                     key = (entry.date.year, entry.date.month)
                     loan_interest_by_month[key] = (
-                        loan_interest_by_month.get(key, Decimal("0"))
+                        loan_interest_by_month.get(key, Decimal(0))
                         + entry.interest.amount
                     )
                     loan_principal_by_month[key] = (
-                        loan_principal_by_month.get(key, Decimal("0"))
+                        loan_principal_by_month.get(key, Decimal(0))
                         + entry.capital.amount
                     )
                 # Insurance is not in amortization entries; derive from loan params.
-                if (
-                    insurance_amount > Decimal("0")
-                    and loan.start_date
-                    and loan.end_date
-                ):
+                if insurance_amount > Decimal(0) and loan.start_date and loan.end_date:
                     _, _, insurance_map = build_loan_maps_from_loan_obj(
                         loan, insurance_amount
                     )
                     for key, value in insurance_map.items():
                         loan_insurance_by_month[key] = (
-                            loan_insurance_by_month.get(key, Decimal("0")) + value
+                            loan_insurance_by_month.get(key, Decimal(0)) + value
                         )
                 continue
 
@@ -306,15 +336,15 @@ class PropertyDetailView(DetailView):
 
             for key, value in interest_map.items():
                 loan_interest_by_month[key] = (
-                    loan_interest_by_month.get(key, Decimal("0")) + value
+                    loan_interest_by_month.get(key, Decimal(0)) + value
                 )
             for key, value in principal_map.items():
                 loan_principal_by_month[key] = (
-                    loan_principal_by_month.get(key, Decimal("0")) + value
+                    loan_principal_by_month.get(key, Decimal(0)) + value
                 )
             for key, value in insurance_map.items():
                 loan_insurance_by_month[key] = (
-                    loan_insurance_by_month.get(key, Decimal("0")) + value
+                    loan_insurance_by_month.get(key, Decimal(0)) + value
                 )
 
         return loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month
@@ -342,18 +372,18 @@ class PropertyDetailView(DetailView):
         monthly_cashflows = []
         for m in months:
             key = (m.year, m.month)
-            rev = revenue_by_month.get(key, Decimal("0"))
-            exp = expense_by_month.get(key, Decimal("0"))
-            interest = loan_interest_by_month.get(key, Decimal("0"))
-            principal = loan_principal_by_month.get(key, Decimal("0"))
-            insurance = loan_insurance_by_month.get(key, Decimal("0"))
+            rev = revenue_by_month.get(key, Decimal(0))
+            exp = expense_by_month.get(key, Decimal(0))
+            interest = loan_interest_by_month.get(key, Decimal(0))
+            principal = loan_principal_by_month.get(key, Decimal(0))
+            insurance = loan_insurance_by_month.get(key, Decimal(0))
             # Skip months with no financial activity at all (no data)
             if not (rev or exp or interest or principal or insurance):
                 continue
             monthly_cashflows.append(rev - exp - interest - principal - insurance)
 
         if not monthly_cashflows:
-            return Decimal("0")
+            return Decimal(0)
 
         return Decimal(str(statistics.median(monthly_cashflows)))
 
@@ -399,7 +429,7 @@ class PropertyDetailView(DetailView):
             for occurrence in entry.generate_occurrences(end_date=end_of_month):
                 key = (occurrence["date"].year, occurrence["date"].month)
                 expense_by_mgmt_cat[cat_key]["by_month"][key] = (
-                    expense_by_mgmt_cat[cat_key]["by_month"].get(key, Decimal("0"))
+                    expense_by_mgmt_cat[cat_key]["by_month"].get(key, Decimal(0))
                     + occurrence["amount"].amount
                 )
 
@@ -548,14 +578,14 @@ class PropertyDetailView(DetailView):
                 for entry in loan.amortization_entries.all():
                     key = (entry.date.year, entry.date.month)
                     capital_map[key] = (
-                        capital_map.get(key, Decimal("0")) + entry.capital.amount
+                        capital_map.get(key, Decimal(0)) + entry.capital.amount
                     )
                     interest_map[key] = (
-                        interest_map.get(key, Decimal("0")) + entry.interest.amount
+                        interest_map.get(key, Decimal(0)) + entry.interest.amount
                     )
             elif loan.monthly_payment is not None and loan.interest_rate is not None:
                 insurance_amount = (
-                    loan.insurance.amount if loan.insurance else Decimal("0")
+                    loan.insurance.amount if loan.insurance else Decimal(0)
                 )
                 interest_map, capital_map, insurance_map = build_loan_monthly_maps(
                     start_date=loan.start_date,
@@ -575,17 +605,17 @@ class PropertyDetailView(DetailView):
             total_map: dict[tuple[int, int], Decimal] = {}
             for key in all_months:
                 total = (
-                    capital_map.get(key, Decimal("0"))
-                    + interest_map.get(key, Decimal("0"))
-                    + insurance_map.get(key, Decimal("0"))
+                    capital_map.get(key, Decimal(0))
+                    + interest_map.get(key, Decimal(0))
+                    + insurance_map.get(key, Decimal(0))
                 )
                 total_map[key] = total
-                all_capital[key] = all_capital.get(key, Decimal("0")) + capital_map.get(
-                    key, Decimal("0")
+                all_capital[key] = all_capital.get(key, Decimal(0)) + capital_map.get(
+                    key, Decimal(0)
                 )
                 all_interest[key] = all_interest.get(
-                    key, Decimal("0")
-                ) + interest_map.get(key, Decimal("0"))
+                    key, Decimal(0)
+                ) + interest_map.get(key, Decimal(0))
 
             sorted_months = sorted(total_map.keys())
             loan_series.append(
@@ -601,11 +631,11 @@ class PropertyDetailView(DetailView):
         # Build aggregate lines
         all_months_sorted = sorted(set(all_capital) | set(all_interest))
         total_capital_series = [
-            {"x": f"{y}-{m:02d}-01", "y": float(all_capital.get((y, m), Decimal("0")))}
+            {"x": f"{y}-{m:02d}-01", "y": float(all_capital.get((y, m), Decimal(0)))}
             for y, m in all_months_sorted
         ]
         total_interest_series = [
-            {"x": f"{y}-{m:02d}-01", "y": float(all_interest.get((y, m), Decimal("0")))}
+            {"x": f"{y}-{m:02d}-01", "y": float(all_interest.get((y, m), Decimal(0)))}
             for y, m in all_months_sorted
         ]
 
@@ -750,7 +780,7 @@ class PropertyDetailView(DetailView):
                             - property_obj.buying_value_gross.amount
                         )
                         / property_obj.buying_value_gross.amount
-                        * Decimal("100")
+                        * Decimal(100)
                     )
                     if property_obj.buying_value_gross.amount
                     else None
@@ -774,6 +804,7 @@ class PropertyDetailView(DetailView):
                 "property_values": PropertyValue.objects.filter(
                     property=property_obj
                 ).order_by("-valuation_date"),
+                "dvf_estimate_stale": self._is_dvf_estimate_stale(property_obj),
                 "property_leases": property_leases,
                 "property_mandates": property_mandates,
                 "loans_count": loans_count,
@@ -802,7 +833,7 @@ class PropertyDetailView(DetailView):
 
 def _make_panel_view(
     property_obj: Property, request: HttpRequest
-) -> "PropertyDetailView":
+) -> PropertyDetailView:
     """Create a lightweight PropertyDetailView instance to reuse helper methods."""
     view = PropertyDetailView()
     view.object = property_obj
@@ -880,7 +911,7 @@ def property_panel_projection(request: HttpRequest, pk: int) -> HttpResponse:
     context = {
         "property": prop,
         "growth_rate": growth_rate,
-        "growth_rate_percent": growth_rate * Decimal("100"),
+        "growth_rate_percent": growth_rate * Decimal(100),
         "projection_points": projections,
         "value_history_series": value_history_series,
         "debt_history_series": debt_history_series,

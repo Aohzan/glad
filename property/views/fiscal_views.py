@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from property.forms import (
-    AmortizationAssetForm,  # noqa: F401
+    AmortizationAssetForm,
     AmortizationInitForm,
     PropertyReportFilterForm,
 )
@@ -44,7 +44,7 @@ def get_amortization_context(property_obj: Property) -> dict:
     # Compute default acquisition fees for the init form
     from decimal import Decimal
 
-    acquisition_fees_total = Decimal("0")
+    acquisition_fees_total = Decimal(0)
     acquisition_fees_breakdown: dict[str, Decimal] = {}
     for attr, label in (
         ("notary_fees", _("Notary fees")),

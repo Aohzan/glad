@@ -369,7 +369,7 @@ class Migration(migrations.Migration):
                     "opening_cash_value",
                     djmoney.models.fields.MoneyField(
                         decimal_places=2,
-                        default=djmoney.money.Money(Decimal("0"), "EUR"),
+                        default=djmoney.money.Money(Decimal(0), "EUR"),
                         max_digits=10,
                     ),
                 ),
@@ -420,7 +420,7 @@ class Migration(migrations.Migration):
                     "interest_rate",
                     models.DecimalField(
                         decimal_places=2,
-                        default=Decimal("0"),
+                        default=Decimal(0),
                         help_text="Interest rate in percentage",
                         max_digits=5,
                     ),
@@ -747,7 +747,7 @@ class Migration(migrations.Migration):
                     "opening_value",
                     djmoney.models.fields.MoneyField(
                         decimal_places=2,
-                        default=djmoney.money.Money(Decimal("0"), "EUR"),
+                        default=djmoney.money.Money(Decimal(0), "EUR"),
                         max_digits=10,
                     ),
                 ),
@@ -773,7 +773,7 @@ class Migration(migrations.Migration):
                     "fees",
                     models.DecimalField(
                         decimal_places=2,
-                        default=Decimal("0"),
+                        default=Decimal(0),
                         help_text="Fees associated with the holding, in percentage",
                         max_digits=5,
                     ),
@@ -1115,7 +1115,7 @@ class Migration(migrations.Migration):
                     "initial_value",
                     djmoney.models.fields.MoneyField(
                         decimal_places=2,
-                        default=djmoney.money.Money(Decimal("0"), "EUR"),
+                        default=djmoney.money.Money(Decimal(0), "EUR"),
                         max_digits=10,
                     ),
                 ),
@@ -1849,7 +1849,7 @@ class Migration(migrations.Migration):
                     "amount",
                     djmoney.models.fields.MoneyField(
                         decimal_places=2,
-                        default=djmoney.money.Money(Decimal("0"), "EUR"),
+                        default=djmoney.money.Money(Decimal(0), "EUR"),
                         max_digits=10,
                     ),
                 ),

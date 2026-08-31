@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var bigHoldings = [];
       var smallHoldings = [];
       rawHoldings.forEach(function(h) {
-        if (h.name === '{% translate "Cash" %}') {
+        if (h.name === '{% filter escapejs %}{% translate "Cash" %}{% endfilter %}') {
           cashHolding = h;
         } else {
           var lastVal = h.data.length ? h.data[h.data.length - 1].value : 0;
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var otherData = Object.keys(otherDataMap).sort().map(function(date) {
           return { date: date, value: otherDataMap[date] };
         });
-        otherHolding = { name: '{% translate "Other" %}', data: otherData };
+        otherHolding = { name: '{% filter escapejs %}{% translate "Other" %}{% endfilter %}', data: otherData };
       }
 
       // Final ordered list: big holdings (descending), Other, Cash (on top)
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return { name: h.name, data: h.data.map(function(d) { return { x: d.date, y: d.value }; }) };
       });
       var colors = displayHoldings.map(function(h, i) {
-        if (h.name === '{% translate "Other" %}') return otherColor;
+        if (h.name === '{% filter escapejs %}{% translate "Other" %}{% endfilter %}') return otherColor;
         var idx = bigHoldings.indexOf(h);
         return idx >= 0 ? holdingPalette[idx % holdingPalette.length] : (cashHolding && h === cashHolding ? holdingPalette[bigHoldings.length % holdingPalette.length] : otherColor);
       });
@@ -228,12 +228,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (invVal != null) {
               rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 0;margin-top:4px;border-top:1px solid ' + border + ';">' +
-                '<span style="color:' + textMuted + ';font-size:12px;">{% translate "Invested" %}</span>' +
+                '<span style="color:' + textMuted + ';font-size:12px;">{% filter escapejs %}{% translate "Invested" %}{% endfilter %}</span>' +
                 '<span style="font-weight:600;font-size:12px;">' + formatCurrency(invVal) + '</span>' +
               '</div>';
               if (gainVal != null) {
                 rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">' +
-                  '<span style="color:' + textMuted + ';font-size:12px;">{% translate "Capital gain" %}</span>' +
+                  '<span style="color:' + textMuted + ';font-size:12px;">{% filter escapejs %}{% translate "Capital gain" %}{% endfilter %}</span>' +
                   '<span style="font-weight:600;font-size:12px;color:' + gainColor + ';">' +
                     formatCurrency(gainVal) +
                     (gainPct != null ? ' <span style="font-size:11px;">(' + (gainPct >= 0 ? '+' : '') + gainPct.toFixed(1) + '%)</span>' : '') +
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:10px 14px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.15);">' +
               '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' + label + '</div>' +
               '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 6px;border-bottom:1px solid ' + border + ';margin-bottom:6px;">' +
-                '<span style="font-size:13px;font-weight:600;">{% translate "Total" %}</span>' +
+                '<span style="font-size:13px;font-weight:600;">{% filter escapejs %}{% translate "Total" %}{% endfilter %}</span>' +
                 '<span style="font-size:13px;font-weight:700;">' + formatCurrency(total) + '</span>' +
               '</div>' +
               rows +
@@ -271,13 +271,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (hasValues) {
         evolutionSeries.push({
-          name: '{% translate "Total" %}',
+          name: '{% filter escapejs %}{% translate "Total" %}{% endfilter %}',
           data: data.values.map(function(v) { return { x: v.date, y: v.value }; }),
         });
       }
       if (hasInvested) {
         evolutionSeries.push({
-          name: '{% translate "Invested" %}',
+          name: '{% filter escapejs %}{% translate "Invested" %}{% endfilter %}',
           data: data.invested.map(function(v) { return { x: v.date, y: v.value }; }),
         });
       }
@@ -337,8 +337,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
               var totalVal = null, invVal = null;
               for (var i = 0; i < w.globals.seriesNames.length; i++) {
-                if (w.globals.seriesNames[i] === '{% translate "Total" %}') totalVal = s[i][dpi];
-                if (w.globals.seriesNames[i] === '{% translate "Invested" %}') invVal = s[i][dpi];
+                if (w.globals.seriesNames[i] === '{% filter escapejs %}{% translate "Total" %}{% endfilter %}') totalVal = s[i][dpi];
+                if (w.globals.seriesNames[i] === '{% filter escapejs %}{% translate "Invested" %}{% endfilter %}') invVal = s[i][dpi];
               }
 
               var rows = '';
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">' +
                   '<span style="display:flex;align-items:center;gap:6px;color:' + textMuted + ';font-size:12px;">' +
                     '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + w.globals.colors[0] + ';flex-shrink:0;"></span>' +
-                    '{% translate "Total" %}</span>' +
+                    '{% filter escapejs %}{% translate "Total" %}{% endfilter %}</span>' +
                   '<span style="font-weight:600;font-size:12px;">' + formatCurrency(totalVal) + '</span>' +
                 '</div>';
               }
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">' +
                   '<span style="display:flex;align-items:center;gap:6px;color:' + textMuted + ';font-size:12px;">' +
                     '<span style="display:inline-block;width:8px;height:2px;border-radius:1px;background:' + w.globals.colors[1] + ';flex-shrink:0;"></span>' +
-                    '{% translate "Invested" %}</span>' +
+                    '{% filter escapejs %}{% translate "Invested" %}{% endfilter %}</span>' +
                   '<span style="font-weight:600;font-size:12px;">' + formatCurrency(invVal) + '</span>' +
                 '</div>';
               }
@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var gainPct = invVal !== 0 ? (gainVal / invVal * 100) : null;
                 var gainColor = gainVal >= 0 ? (dark ? '#4ade80' : '#16a34a') : (dark ? '#f87171' : '#dc2626');
                 rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 0;margin-top:4px;border-top:1px solid ' + border + ';">' +
-                  '<span style="color:' + textMuted + ';font-size:12px;">{% translate "Capital gain" %}</span>' +
+                  '<span style="color:' + textMuted + ';font-size:12px;">{% filter escapejs %}{% translate "Capital gain" %}{% endfilter %}</span>' +
                   '<span style="font-weight:600;font-size:12px;color:' + gainColor + ';">' +
                     formatCurrency(gainVal) +
                     (gainPct != null ? ' <span style="font-size:11px;">(' + (gainPct >= 0 ? '+' : '') + gainPct.toFixed(1) + '%)</span>' : '') +
@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         const donutLabels = holdingsOnly.map(function(h) { return h.name; });
         const donutColors = holdingsOnly.map(function(h, i) {
-          if (h.name === '{% translate "Other" %}') return otherColor;
+          if (h.name === '{% filter escapejs %}{% translate "Other" %}{% endfilter %}') return otherColor;
           var idx = bigHoldings.indexOf(h);
           return idx >= 0 ? holdingPalette[idx % holdingPalette.length] : otherColor;
         });
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
             show: true,
             total: {
               show: true,
-              label: '{% translate "Total" %}',
+              label: '{% filter escapejs %}{% translate "Total" %}{% endfilter %}',
               fontSize: '12px',
               fontWeight: 600,
               formatter: function(w) {
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     })
     .catch(function() {
-      document.getElementById('accountChart').innerHTML = '<p class="text-center text-muted py-4"><i class="bi bi-exclamation-circle me-1"></i>{% translate "Could not load chart data." %}</p>';
+      document.getElementById('accountChart').innerHTML = '<p class="text-center text-muted py-4"><i class="bi bi-exclamation-circle me-1"></i>{% filter escapejs %}{% translate "Could not load chart data." %}{% endfilter %}</p>';
     });
 });
 </script>

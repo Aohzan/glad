@@ -151,7 +151,7 @@
       [...propSelect.options].forEach(opt => { opt.selected = true; });
     }
     new MultiSelect('#{{ form.properties.id_for_label }}', {
-      placeholder: '{% translate "Select properties" %}',
+      placeholder: '{% filter escapejs %}{% translate "Select properties" %}{% endfilter %}',
       search: true,
       selectAll: true,
       listAll: false,

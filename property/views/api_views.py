@@ -1,15 +1,19 @@
 """API views for the property app — JSON endpoints for the dashboard property cards."""
 
 import datetime
+from decimal import Decimal, InvalidOperation
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
 
 from property.models import Property
 from property.models.scpi import SCPI
 from property.services.cashflow import build_balance_sheet
+from property.services.dvf_estimation import estimate_property_value
+from property.services.geocoding import lookup_cadastral_parcel, search_addresses
 from property.utils import month_end, month_start
 
 
@@ -57,7 +61,7 @@ class PropertyDashboardCardApiView(View):
             {
                 "pk": prop.pk,
                 "name": prop.name,
-                "address": prop.address or "",
+                "address": prop.full_address,
                 "property_type": prop.property_type,
                 "property_type_display": dict(Property.PROPERTY_CHOICES).get(
                     prop.property_type, prop.property_type
@@ -69,6 +73,9 @@ class PropertyDashboardCardApiView(View):
                 "buying_value_gross": float(prop.buying_value_gross.amount),
                 "appreciation_percent": round(prop.appreciation_percent, 2),
                 "floor_area": float(prop.floor_area) if prop.floor_area else None,
+                "total_surface": float(prop.total_surface)
+                if prop.total_surface
+                else None,
                 "number_of_rooms": prop.number_of_rooms,
                 "loan_progress_percent": round(prop.loan_progress_percent, 1),
                 "total_remaining_loans": float(prop.total_remaining_loans.amount),
@@ -129,3 +136,78 @@ class SCPIDashboardCardApiView(View):
                 "currency": data["currency"],
             }
         )
+
+
+@method_decorator(login_required, name="dispatch")
+class AddressAutocompleteApiView(View):
+    """Return address suggestions from the BAN API for autocomplete widgets."""
+
+    def get(self, request):
+        query = request.GET.get("q", "").strip()
+        if len(query) < 3:
+            return JsonResponse({"results": []})
+        results = search_addresses(query, limit=5)
+        return JsonResponse({"results": results})
+
+
+@method_decorator(login_required, name="dispatch")
+class CadastralLookupApiView(View):
+    """Look up cadastral section/parcel for a property via IGN APICarto."""
+
+    def get(self, request, pk: int):
+        prop = get_object_or_404(Property, pk=pk)
+        latitude = prop.latitude
+        longitude = prop.longitude
+        insee_code = prop.insee_code
+        # Allow unsaved form coordinates (query params) so the lookup works
+        # before the property is saved.
+        try:
+            lat_param = request.GET.get("lat")
+            lon_param = request.GET.get("lon")
+            if lat_param is not None:
+                latitude = Decimal(lat_param)
+            if lon_param is not None:
+                longitude = Decimal(lon_param)
+            insee_param = request.GET.get("insee")
+            if insee_param:
+                insee_code = insee_param
+        except InvalidOperation, ValueError:
+            return JsonResponse(
+                {"error": "invalid_coordinates"},
+                status=400,
+            )
+        if latitude is None or longitude is None:
+            return JsonResponse(
+                {"error": "missing_coordinates"},
+                status=400,
+            )
+        result = lookup_cadastral_parcel(latitude, longitude, insee_code=insee_code)
+        if result is None:
+            return JsonResponse(
+                {"error": "cadastral_not_found"},
+                status=404,
+            )
+        return JsonResponse(result)
+
+
+@method_decorator(login_required, name="dispatch")
+class PropertyDvfEstimateApiView(View):
+    """Return a DVF-based value estimation for a property."""
+
+    def get(self, request, pk: int):
+        prop = get_object_or_404(Property, pk=pk)
+        result = estimate_property_value(prop)
+        data: dict = {
+            "comparable_count": result.comparable_count,
+            "reason": result.reason,
+            "total_mutations": result.total_mutations,
+            "filtered_by_type": result.filtered_by_type,
+            "filtered_by_date": result.filtered_by_date,
+            "filtered_by_invalid": result.filtered_by_invalid,
+        }
+        if result.median_price_per_sqm is not None:
+            data["median_price_per_sqm"] = str(result.median_price_per_sqm)
+        if result.estimated_value is not None:
+            data["estimated_value"] = float(result.estimated_value.amount)
+            data["currency"] = str(result.estimated_value.currency)
+        return JsonResponse(data)

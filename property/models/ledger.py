@@ -2,7 +2,7 @@
 
 import datetime
 import enum
-from typing import ClassVar
+from typing import ClassVar, Self
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -40,7 +40,7 @@ class ManagementCategory(str, enum.Enum):
         lmnp_section: str | None = None,
         lmnp_line: str | None = None,
         lmnp_label: str = "",
-    ) -> "ManagementCategory":
+    ) -> Self:
         obj = str.__new__(cls, value)
         obj._value_ = value
         obj._label_ = label
@@ -348,9 +348,12 @@ class PropertyLedgerEntry(BaseModel):
 
     def clean(self) -> None:
         """Validate amount positivity and flow_type / management_category coherence."""
-        if self.amount is not None and hasattr(self.amount, "amount"):
-            if self.amount.amount <= 0:
-                raise ValidationError({"amount": _("Amount must be positive.")})
+        if (
+            self.amount is not None
+            and hasattr(self.amount, "amount")
+            and self.amount.amount <= 0
+        ):
+            raise ValidationError({"amount": _("Amount must be positive.")})
 
         if self.flow_type and self.management_category:
             is_income_category = self.management_category in self._INCOME_CATEGORIES

@@ -115,9 +115,9 @@ class TestGetLmnpSummary:
     def test_empty_summary(self, property_obj):
         result = get_lmnp_summary(property_obj.pk, 2023)
         assert result["year"] == 2023
-        assert result["recettes"] == Decimal("0")
-        assert result["charges"] == Decimal("0")
-        assert result["result"] == Decimal("0")
+        assert result["recettes"] == Decimal(0)
+        assert result["charges"] == Decimal(0)
+        assert result["result"] == Decimal(0)
         assert result["by_category"] == {}
         assert result["by_line"] == {}
 
@@ -131,7 +131,7 @@ class TestGetLmnpSummary:
         )
         result = get_lmnp_summary(property_obj.pk, 2023)
         assert result["recettes"] == Decimal("1200.00")
-        assert result["charges"] == Decimal("0")
+        assert result["charges"] == Decimal(0)
         assert result["result"] == Decimal("1200.00")
         assert "rent_collected" in result["by_category"]
         assert "218" in result["by_line"]
@@ -197,8 +197,8 @@ class TestGetLmnpSummary:
         )
         result = get_lmnp_summary(property_obj.pk, 2023)
         # deposit_in and loan_repayment have section=None, so not counted
-        assert result["recettes"] == Decimal("0")
-        assert result["charges"] == Decimal("0")
+        assert result["recettes"] == Decimal(0)
+        assert result["charges"] == Decimal(0)
 
     def test_summary_filters_by_year(self, property_obj):
         PropertyLedgerEntry.objects.create(
@@ -250,8 +250,8 @@ class TestGetLmnpSummary:
         )
         # 'non_deductible' has lmnp_section=None, so it must be excluded from the tax result
         result = get_lmnp_summary(property_obj.pk, 2023)
-        assert result["recettes"] == Decimal("0")
-        assert result["charges"] == Decimal("0")
+        assert result["recettes"] == Decimal(0)
+        assert result["charges"] == Decimal(0)
         entry.delete()
 
     def test_summary_alur_works_fund_excluded_from_charges(self, property_obj):
@@ -264,10 +264,10 @@ class TestGetLmnpSummary:
             entry_date=datetime.date(2023, 1, 1),
         )
         result = get_lmnp_summary(property_obj.pk, 2023)
-        assert result["charges"] == Decimal("0"), (
+        assert result["charges"] == Decimal(0), (
             "ALUR works fund must not be in taxable charges"
         )
-        assert result["recettes"] == Decimal("0")
+        assert result["recettes"] == Decimal(0)
 
     def test_summary_other_income_maps_to_line_209(self, property_obj):
         PropertyLedgerEntry.objects.create(
@@ -318,7 +318,7 @@ class TestGetLmnpSummary:
         assert "loan_insurance" in line_242_keys
 
         # Zero-value categories are included
-        zero_cats = [cat for cat in blc["242"] if cat["amount"] == Decimal("0")]
+        zero_cats = [cat for cat in blc["242"] if cat["amount"] == Decimal(0)]
         assert len(zero_cats) > 0
 
         # Non-zero rent_collected is reflected in "recettes" group
@@ -364,7 +364,7 @@ class TestLoanInsuranceClassification:
             entry_date=datetime.date(2023, 3, 1),
         )
         result = get_lmnp_summary(property_obj.pk, 2023)
-        assert result["by_line"].get("242", Decimal("0")) == Decimal("999.00")
+        assert result["by_line"].get("242", Decimal(0)) == Decimal("999.00")
         assert "294" not in result["by_line"]
         assert result["charges"] == Decimal("999.00")
 
@@ -415,7 +415,7 @@ class TestLoanInsuranceClassification:
             property=prop,
             flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
             management_category=PropertyLedgerEntry.ManagementCategory.MANAGEMENT_FEES,
-            amount=Money(Decimal("1000"), "EUR"),
+            amount=Money(Decimal(1000), "EUR"),
             entry_date=datetime.date(2020, 6, 1),
         )
         # Year 2021: another deficit of 500
@@ -423,7 +423,7 @@ class TestLoanInsuranceClassification:
             property=prop,
             flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
             management_category=PropertyLedgerEntry.ManagementCategory.MANAGEMENT_FEES,
-            amount=Money(Decimal("500"), "EUR"),
+            amount=Money(Decimal(500), "EUR"),
             entry_date=datetime.date(2021, 6, 1),
         )
         # Year 2022: profit of 800 (less than first deficit 1000, triggers break)
@@ -431,14 +431,14 @@ class TestLoanInsuranceClassification:
             property=prop,
             flow_type=PropertyLedgerEntry.FlowType.INCOME,
             management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            amount=Money(Decimal("800"), "EUR"),
+            amount=Money(Decimal(800), "EUR"),
             entry_date=datetime.date(2022, 6, 1),
         )
         result = get_fiscal_deficit_history(prop.pk, 2022)
         # 800 profit absorbs 800 of the 1000 deficit from 2020, leaving 200
         # 2021 deficit of 500 is untouched (loop broke)
-        assert result[2020] == Decimal("200")
-        assert result[2021] == Decimal("500")
+        assert result[2020] == Decimal(200)
+        assert result[2021] == Decimal(500)
 
 
 @pytest.mark.django_db
@@ -452,9 +452,9 @@ class TestGetAmortizationSchedule:
         )
         result = get_amortization_schedule(prop.pk)
         assert result["rows"] == []
-        assert result["total_depreciable_base"] == Decimal("0")
-        assert result["amortized_to_date"] == Decimal("0")
-        assert result["remaining"] == Decimal("0")
+        assert result["total_depreciable_base"] == Decimal(0)
+        assert result["amortized_to_date"] == Decimal(0)
+        assert result["remaining"] == Decimal(0)
         assert result["end_year"] is None
 
     def test_schedule_has_rows_with_assets(self):
@@ -473,9 +473,9 @@ class TestGetAmortizationSchedule:
         )
         result = get_amortization_schedule(prop.pk)
         assert len(result["rows"]) > 0
-        assert result["total_depreciable_base"] == Decimal("170000")
+        assert result["total_depreciable_base"] == Decimal(170000)
         assert result["end_year"] == 2094  # 2020 + 75 - 1
-        assert result["remaining"] >= Decimal("0")
+        assert result["remaining"] >= Decimal(0)
 
     def test_schedule_row_structure(self):
         prop = Property.objects.create(
@@ -535,8 +535,8 @@ class TestGetBilanData:
         prop.delete()
         # Should not raise even with missing property
         result = get_bilan_data(prop_id, 2025)
-        assert result["capital_individuel"] == Decimal("0")
-        assert result["total_capitaux_propres"] == Decimal("0")
+        assert result["capital_individuel"] == Decimal(0)
+        assert result["total_capitaux_propres"] == Decimal(0)
 
     def test_bilan_basic_fields_present(self):
         prop = Property.objects.create(
@@ -606,16 +606,16 @@ class TestAmortizationEntryFallbackForLoanInterest:
         PropertyLoanAmortizationEntry.objects.create(
             loan=loan,
             date=datetime.date(2022, 1, 1),
-            capital=Money(Decimal("500"), "EUR"),
+            capital=Money(Decimal(500), "EUR"),
             interest=Money(Decimal("437.50"), "EUR"),
-            remaining_balance_amount=Money(Decimal("149500"), "EUR"),
+            remaining_balance_amount=Money(Decimal(149500), "EUR"),
         )
         PropertyLoanAmortizationEntry.objects.create(
             loan=loan,
             date=datetime.date(2022, 2, 1),
-            capital=Money(Decimal("502"), "EUR"),
+            capital=Money(Decimal(502), "EUR"),
             interest=Money(Decimal("435.50"), "EUR"),
-            remaining_balance_amount=Money(Decimal("148998"), "EUR"),
+            remaining_balance_amount=Money(Decimal(148998), "EUR"),
         )
 
         totals = _get_category_totals_for_year(prop.pk, 2022)
@@ -634,7 +634,7 @@ class TestAmortizationEntryFallbackForLoanInterest:
             property=prop,
             flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
             management_category=PropertyLedgerEntry.ManagementCategory.LOAN_INTEREST,
-            amount=Money(Decimal("1200"), "EUR"),
+            amount=Money(Decimal(1200), "EUR"),
             entry_date=datetime.date(2022, 6, 1),
             recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
         )
@@ -643,14 +643,14 @@ class TestAmortizationEntryFallbackForLoanInterest:
         PropertyLoanAmortizationEntry.objects.create(
             loan=loan,
             date=datetime.date(2022, 6, 1),
-            capital=Money(Decimal("500"), "EUR"),
+            capital=Money(Decimal(500), "EUR"),
             interest=Money(Decimal("437.50"), "EUR"),
-            remaining_balance_amount=Money(Decimal("149500"), "EUR"),
+            remaining_balance_amount=Money(Decimal(149500), "EUR"),
         )
 
         totals = _get_category_totals_for_year(prop.pk, 2022)
         # Should use the manual ledger entry (1200), not the amortization entry (437.50)
-        assert totals["loan_interest"] == Decimal("1200")
+        assert totals["loan_interest"] == Decimal(1200)
 
     def test_no_amortization_entries_defaults_to_zero(self):
         """When no ledger entries and no amortization entries, loan_interest is absent/zero."""
@@ -661,7 +661,7 @@ class TestAmortizationEntryFallbackForLoanInterest:
 
         totals = _get_category_totals_for_year(prop.pk, 2022)
         # No amortization entries → loan_interest not in totals (defaults to 0)
-        assert totals.get("loan_interest", Decimal("0")) == Decimal("0")
+        assert totals.get("loan_interest", Decimal(0)) == Decimal(0)
 
     def test_amortization_entries_outside_year_not_counted(self):
         """Only amortization entries within the requested year are summed."""
@@ -674,21 +674,21 @@ class TestAmortizationEntryFallbackForLoanInterest:
         PropertyLoanAmortizationEntry.objects.create(
             loan=loan,
             date=datetime.date(2022, 6, 1),
-            capital=Money(Decimal("500"), "EUR"),
-            interest=Money(Decimal("300"), "EUR"),
-            remaining_balance_amount=Money(Decimal("149500"), "EUR"),
+            capital=Money(Decimal(500), "EUR"),
+            interest=Money(Decimal(300), "EUR"),
+            remaining_balance_amount=Money(Decimal(149500), "EUR"),
         )
         # Entry in 2021 (excluded when querying 2022)
         PropertyLoanAmortizationEntry.objects.create(
             loan=loan,
             date=datetime.date(2021, 12, 1),
-            capital=Money(Decimal("495"), "EUR"),
-            interest=Money(Decimal("999"), "EUR"),
-            remaining_balance_amount=Money(Decimal("150000"), "EUR"),
+            capital=Money(Decimal(495), "EUR"),
+            interest=Money(Decimal(999), "EUR"),
+            remaining_balance_amount=Money(Decimal(150000), "EUR"),
         )
 
         totals = _get_category_totals_for_year(prop.pk, 2022)
-        assert totals["loan_interest"] == Decimal("300")
+        assert totals["loan_interest"] == Decimal(300)
 
     def test_lmnp_summary_uses_amortization_interest(self):
         """get_lmnp_summary charges_financieres reflects amortization entry interest."""
@@ -700,7 +700,7 @@ class TestAmortizationEntryFallbackForLoanInterest:
             property=prop,
             flow_type=PropertyLedgerEntry.FlowType.INCOME,
             management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            amount=Money(Decimal("800"), "EUR"),
+            amount=Money(Decimal(800), "EUR"),
             entry_date=datetime.date(2022, 1, 1),
             recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
         )
@@ -709,9 +709,9 @@ class TestAmortizationEntryFallbackForLoanInterest:
         PropertyLoanAmortizationEntry.objects.create(
             loan=loan,
             date=datetime.date(2022, 1, 1),
-            capital=Money(Decimal("500"), "EUR"),
+            capital=Money(Decimal(500), "EUR"),
             interest=Money(Decimal("437.50"), "EUR"),
-            remaining_balance_amount=Money(Decimal("149500"), "EUR"),
+            remaining_balance_amount=Money(Decimal(149500), "EUR"),
         )
 
         summary = get_lmnp_summary(prop.pk, 2022)

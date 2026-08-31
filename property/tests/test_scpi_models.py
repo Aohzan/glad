@@ -173,7 +173,7 @@ class TestSCPIInvestmentPurchaseValue:
             shares_count=Decimal("5.0000"),
             unit_purchase_price=Money(Decimal("1000.00"), "EUR"),
         )
-        assert inv.get_entry_fees() == Money(Decimal("0"), "EUR")
+        assert inv.get_entry_fees() == Money(Decimal(0), "EUR")
         assert inv.get_total_invested() == Money(Decimal("5000.00"), "EUR")
 
 
@@ -379,9 +379,9 @@ class TestSCPIInvestmentResaleValue:
 
         total_days = (datetime.date(2030, 1, 1) - datetime.date(2020, 1, 1)).days
         elapsed = (datetime.date(2025, 1, 1) - datetime.date(2020, 1, 1)).days
-        ratio = D("65") + D("35") * D(elapsed) / D(total_days)
-        gross = (D("20") * D("1020") * ratio / D("100")).quantize(D("0.01"))
-        entry_fees = (D("20") * D("650") * D("8") / D("100")).quantize(D("0.01"))
+        ratio = D(65) + D(35) * D(elapsed) / D(total_days)
+        gross = (D(20) * D(1020) * ratio / D(100)).quantize(D("0.01"))
+        entry_fees = (D(20) * D(650) * D(8) / D(100)).quantize(D("0.01"))
         expected = gross - entry_fees
         assert result == Money(expected, "EUR")
 
@@ -395,7 +395,7 @@ class TestSCPIInvestmentResaleValue:
         date = datetime.date(2025, 1, 1)
         result = investment_bare.get_estimated_resale_value(date)
         # theoretical = 14_000 ; no exit fee ; entry_fees = 20*650*8% = 1040
-        entry_fees = Decimal("20") * Decimal("650") * Decimal("8") / Decimal("100")
+        entry_fees = Decimal(20) * Decimal(650) * Decimal(8) / Decimal(100)
         expected = Decimal("14000.00") - entry_fees
         assert result == Money(expected.quantize(Decimal("0.01")), "EUR")
 
@@ -426,7 +426,7 @@ class TestSCPIInvestmentCapitalGain:
 class TestSCPIDividendMethods:
     def test_get_total_dividends_empty(self, scpi_with_price):
         assert scpi_with_price.get_total_dividends_received() == Money(
-            Decimal("0"), "EUR"
+            Decimal(0), "EUR"
         )
 
     def test_get_total_dividends_sum(self, scpi_with_price):

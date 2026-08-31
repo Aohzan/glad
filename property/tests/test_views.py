@@ -230,7 +230,9 @@ def test_property_detail_view_projection_context(user_client):
         buying_value=Money(200000, "EUR"),
         buying_date=datetime.date.today() - datetime.timedelta(days=365),
         is_active=True,
-        address="10 Rue de Rivoli, Paris",
+        street_name="10 Rue de Rivoli",
+        postal_code="75001",
+        city="Paris",
     )
     PropertyLoan.objects.create(
         property=property_obj,
@@ -298,8 +300,8 @@ def test_property_detail_capital_repaid_for_standard_loan(user_client):
 
     assert response.status_code == 200
     capital_repaid = response.context["capital_repaid"].amount
-    assert capital_repaid > Decimal("0")
-    assert capital_repaid < Decimal("200000")
+    assert capital_repaid > Decimal(0)
+    assert capital_repaid < Decimal(200000)
 
 
 @pytest.mark.django_db
@@ -319,6 +321,7 @@ def test_property_detail_post_quick_create_value(user_client):
             "value_0": "275000",
             "value_1": "EUR",
             "valuation_date": datetime.date.today().isoformat(),
+            "source": "manual",
         },
     )
 
@@ -962,3 +965,108 @@ def test_panel_unknown_returns_404(user_client):
     """Non-existent property panel returns 404."""
     response = user_client.get(reverse("property:panel_cashflow", args=[99999]))
     assert response.status_code == 404
+
+
+# ── DVF stale estimate popup ──────────────────────────────────────────────────
+
+
+def _make_dvf_eligible_property(**kwargs):
+    """Create a property eligible for DVF estimation."""
+    defaults = {
+        "name": "DVF Prop",
+        "property_type": Property.HOUSE,
+        "buying_value": Money(200000, "EUR"),
+        "buying_date": datetime.date(2020, 1, 1),
+        "floor_area": Decimal(100),
+        "insee_code": "49007",
+        "cadastral_section": "000DH",
+        "is_active": True,
+    }
+    defaults.update(kwargs)
+    return Property.objects.create(**defaults)
+
+
+@pytest.mark.django_db
+def test_dvf_stale_popup_shown_when_no_estimate(user_client):
+    """Popup shows when a DVF-eligible property has no DVF estimate at all."""
+    prop = _make_dvf_eligible_property()
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.status_code == 200
+    assert response.context["dvf_estimate_stale"] is True
+    assert b"dvfStaleModal" in response.content
+
+
+@pytest.mark.django_db
+def test_dvf_stale_popup_shown_when_estimate_old(user_client):
+    """Popup shows when the latest DVF estimate is older than 6 months."""
+    prop = _make_dvf_eligible_property()
+    PropertyValue.objects.create(
+        property=prop,
+        value=Money(250000, "EUR"),
+        valuation_date=datetime.date.today() - datetime.timedelta(days=200),
+        source=PropertyValue.Source.DVF_ESTIMATE,
+    )
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.context["dvf_estimate_stale"] is True
+
+
+@pytest.mark.django_db
+def test_dvf_stale_popup_not_shown_when_estimate_recent(user_client):
+    """Popup does not show when the latest DVF estimate is recent."""
+    prop = _make_dvf_eligible_property()
+    PropertyValue.objects.create(
+        property=prop,
+        value=Money(250000, "EUR"),
+        valuation_date=datetime.date.today() - datetime.timedelta(days=30),
+        source=PropertyValue.Source.DVF_ESTIMATE,
+    )
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.context["dvf_estimate_stale"] is False
+    assert b"dvfStaleModal" not in response.content
+
+
+@pytest.mark.django_db
+def test_dvf_stale_popup_not_shown_for_land(user_client):
+    """Popup does not show for unsupported property types (e.g. land)."""
+    prop = _make_dvf_eligible_property(property_type=Property.LAND)
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.context["dvf_estimate_stale"] is False
+
+
+@pytest.mark.django_db
+def test_dvf_stale_popup_not_shown_without_cadastral_info(user_client):
+    """Popup does not show when cadastral info is missing."""
+    prop = _make_dvf_eligible_property(insee_code=None, cadastral_section=None)
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.context["dvf_estimate_stale"] is False
+
+
+@pytest.mark.django_db
+def test_dvf_stale_popup_not_shown_without_floor_area(user_client):
+    """Popup does not show when floor area is missing."""
+    prop = _make_dvf_eligible_property(floor_area=None)
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.context["dvf_estimate_stale"] is False
+
+
+@pytest.mark.django_db
+def test_dvf_stale_popup_shown_with_only_total_surface(user_client):
+    """Popup shows when only total_surface is set (no floor_area)."""
+    prop = _make_dvf_eligible_property(floor_area=None, total_surface=Decimal(120))
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.context["dvf_estimate_stale"] is True
+    assert b"dvfStaleModal" in response.content
+
+
+@pytest.mark.django_db
+def test_dvf_stale_ignores_manual_valuations(user_client):
+    """A recent manual valuation should not prevent the stale popup."""
+    prop = _make_dvf_eligible_property()
+    PropertyValue.objects.create(
+        property=prop,
+        value=Money(250000, "EUR"),
+        valuation_date=datetime.date.today() - datetime.timedelta(days=10),
+        source=PropertyValue.Source.MANUAL,
+    )
+    response = user_client.get(reverse("property:detail", args=[prop.pk]))
+    assert response.context["dvf_estimate_stale"] is True

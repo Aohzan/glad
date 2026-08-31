@@ -18,14 +18,14 @@ from finance.views.update_views import update_accounts
 
 # Maintain backward compatibility by exposing all views at module level
 __all__ = [
-    "index",
-    "update_accounts",
+    "InvestmentAccount",  # For test mocking
+    "SavingAccount",  # For test mocking
     "chart_data",
     "csv_export",
     "csv_export_synthesis",
     "csv_import",
     "csv_import_confirm",
+    "index",
     "render",  # For test mocking
-    "SavingAccount",  # For test mocking
-    "InvestmentAccount",  # For test mocking
+    "update_accounts",
 ]

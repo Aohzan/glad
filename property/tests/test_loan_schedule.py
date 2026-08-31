@@ -116,7 +116,7 @@ class RemainingBalanceWithAmortizationTableTest(TestCase):
 
     def test_before_first_entry_returns_original(self):
         balance = self.loan.remaining_balance(datetime.date(2019, 12, 31))
-        self.assertEqual(balance.amount, Decimal("200000"))
+        self.assertEqual(balance.amount, Decimal(200000))
 
     def test_currency_preserved(self):
         balance = self.loan.remaining_balance(datetime.date(2020, 2, 1))
@@ -138,16 +138,16 @@ class RemainingBalanceFallbackTest(TestCase):
 
     def test_before_start(self):
         balance = self.loan.remaining_balance(datetime.date(2019, 12, 31))
-        self.assertEqual(balance.amount, Decimal("200000"))
+        self.assertEqual(balance.amount, Decimal(200000))
 
     def test_after_end(self):
         balance = self.loan.remaining_balance(datetime.date(2041, 1, 1))
-        self.assertEqual(balance.amount, Decimal("0"))
+        self.assertEqual(balance.amount, Decimal(0))
 
     def test_midpoint_less_than_original(self):
         balance = self.loan.remaining_balance(datetime.date(2030, 1, 1))
-        self.assertLess(balance.amount, Decimal("200000"))
-        self.assertGreater(balance.amount, Decimal("0"))
+        self.assertLess(balance.amount, Decimal(200000))
+        self.assertGreater(balance.amount, Decimal(0))
 
     def test_currency_preserved(self):
         balance = self.loan.remaining_balance(datetime.date(2025, 1, 1))
@@ -160,17 +160,17 @@ class RemainingBalanceFallbackTest(TestCase):
 class BuildLoanAmortizationBalanceTest(TestCase):
     def test_zero_months_elapsed(self):
         balance = build_loan_amortization_balance(
-            original_amount=Decimal("100000"),
+            original_amount=Decimal(100000),
             interest_rate=Decimal("3.5"),
             payment_sequence=[Decimal("579.96")] * 240,
             months_elapsed=0,
         )
-        self.assertEqual(balance, Decimal("100000"))
+        self.assertEqual(balance, Decimal(100000))
 
     def test_full_repayment(self):
         monthly = Decimal("1159.97")
         balance = build_loan_amortization_balance(
-            original_amount=Decimal("200000"),
+            original_amount=Decimal(200000),
             interest_rate=Decimal("3.5"),
             payment_sequence=[monthly] * 240,
             months_elapsed=240,
@@ -178,10 +178,10 @@ class BuildLoanAmortizationBalanceTest(TestCase):
         self.assertAlmostEqual(float(balance), 0.0, delta=50.0)
 
     def test_zero_interest_rate(self):
-        monthly = Decimal("1000")
+        monthly = Decimal(1000)
         balance = build_loan_amortization_balance(
-            original_amount=Decimal("24000"),
-            interest_rate=Decimal("0"),
+            original_amount=Decimal(24000),
+            interest_rate=Decimal(0),
             payment_sequence=[monthly] * 24,
             months_elapsed=12,
         )
@@ -189,12 +189,12 @@ class BuildLoanAmortizationBalanceTest(TestCase):
 
     def test_balance_never_negative(self):
         balance = build_loan_amortization_balance(
-            original_amount=Decimal("1000"),
+            original_amount=Decimal(1000),
             interest_rate=Decimal("3.5"),
-            payment_sequence=[Decimal("10000")] * 12,
+            payment_sequence=[Decimal(10000)] * 12,
             months_elapsed=12,
         )
-        self.assertEqual(balance, Decimal("0"))
+        self.assertEqual(balance, Decimal(0))
 
 
 # ─── CSV import view ──────────────────────────────────────────────────────────
@@ -237,9 +237,9 @@ class ImportLoanAmortizationViewTest(TestCase):
         PropertyLoanAmortizationEntry.objects.create(
             loan=self.loan,
             date=datetime.date(2019, 1, 1),
-            capital=Money(Decimal("100"), "EUR"),
-            interest=Money(Decimal("100"), "EUR"),
-            remaining_balance_amount=Money(Decimal("199900"), "EUR"),
+            capital=Money(Decimal(100), "EUR"),
+            interest=Money(Decimal(100), "EUR"),
+            remaining_balance_amount=Money(Decimal(199900), "EUR"),
         )
         csv = "date,capital,interets,capital_restant\n2020-01-01,576.64,583.33,199423.36\n"
         self._csv_upload(csv)
@@ -301,13 +301,13 @@ class GenerateLoanAmortizationViewTest(TestCase):
 
 class BuildLoanMonthlyMapsTest(TestCase):
     def test_standard_loan_maps(self):
-        interest_map, principal_map, insurance_map = build_loan_monthly_maps(
+        interest_map, principal_map, _insurance_map = build_loan_monthly_maps(
             start_date=datetime.date(2020, 1, 1),
             end_date=datetime.date(2022, 1, 1),
-            original_amount=Decimal("24000"),
-            monthly_payment=Decimal("1000"),
-            interest_rate=Decimal("0"),
-            insurance_amount=Decimal("0"),
+            original_amount=Decimal(24000),
+            monthly_payment=Decimal(1000),
+            interest_rate=Decimal(0),
+            insurance_amount=Decimal(0),
         )
         self.assertIn((2020, 1), principal_map)
         self.assertAlmostEqual(float(principal_map[(2020, 1)]), 1000.0, delta=1.0)
@@ -317,22 +317,22 @@ class BuildLoanMonthlyMapsTest(TestCase):
         _, _, insurance_map = build_loan_monthly_maps(
             start_date=datetime.date(2020, 1, 1),
             end_date=datetime.date(2022, 1, 1),
-            original_amount=Decimal("24000"),
-            monthly_payment=Decimal("1000"),
-            interest_rate=Decimal("0"),
-            insurance_amount=Decimal("50"),
+            original_amount=Decimal(24000),
+            monthly_payment=Decimal(1000),
+            interest_rate=Decimal(0),
+            insurance_amount=Decimal(50),
         )
         self.assertIn((2020, 1), insurance_map)
         self.assertAlmostEqual(float(insurance_map[(2020, 1)]), 50.0, delta=0.01)
 
     def test_no_payment_returns_empty(self):
-        interest_map, principal_map, insurance_map = build_loan_monthly_maps(
+        _interest_map, principal_map, _insurance_map = build_loan_monthly_maps(
             start_date=datetime.date(2020, 1, 1),
             end_date=datetime.date(2022, 1, 1),
-            original_amount=Decimal("24000"),
+            original_amount=Decimal(24000),
             monthly_payment=None,
             interest_rate=Decimal("3.5"),
-            insurance_amount=Decimal("0"),
+            insurance_amount=Decimal(0),
             payment_sequence=None,
         )
         self.assertEqual(len(principal_map), 0)
@@ -344,9 +344,9 @@ class BuildLoanMonthlyMapsTest(TestCase):
 class InterestRoundingTest(TestCase):
     def test_interest_rounded_in_balance_calculation(self):
         balance = build_loan_amortization_balance(
-            original_amount=Decimal("100000"),
+            original_amount=Decimal(100000),
             interest_rate=Decimal("3.25"),
-            payment_sequence=[Decimal("700")] * 180,
+            payment_sequence=[Decimal(700)] * 180,
             months_elapsed=1,
         )
         self.assertEqual(balance, Decimal("99570.83"))
@@ -355,10 +355,10 @@ class InterestRoundingTest(TestCase):
         interest_map, _, _ = build_loan_monthly_maps(
             start_date=datetime.date(2025, 1, 1),
             end_date=datetime.date(2040, 1, 1),
-            original_amount=Decimal("100000"),
-            monthly_payment=Decimal("700"),
+            original_amount=Decimal(100000),
+            monthly_payment=Decimal(700),
             interest_rate=Decimal("3.25"),
-            insurance_amount=Decimal("0"),
+            insurance_amount=Decimal(0),
         )
         self.assertEqual(interest_map[(2025, 1)], Decimal("270.83"))
 
@@ -369,7 +369,7 @@ class InterestRoundingTest(TestCase):
 class PartialFirstPeriodTest(TestCase):
     def test_prorated_first_interest_in_balance(self):
         balance_with = build_loan_amortization_balance(
-            original_amount=Decimal("40000"),
+            original_amount=Decimal(40000),
             interest_rate=Decimal("3.25"),
             payment_sequence=[Decimal("270.59")],
             months_elapsed=1,
@@ -377,7 +377,7 @@ class PartialFirstPeriodTest(TestCase):
             first_payment_date=datetime.date(2025, 11, 10),
         )
         balance_without = build_loan_amortization_balance(
-            original_amount=Decimal("40000"),
+            original_amount=Decimal(40000),
             interest_rate=Decimal("3.25"),
             payment_sequence=[Decimal("270.59")],
             months_elapsed=1,
@@ -389,10 +389,10 @@ class PartialFirstPeriodTest(TestCase):
         interest_map, _, _ = build_loan_monthly_maps(
             start_date=datetime.date(2025, 10, 13),
             end_date=datetime.date(2040, 10, 13),
-            original_amount=Decimal("40000"),
+            original_amount=Decimal(40000),
             monthly_payment=Decimal("281.07"),
             interest_rate=Decimal("3.25"),
-            insurance_amount=Decimal("0"),
+            insurance_amount=Decimal(0),
             disbursement_date=datetime.date(2025, 10, 13),
             first_payment_date=datetime.date(2025, 11, 10),
         )
@@ -411,7 +411,7 @@ class PartialFirstPeriodTest(TestCase):
             name="Facilimmo",
             start_date=datetime.date(2025, 10, 13),
             end_date=datetime.date(2040, 10, 13),
-            original_amount=Money(Decimal("40000"), "EUR"),
+            original_amount=Money(Decimal(40000), "EUR"),
             monthly_payment=Money(Decimal("281.07"), "EUR"),
             interest_rate=Decimal("3.25"),
             first_payment_date=datetime.date(2025, 11, 10),

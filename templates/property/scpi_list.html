@@ -177,10 +177,10 @@
 
     var series = [];
     if (fd.prices.length) {
-      series.push({ name: '{% translate "Invested" %}', type: 'line', data: fd.prices });
+      series.push({ name: '{% filter escapejs %}{% translate "Invested" %}{% endfilter %}', type: 'line', data: fd.prices });
     }
     if (fd.divAmounts.length) {
-      series.push({ name: '{% translate "Dividends" %}', type: 'bar', data: fd.divAmounts });
+      series.push({ name: '{% filter escapejs %}{% translate "Dividends" %}{% endfilter %}', type: 'bar', data: fd.divAmounts });
     }
 
     var categories = fd.dates;

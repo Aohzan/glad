@@ -188,7 +188,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     const sourceTransactions = document.getElementById('{{ form.source_transactions.id_for_label }}');
     new MultiSelect('#{{ form.source_transactions.id_for_label }}', {
-      placeholder: '{% translate "Choose related transaction(s)" %}',
+      placeholder: '{% filter escapejs %}{% translate "Choose related transaction(s)" %}{% endfilter %}',
       search: true,
       selectAll: false,
       listAll: false,

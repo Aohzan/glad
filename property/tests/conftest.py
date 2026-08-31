@@ -53,15 +53,15 @@ def loan(property_obj):
 
 
 __all__ = [
-    "ADMIN_USER",
     "ADMIN_PASSWORD",
-    "TEST_USER",
+    "ADMIN_USER",
     "TEST_PASSWORD",
-    "admin_user",
-    "user",
-    "client",
+    "TEST_USER",
     "admin_client",
-    "user_client",
+    "admin_user",
+    "client",
     "loan",
     "make_property",
+    "user",
+    "user_client",
 ]

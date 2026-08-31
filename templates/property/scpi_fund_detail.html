@@ -324,9 +324,9 @@
       },
       theme: { mode: getCurrentTheme() },
       series: [
-        { name: '{% translate "Cumulative invested" %}', type: 'line', data: chartInvested },
-        { name: '{% translate "Estimated value" %}', type: 'line', data: chartEstimated },
-        { name: '{% translate "Dividends" %}', type: 'bar', data: chartDividends }
+        { name: '{% filter escapejs %}{% translate "Cumulative invested" %}{% endfilter %}', type: 'line', data: chartInvested },
+        { name: '{% filter escapejs %}{% translate "Estimated value" %}{% endfilter %}', type: 'line', data: chartEstimated },
+        { name: '{% filter escapejs %}{% translate "Dividends" %}{% endfilter %}', type: 'bar', data: chartDividends }
       ],
       stroke: { curve: 'smooth', width: [2, 2, 0] },
       fill: { opacity: [1, 1, 0.85] },
@@ -346,19 +346,19 @@
       },
       yaxis: [
         {
-          seriesName: '{% translate "Cumulative invested" %}',
-          title: { text: '{% translate "Value" %} (' + currency + ')' },
+          seriesName: '{% filter escapejs %}{% translate "Cumulative invested" %}{% endfilter %}',
+          title: { text: '{% filter escapejs %}{% translate "Value" %}{% endfilter %} (' + currency + ')' },
           labels: { formatter: function(v) { return Math.round(v).toLocaleString('fr-FR'); } }
         },
         {
-          seriesName: '{% translate "Estimated value" %}',
+          seriesName: '{% filter escapejs %}{% translate "Estimated value" %}{% endfilter %}',
           show: false,
           labels: { formatter: function(v) { return Math.round(v).toLocaleString('fr-FR'); } }
         },
         {
-          seriesName: '{% translate "Dividends" %}',
+          seriesName: '{% filter escapejs %}{% translate "Dividends" %}{% endfilter %}',
           opposite: true,
-          title: { text: '{% translate "Dividends" %} (' + currency + ')' },
+          title: { text: '{% filter escapejs %}{% translate "Dividends" %}{% endfilter %} (' + currency + ')' },
           labels: { formatter: function(v) { return Math.round(v).toLocaleString('fr-FR'); } }
         }
       ],

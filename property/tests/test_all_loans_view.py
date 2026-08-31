@@ -70,8 +70,8 @@ class TestAllLoansView:
         _make_loan(prop)
         response = user_client.get(reverse("property:all_loans"))
         summary = response.context["summary"]
-        assert summary["total_mensuality"].amount > Decimal("0")
-        assert summary["total_remaining"].amount > Decimal("0")
+        assert summary["total_mensuality"].amount > Decimal(0)
+        assert summary["total_remaining"].amount > Decimal(0)
 
     def test_summary_includes_insurance_paid(self, user_client):
         prop = _make_property()
@@ -82,7 +82,7 @@ class TestAllLoansView:
         )
         response = user_client.get(reverse("property:all_loans"))
         summary = response.context["summary"]
-        assert summary["total_insurance_paid"].amount > Decimal("0")
+        assert summary["total_insurance_paid"].amount > Decimal(0)
 
     def test_chart_data_json_present(self, user_client):
         prop = _make_property()

@@ -46,7 +46,7 @@ def test_saving_account_str_name_matches_type_name():
         name="PEL",
         owner="Alice",
         is_active=True,
-        opening_value=Money(Decimal("0"), "EUR"),
+        opening_value=Money(Decimal(0), "EUR"),
     )
     # name == account_type.name so account_name = "PEL"
     # owner is "Alice" → "PEL Alice"
@@ -61,7 +61,7 @@ def test_saving_account_str_name_differs_from_type():
         account_type=account_type,
         name="My Savings",
         is_active=True,
-        opening_value=Money(Decimal("0"), "EUR"),
+        opening_value=Money(Decimal(0), "EUR"),
     )
     assert str(account) == "Livret A My Savings"
 
@@ -75,7 +75,7 @@ def test_saving_account_str_with_institution():
         name="My Account",
         institution="BNP",
         is_active=True,
-        opening_value=Money(Decimal("0"), "EUR"),
+        opening_value=Money(Decimal(0), "EUR"),
     )
     assert " at BNP" in str(account) or " BNP" in str(account)
 
@@ -88,7 +88,7 @@ def test_saving_account_str_inactive():
         account_type=account_type,
         name="Old Account",
         is_active=False,
-        opening_value=Money(Decimal("0"), "EUR"),
+        opening_value=Money(Decimal(0), "EUR"),
     )
     assert "(closed)" in str(account)
 
@@ -101,7 +101,7 @@ def test_saving_account_str_no_name():
         account_type=account_type,
         name=None,
         is_active=True,
-        opening_value=Money(Decimal("0"), "EUR"),
+        opening_value=Money(Decimal(0), "EUR"),
     )
     assert str(account) == "LDDS"
 

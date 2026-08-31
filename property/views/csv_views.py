@@ -256,8 +256,8 @@ def csv_import_confirm(request, property_pk: int):
                 )
                 imported_count += 1
 
-            except Exception as exc:  # noqa: BLE001
-                _LOGGER.exception("CSV import error on row %d: %s", row_index, exc)
+            except Exception as exc:
+                _LOGGER.exception("CSV import error on row %d", row_index)
                 error_rows.append((row_index, str(exc)))
 
     # Clean up session

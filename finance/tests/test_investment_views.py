@@ -167,7 +167,7 @@ class TestHoldingDetail:
         other_account = InvestmentAccount.objects.create(
             account_type=investment_type,
             name="Other account",
-            opening_cash_value=Money(Decimal("0"), "EUR"),
+            opening_cash_value=Money(Decimal(0), "EUR"),
         )
         url = reverse(
             "finance:holding_detail",

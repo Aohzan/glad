@@ -12,11 +12,11 @@ repos:
         args:
           - --branch=main
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.26
+    rev: 0.12.8
     hooks:
       - id: uv-lock
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20
+    rev: v0.16.5
     hooks:
       - id: ruff
         args:
@@ -30,11 +30,11 @@ repos:
         name: ruff fix
       - id: ruff-format
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
+    rev: v2.4.3
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=OT,activite,garantie,individuel,exercice
+          - --ignore-words-list=OT,activite,garantie,individuel,exercice,Adresse
           - --skip=./.*,*.csv,*.json,*.ambr,*.lock,*/migrations/*.py,*/fixtures/*.yaml,scripts/generate_fixtures.py,locale/**/*.po,TODO.md,templates/property/accounting_lmnp_reel.html
           - --quiet-level=2
   - repo: https://github.com/adrienverge/yamllint.git

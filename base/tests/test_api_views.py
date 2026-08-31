@@ -19,6 +19,10 @@ from property.models import Property
 from property.models.scpi import SCPI, SCPIInvestment
 
 
+class _MockError(Exception):
+    """Custom exception for testing error handling."""
+
+
 def get_json(client, url):
     return client.get(url, HTTP_ACCEPT="application/json")
 
@@ -42,23 +46,23 @@ def _make_investment_account(investment_account_type, name="Test Inv", currency=
     )
 
 
-def _make_property(name="Test Property", buying_value=Money(200000, "EUR")):
+def _make_property(name="Test Property", buying_value=None):
     return Property.objects.create(
         name=name,
         property_type=Property.APARTMENT,
-        buying_value=buying_value,
+        buying_value=buying_value or Money(200000, "EUR"),
         buying_date=datetime.date.today() - datetime.timedelta(days=365),
         is_active=True,
     )
 
 
-def _make_scpi_investment(name="Test SCPI", shares=10, price=Money(100, "EUR")):
+def _make_scpi_investment(name="Test SCPI", shares=10, price=None):
     scpi = SCPI.objects.create(name=name)
     return SCPIInvestment.objects.create(
         scpi=scpi,
         subscription_date=datetime.date.today() - datetime.timedelta(days=180),
         shares_count=Decimal(str(shares)),
-        unit_purchase_price=price,
+        unit_purchase_price=price or Money(100, "EUR"),
     )
 
 
@@ -75,7 +79,7 @@ def _make_property_with_value_and_patch():
 
     def _raising_net_value_at_date(self, as_of_date=None):
         if as_of_date is not None:
-            raise Exception("mock error")
+            raise _MockError("mock error")
         return original(self, as_of_date=as_of_date)
 
     return patch.object(Property, "net_value_at_date", _raising_net_value_at_date)
@@ -554,7 +558,7 @@ def test_recent_operations_with_holding_history(admin_client, investment_account
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
         value=Money(300, "EUR"),
-        quantity=Decimal("3"),
+        quantity=Decimal(3),
         valuation_date=datetime.datetime.now(),
     )
     response = get_json(admin_client, reverse("api_recent_operations"))
@@ -648,13 +652,13 @@ def test_alerts_triggered_on_investment_decline(admin_client, investment_account
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
         value=Money(5000, "EUR"),
-        quantity=Decimal("50"),
+        quantity=Decimal(50),
         valuation_date=datetime.datetime.now() - datetime.timedelta(days=35),
     )
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
         value=Money(2000, "EUR"),
-        quantity=Decimal("50"),
+        quantity=Decimal(50),
         valuation_date=datetime.datetime.now(),
     )
     response = get_json(admin_client, reverse("api_alerts"))
@@ -682,7 +686,7 @@ def _exception_on_datetime_only(original_fn):
 
     def _mock(self, max_date=None):
         if isinstance(max_date, datetime.datetime):
-            raise Exception("mock error")
+            raise TypeError("mock error")
         return original_fn(self, max_date=max_date)
 
     return _mock
@@ -850,7 +854,7 @@ def test_patrimony_chart_scpi_exception_fallback(admin_client):
 
     def _raising_estimated_value(self, as_of_date=None):
         if as_of_date is not None and as_of_date != datetime.date.today():
-            raise Exception("mock error")
+            raise _MockError("mock error")
         return original(self, as_of_date=as_of_date)
 
     with patch.object(SCPIInvestment, "get_estimated_value", _raising_estimated_value):

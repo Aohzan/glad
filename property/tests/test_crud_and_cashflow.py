@@ -363,9 +363,9 @@ def test_get_annual_cashflow_with_entries():
         entry_date=datetime.date(2022, 6, 15),
     )
     result = get_annual_cashflow(prop.pk, 2022)
-    assert result["income"] == Decimal("800")
-    assert result["expenses"] == Decimal("200")
-    assert result["net"] == Decimal("600")
+    assert result["income"] == Decimal(800)
+    assert result["expenses"] == Decimal(200)
+    assert result["net"] == Decimal(600)
     assert result["year"] == 2022
 
 
@@ -375,9 +375,9 @@ def test_get_annual_cashflow_empty():
 
     prop = _make_property()
     result = get_annual_cashflow(prop.pk, 2022)
-    assert result["income"] == Decimal("0")
-    assert result["expenses"] == Decimal("0")
-    assert result["net"] == Decimal("0")
+    assert result["income"] == Decimal(0)
+    assert result["expenses"] == Decimal(0)
+    assert result["net"] == Decimal(0)
 
 
 @pytest.mark.django_db
@@ -400,8 +400,8 @@ def test_build_balance_sheet_with_standard_loan():
         datetime.date(2020, 1, 1),
         datetime.date(2020, 12, 31),
     )
-    assert result["total_loan_interest"] > Decimal("0")
-    assert result["total_loan_principal"] > Decimal("0")
+    assert result["total_loan_interest"] > Decimal(0)
+    assert result["total_loan_principal"] > Decimal(0)
     assert result["months_count"] == 12
 
 
@@ -426,8 +426,8 @@ def test_build_balance_sheet_skips_loan_without_payment():
         datetime.date(2020, 12, 31),
     )
     # No payment data → no loan costs
-    assert result["total_loan_interest"] == Decimal("0")
-    assert result["total_loan_principal"] == Decimal("0")
+    assert result["total_loan_interest"] == Decimal(0)
+    assert result["total_loan_principal"] == Decimal(0)
 
 
 @pytest.mark.django_db
@@ -456,11 +456,11 @@ def test_build_balance_sheet_with_ledger_entries():
         datetime.date(2022, 1, 1),
         datetime.date(2022, 12, 31),
     )
-    assert result["total_income"] == Decimal("800")
-    assert result["total_expenses"] == Decimal("200")
-    assert result["net_cashflow"] == Decimal("600")
+    assert result["total_income"] == Decimal(800)
+    assert result["total_expenses"] == Decimal(200)
+    assert result["net_cashflow"] == Decimal(600)
     assert result["months_with_rent"] == 1
-    assert result["occupancy_rate"] > Decimal("0")
+    assert result["occupancy_rate"] > Decimal(0)
 
 
 @pytest.mark.django_db
@@ -487,7 +487,7 @@ def test_build_balance_sheet_gross_yield():
         datetime.date(2022, 12, 31),
     )
     assert result["gross_yield_annual"] is not None
-    assert result["gross_yield_annual"] > Decimal("0")
+    assert result["gross_yield_annual"] > Decimal(0)
 
 
 # ─── detail_views: balance sheet range parsing ────────────────────────────────

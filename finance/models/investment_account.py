@@ -30,8 +30,8 @@ class InvestmentAccountType(AbstractAccountType):
 class InvestmentAccount(AbstractAccount):
     """Investment account has a cash value and multiple holdings."""
 
-    deposits: models.Manager["InvestmentAccountDeposit"]
-    cash_values: models.Manager["InvestmentAccountCash"]
+    deposits: models.Manager[InvestmentAccountDeposit]
+    cash_values: models.Manager[InvestmentAccountCash]
 
     class Meta(AbstractAccount.Meta):
         verbose_name = _("investment account")
@@ -43,7 +43,7 @@ class InvestmentAccount(AbstractAccount):
     opening_cash_value = MoneyField(
         max_digits=10,
         decimal_places=2,
-        default=Decimal("0"),  # type: ignore[call-arg]
+        default=Decimal(0),  # type: ignore[call-arg]
         null=False,
     )
 
@@ -93,7 +93,7 @@ class InvestmentAccount(AbstractAccount):
             date_for_query = max_date
 
         # Get the most recent cash value before max_date
-        cash_value_amount: Decimal = Decimal("0")
+        cash_value_amount: Decimal = Decimal(0)
         if (
             current_value := InvestmentAccountCash.objects.filter(
                 account=self, value_date__lte=date_for_query
@@ -106,7 +106,7 @@ class InvestmentAccount(AbstractAccount):
             # If no cash value found, use the initial cash value
             cash_value_amount = Decimal(str(self.opening_cash_value.amount))
 
-        holdings_value_total: Decimal = Decimal("0")
+        holdings_value_total: Decimal = Decimal(0)
         holdings = InvestmentAccountHolding.objects.filter(
             account=self, is_active=True
         ).order_by("name")
@@ -245,7 +245,7 @@ class InvestmentAccountHolding(BaseModel):
     initial_value = MoneyField(
         max_digits=10,
         decimal_places=2,
-        default=Decimal("0"),  # type: ignore[call-arg]
+        default=Decimal(0),  # type: ignore[call-arg]
     )
     initial_valuation_date = models.DateField(default=datetime.date.today, null=False)
 
@@ -298,7 +298,7 @@ class InvestmentAccountHolding(BaseModel):
         )
         if self.initial_valuation_date > date_for_query:
             # Holding did not exist yet at this date
-            return Decimal("0")
+            return Decimal(0)
         return Decimal(str(self.initial_value.amount))
 
     def get_quantity(
