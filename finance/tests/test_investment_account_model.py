@@ -190,6 +190,56 @@ def test_investment_account_get_value_with_date_arg(active_investment_account):
     assert result is not None
 
 
+@pytest.mark.django_db
+def test_investment_account_get_value_ignores_holding_bought_after_max_date(
+    investment_account_type,
+):
+    """get_value() for a date before a holding existed excludes its initial_value.
+
+    Regression test: a new account opened 5 days ago with 500€ cash, then a
+    holding was bought with most of that cash. The value 30 days ago must be
+    just the opening cash (holding did not exist yet), not opening cash plus
+    the holding's initial value (which would double-count the purchase).
+    """
+    account = InvestmentAccount.objects.create(
+        account_type=investment_account_type,
+        name="New Account",
+        is_active=True,
+        opening_cash_value=Money(Decimal("500.00"), "EUR"),
+        opening_date=datetime.date.today() - datetime.timedelta(days=5),
+    )
+    InvestmentAccountCash.objects.create(
+        account=account,
+        value=Money(Decimal("15.60"), "EUR"),
+        value_date=datetime.date.today() - datetime.timedelta(days=5),
+    )
+    holding = InvestmentAccountHolding.objects.create(
+        account=account,
+        name="Test Holding",
+        is_active=True,
+        initial_value=Money(Decimal("484.40"), "EUR"),
+        initial_valuation_date=datetime.date.today() - datetime.timedelta(days=5),
+    )
+    InvestmentAccountHoldingHistory.objects.create(
+        holding=holding,
+        value=Money(Decimal("486.36"), "EUR"),
+        quantity=Decimal("1"),
+        valuation_date=datetime.date.today(),
+    )
+
+    old_value = account.get_value(
+        max_date=datetime.date.today() - datetime.timedelta(days=30)
+    )
+    current_value = account.get_value()
+
+    assert old_value.amount == Decimal("500.00")
+    assert current_value.amount == Decimal("501.96")
+
+    progression = account.get_progression(days=30)
+    assert progression.net_difference.amount == Decimal("2")
+    assert progression.net_progression == Decimal("0.39")
+
+
 # ---------------------------------------------------------------------------
 # InvestmentAccount.get_cash_progression
 # ---------------------------------------------------------------------------

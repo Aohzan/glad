@@ -123,8 +123,9 @@ class InvestmentAccount(AbstractAccount):
             )
             if holding_value:
                 holdings_value_total += holding_value.value.amount
-            else:
+            elif holding.initial_valuation_date <= date_for_query:
                 holdings_value_total += holding.initial_value.amount
+            # else: holding did not exist yet at this date, contributes 0
         return Money(cash_value_amount + holdings_value_total, self.currency)
 
     def get_cash_progression(self, days: int) -> AccountProgression:
@@ -291,6 +292,13 @@ class InvestmentAccountHolding(BaseModel):
         )
         if holding_value:
             return holding_value.value.amount
+
+        date_for_query = (
+            max_date.date() if isinstance(max_date, datetime.datetime) else max_date
+        )
+        if self.initial_valuation_date > date_for_query:
+            # Holding did not exist yet at this date
+            return Decimal("0")
         return Decimal(str(self.initial_value.amount))
 
     def get_quantity(

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 23:24+0200\n"
+"POT-Creation-Date: 2026-08-31 22:05+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -191,7 +191,7 @@ msgstr "Propriétaire du compte (optionnel)"
 msgid "Institution where the account is held (optional)"
 msgstr "Institution où le compte est détenu (optionnel)"
 
-#: finance/models/base.py:84 property/models/asset.py:363
+#: finance/models/base.py:84 property/models/asset.py:365
 msgid "Favorite"
 msgstr "Favori"
 
@@ -206,7 +206,7 @@ msgstr ""
 msgid "at"
 msgstr "chez"
 
-#: finance/models/base.py:115 finance/models/investment_account.py:264
+#: finance/models/base.py:115 finance/models/investment_account.py:265
 msgid "(closed)"
 msgstr "(clôturé)"
 
@@ -226,69 +226,69 @@ msgstr "compte d'investissement"
 msgid "investment accounts"
 msgstr "comptes d'investissement"
 
-#: finance/models/investment_account.py:159
+#: finance/models/investment_account.py:160
 msgid "cash value of investment account"
 msgstr "valeur d'espèces du compte d'investissement"
 
-#: finance/models/investment_account.py:160
+#: finance/models/investment_account.py:161
 msgid "cash values of investment accounts"
 msgstr "valeurs d'espèces des comptes d'investissement"
 
-#: finance/models/investment_account.py:186
+#: finance/models/investment_account.py:187
 msgid "deposit on investment account"
 msgstr "dépôt sur compte d'investissement"
 
-#: finance/models/investment_account.py:187
+#: finance/models/investment_account.py:188
 msgid "deposits on investment accounts"
 msgstr "dépôts sur comptes d'investissement"
 
-#: finance/models/investment_account.py:203
+#: finance/models/investment_account.py:204
 #: finance/models/saving_account.py:153
 msgid "Use a negative value to record a withdrawal"
 msgstr "Saisir une valeur négative pour enregistrer un retrait"
 
-#: finance/models/investment_account.py:209
+#: finance/models/investment_account.py:210
 msgid "Add this deposit amount to the account cash value"
 msgstr "Ajouter le montant de ce dépôt au compte espèce"
 
-#: finance/models/investment_account.py:217
+#: finance/models/investment_account.py:218
 msgid "holding of investment account"
 msgstr "titre de compte d'investissement"
 
-#: finance/models/investment_account.py:218
+#: finance/models/investment_account.py:219
 msgid "holdings of investment accounts"
 msgstr "titres de comptes d'investissement"
 
-#: finance/models/investment_account.py:232
+#: finance/models/investment_account.py:233
 msgid "Fees associated with the holding, in percentage"
 msgstr "Frais associés à la part, en pourcentage"
 
-#: finance/models/investment_account.py:238
+#: finance/models/investment_account.py:239
 msgid "Issuer of the holding"
 msgstr "Émetteur du titre"
 
-#: finance/models/investment_account.py:262
+#: finance/models/investment_account.py:263
 #, python-brace-format
 msgid "{} in {}."
 msgstr "{} dans {}."
 
-#: finance/models/investment_account.py:336
+#: finance/models/investment_account.py:344
 msgid "history of holding"
 msgstr "Historique du titre"
 
-#: finance/models/investment_account.py:337
+#: finance/models/investment_account.py:345
 msgid "history of holdings"
 msgstr "Historique des titres"
 
-#: finance/models/investment_account.py:361
+#: finance/models/investment_account.py:369
 msgid "Value of the holding share at the moment of valuation"
 msgstr "Valeur de la part du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:372
+#: finance/models/investment_account.py:380
 msgid "Quantity of the holding at the moment of valuation"
 msgstr "Quantité du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:380
+#: finance/models/investment_account.py:388
 msgid ""
 "Amount of cash used for this transaction (will be subtracted from account "
 "cash)"
@@ -627,11 +627,11 @@ msgstr ""
 "Montant à additionner au prix d'achat pour l'amortissement (frais de "
 "notaire, frais d'agence, autres). Mettre à 0 pour ignorer."
 
-#: property/forms.py:433 property/models/asset.py:722
+#: property/forms.py:433 property/models/asset.py:731
 msgid "Land percentage (%)"
 msgstr "Pourcentage du terrain (%)"
 
-#: property/forms.py:435 property/models/asset.py:724
+#: property/forms.py:435 property/models/asset.py:733
 msgid ""
 "Non-depreciable land share as a percentage of total value. Default: 15 %."
 msgstr ""
@@ -808,7 +808,26 @@ msgstr "Autre"
 msgid "Property Type"
 msgstr "Type de propriété"
 
-#: property/models/asset.py:358 property/models/lease.py:21
+#: property/models/asset.py:354 property/models/scpi.py:39
+#: templates/finance/_account_table_header.html:4
+#: templates/finance/edit_investment_holding.html:30
+#: templates/finance/index.html:121 templates/finance/index.html:208
+#: templates/finance/investment_detail.html:72
+#: templates/property/all_loans.html:100
+#: templates/property/detail_panel_loans.html:29
+#: templates/property/edit_manager.html:31
+#: templates/property/scpi_detail.html:140
+msgid "Name"
+msgstr "Nom"
+
+#: property/models/asset.py:356 property/models/management.py:43
+#: templates/property/_contact_card.html:35
+#: templates/property/detail_panel_info.html:63
+#: templates/property/edit_mandate.html:53
+msgid "Address"
+msgstr "Adresse"
+
+#: property/models/asset.py:360 property/models/lease.py:21
 #: templates/finance/_edit_account_dates_card.html:25
 #: templates/finance/_status_badge.html:6
 #: templates/finance/edit_investment_holding.html:68
@@ -818,183 +837,191 @@ msgstr "Type de propriété"
 msgid "Active"
 msgstr "Actif"
 
-#: property/models/asset.py:359
+#: property/models/asset.py:361
 msgid "Whether this property is currently owned (e.g. not sold)."
 msgstr "Si cette propriété est actuellement possédée (non vendue)."
 
-#: property/models/asset.py:365
+#: property/models/asset.py:367
 msgid ""
 "Mark this property as a favorite for quick access in the navigation menu."
 msgstr ""
 "Marquer ce bien comme favori pour un accès rapide dans le menu de navigation."
 
-#: property/models/asset.py:371
+#: property/models/asset.py:373
 msgid "Buying Value"
 msgstr "Valeur d'achat"
 
-#: property/models/asset.py:372
+#: property/models/asset.py:374
 msgid "Purchase price of the property, excluding fees."
 msgstr "Prix d'achat du bien, hors frais."
 
-#: property/models/asset.py:379 property/views/fiscal_views.py:50
+#: property/models/asset.py:381 property/views/fiscal_views.py:50
 msgid "Notary fees"
 msgstr "Frais de notaire"
 
-#: property/models/asset.py:380
+#: property/models/asset.py:382
 msgid "Notary fees paid at the time of purchase."
 msgstr "Frais de notaire payés lors de l'acquisition."
 
-#: property/models/asset.py:387 property/views/fiscal_views.py:51
+#: property/models/asset.py:389 property/views/fiscal_views.py:51
 msgid "Agency fees"
 msgstr "Frais d'agence"
 
-#: property/models/asset.py:388
+#: property/models/asset.py:390
 msgid "Intermediary fees (agencies, headhunters, etc.)."
 msgstr "Frais d'intermediaires (agences, chasseurs…)"
 
-#: property/models/asset.py:395 property/views/fiscal_views.py:52
+#: property/models/asset.py:397 property/views/fiscal_views.py:52
 msgid "Other fees"
 msgstr "Autres frais"
 
-#: property/models/asset.py:396
+#: property/models/asset.py:398
 msgid "Any other fees paid at the time of purchase."
 msgstr "Tout autre frais payé lors de l'acquisition."
 
-#: property/models/asset.py:403
+#: property/models/asset.py:405
 msgid "Credit fees"
 msgstr "Frais de crédit"
 
-#: property/models/asset.py:404
+#: property/models/asset.py:406
 msgid "Loan arrangement and guarantee fees (excluding interest)."
 msgstr "Frais de dossier et de garantie bancaire (hors intérêts)."
 
-#: property/models/asset.py:411
+#: property/models/asset.py:413
 msgid "Coproperty share (%)"
 msgstr "Quote-part co-propriété (%)"
 
-#: property/models/asset.py:412
+#: property/models/asset.py:414
 msgid "Share of the coproperty (in %), if applicable."
 msgstr "Quote-part dans la co-propriété (en %), si applicable."
 
-#: property/models/asset.py:419
+#: property/models/asset.py:421 templates/property/scpi_detail.html:94
+msgid "Shares count"
+msgstr "Nombre de parts"
+
+#: property/models/asset.py:422
 msgid "Number of shares in the property (if applicable)"
 msgstr "Nombre de part dans la propriété (si applicable)"
 
-#: property/models/asset.py:422
+#: property/models/asset.py:425
 msgid "Buying Date"
 msgstr "Date d'achat"
 
-#: property/models/asset.py:423
+#: property/models/asset.py:426
 msgid "Date of purchase of the property on the notary deed."
 msgstr "Date d'achat du bien sur l'acte notarié."
 
-#: property/models/asset.py:426
+#: property/models/asset.py:429
 msgid "Selling Date"
 msgstr "Date de vente"
 
-#: property/models/asset.py:434
+#: property/models/asset.py:436 templates/property/detail_panel_info.html:108
+msgid "Selling value"
+msgstr "Valeur de vente"
+
+#: property/models/asset.py:443
 msgid "Floor area (m²)"
 msgstr "Surface habitable (m²)"
 
-#: property/models/asset.py:439
+#: property/models/asset.py:448
 msgid "Number of rooms"
 msgstr "Nombre de pièces"
 
-#: property/models/asset.py:443 property/models/ledger.py:249
+#: property/models/asset.py:452 property/models/ledger.py:249
 msgid "None"
 msgstr "Aucune"
 
-#: property/models/asset.py:444
+#: property/models/asset.py:453
 msgid "LMNP réel"
 msgstr "LMNP réel"
 
-#: property/models/asset.py:450 templates/property/detail_panel_info.html:48
+#: property/models/asset.py:459 templates/property/detail_panel_info.html:48
 msgid "Tax regime"
 msgstr "Régime fiscal"
 
-#: property/models/asset.py:451
+#: property/models/asset.py:460
 msgid "Tax regime applicable to this property (e.g. LMNP réel)."
 msgstr "Régime fiscal applicable à ce bien (ex. LMNP réel)."
 
-#: property/models/asset.py:458 templates/property/detail.html:5
+#: property/models/asset.py:467 templates/property/detail.html:5
 msgid "property"
 msgstr "propriété"
 
-#: property/models/asset.py:459
+#: property/models/asset.py:468
 msgid "properties"
 msgstr "propriétés"
 
-#: property/models/asset.py:638
+#: property/models/asset.py:647
 msgid "property value"
 msgstr "valeur de propriété"
 
-#: property/models/asset.py:639
+#: property/models/asset.py:648
 msgid "property values"
 msgstr "valeurs de propriétés"
 
-#: property/models/asset.py:701
+#: property/models/asset.py:710
 msgid "amortization setup"
 msgstr "paramétrage d'amortissement"
 
-#: property/models/asset.py:702
+#: property/models/asset.py:711
 msgid "amortization setups"
 msgstr "paramétrages d'amortissement"
 
-#: property/models/asset.py:708 property/models/asset.py:790
+#: property/models/asset.py:717 property/models/asset.py:799
 #: property/models/lease.py:44 property/models/ledger.py:277
 #: property/models/management.py:38 templates/property/all_loans.html:99
 #: templates/property/index.html:5
 msgid "Property"
 msgstr "Propriété"
 
-#: property/models/asset.py:713
+#: property/models/asset.py:722
 msgid "Total value to depreciate"
 msgstr "Valeur totale à amortir"
 
-#: property/models/asset.py:715
+#: property/models/asset.py:724
 msgid "Total acquisition value used as the base for depreciation (excl. land)."
 msgstr ""
 "Valeur d'acquisition totale servant de base à l'amortissement (hors terrain)."
 
-#: property/models/asset.py:779
+#: property/models/asset.py:788
 msgid "immobilisation"
 msgstr "immobilisation"
 
-#: property/models/asset.py:780
+#: property/models/asset.py:789
 msgid "immobilisations"
 msgstr "immobilisations"
 
-#: property/models/asset.py:794
+#: property/models/asset.py:803
 #: templates/property/_valid_categories_table.html:6
 #: templates/property/detail_panel_amortization.html:125
 msgid "Label"
 msgstr "Libellé"
 
-#: property/models/asset.py:795
+#: property/models/asset.py:804
 msgid "Description of the asset, e.g. 'Toiture', 'Cuisine équipée'."
 msgstr "Description de l'immobilisation, ex. 'Toiture', 'Cuisine équipée'."
 
-#: property/models/asset.py:798
+#: property/models/asset.py:807
 msgid "Beginning date"
 msgstr "Date de début"
 
-#: property/models/asset.py:799
+#: property/models/asset.py:808
 msgid "Date of the beginning of the asset's useful life."
 msgstr "Date de début de l'amortissement."
 
-#: property/models/asset.py:804 templates/finance/investment_detail.html:34
+#: property/models/asset.py:813 templates/finance/investment_detail.html:34
 msgid "Total value"
 msgstr "Valeur totale"
 
-#: property/models/asset.py:806
+#: property/models/asset.py:815
 msgid "Total acquisition value of this asset (including VAT if applicable)."
 msgstr "Valeur totale d'acquisition de cet élément (TTC si applicable)."
 
-#: property/models/asset.py:810
+#: property/models/asset.py:819
 msgid "Duration (years)"
 msgstr "Durée (ans)"
 
-#: property/models/asset.py:812
+#: property/models/asset.py:821
 msgid ""
 "Amortization duration in years. Leave blank for non-depreciable assets (e.g. "
 "land)."
@@ -1002,37 +1029,37 @@ msgstr ""
 "Durée d'amortissement en années. Laisser vide pour les actifs non "
 "amortissables (ex. : terrain)."
 
-#: property/models/asset.py:819
+#: property/models/asset.py:828
 msgid "Initial component"
 msgstr "Composant initial"
 
-#: property/models/asset.py:821
+#: property/models/asset.py:830
 msgid "Set automatically when created by the standard amortization setup."
 msgstr ""
 "Défini automatiquement lors de la création par le paramétrage "
 "d'amortissement standard."
 
-#: property/models/asset.py:826 templates/property/edit_amortization.html:119
+#: property/models/asset.py:835 templates/property/edit_amortization.html:119
 msgid "Terrains"
 msgstr "Terrains"
 
-#: property/models/asset.py:827 templates/property/edit_amortization.html:128
+#: property/models/asset.py:836 templates/property/edit_amortization.html:128
 msgid "Constructions"
 msgstr "Constructions"
 
-#: property/models/asset.py:828 templates/property/edit_amortization.html:140
+#: property/models/asset.py:837 templates/property/edit_amortization.html:140
 msgid "Installations générales"
 msgstr "Installations générales"
 
-#: property/models/asset.py:829 templates/property/edit_amortization.html:153
+#: property/models/asset.py:838 templates/property/edit_amortization.html:153
 msgid "Autres immobilisations corporelles"
 msgstr "Autres immobilisations corporelles"
 
-#: property/models/asset.py:836
+#: property/models/asset.py:845
 msgid "Cerfa 2033-C category"
 msgstr "Catégorie cerfa 2033-C"
 
-#: property/models/asset.py:838
+#: property/models/asset.py:847
 msgid ""
 "Asset category for cerfa 2033-C: terrains, constructions, installations "
 "générales, or autres immobilisations corporelles."
@@ -1040,7 +1067,7 @@ msgstr ""
 "Catégorie d'actif pour le cerfa 2033-C : terrains, constructions, "
 "installations générales, ou autres immobilisations corporelles."
 
-#: property/models/asset.py:845 property/models/scpi.py:70
+#: property/models/asset.py:854 property/models/scpi.py:70
 #: property/models/scpi.py:598 templates/property/_dividend_table_header.html:8
 #: templates/property/_notes_card.html:4 templates/property/_notes_card.html:8
 #: templates/property/detail.html:495
@@ -1052,15 +1079,15 @@ msgstr ""
 msgid "Notes"
 msgstr "Notes"
 
-#: property/models/asset.py:846
+#: property/models/asset.py:855
 msgid "Optional free-text notes about this asset."
 msgstr "Notes libres sur cette immobilisation."
 
-#: property/models/asset.py:852
+#: property/models/asset.py:861
 msgid "Source transactions"
 msgstr "Transactions associées"
 
-#: property/models/asset.py:854
+#: property/models/asset.py:863
 msgid ""
 "Ledger entries recording the payment(s) for this asset. Linked transactions "
 "are excluded from deductible charges to avoid double-counting."
@@ -1436,12 +1463,6 @@ msgstr "mandats de gestion"
 msgid "Manager name"
 msgstr "Nom du gestionnaire"
 
-#: property/models/management.py:43 templates/property/_contact_card.html:35
-#: templates/property/detail_panel_info.html:63
-#: templates/property/edit_mandate.html:53
-msgid "Address"
-msgstr "Adresse"
-
 #: property/models/management.py:51 templates/property/edit_mandate.html:72
 msgid "Leave empty if this mandate is currently active."
 msgstr "Laisser vide si ce mandat est toujours actif."
@@ -1482,17 +1503,6 @@ msgstr "Annuel"
 #: templates/property/scpi_list.html:15
 msgid "SCPI"
 msgstr "SCPI"
-
-#: property/models/scpi.py:39 templates/finance/_account_table_header.html:4
-#: templates/finance/edit_investment_holding.html:30
-#: templates/finance/index.html:121 templates/finance/index.html:208
-#: templates/finance/investment_detail.html:72
-#: templates/property/all_loans.html:100
-#: templates/property/detail_panel_loans.html:29
-#: templates/property/edit_manager.html:31
-#: templates/property/scpi_detail.html:140
-msgid "Name"
-msgstr "Nom"
 
 #: property/models/scpi.py:44 templates/property/scpi_detail.html:142
 #: templates/property/scpi_fund_detail.html:26
@@ -4199,10 +4209,6 @@ msgstr "Crédit"
 msgid "Selling date"
 msgstr "Date de vente"
 
-#: templates/property/detail_panel_info.html:108
-msgid "Selling value"
-msgstr "Valeur de vente"
-
 #: templates/property/detail_panel_info.html:119
 msgid "Location"
 msgstr "Emplacement"
@@ -4777,10 +4783,6 @@ msgstr "Détails de l'investissement"
 #: templates/property/scpi_detail.html:90
 msgid "SCPI fund"
 msgstr "SCPI"
-
-#: templates/property/scpi_detail.html:94
-msgid "Shares count"
-msgstr "Nombre de parts"
 
 #: templates/property/scpi_detail.html:98
 msgid "Entry fee rate"
