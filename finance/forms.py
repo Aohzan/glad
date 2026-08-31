@@ -337,6 +337,11 @@ class InvestmentAccountDepositForm(MoneyInputGroupMixin, forms.ModelForm):
             ),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk is None:
+            self.fields["update_account_cash"].initial = False
+
 
 class InvestmentAccountHoldingHistoryForm(MoneyInputGroupMixin, forms.ModelForm):
     """Form for creating/editing an investment account holding history entry."""
