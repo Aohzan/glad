@@ -120,7 +120,7 @@ class PropertyAdmin(admin.ModelAdmin):
         "is_active",
     )
     list_filter = ("property_type", "is_active", "tax_regime")
-    search_fields = ("name", "address")
+    search_fields = ("name", "street_name", "city", "postal_code")
 
 
 @admin.register(PropertyLoan)

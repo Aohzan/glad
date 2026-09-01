@@ -58,6 +58,27 @@
 
         <div class="card mb-4">
             <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-broadcast me-2"></i>{% translate "Data" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <h6 class="mb-1">{% translate "Live market data" %}</h6>
+                        <p class="text-muted small mb-0">
+                            {% translate "Fetch real-time market data from Yahoo Finance for holdings and ISIN autofill." %}
+                        </p>
+                    </div>
+                    <div class="form-check form-switch flex-shrink-0">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                            id="live-data-enabled-switch" {% if live_data_enabled %}checked{% endif %}>
+                    </div>
+                </div>
+                <div id="live-data-preferences-status" class="mt-2 small" aria-live="polite"></div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>{% translate "Security" %}</h5>
             </div>
             <div class="card-body">
@@ -232,6 +253,42 @@
         });
     }
 
+    // --- Live market data ---
+    const liveDataEnabledSwitch = document.getElementById('live-data-enabled-switch');
+    const liveDataStatusEl = document.getElementById('live-data-preferences-status');
+    const updateLiveDataUrl = '{% url "accounts:update_live_data_preferences" %}';
+
+    if (liveDataEnabledSwitch) {
+        liveDataEnabledSwitch.addEventListener('change', async function () {
+            const liveDataEnabled = liveDataEnabledSwitch.checked;
+            liveDataEnabledSwitch.disabled = true;
+            try {
+                const csrfToken = getCsrfToken();
+                const response = await fetch(updateLiveDataUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ live_data_enabled: liveDataEnabled }),
+                });
+                if (!response.ok) throw new Error('update_failed');
+                if (liveDataEnabled) {
+                    {% translate "Live market data enabled." as msg %}
+                    liveDataStatusEl.textContent = '{{ msg|escapejs }}';
+                } else {
+                    {% translate "Live market data disabled." as msg %}
+                    liveDataStatusEl.textContent = '{{ msg|escapejs }}';
+                }
+                liveDataStatusEl.className = 'mt-2 small text-success';
+            } catch (err) {
+                liveDataEnabledSwitch.checked = !liveDataEnabled;
+                {% translate "Failed to update live market data preference." as msg %}
+                liveDataStatusEl.textContent = '{{ msg|escapejs }}';
+                liveDataStatusEl.className = 'mt-2 small text-danger';
+            } finally {
+                liveDataEnabledSwitch.disabled = false;
+            }
+        });
+    }
+
     // --- Passkey ---
     const passkeyRegisterBtn = document.getElementById('passkey-register');
     const passkeyDeleteBtn = document.getElementById('passkey-delete');
@@ -271,8 +328,8 @@
     function updatePasskeyButtons(registered) {
         passkeyDeleteBtn.disabled = !registered;
         passkeyRegisterBtn.textContent = registered
-            ? '{% translate "Replace passkey" %}'
-            : '{% translate "Register passkey" %}';
+            ? '{% filter escapejs %}{% translate "Replace passkey" %}{% endfilter %}'
+            : '{% filter escapejs %}{% translate "Register passkey" %}{% endfilter %}';
     }
 
     if (passkeyRegisterBtn && passkeyDeleteBtn) {

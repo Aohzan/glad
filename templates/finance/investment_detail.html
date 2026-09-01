@@ -54,9 +54,14 @@
   <div class="card mb-4" id="holdings-panel">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>{% translate "Holdings" %}</h5>
-      <a href="{% url 'finance:new_holding' account.pk %}" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-plus-lg me-1"></i>{% translate "Add holding" %}
-      </a>
+      <div class="btn-group btn-group-sm" role="group">
+        <button type="button" id="toggleClosedHoldings" class="btn btn-outline-secondary" title="{% translate 'Show/hide closed holdings' %}" data-collapsed="true">
+          <i class="bi bi-archive"></i>
+        </button>
+        <a href="{% url 'finance:new_holding' account.pk %}" class="btn btn-outline-primary">
+          <i class="bi bi-plus-lg me-1"></i>{% translate "Add holding" %}
+        </a>
+      </div>
     </div>
     <div class="card-body">
       {% if holdings %}
@@ -75,7 +80,7 @@
           </thead>
           <tbody>
             {% for h in holdings %}
-            <tr data-bs-toggle="collapse" data-bs-target="#holding-history-{{ h.pk }}" style="cursor: pointer;" data-holding-name="{{ h.short_name }}">
+            <tr class="holding-row{% if not h.is_active %} holding-closed{% endif %}">
               <td data-holding-name="{{ h.short_name }}">{{ h.name|default:"-" }}</td>
               <td>{{ h.code|default:"-" }}</td>
               <td>{{ h.quantity|default:"-" }}</td>
@@ -88,10 +93,13 @@
                   <span class="badge bg-secondary">{% translate "Closed" %}</span>
                 {% endif %}
               </td>
-              <td class="text-end" onclick="event.stopPropagation();">
+              <td class="text-end">
                 <div class="btn-group btn-group-sm">
                   <a href="{% url 'finance:new_holding_history' account.pk h.pk %}" class="btn btn-outline-primary" title="{% translate 'Add history' %}">
                     <i class="bi bi-plus-lg"></i>
+                  </a>
+                  <a href="{% url 'finance:holding_detail' account.pk h.pk %}" class="btn btn-outline-secondary" title="{% translate 'View details' %}">
+                    <i class="bi bi-eye"></i>
                   </a>
                   <a href="{% url 'finance:edit_holding' account.pk h.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
                     <i class="bi bi-pencil"></i>
@@ -104,44 +112,6 @@
                 {% translate "Delete holding" as modal_title %}
                 {% translate "Are you sure you want to delete this holding and all its history?" as confirm_text %}
                 {% include "finance/_delete_modal.html" with modal_prefix="deleteHolding" item_pk=h.pk delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
-              </td>
-            </tr>
-            {# Collapsible holding history rows #}
-            <tr class="collapse" id="holding-history-{{ h.pk }}">
-              <td colspan="7">
-                <table class="table table-sm table-borderless mb-0">
-                  <thead>
-                    <tr class="text-body-secondary">
-                      <th>{% translate "Date" %}</th>
-                      <th>{% translate "Value" %}</th>
-                      <th>{% translate "Quantity" %}</th>
-                      <th>{% translate "Cash used" %}</th>
-                      <th class="text-end">{% translate "Actions" %}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for hh in h.investmentaccountholdinghistory_set.all %}
-                    <tr>
-                      <td>{{ hh.valuation_date }}</td>
-                      <td>{{ hh.value|format_money }}</td>
-                      <td>{{ hh.quantity|default:"-" }}</td>
-                      <td>{% if hh.cash_used %}{{ hh.cash_used|format_money }}{% else %}-{% endif %}</td>
-                      <td class="text-end">
-                        {% url 'finance:edit_holding_history' account.pk h.pk hh.pk as edit_url %}
-                        {% url 'finance:delete_holding_history' account.pk h.pk hh.pk as delete_url %}
-                        {% include "finance/_item_actions.html" with edit_url=edit_url modal_prefix="deleteHistory" item_pk=hh.pk %}
-                        {% translate "Delete history entry" as modal_title %}
-                        {% translate "Are you sure you want to delete this history entry?" as confirm_text %}
-                        {% include "finance/_delete_modal.html" with modal_prefix="deleteHistory" item_pk=hh.pk delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
-                      </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                      <td colspan="5" class="text-center"><em>{% translate "No history entries." %}</em></td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
               </td>
             </tr>
             {% endfor %}
@@ -212,4 +182,23 @@
 {% block scripts %}
 {% url "finance:chart_data" data_type="investment_account" object_id=account.pk as chart_url %}
 {% include "finance/_account_chart_script.html" with chart_url=chart_url %}
+<script>
+(function () {
+  var btn = document.getElementById('toggleClosedHoldings');
+  if (!btn) return;
+  var closedRows = document.querySelectorAll('#holdings-panel .holding-closed');
+  function apply() {
+    var collapsed = btn.dataset.collapsed === 'true';
+    closedRows.forEach(function (row) {
+      row.style.display = collapsed ? 'none' : '';
+    });
+    btn.querySelector('i').className = collapsed ? 'bi bi-archive' : 'bi bi-archive-fill';
+  }
+  btn.addEventListener('click', function () {
+    btn.dataset.collapsed = btn.dataset.collapsed === 'true' ? 'false' : 'true';
+    apply();
+  });
+  apply();
+})();
+</script>
 {% endblock %}

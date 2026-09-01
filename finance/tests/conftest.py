@@ -136,12 +136,12 @@ def investment_holding_history(active_investment_account):
         account=active_investment_account,
         name="Test Holding",
         is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
+        initial_value=Money(Decimal(100), "EUR"),
     )
     return InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
-        value=Money(Decimal("300"), "EUR"),
-        quantity=Decimal("3"),
+        value=Money(Decimal(300), "EUR"),
+        quantity=Decimal(3),
         valuation_date=datetime.datetime(2025, 2, 1, 10, 0, 0),
     )
 

@@ -1,6 +1,7 @@
 {% load i18n %}
 
-<div class="row g-3">
+{# ── General ─────────────────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
   <div class="col-md-6">
     <label for="{{ property_form.name.id_for_label }}" class="form-label">
       {{ property_form.name.label }}
@@ -22,17 +23,95 @@
       <div class="invalid-feedback d-block">{{ property_form.property_type.errors.0 }}</div>
     {% endif %}
   </div>
+</div>
 
+{# ── Address ─────────────────────────────────────────────────────────── #}
+<h6 class="text-uppercase text-body-secondary small fw-semibold mb-3 prop-label">{% translate "Address" %}</h6>
+<div class="row g-3 mb-4">
   <div class="col-12">
-    <label for="{{ property_form.address.id_for_label }}" class="form-label">
-      {{ property_form.address.label }}
-    </label>
-    {{ property_form.address }}
-    {% if property_form.address.errors %}
-      <div class="invalid-feedback d-block">{{ property_form.address.errors.0 }}</div>
-    {% endif %}
+    <label class="form-label">{% translate "Search address" %}</label>
+    <div class="position-relative">
+      <input type="text" id="addressSearch" class="form-control" autocomplete="off"
+             placeholder="{% translate 'Start typing a French address...' %}">
+      <div id="addressSuggestions" class="list-group position-absolute w-100 shadow-sm"
+           style="display:none; z-index: 1000; max-height: 240px; overflow-y: auto;"></div>
+    </div>
+    <div class="form-text">{% translate "Select a suggestion to auto-fill the fields below." %}</div>
   </div>
 
+  <div class="col-md-3">
+    <label for="{{ property_form.street_number.id_for_label }}" class="form-label">
+      {{ property_form.street_number.label }}
+    </label>
+    {{ property_form.street_number }}
+  </div>
+  <div class="col-md-6">
+    <label for="{{ property_form.street_name.id_for_label }}" class="form-label">
+      {{ property_form.street_name.label }}
+    </label>
+    {{ property_form.street_name }}
+  </div>
+  <div class="col-md-3">
+    <label for="{{ property_form.additional_address.id_for_label }}" class="form-label">
+      {{ property_form.additional_address.label }}
+    </label>
+    {{ property_form.additional_address }}
+  </div>
+
+  <div class="col-md-3">
+    <label for="{{ property_form.postal_code.id_for_label }}" class="form-label">
+      {{ property_form.postal_code.label }}
+    </label>
+    {{ property_form.postal_code }}
+  </div>
+  <div class="col-md-3">
+    <label for="{{ property_form.city.id_for_label }}" class="form-label">
+      {{ property_form.city.label }}
+    </label>
+    {{ property_form.city }}
+  </div>
+  <div class="col-md-3">
+    <label for="{{ property_form.country.id_for_label }}" class="form-label">
+      {{ property_form.country.label }}
+    </label>
+    {{ property_form.country }}
+  </div>
+
+  {{ property_form.latitude }}
+  {{ property_form.longitude }}
+</div>
+
+{# ── Cadastral information ───────────────────────────────────────────── #}
+<h6 class="text-uppercase text-body-secondary small fw-semibold mb-3 prop-label">{% translate "Cadastral information" %}</h6>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <label for="{{ property_form.insee_code.id_for_label }}" class="form-label">
+      {{ property_form.insee_code.label }}
+    </label>
+    {{ property_form.insee_code }}
+  </div>
+  <div class="col-md-3">
+    <label for="{{ property_form.cadastral_section.id_for_label }}" class="form-label">
+      {{ property_form.cadastral_section.label }}
+    </label>
+    {{ property_form.cadastral_section }}
+  </div>
+  <div class="col-md-3">
+    <label for="{{ property_form.cadastral_parcel_number.id_for_label }}" class="form-label">
+      {{ property_form.cadastral_parcel_number.label }}
+    </label>
+    {{ property_form.cadastral_parcel_number }}
+  </div>
+  <div class="col-md-3 d-flex align-items-end">
+    <button type="button" class="btn btn-outline-secondary w-100" id="btnCadastralLookup">
+      <i class="bi bi-geo me-1"></i>{% translate "Look up cadastral info" %}
+    </button>
+  </div>
+</div>
+
+{# ── Purchase ────────────────────────────────────────────────────────── #}
+<h6 class="text-uppercase text-body-secondary small fw-semibold mb-3 prop-label">{% translate "Purchase" %}</h6>
+<div class="row g-3 mb-4">
   <div class="col-md-4">
     <label for="{{ property_form.buying_date.id_for_label }}" class="form-label">
       {{ property_form.buying_date.label }}
@@ -45,16 +124,6 @@
     {% if property_form.buying_date.help_text %}
       <div class="form-text">{{ property_form.buying_date.help_text }}</div>
     {% endif %}
-  </div>
-
-  <div class="col-md-4">
-    <label class="form-label text-body-secondary">{% translate "Total purchase cost" %}</label>
-    <div class="input-group flex-wrap">
-      <input type="text" id="id_total_purchase_cost" class="form-control" disabled tabindex="-1"
-             style="background-color: var(--bs-secondary-bg);">
-      <span class="input-group-text" id="id_total_purchase_cost_currency">EUR</span>
-    </div>
-    <div class="form-text">{% translate "Buying value + all fees (computed)" %}</div>
   </div>
 
   <div class="col-md-4">
@@ -71,51 +140,21 @@
     {% endif %}
   </div>
 
-  <script>
-  (function () {
-    const amountFields = [
-      'id_buying_value_0',
-      'id_notary_fees_0',
-      'id_agency_fees_0',
-      'id_other_fees_0',
-      'id_credit_fees_0',
-    ];
-    const totalInput = document.getElementById('id_total_purchase_cost');
-    const currencySpan = document.getElementById('id_total_purchase_cost_currency');
+  <div class="col-md-4">
+    <label class="form-label text-body-secondary d-flex align-items-center gap-1">
+      <i class="bi bi-calculator"></i>
+      {% translate "Total purchase cost" %}
+    </label>
+    <div class="input-group flex-wrap">
+      <input type="text" id="id_total_purchase_cost" class="form-control" disabled tabindex="-1"
+             style="background-color: var(--bs-secondary-bg);">
+      <span class="input-group-text" id="id_total_purchase_cost_currency">EUR</span>
+    </div>
+    <div class="form-text">
+      <i class="bi bi-info-circle me-1"></i>{% translate "Buying value + all fees (auto-calculated, not editable)" %}
+    </div>
+  </div>
 
-    function updateTotal() {
-      let total = 0;
-      amountFields.forEach(function (id) {
-        const el = document.getElementById(id);
-        if (el) {
-          const val = parseFloat(el.value.replace(/\s/g, '').replace(',', '.'));
-          if (!isNaN(val)) total += val;
-        }
-      });
-      totalInput.value = total.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-      const currencyEl = document.getElementById('id_buying_value_1');
-      if (currencyEl) currencySpan.textContent = currencyEl.value || 'EUR';
-    }
-
-    function attachListeners() {
-      amountFields.forEach(function (id) {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', updateTotal);
-      });
-      const currencyEl = document.getElementById('id_buying_value_1');
-      if (currencyEl) currencyEl.addEventListener('change', updateTotal);
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function () { attachListeners(); updateTotal(); });
-    } else {
-      attachListeners();
-      updateTotal();
-    }
-  })();
-  </script>
-
-  {# ── Purchase fees ────────────────────────────────────────────────────── #}
   <div class="col-12">
     <p class="text-uppercase text-body-secondary small fw-semibold mb-2 prop-label">{% translate "Purchase fees" %}</p>
     <div class="row g-2">
@@ -161,7 +200,55 @@
       </div>
     </div>
   </div>
+</div>
 
+<script>
+(function () {
+  const amountFields = [
+    'id_buying_value_0',
+    'id_notary_fees_0',
+    'id_agency_fees_0',
+    'id_other_fees_0',
+    'id_credit_fees_0',
+  ];
+  const totalInput = document.getElementById('id_total_purchase_cost');
+  const currencySpan = document.getElementById('id_total_purchase_cost_currency');
+
+  function updateTotal() {
+    let total = 0;
+    amountFields.forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) {
+        const val = parseFloat(el.value.replace(/\s/g, '').replace(',', '.'));
+        if (!isNaN(val)) total += val;
+      }
+    });
+    totalInput.value = total.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    const currencyEl = document.getElementById('id_buying_value_1');
+    if (currencyEl) currencySpan.textContent = currencyEl.value || 'EUR';
+  }
+
+  function attachListeners() {
+    amountFields.forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateTotal);
+    });
+    const currencyEl = document.getElementById('id_buying_value_1');
+    if (currencyEl) currencyEl.addEventListener('change', updateTotal);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { attachListeners(); updateTotal(); });
+  } else {
+    attachListeners();
+    updateTotal();
+  }
+})();
+</script>
+
+{# ── Characteristics ─────────────────────────────────────────────────── #}
+<h6 class="text-uppercase text-body-secondary small fw-semibold mb-3 prop-label">{% translate "Characteristics" %}</h6>
+<div class="row g-3 mb-4">
   <div class="col-md-4">
     <label for="{{ property_form.floor_area.id_for_label }}" class="form-label">
       {{ property_form.floor_area.label }}
@@ -172,6 +259,19 @@
     </div>
     {% if property_form.floor_area.errors %}
       <div class="invalid-feedback d-block">{{ property_form.floor_area.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.total_surface.id_for_label }}" class="form-label">
+      {{ property_form.total_surface.label }}
+    </label>
+    <div class="input-group">
+      {{ property_form.total_surface }}
+      <span class="input-group-text">m²</span>
+    </div>
+    {% if property_form.total_surface.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.total_surface.errors.0 }}</div>
     {% endif %}
   </div>
 
@@ -217,46 +317,48 @@
     </label>
     {{ property_form.tax_regime }}
   </div>
+</div>
 
-  <div class="row">
-    <div class="col-md-4">
-      <label for="{{ property_form.selling_date.id_for_label }}" class="form-label">
-        {{ property_form.selling_date.label }}
-      </label>
-      {{ property_form.selling_date }}
-      {% if property_form.selling_date.errors %}
-        <div class="invalid-feedback d-block">{{ property_form.selling_date.errors.0 }}</div>
-      {% endif %}
-      {% if property_form.selling_date.help_text %}
-        <div class="form-text">{{ property_form.selling_date.help_text }}</div>
-      {% endif %}
-    </div>
+{# ── Selling & Status ────────────────────────────────────────────────── #}
+<h6 class="text-uppercase text-body-secondary small fw-semibold mb-3 prop-label">{% translate "Selling & Status" %}</h6>
+<div class="row g-3">
+  <div class="col-md-4">
+    <label for="{{ property_form.selling_date.id_for_label }}" class="form-label">
+      {{ property_form.selling_date.label }}
+    </label>
+    {{ property_form.selling_date }}
+    {% if property_form.selling_date.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.selling_date.errors.0 }}</div>
+    {% endif %}
+    {% if property_form.selling_date.help_text %}
+      <div class="form-text">{{ property_form.selling_date.help_text }}</div>
+    {% endif %}
+  </div>
 
-    <div class="col-md-4">
-      <label for="{{ property_form.selling_value.id_for_label }}" class="form-label">
-        {{ property_form.selling_value.label }}
-      </label>
-      {{ property_form.selling_value }}
-      {% if property_form.selling_value.errors %}
-        <div class="invalid-feedback d-block">{{ property_form.selling_value.errors.0 }}</div>
-      {% endif %}
-      {% if property_form.selling_value.help_text %}
-        <div class="form-text">{{ property_form.selling_value.help_text }}</div>
-      {% endif %}
-    </div>
+  <div class="col-md-4">
+    <label for="{{ property_form.selling_value.id_for_label }}" class="form-label">
+      {{ property_form.selling_value.label }}
+    </label>
+    {{ property_form.selling_value }}
+    {% if property_form.selling_value.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.selling_value.errors.0 }}</div>
+    {% endif %}
+    {% if property_form.selling_value.help_text %}
+      <div class="form-text">{{ property_form.selling_value.help_text }}</div>
+    {% endif %}
+  </div>
 
-    <div class="col-md-4">
-      <label for="{{ property_form.is_active.id_for_label }}" class="form-label">
-        {{ property_form.is_active.label }}
-      </label>
-      {{ property_form.is_active }}
-      {% if property_form.is_active.errors %}
-        <div class="invalid-feedback d-block">{{ property_form.is_active.errors.0 }}</div>
-      {% endif %}
-      {% if property_form.is_active.help_text %}
-        <div class="form-text">{{ property_form.is_active.help_text }}</div>
-      {% endif %}
-    </div>
+  <div class="col-md-4">
+    <label for="{{ property_form.is_active.id_for_label }}" class="form-label">
+      {{ property_form.is_active.label }}
+    </label>
+    {{ property_form.is_active }}
+    {% if property_form.is_active.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.is_active.errors.0 }}</div>
+    {% endif %}
+    {% if property_form.is_active.help_text %}
+      <div class="form-text">{{ property_form.is_active.help_text }}</div>
+    {% endif %}
   </div>
 </div>
 
@@ -273,4 +375,115 @@ document.addEventListener('DOMContentLoaded', function() {
     sel.classList.add('form-select');
   });
 });
+</script>
+
+{# ── Address autocomplete + cadastral lookup ── #}
+<script>
+(function () {
+  var searchInput = document.getElementById('addressSearch');
+  var suggestionsDiv = document.getElementById('addressSuggestions');
+  var btnCadastral = document.getElementById('btnCadastralLookup');
+  var autocompleteUrl = "{% url 'property:api_address_autocomplete' %}";
+  var cadastralUrl = "{{ property_form.instance.pk|default:'' }}";  var debounceTimer = null;
+
+  function setField(name, value) {
+    var el = document.getElementById('id_' + name);
+    if (el) el.value = value || '';
+  }
+
+  function getField(name) {
+    var el = document.getElementById('id_' + name);
+    return el ? el.value : '';
+  }
+
+  searchInput.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    var query = searchInput.value.trim();
+    if (query.length < 3) {
+      suggestionsDiv.style.display = 'none';
+      return;
+    }
+    debounceTimer = setTimeout(function () {
+      fetch(autocompleteUrl + '?q=' + encodeURIComponent(query))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          suggestionsDiv.innerHTML = '';
+          var results = data.results || [];
+          if (results.length === 0) {
+            suggestionsDiv.style.display = 'none';
+            return;
+          }
+          results.forEach(function (item) {
+            var a = document.createElement('a');
+            a.className = 'list-group-item list-group-item-action';
+            a.style.cursor = 'pointer';
+            a.textContent = item.label;
+            a.addEventListener('click', function () {
+              setField('street_number', item.street_number);
+              setField('street_name', item.street_name);
+              setField('postal_code', item.postal_code);
+              setField('city', item.city);
+              setField('insee_code', item.insee_code);
+              setField('latitude', item.latitude);
+              setField('longitude', item.longitude);
+              if (!getField('country')) setField('country', 'France');
+              searchInput.value = item.label;
+              suggestionsDiv.style.display = 'none';
+            });
+            suggestionsDiv.appendChild(a);
+          });
+          suggestionsDiv.style.display = '';
+        })
+        .catch(function () { suggestionsDiv.style.display = 'none'; });
+    }, 300);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+      suggestionsDiv.style.display = 'none';
+    }
+  });
+
+  if (btnCadastral) {
+    btnCadastral.addEventListener('click', function () {
+      var lat = getField('latitude');
+      var lon = getField('longitude');
+      if (!lat || !lon) {
+        {% translate "Please select an address first to get coordinates." as alert_msg %}
+        alert('{{ alert_msg|escapejs }}');
+        return;
+      }
+      var pk = cadastralUrl;
+      if (!pk) return;
+      btnCadastral.disabled = true;
+      btnCadastral.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>{% filter escapejs %}{% translate "Looking up..." %}{% endfilter %}';
+      var url = '{% if property_form.instance.pk %}{% url "property:api_cadastral_lookup" property_form.instance.pk %}{% endif %}';
+      var params = new URLSearchParams();
+      if (lat) params.set('lat', lat);
+      if (lon) params.set('lon', lon);
+      var insee = getField('insee_code');
+      if (insee) params.set('insee', insee);
+      fetch(url + '?' + params.toString())
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.error) {
+            {% translate "Could not find cadastral information for this location." as alert_msg %}
+            alert('{{ alert_msg|escapejs }}');
+          } else {
+            setField('cadastral_section', data.section);
+            setField('cadastral_parcel_number', data.numero);
+            if (data.insee_code) setField('insee_code', data.insee_code);
+          }
+        })
+        .catch(function () {
+          {% translate "An error occurred during cadastral lookup." as alert_msg %}
+          alert('{{ alert_msg|escapejs }}');
+        })
+        .finally(function () {
+          btnCadastral.disabled = false;
+          btnCadastral.innerHTML = '<i class="bi bi-geo me-1"></i>{% filter escapejs %}{% translate "Look up cadastral info" %}{% endfilter %}';
+        });
+    });
+  }
+})();
 </script>

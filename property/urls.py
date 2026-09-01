@@ -1,6 +1,7 @@
 """URL configuration for the property app."""
 
-from typing import Callable, cast
+from collections.abc import Callable
+from typing import cast
 
 from django.http import HttpResponseBase
 from django.urls import path
@@ -136,6 +137,21 @@ urlpatterns = [
         "scpi/<int:pk>/api/dashboard-card/",
         views.scpi_dashboard_card_api,
         name="api_scpi_dashboard_card",
+    ),
+    path(
+        "api/address-autocomplete/",
+        views.address_autocomplete_api,
+        name="api_address_autocomplete",
+    ),
+    path(
+        "<int:pk>/api/cadastral/",
+        views.cadastral_lookup_api,
+        name="api_cadastral_lookup",
+    ),
+    path(
+        "<int:pk>/api/dvf-estimate/",
+        views.property_dvf_estimate_api,
+        name="api_dvf_estimate",
     ),
     # Async panel fragments
     path(

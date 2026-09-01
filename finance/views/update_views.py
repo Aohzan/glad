@@ -91,6 +91,8 @@ def update_accounts(request):
                     "new_value": holding.value.amount,
                     "current_quantity": holding.quantity,
                     "new_quantity": holding.quantity,
+                    "isin": holding.isin,  # For the live-fetch button, not a form field
+                    "account_id": account.id,  # For the live-fetch button URL
                 }
             )
         investment_accounts_initial_data[str(account)]["holdings"] = holding_data
@@ -171,7 +173,7 @@ def update_accounts(request):
         is_valid = is_valid and saving_accounts_formset_valid
 
         # Validate investment account formsets conditionally
-        for account_name, formset_by_type in investment_accounts_formsets.items():
+        for formset_by_type in investment_accounts_formsets.values():
             # Validate cash formset
             cash_formset_valid = True
             for form in formset_by_type["cash"]:
@@ -236,7 +238,7 @@ def update_accounts(request):
                             ),
                         )
             # Update investment accounts
-            for account_name, formset_by_type in investment_accounts_formsets.items():
+            for formset_by_type in investment_accounts_formsets.values():
                 # Process cash forms
                 for form in formset_by_type["cash"]:
                     if form.cleaned_data.get("update_account") is True:

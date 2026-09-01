@@ -101,9 +101,7 @@ class Lease(BaseModel):
         """Return True if this lease is active on the given date."""
         if self.start_date > date:
             return False
-        if self.end_date and self.end_date < date:
-            return False
-        return True
+        return not (self.end_date and self.end_date < date)
 
     def total_rent(self) -> Money:
         """Return rent + charges as a single Money amount."""

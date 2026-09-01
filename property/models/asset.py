@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 class PropertyLoan(BaseModel):
     """Model representing a property loan."""
 
-    amortization_entries: models.Manager["PropertyLoanAmortizationEntry"]
+    amortization_entries: models.Manager[PropertyLoanAmortizationEntry]
 
     class Meta:
         verbose_name = _("property loan")
@@ -37,7 +37,9 @@ class PropertyLoan(BaseModel):
         related_name="loans",
         on_delete=models.CASCADE,
     )
-    name = models.CharField(max_length=255, null=True, blank=True)
+    name = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name=_("Name")
+    )
     lender = models.CharField(
         max_length=255, null=True, blank=True, verbose_name=_("Lender")
     )
@@ -166,7 +168,7 @@ class PropertyLoan(BaseModel):
             if entry is None:
                 return Money(self.original_amount.amount, currency)
             return Money(
-                max(Decimal("0"), entry.remaining_balance_amount.amount), currency
+                max(Decimal(0), entry.remaining_balance_amount.amount), currency
             )
 
         # Fallback: auto-calculate from loan parameters
@@ -175,7 +177,7 @@ class PropertyLoan(BaseModel):
         if as_of_date < self.start_date:
             return Money(self.original_amount.amount, currency)
         if self.end_date is not None and as_of_date >= self.end_date:
-            return Money(Decimal("0"), currency)
+            return Money(Decimal(0), currency)
 
         duration = self.get_duration_months()
         if not duration or self.monthly_payment is None:
@@ -206,7 +208,7 @@ class PropertyLoan(BaseModel):
             disbursement_date=self.start_date,
             first_payment_date=self.first_payment_date,
         )
-        return Money(max(Decimal("0"), balance), currency)
+        return Money(max(Decimal(0), balance), currency)
 
     def amount_paid(self) -> Money:
         """Calculate the amount paid on the loan as of today."""
@@ -230,22 +232,22 @@ class PropertyLoan(BaseModel):
             result = PropertyLoanAmortizationEntry.objects.filter(
                 loan=self, date__lte=as_of_date
             ).aggregate(total=models.Sum("interest"))
-            return Money(result["total"] or Decimal("0"), currency)
+            return Money(result["total"] or Decimal(0), currency)
 
         if (
             self.monthly_payment is None
             or self.start_date is None
             or self.end_date is None
         ):
-            return Money(Decimal("0"), currency)
+            return Money(Decimal(0), currency)
 
         interest_map, _principal_map, _insurance_map = build_loan_maps_from_loan_obj(
-            self, Decimal("0")
+            self, Decimal(0)
         )
         as_of_key = (as_of_date.year, as_of_date.month)
         total = sum(
             (value for key, value in interest_map.items() if key <= as_of_key),
-            Decimal("0"),
+            Decimal(0),
         )
         return Money(total, currency)
 
@@ -263,14 +265,14 @@ class PropertyLoan(BaseModel):
 
         if (
             self.insurance is None
-            or self.insurance.amount <= Decimal("0")
+            or self.insurance.amount <= Decimal(0)
             or self.start_date is None
         ):
-            return Money(Decimal("0"), currency)
+            return Money(Decimal(0), currency)
 
         loop_start = self.first_payment_date or self.start_date
         if as_of_date < loop_start:
-            return Money(Decimal("0"), currency)
+            return Money(Decimal(0), currency)
 
         months_elapsed = (
             (as_of_date.year - loop_start.year) * 12
@@ -328,9 +330,9 @@ class PropertyLoanAmortizationEntry(BaseModel):
 class Property(BaseModel):
     """Model representing a property."""
 
-    property_values: models.Manager["PropertyValue"]
-    leases: models.Manager["Lease"]
-    loans: models.Manager["PropertyLoan"]
+    property_values: models.Manager[PropertyValue]
+    leases: models.Manager[Lease]
+    loans: models.Manager[PropertyLoan]
 
     HOUSE = "HO"
     APARTMENT = "AP"
@@ -351,8 +353,63 @@ class Property(BaseModel):
         default=HOUSE,
         verbose_name=_("Property Type"),
     )
-    name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255, null=True, blank=True)
+    name = models.CharField(max_length=255, verbose_name=_("Name"))
+    street_number = models.CharField(
+        max_length=20, null=True, blank=True, verbose_name=_("Street number")
+    )
+    street_name = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name=_("Street name")
+    )
+    additional_address = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name=_("Additional address"),
+        help_text=_("Apartment, floor, building, etc."),
+    )
+    postal_code = models.CharField(
+        max_length=10, null=True, blank=True, verbose_name=_("Postal code")
+    )
+    city = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name=_("City")
+    )
+    country = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        default="France",
+        verbose_name=_("Country"),
+    )
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        verbose_name=_("Latitude"),
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        verbose_name=_("Longitude"),
+    )
+    insee_code = models.CharField(
+        max_length=5,
+        null=True,
+        blank=True,
+        verbose_name=_("INSEE code"),
+        help_text=_("French municipality (commune) code."),
+    )
+    cadastral_section = models.CharField(
+        max_length=10, null=True, blank=True, verbose_name=_("Cadastral section")
+    )
+    cadastral_parcel_number = models.CharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        verbose_name=_("Cadastral parcel number"),
+    )
     is_active = models.BooleanField(
         default=True,
         verbose_name=_("Active"),
@@ -416,6 +473,7 @@ class Property(BaseModel):
         decimal_places=6,
         null=True,
         blank=True,
+        verbose_name=_("Shares count"),
         help_text=_("Number of shares in the property (if applicable)"),
     )
     buying_date = models.DateField(
@@ -425,13 +483,28 @@ class Property(BaseModel):
     selling_date = models.DateField(
         null=True, blank=True, verbose_name=_("Selling Date")
     )
-    selling_value = MoneyField(max_digits=10, decimal_places=0, null=True, blank=True)
+    selling_value = MoneyField(
+        max_digits=10,
+        decimal_places=0,
+        null=True,
+        blank=True,
+        verbose_name=_("Selling value"),
+    )
     floor_area = models.DecimalField(
         max_digits=7,
         decimal_places=2,
         null=True,
         blank=True,
         verbose_name=_("Floor area (m²)"),
+        help_text=_("Carrez law surface area."),
+    )
+    total_surface = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("Total surface (m²)"),
+        help_text=_("Actual built surface, used for DVF estimation."),
     )
     number_of_rooms = models.PositiveSmallIntegerField(
         null=True,
@@ -463,6 +536,22 @@ class Property(BaseModel):
         if hasattr(self.buying_value, "currency"):
             return str(self.buying_value.currency)
         return settings.DEFAULT_CURRENCY
+
+    @property
+    def full_address(self) -> str:
+        """Return the address as a single human-readable string, or empty if unset."""
+        street_parts = [part for part in (self.street_number, self.street_name) if part]
+        lines = []
+        if street_parts:
+            lines.append(" ".join(street_parts))
+        if self.additional_address:
+            lines.append(self.additional_address)
+        city_parts = [part for part in (self.postal_code, self.city) if part]
+        if city_parts:
+            lines.append(" ".join(city_parts))
+        if self.country and self.country != "France":
+            lines.append(self.country)
+        return ", ".join(lines)
 
     @property
     def icon(self) -> str:
@@ -518,7 +607,7 @@ class Property(BaseModel):
         if not loans.exists():
             return Money(0, str(self.currency))
 
-        total = Decimal("0")
+        total = Decimal(0)
         for loan in loans:
             total += loan.remaining_balance(as_of_date).amount
         return Money(total, str(self.currency))
@@ -528,7 +617,7 @@ class Property(BaseModel):
         loans = PropertyLoan.objects.filter(property=self)
         if not loans.exists():
             return Money(0, str(self.currency))
-        total = sum((loan.amount_paid().amount for loan in loans), Decimal("0"))
+        total = sum((loan.amount_paid().amount for loan in loans), Decimal(0))
         return Money(total, str(self.currency))
 
     @property
@@ -546,7 +635,7 @@ class Property(BaseModel):
             else None
         )
         remaining = self.total_remaining_loans_at_date(as_of_date)
-        net_amount = max(Decimal("0"), gross.amount - remaining.amount)
+        net_amount = max(Decimal(0), gross.amount - remaining.amount)
         return Money(net_amount, str(self.currency))
 
     @property
@@ -587,7 +676,7 @@ class Property(BaseModel):
         )
         return Money(self.buying_value_gross.amount - total_loans, currency)
 
-    def get_progression(self, years: int | None = None) -> "PropertyProgression":
+    def get_progression(self, years: int | None = None) -> PropertyProgression:
         if years:
             x_years_ago = datetime.datetime.now() - datetime.timedelta(days=years * 365)
             return PropertyProgression(
@@ -614,7 +703,7 @@ class Property(BaseModel):
         if not loans.exists():
             return 100.0
         total_original = sum(
-            (loan.original_amount.amount for loan in loans), Decimal("0")
+            (loan.original_amount.amount for loan in loans), Decimal(0)
         )
         if not total_original:
             return 0.0
@@ -639,8 +728,18 @@ class PropertyValue(BaseModel):
         verbose_name_plural = _("property values")
         ordering = ["-valuation_date"]
 
+    class Source(models.TextChoices):
+        MANUAL = "manual", _("Manual")
+        DVF_ESTIMATE = "dvf_estimate", _("DVF estimate")
+
     value = MoneyField(max_digits=10, decimal_places=0)
     valuation_date = models.DateField()
+    source = models.CharField(
+        max_length=20,
+        choices=Source.choices,
+        default=Source.MANUAL,
+        verbose_name=_("Source"),
+    )
     property = models.ForeignKey(
         Property,
         related_name="property_values",
@@ -728,7 +827,7 @@ class AmortizationSetup(BaseModel):
     def __str__(self) -> str:
         return f"{self.property.name} — amortization setup"
 
-    def initialize_components(self) -> list["AmortizationAsset"]:
+    def initialize_components(self) -> list[AmortizationAsset]:
         """Create the standard LMNP amortization components for this setup.
 
         Uses the property buying_date as beginning_date.  Only the
@@ -746,7 +845,7 @@ class AmortizationSetup(BaseModel):
         for comp in self.STANDARD_COMPONENTS:
             # pct is % of total property value (land + bâti)
             component_value = (
-                self.total_value.amount * Decimal(str(comp["pct"])) / Decimal("100")
+                self.total_value.amount * Decimal(str(comp["pct"])) / Decimal(100)
             )
             asset = AmortizationAsset(
                 property=self.property,
@@ -886,7 +985,7 @@ class AmortizationAsset(BaseModel):
             or not self.duration_years
             or not self.is_depreciable
         ):
-            return Decimal("0")
+            return Decimal(0)
 
         start_year = self.beginning_date.year
         has_partial_first_year = not (
@@ -897,18 +996,18 @@ class AmortizationAsset(BaseModel):
         )
 
         if year < start_year or year >= end_year:
-            return Decimal("0")
+            return Decimal(0)
 
         annual = self.depreciable_base().amount / Decimal(self.duration_years)
 
         if has_partial_first_year:
             days_first = (datetime.date(start_year, 12, 31) - self.beginning_date).days
             if year == start_year:
-                return (annual * Decimal(days_first) / Decimal("365")).quantize(
+                return (annual * Decimal(days_first) / Decimal(365)).quantize(
                     Decimal("0.01")
                 )
             if year == end_year - 1:
-                return (annual * Decimal(365 - days_first) / Decimal("365")).quantize(
+                return (annual * Decimal(365 - days_first) / Decimal(365)).quantize(
                     Decimal("0.01")
                 )
 
@@ -917,11 +1016,11 @@ class AmortizationAsset(BaseModel):
     def cumulative_amortization(self, up_to_year: int) -> Decimal:
         """Return the sum of all annual amortizations from acquisition year to *up_to_year* (inclusive)."""
         if not self.beginning_date:
-            return Decimal("0")
+            return Decimal(0)
         return sum(
             (
                 self.get_annual_amortization(y)
                 for y in range(self.beginning_date.year, up_to_year + 1)
             ),
-            Decimal("0"),
+            Decimal(0),
         )

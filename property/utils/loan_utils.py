@@ -20,25 +20,25 @@ def calculate_monthly_payment(
     When interest_rate is 0, the payment is simply capital / duration.
     """
     if duration_months <= 0:
-        return Decimal("0"), Decimal("0"), Decimal("0")
+        return Decimal(0), Decimal(0), Decimal(0)
 
-    monthly_rate = (annual_interest_rate / Decimal("100")) / Decimal("12")
+    monthly_rate = (annual_interest_rate / Decimal(100)) / Decimal(12)
 
-    if monthly_rate == Decimal("0"):
+    if monthly_rate == Decimal(0):
         monthly_pi = (original_amount / Decimal(duration_months)).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
     else:
         # Standard French amortization: M = C * t(1+t)^n / ((1+t)^n - 1)
-        factor = (Decimal("1") + monthly_rate) ** duration_months
+        factor = (Decimal(1) + monthly_rate) ** duration_months
         monthly_pi = (
-            original_amount * monthly_rate * factor / (factor - Decimal("1"))
+            original_amount * monthly_rate * factor / (factor - Decimal(1))
         ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-    monthly_insurance = Decimal("0")
+    monthly_insurance = Decimal(0)
     if annual_insurance_rate:
         monthly_insurance = (
-            original_amount * annual_insurance_rate / Decimal("100") / Decimal("12")
+            original_amount * annual_insurance_rate / Decimal(100) / Decimal(12)
         ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     total_monthly = monthly_pi + monthly_insurance
@@ -73,11 +73,11 @@ def build_loan_amortization_balance(
     Returns:
         Remaining capital balance as a Decimal (≥ 0).
     """
-    annual_rate = Decimal("0")
-    monthly_rate = Decimal("0")
+    annual_rate = Decimal(0)
+    monthly_rate = Decimal(0)
     if interest_rate:
-        annual_rate = interest_rate / Decimal("100")
-        monthly_rate = annual_rate / Decimal("12")
+        annual_rate = interest_rate / Decimal(100)
+        monthly_rate = annual_rate / Decimal(12)
 
     use_prorated_first = (
         disbursement_date is not None
@@ -100,15 +100,13 @@ def build_loan_amortization_balance(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
         principal_amount = payment_sequence[i] - interest_amount
-        if principal_amount < Decimal("0"):
-            principal_amount = Decimal("0")
-        if principal_amount > balance:
-            principal_amount = balance
+        principal_amount = max(principal_amount, Decimal(0))
+        principal_amount = min(principal_amount, balance)
         balance -= principal_amount
-        if balance <= Decimal("0"):
-            return Decimal("0")
+        if balance <= Decimal(0):
+            return Decimal(0)
 
-    return max(Decimal("0"), balance)
+    return max(Decimal(0), balance)
 
 
 def build_loan_monthly_maps(
@@ -152,11 +150,11 @@ def build_loan_monthly_maps(
     principal_by_month: dict[tuple[int, int], Decimal] = {}
     insurance_by_month: dict[tuple[int, int], Decimal] = {}
 
-    annual_rate = Decimal("0")
-    monthly_rate = Decimal("0")
+    annual_rate = Decimal(0)
+    monthly_rate = Decimal(0)
     if interest_rate:
-        annual_rate = interest_rate / Decimal("100")
-        monthly_rate = annual_rate / Decimal("12")
+        annual_rate = interest_rate / Decimal(100)
+        monthly_rate = annual_rate / Decimal(12)
 
     loop_start_date = (
         first_payment_date if first_payment_date is not None else start_date
@@ -201,24 +199,22 @@ def build_loan_monthly_maps(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
         principal_amount = payment - interest_amount
-        if principal_amount < Decimal("0"):
-            principal_amount = Decimal("0")
-        if principal_amount > remaining_balance:
-            principal_amount = remaining_balance
+        principal_amount = max(principal_amount, Decimal(0))
+        principal_amount = min(principal_amount, remaining_balance)
 
         interest_by_month[key] = (
-            interest_by_month.get(key, Decimal("0")) + interest_amount
+            interest_by_month.get(key, Decimal(0)) + interest_amount
         )
         principal_by_month[key] = (
-            principal_by_month.get(key, Decimal("0")) + principal_amount
+            principal_by_month.get(key, Decimal(0)) + principal_amount
         )
         if insurance_amount:
             insurance_by_month[key] = (
-                insurance_by_month.get(key, Decimal("0")) + insurance_amount
+                insurance_by_month.get(key, Decimal(0)) + insurance_amount
             )
 
         remaining_balance -= principal_amount
-        if remaining_balance <= Decimal("0"):
+        if remaining_balance <= Decimal(0):
             break
         current = add_months_safe(current, 1)
 
@@ -239,9 +235,7 @@ def build_loan_maps_from_loan_obj(
     the required fields from the loan object directly.
     """
     monthly_payment_amount = (
-        loan.monthly_payment.amount
-        if loan.monthly_payment is not None
-        else Decimal("0")
+        loan.monthly_payment.amount if loan.monthly_payment is not None else Decimal(0)
     )
     return build_loan_monthly_maps(
         start_date=loan.start_date,

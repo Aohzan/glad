@@ -174,7 +174,7 @@ class TestAmortizationConformity:
         assets = AmortizationAsset.objects.filter(property=lmnp_setup.property)
         total = sum(a.value_total.amount for a in assets)
         pct_sum = sum(c["pct"] for c in S.STANDARD_COMPONENTS)
-        expected = (Decimal("196000") * Decimal(pct_sum) / Decimal("100")).quantize(
+        expected = (Decimal(196000) * Decimal(pct_sum) / Decimal(100)).quantize(
             Decimal("0.01")
         )
         assert approx_equal(total, expected)
@@ -184,7 +184,7 @@ class TestAmortizationConformity:
         asset = AmortizationAsset.objects.get(
             property=lmnp_setup.property, label="Gros œuvre"
         )
-        expected = Decimal("196000") * Decimal("45") / Decimal("100")
+        expected = Decimal(196000) * Decimal(45) / Decimal(100)
         assert approx_equal(asset.value_total.amount, expected)
 
     def test_total_amortization_2025(self, lmnp_setup):
@@ -197,8 +197,8 @@ class TestAmortizationConformity:
         # Excel reference: 3 353.96 (with simplified constructions only)
         # Our detailed breakdown produces a different total.
         # Verify it's positive and within a reasonable range.
-        assert total > Decimal("0")
-        assert total < Decimal("20000")  # sanity check
+        assert total > Decimal(0)
+        assert total < Decimal(20000)  # sanity check
 
     def test_cerfa_category_set_on_components(self, lmnp_setup):
         """Each component has a cerfa_category set."""
@@ -243,7 +243,7 @@ class TestAmortizationConformity:
             entry_date=datetime.date(2025, 6, 1),
         )
         balance = get_deferred_amortization_balance(lmnp_property.pk, 2025)
-        assert balance == Decimal("0")
+        assert balance == Decimal(0)
 
     def test_deferred_balance_accumulates_when_deficit(self, lmnp_setup):
         """With no income, full amort is deferred."""
@@ -301,7 +301,7 @@ class TestLmnpSummaryConformity:
     ):
         """With an operating deficit, no amortization is deducted (art. 39C)."""
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
-        assert summary["amortization_deductible"] == Decimal("0")
+        assert summary["amortization_deductible"] == Decimal(0)
 
     def test_full_amort_deferred_when_deficit(
         self, lmnp_setup, lmnp_entries_2025, lmnp_property
@@ -316,7 +316,7 @@ class TestLmnpSummaryConformity:
         = 2148 - 6746.21 - amort_total
         """
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
-        expected = Decimal("2148") - Decimal("6746.21") - summary["amortization_total"]
+        expected = Decimal(2148) - Decimal("6746.21") - summary["amortization_total"]
         assert approx_equal(summary["cerfa_310"], expected)
 
     def test_cerfa_318_2025(self, lmnp_setup, lmnp_entries_2025, lmnp_property):
@@ -324,7 +324,7 @@ class TestLmnpSummaryConformity:
         2033-B line 318 = abs(cerfa_310) when cerfa_310 < 0 (deficit comptable).
         """
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
-        assert summary["cerfa_310"] < Decimal("0")
+        assert summary["cerfa_310"] < Decimal(0)
         assert approx_equal(summary["cerfa_318"], abs(summary["cerfa_310"]))
 
     def test_by_line_218_has_loyers(self, lmnp_setup, lmnp_entries_2025, lmnp_property):
@@ -402,7 +402,7 @@ class TestLmnpSummaryRecurringEntries:
             recurrence_end_date=datetime.date(2024, 12, 31),
         )
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
-        assert summary["recettes"] == Decimal("0")
+        assert summary["recettes"] == Decimal(0)
 
     def test_yearly_insurance_started_before_year(self, lmnp_setup, lmnp_property):
         """Yearly insurance started in 2020 must appear once in 2025."""
@@ -442,7 +442,7 @@ class TestFiscalDeficitConformity:
 
     def _setup_deficit_2025(self, lmnp_property, lmnp_setup, lmnp_entries_2025):
         """Helper: sets up a deficit year 2025."""
-        pass  # lmnp_entries_2025 fixture already creates the deficit
+        # lmnp_entries_2025 fixture already creates the deficit
 
     def test_deficit_2025_is_tracked(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
@@ -479,7 +479,7 @@ class TestFiscalDeficitConformity:
     def test_no_deficit_without_entries(self, lmnp_property, lmnp_setup):
         """Without ledger entries, fiscal result is 0 (no deficit)."""
         history = get_fiscal_deficit_history(lmnp_property.pk, 2025)
-        assert history == {} or all(d == Decimal("0") for d in history.values())
+        assert history == {} or all(d == Decimal(0) for d in history.values())
 
     def test_deficit_expires_after_10_years(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
@@ -540,7 +540,7 @@ class TestBilanConformity:
     def test_cout_revient_zero_subsequent_year(self, lmnp_property, lmnp_setup):
         """No new acquisitions in year 2: cost = 0."""
         bilan = get_bilan_data(lmnp_property.pk, 2026)
-        assert bilan["cout_revient_acquisitions"] == Decimal("0")
+        assert bilan["cout_revient_acquisitions"] == Decimal(0)
 
     def test_passif_balances_with_actif(self, lmnp_property, lmnp_setup, lmnp_loan):
         """Balance sheet equation: total_capitaux_propres + emprunts == valeur_nette_comptable."""
@@ -591,7 +591,7 @@ class TestImmobilisationsConformity:
         """Constructions (gros œuvre, étanchéité, toiture) have value > 0."""
         result = get_immobilisation_movements(lmnp_property.pk, 2025)
         constructions = result["by_cerfa_category"]["constructions"]
-        assert constructions["value_end"] > Decimal("0")
+        assert constructions["value_end"] > Decimal(0)
 
     def test_first_year_acquisitions_equals_value_end(self, lmnp_property, lmnp_setup):
         """First year: acquisitions == value_end (all assets acquired this year)."""
@@ -629,7 +629,7 @@ class TestForm2042CConformity:
         """Case 5NK = 0 when there is a deficit."""
         accounting = get_accounting_data([lmnp_property], 2025)
         form_2042c = accounting["form_2042c"]
-        assert form_2042c["case_5nk"] == Decimal("0")
+        assert form_2042c["case_5nk"] == Decimal(0)
 
     def test_is_benefice_false_when_deficit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
@@ -653,8 +653,8 @@ class TestForm2042CConformity:
         )
         accounting = get_accounting_data([lmnp_property], 2025)
         # With large income and no prior deficit, taxable result > 0
-        assert accounting["form_2042c"]["case_5nk"] > Decimal("0")
-        assert accounting["form_2042c"]["case_5nz"] == Decimal("0")
+        assert accounting["form_2042c"]["case_5nk"] > Decimal(0)
+        assert accounting["form_2042c"]["case_5nz"] == Decimal(0)
 
 
 # ─── 2033-B result lines conformity ──────────────────────────────────────────
@@ -677,7 +677,7 @@ class TestForm2033BConformity:
     ):
         """2033-B-318 = abs(cerfa_310) when there is an accounting deficit."""
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
-        assert summary["cerfa_310"] < Decimal("0")
+        assert summary["cerfa_310"] < Decimal(0)
         assert approx_equal(summary["cerfa_318"], abs(summary["cerfa_310"]))
 
     def test_310_plus_318_equals_zero_when_deficit(
@@ -689,21 +689,21 @@ class TestForm2033BConformity:
         """
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
         computed = summary["cerfa_310"] + summary["cerfa_318"]
-        assert approx_equal(computed, Decimal("0"))
+        assert approx_equal(computed, Decimal(0))
 
     def test_cerfa_352_is_zero_when_deficit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
         """2033-B-352 = max(0, taxable_result) = 0 when deficit."""
         accounting = get_accounting_data([lmnp_property], 2025)
-        assert accounting["form_2033b"]["cerfa_352"] == Decimal("0")
+        assert accounting["form_2033b"]["cerfa_352"] == Decimal(0)
 
     def test_cerfa_370_is_zero_when_no_profit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
         """2033-B-370 = 0 when no taxable profit after deficit imputation."""
         accounting = get_accounting_data([lmnp_property], 2025)
-        assert accounting["form_2033b"]["cerfa_370"] == Decimal("0")
+        assert accounting["form_2033b"]["cerfa_370"] == Decimal(0)
 
 
 # ─── form_2042c deficit_cases_list ───────────────────────────────────────────

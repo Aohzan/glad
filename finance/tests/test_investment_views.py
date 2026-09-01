@@ -2,6 +2,7 @@
 
 import datetime
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from django.contrib.messages import get_messages
@@ -114,6 +115,64 @@ class TestInvestmentDetail:
     def test_detail_nonexistent(self, user_client):
         """Nonexistent account returns 404."""
         url = reverse("finance:investment_detail", kwargs={"pk": 99999})
+        response = user_client.get(url)
+        assert response.status_code == 404
+
+
+# ─── Holding detail view ──────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestHoldingDetail:
+    """Tests for the holding detail view."""
+
+    def test_detail_authenticated(
+        self, user_client, investment_account, holding, holding_history
+    ):
+        """Detail page renders with account, holding, and history."""
+        url = reverse(
+            "finance:holding_detail",
+            kwargs={"account_pk": investment_account.pk, "holding_pk": holding.pk},
+        )
+        response = user_client.get(url)
+        assert response.status_code == 200
+        assert response.context["account"] == investment_account
+        assert response.context["holding"] == holding
+        assert holding_history in response.context["history"]
+
+    def test_detail_unauthenticated(self, client, investment_account, holding):
+        """Unauthenticated users are redirected."""
+        url = reverse(
+            "finance:holding_detail",
+            kwargs={"account_pk": investment_account.pk, "holding_pk": holding.pk},
+        )
+        response = client.get(url)
+        assert response.status_code == 302
+
+    def test_detail_nonexistent_holding(self, user_client, investment_account):
+        """Nonexistent holding returns 404."""
+        url = reverse(
+            "finance:holding_detail",
+            kwargs={"account_pk": investment_account.pk, "holding_pk": 99999},
+        )
+        response = user_client.get(url)
+        assert response.status_code == 404
+
+    def test_detail_holding_from_other_account(
+        self, user_client, investment_account, holding, investment_type
+    ):
+        """Holding scoped to a different account returns 404."""
+        from finance.models.investment_account import InvestmentAccount
+
+        other_account = InvestmentAccount.objects.create(
+            account_type=investment_type,
+            name="Other account",
+            opening_cash_value=Money(Decimal(0), "EUR"),
+        )
+        url = reverse(
+            "finance:holding_detail",
+            kwargs={"account_pk": other_account.pk, "holding_pk": holding.pk},
+        )
         response = user_client.get(url)
         assert response.status_code == 404
 
@@ -538,6 +597,33 @@ class TestHoldingHistoryCRUD:
         assert response.context["holding"] == holding
         assert response.context["account"] == investment_account
 
+    def test_get_create_history_with_prefill(
+        self, user_client, investment_account, holding
+    ):
+        """GET with prefill query params pre-fills the form initial values."""
+        url = reverse(
+            "finance:new_holding_history",
+            kwargs={"account_pk": investment_account.pk, "holding_pk": holding.pk},
+        )
+        response = user_client.get(
+            url, {"prefill_value": "500.00", "prefill_quantity": "12"}
+        )
+        assert response.status_code == 200
+        assert response.context["form"].initial["value"].amount == Decimal("500.00")
+        assert response.context["form"].initial["quantity"] == "12"
+
+    def test_get_create_history_with_invalid_prefill_value(
+        self, user_client, investment_account, holding
+    ):
+        """An unparsable prefill_value is silently ignored."""
+        url = reverse(
+            "finance:new_holding_history",
+            kwargs={"account_pk": investment_account.pk, "holding_pk": holding.pk},
+        )
+        response = user_client.get(url, {"prefill_value": "not-a-number"})
+        assert response.status_code == 200
+        assert "value" not in response.context["form"].initial
+
     def test_post_create_history(self, user_client, investment_account, holding):
         """POST creates a history entry."""
         url = reverse(
@@ -637,3 +723,127 @@ class TestHoldingHistoryCRUD:
         )
         response = user_client.get(url)
         assert response.status_code == 404
+
+
+# ─── Holding history backfill ────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestBackfillHoldingHistory:
+    """Tests for the backfill_holding_history view."""
+
+    def _url(self, account, holding):
+        return reverse(
+            "finance:backfill_holding_history",
+            kwargs={"account_pk": account.pk, "holding_pk": holding.pk},
+        )
+
+    def test_requires_login(self, client, investment_account, holding):
+        response = client.get(self._url(investment_account, holding))
+        assert response.status_code == 302
+        assert "/accounts/login/" in response.url
+
+    def test_get_shows_form(self, user_client, investment_account, holding):
+        response = user_client.get(self._url(investment_account, holding))
+        assert response.status_code == 200
+        assert response.context["holding"] == holding
+        assert response.context["account"] == investment_account
+
+    def test_redirects_when_no_isin(self, user_client, investment_account):
+        holding_no_isin = InvestmentAccountHolding.objects.create(
+            account=investment_account,
+            name="No ISIN",
+            is_active=True,
+            initial_quantity=Decimal("5.0000"),
+            initial_value=Money(Decimal("100.00"), "EUR"),
+        )
+        response = user_client.get(self._url(investment_account, holding_no_isin))
+        assert response.status_code == 302
+        assert response.url == reverse(
+            "finance:holding_detail",
+            kwargs={
+                "account_pk": investment_account.pk,
+                "holding_pk": holding_no_isin.pk,
+            },
+        )
+
+    def test_redirects_when_live_data_disabled(self, user_client, user, holding):
+        user.profile.live_data_enabled = False
+        user.profile.save()
+        response = user_client.get(self._url(holding.account, holding))
+        assert response.status_code == 302
+
+    def test_post_creates_missing_months_only(self, user_client, holding):
+        from finance.services.market_data import HistoricalPricePoint
+
+        existing_month = datetime.date.today().replace(day=1)
+        InvestmentAccountHoldingHistory.objects.create(
+            holding=holding,
+            value=Money(Decimal("350.00"), "EUR"),
+            valuation_date=datetime.datetime.combine(existing_month, datetime.time.min),
+            quantity=Decimal("10.0000"),
+        )
+        points = [
+            HistoricalPricePoint(date=existing_month, price=Decimal("40.0")),
+            HistoricalPricePoint(
+                date=existing_month - datetime.timedelta(days=32),
+                price=Decimal("38.0"),
+            ),
+        ]
+        with patch(
+            "finance.views.investment_views.fetch_historical_prices",
+            return_value=(points, "EUR"),
+        ):
+            response = user_client.post(
+                self._url(holding.account, holding),
+                data={
+                    "start_date": "2020-01-01",
+                    "end_date": datetime.date.today().isoformat(),
+                },
+            )
+        assert response.status_code == 302
+        # Only the missing month should have created a new entry (2 total).
+        assert (
+            InvestmentAccountHoldingHistory.objects.filter(holding=holding).count() == 2
+        )
+
+    def test_post_skips_currency_mismatch(self, user_client, holding):
+        with patch(
+            "finance.views.investment_views.fetch_historical_prices",
+            return_value=([], "USD"),
+        ):
+            response = user_client.post(
+                self._url(holding.account, holding),
+                data={
+                    "start_date": "2020-01-01",
+                    "end_date": datetime.date.today().isoformat(),
+                },
+            )
+        assert response.status_code == 302
+        assert (
+            InvestmentAccountHoldingHistory.objects.filter(holding=holding).count() == 0
+        )
+
+    def test_post_market_data_error(self, user_client, holding):
+        from finance.services.market_data import MarketDataError
+
+        with patch(
+            "finance.views.investment_views.fetch_historical_prices",
+            side_effect=MarketDataError("boom"),
+        ):
+            response = user_client.post(
+                self._url(holding.account, holding),
+                data={
+                    "start_date": "2020-01-01",
+                    "end_date": datetime.date.today().isoformat(),
+                },
+            )
+        assert response.status_code == 302
+
+    def test_post_invalid_form(self, user_client, holding):
+        response = user_client.post(
+            self._url(holding.account, holding),
+            data={"start_date": "2025-01-01", "end_date": "2020-01-01"},
+        )
+        assert response.status_code == 200
+        assert response.context["form"].errors

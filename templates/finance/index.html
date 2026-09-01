@@ -149,7 +149,11 @@
               <tr>
                 <td class="ps-4 text-body-secondary fw-normal">
                   <i class="bi {% if entry.id == 'cash' %}bi-cash{% else %}bi-graph-up{% endif %} me-2 opacity-50"></i>
-                  {{ entry.name }}
+                  {% if entry.id == 'cash' %}
+                    {{ entry.name }}
+                  {% else %}
+                    <a href="{% url 'finance:holding_detail' account.model.id entry.id %}" class="text-decoration-none">{{ entry.name }}</a>
+                  {% endif %}
                 </td>
                 <td class="text-body-secondary fw-normal">{{ entry.value | format_money }}</td>
                 <td>
@@ -306,8 +310,8 @@ var optionsFinanceEvolution = {
   series: allFinanceSeries.map(function(s) {
     return { name: s.name, data: s.data };
   }),
-  stroke: { curve: 'smooth', width: 2 },
-  fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 } },
+  stroke: { curve: 'smooth', width: 1.5 },
+  fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.6, opacityTo: 0.2 } },
   dataLabels: { enabled: false },
   xaxis: { categories: allFinanceMonths },
   yaxis: {
@@ -342,7 +346,7 @@ var optionsFinanceEvolution = {
       return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:10px 14px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.15);">' +
         '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' + label + '</div>' +
         '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 6px;border-bottom:1px solid ' + border + ';margin-bottom:6px;">' +
-          '<span style="font-size:13px;font-weight:600;">{% translate "Total" %}</span>' +
+          '<span style="font-size:13px;font-weight:600;">{% filter escapejs %}{% translate "Total" %}{% endfilter %}</span>' +
           '<span style="font-size:13px;font-weight:700;">' + Math.round(total).toLocaleString() + '</span>' +
         '</div>' +
         rows +

@@ -65,7 +65,7 @@ def investment_holding(investment_account):
         name="Test ETF",
         code="ETF",
         is_active=True,
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
         initial_value=Money(Decimal("100.00"), "EUR"),
     )
 

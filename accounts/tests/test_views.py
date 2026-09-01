@@ -104,6 +104,21 @@ def test_session_config_context_authenticated_notify_on_login(user):
 
 
 @pytest.mark.django_db
+def test_session_config_context_authenticated_live_data_enabled(user):
+    request = RequestFactory().get("/")
+    request.user = user
+    context = session_config(request)
+    assert context["live_data_enabled"] is True
+
+    profile = user.profile
+    profile.live_data_enabled = False
+    profile.save()
+
+    context = session_config(request)
+    assert context["live_data_enabled"] is False
+
+
+@pytest.mark.django_db
 def test_update_session_timeout_missing_timeout(user_client):
     response = user_client.post(
         reverse("accounts:update_session_timeout"),
@@ -552,6 +567,108 @@ def test_settings_page_shows_notification_toggle(user_client):
     assert response.status_code == 200
     content = response.content.decode()
     assert 'id="notify-on-login-switch"' in content
+
+
+@pytest.mark.django_db
+def test_settings_page_shows_live_data_toggle(user_client):
+    response = user_client.get(reverse("accounts:settings"))
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'id="live-data-enabled-switch"' in content
+
+
+@pytest.mark.django_db
+def test_update_live_data_preferences_enable(user_client, user):
+    profile = user.profile
+    profile.live_data_enabled = False
+    profile.save()
+
+    response = user_client.post(
+        reverse("accounts:update_live_data_preferences"),
+        data='{"live_data_enabled": true}',
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+    assert response.json()["live_data_enabled"] is True
+    profile.refresh_from_db()
+    assert profile.live_data_enabled is True
+
+
+@pytest.mark.django_db
+def test_update_live_data_preferences_disable(user_client, user):
+    profile = user.profile
+    profile.live_data_enabled = True
+    profile.save()
+
+    response = user_client.post(
+        reverse("accounts:update_live_data_preferences"),
+        data='{"live_data_enabled": false}',
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+    assert response.json()["live_data_enabled"] is False
+    profile.refresh_from_db()
+    assert profile.live_data_enabled is False
+
+
+@pytest.mark.django_db
+def test_update_live_data_preferences_missing_field(user_client):
+    response = user_client.post(
+        reverse("accounts:update_live_data_preferences"),
+        data="{}",
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_request"
+
+
+@pytest.mark.django_db
+def test_update_live_data_preferences_invalid_type(user_client):
+    response = user_client.post(
+        reverse("accounts:update_live_data_preferences"),
+        data='{"live_data_enabled": "yes"}',
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_request"
+
+
+@pytest.mark.django_db
+def test_update_live_data_preferences_invalid_json(user_client):
+    response = user_client.post(
+        reverse("accounts:update_live_data_preferences"),
+        data="{",
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_request"
+
+
+@pytest.mark.django_db
+def test_update_live_data_preferences_requires_authentication(client):
+    response = client.post(
+        reverse("accounts:update_live_data_preferences"),
+        data='{"live_data_enabled": true}',
+        content_type="application/json",
+    )
+    assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_update_live_data_preferences_exception(user_client, monkeypatch):
+    def _raise(*args, **kwargs):
+        raise RuntimeError("db error")
+
+    monkeypatch.setattr("accounts.views.UserProfile.objects.get_or_create", _raise)
+    response = user_client.post(
+        reverse("accounts:update_live_data_preferences"),
+        data='{"live_data_enabled": true}',
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+    assert response.json()["error"] == "update_failed"
 
 
 @pytest.mark.django_db

@@ -138,7 +138,7 @@
         <div class="loan-form-body d-none" data-loan-pk="{{ form.instance.pk }}">
       {% else %}
         {# New loan: rendered via the "Add a loan" collapse #}
-        <div class="loan-form-body">
+        <div class="loan-form-body d-none">
       {% endif %}
 
         <div class="loan-form border rounded p-3 mb-3{% if not form.instance.pk %} new-loan-form{% endif %}">
@@ -370,7 +370,7 @@
     });
   }
 
-  const errMsg = '{% translate "An error occurred. Please try again." %}';
+  const errMsg = '{% filter escapejs %}{% translate "An error occurred. Please try again." %}{% endfilter %}';
 
   function reloadOnSuccess(url) {
     return fetchPost(url).then(function(resp) {
@@ -516,8 +516,8 @@
       const years = Math.floor(months / 12);
       const rem = months % 12;
       let label = '';
-      if (years > 0) label += years + ' {% translate "yr" %}';
-      if (rem > 0) label += (label ? ' ' : '') + rem + ' {% translate "mo" %}';
+      if (years > 0) label += years + ' {% filter escapejs %}{% translate "yr" %}{% endfilter %}';
+      if (rem > 0) label += (label ? ' ' : '') + rem + ' {% filter escapejs %}{% translate "mo" %}{% endfilter %}';
       yearsDisplay.textContent = label;
     } else {
       yearsDisplay.textContent = '';
@@ -571,6 +571,7 @@
     const newLoanCollapse = document.getElementById('new-loan-collapse');
     if (!newLoanCollapse) return;
     document.querySelectorAll('.loan-form-body:not([data-loan-pk])').forEach(body => {
+      body.classList.remove('d-none');
       newLoanCollapse.appendChild(body);
     });
   }
@@ -578,15 +579,15 @@
   // ── Bootstrap classes ─────────────────────────────────────────────────────
 
   function applyBootstrapClasses() {
-    document.querySelectorAll('#loan-formset input:not([type="checkbox"]), #loan-formset select, #loan-formset textarea, #new-loan-collapse input:not([type="checkbox"]), #new-loan-collapse select').forEach(input => {
-      if (!input.classList.contains('form-control') && !input.classList.contains('form-check-input')) {
+    document.querySelectorAll('.loan-form input:not([type="checkbox"]), .loan-form select, .loan-form textarea').forEach(input => {
+      if (!input.classList.contains('form-control') && !input.classList.contains('form-check-input') && !input.classList.contains('form-select')) {
         input.classList.add('form-control');
       }
     });
-    document.querySelectorAll('#loan-formset input[type="checkbox"], #new-loan-collapse input[type="checkbox"]').forEach(cb => {
+    document.querySelectorAll('.loan-form input[type="checkbox"]').forEach(cb => {
       cb.classList.add('form-check-input');
     });
-    document.querySelectorAll('#loan-formset select, #new-loan-collapse select').forEach(sel => {
+    document.querySelectorAll('.loan-form select').forEach(sel => {
       sel.classList.remove('form-control');
       sel.classList.add('form-select');
     });
@@ -594,13 +595,20 @@
 
   // ── Init ──────────────────────────────────────────────────────────────────
 
-  document.addEventListener('DOMContentLoaded', function() {
+  // Panels are loaded via AJAX after DOMContentLoaded, so execute directly.
+  function initLoanPanel() {
     mountExistingLoanForms();
     mountNewLoanForm();
     applyBootstrapClasses();
 
     document.querySelectorAll('.loan-form').forEach(initLoanForm);
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLoanPanel);
+  } else {
+    initLoanPanel();
+  }
 })();
 </script>
 
@@ -619,8 +627,8 @@
 
   // Line series for capital and interest totals
   var lineSeries = [
-    { name: '{% translate "Total capital" %}', type: 'line', data: chartData.total_capital },
-    { name: '{% translate "Total interest" %}', type: 'line', data: chartData.total_interest },
+    { name: '{% filter escapejs %}{% translate "Total capital" %}{% endfilter %}', type: 'line', data: chartData.total_capital },
+    { name: '{% filter escapejs %}{% translate "Total interest" %}{% endfilter %}', type: 'line', data: chartData.total_interest },
   ];
 
   var allSeries = barSeries.concat(lineSeries);
@@ -637,8 +645,8 @@
     yaxis.push({ seriesName: barSeries[0].name, show: false });
   }
   // Line series share same axis but hidden label
-  yaxis.push({ seriesName: '{% translate "Total capital" %}', show: false });
-  yaxis.push({ seriesName: '{% translate "Total interest" %}', show: false });
+  yaxis.push({ seriesName: '{% filter escapejs %}{% translate "Total capital" %}{% endfilter %}', show: false });
+  yaxis.push({ seriesName: '{% filter escapejs %}{% translate "Total interest" %}{% endfilter %}', show: false });
 
   var options = {
     series: allSeries,
@@ -688,6 +696,7 @@
   if (chartEl) {
     var chart = new ApexCharts(chartEl, options);
     chart.render();
+    (window._propertyPanelCharts = window._propertyPanelCharts || []).push(chart);
 
     // Re-render when tab becomes visible
     var loansTab = document.getElementById('loans-tab');

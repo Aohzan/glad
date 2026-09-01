@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% load i18n format_money static %}
+
+{% block title %}{{ holding.short_name }}{% endblock %}
+
+{% block extra_head %}
+<script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  {# ── Header ──────────────────────────────────────────────────────────────── #}
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{% url 'finance:investment_detail' account.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>{{ account }}
+    </a>
+    <h1 class="h4 mb-0 ms-1">
+      <i class="bi bi-graph-up me-1"></i>{{ holding.short_name }}
+    </h1>
+    <div class="ms-auto">
+      <a href="{% url 'finance:edit_holding' account.pk holding.pk %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+      </a>
+      <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteHoldingModal">
+        <i class="bi bi-trash me-1"></i>{% translate "Delete" %}
+      </button>
+    </div>
+  </div>
+
+  {# ── Live market data ────────────────────────────────────────────────────── #}
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-broadcast me-2"></i>{% translate "Live market data" %}</h5>
+      {% if live_data_enabled %}
+      <div>
+        <a href="#" id="useAsValuationBtn" class="btn btn-sm btn-outline-primary d-none">
+          <i class="bi bi-clock-history me-1"></i>{% translate "Use as new valuation" %}
+        </a>
+        <button type="button" id="refreshLiveInfoBtn" class="btn btn-sm btn-outline-secondary" title="{% translate 'Refresh' %}">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      {% if not live_data_enabled %}
+      <p class="text-body-secondary mb-0">
+        <em>{% translate "Live market data fetching is disabled in your" %} <a href="{% url 'accounts:settings' %}">{% translate "settings" %}</a>.</em>
+      </p>
+      {% elif not holding.isin %}
+      <p class="text-body-secondary mb-0"><em>{% translate "No ISIN configured for this holding." %}</em></p>
+      {% else %}
+      <div id="liveInfoLoading" class="text-body-secondary">
+        <span class="spinner-border spinner-border-sm me-2"></span>{% translate "Loading..." %}
+      </div>
+      <div id="liveInfoError" class="text-danger d-none"></div>
+      <div id="liveInfoContent" class="d-none">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <small class="text-body-secondary">{% translate "Name" %}</small>
+            <div id="liveName">-</div>
+          </div>
+          <div class="col-md-2">
+            <small class="text-body-secondary">{% translate "Price" %}</small>
+            <div id="livePrice">-</div>
+          </div>
+          <div class="col-md-2">
+            <small class="text-body-secondary">{% translate "Previous close" %}</small>
+            <div id="livePreviousClose">-</div>
+          </div>
+          <div class="col-md-2">
+            <small class="text-body-secondary">{% translate "Day high / low" %}</small>
+            <div id="liveDayRange">-</div>
+          </div>
+          <div class="col-md-2">
+            <small class="text-body-secondary">{% translate "Exchange" %}</small>
+            <div id="liveExchange">-</div>
+          </div>
+          <div class="col-md-3">
+            <small class="text-body-secondary">{% translate "52-week high / low" %}</small>
+            <div id="liveYearRange">-</div>
+          </div>
+          <div class="col-md-3">
+            <small class="text-body-secondary">{% translate "50-day average" %}</small>
+            <div id="liveFiftyDayAverage">-</div>
+          </div>
+          <div class="col-md-3">
+            <small class="text-body-secondary">{% translate "200-day average" %}</small>
+            <div id="liveTwoHundredDayAverage">-</div>
+          </div>
+          <div class="col-md-3">
+            <small class="text-body-secondary">{% translate "Total value" %}</small>
+            <div id="liveTotalValue">-</div>
+          </div>
+        </div>
+        <div id="liveCurrencyMismatch" class="alert alert-warning mt-3 mb-0 py-2 d-none">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          <span id="liveCurrencyMismatchText"></span>
+        </div>
+        <p class="text-body-secondary small mt-3 mb-0">
+          {% translate "As of" %} <span id="liveAsOf">-</span>
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Chart ────────────────────────────────────────────────────────────────── #}
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>{% translate "Value evolution" %}</h5>
+    </div>
+    <div class="card-body">
+      <div id="holdingChart" style="height: 300px;"></div>
+    </div>
+  </div>
+
+  {# ── History ──────────────────────────────────────────────────────────────── #}
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>{% translate "History" %}</h5>
+      <div>
+        {% if holding.isin and live_data_enabled %}
+        <a href="{% url 'finance:backfill_holding_history' account.pk holding.pk %}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-magic me-1"></i>{% translate "Fill history gaps" %}
+        </a>
+        {% endif %}
+        <a href="{% url 'finance:new_holding_history' account.pk holding.pk %}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-plus-lg me-1"></i>{% translate "Add history" %}
+        </a>
+      </div>
+    </div>
+    <div class="card-body">
+      {% if history %}
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>{% translate "Date" %}</th>
+              <th>{% translate "Value" %}</th>
+              <th>{% translate "Quantity" %}</th>
+              <th>{% translate "Cash used" %}</th>
+              <th class="text-end">{% translate "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for hh in history %}
+            <tr>
+              <td>{{ hh.valuation_date }}</td>
+              <td>{{ hh.value|format_money }}</td>
+              <td>{{ hh.quantity|default:"-" }}</td>
+              <td>{% if hh.cash_used %}{{ hh.cash_used|format_money }}{% else %}-{% endif %}</td>
+              <td class="text-end">
+                {% url 'finance:edit_holding_history' account.pk holding.pk hh.pk as edit_url %}
+                {% url 'finance:delete_holding_history' account.pk holding.pk hh.pk as delete_url %}
+                {% include "finance/_item_actions.html" with edit_url=edit_url modal_prefix="deleteHistory" item_pk=hh.pk %}
+                {% translate "Delete history entry" as modal_title %}
+                {% translate "Are you sure you want to delete this history entry?" as confirm_text %}
+                {% include "finance/_delete_modal.html" with modal_prefix="deleteHistory" item_pk=hh.pk delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-body-secondary mb-0"><em>{% translate "No history entries." %}</em></p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Delete holding modal ───────────────────────────────────────────────── #}
+  {% url 'finance:delete_holding' account.pk holding.pk as delete_holding_url %}
+  {% translate "Delete holding" as del_title %}
+  {% translate "Are you sure you want to delete this holding and all its history?" as del_text %}
+  {% include "finance/_delete_modal.html" with modal_id="deleteHoldingModal" delete_url=delete_holding_url modal_title=del_title confirm_text=del_text %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+  function formatNumber(value, digits) {
+    if (value === null || value === undefined) return '-';
+    return Number(value).toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  }
+
+  // ── Value / quantity chart ────────────────────────────────────────────────
+  var holdingChart = null;
+  var historicalValueSeries = [];
+  var historicalQuantitySeries = [];
+  var liveValuePoint = null;
+
+  function renderHoldingChart() {
+    var liveSeriesData = [];
+    if (liveValuePoint) {
+      if (historicalValueSeries.length) {
+        liveSeriesData.push(historicalValueSeries[historicalValueSeries.length - 1]);
+      }
+      liveSeriesData.push(liveValuePoint);
+    }
+    var series = [
+      { name: "{% translate 'Value' %}", type: 'area', data: historicalValueSeries },
+      { name: "{% translate 'Live value' %}", type: 'line', data: liveSeriesData },
+      { name: "{% translate 'Quantity' %}", type: 'line', data: historicalQuantitySeries },
+    ];
+    var yaxis = [
+      {
+        seriesName: "{% translate 'Value' %}",
+        title: { text: "{% translate 'Value' %}" },
+        labels: { formatter: function (val) { return formatNumber(val, 0); } },
+      },
+      {
+        seriesName: "{% translate 'Value' %}",
+        show: false,
+      },
+      {
+        opposite: true,
+        title: { text: "{% translate 'Quantity' %}" },
+        labels: { formatter: function (val) { return formatNumber(val, 2); } },
+      },
+    ];
+    if (holdingChart) {
+      holdingChart.updateOptions({ series: series, yaxis: yaxis }, true, true, true, true);
+      return;
+    }
+    holdingChart = new ApexCharts(document.getElementById('holdingChart'), {
+      chart: { type: 'line', height: 300, toolbar: { show: false }, background: 'transparent' },
+      theme: { mode: isDark ? 'dark' : 'light' },
+      series: series,
+      xaxis: { type: 'datetime' },
+      yaxis: yaxis,
+      stroke: { width: [2, 2, 2], dashArray: [0, 6, 0], curve: ['stepline', 'straight', 'stepline'] },
+      dataLabels: { enabled: false },
+      tooltip: { theme: isDark ? 'dark' : 'light', x: { format: 'dd MMM yyyy HH:mm' } },
+    });
+    holdingChart.render();
+  }
+
+  fetch("{% url 'finance:chart_data' data_type='holding' object_id=holding.pk %}", {
+    credentials: 'same-origin',
+    headers: { 'Accept': 'application/json' }
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.success) return;
+      historicalValueSeries = data.values.map(function (v) { return { x: v.date, y: v.value }; });
+      historicalQuantitySeries = data.quantities.map(function (q) { return { x: q.date, y: q.quantity }; });
+      renderHoldingChart();
+    });
+
+  {% if holding.isin and live_data_enabled %}
+  var liveInfoUrl = "{% url 'finance:api_holding_live_info' account.pk holding.pk %}";
+  var newHistoryBaseUrl = "{% url 'finance:new_holding_history' account.pk holding.pk %}";
+  var loadingEl = document.getElementById('liveInfoLoading');
+  var errorEl = document.getElementById('liveInfoError');
+  var contentEl = document.getElementById('liveInfoContent');
+  var refreshBtn = document.getElementById('refreshLiveInfoBtn');
+  var useAsValuationBtn = document.getElementById('useAsValuationBtn');
+
+  function loadLiveInfo(force) {
+    loadingEl.classList.remove('d-none');
+    errorEl.classList.add('d-none');
+    contentEl.classList.add('d-none');
+    useAsValuationBtn.classList.add('d-none');
+    refreshBtn.disabled = true;
+
+    var url = liveInfoUrl + (force ? '?force=1' : '');
+    fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (result) {
+        loadingEl.classList.add('d-none');
+        refreshBtn.disabled = false;
+        if (!result.ok) {
+          errorEl.textContent = result.data.error || "{% translate 'Could not load live data.' %}";
+          errorEl.classList.remove('d-none');
+          return;
+        }
+        var data = result.data;
+        document.getElementById('liveName').textContent = data.name || '-';
+        document.getElementById('livePrice').textContent = formatNumber(data.price, 2) + ' ' + data.currency;
+        document.getElementById('livePreviousClose').textContent = formatNumber(data.previous_close, 2);
+        document.getElementById('liveDayRange').textContent = formatNumber(data.day_high, 2) + ' / ' + formatNumber(data.day_low, 2);
+        document.getElementById('liveExchange').textContent = data.exchange || '-';
+        document.getElementById('liveYearRange').textContent = formatNumber(data.year_high, 2) + ' / ' + formatNumber(data.year_low, 2);
+        document.getElementById('liveFiftyDayAverage').textContent = formatNumber(data.fifty_day_average, 2);
+        document.getElementById('liveTwoHundredDayAverage').textContent = formatNumber(data.two_hundred_day_average, 2);
+        document.getElementById('liveTotalValue').textContent = data.total_value !== null ? formatNumber(data.total_value, 2) + ' ' + data.currency : '-';
+        document.getElementById('liveAsOf').textContent = new Date(data.as_of).toLocaleString();
+
+        var mismatchEl = document.getElementById('liveCurrencyMismatch');
+        if (data.currency_mismatch) {
+          document.getElementById('liveCurrencyMismatchText').textContent =
+            "{% translate 'Quote currency' %} (" + data.currency + ") " +
+            "{% translate 'differs from the account currency' %} (" + data.account_currency + ").";
+          mismatchEl.classList.remove('d-none');
+        } else {
+          mismatchEl.classList.add('d-none');
+        }
+
+        if (data.total_value !== null) {
+          useAsValuationBtn.href = newHistoryBaseUrl + '?prefill_value=' + encodeURIComponent(data.total_value) + '&prefill_quantity=' + encodeURIComponent(data.quantity);
+          useAsValuationBtn.classList.remove('d-none');
+        }
+
+        contentEl.classList.remove('d-none');
+
+        liveValuePoint = (data.total_value !== null && !data.currency_mismatch)
+          ? { x: data.as_of, y: data.total_value }
+          : null;
+        renderHoldingChart();
+      })
+      .catch(function () {
+        loadingEl.classList.add('d-none');
+        refreshBtn.disabled = false;
+        errorEl.textContent = "{% translate 'Could not load live data.' %}";
+        errorEl.classList.remove('d-none');
+      });
+  }
+
+  refreshBtn.addEventListener('click', function () { loadLiveInfo(true); });
+  loadLiveInfo(false);
+  {% endif %}
+})();
+</script>
+{% endblock %}

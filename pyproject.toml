@@ -20,6 +20,8 @@ dependencies = [
     "dateparser>=1.2.2",
     "django-money>=3.5.4",
     "webauthn>=2.1.0",
+    "yfinance>=1.7.0",
+    "httpx>=0.28.1",
 ]
 
 [project.optional-dependencies]
@@ -100,6 +102,21 @@ reportUnknownMemberType = false
 reportUnknownVariableType = false
 reportUnknownParameterType = false
 reportUnknownArgumentType = false
+
+[tool.ruff]
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+ignore = [
+    "DTZ001",  # Django handles timezones via USE_TZ
+    "DTZ002",
+    "DTZ005",
+    "DTZ007",
+    "DTZ011",
+    "BLE001",  # Blind except is common in Django views
+    "S110",    # try-except-pass is often intentional
+    "RUF012",  # Mutable class attributes are standard in Django admin/models
+]
 
 [build-system]
 requires = ["setuptools>=82", "wheel"]

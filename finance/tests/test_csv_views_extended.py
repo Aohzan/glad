@@ -277,7 +277,7 @@ def test_csv_import_confirm_investment_holding_success(
         code="WRLD",
         is_active=True,
         initial_value=Money(100, "EUR"),
-        initial_quantity=Decimal("5"),
+        initial_quantity=Decimal(5),
     )
     mapping_key = f"{active_investment_account.name} - World ETF (WRLD)"
 
@@ -313,4 +313,4 @@ def test_csv_import_confirm_investment_holding_success(
 # ---------------------------------------------------------------------------
 # Needed imports for Decimal
 # ---------------------------------------------------------------------------
-from decimal import Decimal  # noqa: E402
+from decimal import Decimal

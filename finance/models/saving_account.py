@@ -29,8 +29,8 @@ class SavingAccountType(AbstractAccountType):
 class SavingAccount(AbstractAccount):
     """Saving account has a value."""
 
-    deposits: models.Manager["SavingAccountDeposit"]
-    values: models.Manager["SavingAccountValue"]
+    deposits: models.Manager[SavingAccountDeposit]
+    values: models.Manager[SavingAccountValue]
 
     class Meta(AbstractAccount.Meta):
         verbose_name = _("saving account")
@@ -42,7 +42,7 @@ class SavingAccount(AbstractAccount):
     interest_rate = models.DecimalField(
         max_digits=5,
         decimal_places=2,
-        default=Decimal("0"),
+        default=Decimal(0),
         help_text=_("Interest rate in percentage"),
     )
     opening_value = MoneyField(max_digits=10, decimal_places=2, default=0, null=False)

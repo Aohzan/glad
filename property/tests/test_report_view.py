@@ -66,14 +66,14 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("1000"),
+            Decimal(1000),
             datetime.date(2025, 3, 1),
         )
         self.expense_entry = _make_entry(
             self.prop,
             PropertyLedgerEntry.FlowType.EXPENSE,
             PropertyLedgerEntry.ManagementCategory.INSURANCE,
-            Decimal("150"),
+            Decimal(150),
             datetime.date(2025, 3, 15),
         )
 
@@ -83,9 +83,9 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 1, 1),
             datetime.date(2025, 12, 31),
         )
-        assert result["total_income"] == Decimal("1000")
-        assert result["total_expenses"] == Decimal("150")
-        assert result["net"] == Decimal("850")
+        assert result["total_income"] == Decimal(1000)
+        assert result["total_expenses"] == Decimal(150)
+        assert result["net"] == Decimal(850)
 
     def test_category_breakdown(self):
         result = get_income_expense_report(
@@ -95,10 +95,10 @@ class TestGetIncomeExpenseReport:
         )
         categories = {r["category"]: r for r in result["by_category"]}
         assert "rent_collected" in categories
-        assert categories["rent_collected"]["total"] == Decimal("1000")
+        assert categories["rent_collected"]["total"] == Decimal(1000)
         assert categories["rent_collected"]["flow_type"] == "income"
         assert "insurance" in categories
-        assert categories["insurance"]["total"] == Decimal("150")
+        assert categories["insurance"]["total"] == Decimal(150)
         assert categories["insurance"]["flow_type"] == "expense"
 
     def test_empty_result_when_no_entries_in_period(self):
@@ -107,9 +107,9 @@ class TestGetIncomeExpenseReport:
             datetime.date(2024, 1, 1),
             datetime.date(2024, 12, 31),
         )
-        assert result["total_income"] == Decimal("0")
-        assert result["total_expenses"] == Decimal("0")
-        assert result["net"] == Decimal("0")
+        assert result["total_income"] == Decimal(0)
+        assert result["total_expenses"] == Decimal(0)
+        assert result["net"] == Decimal(0)
         assert result["by_category"] == []
 
     def test_date_range_filter_start_date(self):
@@ -118,7 +118,7 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.OTHER_INCOME,
-            Decimal("500"),
+            Decimal(500),
             datetime.date(2025, 1, 1),
         )
         result = get_income_expense_report(
@@ -127,7 +127,7 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 12, 31),
         )
         # Only the March entry should be included (500 from Jan excluded)
-        assert result["total_income"] == Decimal("1000")
+        assert result["total_income"] == Decimal(1000)
 
     def test_date_range_filter_end_date(self):
         # Entry after end_date should be excluded
@@ -135,7 +135,7 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.OTHER_INCOME,
-            Decimal("500"),
+            Decimal(500),
             datetime.date(2025, 12, 31),
         )
         result = get_income_expense_report(
@@ -143,7 +143,7 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 1, 1),
             datetime.date(2025, 6, 30),
         )
-        assert result["total_income"] == Decimal("1000")
+        assert result["total_income"] == Decimal(1000)
 
     def test_multiple_properties(self):
         prop2 = _make_property(name="Prop 2")
@@ -151,7 +151,7 @@ class TestGetIncomeExpenseReport:
             prop2,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("800"),
+            Decimal(800),
             datetime.date(2025, 4, 1),
         )
         result = get_income_expense_report(
@@ -159,12 +159,12 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 1, 1),
             datetime.date(2025, 12, 31),
         )
-        assert result["total_income"] == Decimal("1800")
+        assert result["total_income"] == Decimal(1800)
 
     def test_no_date_filter(self):
         result = get_income_expense_report([self.prop.pk], None, None)
-        assert result["total_income"] == Decimal("1000")
-        assert result["total_expenses"] == Decimal("150")
+        assert result["total_income"] == Decimal(1000)
+        assert result["total_expenses"] == Decimal(150)
 
     def test_entries_queryset_ordered_by_date(self):
         result = get_income_expense_report(
@@ -181,7 +181,7 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("500"),
+            Decimal(500),
             start_date=datetime.date(2024, 1, 1),
             recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
             recurrence_end_date=datetime.date(2026, 12, 31),
@@ -192,7 +192,7 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 12, 31),
         )
         # 12 monthly occurrences × 500 + 1000 non-recurring = 7000
-        assert result["total_income"] == Decimal("7000")
+        assert result["total_income"] == Decimal(7000)
 
     def test_recurring_monthly_started_within_range(self):
         # Monthly entry started in March 2025 → 10 occurrences (Mar–Dec)
@@ -200,7 +200,7 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.EXPENSE,
             PropertyLedgerEntry.ManagementCategory.INSURANCE,
-            Decimal("100"),
+            Decimal(100),
             start_date=datetime.date(2025, 3, 1),
             recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
             recurrence_end_date=datetime.date(2025, 12, 31),
@@ -211,7 +211,7 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 12, 31),
         )
         # 10 occurrences × 100 + 150 non-recurring = 1150
-        assert result["total_expenses"] == Decimal("1150")
+        assert result["total_expenses"] == Decimal(1150)
 
     def test_recurring_entry_with_end_date_before_range_excluded(self):
         # Recurring entry that ended before the range starts — no occurrences
@@ -219,7 +219,7 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.OTHER_INCOME,
-            Decimal("200"),
+            Decimal(200),
             start_date=datetime.date(2023, 1, 1),
             recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
             recurrence_end_date=datetime.date(2024, 12, 31),
@@ -230,7 +230,7 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 12, 31),
         )
         # Only the existing non-recurring income entry (1000) should count
-        assert result["total_income"] == Decimal("1000")
+        assert result["total_income"] == Decimal(1000)
 
     def test_recurring_yearly_counted_once_per_year(self):
         # Yearly entry started in 2020 → 1 occurrence in 2025
@@ -238,7 +238,7 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.EXPENSE,
             PropertyLedgerEntry.ManagementCategory.PROPERTY_TAX,
-            Decimal("800"),
+            Decimal(800),
             start_date=datetime.date(2020, 6, 1),
             recurrence_type=PropertyLedgerEntry.RecurrenceType.YEARLY,
         )
@@ -248,7 +248,7 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 12, 31),
         )
         # 1 occurrence × 800 + 150 non-recurring = 950
-        assert result["total_expenses"] == Decimal("950")
+        assert result["total_expenses"] == Decimal(950)
 
     def test_recurring_occurrences_in_entries_list(self):
         # Entries list should contain individual occurrences sorted by date
@@ -256,7 +256,7 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("500"),
+            Decimal(500),
             start_date=datetime.date(2025, 1, 1),
             recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
             recurrence_end_date=datetime.date(2025, 3, 31),
@@ -277,7 +277,7 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("500"),
+            Decimal(500),
             start_date=datetime.date(2025, 1, 1),
             recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
             recurrence_end_date=datetime.date(2025, 3, 31),
@@ -294,7 +294,7 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 12, 31),
         )
         # 2 recurring occurrences (Jan, Mar) × 500 + 1000 non-recurring = 2000
-        assert result["total_income"] == Decimal("2000")
+        assert result["total_income"] == Decimal(2000)
 
     def test_amount_override_applied_in_totals(self):
         """An amount_override exception must use the overridden amount in the report."""
@@ -302,7 +302,7 @@ class TestGetIncomeExpenseReport:
             self.prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("500"),
+            Decimal(500),
             start_date=datetime.date(2025, 1, 1),
             recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
             recurrence_end_date=datetime.date(2025, 2, 28),
@@ -312,7 +312,7 @@ class TestGetIncomeExpenseReport:
             parent_entry=entry,
             occurrence_date=datetime.date(2025, 2, 1),
             is_deleted=False,
-            amount_override=Money(Decimal("300"), "EUR"),
+            amount_override=Money(Decimal(300), "EUR"),
         )
         result = get_income_expense_report(
             [self.prop.pk],
@@ -320,7 +320,7 @@ class TestGetIncomeExpenseReport:
             datetime.date(2025, 12, 31),
         )
         # Jan 500 + Feb 300 + 1000 non-recurring = 1800
-        assert result["total_income"] == Decimal("1800")
+        assert result["total_income"] == Decimal(1800)
 
 
 # ─── View tests ────────────────────────────────────────────────────────────────
@@ -339,7 +339,7 @@ class TestReportView:
             prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("1200"),
+            Decimal(1200),
             datetime.date(2025, 5, 1),
         )
         response = user_client.get(
@@ -348,7 +348,7 @@ class TestReportView:
         )
         assert response.status_code == 200
         assert response.context["report"] is not None
-        assert response.context["report"]["total_income"] == Decimal("1200")
+        assert response.context["report"]["total_income"] == Decimal(1200)
 
     def test_get_filter_by_specific_property(self, user_client):
         prop1 = _make_property("Prop A")
@@ -357,14 +357,14 @@ class TestReportView:
             prop1,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("900"),
+            Decimal(900),
             datetime.date(2025, 5, 1),
         )
         _make_entry(
             prop2,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("600"),
+            Decimal(600),
             datetime.date(2025, 5, 1),
         )
         response = user_client.get(
@@ -376,7 +376,7 @@ class TestReportView:
             },
         )
         assert response.status_code == 200
-        assert response.context["report"]["total_income"] == Decimal("900")
+        assert response.context["report"]["total_income"] == Decimal(900)
 
     def test_get_empty_period_shows_no_entries_message(self, user_client):
         response = user_client.get(
@@ -385,8 +385,8 @@ class TestReportView:
         )
         assert response.status_code == 200
         # report should have zero totals
-        assert response.context["report"]["total_income"] == Decimal("0")
-        assert response.context["report"]["total_expenses"] == Decimal("0")
+        assert response.context["report"]["total_income"] == Decimal(0)
+        assert response.context["report"]["total_expenses"] == Decimal(0)
 
     def test_csv_export(self, user_client):
         prop = _make_property()
@@ -394,7 +394,7 @@ class TestReportView:
             prop,
             PropertyLedgerEntry.FlowType.INCOME,
             PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
-            Decimal("750"),
+            Decimal(750),
             datetime.date(2025, 6, 1),
         )
         response = user_client.get(
@@ -420,7 +420,7 @@ class TestReportView:
             prop,
             PropertyLedgerEntry.FlowType.EXPENSE,
             PropertyLedgerEntry.ManagementCategory.INSURANCE,
-            Decimal("200"),
+            Decimal(200),
             datetime.date(2025, 7, 15),
         )
         response = user_client.get(

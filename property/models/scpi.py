@@ -22,9 +22,9 @@ class SCPI(BaseModel):
     """
 
     if TYPE_CHECKING:
-        share_prices: Manager["SCPISharePrice"]
-        dividends: Manager["SCPIDividend"]
-        investments: Manager["SCPIInvestment"]
+        share_prices: Manager[SCPISharePrice]
+        dividends: Manager[SCPIDividend]
+        investments: Manager[SCPIInvestment]
 
     class DividendRecurrence(models.TextChoices):
         MONTHLY = "monthly", _("Monthly")
@@ -81,7 +81,7 @@ class SCPI(BaseModel):
 
     def get_share_price(
         self, as_of_date: datetime.date | None = None
-    ) -> "SCPISharePrice | None":
+    ) -> SCPISharePrice | None:
         """Return the most recent SCPISharePrice on or before as_of_date.
 
         Returns None if no share price has been recorded yet.
@@ -104,11 +104,11 @@ class SCPI(BaseModel):
             return None
         return price.withdrawal_value or price.subscription_value
 
-    def get_total_dividends_received(self) -> "Money":
+    def get_total_dividends_received(self) -> Money:
         """Return the total net dividends received across all recorded payments."""
         total = sum(
             (d.net_amount.amount for d in self.dividends.all()),
-            Decimal("0"),
+            Decimal(0),
         )
         currency = "EUR"
         div = self.dividends.first()
@@ -117,8 +117,8 @@ class SCPI(BaseModel):
         return Money(total, currency)
 
     def get_dividends_received_in_period(
-        self, start_date: "datetime.date", end_date: "datetime.date"
-    ) -> "Money":
+        self, start_date: datetime.date, end_date: datetime.date
+    ) -> Money:
         """Return the total net dividends received in a specific date range."""
         total = sum(
             (
@@ -127,7 +127,7 @@ class SCPI(BaseModel):
                     payment_date__range=(start_date, end_date)
                 )
             ),
-            Decimal("0"),
+            Decimal(0),
         )
         currency = "EUR"
         div = self.dividends.first()
@@ -186,7 +186,7 @@ class SCPIInvestment(BaseModel):
     """
 
     if TYPE_CHECKING:
-        theoretical_values: Manager["SCPIBareOwnershipTheoreticalValue"]
+        theoretical_values: Manager[SCPIBareOwnershipTheoreticalValue]
 
     class OwnershipType(models.TextChoices):
         FULL = "full", _("Full ownership")
@@ -302,7 +302,7 @@ class SCPIInvestment(BaseModel):
         ):
             raise ValidationError(_("Dismemberment end date must be after start date."))
         if self.bare_ownership_ratio is not None and not (
-            Decimal("0") <= self.bare_ownership_ratio <= Decimal("100")
+            Decimal(0) <= self.bare_ownership_ratio <= Decimal(100)
         ):
             raise ValidationError(_("Bare ownership ratio must be between 0 and 100."))
 
@@ -331,9 +331,9 @@ class SCPIInvestment(BaseModel):
         """Return the total entry fees paid: purchase value × entry_fee_rate %."""
         rate = self.scpi.entry_fee_rate
         if not rate:
-            return Money(Decimal("0"), self.currency)
+            return Money(Decimal(0), self.currency)
         return Money(
-            (self.get_purchase_value().amount * rate / Decimal("100")).quantize(
+            (self.get_purchase_value().amount * rate / Decimal(100)).quantize(
                 Decimal("0.01")
             ),
             self.currency,
@@ -421,7 +421,7 @@ class SCPIInvestment(BaseModel):
                 return full_value
 
             return Money(
-                (full_value.amount * ratio / Decimal("100")).quantize(Decimal("0.01")),
+                (full_value.amount * ratio / Decimal(100)).quantize(Decimal("0.01")),
                 self.currency,
             )
 
@@ -445,18 +445,16 @@ class SCPIInvestment(BaseModel):
         end = self.dismemberment_end_date
         total_days = (end - start).days
 
-        if total_days <= 0:
-            ratio = Decimal("100")
-        elif as_of_date >= end:
-            ratio = Decimal("100")
+        if total_days <= 0 or as_of_date >= end:
+            ratio = Decimal(100)
         else:
             elapsed = max(0, (as_of_date - start).days)
-            ratio = bare_ratio + (Decimal("100") - bare_ratio) * Decimal(
+            ratio = bare_ratio + (Decimal(100) - bare_ratio) * Decimal(
                 elapsed
             ) / Decimal(total_days)
 
         if self.ownership_type == self.OwnershipType.USUFRUCT:
-            ratio = Decimal("100") - ratio
+            ratio = Decimal(100) - ratio
 
         return ratio
 
@@ -506,7 +504,7 @@ class SCPIInvestment(BaseModel):
                     exit_rate = self.scpi.exit_fee_rate
                     if exit_rate:
                         exit_fee_amount = (
-                            gross.amount * exit_rate / Decimal("100")
+                            gross.amount * exit_rate / Decimal(100)
                         ).quantize(Decimal("0.01"))
                         gross = Money(gross.amount - exit_fee_amount, self.currency)
                     entry_fees = self.get_entry_fees()
@@ -515,13 +513,13 @@ class SCPIInvestment(BaseModel):
             ratio = self._get_ownership_ratio(as_of_date)
             if ratio is not None:
                 gross = Money(
-                    (gross.amount * ratio / Decimal("100")).quantize(Decimal("0.01")),
+                    (gross.amount * ratio / Decimal(100)).quantize(Decimal("0.01")),
                     self.currency,
                 )
 
         exit_rate = self.scpi.exit_fee_rate
         if exit_rate:
-            exit_fee_amount = (gross.amount * exit_rate / Decimal("100")).quantize(
+            exit_fee_amount = (gross.amount * exit_rate / Decimal(100)).quantize(
                 Decimal("0.01")
             )
             gross = Money(gross.amount - exit_fee_amount, self.currency)
@@ -544,9 +542,9 @@ class SCPIInvestment(BaseModel):
             )
         rate = self.scpi.exit_fee_rate
         if not rate:
-            return Money(Decimal("0"), self.currency)
+            return Money(Decimal(0), self.currency)
         return Money(
-            (gross.amount * rate / Decimal("100")).quantize(Decimal("0.01")),
+            (gross.amount * rate / Decimal(100)).quantize(Decimal("0.01")),
             self.currency,
         )
 

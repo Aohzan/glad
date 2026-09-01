@@ -204,9 +204,9 @@ def csv_import(request):
 
                 # Use appropriate header names
                 account_header = "account" if has_required else "account_name"
-                unique_account_names = set(
+                unique_account_names = {
                     row[header.index(account_header)] for row in csv_data_list
-                )
+                }
 
             elif csv_type == "investment_holding":
                 if (
@@ -223,10 +223,10 @@ def csv_import(request):
                         ),
                     )
                     return render(request, "finance/csv_import.html", {"form": form})
-                unique_account_names = set(
+                unique_account_names = {
                     row[header.index("account")] + " - " + row[header.index("holding")]
                     for row in csv_data_list
-                )
+                }
                 app_account_choices = [
                     (h.id, str(h))
                     for h in InvestmentAccountHolding.objects.filter(is_active=True)
@@ -242,12 +242,10 @@ def csv_import(request):
                 matched_app_account = None
                 for app_id, app_name in app_account_choices:
                     # Try exact match first
-                    if csv_name.lower() == app_name.lower():
-                        matched_app_account = app_id
-                        break
-                    # Try partial match (csv name contained in app name or vice versa)
-                    elif (csv_name.lower() in app_name.lower()) or (
-                        app_name.lower() in csv_name.lower()
+                    if (
+                        csv_name.lower() == app_name.lower()
+                        or (csv_name.lower() in app_name.lower())
+                        or (app_name.lower() in csv_name.lower())
                     ):
                         matched_app_account = app_id
                         break

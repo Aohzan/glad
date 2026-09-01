@@ -100,10 +100,10 @@ def get_income_expense_report(
     # ── Aggregate totals ───────────────────────────────────────────────────
     income_total: Decimal = non_recurring_qs.filter(
         flow_type=PropertyLedgerEntry.FlowType.INCOME
-    ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
+    ).aggregate(total=Sum("amount"))["total"] or Decimal(0)
     expenses_total: Decimal = non_recurring_qs.filter(
         flow_type=PropertyLedgerEntry.FlowType.EXPENSE
-    ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
+    ).aggregate(total=Sum("amount"))["total"] or Decimal(0)
     for occ in expanded_occurrences:
         if occ.flow_type == PropertyLedgerEntry.FlowType.INCOME:
             income_total += occ.amount.amount
@@ -124,15 +124,15 @@ def get_income_expense_report(
         .order_by("flow_type", "management_category")
     ):
         key = (row["management_category"], row["flow_type"])
-        category_totals[key] = (category_totals.get(key) or Decimal("0")) + (
-            row["total"] or Decimal("0")
+        category_totals[key] = (category_totals.get(key) or Decimal(0)) + (
+            row["total"] or Decimal(0)
         )
 
     # Add recurring occurrences
     for occ in expanded_occurrences:
         key = (occ.management_category, occ.flow_type)
         category_totals[key] = (
-            category_totals.get(key) or Decimal("0")
+            category_totals.get(key) or Decimal(0)
         ) + occ.amount.amount
 
     category_rows: list[dict] = [

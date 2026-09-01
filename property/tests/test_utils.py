@@ -180,21 +180,21 @@ def test_generate_recurring_occurrences_biannual():
 def test_calculate_monthly_payment_standard_french_amortization():
     """Test standard French amortization formula: 200k at 3.5% over 240 months."""
     monthly_pi, monthly_ins, total = calculate_monthly_payment(
-        original_amount=Decimal("200000"),
+        original_amount=Decimal(200000),
         annual_interest_rate=Decimal("3.5"),
         annual_insurance_rate=None,
         duration_months=240,
     )
     # Expected ~1159.97
     assert abs(float(monthly_pi) - 1159.97) < 1.0
-    assert monthly_ins == Decimal("0")
+    assert monthly_ins == Decimal(0)
     assert total == monthly_pi
 
 
 def test_calculate_monthly_payment_with_insurance():
     """Test monthly payment with insurance rate."""
     monthly_pi, monthly_ins, total = calculate_monthly_payment(
-        original_amount=Decimal("200000"),
+        original_amount=Decimal(200000),
         annual_interest_rate=Decimal("3.5"),
         annual_insurance_rate=Decimal("0.36"),
         duration_months=240,
@@ -207,65 +207,65 @@ def test_calculate_monthly_payment_with_insurance():
 def test_calculate_monthly_payment_zero_interest():
     """Test monthly payment with zero interest rate."""
     monthly_pi, monthly_ins, total = calculate_monthly_payment(
-        original_amount=Decimal("24000"),
-        annual_interest_rate=Decimal("0"),
+        original_amount=Decimal(24000),
+        annual_interest_rate=Decimal(0),
         annual_insurance_rate=None,
         duration_months=24,
     )
     assert monthly_pi == Decimal("1000.00")
-    assert monthly_ins == Decimal("0")
+    assert monthly_ins == Decimal(0)
     assert total == Decimal("1000.00")
 
 
 def test_calculate_monthly_payment_zero_duration():
     """Test monthly payment with zero duration returns zeros."""
     monthly_pi, monthly_ins, total = calculate_monthly_payment(
-        original_amount=Decimal("100000"),
+        original_amount=Decimal(100000),
         annual_interest_rate=Decimal("2.0"),
         annual_insurance_rate=None,
         duration_months=0,
     )
-    assert monthly_pi == Decimal("0")
-    assert monthly_ins == Decimal("0")
-    assert total == Decimal("0")
+    assert monthly_pi == Decimal(0)
+    assert monthly_ins == Decimal(0)
+    assert total == Decimal(0)
 
 
 def test_calculate_monthly_payment_negative_duration():
     """Test monthly payment with negative duration returns zeros."""
     monthly_pi, monthly_ins, total = calculate_monthly_payment(
-        original_amount=Decimal("100000"),
+        original_amount=Decimal(100000),
         annual_interest_rate=Decimal("2.0"),
         annual_insurance_rate=None,
         duration_months=-5,
     )
-    assert monthly_pi == Decimal("0")
-    assert monthly_ins == Decimal("0")
-    assert total == Decimal("0")
+    assert monthly_pi == Decimal(0)
+    assert monthly_ins == Decimal(0)
+    assert total == Decimal(0)
 
 
 def test_build_loan_monthly_maps_handles_interest_and_negative_principal():
     interest_map, principal_map, insurance_map = build_loan_monthly_maps(
         start_date=datetime.date(2025, 1, 1),
         end_date=datetime.date(2025, 3, 1),
-        original_amount=Decimal("1000"),
-        monthly_payment=Decimal("10"),
-        interest_rate=Decimal("24"),
-        insurance_amount=Decimal("2"),
+        original_amount=Decimal(1000),
+        monthly_payment=Decimal(10),
+        interest_rate=Decimal(24),
+        insurance_amount=Decimal(2),
     )
     # monthly_rate=2%, so first month interest=20 and principal is clamped to 0
-    assert interest_map[(2025, 1)] == Decimal("20")
-    assert principal_map[(2025, 1)] == Decimal("0")
-    assert insurance_map[(2025, 1)] == Decimal("2")
+    assert interest_map[(2025, 1)] == Decimal(20)
+    assert principal_map[(2025, 1)] == Decimal(0)
+    assert insurance_map[(2025, 1)] == Decimal(2)
 
 
 def test_build_loan_monthly_maps_handles_zero_duration():
     interest_map, principal_map, insurance_map = build_loan_monthly_maps(
         start_date=datetime.date(2025, 5, 1),
         end_date=datetime.date(2025, 4, 1),
-        original_amount=Decimal("1000"),
-        monthly_payment=Decimal("100"),
+        original_amount=Decimal(1000),
+        monthly_payment=Decimal(100),
         interest_rate=None,
-        insurance_amount=Decimal("0"),
+        insurance_amount=Decimal(0),
     )
     assert interest_map == {}
     assert principal_map == {}

@@ -139,7 +139,7 @@ class TestInvestmentAccountHoldingHistorySignals(TestCase):
             name="Test Stock",
             code="TST",
             initial_value=Money(100, "EUR"),
-            initial_quantity=Decimal("10"),
+            initial_quantity=Decimal(10),
         )
 
         # Create initial cash value
@@ -154,7 +154,7 @@ class TestInvestmentAccountHoldingHistorySignals(TestCase):
         InvestmentAccountHoldingHistory.objects.create(
             holding=self.holding,
             value=Money(120, "EUR"),
-            quantity=Decimal("5"),
+            quantity=Decimal(5),
             valuation_date=datetime.datetime(2023, 2, 1, 10, 0),
             cash_used=Money(500, "EUR"),  # Specify exact amount to subtract
         )
@@ -172,7 +172,7 @@ class TestInvestmentAccountHoldingHistorySignals(TestCase):
         InvestmentAccountHoldingHistory.objects.create(
             holding=self.holding,
             value=Money(120, "EUR"),
-            quantity=Decimal("5"),
+            quantity=Decimal(5),
             valuation_date=datetime.datetime(2023, 2, 1, 10, 0),
             cash_used=None,  # No cash specified
         )
@@ -189,7 +189,7 @@ class TestInvestmentAccountHoldingHistorySignals(TestCase):
         InvestmentAccountHoldingHistory.objects.create(
             holding=self.holding,
             value=Money(120, "EUR"),
-            quantity=Decimal("5"),
+            quantity=Decimal(5),
             valuation_date=datetime.datetime(2023, 2, 1, 10, 0),
             cash_used=Money(0, "EUR"),  # Zero cash used
         )

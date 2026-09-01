@@ -48,7 +48,7 @@ def test_investment_account_str_name_matches_type_code(investment_account_type):
         name=investment_account_type.code,  # e.g. "TIT"
         owner="Bob",
         is_active=True,
-        opening_cash_value=Money(Decimal("0"), "EUR"),
+        opening_cash_value=Money(Decimal(0), "EUR"),
     )
     # name matches code → account_name = "TIT", then owner appended
     assert investment_account_type.code in str(account)
@@ -62,7 +62,7 @@ def test_investment_account_str_name_differs_from_type(investment_account_type):
         account_type=investment_account_type,
         name="Portfolio",
         is_active=True,
-        opening_cash_value=Money(Decimal("0"), "EUR"),
+        opening_cash_value=Money(Decimal(0), "EUR"),
     )
     result = str(account)
     assert "Portfolio" in result
@@ -75,7 +75,7 @@ def test_investment_account_str_no_name(investment_account_type):
         account_type=investment_account_type,
         name=None,
         is_active=True,
-        opening_cash_value=Money(Decimal("0"), "EUR"),
+        opening_cash_value=Money(Decimal(0), "EUR"),
     )
     result = str(account)
     assert str(investment_account_type) in result
@@ -89,7 +89,7 @@ def test_investment_account_str_with_institution(investment_account_type):
         name="Account",
         institution="Bourse Direct",
         is_active=True,
-        opening_cash_value=Money(Decimal("0"), "EUR"),
+        opening_cash_value=Money(Decimal(0), "EUR"),
     )
     assert "Bourse Direct" in str(account)
 
@@ -101,7 +101,7 @@ def test_investment_account_str_inactive(investment_account_type):
         account_type=investment_account_type,
         name="Old Account",
         is_active=False,
-        opening_cash_value=Money(Decimal("0"), "EUR"),
+        opening_cash_value=Money(Decimal(0), "EUR"),
     )
     assert "(closed)" in str(account)
 
@@ -152,7 +152,7 @@ def test_investment_account_get_value_holding_uses_initial_value(
         name="ETF World",
         is_active=True,
         initial_value=Money(Decimal("500.00"), "EUR"),
-        initial_quantity=Decimal("10"),
+        initial_quantity=Decimal(10),
     )
     result = active_investment_account.get_value()
     expected = active_investment_account.opening_cash_value + Money(
@@ -169,12 +169,12 @@ def test_investment_account_get_value_with_holding_history(active_investment_acc
         name="S&P 500",
         is_active=True,
         initial_value=Money(Decimal("100.00"), "EUR"),
-        initial_quantity=Decimal("5"),
+        initial_quantity=Decimal(5),
     )
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
         value=Money(Decimal("700.00"), "EUR"),
-        quantity=Decimal("5"),
+        quantity=Decimal(5),
         valuation_date=datetime.datetime.now() - datetime.timedelta(days=1),
     )
     result = active_investment_account.get_value()
@@ -188,6 +188,56 @@ def test_investment_account_get_value_with_date_arg(active_investment_account):
         max_date=datetime.date.today() - datetime.timedelta(days=1)
     )
     assert result is not None
+
+
+@pytest.mark.django_db
+def test_investment_account_get_value_ignores_holding_bought_after_max_date(
+    investment_account_type,
+):
+    """get_value() for a date before a holding existed excludes its initial_value.
+
+    Regression test: a new account opened 5 days ago with 500€ cash, then a
+    holding was bought with most of that cash. The value 30 days ago must be
+    just the opening cash (holding did not exist yet), not opening cash plus
+    the holding's initial value (which would double-count the purchase).
+    """
+    account = InvestmentAccount.objects.create(
+        account_type=investment_account_type,
+        name="New Account",
+        is_active=True,
+        opening_cash_value=Money(Decimal("500.00"), "EUR"),
+        opening_date=datetime.date.today() - datetime.timedelta(days=5),
+    )
+    InvestmentAccountCash.objects.create(
+        account=account,
+        value=Money(Decimal("15.60"), "EUR"),
+        value_date=datetime.date.today() - datetime.timedelta(days=5),
+    )
+    holding = InvestmentAccountHolding.objects.create(
+        account=account,
+        name="Test Holding",
+        is_active=True,
+        initial_value=Money(Decimal("484.40"), "EUR"),
+        initial_valuation_date=datetime.date.today() - datetime.timedelta(days=5),
+    )
+    InvestmentAccountHoldingHistory.objects.create(
+        holding=holding,
+        value=Money(Decimal("486.36"), "EUR"),
+        quantity=Decimal(1),
+        valuation_date=datetime.date.today(),
+    )
+
+    old_value = account.get_value(
+        max_date=datetime.date.today() - datetime.timedelta(days=30)
+    )
+    current_value = account.get_value()
+
+    assert old_value.amount == Decimal("500.00")
+    assert current_value.amount == Decimal("501.96")
+
+    progression = account.get_progression(days=30)
+    assert progression.net_difference.amount == Decimal(2)
+    assert progression.net_progression == Decimal("0.39")
 
 
 # ---------------------------------------------------------------------------
@@ -248,7 +298,7 @@ def test_holding_short_name_code_only(active_investment_account):
         name=None,
         code="QQQ",
         is_active=True,
-        initial_value=Money(Decimal("0"), "EUR"),
+        initial_value=Money(Decimal(0), "EUR"),
     )
     assert holding.short_name == "QQQ"
 
@@ -261,7 +311,7 @@ def test_holding_short_name_name_only(active_investment_account):
         name="NASDAQ ETF",
         code=None,
         is_active=True,
-        initial_value=Money(Decimal("0"), "EUR"),
+        initial_value=Money(Decimal(0), "EUR"),
     )
     assert holding.short_name == "NASDAQ ETF"
 
@@ -274,7 +324,7 @@ def test_holding_short_name_both(active_investment_account):
         name="S&P 500",
         code="SPY",
         is_active=True,
-        initial_value=Money(Decimal("0"), "EUR"),
+        initial_value=Money(Decimal(0), "EUR"),
     )
     assert holding.short_name == "S&P 500 (SPY)"
 
@@ -291,7 +341,7 @@ def test_holding_str_active(active_investment_account):
         account=active_investment_account,
         name="Fund A",
         is_active=True,
-        initial_value=Money(Decimal("0"), "EUR"),
+        initial_value=Money(Decimal(0), "EUR"),
     )
     assert "(closed)" not in str(holding)
     assert "Fund A" in str(holding)
@@ -304,7 +354,7 @@ def test_holding_str_inactive(active_investment_account):
         account=active_investment_account,
         name="Old Fund",
         is_active=False,
-        initial_value=Money(Decimal("0"), "EUR"),
+        initial_value=Money(Decimal(0), "EUR"),
     )
     assert "(closed)" in str(holding)
 
@@ -321,10 +371,10 @@ def test_holding_get_quantity_no_history_with_initial(active_investment_account)
         account=active_investment_account,
         name="Fund B",
         is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
-        initial_quantity=Decimal("15"),
+        initial_value=Money(Decimal(100), "EUR"),
+        initial_quantity=Decimal(15),
     )
-    assert holding.get_quantity() == Decimal("15")
+    assert holding.get_quantity() == Decimal(15)
 
 
 @pytest.mark.django_db
@@ -334,7 +384,7 @@ def test_holding_get_quantity_no_history_no_initial(active_investment_account):
         account=active_investment_account,
         name="Fund C",
         is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
+        initial_value=Money(Decimal(100), "EUR"),
         initial_quantity=None,
     )
     assert holding.get_quantity() is None
@@ -347,16 +397,16 @@ def test_holding_get_quantity_with_history(active_investment_account):
         account=active_investment_account,
         name="Fund D",
         is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
-        initial_quantity=Decimal("10"),
+        initial_value=Money(Decimal(100), "EUR"),
+        initial_quantity=Decimal(10),
     )
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
-        value=Money(Decimal("200"), "EUR"),
-        quantity=Decimal("20"),
+        value=Money(Decimal(200), "EUR"),
+        quantity=Decimal(20),
         valuation_date=datetime.datetime.now() - datetime.timedelta(days=1),
     )
-    assert holding.get_quantity() == Decimal("20")
+    assert holding.get_quantity() == Decimal(20)
 
 
 # ---------------------------------------------------------------------------
@@ -371,13 +421,13 @@ def test_holding_get_progression(active_investment_account):
         account=active_investment_account,
         name="Fund E",
         is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
-        initial_quantity=Decimal("5"),
+        initial_value=Money(Decimal(100), "EUR"),
+        initial_quantity=Decimal(5),
     )
     InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
-        value=Money(Decimal("150"), "EUR"),
-        quantity=Decimal("5"),
+        value=Money(Decimal(150), "EUR"),
+        quantity=Decimal(5),
         valuation_date=datetime.datetime.now() - datetime.timedelta(days=1),
     )
     progression = holding.get_progression(days=30)
@@ -396,10 +446,10 @@ def test_holding_value_property(active_investment_account):
         account=active_investment_account,
         name="Fund F",
         is_active=True,
-        initial_value=Money(Decimal("250"), "EUR"),
-        initial_quantity=Decimal("1"),
+        initial_value=Money(Decimal(250), "EUR"),
+        initial_quantity=Decimal(1),
     )
-    assert holding.value == Money(Decimal("250"), "EUR")
+    assert holding.value == Money(Decimal(250), "EUR")
 
 
 @pytest.mark.django_db
@@ -409,10 +459,10 @@ def test_holding_quantity_property(active_investment_account):
         account=active_investment_account,
         name="Fund G",
         is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
-        initial_quantity=Decimal("7"),
+        initial_value=Money(Decimal(100), "EUR"),
+        initial_quantity=Decimal(7),
     )
-    assert holding.quantity == Decimal("7")
+    assert holding.quantity == Decimal(7)
 
 
 # ---------------------------------------------------------------------------

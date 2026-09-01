@@ -16,7 +16,7 @@ class PropertyLoanTestCase(TestCase):
         """Set up test data."""
         self.property = Property.objects.create(
             name="Test Property",
-            address="123 Test Street",
+            street_name="123 Test Street",
             property_type=Property.HOUSE,
             buying_value=Money(200000, "EUR"),
             buying_date=datetime.date.today() - datetime.timedelta(days=365),
@@ -113,7 +113,7 @@ class PropertyLoanTestCase(TestCase):
             start_date=datetime.date(2024, 1, 1),
             end_date=datetime.date(2026, 1, 1),  # 24 months
             original_amount=Money(24000, "EUR"),
-            interest_rate=Decimal("0"),
+            interest_rate=Decimal(0),
         )
         loan.compute_monthly_payment()
         self.assertIsNotNone(loan.monthly_payment)
@@ -160,7 +160,7 @@ class PropertyLoanTestCase(TestCase):
             monthly_payment=Money(200, "EUR"),
         )
 
-        self.assertEqual(future_loan.remaining_balance().amount, Decimal("20000"))
+        self.assertEqual(future_loan.remaining_balance().amount, Decimal(20000))
 
     def test_remaining_balance_completed_loan(self):
         """Test remaining balance for a completed loan."""
@@ -173,7 +173,7 @@ class PropertyLoanTestCase(TestCase):
             monthly_payment=Money(200, "EUR"),
         )
 
-        self.assertEqual(completed_loan.remaining_balance().amount, Decimal("0"))
+        self.assertEqual(completed_loan.remaining_balance().amount, Decimal(0))
 
     def test_remaining_balance_active_loan(self):
         """Test remaining balance for an active loan.
@@ -184,8 +184,8 @@ class PropertyLoanTestCase(TestCase):
         """
         remaining = self.short_loan.remaining_balance().amount
         # Real amortization: ~3 months × 100 = 300 paid → ~9700 remaining
-        self.assertGreaterEqual(remaining, Decimal("9500"))  # Lower bound
-        self.assertLessEqual(remaining, Decimal("10000"))  # Upper bound
+        self.assertGreaterEqual(remaining, Decimal(9500))  # Lower bound
+        self.assertLessEqual(remaining, Decimal(10000))  # Upper bound
 
     def test_amount_paid(self):
         """Test amount paid calculation.
@@ -195,8 +195,8 @@ class PropertyLoanTestCase(TestCase):
         """
         paid = self.short_loan.amount_paid().amount
         # Real amortization: ~3 months × 100 = ~300 paid
-        self.assertGreaterEqual(paid, Decimal("0"))  # Lower bound
-        self.assertLessEqual(paid, Decimal("500"))  # Upper bound
+        self.assertGreaterEqual(paid, Decimal(0))  # Lower bound
+        self.assertLessEqual(paid, Decimal(500))  # Upper bound
 
         # Original amount minus remaining should equal amount paid
         self.assertAlmostEqual(
@@ -209,12 +209,12 @@ class PropertyLoanTestCase(TestCase):
     def test_interest_paid_to_date_no_interest_rate(self):
         """A zero-interest loan should have no interest paid."""
         interest_paid = self.short_loan.interest_paid_to_date().amount
-        self.assertEqual(interest_paid, Decimal("0"))
+        self.assertEqual(interest_paid, Decimal(0))
 
     def test_interest_paid_to_date_with_interest_rate(self):
         """Interest paid should be positive for an active loan with a rate."""
         interest_paid = self.loan.interest_paid_to_date().amount
-        self.assertGreater(interest_paid, Decimal("0"))
+        self.assertGreater(interest_paid, Decimal(0))
 
     def test_interest_paid_to_date_future_loan(self):
         """A loan that hasn't started should have no interest paid."""
@@ -229,7 +229,7 @@ class PropertyLoanTestCase(TestCase):
         )
         self.assertEqual(
             future_loan.interest_paid_to_date().amount,
-            Decimal("0"),
+            Decimal(0),
         )
 
     def test_interest_paid_to_date_uses_amortization_entries(self):
@@ -262,12 +262,12 @@ class PropertyLoanTestCase(TestCase):
         # Only the entry in the past should be counted (future entry excluded)
         self.assertEqual(
             loan.interest_paid_to_date().amount,
-            Decimal("20"),
+            Decimal(20),
         )
 
     def test_insurance_paid_to_date_no_insurance(self):
         """A loan without an insurance premium has no insurance paid."""
-        self.assertEqual(self.loan.insurance_paid_to_date().amount, Decimal("0"))
+        self.assertEqual(self.loan.insurance_paid_to_date().amount, Decimal(0))
 
     def test_insurance_paid_to_date_with_insurance(self):
         """Insurance paid should be positive and bounded for an active loan."""
@@ -282,9 +282,9 @@ class PropertyLoanTestCase(TestCase):
             insurance=Money(25, "EUR"),
         )
         paid = loan.insurance_paid_to_date().amount
-        self.assertGreater(paid, Decimal("0"))
+        self.assertGreater(paid, Decimal(0))
         # ~90 days elapsed: at most 5 months of insurance premiums.
-        self.assertLessEqual(paid, Decimal("25") * 5)
+        self.assertLessEqual(paid, Decimal(25) * 5)
 
     def test_insurance_paid_to_date_future_loan(self):
         """A loan that hasn't started yet has no insurance paid."""
@@ -297,7 +297,7 @@ class PropertyLoanTestCase(TestCase):
             monthly_payment=Money(200, "EUR"),
             insurance=Money(15, "EUR"),
         )
-        self.assertEqual(future_loan.insurance_paid_to_date().amount, Decimal("0"))
+        self.assertEqual(future_loan.insurance_paid_to_date().amount, Decimal(0))
 
     def test_insurance_paid_to_date_caps_at_duration(self):
         """Insurance paid never exceeds monthly insurance x total loan duration."""
@@ -312,7 +312,7 @@ class PropertyLoanTestCase(TestCase):
         )
         duration = loan.get_duration_months()
         paid = loan.insurance_paid_to_date().amount
-        self.assertEqual(paid, Decimal("10") * duration)
+        self.assertEqual(paid, Decimal(10) * duration)
 
 
 class PropertyWithLoansTestCase(TestCase):
@@ -322,7 +322,7 @@ class PropertyWithLoansTestCase(TestCase):
         """Set up test data."""
         self.property = Property.objects.create(
             name="Test Property",
-            address="123 Test Street",
+            street_name="123 Test Street",
             property_type=Property.HOUSE,
             buying_value=Money(200000, "EUR"),
             buying_date=datetime.date.today() - datetime.timedelta(days=365),
@@ -375,7 +375,7 @@ class PropertyWithLoansTestCase(TestCase):
 
     def test_gross_value(self):
         """Test gross value property."""
-        self.assertEqual(self.property.gross_value.amount, Decimal("250000"))
+        self.assertEqual(self.property.gross_value.amount, Decimal(250000))
         self.assertEqual(str(self.property.gross_value.currency), "EUR")
 
     def test_net_value(self):
@@ -391,7 +391,7 @@ class PropertyWithLoansTestCase(TestCase):
         """Test net value property with no loans."""
         property_no_loans = Property.objects.create(
             name="No Loans Property",
-            address="456 Test Avenue",
+            street_name="456 Test Avenue",
             property_type=Property.APARTMENT,
             buying_value=Money(100000, "EUR"),
             buying_date=datetime.date.today(),
@@ -407,13 +407,13 @@ class PropertyWithLoansTestCase(TestCase):
         self.assertEqual(
             property_no_loans.net_value.amount, property_no_loans.gross_value.amount
         )
-        self.assertEqual(property_no_loans.total_remaining_loans.amount, Decimal("0"))
+        self.assertEqual(property_no_loans.total_remaining_loans.amount, Decimal(0))
 
     def test_net_value_with_loans_exceeding_value(self):
         """Test net value property when loans exceed property value."""
         property_underwater = Property.objects.create(
             name="Underwater Property",
-            address="789 Test Blvd",
+            street_name="789 Test Blvd",
             property_type=Property.HOUSE,
             buying_value=Money(300000, "EUR"),
             buying_date=datetime.date.today(),
@@ -437,4 +437,4 @@ class PropertyWithLoansTestCase(TestCase):
         )
 
         # Net value should not go below zero
-        self.assertEqual(property_underwater.net_value.amount, Decimal("0"))
+        self.assertEqual(property_underwater.net_value.amount, Decimal(0))

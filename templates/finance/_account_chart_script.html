@@ -2,12 +2,55 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const CHART_URL = '{{ chart_url }}';
-  const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+  var currencyCode = '{{ account.currency|default:"EUR" }}';
 
   function formatCurrency(val) {
     return new Intl.NumberFormat(document.documentElement.lang || navigator.language, {
-      style: 'currency', currency: '{{ account.currency }}', maximumFractionDigits: 0
+      style: 'currency', currency: currencyCode, maximumFractionDigits: 0
     }).format(val);
+  }
+
+  function isDarkMode() {
+    return document.documentElement.getAttribute('data-bs-theme') === 'dark';
+  }
+
+  function renderWhenVisible(element, renderFn) {
+    if (!element) { renderFn(); return; }
+    if (!('IntersectionObserver' in window)) { renderFn(); return; }
+    var observer = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting) {
+        renderFn();
+        observer.disconnect();
+      }
+    }, { threshold: 0.1 });
+    observer.observe(element);
+  }
+
+  function buildDepositAnnotations(deposits, withLabel) {
+    var dark = isDarkMode();
+    return (deposits || []).map(function(d) {
+      var ann = {
+        x: new Date(d.date).getTime(),
+        borderColor: dark ? '#fbbf24' : '#d97706',
+        borderWidth: 1.5,
+        strokeDashArray: 4,
+      };
+      if (withLabel) {
+        ann.label = {
+          text: (d.value >= 0 ? '+' : '') + formatCurrency(d.value),
+          style: {
+            fontSize: '10px',
+            background: 'transparent',
+            color: dark ? '#fbbf24' : '#d97706',
+            padding: { top: 2, bottom: 2, left: 4, right: 4 },
+          },
+          orientation: 'horizontal',
+          position: 'top',
+          offsetY: 8,
+        };
+      }
+      return ann;
+    });
   }
 
   fetch(CHART_URL, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
@@ -15,76 +58,159 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(data => {
       if (!data.success) return;
 
-      const holdingPalette = ['#a78bfa', '#34d399', '#f472b6', '#60a5fa', '#fb923c', '#facc15'];
+      const holdingPalette = ['#a78bfa', '#34d399', '#f472b6', '#60a5fa', '#fb923c', '#facc15', '#22d3ee', '#c084fc'];
+      const otherColor = '#94a3b8';
 
       // Sort holdings descending by last value: largest first = rendered at bottom of stack
-      const rawHoldings = (data.holdings_series || []).slice().sort(function(a, b) {
+      var rawHoldings = (data.holdings_series || []).slice().sort(function(a, b) {
         var lastA = a.data.length ? a.data[a.data.length - 1].value : 0;
         var lastB = b.data.length ? b.data[b.data.length - 1].value : 0;
         return lastB - lastA;
       });
 
-      const series = rawHoldings.map(function(h) {
+      // Compute total of last values to determine threshold for "Other" grouping
+      var grandTotal = 0;
+      rawHoldings.forEach(function(h) {
+        grandTotal += h.data.length ? h.data[h.data.length - 1].value : 0;
+      });
+      var smallThreshold = grandTotal * 0.03; // 3% of total
+
+      // Separate Cash (always kept as its own series), big holdings, and small holdings
+      var cashHolding = null;
+      var bigHoldings = [];
+      var smallHoldings = [];
+      rawHoldings.forEach(function(h) {
+        if (h.name === '{% filter escapejs %}{% translate "Cash" %}{% endfilter %}') {
+          cashHolding = h;
+        } else {
+          var lastVal = h.data.length ? h.data[h.data.length - 1].value : 0;
+          if (lastVal >= smallThreshold) {
+            bigHoldings.push(h);
+          } else {
+            smallHoldings.push(h);
+          }
+        }
+      });
+
+      // Build "Other" series from small holdings (summed per date)
+      var otherHolding = null;
+      if (smallHoldings.length > 0) {
+        var otherDataMap = {};
+        smallHoldings.forEach(function(h) {
+          h.data.forEach(function(d) {
+            if (!otherDataMap[d.date]) otherDataMap[d.date] = 0;
+            otherDataMap[d.date] += d.value;
+          });
+        });
+        var otherData = Object.keys(otherDataMap).sort().map(function(date) {
+          return { date: date, value: otherDataMap[date] };
+        });
+        otherHolding = { name: '{% filter escapejs %}{% translate "Other" %}{% endfilter %}', data: otherData };
+      }
+
+      // Final ordered list: big holdings (descending), Other, Cash (on top)
+      var displayHoldings = bigHoldings.slice();
+      if (otherHolding) displayHoldings.push(otherHolding);
+      if (cashHolding) displayHoldings.push(cashHolding);
+
+      // Donut includes all holdings (including Cash) so "Total" label is accurate
+      var holdingsOnly = displayHoldings;
+
+      var series = displayHoldings.map(function(h) {
         return { name: h.name, data: h.data.map(function(d) { return { x: d.date, y: d.value }; }) };
       });
-      const colors = rawHoldings.map(function(_, i) { return holdingPalette[i % holdingPalette.length]; });
+      var colors = displayHoldings.map(function(h, i) {
+        if (h.name === '{% filter escapejs %}{% translate "Other" %}{% endfilter %}') return otherColor;
+        var idx = bigHoldings.indexOf(h);
+        return idx >= 0 ? holdingPalette[idx % holdingPalette.length] : (cashHolding && h === cashHolding ? holdingPalette[bigHoldings.length % holdingPalette.length] : otherColor);
+      });
 
-      // Pre-compute a date→total lookup from data.values (includes cash) for the tooltip
-      const totalByDate = {};
+      // Pre-compute a date->total lookup from data.values (includes cash) for the tooltip
+      var totalByDate = {};
       (data.values || []).forEach(function(v) { totalByDate[v.date] = v.value; });
 
-      // Pre-compute a date→invested lookup for the tooltip
-      const investedByDate = {};
+      // Pre-compute a date->invested lookup for the tooltip
+      var investedByDate = {};
       (data.invested || []).forEach(function(v) { investedByDate[v.date] = v.value; });
 
-      const chart = new ApexCharts(document.getElementById('accountChart'), {
+      // Compute shared x-axis range so both charts align vertically
+      var allChartDates = [];
+      (data.values || []).forEach(function(v) { allChartDates.push(v.date); });
+      (data.invested || []).forEach(function(v) { allChartDates.push(v.date); });
+      displayHoldings.forEach(function(h) {
+        h.data.forEach(function(d) { allChartDates.push(d.date); });
+      });
+      var xMin, xMax;
+      if (allChartDates.length) {
+        allChartDates.sort();
+        xMin = new Date(allChartDates[0]).getTime();
+        xMax = new Date(allChartDates[allChartDates.length - 1]).getTime();
+      }
+
+      // Deposit annotations: with labels on evolution chart, lines only on composition chart
+      var depositAnnotationsWithLabel = buildDepositAnnotations(data.deposits, true);
+      var depositAnnotationsNoLabel = buildDepositAnnotations(data.deposits, false);
+
+      // ── Composition chart (stacked area) ────────────────────────────────
+      var chartEl = document.getElementById('accountChart');
+      var chart = new ApexCharts(chartEl, {
         chart: {
           type: 'area',
-          height: 350,
+          height: 300,
           background: 'transparent',
           toolbar: { show: true },
           zoom: { enabled: true },
           stacked: true,
+          group: 'accountCharts',
           animations: { enabled: true, speed: 600 },
         },
-        theme: { mode: isDark ? 'dark' : 'light' },
+        theme: { mode: isDarkMode() ? 'dark' : 'light' },
         series: series,
-        xaxis: { type: 'datetime', labels: { datetimeUTC: false } },
+        annotations: { xaxis: depositAnnotationsNoLabel },
+        xaxis: { type: 'datetime', labels: { datetimeUTC: false }, min: xMin, max: xMax },
         yaxis: { labels: { formatter: formatCurrency } },
         dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 2 },
-        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 } },
+        stroke: { curve: 'smooth', width: 1.5 },
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.6, opacityTo: 0.2 } },
         colors: colors,
         tooltip: {
-          theme: isDark ? 'dark' : 'light',
+          theme: isDarkMode() ? 'dark' : 'light',
           shared: true,
           intersect: false,
           custom: function(opts) {
             var s = opts.series, dpi = opts.dataPointIndex, w = opts.w;
-            var bg = isDark ? '#0f172a' : '#fff';
-            var border = isDark ? 'rgba(255,255,255,.12)' : '#dee2e6';
-            var textMuted = isDark ? '#adb5bd' : '#6c757d';
+            var dark = isDarkMode();
+            var bg = dark ? '#0f172a' : '#fff';
+            var border = dark ? 'rgba(255,255,255,.12)' : '#dee2e6';
+            var textMuted = dark ? '#adb5bd' : '#6c757d';
 
-            // Get date string for lookup
-            var dateStr = '';
-            try {
-              var ts = w.globals.seriesX[0][dpi];
-              dateStr = new Date(ts).toISOString().slice(0, 10);
-            } catch(e) {}
+            var ts = null;
+            for (var si = 0; si < w.globals.seriesX.length; si++) {
+              if (w.globals.seriesX[si][dpi] != null) {
+                ts = w.globals.seriesX[si][dpi];
+                break;
+              }
+            }
+            var dateStr = ts != null ? new Date(ts).toISOString().slice(0, 10) : '';
 
-            // Total from data.values (includes cash) – fall back to sum of holdings
-            var holdingsSum = 0;
-            for (var i = 0; i < s.length; i++) { holdingsSum += (s[i][dpi] || 0); }
-            var total = totalByDate[dateStr] != null ? totalByDate[dateStr] : holdingsSum;
+            // Compute seriesSum from raw data for robustness against null data points
+            var seriesSum = 0;
+            displayHoldings.forEach(function(h) {
+              h.data.forEach(function(d) {
+                if (d.date === dateStr) seriesSum += d.value;
+              });
+            });
+            var total = totalByDate[dateStr] != null ? totalByDate[dateStr] : seriesSum;
 
             var label = '';
-            try { label = new Date(w.globals.seriesX[0][dpi]).toLocaleDateString(navigator.language || 'fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch(e) {}
+            if (ts != null) {
+              try { label = new Date(ts).toLocaleDateString(navigator.language || 'fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch(e) {}
+            }
 
-            // Holdings rows (reverse order = smallest at top of tooltip, matching stack order)
             var rows = '';
-            for (var j = s.length - 1; j >= 0; j--) {
+            for (var j = 0; j < s.length; j++) {
               var val = s[j][dpi];
-              if (val == null) continue;
+              if (val == null || val === 0) continue;
               var color = w.globals.colors[j];
               rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">' +
                 '<span style="display:flex;align-items:center;gap:6px;color:' + textMuted + ';font-size:12px;">' +
@@ -95,38 +221,190 @@ document.addEventListener('DOMContentLoaded', function() {
               '</div>';
             }
 
-            // Invested row (from pre-computed lookup)
             var invVal = investedByDate[dateStr];
+            var gainVal = invVal != null ? total - invVal : null;
+            var gainPct = (invVal != null && invVal !== 0) ? (gainVal / invVal * 100) : null;
+            var gainColor = gainVal != null && gainVal >= 0 ? (dark ? '#4ade80' : '#16a34a') : (dark ? '#f87171' : '#dc2626');
+
             if (invVal != null) {
               rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 0;margin-top:4px;border-top:1px solid ' + border + ';">' +
-                '<span style="color:' + textMuted + ';font-size:12px;">{% translate "Invested" %}</span>' +
+                '<span style="color:' + textMuted + ';font-size:12px;">{% filter escapejs %}{% translate "Invested" %}{% endfilter %}</span>' +
                 '<span style="font-weight:600;font-size:12px;">' + formatCurrency(invVal) + '</span>' +
               '</div>';
+              if (gainVal != null) {
+                rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">' +
+                  '<span style="color:' + textMuted + ';font-size:12px;">{% filter escapejs %}{% translate "Capital gain" %}{% endfilter %}</span>' +
+                  '<span style="font-weight:600;font-size:12px;color:' + gainColor + ';">' +
+                    formatCurrency(gainVal) +
+                    (gainPct != null ? ' <span style="font-size:11px;">(' + (gainPct >= 0 ? '+' : '') + gainPct.toFixed(1) + '%)</span>' : '') +
+                  '</span>' +
+                '</div>';
+              }
             }
 
             return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:10px 14px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.15);">' +
               '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' + label + '</div>' +
               '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 6px;border-bottom:1px solid ' + border + ';margin-bottom:6px;">' +
-                '<span style="font-size:13px;font-weight:600;">{% translate "Total" %}</span>' +
+                '<span style="font-size:13px;font-weight:600;">{% filter escapejs %}{% translate "Total" %}{% endfilter %}</span>' +
                 '<span style="font-size:13px;font-weight:700;">' + formatCurrency(total) + '</span>' +
               '</div>' +
               rows +
             '</div>';
           },
         },
-        grid: { borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)' },
-        legend: { show: false },
+        grid: { borderColor: isDarkMode() ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)' },
+        legend: {
+          show: true,
+          position: 'top',
+          fontSize: '12px',
+          fontFamily: 'inherit',
+          labels: { colors: isDarkMode() ? '#adb5bd' : '#6c757d' },
+          markers: { width: 10, height: 10, radius: 2 },
+          itemMargin: { horizontal: 8, vertical: 2 },
+        },
       });
 
-      // ── Donut — current holdings breakdown ──────────────────────────────
+      // ── Evolution chart (Total vs Invested line) ────────────────────────
+      var evolutionSeries = [];
+      var hasValues = (data.values || []).length > 0;
+      var hasInvested = (data.invested || []).length > 0;
+
+      if (hasValues) {
+        evolutionSeries.push({
+          name: '{% filter escapejs %}{% translate "Total" %}{% endfilter %}',
+          data: data.values.map(function(v) { return { x: v.date, y: v.value }; }),
+        });
+      }
+      if (hasInvested) {
+        evolutionSeries.push({
+          name: '{% filter escapejs %}{% translate "Invested" %}{% endfilter %}',
+          data: data.invested.map(function(v) { return { x: v.date, y: v.value }; }),
+        });
+      }
+
+      var evolutionChart = null;
+      var evolutionEl = document.getElementById('accountEvolutionChart');
+      if (evolutionEl && evolutionSeries.length > 0) {
+        var evoColors = [];
+        if (hasValues) evoColors.push(isDarkMode() ? '#60a5fa' : '#2563eb');
+        if (hasInvested) evoColors.push(isDarkMode() ? '#fbbf24' : '#d97706');
+
+        evolutionChart = new ApexCharts(evolutionEl, {
+          chart: {
+            type: 'line',
+            height: 220,
+            background: 'transparent',
+            toolbar: { show: true },
+            zoom: { enabled: true },
+            group: 'accountCharts',
+            animations: { enabled: true, speed: 600 },
+          },
+          theme: { mode: isDarkMode() ? 'dark' : 'light' },
+          series: evolutionSeries,
+          colors: evoColors,
+          annotations: { xaxis: depositAnnotationsWithLabel },
+          stroke: {
+            curve: 'smooth',
+            width: [2.5, 2],
+            dashArray: [0, 6],
+          },
+          xaxis: { type: 'datetime', labels: { datetimeUTC: false }, min: xMin, max: xMax },
+          yaxis: { labels: { formatter: formatCurrency } },
+          dataLabels: { enabled: false },
+          tooltip: {
+            theme: isDarkMode() ? 'dark' : 'light',
+            shared: true,
+            intersect: false,
+            custom: function(opts) {
+              var s = opts.series, dpi = opts.dataPointIndex, w = opts.w;
+              var dark = isDarkMode();
+              var bg = dark ? '#0f172a' : '#fff';
+              var border = dark ? 'rgba(255,255,255,.12)' : '#dee2e6';
+              var textMuted = dark ? '#adb5bd' : '#6c757d';
+
+              var ts = null;
+              for (var si = 0; si < w.globals.seriesX.length; si++) {
+                if (w.globals.seriesX[si][dpi] != null) {
+                  ts = w.globals.seriesX[si][dpi];
+                  break;
+                }
+              }
+              var dateStr = ts != null ? new Date(ts).toISOString().slice(0, 10) : '';
+              var label = '';
+              if (ts != null) {
+                try { label = new Date(ts).toLocaleDateString(navigator.language || 'fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch(e) {}
+              }
+
+              var totalVal = null, invVal = null;
+              for (var i = 0; i < w.globals.seriesNames.length; i++) {
+                if (w.globals.seriesNames[i] === '{% filter escapejs %}{% translate "Total" %}{% endfilter %}') totalVal = s[i][dpi];
+                if (w.globals.seriesNames[i] === '{% filter escapejs %}{% translate "Invested" %}{% endfilter %}') invVal = s[i][dpi];
+              }
+
+              var rows = '';
+              if (totalVal != null) {
+                rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">' +
+                  '<span style="display:flex;align-items:center;gap:6px;color:' + textMuted + ';font-size:12px;">' +
+                    '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + w.globals.colors[0] + ';flex-shrink:0;"></span>' +
+                    '{% filter escapejs %}{% translate "Total" %}{% endfilter %}</span>' +
+                  '<span style="font-weight:600;font-size:12px;">' + formatCurrency(totalVal) + '</span>' +
+                '</div>';
+              }
+              if (invVal != null) {
+                rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">' +
+                  '<span style="display:flex;align-items:center;gap:6px;color:' + textMuted + ';font-size:12px;">' +
+                    '<span style="display:inline-block;width:8px;height:2px;border-radius:1px;background:' + w.globals.colors[1] + ';flex-shrink:0;"></span>' +
+                    '{% filter escapejs %}{% translate "Invested" %}{% endfilter %}</span>' +
+                  '<span style="font-weight:600;font-size:12px;">' + formatCurrency(invVal) + '</span>' +
+                '</div>';
+              }
+
+              if (totalVal != null && invVal != null) {
+                var gainVal = totalVal - invVal;
+                var gainPct = invVal !== 0 ? (gainVal / invVal * 100) : null;
+                var gainColor = gainVal >= 0 ? (dark ? '#4ade80' : '#16a34a') : (dark ? '#f87171' : '#dc2626');
+                rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 0;margin-top:4px;border-top:1px solid ' + border + ';">' +
+                  '<span style="color:' + textMuted + ';font-size:12px;">{% filter escapejs %}{% translate "Capital gain" %}{% endfilter %}</span>' +
+                  '<span style="font-weight:600;font-size:12px;color:' + gainColor + ';">' +
+                    formatCurrency(gainVal) +
+                    (gainPct != null ? ' <span style="font-size:11px;">(' + (gainPct >= 0 ? '+' : '') + gainPct.toFixed(1) + '%)</span>' : '') +
+                  '</span>' +
+                '</div>';
+              }
+
+              return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:10px 14px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.15);">' +
+                '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' + label + '</div>' +
+                rows +
+              '</div>';
+            },
+          },
+          grid: { borderColor: isDarkMode() ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)' },
+          legend: {
+            show: true,
+            position: 'top',
+            fontSize: '12px',
+            fontFamily: 'inherit',
+            labels: { colors: isDarkMode() ? '#adb5bd' : '#6c757d' },
+            markers: { width: 10, height: 10, radius: 2 },
+            itemMargin: { horizontal: 8, vertical: 2 },
+          },
+        });
+      }
+
+      // ── Donut — current holdings breakdown (includes Cash) ──────────────
       const donutEl = document.getElementById('accountDonut');
-      if (donutEl && rawHoldings.length) {
-        const donutValues = rawHoldings.map(function(h) {
+      let donut = null;
+      if (donutEl && holdingsOnly.length) {
+        const donutValues = holdingsOnly.map(function(h) {
           return h.data.length ? h.data[h.data.length - 1].value : 0;
         });
-        const donutLabels = rawHoldings.map(function(h) { return h.name; });
-        const donutColors = rawHoldings.map(function(_, i) { return holdingPalette[i % holdingPalette.length]; });
-        const donut = new ApexCharts(donutEl, {
+        const donutLabels = holdingsOnly.map(function(h) { return h.name; });
+        const donutColors = holdingsOnly.map(function(h, i) {
+          if (h.name === '{% filter escapejs %}{% translate "Other" %}{% endfilter %}') return otherColor;
+          var idx = bigHoldings.indexOf(h);
+          return idx >= 0 ? holdingPalette[idx % holdingPalette.length] : otherColor;
+        });
+        donut = new ApexCharts(donutEl, {
           chart: { type: 'donut', height: 260, background: 'transparent', animations: { enabled: true, speed: 600 } },
           series: donutValues,
           labels: donutLabels,
@@ -134,18 +412,18 @@ document.addEventListener('DOMContentLoaded', function() {
           fill: {
             type: 'gradient',
             gradient: {
-              shade: isDark ? 'dark' : 'light',
+              shade: isDarkMode() ? 'dark' : 'light',
               type: 'diagonal1',
               shadeIntensity: 0.4,
               opacityFrom: 1,
               opacityTo: 0.75,
             },
           },
-          plotOptions: { pie: { donut: { size: '62%', labels: {
+          plotOptions: { pie: { donut: { size: '62%', borderRadius: 5, spacing: 2, labels: {
             show: true,
             total: {
               show: true,
-              label: '{% translate "Total" %}',
+              label: '{% filter escapejs %}{% translate "Total" %}{% endfilter %}',
               fontSize: '12px',
               fontWeight: 600,
               formatter: function(w) {
@@ -157,28 +435,67 @@ document.addEventListener('DOMContentLoaded', function() {
           } } } },
           dataLabels: { enabled: false },
           legend: { show: false },
-          tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: formatCurrency } },
+          tooltip: { theme: isDarkMode() ? 'dark' : 'light', y: { formatter: formatCurrency } },
           stroke: { width: 0 },
         });
-        donut.render().then(function() {
-          var donutColors = donut.w.globals.colors;
-          var colorMap = {};
-          donutLabels.forEach(function(name, i) { colorMap[name] = donutColors[i]; });
-          document.querySelectorAll('[data-holding-name]').forEach(function(el) {
-            if (el.tagName !== 'TD') return;
-            var color = colorMap[el.dataset.holdingName];
-            if (!color) return;
-            var sq = document.createElement('span');
-            sq.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:2px;background:' + color + ';margin-right:6px;vertical-align:middle;flex-shrink:0;';
-            el.insertBefore(sq, el.firstChild);
+        renderWhenVisible(donutEl, function() {
+          donut.render().then(function() {
+            var dColors = donut.w.globals.colors;
+            var colorMap = {};
+            donutLabels.forEach(function(name, i) { colorMap[name] = dColors[i]; });
+            document.querySelectorAll('[data-holding-name]').forEach(function(el) {
+              if (el.tagName !== 'TD') return;
+              var color = colorMap[el.dataset.holdingName];
+              if (!color) return;
+              var sq = document.createElement('span');
+              sq.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:2px;background:' + color + ';margin-right:6px;vertical-align:middle;flex-shrink:0;';
+              el.insertBefore(sq, el.firstChild);
+            });
           });
         });
       }
 
-      chart.render();
+      // Render charts when visible (deferred for performance)
+      renderWhenVisible(chartEl, function() { chart.render(); });
+      if (evolutionChart) {
+        renderWhenVisible(evolutionEl, function() { evolutionChart.render(); });
+      }
+
+      window.updateChartsTheme = function(themeName) {
+        var dark = themeName === 'dark';
+        chart.updateOptions({
+          theme: { mode: dark ? 'dark' : 'light' },
+          chart: { background: 'transparent' },
+          tooltip: { theme: dark ? 'dark' : 'light' },
+          grid: { borderColor: dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)' },
+          legend: { labels: { colors: dark ? '#adb5bd' : '#6c757d' } },
+          annotations: { xaxis: buildDepositAnnotations(data.deposits, false) },
+        });
+        if (evolutionChart) {
+          var evoColors2 = [];
+          if (hasValues) evoColors2.push(dark ? '#60a5fa' : '#2563eb');
+          if (hasInvested) evoColors2.push(dark ? '#fbbf24' : '#d97706');
+          evolutionChart.updateOptions({
+            theme: { mode: dark ? 'dark' : 'light' },
+            chart: { background: 'transparent' },
+            tooltip: { theme: dark ? 'dark' : 'light' },
+            grid: { borderColor: dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)' },
+            legend: { labels: { colors: dark ? '#adb5bd' : '#6c757d' } },
+            colors: evoColors2,
+            annotations: { xaxis: buildDepositAnnotations(data.deposits, true) },
+          });
+        }
+        if (donut) {
+          donut.updateOptions({
+            theme: { mode: dark ? 'dark' : 'light' },
+            tooltip: { theme: dark ? 'dark' : 'light' },
+            fill: { type: 'gradient', gradient: { shade: dark ? 'dark' : 'light' } },
+          });
+        }
+      };
     })
     .catch(function() {
-      document.getElementById('accountChart').innerHTML = '<p class="text-center text-muted py-4"><i class="bi bi-exclamation-circle me-1"></i>{% translate "Could not load chart data." %}</p>';
+      document.getElementById('accountChart').innerHTML = '<p class="text-center text-muted py-4"><i class="bi bi-exclamation-circle me-1"></i>{% filter escapejs %}{% translate "Could not load chart data." %}{% endfilter %}</p>';
     });
 });
 </script>

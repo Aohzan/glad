@@ -16,7 +16,7 @@ class PropertyTestCase(TestCase):
         """Set up test data."""
         self.property = Property.objects.create(
             name="Test Property",
-            address="123 Test Street",
+            street_name="123 Test Street",
             property_type=Property.HOUSE,
             buying_value=Money(200000, "EUR"),
             buying_date=datetime.date.today() - datetime.timedelta(days=365),
@@ -26,14 +26,14 @@ class PropertyTestCase(TestCase):
         """Test basic property creation."""
         self.assertEqual(self.property.name, "Test Property")
         self.assertEqual(self.property.property_type, Property.HOUSE)
-        self.assertEqual(self.property.buying_value.amount, Decimal("200000"))
+        self.assertEqual(self.property.buying_value.amount, Decimal(200000))
         self.assertEqual(str(self.property.currency), "EUR")
         self.assertTrue(self.property.is_active)
 
     def test_get_value_without_valuations(self):
         """Test get_value returns initial value when no valuations exist."""
         value = self.property.get_value()
-        self.assertEqual(value.amount, Decimal("200000"))
+        self.assertEqual(value.amount, Decimal(200000))
         self.assertEqual(str(value.currency), "EUR")
 
     def test_get_value_with_valuations(self):
@@ -53,7 +53,7 @@ class PropertyTestCase(TestCase):
         )
 
         value = self.property.get_value()
-        self.assertEqual(value.amount, Decimal("250000"))
+        self.assertEqual(value.amount, Decimal(250000))
 
     def test_get_value_with_date_filter(self):
         """Test get_value with specific date returns correct valuation."""
@@ -79,7 +79,7 @@ class PropertyTestCase(TestCase):
         # Get value from 120 days ago - should return the 200-day old valuation
         target_date = datetime.datetime.now() - datetime.timedelta(days=120)
         value = self.property.get_value(max_date=target_date)
-        self.assertEqual(value.amount, Decimal("210000"))
+        self.assertEqual(value.amount, Decimal(210000))
 
     def test_string_representation(self):
         """Test string representation of Property."""
@@ -97,7 +97,7 @@ class PropertyValueTestCase(TestCase):
         """Set up test data."""
         self.property = Property.objects.create(
             name="Test Property",
-            address="123 Test Street",
+            street_name="123 Test Street",
             property_type=Property.APARTMENT,
             buying_value=Money(150000, "EUR"),
             buying_date=datetime.date.today(),
@@ -112,7 +112,7 @@ class PropertyValueTestCase(TestCase):
         )
 
         self.assertEqual(property_value.property, self.property)
-        self.assertEqual(property_value.value.amount, Decimal("160000"))
+        self.assertEqual(property_value.value.amount, Decimal(160000))
         self.assertEqual(property_value.valuation_date, datetime.date.today())
 
     def test_property_value_ordering(self):

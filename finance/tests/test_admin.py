@@ -6,6 +6,7 @@ from decimal import Decimal
 import pytest
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.sessions.backends.db import SessionStore
 from django.test import RequestFactory
 from django.urls import reverse
 from moneyed import Money
@@ -84,12 +85,12 @@ def test_bulk_update_valuation_date_shows_intermediate_form(
         account=active_investment_account,
         name="Test Holding",
         is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
+        initial_value=Money(Decimal(100), "EUR"),
     )
     history = InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
-        value=Money(Decimal("200"), "EUR"),
-        quantity=Decimal("2"),
+        value=Money(Decimal(200), "EUR"),
+        quantity=Decimal(2),
         valuation_date=datetime.datetime(2025, 1, 15, 10, 0, 0),
     )
 
@@ -148,7 +149,7 @@ def test_bulk_update_value_date_shows_intermediate_form(
     """Selecting bulk_update_value_date without 'apply' renders the intermediate page."""
     value = SavingAccountValue.objects.create(
         account=active_saving_account,
-        value=Money(Decimal("1500"), "EUR"),
+        value=Money(Decimal(1500), "EUR"),
         value_date=datetime.datetime(2025, 3, 10, 10, 0, 0),
     )
 
@@ -175,7 +176,7 @@ def test_bulk_update_value_date_apply_updates_records(
     """Selecting bulk_update_value_date with 'apply' updates the value date."""
     value = SavingAccountValue.objects.create(
         account=active_saving_account,
-        value=Money(Decimal("2000"), "EUR"),
+        value=Money(Decimal(2000), "EUR"),
         value_date=datetime.datetime(2025, 4, 1, 10, 0, 0),
     )
 
@@ -210,9 +211,9 @@ def _make_admin_request(admin_user):
         factory = RequestFactory()
         request = factory.post("/admin/", data or {})
         request.user = admin_user
-        setattr(request, "session", {})
+        request.session = SessionStore()
         messages = FallbackStorage(request)
-        setattr(request, "_messages", messages)
+        request._messages = messages  # ty: ignore[unresolved-attribute]
         return request
 
     return _build
@@ -227,12 +228,12 @@ def test_bulk_update_valuation_date_direct_apply(
         account=active_investment_account,
         name="Direct Holding",
         is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
+        initial_value=Money(Decimal(100), "EUR"),
     )
     history = InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
-        value=Money(Decimal("400"), "EUR"),
-        quantity=Decimal("4"),
+        value=Money(Decimal(400), "EUR"),
+        quantity=Decimal(4),
         valuation_date=datetime.datetime(2025, 1, 1, 12, 0, 0),
     )
 
@@ -255,7 +256,7 @@ def test_bulk_update_value_date_direct_apply(
     """Direct call to admin action applies the new date when 'apply' is in POST."""
     value = SavingAccountValue.objects.create(
         account=active_saving_account,
-        value=Money(Decimal("1000"), "EUR"),
+        value=Money(Decimal(1000), "EUR"),
         value_date=datetime.datetime(2025, 1, 1, 12, 0, 0),
     )
 
@@ -278,12 +279,12 @@ def test_bulk_update_valuation_date_direct_no_apply(
         account=active_investment_account,
         name="No Apply Holding",
         is_active=True,
-        initial_value=Money(Decimal("100"), "EUR"),
+        initial_value=Money(Decimal(100), "EUR"),
     )
     history = InvestmentAccountHoldingHistory.objects.create(
         holding=holding,
-        value=Money(Decimal("100"), "EUR"),
-        quantity=Decimal("1"),
+        value=Money(Decimal(100), "EUR"),
+        quantity=Decimal(1),
         valuation_date=datetime.datetime(2025, 1, 1, 12, 0, 0),
     )
 
@@ -305,7 +306,7 @@ def test_bulk_update_value_date_direct_no_apply(
     """Direct call without 'apply' renders the intermediate template."""
     value = SavingAccountValue.objects.create(
         account=active_saving_account,
-        value=Money(Decimal("500"), "EUR"),
+        value=Money(Decimal(500), "EUR"),
         value_date=datetime.datetime(2025, 2, 1, 12, 0, 0),
     )
 
