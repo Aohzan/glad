@@ -1,0 +1,186 @@
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# 2033-A — Bilan simplifié                                               #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+<div class="tab-pane fade" id="tab-2033a">
+  <h5 class="mb-3">2033-A — Bilan simplifié</h5>
+
+  {# ── ACTIF ── #}
+  <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">ACTIF</h6>
+  <div class="table-responsive mb-4">
+    <table class="table table-sm table-hover">
+      <thead class="table-light">
+        <tr>
+          <th></th>
+          <th class="text-end" style="width:10rem;">Brut</th>
+          <th class="text-end" style="width:10rem;">Amortissements</th>
+          <th class="text-end" style="width:10rem;">Net (VNC)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="table-secondary">
+          <td colspan="4" class="fw-semibold text-uppercase small py-1">Actif immobilisé</td>
+        </tr>
+
+        {# Immobilisations corporelles #}
+        {% if accounting.form_2033a.per_prop|length > 1 %}
+        <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-immo" aria-expanded="false" style="cursor:pointer;">
+          <td>Immobilisations corporelles <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          <td class="text-end">{{ accounting.form_2033a.immobilisations_brutes|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ accounting.form_2033a.amortissements_cumules|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:0 }} €</td>
+        </tr>
+        <tr class="collapse" id="a-immo">
+          <td colspan="4" class="p-0 ps-3">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033a.per_prop %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end">{{ p.bilan.immobilisations_brutes|floatformat:0 }} €</td>
+                  <td class="text-end text-danger">{{ p.bilan.amortissements_cumules|floatformat:0 }} €</td>
+                  <td class="text-end fw-semibold">{{ p.bilan.valeur_nette_comptable|floatformat:0 }} €</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td>Immobilisations corporelles</td>
+          <td class="text-end">{{ accounting.form_2033a.immobilisations_brutes|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ accounting.form_2033a.amortissements_cumules|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:0 }} €</td>
+        </tr>
+        {% endif %}
+      </tbody>
+      <tfoot class="table-light fw-semibold">
+        <tr>
+          <td>Total I — Actif immobilisé</td>
+          <td class="text-end">{{ accounting.form_2033a.immobilisations_brutes|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ accounting.form_2033a.amortissements_cumules|floatformat:0 }} €</td>
+          <td class="text-end">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:0 }} €</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  {# ── PASSIF ── #}
+  <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">PASSIF</h6>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover">
+      <thead class="table-light">
+        <tr>
+          <th></th>
+          <th class="text-end" style="width:12rem;">Montant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="table-secondary">
+          <td colspan="2" class="fw-semibold text-uppercase small py-1">Capitaux propres</td>
+        </tr>
+
+        {# Capital social ou individuel #}
+        {% if accounting.form_2033a.per_prop|length > 1 %}
+        <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-capital" aria-expanded="false" style="cursor:pointer;">
+          <td>Capital social ou individuel <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          <td class="text-end fw-semibold">{{ accounting.form_2033a.capital_individuel|floatformat:0 }} €</td>
+        </tr>
+        <tr class="collapse" id="a-capital">
+          <td colspan="2" class="p-0 ps-3">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033a.per_prop %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end">{{ p.bilan.capital_individuel|floatformat:0 }} €</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td>Capital social ou individuel</td>
+          <td class="text-end fw-semibold">{{ accounting.form_2033a.capital_individuel|floatformat:0 }} €</td>
+        </tr>
+        {% endif %}
+
+        {# Résultat de l'exercice #}
+        <tr>
+          <td>Résultat de l'exercice</td>
+          <td class="text-end fw-semibold text-primary">{{ accounting.form_2033a.resultat_exercice|floatformat:0 }} €</td>
+        </tr>
+
+        {# Total I — Capitaux propres #}
+        <tr class="table-light fw-semibold">
+          <td>Total I — Capitaux propres</td>
+          <td class="text-end">{{ accounting.form_2033a.total_capitaux_propres|floatformat:0 }} €</td>
+        </tr>
+
+        <tr class="table-secondary">
+          <td colspan="2" class="fw-semibold text-uppercase small py-1">Dettes</td>
+        </tr>
+
+        {# Emprunts et dettes assimilées #}
+        {% if accounting.form_2033a.per_prop|length > 1 %}
+        <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-emprunts" aria-expanded="false" style="cursor:pointer;">
+          <td>Emprunts et dettes assimilées <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          <td class="text-end fw-semibold">{{ accounting.form_2033a.emprunts|floatformat:0 }} €</td>
+        </tr>
+        <tr class="collapse" id="a-emprunts">
+          <td colspan="2" class="p-0 ps-3">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033a.per_prop %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end">{{ p.bilan.emprunts|floatformat:0 }} €</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td>Emprunts et dettes assimilées</td>
+          <td class="text-end fw-semibold">{{ accounting.form_2033a.emprunts|floatformat:0 }} €</td>
+        </tr>
+        {% endif %}
+
+        <tr class="table-secondary">
+          <td colspan="2" class="fw-semibold text-uppercase small py-1">Renvois</td>
+        </tr>
+
+        {# (5) Coût de revient des immobilisations acquises ou créées au cours de l'exercice #}
+        {% if accounting.form_2033a.per_prop|length > 1 %}
+        <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-cout-revient" aria-expanded="false" style="cursor:pointer;">
+          <td>(5) Coût de revient des immobilisations acquises ou créées au cours de l'exercice <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          <td class="text-end fw-semibold">{{ accounting.form_2033a.cout_revient_acquisitions|floatformat:0 }} €</td>
+        </tr>
+        <tr class="collapse" id="a-cout-revient">
+          <td colspan="2" class="p-0 ps-3">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033a.per_prop %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end">{{ p.bilan.cout_revient_acquisitions|floatformat:0 }} €</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td>(5) Coût de revient des immobilisations acquises ou créées au cours de l'exercice</td>
+          <td class="text-end fw-semibold">{{ accounting.form_2033a.cout_revient_acquisitions|floatformat:0 }} €</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>

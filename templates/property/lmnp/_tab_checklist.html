@@ -1,0 +1,95 @@
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# Checklist — Vérification des données                                  #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+<div class="tab-pane fade show active" id="tab-checklist">
+  <h5 class="mb-3">Liste de vérification des données</h5>
+
+  {# ── Form readiness badges ──────────────────────────────────────────── #}
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    {% for form in checklist.forms %}
+      {% if form.required %}
+        {% if form.status == "ok" %}
+          <span class="badge rounded-pill bg-success fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+            <i class="bi bi-check-circle me-1"></i>{{ form.name }}
+          </span>
+        {% elif form.status == "warning" %}
+          <span class="badge rounded-pill bg-warning text-dark fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+            <i class="bi bi-exclamation-circle me-1"></i>{{ form.name }}
+          </span>
+        {% elif form.status == "incomplete" %}
+          <span class="badge rounded-pill bg-danger fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+            <i class="bi bi-x-circle me-1"></i>{{ form.name }}
+          </span>
+        {% else %}{# auto #}
+          <span class="badge rounded-pill bg-secondary fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
+            <i class="bi bi-robot me-1"></i>{{ form.name }}
+          </span>
+        {% endif %}
+      {% else %}
+        <span class="badge rounded-pill bg-light text-secondary border fs-6 fw-normal px-3 py-2" title="{{ form.label }} — Déposé à néant">
+          {{ form.name }} <small class="opacity-75">à néant</small>
+        </span>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {# ── Per-property checks ────────────────────────────────────────────── #}
+  {% if not checklist.properties %}
+    <p class="text-body-secondary">Aucun bien LMNP.</p>
+  {% else %}
+  {% for prop_data in checklist.properties %}
+  <div class="card mb-3">
+    <div class="card-header d-flex align-items-center gap-2 py-2">
+      <i class="bi bi-house-door"></i>
+      <a href="{% url 'property:detail' prop_data.property.id %}" class="fw-semibold text-decoration-none">{{ prop_data.property.name }}</a>
+      {% if not prop_data.has_issues %}
+        <span class="badge bg-success ms-auto"><i class="bi bi-check-lg me-1"></i>Complet</span>
+      {% else %}
+        <span class="badge bg-danger ms-auto">{{ prop_data.issue_count }} problème(s)</span>
+      {% endif %}
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width:2rem;"></th>
+            <th>Vérification</th>
+            <th>Détail</th>
+            <th>Formulaire</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for check in prop_data.checks %}
+          <tr>
+            <td class="text-center">
+              {% if check.status == "ok" %}
+                <i class="bi bi-check-circle-fill text-success"></i>
+              {% elif check.status == "warning" %}
+                <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+              {% elif check.status == "missing" %}
+                <i class="bi bi-x-circle-fill text-danger"></i>
+              {% else %}{# na #}
+                <i class="bi bi-dash-circle text-secondary"></i>
+              {% endif %}
+            </td>
+            <td class="fw-semibold">{{ check.label }}</td>
+            <td class="text-body-secondary small">{{ check.detail }}</td>
+            <td><code class="small">{{ check.form_ref }}</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+
+  {# ── Legend ────────────────────────────────────────────────────────── #}
+  <div class="d-flex flex-wrap gap-3 mt-3 small text-body-secondary">
+    <span><i class="bi bi-check-circle-fill text-success me-1"></i>OK — données présentes</span>
+    <span><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Avertissement — données recommandées manquantes</span>
+    <span><i class="bi bi-x-circle-fill text-danger me-1"></i>Manquant — données requises absentes</span>
+    <span><i class="bi bi-dash-circle text-secondary me-1"></i>N/A — non applicable</span>
+    <span><i class="bi bi-robot text-secondary me-1"></i>Auto — calculé automatiquement</span>
+  </div>
+  {% endif %}
+</div>{# /tab-checklist #}
