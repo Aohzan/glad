@@ -50,13 +50,13 @@ repos:
     hooks:
       - id: django-makemessages
         name: django-makemessages
-        entry: uv run manage.py makemessages --all --no-obsolete
+        entry: env ENV_FILE=./.env.dev uv run manage.py makemessages --all --no-obsolete
         language: system
         pass_filenames: false
         always_run: true
       - id: django-compilemessages
         name: django-compilemessages
-        entry: uv run manage.py compilemessages --locale fr
+        entry: env ENV_FILE=./.env.dev uv run manage.py compilemessages --locale fr
         language: system
         pass_filenames: false
         always_run: true

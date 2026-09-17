@@ -13,7 +13,10 @@
       // just skip prompt for matchers
       "problemMatcher": [],
       "options": {
-        "cwd": "${workspaceFolder}"
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ENV_FILE": "${workspaceFolder}/.env.dev"
+        }
       },
     },
     {
@@ -28,7 +31,10 @@
       // just skip prompt for matchers
       "problemMatcher": [],
       "options": {
-        "cwd": "${workspaceFolder}"
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ENV_FILE": "${workspaceFolder}/.env.dev"
+        }
       },
       // Run "Django Make Migrations" first if you need to generate new migrations
     },
@@ -196,7 +202,8 @@
         "env": {
           "DJANGO_SUPERUSER_PASSWORD": "admin",
           "DJANGO_SUPERUSER_USERNAME": "admin",
-          "DJANGO_SUPERUSER_EMAIL": "admin@site.com"
+          "DJANGO_SUPERUSER_EMAIL": "admin@site.com",
+          "ENV_FILE": "${workspaceFolder}/.env.dev"
         }
       },
       "presentation": {
@@ -218,7 +225,10 @@
         "--no-obsolete"
       ],
       "options": {
-        "cwd": "${workspaceFolder}"
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ENV_FILE": "${workspaceFolder}/.env.dev"
+        }
       },
       "problemMatcher": [],
       "detail": "Generate Django translation files."
@@ -232,7 +242,10 @@
         "compilemessages",
       ],
       "options": {
-        "cwd": "${workspaceFolder}"
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ENV_FILE": "${workspaceFolder}/.env.dev"
+        }
       },
       "problemMatcher": [],
       "detail": "Compile Django translation files.",
