@@ -1,0 +1,102 @@
+---
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, beta]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+env:
+  ENV_FILE: ${{ github.workspace }}/.env.dev
+
+jobs:
+  lint:
+    name: Pre-commit hooks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: ".python-version"
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Cache pre-commit environments
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Install node tooling (jscpd)
+        run: npm ci --no-audit --no-fund
+
+      - name: Run pre-commit hooks
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+        env:
+          # Tests and translations have dedicated jobs; the branch guard is local-only.
+          SKIP: pytest,django-compilemessages,django-makemessages,no-commit-to-branch
+
+  django-checks:
+    name: Django checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install the project
+        run: uv sync --locked --dev
+
+      - name: Missing migrations
+        run: uv run manage.py makemigrations --check --dry-run
+
+      - name: Production settings check
+        run: uv run manage.py check --deploy --fail-level WARNING
+        env:
+          ENV_FILE: /dev/null
+          SECRET_KEY: ${{ github.sha }}${{ github.run_id }}-ci-only-secret-key-not-for-production
+          DEBUG: "false"
+          APP_URL: https://glad.example.com
+
+      - name: Translations compile
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends gettext
+          uv run manage.py compilemessages --locale fr
