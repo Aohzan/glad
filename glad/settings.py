@@ -171,8 +171,11 @@ if os.getenv("DB") == "postgres":
             "PASSWORD": os.getenv("DB_PASSWORD"),
             "HOST": os.getenv("DB_HOST"),
             "PORT": os.getenv("DB_PORT", "5432"),
+            # Persistent connections, validated before reuse.
+            "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "600")),
+            "CONN_HEALTH_CHECKS": True,
             "OPTIONS": {
-                "sslmode": "prefer",
+                "sslmode": os.getenv("DB_SSL_MODE", "prefer"),
                 "connect_timeout": 10,
             },
         }
@@ -182,6 +185,17 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "data" / "glad.db",
+            "OPTIONS": {
+                # Write-ahead log allows concurrent readers during writes,
+                # busy_timeout waits instead of failing on a locked database.
+                "init_command": (
+                    "PRAGMA journal_mode=WAL;"
+                    "PRAGMA synchronous=NORMAL;"
+                    "PRAGMA busy_timeout=5000;"
+                    "PRAGMA foreign_keys=ON;"
+                ),
+                "transaction_mode": "IMMEDIATE",
+            },
         }
     }
 
@@ -224,6 +238,7 @@ if EMAIL_HOST:
     )
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))  # seconds
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Glad <glad@localhost>")
 EMAIL_SUBJECT_PREFIX = os.getenv("EMAIL_SUBJECT_PREFIX", "[Glad] ")
 
