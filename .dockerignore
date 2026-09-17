@@ -1,14 +1,45 @@
-.venv
-__pycache__
-*.pyc
-*.pyo
+# VCS, IDE, agents
 .git
 .gitignore
+.github
+.vscode
+.ansible
+AGENTS.md
+TODO.md
+
+# Python caches, builds and virtualenvs (rebuilt in the image)
+.venv
+__pycache__
+*.py[co]
 *.egg-info
-.pytest_cache
+build
+dist
 .ruff_cache
+.pytest_cache
 .coverage
+.coverage.*
 htmlcov
+
+# Tests and tooling config not needed at runtime
+tests
+*/tests
+conftest.py
+.pre-commit-config.yaml
+.jscpd.json
+.yamllint
+committed.toml
+
+# Environment files (never bake secrets or the dev key into the image)
+.env
+.env.*
+
+# Node: vendors are built in a dedicated stage
 node_modules
+static/vendors
+staticfiles
+
+# Runtime data, docs and scratch files
 data
+docs
+declaration
 *.log
