@@ -5,8 +5,17 @@
   },
   "minTokens": 70,
   "threshold": 5,
-  "exitCode": 1,
+  "gitignore": true,
   "ignore": [
-    "**/migrations/**"
+    "**/migrations/**",
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/static/vendors/**",
+    "**/staticfiles/**",
+    "**/locale/**",
+    "**/docs/**",
+    "**/declaration/**",
+    "**/*.lock",
+    "**/package-lock.json"
   ]
 }
