@@ -43,12 +43,23 @@ dev = [
 ]
 
 [tool.semantic_release]
+# Bump the version in pyproject.toml, refresh uv.lock accordingly and stage it so
+# `uv sync --locked` keeps working after the release commit.
+version_toml = ["pyproject.toml:project.version"]
+commit_message = "chore(release): {version} [skip ci]"
 build_command = """
-    python -m pip install -e '.[build]'
     uv lock --upgrade-package "$PACKAGE_NAME"
     git add uv.lock
-    uv build
 """
+allow_zero_version = false
+
+[tool.semantic_release.changelog]
+mode = "update"
+exclude_commit_patterns = [
+    "^chore\\(release\\):",
+    "^chore\\(deps",
+    "^chore\\(semantic-release\\):",
+]
 
 [tool.semantic_release.branches.main]
 match = "main"
