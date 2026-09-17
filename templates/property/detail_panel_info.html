@@ -152,7 +152,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var lat = {{ property.latitude|default_if_none:"null" }};
   var lon = {{ property.longitude|default_if_none:"null" }};

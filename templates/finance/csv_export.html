@@ -69,7 +69,7 @@
 
 {% block scripts %}
 <script src="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.js' %}"></script>
-<script>
+<script nonce="{{ csp_nonce }}">
   document.addEventListener('DOMContentLoaded', function() {
     // Collect all options before MultiSelect initialization
     var allAccountOptions = [];

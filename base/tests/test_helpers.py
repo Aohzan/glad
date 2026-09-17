@@ -30,3 +30,15 @@ def test_healthcheck_is_reachable_without_login(client):
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "OK"}
+
+
+@pytest.mark.django_db
+def test_csp_header_and_nonce_on_rendered_pages(user_client):
+    """Pages send a CSP header and inline scripts carry the matching nonce."""
+    response = user_client.get("/")
+    assert response.status_code == 200
+    csp = response["Content-Security-Policy"]
+    assert "script-src 'self' 'nonce-" in csp
+    nonce = csp.split("'nonce-", 1)[1].split("'", 1)[0]
+    assert f'nonce="{nonce}"' in response.content.decode()
+    assert "onclick=" not in response.content.decode()

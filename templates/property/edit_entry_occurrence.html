@@ -90,7 +90,7 @@
 </div>
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function () {
   const overrideFields = document.getElementById('override-fields');
   const redirectNotice = document.getElementById('redirect-notice');

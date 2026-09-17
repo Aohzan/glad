@@ -16,7 +16,7 @@
   </form>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   const DateTime = luxon.DateTime;
   luxon.Settings.defaultLocale = '{{ request.LANGUAGE_CODE }}';

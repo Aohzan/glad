@@ -358,7 +358,7 @@
 }
 </style>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function() {
   // ── Generic fetch POST helper ─────────────────────────────────────────────
   function fetchPost(url) {
@@ -613,7 +613,7 @@
 </script>
 
 {% if loans_with_totals %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function() {
   var chartData = {{ loan_chart_data_json|safe }};
   if (!chartData || !chartData.loans || chartData.loans.length === 0) return;

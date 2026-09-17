@@ -57,7 +57,7 @@
 {{ debt_projection_series|json_script:"debt-projection-series" }}
 {{ net_projection_series|json_script:"net-projection-series" }}
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var valueHistorySeries    = JSON.parse(document.getElementById('value-history-series').textContent);
   var debtHistorySeries     = JSON.parse(document.getElementById('debt-history-series').textContent);

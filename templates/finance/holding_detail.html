@@ -180,7 +180,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
 

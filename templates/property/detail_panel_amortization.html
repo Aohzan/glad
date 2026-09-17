@@ -166,7 +166,7 @@
                 <form method="post"
                       action="{% url 'property:delete_amortization' property.pk row.asset_pk %}"
                       class="d-inline"
-                      onsubmit="return confirm('{% filter escapejs %}{% translate "Delete this immobilisation?" %}{% endfilter %}')">
+                      data-confirm="{% translate 'Delete this immobilisation?' %}">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-xs btn-outline-danger btn-sm py-0 px-1">
                     <i class="bi bi-trash"></i>
@@ -279,7 +279,7 @@
 
 {% endif %}{# has_assets #}
 
-<script>
+<script nonce="{{ csp_nonce }}">
 document.querySelectorAll('.amort-row').forEach(function(row) {
   var target = row.getAttribute('data-bs-target');
   var detail = document.querySelector(target);
@@ -295,7 +295,7 @@ document.querySelectorAll('.amort-row').forEach(function(row) {
 
 {% if has_assets %}
 {{ amortization_asset_series_json|json_script:"amortization-asset-series" }}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var assetSeries = JSON.parse(document.getElementById('amortization-asset-series').textContent) || [];
   if (!assetSeries.length) return;

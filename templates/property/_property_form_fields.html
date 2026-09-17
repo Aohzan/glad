@@ -202,7 +202,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   const amountFields = [
     'id_buying_value_0',
@@ -362,7 +362,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('input:not([type="checkbox"]), select, textarea').forEach(input => {
     if (!input.classList.contains('form-control') && !input.classList.contains('form-check-input')) {
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 {# ── Address autocomplete + cadastral lookup ── #}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var searchInput = document.getElementById('addressSearch');
   var suggestionsDiv = document.getElementById('addressSuggestions');

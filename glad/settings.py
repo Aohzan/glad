@@ -16,6 +16,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from django.contrib.messages import constants as messages
+from django.utils.csp import CSP
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
 
@@ -96,6 +97,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.csp.ContentSecurityPolicyMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -118,6 +120,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.csp",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "accounts.context_processors.session_config",
@@ -261,6 +264,24 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     X_FRAME_OPTIONS = "DENY"
+
+# Content Security Policy (enabled in every environment so violations show up
+# during development). Inline scripts must carry nonce="{{ csp_nonce }}".
+# https://docs.djangoproject.com/en/6.0/ref/csp/
+SECURE_CSP = {
+    "default-src": [CSP.SELF],
+    "script-src": [CSP.SELF, CSP.NONCE],
+    # Bootstrap, ApexCharts and Leaflet set inline style attributes.
+    "style-src": [CSP.SELF, CSP.UNSAFE_INLINE],
+    # OpenStreetMap tiles for the property map.
+    "img-src": [CSP.SELF, "data:", "blob:", "https://*.tile.openstreetmap.org"],
+    "font-src": [CSP.SELF],
+    "connect-src": [CSP.SELF],
+    "frame-ancestors": [CSP.NONE],
+    "base-uri": [CSP.SELF],
+    "form-action": [CSP.SELF],
+    "object-src": [CSP.NONE],
+}
 
 # Logging configuration
 # https://docs.djangoproject.com/en/6.0/topics/logging/

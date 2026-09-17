@@ -26,7 +26,7 @@
     <form method="get" class="d-flex align-items-center gap-2 ms-auto">
       <label for="year-select" class="form-label mb-0 fw-semibold">Exercice fiscal</label>
       <select id="year-select" name="year" class="form-select form-select-sm" style="width: auto;"
-              onchange="this.form.submit()">
+              data-submit-on-change>
         {% for y in year_range %}
           <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
         {% endfor %}
@@ -1238,7 +1238,7 @@
   {% endif %}{# lmnp_properties #}
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
   // Initialize Bootstrap tooltips
   document.addEventListener('DOMContentLoaded', function () {
     const tooltipEls = document.querySelectorAll('[data-bs-toggle="tooltip"]');

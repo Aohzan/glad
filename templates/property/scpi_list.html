@@ -152,7 +152,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   function getCurrentTheme() {
     return document.documentElement.getAttribute('data-bs-theme') || 'light';

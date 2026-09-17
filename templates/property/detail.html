@@ -564,7 +564,7 @@
                     <td>{{ pv.value|format_money }}</td>
                     <td class="text-end">
                       {% translate "Are you sure you want to delete this valuation?" as delete_confirmation %}
-                      <form method="post" action="{% url 'property:delete_valuation' property.pk pv.pk %}" class="d-inline" onsubmit="return confirm('{{ delete_confirmation|escapejs }}');">
+                      <form method="post" action="{% url 'property:delete_valuation' property.pk pv.pk %}" class="d-inline" data-confirm="{{ delete_confirmation }}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-outline-danger" title="{% translate 'Delete' %}">
                           <i class="bi bi-trash"></i>
@@ -668,7 +668,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 // ── Bootstrap tooltips ────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
