@@ -230,10 +230,20 @@ def delete_amortization_asset(
 # ─── Global accounting dashboard ─────────────────────────────────────────────
 
 
-def _lmnp_properties() -> list[Property]:
-    return list(
-        Property.objects.filter(tax_regime=Property.TaxRegime.LMNP_REEL, is_active=True)
-    )
+def _lmnp_properties(year: int) -> list[Property]:
+    """Return the LMNP réel properties whose activity had started in ``year``.
+
+    A property whose activity starts after the fiscal year has nothing to
+    declare for that year: keeping it would only add empty lines and checklist
+    errors, and distort the past years.
+    """
+    return [
+        prop
+        for prop in Property.objects.filter(
+            tax_regime=Property.TaxRegime.LMNP_REEL, is_active=True
+        )
+        if prop.amortization_start_date.year <= year
+    ]
 
 
 def _requested_year(request: HttpRequest, source: str = "GET") -> int:
@@ -254,7 +264,7 @@ def accounting_lmnp_reel(request: HttpRequest) -> HttpResponse:
     """
     current_year = datetime.date.today().year
     year = _requested_year(request)
-    lmnp_properties = _lmnp_properties()
+    lmnp_properties = _lmnp_properties(year)
 
     year_range = list(range(current_year - 5, current_year + 2))
     accounting = get_accounting_data(lmnp_properties, year)
@@ -284,7 +294,7 @@ def _pdf_response(payload: dict, filename: str) -> HttpResponse:
 def lmnp_pdf(request: HttpRequest) -> HttpResponse:
     """Download the live liasse of the requested year as PDF (nothing is stored)."""
     year = _requested_year(request)
-    payload = build_snapshot_payload(_lmnp_properties(), year)
+    payload = build_snapshot_payload(_lmnp_properties(year), year)
     return _pdf_response(payload, f"lmnp_{year}.pdf")
 
 
@@ -293,9 +303,13 @@ def lmnp_snapshot_create(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":
         return redirect(reverse("property:lmnp_accounting"))
     year = _requested_year(request, source="POST")
-    lmnp_properties = _lmnp_properties()
+    lmnp_properties = _lmnp_properties(year)
     if not lmnp_properties:
-        messages.error(request, _("No active LMNP réel property to freeze."))
+        messages.error(
+            request,
+            _("No active LMNP réel property for fiscal year %(year)s.")
+            % {"year": year},
+        )
         return redirect(reverse("property:lmnp_accounting"))
     snapshot = create_snapshot(
         lmnp_properties,

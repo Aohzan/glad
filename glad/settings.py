@@ -111,12 +111,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # 3rd party apps
     "djmoney",
+    "servestatic",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "servestatic.middleware.ServeStaticMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -271,19 +272,24 @@ STATIC_URL = os.path.join(os.environ.get("SUB_PATH") or "", "static/")
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
-if not DEBUG:
-    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+# ServeStatic is told explicitly where to read files from: its own defaults key
+# off settings.DEBUG at request time, which the test runner forces to False
+# while this module was imported with DEBUG enabled.
+if DEBUG:
+    SERVESTATIC_USE_FINDERS = True
+    SERVESTATIC_AUTOREFRESH = True
+else:
+    SERVESTATIC_USE_MANIFEST = True
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "servestatic.storage.CompressedManifestStaticFilesStorage",
         },
     }
-
-
-WHITENOISE_ROOT = os.path.join(BASE_DIR, "static", "glad", "root")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field

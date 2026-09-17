@@ -5,6 +5,7 @@ from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_not_required
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -76,6 +77,16 @@ class IndexView(TemplateView):
                 "scpi_pks": scpi_pks,
             },
         )
+
+
+@login_not_required
+def favicon(request):
+    """Redirect the browser's implicit /favicon.ico lookup to the static file.
+
+    Browsers request the icon at the site root whatever the ``<link rel="icon">``
+    says, and without this route every one of them raises a ``Resolver404``.
+    """
+    return redirect(staticfiles_storage.url("favicon.ico"), permanent=True)
 
 
 @login_not_required

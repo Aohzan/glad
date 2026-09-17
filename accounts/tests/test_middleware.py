@@ -4,6 +4,7 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
+from asgiref.sync import async_to_sync, iscoroutinefunction
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 
@@ -168,3 +169,52 @@ class TestSessionTimeoutMiddleware:
         request.user.is_authenticated = False
         response = middleware(request)
         assert response == expected_response
+
+
+@pytest.mark.django_db
+class TestSessionTimeoutMiddlewareAsyncMode:
+    """The middleware must stay async under ASGI so Django keeps the chain async."""
+
+    @staticmethod
+    def _request(factory):
+        request = factory.get("/")
+        request.user = MagicMock()
+        request.user.is_authenticated = True
+        request.user.profile.session_timeout = 15
+        request.session = {}
+        return request
+
+    def test_sync_get_response_keeps_sync_mode(self, middleware):
+        assert middleware.async_mode is False
+        assert iscoroutinefunction(middleware) is False
+
+    def test_async_get_response_switches_to_async_mode(self, factory):
+        expected_response = MagicMock()
+
+        async def get_response(request):
+            return expected_response
+
+        middleware = SessionTimeoutMiddleware(get_response)
+        assert middleware.async_mode is True
+        assert iscoroutinefunction(middleware) is True
+
+        request = self._request(factory)
+        response = async_to_sync(middleware)(request)
+
+        assert response is expected_response
+        assert "last_activity" in request.session
+
+    def test_async_mode_logs_out_an_expired_session(self, factory):
+        async def get_response(request):
+            return MagicMock()
+
+        middleware = SessionTimeoutMiddleware(get_response)
+        request = self._request(factory)
+        expired_time = int(time.time()) - (20 * 60)
+        request.session = {"last_activity": expired_time}
+
+        with patch("django.contrib.auth.logout") as mock_logout:
+            async_to_sync(middleware)(request)
+
+        mock_logout.assert_called_once_with(request)
+        assert request.session["last_activity"] == expired_time

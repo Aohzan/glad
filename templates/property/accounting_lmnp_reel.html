@@ -62,8 +62,9 @@
   {% if not lmnp_properties %}
   <div class="alert alert-info">
     <i class="bi bi-info-circle me-1"></i>
-    Aucun bien actif avec le régime fiscal LMNP réel.
-    Définissez le régime fiscal sur un bien pour voir ses données ici.
+    Aucun bien actif en LMNP réel sur l'exercice {{ year }}.
+    Les biens dont l'activité démarre après cet exercice ne sont pas affichés ;
+    choisissez une autre année ou définissez le régime fiscal sur un bien.
   </div>
   {% else %}
   {% include "property/lmnp/_tabs.html" %}
