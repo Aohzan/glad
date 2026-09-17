@@ -7,7 +7,7 @@ GLAD supports two database backends:
 
 ## Default Configuration (SQLite)
 
-By default, GLAD uses SQLite with the database file stored in the `data/glad.db` location. This configuration works out of the box without any additional setup.
+By default, GLAD uses SQLite with the database file stored in the `data/glad.db` location. This configuration works out of the box without any additional setup. The database is opened in WAL mode with a 5 second busy timeout, which is enough for a single-user instance.
 
 ## PostgreSQL Configuration
 
@@ -24,6 +24,7 @@ DB_HOST=localhost
 # Optional (defaults shown)
 DB_PORT=5432
 DB_SSL_MODE=prefer  # Options: disable, allow, prefer, require, verify-ca, verify-full
+DB_CONN_MAX_AGE=600  # Persistent connection lifetime in seconds, 0 disables
 ```
 
 ### Example configuration in .env file
@@ -43,12 +44,12 @@ DB_HOST=localhost
 Here's an example `docker-compose.yml` snippet for using PostgreSQL:
 
 ```yaml
-version: '3'
-
 services:
   glad:
-    build: .
+    image: ghcr.io/aohzan/glad:latest
     environment:
+      - SECRET_KEY=change-me-to-a-long-random-string
+      - APP_URL=https://glad.my.domain
       - DB=postgres
       - DB_NAME=glad
       - DB_USER=postgres
@@ -56,10 +57,16 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:

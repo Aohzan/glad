@@ -8,11 +8,11 @@ This is a personal app to manage finance and property mostly around french conte
 
 For each modification to the project, perform the following checks and adjustments in order:
 
-### 1. Test Implementation (95% Coverage)
+### 1. Test Implementation (Coverage)
 
 - Write unit tests to cover the modified code
 - Use `uv run pytest --cov` to verify coverage
-- Achieve a minimum of 95% coverage
+- CI fails under 90% total coverage (`--cov-fail-under=90`); aim for full coverage of the code you change
 - Use the VS Code "Code Coverage" task to generate detailed reports
 - Update the generate_fixtures.py script if necessary to include new test data to cover multiple scenarios and edge cases
 
@@ -52,7 +52,7 @@ For each modification to the project, perform the following checks and adjustmen
 ## Recommended Execution Order
 
 1. Develop the modification
-2. Write and validate tests (95% coverage)
+2. Write and validate tests (coverage gate in CI: 90%)
 3. Perform security audit
 4. Optimize and fix bugs
 (following tasks should be run at the end of all tasks, ask if there is anything to do else, before running them)
@@ -74,7 +74,7 @@ For each modification to the project, perform the following checks and adjustmen
 
 - Framework: Django
 - Tests: pytest with coverage
-- Linting: ruff + pylint
+- Linting: ruff + ty (type checking)
 - Package Manager: uv (UV - Python package installer)
 - Format: UTF-8
 - Localization: French (fr)
