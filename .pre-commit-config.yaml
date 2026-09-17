@@ -41,6 +41,10 @@ repos:
     rev: v1.38.0
     hooks:
       - id: yamllint
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.30.1
+    hooks:
+      - id: zizmor # GitHub Actions security linter
 
   - repo: local
     hooks:
@@ -57,11 +61,10 @@ repos:
         pass_filenames: false
         always_run: true
 
-  # - repo: https://github.com/mondeja/pre-commit-po-hooks
-  #   rev: v1.7.3
-  # waiting for https://github.com/mondeja/pre-commit-po-hooks/pull/27
+  # Fork of mondeja/pre-commit-po-hooks with Django support, pinned to a commit
+  # because the fork has no tags (see mondeja/pre-commit-po-hooks#27).
   - repo: https://github.com/mounirmesselmeni/pre-commit-po-hooks
-    rev: master
+    rev: d38e8b19ef6d3fc2fed25ea9e6492c48241b19a8 # master, 2026-01-27
     hooks:
       - id: obsolete-messages
       - id: untranslated-messages
@@ -81,8 +84,12 @@ repos:
 
       - id: jscpd
         name: jscpd
-        entry: npx jscpd --config .jscpd.json
+        # Whole-repository scan so the duplication threshold is deterministic
+        # (per-batch file lists made results vary between runs).
+        entry: npx jscpd --config .jscpd.json .
         language: system
+        pass_filenames: false
+        always_run: true
 
       - id: pytest
         name: pytest
