@@ -1,0 +1,87 @@
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# 2042-C PRO — Déclaration complémentaire                                #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+<div class="tab-pane fade" id="tab-2042c">
+  <h5 class="mb-3">2042-C PRO — Déclaration complémentaire</h5>
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-1"></i>
+    Reportez ces montants sur votre déclaration de revenus (2042-C PRO), rubrique « Revenus des locations meublées non professionnelles ».
+  </div>
+
+  {# 5CD — Durée de l'exercice #}
+  <div class="card mb-3" style="max-width:480px;">
+    <div class="card-body py-2 d-flex align-items-center gap-3">
+      <span class="fw-semibold"><code>5CD</code> Durée de l'exercice en mois</span>
+      <span class="fs-5 fw-bold ms-auto">{{ accounting.form_2042c.case_5cd }}</span>
+    </div>
+  </div>
+
+  {# Revenus imposables + Déficits cas général #}
+  <div class="card mb-3" style="max-width:560px;">
+    <div class="card-header py-2"><h6 class="mb-0">Revenus imposables et déficits cas général</h6></div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr><th>Case</th><th>Description</th><th class="text-end">Montant</th></tr>
+        </thead>
+        <tbody>
+          <tr class="table-secondary">
+            <td colspan="3" class="fw-semibold small py-1">Revenus imposables cas général</td>
+          </tr>
+          <tr {% if accounting.form_2042c.is_benefice %}class="table-success fw-bold"{% endif %}>
+            <td><code>5NA</code></td>
+            <td>Bénéfice — Adhérent CGA / OGA</td>
+            <td class="text-end">{{ accounting.form_2042c.case_5na|floatformat:0 }} €</td>
+          </tr>
+          <tr {% if accounting.form_2042c.is_benefice %}class="fw-semibold"{% endif %}>
+            <td><code>5NK</code></td>
+            <td>Bénéfice — Non adhérent CGA <small class="text-body-secondary">(×1,25)</small></td>
+            <td class="text-end">{{ accounting.form_2042c.case_5nk|floatformat:0 }} €</td>
+          </tr>
+          <tr class="table-secondary">
+            <td colspan="3" class="fw-semibold small py-1">Déficits cas général</td>
+          </tr>
+          <tr {% if not accounting.form_2042c.is_benefice %}class="table-warning fw-bold"{% endif %}>
+            <td><code>5NY</code></td>
+            <td>Déficit — Adhérent CGA / OGA</td>
+            <td class="text-end">{{ accounting.form_2042c.case_5ny|floatformat:0 }} €</td>
+          </tr>
+          <tr {% if not accounting.form_2042c.is_benefice %}class="fw-semibold"{% endif %}>
+            <td><code>5NZ</code></td>
+            <td>Déficit — Non adhérent CGA</td>
+            <td class="text-end">{{ accounting.form_2042c.case_5nz|floatformat:0 }} €</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="mb-3 small text-body-secondary">
+    <i class="bi bi-info-circle me-1"></i>
+    Note : Pour les non-adhérents CGA, le bénéfice imposable est multiplié par 1,25 par l'administration fiscale. Déclarez le montant avant cette majoration en case 5NK.
+  </div>
+
+  {# Déficits des années antérieures non encore déduits (5GJ..5GA) #}
+  <div class="card" style="max-width:560px;">
+    <div class="card-header py-2"><h6 class="mb-0">Déficits des années antérieures non encore déduits</h6></div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Case</th>
+            <th>Année d'origine</th>
+            <th class="text-end">Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in accounting.form_2042c.deficit_cases_list %}
+          <tr {% if not entry.amount %}class="text-body-tertiary"{% else %}class="fw-semibold"{% endif %}>
+            <td><code>{{ entry.label }}</code></td>
+            <td>{{ entry.origin_year }}</td>
+            <td class="text-end {% if entry.amount %}text-danger{% endif %}">{{ entry.amount|floatformat:0 }} €</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

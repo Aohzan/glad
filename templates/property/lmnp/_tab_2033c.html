@@ -1,0 +1,318 @@
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# 2033-C — Immobilisations & amortissements                              #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+<div class="tab-pane fade" id="tab-2033c">
+  <h5 class="mb-3">2033-C — Immobilisations & amortissements</h5>
+
+  {# ── I. Immobilisations ── #}
+  <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2 mt-3">I — Immobilisations</h6>
+  <div class="table-responsive mb-4">
+    <table class="table table-sm table-hover">
+      <thead class="table-light">
+        <tr>
+          <th>Nature</th>
+          <th class="text-end">Valeur brute début</th>
+          <th class="text-end text-success">Augmentations</th>
+          <th class="text-end text-danger">Diminutions</th>
+          <th class="text-end fw-semibold">Valeur brute fin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% with agg=accounting.form_2033c.by_cerfa_category %}
+
+        {# Terrains #}
+        {% if agg.terrains.value_end %}
+        <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-terrains" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+          <td>Terrains{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td class="text-end">{{ agg.terrains.value_start|floatformat:0 }} €</td>
+          <td class="text-end text-success">{{ agg.terrains.acquisitions|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ agg.terrains.diminutions|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ agg.terrains.value_end|floatformat:0 }} €</td>
+        </tr>
+        {% if accounting.form_2033c.per_prop|length > 1 %}
+        <tr class="collapse" id="ci-terrains">
+          <td colspan="5" class="p-0 ps-4">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.terrains %}{% if r.value_end %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end">{{ r.value_start|floatformat:0 }} €</td>
+                  <td class="text-end text-success">{{ r.acquisitions|floatformat:0 }} €</td>
+                  <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                  <td class="text-end fw-semibold">{{ r.value_end|floatformat:0 }} €</td>
+                </tr>
+                {% endif %}{% endwith %}{% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+        {% endif %}
+
+        {# Constructions #}
+        {% if agg.constructions.value_end %}
+        <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-constructions" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+          <td>Constructions{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td class="text-end">{{ agg.constructions.value_start|floatformat:0 }} €</td>
+          <td class="text-end text-success">{{ agg.constructions.acquisitions|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ agg.constructions.diminutions|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ agg.constructions.value_end|floatformat:0 }} €</td>
+        </tr>
+        {% if accounting.form_2033c.per_prop|length > 1 %}
+        <tr class="collapse" id="ci-constructions">
+          <td colspan="5" class="p-0 ps-4">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.constructions %}{% if r.value_end %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end">{{ r.value_start|floatformat:0 }} €</td>
+                  <td class="text-end text-success">{{ r.acquisitions|floatformat:0 }} €</td>
+                  <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                  <td class="text-end fw-semibold">{{ r.value_end|floatformat:0 }} €</td>
+                </tr>
+                {% endif %}{% endwith %}{% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+        {% endif %}
+
+        {# Installations #}
+        {% if agg.installations.value_end %}
+        <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-installations" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+          <td>Installations générales, agencements{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td class="text-end">{{ agg.installations.value_start|floatformat:0 }} €</td>
+          <td class="text-end text-success">{{ agg.installations.acquisitions|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ agg.installations.diminutions|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ agg.installations.value_end|floatformat:0 }} €</td>
+        </tr>
+        {% if accounting.form_2033c.per_prop|length > 1 %}
+        <tr class="collapse" id="ci-installations">
+          <td colspan="5" class="p-0 ps-4">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.installations %}{% if r.value_end %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end">{{ r.value_start|floatformat:0 }} €</td>
+                  <td class="text-end text-success">{{ r.acquisitions|floatformat:0 }} €</td>
+                  <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                  <td class="text-end fw-semibold">{{ r.value_end|floatformat:0 }} €</td>
+                </tr>
+                {% endif %}{% endwith %}{% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+        {% endif %}
+
+        {# Autres #}
+        {% if agg.autres.value_end %}
+        <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-autres" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+          <td>Autres immobilisations corporelles{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td class="text-end">{{ agg.autres.value_start|floatformat:0 }} €</td>
+          <td class="text-end text-success">{{ agg.autres.acquisitions|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ agg.autres.diminutions|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ agg.autres.value_end|floatformat:0 }} €</td>
+        </tr>
+        {% if accounting.form_2033c.per_prop|length > 1 %}
+        <tr class="collapse" id="ci-autres">
+          <td colspan="5" class="p-0 ps-4">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.autres %}{% if r.value_end %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end">{{ r.value_start|floatformat:0 }} €</td>
+                  <td class="text-end text-success">{{ r.acquisitions|floatformat:0 }} €</td>
+                  <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                  <td class="text-end fw-semibold">{{ r.value_end|floatformat:0 }} €</td>
+                </tr>
+                {% endif %}{% endwith %}{% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+        {% endif %}
+
+        {% endwith %}
+      </tbody>
+      <tfoot class="table-light fw-bold">
+        {% with t=accounting.form_2033c.totals %}
+        <tr>
+          <td>TOTAL</td>
+          <td class="text-end">{{ t.value_start|floatformat:0 }} €</td>
+          <td class="text-end text-success">{{ t.acquisitions|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ t.diminutions|floatformat:0 }} €</td>
+          <td class="text-end">{{ t.value_end|floatformat:0 }} €</td>
+        </tr>
+        {% endwith %}
+      </tfoot>
+    </table>
+  </div>
+
+  {# ── II. Amortissements ── #}
+  <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">II — Amortissements</h6>
+  <div class="table-responsive mb-4">
+    <table class="table table-sm table-hover">
+      <thead class="table-light">
+        <tr>
+          <th>Nature</th>
+          <th class="text-end">Amort. début</th>
+          <th class="text-end text-primary">Dotations N</th>
+          <th class="text-end text-danger">Diminutions</th>
+          <th class="text-end fw-semibold">Amort. fin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% with agg=accounting.form_2033c.by_cerfa_category %}
+
+        {# Terrains #}
+        {% if agg.terrains.amort_end %}
+        <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-terrains" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+          <td>Terrains{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td class="text-end text-body-secondary">{{ agg.terrains.amort_start|floatformat:0 }} €</td>
+          <td class="text-end text-primary">{{ agg.terrains.dotation|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ agg.terrains.diminutions|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ agg.terrains.amort_end|floatformat:0 }} €</td>
+        </tr>
+        {% if accounting.form_2033c.per_prop|length > 1 %}
+        <tr class="collapse" id="ca-terrains">
+          <td colspan="5" class="p-0 ps-4">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.terrains %}{% if r.amort_end %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:0 }} €</td>
+                  <td class="text-end text-primary">{{ r.dotation|floatformat:0 }} €</td>
+                  <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                  <td class="text-end fw-semibold">{{ r.amort_end|floatformat:0 }} €</td>
+                </tr>
+                {% endif %}{% endwith %}{% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+        {% endif %}
+
+        {# Constructions #}
+        {% if agg.constructions.amort_end %}
+        <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-constructions" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+          <td>Constructions{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td class="text-end text-body-secondary">{{ agg.constructions.amort_start|floatformat:0 }} €</td>
+          <td class="text-end text-primary">{{ agg.constructions.dotation|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ agg.constructions.diminutions|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ agg.constructions.amort_end|floatformat:0 }} €</td>
+        </tr>
+        {% if accounting.form_2033c.per_prop|length > 1 %}
+        <tr class="collapse" id="ca-constructions">
+          <td colspan="5" class="p-0 ps-4">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.constructions %}{% if r.amort_end %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:0 }} €</td>
+                  <td class="text-end text-primary">{{ r.dotation|floatformat:0 }} €</td>
+                  <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                  <td class="text-end fw-semibold">{{ r.amort_end|floatformat:0 }} €</td>
+                </tr>
+                {% endif %}{% endwith %}{% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+        {% endif %}
+
+        {# Installations #}
+        {% if agg.installations.amort_end %}
+        <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-installations" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+          <td>Installations générales, agencements{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td class="text-end text-body-secondary">{{ agg.installations.amort_start|floatformat:0 }} €</td>
+          <td class="text-end text-primary">{{ agg.installations.dotation|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ agg.installations.diminutions|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ agg.installations.amort_end|floatformat:0 }} €</td>
+        </tr>
+        {% if accounting.form_2033c.per_prop|length > 1 %}
+        <tr class="collapse" id="ca-installations">
+          <td colspan="5" class="p-0 ps-4">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.installations %}{% if r.amort_end %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:0 }} €</td>
+                  <td class="text-end text-primary">{{ r.dotation|floatformat:0 }} €</td>
+                  <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                  <td class="text-end fw-semibold">{{ r.amort_end|floatformat:0 }} €</td>
+                </tr>
+                {% endif %}{% endwith %}{% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+        {% endif %}
+
+        {# Autres #}
+        {% if agg.autres.amort_end %}
+        <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-autres" aria-expanded="false" style="cursor:pointer;"{% endif %}>
+          <td>Autres immobilisations corporelles{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td class="text-end text-body-secondary">{{ agg.autres.amort_start|floatformat:0 }} €</td>
+          <td class="text-end text-primary">{{ agg.autres.dotation|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ agg.autres.diminutions|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold">{{ agg.autres.amort_end|floatformat:0 }} €</td>
+        </tr>
+        {% if accounting.form_2033c.per_prop|length > 1 %}
+        <tr class="collapse" id="ca-autres">
+          <td colspan="5" class="p-0 ps-4">
+            <table class="table table-sm mb-0 table-borderless bg-body-tertiary">
+              <tbody>
+                {% for p in accounting.form_2033c.per_prop %}{% with r=p.movements.by_cerfa_category.autres %}{% if r.amort_end %}
+                <tr>
+                  <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
+                  <td class="text-end text-body-secondary">{{ r.amort_start|floatformat:0 }} €</td>
+                  <td class="text-end text-primary">{{ r.dotation|floatformat:0 }} €</td>
+                  <td class="text-end text-danger">{{ r.diminutions|floatformat:0 }} €</td>
+                  <td class="text-end fw-semibold">{{ r.amort_end|floatformat:0 }} €</td>
+                </tr>
+                {% endif %}{% endwith %}{% endfor %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% endif %}
+        {% endif %}
+
+        {% endwith %}
+      </tbody>
+      <tfoot class="table-light fw-bold">
+        {% with t=accounting.form_2033c.totals %}
+        <tr>
+          <td>TOTAL</td>
+          <td class="text-end text-body-secondary">{{ t.amort_start|floatformat:0 }} €</td>
+          <td class="text-end text-primary">{{ t.dotation|floatformat:0 }} €</td>
+          <td class="text-end text-danger">{{ t.diminutions|floatformat:0 }} €</td>
+          <td class="text-end">{{ t.amort_end|floatformat:0 }} €</td>
+        </tr>
+        {% endwith %}
+      </tfoot>
+    </table>
+  </div>
+
+  {# ── III. Plus-values / Moins-values ── #}
+  <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">III — Plus-values et moins-values</h6>
+  <div class="alert alert-secondary py-2 small mb-4">
+    <i class="bi bi-dash-circle me-1"></i>
+    Aucune cession d'actif enregistrée pour cette année.
+    Cette section se remplira automatiquement lors de la saisie d'une cession.
+  </div>
+</div>

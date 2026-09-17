@@ -1,0 +1,70 @@
+{# Liasse LMNP: tab navigation + one include per cerfa form.
+   Context: `accounting` (get_accounting_data) and `checklist` (get_lmnp_checklist).
+   Shared by the live dashboard and the frozen declaration pages. #}
+<style>
+  .cerfa-section-header,
+  .cerfa-section-header th {
+    background-color: #346898 !important;
+    color: white !important;
+  }
+</style>
+
+{# ── Tabs for each cerfa form ─────────────────────────────────────────── #}
+<ul class="nav nav-tabs mb-0" id="cerfaTabs" role="tablist">
+  <li class="nav-item">
+    <button class="nav-link active d-flex align-items-center gap-1" data-bs-toggle="tab" data-bs-target="#tab-checklist" type="button">
+      Checklist
+      {% if checklist.overall_status == "incomplete" %}
+        <span class="badge bg-danger rounded-pill">{{ checklist.total_issues }}</span>
+      {% elif checklist.overall_status == "warning" %}
+        <span class="badge bg-warning text-dark rounded-pill">{{ checklist.total_issues }}</span>
+      {% else %}
+        <i class="bi bi-check-circle-fill text-success ms-1" style="font-size:.85rem;"></i>
+      {% endif %}
+    </button>
+  </li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2031" type="button">2031</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2031bis" type="button">2031-BIS</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033a" type="button">2033-A</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033b" type="button">2033-B</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033c" type="button">2033-C</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2033d" type="button">2033-D</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-suiv39c" type="button">SUIV39C</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-2042c" type="button">2042-C PRO</button></li>
+</ul>
+
+<div class="tab-content border border-top-0 rounded-bottom p-3 bg-body mb-4">
+  {% include "property/lmnp/_tab_checklist.html" %}
+  {% include "property/lmnp/_tab_2033a.html" %}
+  {% include "property/lmnp/_tab_2033b.html" %}
+  {% include "property/lmnp/_tab_2033c.html" %}
+  {% include "property/lmnp/_tab_2033d.html" %}
+  {% include "property/lmnp/_tab_suiv39c.html" %}
+  {% include "property/lmnp/_tab_2031.html" %}
+  {% include "property/lmnp/_tab_2031bis.html" %}
+  {% include "property/lmnp/_tab_2042c.html" %}
+</div>{# end tab-content #}
+
+<script nonce="{{ csp_nonce }}">
+  // Initialize Bootstrap tooltips
+  document.addEventListener('DOMContentLoaded', function () {
+    const tooltipEls = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipEls.forEach(function (el) {
+      new bootstrap.Tooltip(el, { html: false, placement: 'left' });
+    });
+  });
+
+  // Rotate chevron when collapsible detail row opens/closes
+  document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (row) {
+    var target = document.querySelector(row.dataset.bsTarget);
+    if (!target) return;
+    var chevron = row.querySelector('.prop-chevron');
+    if (!chevron) return;
+    target.addEventListener('show.bs.collapse', function () {
+      chevron.style.transform = 'rotate(90deg)';
+    });
+    target.addEventListener('hide.bs.collapse', function () {
+      chevron.style.transform = 'rotate(0deg)';
+    });
+  });
+</script>

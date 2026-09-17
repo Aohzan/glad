@@ -1,0 +1,50 @@
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# SUIV39C — Suivi des amortissements différés art. 39C                  #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+<div class="tab-pane fade" id="tab-suiv39c">
+  <h5 class="mb-3">SUIV39C — Amortissements différés art. 39C</h5>
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-1"></i>
+    L'amortissement ne peut pas créer ni augmenter un déficit d'exploitation (art. 39C CGI). Les dotations non utilisées sont différées et déduites lors des exercices bénéficiaires suivants.
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover" style="max-width:760px;">
+      <thead class="table-light">
+        <tr>
+          <th>Bien</th>
+          <th class="text-end">Report N-1</th>
+          <th class="text-end">Dotation N</th>
+          <th class="text-end">Déduit N</th>
+          <th class="text-end">Différé N</th>
+          <th class="text-end">Solde fin N</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in accounting.form_2033b.per_prop %}
+        <tr>
+          <td>
+            <a href="{% url 'property:detail' p.property.id %}#amortization-panel">{{ p.property.name }}</a>
+          </td>
+          <td class="text-end text-body-secondary">{{ p.summary.deferred_prior|floatformat:0 }} €</td>
+          <td class="text-end">{{ p.summary.amortization_total|floatformat:0 }} €</td>
+          <td class="text-end text-success">{{ p.summary.amortization_deductible|floatformat:0 }} €</td>
+          <td class="text-end text-warning">{{ p.summary.amortization_deferred|floatformat:0 }} €</td>
+          <td class="text-end fw-semibold {% if p.summary.deferred_balance %}text-warning{% endif %}">{{ p.summary.deferred_balance|floatformat:0 }} €</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-body-secondary py-2">Aucun bien.</td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot class="table-light fw-bold">
+        <tr>
+          <td>Total</td>
+          <td class="text-end text-body-secondary">{{ accounting.form_2033b.deferred_prior|floatformat:0 }} €</td>
+          <td class="text-end">{{ accounting.form_2033b.amortization_total|floatformat:0 }} €</td>
+          <td class="text-end text-success">{{ accounting.form_2033b.amortization_deductible|floatformat:0 }} €</td>
+          <td class="text-end text-warning">{{ accounting.form_2033b.amortization_deferred|floatformat:0 }} €</td>
+          <td class="text-end">—</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
