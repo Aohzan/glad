@@ -4,6 +4,7 @@ import datetime
 from typing import Any
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_not_required
 from django.db import models
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -77,8 +78,9 @@ class IndexView(TemplateView):
         )
 
 
+@login_not_required
 def healthcheck(request):
-    """Handle GET requests for health check."""
+    """Handle GET requests for health check (no authentication required)."""
     return JsonResponse({"status": "OK"}, status=200)
 
 
