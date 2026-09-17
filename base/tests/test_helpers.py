@@ -2,6 +2,7 @@
 
 import datetime
 
+import pytest
 from django.test import RequestFactory
 
 from base.views import healthcheck, safe_date_compare
@@ -21,3 +22,11 @@ def test_healthcheck_view_returns_ok_json():
     response = healthcheck(request)
     assert response.status_code == 200
     assert response.content.decode("utf-8") == '{"status": "OK"}'
+
+
+@pytest.mark.django_db
+def test_healthcheck_is_reachable_without_login(client):
+    """The health endpoint must not redirect to the login page."""
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "OK"}
