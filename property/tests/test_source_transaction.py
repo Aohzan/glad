@@ -17,7 +17,7 @@ from moneyed import Money
 
 from property.forms import AmortizationAssetForm
 from property.models import AmortizationAsset, Property, PropertyLedgerEntry
-from property.services.tax_lmnp import _get_category_totals_for_year, get_lmnp_summary
+from property.services.tax_lmnp import get_category_totals_for_year, get_lmnp_summary
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -90,14 +90,14 @@ class TestCapitalizedTransactionExclusion:
         tx = _make_works_entry(prop)
         _make_asset(prop, tx=tx)
 
-        totals = _get_category_totals_for_year(prop.pk, 2023)
+        totals = get_category_totals_for_year(prop.pk, 2023)
         assert "works" not in totals or totals.get("works", 0) == 0
 
     def test_unlinked_transaction_included_in_category_totals(self, prop):
         """A works transaction NOT linked to any asset must appear in category totals."""
         _make_works_entry(prop, amount=3000)
 
-        totals = _get_category_totals_for_year(prop.pk, 2023)
+        totals = get_category_totals_for_year(prop.pk, 2023)
         assert totals.get("works") == 3000
 
     def test_only_linked_transaction_excluded_when_both_exist(self, prop):
@@ -106,7 +106,7 @@ class TestCapitalizedTransactionExclusion:
         _make_works_entry(prop, amount=2000, description="Minor repair")
         _make_asset(prop, tx=tx_linked)
 
-        totals = _get_category_totals_for_year(prop.pk, 2023)
+        totals = get_category_totals_for_year(prop.pk, 2023)
         assert totals.get("works") == 2000
 
     def test_multiple_transactions_linked_to_asset_are_all_excluded(self, prop):
@@ -116,7 +116,7 @@ class TestCapitalizedTransactionExclusion:
         asset = _make_asset(prop, tx=tx1)
         asset.source_transactions.add(tx2)
 
-        totals = _get_category_totals_for_year(prop.pk, 2023)
+        totals = get_category_totals_for_year(prop.pk, 2023)
         assert "works" not in totals or totals.get("works", 0) == 0
 
     def test_linked_transaction_excluded_from_lmnp_charges(self, prop):

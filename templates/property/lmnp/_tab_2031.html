@@ -3,7 +3,7 @@
 {# ══════════════════════════════════════════════════════════════════════ #}
 <div class="tab-pane fade" id="tab-2031">
   <h5 class="mb-3">2031 — Déclaration de résultat BIC</h5>
-  <div class="card">
+  <div class="card mb-3">
     <div class="card-body">
       <table class="table table-sm mb-0">
         <tbody>
@@ -12,12 +12,33 @@
             <td class="fw-semibold">Location meublée non professionnelle</td>
           </tr>
           <tr>
-            <td class="text-body-secondary">Option pour la comptabilité super simplifiée</td>
-            <td class="fw-semibold">X</td>
+            <td class="text-body-secondary">Régime</td>
+            <td class="fw-semibold">Réel simplifié — option pour la comptabilité super simplifiée : X</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-  <p>Le reste est pré-rempli à partir du 2031-BIS.</p>
+  <div class="card" style="max-width:700px;">
+    <div class="card-header py-2"><h6 class="mb-0">C — Récapitulation des éléments d'imposition</h6></div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead class="table-light text-center"><tr><th></th><th>Bénéfice</th><th>Déficit</th></tr></thead>
+        <tbody>
+          {% with f=accounting.form_2031 %}
+          <tr>
+            <td>Résultat fiscal avant imputation des déficits antérieurs (2033-B ligne 352)</td>
+            <td class="text-end text-success">{% if f.resultat_fiscal_352 >= 0 %}{{ f.resultat_fiscal_352|floatformat:0 }} €{% endif %}</td>
+            <td class="text-end text-danger">{% if f.resultat_fiscal_352 < 0 %}{{ f.deficit|floatformat:0 }} €{% endif %}</td>
+          </tr>
+          <tr class="fw-semibold">
+            <td>Bénéfice imposable ou déficit déductible (2033-B ligne 370)</td>
+            <td class="text-end text-success">{% if f.resultat_fiscal_370 >= 0 %}{{ f.benefice|floatformat:0 }} €{% endif %}</td>
+            <td class="text-end text-danger">{% if f.resultat_fiscal_370 < 0 %}{{ f.deficit|floatformat:0 }} €{% endif %}</td>
+          </tr>
+          {% endwith %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

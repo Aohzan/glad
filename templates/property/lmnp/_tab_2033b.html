@@ -192,88 +192,59 @@
   </table>
 
   <h6>B - Résultat fiscal</h6>
+  {% with b=accounting.form_2033b %}
+  <div class="alert alert-info py-2 small">
+    <i class="bi bi-info-circle me-1"></i>
+    <strong>Plafond d'amortissement déductible (art. 39 C CGI)</strong> =
+    produits − charges afférentes au bien (hors frais de comptabilité) − impôts − intérêts =
+    <strong>{{ b.plafond_39c|floatformat:0 }} €</strong>.
+    Dotation de l'exercice {{ b.amortization_total|floatformat:0 }} € → déduite {{ b.amortization_deductible|floatformat:0 }} €,
+    différée {{ b.cerfa_318|floatformat:0 }} € (reportable sans limite de durée, voir SUIV39C).
+    Source : BOI-BIC-AMT-20-40-10-20 § 40 à 70.
+  </div>
   <table class="table table-sm table-hover">
     <tbody>
-      <tr class="table-secondary">
+      <tr class="cerfa-section-header">
+        <th>Réintégrations de l'exercice</th>
+        <th class="text-center" style="width:12rem;">Montant</th>
+      </tr>
+      <tr>
+        <td>Amortissements non déductibles (art. 39 C) <code class="small">318</code>
+          <span class="text-body-secondary small">= dotation 254 − amortissement déduit</span></td>
+        <td class="text-end {% if b.cerfa_318 %}text-warning fw-semibold{% else %}text-body-secondary{% endif %}">{{ b.cerfa_318|floatformat:0 }} €</td>
+      </tr>
+      <tr>
+        <td>Réintégrations diverses <code class="small">330</code></td>
+        <td class="text-end text-body-secondary">0 €</td>
+      </tr>
+
+      <tr class="cerfa-section-header">
+        <th>Déductions de l'exercice</th>
         <th></th>
-        <th class="text-center" style="width:12rem;">Bénéfice</th>
-        <th class="text-center" style="width:12rem;">Déficit</th>
       </tr>
-
-      {# ── Réintégrations de l'exercice ── #}
-      <tr class="table-primary">
-        <td colspan="3" class="fw-semibold text-uppercase small py-1">Réintégrations de l'exercice</td>
-      </tr>
-
-      {# — Amortissements excédentaires (318) — #}
       <tr>
-        <td>Amortissements excédentaires (art. 39-4 CGI) et autres amortissements non déductibles</td>
-        <td></td>
-        <td class="text-end text-body-secondary">{{ accounting.form_2033b.cerfa_318|floatformat:0 }} €</td>
+        <td>Amortissements différés antérieurs imputés (art. 39 C) <code class="small">350</code>
+          <span class="text-body-secondary small">= min(stock différé {{ b.deferred_prior|floatformat:0 }} €, bénéfice avant imputation)</span></td>
+        <td class="text-end {% if b.cerfa_350 %}text-success fw-semibold{% else %}text-body-secondary{% endif %}">{{ b.cerfa_350|floatformat:0 }} €</td>
       </tr>
 
-      {# — Réintégrations diverses — #}
-      <tr>
-        <td>Réintégrations diverses</td>
-        <td></td>
-        <td class="text-end text-body-secondary">0 €</td>
-      </tr>
-
-      {# ── Déductions de l'exercice ── #}
-      <tr class="table-secondary">
-        <td colspan="3" class="fw-semibold text-uppercase small py-1">Déductions de l'exercice</td>
-      </tr>
-
-      {# — Déductions diverses — #}
-      <tr>
-        <td>Déductions diverses</td>
-        <td class="text-end text-body-secondary">0 €</td>
-        <td></td>
-      </tr>
-
-      {# — dont créance due au report en arrière du déficit — #}
-      <tr class="text-body-secondary small">
-        <td class="ps-3">dont créance due au report en arrière du déficit</td>
-        <td class="text-end">0 €</td>
-        <td></td>
-      </tr>
-
-      {# — Résultat fiscal avant déficits (352) — #}
       <tr class="table-warning fw-semibold">
-        <td>1. Résultat fiscal avant imputation des déficits antérieurs</td>
-        <td></td>
-        <td class="text-end {% if accounting.form_2033b.cerfa_352 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.cerfa_352|floatformat:0 }} €</td>
+        <td>1. Résultat fiscal avant imputation des déficits antérieurs <code class="small">352</code>
+          <span class="text-body-secondary small">= 310 + 318 − 350 →
+            {% if b.cerfa_352 >= 0 %}bénéfice{% else %}déficit{% endif %}</span></td>
+        <td class="text-end {% if b.cerfa_352 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ b.cerfa_352|floatformat:0 }} €</td>
       </tr>
-
-      {# — Résultat fiscal final (370) — #}
-      {% if accounting.form_2033b.per_prop|length > 1 %}
-      <tr class="table-primary fw-bold" role="button" data-bs-toggle="collapse" data-bs-target="#b-370" aria-expanded="false" style="cursor:pointer;">
-        <td>2. Résultat fiscal après imputation des déficits <i class="bi bi-chevron-right ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
-      {% else %}
+      <tr>
+        <td>Déficits antérieurs reportables <code class="small">360</code>
+          <span class="text-body-secondary small">disponibles {{ b.deficits_anterieurs|floatformat:0 }} € — dont imputés sur le résultat</span></td>
+        <td class="text-end {% if b.cerfa_360 %}text-success fw-semibold{% else %}text-body-secondary{% endif %}">{{ b.cerfa_360|floatformat:0 }} €</td>
+      </tr>
       <tr class="table-primary fw-bold">
-        <td>2. Résultat fiscal après imputation des déficits</td>
-      {% endif %}
-        <td class="text-end fs-5 {% if accounting.form_2033b.cerfa_370 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ accounting.form_2033b.cerfa_370|floatformat:0 }} €</td>
-        <td></td>
+        <td>2. Résultat fiscal après imputation des déficits <code class="small">370</code>
+          <span class="text-body-secondary small fw-normal">→ 2031 et 2042-C PRO ({% if b.cerfa_370 >= 0 %}5NA{% else %}5NY{% endif %})</span></td>
+        <td class="text-end fs-5 {% if b.cerfa_370 >= 0 %}text-success{% else %}text-danger{% endif %}">{{ b.cerfa_370|floatformat:0 }} €</td>
       </tr>
-      {% if accounting.form_2033b.per_prop|length > 1 %}
-      <tr class="collapse table-primary" id="b-370">
-        <td colspan="3" class="p-0 ps-4">
-          <table class="table table-sm mb-0 table-borderless" style="background:transparent;">
-            <tbody>
-              {% for p in accounting.form_2033b.per_prop %}
-              <tr>
-                <td class="text-body-secondary"><a href="{% url 'property:detail' p.property.id %}" class="text-body-secondary">{{ p.property.name }}</a></td>
-                <td class="text-end fw-semibold {% if p.summary.taxable_result >= 0 %}text-success{% else %}text-danger{% endif %}">{{ p.summary.taxable_result|floatformat:0 }} €</td>
-                <td></td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </td>
-      </tr>
-      {% endif %}
-
     </tbody>
   </table>
+  {% endwith %}
 </div>

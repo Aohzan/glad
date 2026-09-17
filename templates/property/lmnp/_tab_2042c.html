@@ -5,7 +5,8 @@
   <h5 class="mb-3">2042-C PRO — Déclaration complémentaire</h5>
   <div class="alert alert-info">
     <i class="bi bi-info-circle me-1"></i>
-    Reportez ces montants sur votre déclaration de revenus (2042-C PRO), rubrique « Revenus des locations meublées non professionnelles ».
+    Reportez ces montants sur votre déclaration de revenus (2042-C PRO), rubrique « Revenus des locations meublées non professionnelles »,
+    régime du bénéfice réel. Les cases indiquées sont celles du déclarant 1.
   </div>
 
   {# 5CD — Durée de l'exercice #}
@@ -17,39 +18,23 @@
   </div>
 
   {# Revenus imposables + Déficits cas général #}
-  <div class="card mb-3" style="max-width:560px;">
-    <div class="card-header py-2"><h6 class="mb-0">Revenus imposables et déficits cas général</h6></div>
+  <div class="card mb-3" style="max-width:640px;">
+    <div class="card-header py-2"><h6 class="mb-0">Régime du bénéfice réel — cas général</h6></div>
     <div class="card-body p-0">
       <table class="table table-sm mb-0">
         <thead class="table-light">
           <tr><th>Case</th><th>Description</th><th class="text-end">Montant</th></tr>
         </thead>
         <tbody>
-          <tr class="table-secondary">
-            <td colspan="3" class="fw-semibold small py-1">Revenus imposables cas général</td>
-          </tr>
           <tr {% if accounting.form_2042c.is_benefice %}class="table-success fw-bold"{% endif %}>
             <td><code>5NA</code></td>
-            <td>Bénéfice — Adhérent CGA / OGA</td>
+            <td>Revenus imposables <span class="text-body-secondary small">(2033-B ligne 370, après imputation des déficits antérieurs)</span></td>
             <td class="text-end">{{ accounting.form_2042c.case_5na|floatformat:0 }} €</td>
-          </tr>
-          <tr {% if accounting.form_2042c.is_benefice %}class="fw-semibold"{% endif %}>
-            <td><code>5NK</code></td>
-            <td>Bénéfice — Non adhérent CGA <small class="text-body-secondary">(×1,25)</small></td>
-            <td class="text-end">{{ accounting.form_2042c.case_5nk|floatformat:0 }} €</td>
-          </tr>
-          <tr class="table-secondary">
-            <td colspan="3" class="fw-semibold small py-1">Déficits cas général</td>
           </tr>
           <tr {% if not accounting.form_2042c.is_benefice %}class="table-warning fw-bold"{% endif %}>
             <td><code>5NY</code></td>
-            <td>Déficit — Adhérent CGA / OGA</td>
+            <td>Déficit de l'année <span class="text-body-secondary small">(2033-B ligne 352 si négatif)</span></td>
             <td class="text-end">{{ accounting.form_2042c.case_5ny|floatformat:0 }} €</td>
-          </tr>
-          <tr {% if not accounting.form_2042c.is_benefice %}class="fw-semibold"{% endif %}>
-            <td><code>5NZ</code></td>
-            <td>Déficit — Non adhérent CGA</td>
-            <td class="text-end">{{ accounting.form_2042c.case_5nz|floatformat:0 }} €</td>
           </tr>
         </tbody>
       </table>
@@ -57,11 +42,13 @@
   </div>
   <div class="mb-3 small text-body-secondary">
     <i class="bi bi-info-circle me-1"></i>
-    Note : Pour les non-adhérents CGA, le bénéfice imposable est multiplié par 1,25 par l'administration fiscale. Déclarez le montant avant cette majoration en case 5NK.
+    Depuis les revenus 2023, il n'existe plus de majoration du bénéfice pour non-adhésion à un organisme de gestion agréé
+    (les anciennes cases 5NK / 5NZ ont disparu). Depuis les revenus 2025, la réduction d'impôt pour frais de comptabilité
+    et d'adhésion à un OGA est supprimée (loi de finances 2025) : ces frais sont simplement déductibles (ligne 242).
   </div>
 
   {# Déficits des années antérieures non encore déduits (5GJ..5GA) #}
-  <div class="card" style="max-width:560px;">
+  <div class="card" style="max-width:640px;">
     <div class="card-header py-2"><h6 class="mb-0">Déficits des années antérieures non encore déduits</h6></div>
     <div class="card-body p-0">
       <table class="table table-sm mb-0">
