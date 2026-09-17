@@ -157,6 +157,16 @@ class TestSnapshotViews:
         assert response.status_code == 302
         assert LmnpDeclarationSnapshot.objects.count() == 0
 
+    def test_create_before_activity_start_shows_error(
+        self, admin_client, lmnp_property
+    ):
+        """The property starts its LMNP activity in 2025: 2024 has nothing to freeze."""
+        response = admin_client.post(
+            reverse("property:lmnp_snapshot_create"), {"year": 2024}, follow=True
+        )
+        assert LmnpDeclarationSnapshot.objects.count() == 0
+        assert "2024" in " ".join(str(m) for m in response.context["messages"])
+
     def test_list_view(self, admin_client, lmnp_property):
         create_snapshot([lmnp_property], 2025, notes="dépôt")
         response = admin_client.get(reverse("property:lmnp_snapshot_list"))

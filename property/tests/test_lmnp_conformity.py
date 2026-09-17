@@ -9,11 +9,11 @@ The multi-property golden scenario copied from the workbook lives in
 Reference fixture (year 2025):
   Property:        196 000 € bought 2025-01-01 (15 % land = 29 400 €, 85 % bâti)
   Components (default breakdown, 30/360 prorata, full year here):
-    Gros œuvre      88 200 € / 70 ans → 1 260,00 €
-    Étanchéité      13 720 € / 25 ans →   548,80 €
-    Toiture         15 680 € / 25 ans →   627,20 €
-    Agencements     37 240 € / 12 ans → 3 103,33 €
-    Électricité     11 760 € / 30 ans →   392,00 €
+    Gros œuvre      88 200 € / 70 years → 1 260,00 €
+    Étanchéité      13 720 € / 25 years →   548,80 €
+    Toiture         15 680 € / 25 years →   627,20 €
+    Agencements     37 240 € / 12 years → 3 103,33 €
+    Électricité     11 760 € / 30 years →   392,00 €
   Dotation 2025 (254):       5 931,33 €
   Loyers (218):              2 148 €
   Charges (242):             1 766,21 €
@@ -25,7 +25,7 @@ Reference fixture (year 2025):
   Plafond 39 C = max(0, 2148 − 1766.21 − 480 − 4500) = 0 → amortissement déduit 0
   Réintégration 318 = dotation non déduite = 5 931,33 €
   Résultat comptable 310 = −4 598,21 − 5 931,33 = −10 529,54 €
-  Résultat fiscal 352 = 310 + 318 = −4 598,21 €  (déficit reportable 10 ans)
+  Résultat fiscal 352 = 310 + 318 = −4 598,21 €  (deficit carried forward 10 years)
   Amortissements différés fin 2025 (SUIV39C): 5 931,33 €
   2042-C PRO: 5NA = 0 ; 5NY = 4 598,21 € ; 5GJ en 2026 = 4 598,21 €
   Immobilisations brutes (2033-A): 196 000 € ; emprunts fin 2025: 191 000 €

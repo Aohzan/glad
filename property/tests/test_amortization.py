@@ -560,6 +560,41 @@ class TestAccountingDashboardView:
             t.name for t in response.templates
         ]
 
+    def test_excludes_properties_bought_after_the_fiscal_year(
+        self, admin_client, property_obj
+    ):
+        """A property bought in 2024 has nothing to declare for 2023."""
+        later = Property.objects.create(
+            name="Bought later",
+            property_type=Property.APARTMENT,
+            buying_value=Money(150000, "EUR"),
+            buying_date=datetime.date(2024, 3, 1),
+            tax_regime=Property.TaxRegime.LMNP_REEL,
+        )
+        url = reverse("property:lmnp_accounting")
+        names = {
+            p.name
+            for p in admin_client.get(url, {"year": "2023"}).context["lmnp_properties"]
+        }
+        assert property_obj.name in names
+        assert later.name not in names
+
+    def test_excludes_properties_whose_lmnp_activity_starts_later(
+        self, admin_client, property_obj
+    ):
+        """Owned since 2020 but under the régime réel only from 2025."""
+        property_obj.lmnp_start_date = datetime.date(2025, 1, 1)
+        property_obj.save()
+        url = reverse("property:lmnp_accounting")
+        assert (
+            list(admin_client.get(url, {"year": "2023"}).context["lmnp_properties"])
+            == []
+        )
+        assert [
+            p.pk
+            for p in admin_client.get(url, {"year": "2025"}).context["lmnp_properties"]
+        ] == [property_obj.pk]
+
 
 # ─── Initialize amortization view ────────────────────────────────────────────
 

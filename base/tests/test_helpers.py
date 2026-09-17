@@ -3,6 +3,7 @@
 import datetime
 
 import pytest
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.test import RequestFactory
 
 from base.views import healthcheck, safe_date_compare
@@ -42,3 +43,11 @@ def test_csp_header_and_nonce_on_rendered_pages(user_client):
     nonce = csp.split("'nonce-", 1)[1].split("'", 1)[0]
     assert f'nonce="{nonce}"' in response.content.decode()
     assert "onclick=" not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_favicon_redirects_to_the_static_file_without_login(client):
+    """Browsers hit /favicon.ico at the root: answer instead of raising a 404."""
+    response = client.get("/favicon.ico")
+    assert response.status_code == 301
+    assert response["Location"] == staticfiles_storage.url("favicon.ico")

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 23:45+0200\n"
+"POT-Creation-Date: 2026-09-18 00:17+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -686,11 +686,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:254
+#: glad/settings.py:255
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:255
+#: glad/settings.py:256
 msgid "French"
 msgstr "Français"
 
@@ -2312,11 +2312,12 @@ msgstr "Immobilisation mise à jour avec succès."
 msgid "Immobilisation deleted."
 msgstr "Immobilisation supprimée."
 
-#: property/views/fiscal_views.py:298
-msgid "No active LMNP réel property to freeze."
-msgstr "Aucun bien actif au régime LMNP réel à figer."
+#: property/views/fiscal_views.py:310
+#, python-format
+msgid "No active LMNP réel property for fiscal year %(year)s."
+msgstr "Aucun bien actif au régime LMNP réel sur l'exercice %(year)s."
 
-#: property/views/fiscal_views.py:309
+#: property/views/fiscal_views.py:323
 #, python-format
 msgid ""
 "Fiscal year %(year)s frozen. The figures are kept even if the ledger changes."
@@ -2324,7 +2325,7 @@ msgstr ""
 "Exercice %(year)s figé. Les chiffres sont conservés même si les écritures "
 "changent."
 
-#: property/views/fiscal_views.py:351
+#: property/views/fiscal_views.py:365
 msgid "Frozen declaration deleted."
 msgstr "Liasse figée supprimée."
 
