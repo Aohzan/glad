@@ -14,7 +14,18 @@ from property.forms import (
     AmortizationInitForm,
     PropertyReportFilterForm,
 )
-from property.models import AmortizationAsset, AmortizationSetup, Property
+from property.models import (
+    AmortizationAsset,
+    AmortizationSetup,
+    LmnpDeclarationSnapshot,
+    Property,
+)
+from property.services.lmnp_pdf import render_lmnp_pdf
+from property.services.lmnp_snapshot import (
+    build_snapshot_payload,
+    create_snapshot,
+    thaw,
+)
 from property.services.report import get_income_expense_report
 from property.services.tax_lmnp import (
     get_accounting_data,
@@ -219,6 +230,22 @@ def delete_amortization_asset(
 # ─── Global accounting dashboard ─────────────────────────────────────────────
 
 
+def _lmnp_properties() -> list[Property]:
+    return list(
+        Property.objects.filter(tax_regime=Property.TaxRegime.LMNP_REEL, is_active=True)
+    )
+
+
+def _requested_year(request: HttpRequest, source: str = "GET") -> int:
+    """Return the fiscal year from the request, defaulting to the previous year."""
+    default_year = datetime.date.today().year - 1
+    raw = (request.POST if source == "POST" else request.GET).get("year", default_year)
+    try:
+        return int(raw)
+    except ValueError, TypeError:
+        return default_year
+
+
 def accounting_lmnp_reel(request: HttpRequest) -> HttpResponse:
     """Global accounting dashboard aggregating all LMNP réel properties.
 
@@ -226,15 +253,8 @@ def accounting_lmnp_reel(request: HttpRequest) -> HttpResponse:
     Each line shows the aggregate total; hovering reveals a per-property breakdown.
     """
     current_year = datetime.date.today().year
-    default_year = current_year - 1
-    try:
-        year = int(request.GET.get("year", default_year))
-    except ValueError, TypeError:
-        year = default_year
-
-    lmnp_properties = list(
-        Property.objects.filter(tax_regime=Property.TaxRegime.LMNP_REEL, is_active=True)
-    )
+    year = _requested_year(request)
+    lmnp_properties = _lmnp_properties()
 
     year_range = list(range(current_year - 5, current_year + 2))
     accounting = get_accounting_data(lmnp_properties, year)
@@ -246,8 +266,90 @@ def accounting_lmnp_reel(request: HttpRequest) -> HttpResponse:
         "lmnp_properties": lmnp_properties,
         "accounting": accounting,
         "checklist": checklist,
+        "snapshots": LmnpDeclarationSnapshot.objects.filter(fiscal_year=year),
+        "snapshot_count": LmnpDeclarationSnapshot.objects.count(),
     }
     return render(request, "property/accounting_lmnp_reel.html", context)
+
+
+# ─── Frozen declarations (snapshots) and PDF export ──────────────────────────
+
+
+def _pdf_response(payload: dict, filename: str) -> HttpResponse:
+    response = HttpResponse(render_lmnp_pdf(payload), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+def lmnp_pdf(request: HttpRequest) -> HttpResponse:
+    """Download the live liasse of the requested year as PDF (nothing is stored)."""
+    year = _requested_year(request)
+    payload = build_snapshot_payload(_lmnp_properties(), year)
+    return _pdf_response(payload, f"lmnp_{year}.pdf")
+
+
+def lmnp_snapshot_create(request: HttpRequest) -> HttpResponse:
+    """Freeze the liasse of a fiscal year (POST only)."""
+    if request.method != "POST":
+        return redirect(reverse("property:lmnp_accounting"))
+    year = _requested_year(request, source="POST")
+    lmnp_properties = _lmnp_properties()
+    if not lmnp_properties:
+        messages.error(request, _("No active LMNP réel property to freeze."))
+        return redirect(reverse("property:lmnp_accounting"))
+    snapshot = create_snapshot(
+        lmnp_properties,
+        year,
+        notes=request.POST.get("notes", "").strip(),
+        user=request.user,
+    )
+    messages.success(
+        request,
+        _(
+            "Fiscal year %(year)s frozen. The figures are kept even if the ledger changes."
+        )
+        % {"year": year},
+    )
+    return redirect(
+        reverse("property:lmnp_snapshot_detail", kwargs={"pk": snapshot.pk})
+    )
+
+
+def lmnp_snapshot_list(request: HttpRequest) -> HttpResponse:
+    """List every frozen declaration."""
+    snapshots = LmnpDeclarationSnapshot.objects.prefetch_related("properties")
+    return render(request, "property/lmnp/snapshot_list.html", {"snapshots": snapshots})
+
+
+def lmnp_snapshot_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    """Show a frozen declaration with the same tabs as the live dashboard."""
+    snapshot = get_object_or_404(LmnpDeclarationSnapshot, pk=pk)
+    data = thaw(snapshot.data)
+    context = {
+        "snapshot": snapshot,
+        "year": snapshot.fiscal_year,
+        "lmnp_properties": data["properties"],
+        "accounting": data["accounting"],
+        "checklist": data["checklist"],
+    }
+    return render(request, "property/lmnp/snapshot_detail.html", context)
+
+
+def lmnp_snapshot_pdf(request: HttpRequest, pk: int) -> HttpResponse:
+    """Download a frozen declaration as PDF."""
+    snapshot = get_object_or_404(LmnpDeclarationSnapshot, pk=pk)
+    return _pdf_response(
+        snapshot.data, f"lmnp_{snapshot.fiscal_year}_fige_{snapshot.pk}.pdf"
+    )
+
+
+def lmnp_snapshot_delete(request: HttpRequest, pk: int) -> HttpResponse:
+    """Delete a frozen declaration (POST only)."""
+    snapshot = get_object_or_404(LmnpDeclarationSnapshot, pk=pk)
+    if request.method == "POST":
+        snapshot.delete()
+        messages.success(request, _("Frozen declaration deleted."))
+    return redirect(reverse("property:lmnp_snapshot_list"))
 
 
 # ─── Income & expenses report ─────────────────────────────────────────────────

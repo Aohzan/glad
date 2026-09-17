@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Liasse LMNP figée — {{ year }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+    <h1 class="h4 mb-0"><i class="bi bi-snow me-2"></i>Liasse LMNP figée — exercice {{ year }}</h1>
+    <div class="ms-auto d-flex gap-2">
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'property:lmnp_snapshot_pdf' snapshot.pk %}">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Télécharger le PDF
+      </a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'property:lmnp_snapshot_list' %}">
+        <i class="bi bi-archive me-1"></i>Toutes les liasses figées
+      </a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'property:lmnp_accounting' %}?year={{ year }}">
+        <i class="bi bi-calculator me-1"></i>Version en direct
+      </a>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary py-2 small mb-3">
+    <i class="bi bi-lock me-1"></i>
+    Chiffres figés le {{ snapshot.created_at|date:"d/m/Y à H:i" }}
+    {% if snapshot.created_by %}par {{ snapshot.created_by }}{% endif %}
+    · règles fiscales {{ snapshot.rules_version }} · biens : {{ snapshot.property_names|join:", " }}.
+    {% if snapshot.notes %}<br><strong>Note :</strong> {{ snapshot.notes }}{% endif %}
+  </div>
+
+  {% include "property/lmnp/_tabs.html" %}
+</div>
+{% endblock %}

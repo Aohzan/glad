@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 23:24+0200\n"
+"POT-Creation-Date: 2026-09-17 23:45+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -768,8 +768,9 @@ msgstr "Montant brut"
 msgid "Net amount"
 msgstr "Montant net"
 
-#: property/forms.py:750 templates/base.html:75 templates/index.html:54
-#: templates/index.html:181 templates/property/edit_manager.html:13
+#: property/forms.py:750 property/models/fiscal.py:34 templates/base.html:75
+#: templates/index.html:54 templates/index.html:181
+#: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:17
 msgid "Properties"
 msgstr "Immobilier"
@@ -989,7 +990,7 @@ msgstr "Valeur d'achat"
 msgid "Purchase price of the property, excluding fees."
 msgstr "Prix d'achat du bien, hors frais."
 
-#: property/models/asset.py:438 property/views/fiscal_views.py:50
+#: property/models/asset.py:438 property/views/fiscal_views.py:61
 msgid "Notary fees"
 msgstr "Frais de notaire"
 
@@ -997,7 +998,7 @@ msgstr "Frais de notaire"
 msgid "Notary fees paid at the time of purchase."
 msgstr "Frais de notaire payés lors de l'acquisition."
 
-#: property/models/asset.py:446 property/views/fiscal_views.py:51
+#: property/models/asset.py:446 property/views/fiscal_views.py:62
 msgid "Agency fees"
 msgstr "Frais d'agence"
 
@@ -1005,7 +1006,7 @@ msgstr "Frais d'agence"
 msgid "Intermediary fees (agencies, headhunters, etc.)."
 msgstr "Frais d'intermediaires (agences, chasseurs…)"
 
-#: property/models/asset.py:454 property/views/fiscal_views.py:52
+#: property/models/asset.py:454 property/views/fiscal_views.py:63
 msgid "Other fees"
 msgstr "Autres frais"
 
@@ -1243,8 +1244,9 @@ msgstr ""
 "Catégorie d'actif pour le cerfa 2033-C : terrains, constructions, "
 "installations générales, ou autres immobilisations corporelles."
 
-#: property/models/asset.py:947 property/models/scpi.py:70
-#: property/models/scpi.py:596 templates/property/_dividend_table_header.html:8
+#: property/models/asset.py:947 property/models/fiscal.py:42
+#: property/models/scpi.py:70 property/models/scpi.py:596
+#: templates/property/_dividend_table_header.html:8
 #: templates/property/_notes_card.html:4 templates/property/_notes_card.html:8
 #: templates/property/detail.html:499
 #: templates/property/detail_panel_cashflow.html:171
@@ -1270,6 +1272,42 @@ msgid ""
 msgstr ""
 "Paiements côté comptabilité pour cette immobilisation. Les transactions "
 "liées seront exclues des charges déductibles pour éviter de compter double."
+
+#: property/models/fiscal.py:19
+msgid "LMNP declaration snapshot"
+msgstr "liasse LMNP figée"
+
+#: property/models/fiscal.py:20
+msgid "LMNP declaration snapshots"
+msgstr "liasses LMNP figées"
+
+#: property/models/fiscal.py:24
+msgid "Fiscal year"
+msgstr "Exercice fiscal"
+
+#: property/models/fiscal.py:28
+msgid "Rules version"
+msgstr "Version des règles"
+
+#: property/models/fiscal.py:29
+msgid "Year of the tax rule set used for the computation."
+msgstr "Année du jeu de règles fiscales utilisé pour le calcul."
+
+#: property/models/fiscal.py:38
+msgid "Property names"
+msgstr "Noms des biens"
+
+#: property/models/fiscal.py:39
+msgid "Names of the properties at the time of the snapshot."
+msgstr "Noms des biens au moment du figeage."
+
+#: property/models/fiscal.py:41
+msgid "Frozen data"
+msgstr "Données figées"
+
+#: property/models/fiscal.py:49
+msgid "Created by"
+msgstr "Créé par"
 
 #: property/models/lease.py:20 templates/property/detail_panel_leases.html:32
 msgid "Upcoming"
@@ -1908,96 +1946,96 @@ msgstr "Dividende net reçu après prélèvements fiscaux."
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
-#: property/services/tax_lmnp.py:1072
+#: property/services/tax_lmnp.py:1301
 msgid "No active loan — not required."
 msgstr "Aucun prêt actif — non requis."
 
-#: property/services/tax_lmnp.py:1075 property/services/tax_lmnp.py:1081
+#: property/services/tax_lmnp.py:1304 property/services/tax_lmnp.py:1310
 #, python-format
 msgid "%(count)d entry(ies) found."
 msgstr "%(count)d écriture(s) trouvée(s)."
 
-#: property/services/tax_lmnp.py:1078
+#: property/services/tax_lmnp.py:1307
 msgid "Loan detected but no financial charge entries found."
 msgstr "Prêt détecté mais aucune charge financière saisie."
 
-#: property/services/tax_lmnp.py:1084
+#: property/services/tax_lmnp.py:1313
 #, python-format
 msgid "No entry found — required for %(form)s."
 msgstr "Aucune écriture trouvée — requise pour %(form)s."
 
-#: property/services/tax_lmnp.py:1087
+#: property/services/tax_lmnp.py:1316
 #, python-format
 msgid "No entry found — recommended for %(form)s."
 msgstr "Aucune écriture trouvée — recommandée pour %(form)s."
 
-#: property/services/tax_lmnp.py:1148
+#: property/services/tax_lmnp.py:1377
 msgid "Revenue entries"
 msgstr "Saisie des revenus"
 
-#: property/services/tax_lmnp.py:1155
+#: property/services/tax_lmnp.py:1384
 msgid "Operating charge entries"
 msgstr "Saisie des charges d'exploitation"
 
-#: property/services/tax_lmnp.py:1162
+#: property/services/tax_lmnp.py:1391
 msgid "Property tax / CFE entries"
 msgstr "Saisie de la taxe foncière / CFE"
 
-#: property/services/tax_lmnp.py:1169
+#: property/services/tax_lmnp.py:1398
 msgid "Financial charge entries"
 msgstr "Saisie des charges financières"
 
-#: property/services/tax_lmnp.py:1176
+#: property/services/tax_lmnp.py:1405
 msgid "Amortization initialized"
 msgstr "Amortissement initialisé"
 
-#: property/services/tax_lmnp.py:1179
+#: property/services/tax_lmnp.py:1408
 msgid "Amortization setup found."
 msgstr "Paramétrage d'amortissement trouvé."
 
-#: property/services/tax_lmnp.py:1181
+#: property/services/tax_lmnp.py:1410
 msgid "No amortization setup — required for 2033-A and 2033-C."
 msgstr "Aucun paramétrage d'amortissement — requis pour 2033-A et 2033-C."
 
-#: property/services/tax_lmnp.py:1188
+#: property/services/tax_lmnp.py:1417
 #: templates/property/detail_panel_amortization.html:123
 msgid "Amortization components"
 msgstr "Lignes d'amortissement"
 
-#: property/services/tax_lmnp.py:1193
+#: property/services/tax_lmnp.py:1422
 #, python-format
 msgid "%(count)d component(s) found."
 msgstr "%(count)d composant(s) trouvé(s)."
 
-#: property/services/tax_lmnp.py:1196
+#: property/services/tax_lmnp.py:1425
 msgid "Setup exists but no components — check initialization."
 msgstr "Paramétrage existant sans composants — vérifiez l'initialisation."
 
-#: property/services/tax_lmnp.py:1198
+#: property/services/tax_lmnp.py:1427
 msgid "No components — initialize amortization first."
 msgstr "Aucun composant — initialisez l'amortissement d'abord."
 
-#: property/services/tax_lmnp.py:1206
+#: property/services/tax_lmnp.py:1435
 msgid "Acquisition value set"
 msgstr "Valeur d'acquisition renseignée"
 
-#: property/services/tax_lmnp.py:1209
+#: property/services/tax_lmnp.py:1438
 msgid "Buying value is set."
 msgstr "Valeur d'achat renseignée."
 
-#: property/services/tax_lmnp.py:1211
+#: property/services/tax_lmnp.py:1440
 msgid "No buying value — required for 2033-A (bilan actif)."
 msgstr "Aucune valeur d'achat — requise pour 2033-A (actif du bilan)."
 
-#: property/services/tax_lmnp.py:1218
+#: property/services/tax_lmnp.py:1447
 msgid "Land component (terrain)"
 msgstr "Composant terrain"
 
-#: property/services/tax_lmnp.py:1221
+#: property/services/tax_lmnp.py:1450
 msgid "Land asset found."
 msgstr "Composant terrain trouvé."
 
-#: property/services/tax_lmnp.py:1224
+#: property/services/tax_lmnp.py:1453
 msgid ""
 "No land (terrain) component — required for 2033-C. Add an amortization asset "
 "with category 'terrains'."
@@ -2005,43 +2043,43 @@ msgstr ""
 "Aucun composant terrain — requis pour la 2033-C. Ajoutez une immobilisation "
 "avec la catégorie 'terrains'."
 
-#: property/services/tax_lmnp.py:1261
+#: property/services/tax_lmnp.py:1490
 msgid "Déclaration de résultat BIC"
 msgstr "Déclaration de résultat BIC"
 
-#: property/services/tax_lmnp.py:1268
+#: property/services/tax_lmnp.py:1497
 msgid "Bilan simplifié"
 msgstr "Bilan simplifié"
 
-#: property/services/tax_lmnp.py:1275
+#: property/services/tax_lmnp.py:1504
 msgid "Compte de résultat"
 msgstr "Compte de résultat"
 
-#: property/services/tax_lmnp.py:1284
+#: property/services/tax_lmnp.py:1513
 msgid "Immobilisations & amortissements"
 msgstr "Immobilisations & amortissements"
 
-#: property/services/tax_lmnp.py:1293
+#: property/services/tax_lmnp.py:1522
 msgid "Déficits reportables"
 msgstr "Déficits reportables"
 
-#: property/services/tax_lmnp.py:1300
+#: property/services/tax_lmnp.py:1529
 msgid "Amortissements différés art. 39C"
 msgstr "Amortissements différés art. 39C"
 
-#: property/services/tax_lmnp.py:1307
+#: property/services/tax_lmnp.py:1536
 msgid "Déclaration complémentaire"
 msgstr "Déclaration complémentaire"
 
-#: property/services/tax_lmnp.py:1314
+#: property/services/tax_lmnp.py:1543
 msgid "Valeur ajoutée (CVAE)"
 msgstr "Valeur ajoutée (CVAE)"
 
-#: property/services/tax_lmnp.py:1321
+#: property/services/tax_lmnp.py:1550
 msgid "Composition du capital"
 msgstr "Composition du capital"
 
-#: property/services/tax_lmnp.py:1328
+#: property/services/tax_lmnp.py:1557
 msgid "Filiales et participations"
 msgstr "Filiales et participations"
 
@@ -2254,25 +2292,41 @@ msgstr "%(n)d entrée(s) générée(s)."
 msgid "%(n)d entries cleared."
 msgstr "%(n)d entrée(s) effacée(s)."
 
-#: property/views/fiscal_views.py:137
+#: property/views/fiscal_views.py:148
 msgid "Default amortization components initialized."
 msgstr "Composants d'amortissement par défaut initialisés."
 
-#: property/views/fiscal_views.py:139
+#: property/views/fiscal_views.py:150
 msgid "Invalid form data. Please check the values."
 msgstr "Données invalides. Vérifiez les valeurs."
 
-#: property/views/fiscal_views.py:160
+#: property/views/fiscal_views.py:171
 msgid "Immobilisation created successfully."
 msgstr "Immobilisation créée avec succès."
 
-#: property/views/fiscal_views.py:188
+#: property/views/fiscal_views.py:199
 msgid "Immobilisation updated successfully."
 msgstr "Immobilisation mise à jour avec succès."
 
-#: property/views/fiscal_views.py:212
+#: property/views/fiscal_views.py:223
 msgid "Immobilisation deleted."
 msgstr "Immobilisation supprimée."
+
+#: property/views/fiscal_views.py:298
+msgid "No active LMNP réel property to freeze."
+msgstr "Aucun bien actif au régime LMNP réel à figer."
+
+#: property/views/fiscal_views.py:309
+#, python-format
+msgid ""
+"Fiscal year %(year)s frozen. The figures are kept even if the ledger changes."
+msgstr ""
+"Exercice %(year)s figé. Les chiffres sont conservés même si les écritures "
+"changent."
+
+#: property/views/fiscal_views.py:351
+msgid "Frozen declaration deleted."
+msgstr "Liasse figée supprimée."
 
 #: property/views/scpi_views.py:357
 msgid "SCPI updated successfully."
