@@ -16,6 +16,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from django.contrib.messages import constants as messages
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.csp import CSP
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
@@ -25,12 +26,24 @@ load_dotenv(dotenv_path=os.getenv("ENV_FILE", ".env"))
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
-
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    """Read a boolean environment variable (true/1/yes are truthy)."""
+    return os.getenv(name, str(default)).strip().lower() in ("true", "1", "yes")
+
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        "The SECRET_KEY environment variable is required. "
+        "Generate one with: python -c 'from django.core.management.utils "
+        "import get_random_secret_key; print(get_random_secret_key())'"
+    )
 
 if ENVIRONMENT == "production" and DEBUG:
     logging.getLogger("glad").warning(
@@ -45,31 +58,36 @@ _app_url_parsed = urlparse(_app_url) if _app_url else None
 _app_hostname = _app_url_parsed.hostname if _app_url_parsed else None
 
 APP_URL = _app_url
+_app_is_https = bool(_app_url_parsed and _app_url_parsed.scheme == "https")
 
 if _app_url:
     USE_X_FORWARDED_HOST = True
-    if _app_url_parsed and _app_url_parsed.scheme == "https":
+    if _app_is_https:
         SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Only set ALLOWED_HOSTS if explicitly configured in environment
-ALLOWED_HOSTS = (
-    [x.strip() for x in os.environ["ALLOWED_HOSTS"].split(",")]
-    if os.environ.get("ALLOWED_HOSTS")
-    else []
-)
+# ALLOWED_HOSTS: explicit list from the environment, else the APP_URL hostname.
+if os.environ.get("ALLOWED_HOSTS"):
+    ALLOWED_HOSTS = [x.strip() for x in os.environ["ALLOWED_HOSTS"].split(",")]
+elif _app_hostname:
+    ALLOWED_HOSTS = [_app_hostname]
+else:
+    ALLOWED_HOSTS = []
+
+# HTTPS hardening: defaults follow the APP_URL scheme, each can be overridden.
+# The health endpoint stays reachable over plain HTTP for container health checks.
+SECURE_SSL_REDIRECT = _env_bool("SECURE_SSL_REDIRECT", _app_is_https and not DEBUG)
+SECURE_REDIRECT_EXEMPT = [r"^health$"]
 
 # https://docs.djangoproject.com/en/6.0/topics/http/sessions/#settings
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = bool(
-    os.environ.get("SESSION_COOKIE_SECURE", "False").lower() == "true"
-)
-SESSION_COOKIE_AGE = 8 * 60 * 60  # 8 hours max
+SESSION_COOKIE_SECURE = _env_bool("SESSION_COOKIE_SECURE", _app_is_https)
+SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", str(8 * 60 * 60)))  # seconds
 SESSION_SAVE_EVERY_REQUEST = True  # Reset timeout on every activity
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Force logout when closing browser/app
 
 # https://docs.djangoproject.com/en/6.0/ref/csrf/#settings
 CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "False").lower() == "true"
+CSRF_COOKIE_SECURE = _env_bool("CSRF_COOKIE_SECURE", _app_is_https)
 _csrf_env = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = (
     list(filter(None, _csrf_env.split(",")))
@@ -263,7 +281,8 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    X_FRAME_OPTIONS = "DENY"
+X_FRAME_OPTIONS = "DENY"
+SECURE_REFERRER_POLICY = "same-origin"
 
 # Content Security Policy (enabled in every environment so violations show up
 # during development). Inline scripts must carry nonce="{{ csp_nonce }}".
