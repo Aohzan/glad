@@ -1,35 +1,34 @@
 """
 LMNP fiscal conformity tests.
 
-These tests use the exact data from the "Suivi LMNP.xlsx" reference spreadsheet
-to verify that the application produces correct values for each cerfa form.
+These tests reproduce, on a single property, the rules of the reference
+"Suivi LMNP.xlsx" workbook (LMNP.blog simulator) and check every cerfa line.
+The multi-property golden scenario copied from the workbook lives in
+``test_lmnp_golden_excel.py``.
 
-Reference values (Excel, Bien_Immo-1, year 2025):
-  Property:        196 000 € total (15 % land = 29 400 €, 85 % bâti = 166 600 €)
-  Components:
-    Terrains:          29 400 €  (non-amortissable)
-    Gros Œuvre:        49 500 €  (75 years)  → prorata Jan = 660 €/year
-    (other components from 166 600 € depreciable split as per setup)
-  Amortissement 2025: 3 353,96 €  (prorata temporis — acquisition Jan 2025)
-  Loyers 2025:         2 148 €
-  Charges (242):       1 766,21 €
-  Taxe foncière:         310 €
-  CFE:                   170 €  (sous-ligne)
-  Impôts/taxes (244):    480 €   (310 + 170)
-  Intérêts crédit (294): 4 500 €
-  Total charges:       6 746,21 €  (1766.21 + 480 + 4500)
+Reference fixture (year 2025):
+  Property:        196 000 € bought 2025-01-01 (15 % land = 29 400 €, 85 % bâti)
+  Components (default breakdown, 30/360 prorata, full year here):
+    Gros œuvre      88 200 € / 70 ans → 1 260,00 €
+    Étanchéité      13 720 € / 25 ans →   548,80 €
+    Toiture         15 680 € / 25 ans →   627,20 €
+    Agencements     37 240 € / 12 ans → 3 103,33 €
+    Électricité     11 760 € / 30 ans →   392,00 €
+  Dotation 2025 (254):       5 931,33 €
+  Loyers (218):              2 148 €
+  Charges (242):             1 766,21 €
+  Taxe foncière + CFE (244):   480 €   (310 + 170, dont CFE 243 = 170)
+  Intérêts (294):            4 500 €
+  Total charges:             6 746,21 €
 
-  Résultat avant amort:  -4 598,21 €  (2148 - 6746.21)
-  Amort déductible:           0 €  (déficit — art. 39C)
-  Amort reportable:    3 353,96 €
-  Taxable result:      -4 598,21 €  (déficit)
-  Résultat comptable (310): -7 952,17 €  (2148 - 6746.21 - 3353.96)
-  Réintégration 39C (318):   3 353,96 €
-  Immobilisations brutes (2033-A): 196 000 €  (assets + land)
-  Cumul amort fin 2025:       3 353,96 €
-  Emprunts fin 2025:         191 000 €
-  2042-C PRO case 5NZ:        4 598,21 €  (déficit)
-  Déficit reportable 2025:    4 598,21 €
+  Résultat avant amortissement:      −4 598,21 €  (2148 − 6746.21)
+  Plafond 39 C = max(0, 2148 − 1766.21 − 480 − 4500) = 0 → amortissement déduit 0
+  Réintégration 318 = dotation non déduite = 5 931,33 €
+  Résultat comptable 310 = −4 598,21 − 5 931,33 = −10 529,54 €
+  Résultat fiscal 352 = 310 + 318 = −4 598,21 €  (déficit reportable 10 ans)
+  Amortissements différés fin 2025 (SUIV39C): 5 931,33 €
+  2042-C PRO: 5NA = 0 ; 5NY = 4 598,21 € ; 5GJ en 2026 = 4 598,21 €
+  Immobilisations brutes (2033-A): 196 000 € ; emprunts fin 2025: 191 000 €
 """
 
 import datetime
@@ -188,17 +187,9 @@ class TestAmortizationConformity:
         assert approx_equal(asset.value_total.amount, expected)
 
     def test_total_amortization_2025(self, lmnp_setup):
-        """
-        Total dotation 2025: Excel shows 3 353,96 €.
-        Our setup uses different breakdown (45/6/7/8/19%) than Excel's simplified
-        version, so we check it's reasonably close and non-zero.
-        """
+        """Dotation 2025 = 1260 + 548.80 + 627.20 + 3103.33 + 392 = 5 931,33 €."""
         total = get_total_amortization(lmnp_setup.property.pk, 2025)
-        # Excel reference: 3 353.96 (with simplified constructions only)
-        # Our detailed breakdown produces a different total.
-        # Verify it's positive and within a reasonable range.
-        assert total > Decimal(0)
-        assert total < Decimal(20000)  # sanity check
+        assert total == Decimal("5931.33")
 
     def test_cerfa_category_set_on_components(self, lmnp_setup):
         """Each component has a cerfa_category set."""
@@ -320,12 +311,14 @@ class TestLmnpSummaryConformity:
         assert approx_equal(summary["cerfa_310"], expected)
 
     def test_cerfa_318_2025(self, lmnp_setup, lmnp_entries_2025, lmnp_property):
-        """
-        2033-B line 318 = abs(cerfa_310) when cerfa_310 < 0 (deficit comptable).
-        """
+        """2033-B line 318 = the dotation that could not be deducted (cap = 0 here)."""
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
-        assert summary["cerfa_310"] < Decimal(0)
-        assert approx_equal(summary["cerfa_318"], abs(summary["cerfa_310"]))
+        assert summary["plafond_39c"] == Decimal(0)
+        assert (
+            summary["cerfa_318"] == summary["amortization_total"] == Decimal("5931.33")
+        )
+        # The charges deficit itself is NOT reintegrated: it stays a fiscal deficit.
+        assert approx_equal(summary["cerfa_352"], Decimal("-4598.21"))
 
     def test_by_line_218_has_loyers(self, lmnp_setup, lmnp_entries_2025, lmnp_property):
         """Line 218 = loyers."""
@@ -615,21 +608,21 @@ class TestImmobilisationsConformity:
 class TestForm2042CConformity:
     """Verify 2042-C PRO values against the Excel reference."""
 
-    def test_case_5nz_is_deficit_amount_2025(
+    def test_case_5ny_is_deficit_amount_2025(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
-        """Case 5NZ = abs(taxable_result) when deficit."""
+        """Case 5NY (déficit, régime réel, cas général) = −352 when deficit."""
         accounting = get_accounting_data([lmnp_property], 2025)
         form_2042c = accounting["form_2042c"]
-        assert approx_equal(form_2042c["case_5nz"], Decimal("4598.21"))
+        assert approx_equal(form_2042c["case_5ny"], Decimal("4598.21"))
 
-    def test_case_5nk_is_zero_when_deficit_2025(
+    def test_case_5na_is_zero_when_deficit_2025(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
-        """Case 5NK = 0 when there is a deficit."""
+        """Case 5NA (revenus imposables) = 0 when there is a deficit."""
         accounting = get_accounting_data([lmnp_property], 2025)
         form_2042c = accounting["form_2042c"]
-        assert form_2042c["case_5nk"] == Decimal(0)
+        assert form_2042c["case_5na"] == Decimal(0)
 
     def test_is_benefice_false_when_deficit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
@@ -638,12 +631,23 @@ class TestForm2042CConformity:
         assert accounting["form_2042c"]["is_benefice"] is False
 
     def test_case_5cd_is_12_for_full_year(self, lmnp_property, lmnp_setup):
-        """Case 5CD = 12 for a full-year exercise."""
-        accounting = get_accounting_data([lmnp_property], 2024)  # past year = 12 months
+        """Case 5CD = 12 for a full-year exercise (activity started 1 January)."""
+        accounting = get_accounting_data([lmnp_property], 2025)
+        assert accounting["form_2042c"]["case_5cd"] == 12
+        accounting = get_accounting_data([lmnp_property], 2026)
         assert accounting["form_2042c"]["case_5cd"] == 12
 
-    def test_case_5nk_positive_when_profit(self, lmnp_property, lmnp_setup):
-        """Case 5NK > 0 when there is a taxable profit."""
+    def test_case_5cd_first_year_started_in_october(self, lmnp_property):
+        """Activity started 16 October → first fiscal year lasts 3 months."""
+        lmnp_property.lmnp_start_date = datetime.date(2025, 10, 16)
+        lmnp_property.save()
+        accounting = get_accounting_data([lmnp_property], 2025)
+        assert accounting["form_2042c"]["case_5cd"] == 3
+        accounting = get_accounting_data([lmnp_property], 2026)
+        assert accounting["form_2042c"]["case_5cd"] == 12
+
+    def test_case_5na_positive_when_profit(self, lmnp_property, lmnp_setup):
+        """Case 5NA > 0 when there is a taxable profit."""
         PropertyLedgerEntry.objects.create(
             property=lmnp_property,
             flow_type=PropertyLedgerEntry.FlowType.INCOME,
@@ -653,8 +657,8 @@ class TestForm2042CConformity:
         )
         accounting = get_accounting_data([lmnp_property], 2025)
         # With large income and no prior deficit, taxable result > 0
-        assert accounting["form_2042c"]["case_5nk"] > Decimal(0)
-        assert accounting["form_2042c"]["case_5nz"] == Decimal(0)
+        assert accounting["form_2042c"]["case_5na"] > Decimal(0)
+        assert accounting["form_2042c"]["case_5ny"] == Decimal(0)
 
 
 # ─── 2033-B result lines conformity ──────────────────────────────────────────
@@ -672,38 +676,62 @@ class TestForm2033BConformity:
         )
         assert approx_equal(summary["cerfa_310"], expected_310)
 
-    def test_cerfa_318_equals_abs_cerfa_310_when_deficit(
+    def test_cerfa_318_never_exceeds_the_dotation(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
-        """2033-B-318 = abs(cerfa_310) when there is an accounting deficit."""
+        """2033-B-318 is capped by the dotation: the charges deficit is not reintegrated."""
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
         assert summary["cerfa_310"] < Decimal(0)
-        assert approx_equal(summary["cerfa_318"], abs(summary["cerfa_310"]))
+        assert summary["cerfa_318"] == summary["amortization_total"]
+        assert summary["cerfa_318"] < abs(summary["cerfa_310"])
 
-    def test_310_plus_318_equals_zero_when_deficit(
+    def test_310_plus_318_equals_result_before_amortization(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
-        """
-        When cerfa_310 < 0, the réintégration exactly offsets the accounting deficit:
-        cerfa_310 + cerfa_318 = 0.
-        """
+        """When nothing is deductible, 310 + 318 = recettes − charges (−4 598,21)."""
         summary = get_lmnp_summary(lmnp_property.pk, 2025)
         computed = summary["cerfa_310"] + summary["cerfa_318"]
-        assert approx_equal(computed, Decimal(0))
+        assert approx_equal(computed, Decimal("-4598.21"))
 
-    def test_cerfa_352_is_zero_when_deficit(
+    def test_cerfa_352_is_signed_when_deficit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
-        """2033-B-352 = max(0, taxable_result) = 0 when deficit."""
+        """2033-B-352 carries the deficit (negative), it is not clipped to zero."""
         accounting = get_accounting_data([lmnp_property], 2025)
-        assert accounting["form_2033b"]["cerfa_352"] == Decimal(0)
+        assert approx_equal(accounting["form_2033b"]["cerfa_352"], Decimal("-4598.21"))
 
-    def test_cerfa_370_is_zero_when_no_profit(
+    def test_cerfa_370_equals_352_when_deficit(
         self, lmnp_property, lmnp_setup, lmnp_entries_2025
     ):
-        """2033-B-370 = 0 when no taxable profit after deficit imputation."""
+        """2033-B-370 = 352 when there is no profit to offset prior deficits."""
         accounting = get_accounting_data([lmnp_property], 2025)
-        assert accounting["form_2033b"]["cerfa_370"] == Decimal(0)
+        form = accounting["form_2033b"]
+        assert form["cerfa_370"] == form["cerfa_352"]
+        assert form["cerfa_360"] == Decimal(0)
+
+    def test_prior_deficit_imputed_once(
+        self, lmnp_property, lmnp_setup, lmnp_entries_2025
+    ):
+        """Deficit 4 598,21 in 2025, profit in 2026: 360 = deficit, 370 = 352 − 360."""
+        PropertyLedgerEntry.objects.create(
+            property=lmnp_property,
+            flow_type=PropertyLedgerEntry.FlowType.INCOME,
+            management_category=PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED,
+            amount=Money(Decimal("20000.00"), "EUR"),
+            entry_date=datetime.date(2026, 6, 1),
+        )
+        form = get_accounting_data([lmnp_property], 2026)["form_2033b"]
+        # 2026: recettes 20 000, dotation 5 931,33 fully deductible, plus the
+        # 5 931,33 deferred from 2025 is deducted line 350.
+        assert form["cerfa_318"] == Decimal(0)
+        assert form["cerfa_350"] == Decimal("5931.33")
+        assert form["cerfa_352"] == Decimal(20000) - 2 * Decimal("5931.33")
+        assert approx_equal(form["cerfa_360"], Decimal("4598.21"))
+        assert form["cerfa_370"] == form["cerfa_352"] - form["cerfa_360"]
+        assert (
+            get_accounting_data([lmnp_property], 2026)["form_2042c"]["case_5na"]
+            == form["cerfa_370"]
+        )
 
 
 # ─── form_2042c deficit_cases_list ───────────────────────────────────────────

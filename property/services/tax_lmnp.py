@@ -1,40 +1,57 @@
 """
-LMNP réel tax service.
+LMNP réel tax engine.
 
-Provides aggregation helpers for annual tax preparation, using the LMNP metadata
-embedded directly in ManagementCategory (property.models.ledger).
+The engine turns the ledger entries and the amortization assets of the LMNP
+properties into the figures of the French tax forms (liasse fiscale):
+2033-A (bilan), 2033-B (compte de résultat), 2033-C (immobilisations),
+2031/2031-bis, SUIV39C and 2042-C PRO.
 
-Architecture note: ManagementCategory carries lmnp_section, lmnp_line, and lmnp_label
-for every transaction category. No separate mapping dict is needed — adding a new
-category without specifying its tax metadata raises an error at import time.
+Reading guide
+=============
 
-Art. 39C (CGI): Amortization cannot create or increase an operating deficit.
-Any unused amortization in a given year is deferred to subsequent years
-when the operating result allows it.
+The computation is a chronological forward pass over the fiscal years of the
+activity, one ``LmnpYearInputs`` in, one ``LmnpYearResult`` out, with a
+``FiscalCarry`` (deferred amortization and unused deficits) handed from one
+year to the next. ``compute_year`` is a pure function with no database
+access: it is the single place where the tax rules are written down and it is
+tested against the reference LMNP workbook.
 
-LMNP fiscal deficits (from charges > recettes) are reportable against future
-LMNP profits for up to 10 years (art. 156 I-1° bis CGI).
+Every field of ``LmnpYearResult`` is named after its cerfa line (``_218``,
+``_310``…) and documents its formula, so that the code can be cross-checked
+against the official forms and against public sources:
 
-Depuis la loi de finances 2025 : les amortissements déduits sont réintégrés dans
-le calcul de la plus-value lors de la revente du bien (art. 150 VB bis du CGI).
+- art. 39 C II CGI and BOI-BIC-AMT-20-40-10-20 § 40-70: the amortization
+  deductible in a year is capped at the rents minus the other charges of the
+  property (accounting fees excluded). The excess is carried forward without
+  time limit (amortissements réputés différés, SUIV39C).
+- art. 156 I 1° ter CGI: a BIC non professionnel deficit is only deductible
+  from BIC non professionnel profits of the ten following years (2042-C PRO
+  boxes 5GA to 5GJ).
+- finance act 2025 art. 84: the amortization deducted is added back to the
+  capital gain when the property is sold (not computed here).
+
+Dated constants (thresholds, rates) live in ``property.services.lmnp_rules``.
 
 2033-B cerfa line reference:
-  218 = Production vendue (services) — loyers et charges refacturées
+  218 = Production vendue (services): loyers et charges refacturées
   209 = Autres produits d'exploitation
-  242 = Autres charges externes — gestion, charges, travaux, assurance, etc.
-  243 = dont TP/CFE/CVAE (sous-ligne de 244)
-  244 = Impôts, taxes et versements assimilés — taxe foncière, CFE
-  254 = Dotations aux amortissements
-  270 = Résultat d'exploitation (1)
-  294 = Charges financières — intérêts emprunteur
-  310 = Bénéfices ou pertes (résultat comptable)
-  318 = Réintégrations : amortissements reportés art. 39C
+  242 = Autres charges externes: gestion, copropriété, entretien, assurances…
+  244 = Impôts, taxes et versements assimilés: taxe foncière, CFE
+  243 = dont CFE (sous-ligne de 244)
+  254 = Dotations aux amortissements (= 2033-C ligne 572)
+  270 = Résultat d'exploitation
+  294 = Charges financières: intérêts d'emprunt
+  310 = Bénéfice ou perte (résultat comptable)
+  318 = Réintégration: amortissements non déductibles (art. 39 C)
+  350 = Déduction: amortissements différés antérieurs imputés (art. 39 C)
   352 = Résultat fiscal avant imputation des déficits antérieurs
-  360 = Déficits antérieurs reportables imputés
+  360 = Déficits antérieurs imputés
   370 = Résultat fiscal après imputation des déficits antérieurs
 """
 
 import datetime
+from collections.abc import Iterable, Sequence
+from dataclasses import asdict, dataclass, field
 from decimal import Decimal
 
 from django.db.models import Q, Sum
@@ -42,6 +59,27 @@ from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 from property.models.ledger import ManagementCategory
+from property.services.lmnp_rules import (
+    CAP_39C_EXCLUDED_CATEGORIES,
+    DEFICIT_CARRYFORWARD_YEARS,
+)
+
+ZERO = Decimal(0)
+
+# 2042-C PRO boxes for the deficits of the previous years not yet deducted,
+# from N-1 (5GJ) to N-10 (5GA).
+DEFICIT_CASES_5G = (
+    "5GJ",
+    "5GI",
+    "5GH",
+    "5GG",
+    "5GF",
+    "5GE",
+    "5GD",
+    "5GC",
+    "5GB",
+    "5GA",
+)
 
 
 def _build_by_line_categories(by_category: dict[str, Decimal]) -> dict[str, list[dict]]:
@@ -88,90 +126,416 @@ def _build_by_line_categories(by_category: dict[str, Decimal]) -> dict[str, list
     return result
 
 
-def get_lmnp_summary(property_id: int, year: int) -> dict:
+# ─── Pure tax engine (no database access) ─────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class LmnpYearInputs:
+    """Everything the tax engine needs for one fiscal year, all properties combined.
+
+    Amounts come from the ledger (``get_property_year_lines``) and from the
+    amortization assets; field names carry the 2033-B line they feed.
     """
-    Return an annual LMNP réel summary for a property.
 
-    Returns a dict with:
-      - recettes: total income (loyers + charges refacturées + other)
-      - charges: total deductible expenses (per cerfa line, incl. financial charges)
-      - charges_exploitation: deductible charges excluding financial charges
-      - charges_financieres: financial charges only (loan interest + insurance)
-      - result: recettes - charges (before amortissements)
-      - amortization_total: total dotation for the year
-      - deferred_prior: deferred amortization balance carried from prior years
-      - amortization_deductible: amortization actually deducted (art. 39C capped)
-      - amortization_deferred: new deferral created this year (art. 39C)
-      - deferred_balance: total deferred amortization balance at end of year
-      - taxable_result: fiscal result before deficit carryforward imputation.
-            Can be negative (LMNP fiscal deficit); amortization only deferred,
-            not creating extra deficit per art. 39C CGI.
-      - by_category: breakdown by management_category
-      - by_line: breakdown by cerfa line number (includes amortization on line 254)
-      Cerfa 2033-B computed lines:
-      - cerfa_310: résultat comptable = recettes - charges - amort_total
-      - cerfa_318: réintégration amortissements excédentaires (art. 39-4 CGI):
-            abs(cerfa_310) when cerfa_310 < 0, else amortization_total
+    year: int
+    #: Loyers, charges refacturées, reversements (2033-B 218).
+    revenue_218: Decimal = ZERO
+    #: Autres produits (2033-B 209).
+    other_income_209: Decimal = ZERO
+    #: Autres charges externes (2033-B 242), accounting fees included.
+    external_charges_242: Decimal = ZERO
+    #: Part of line 242 that is not "afférente au bien" for the art. 39 C cap.
+    accounting_fees: Decimal = ZERO
+    #: Impôts et taxes (2033-B 244): taxe foncière + CFE.
+    taxes_244: Decimal = ZERO
+    #: dont CFE (2033-B 243).
+    cfe_243: Decimal = ZERO
+    #: Intérêts d'emprunt (2033-B 294).
+    financial_charges_294: Decimal = ZERO
+    #: Dotation aux amortissements de l'exercice (2033-B 254 = 2033-C 572).
+    depreciation_254: Decimal = ZERO
+    #: First day of the activity; drives the length of the first fiscal year (5CD).
+    activity_start: datetime.date | None = None
+
+
+@dataclass(frozen=True)
+class FiscalCarry:
+    """What one fiscal year hands over to the next."""
+
+    #: Amortissements réputés différés (art. 39 C) not yet deducted, no time limit.
+    deferred_depreciation: Decimal = ZERO
+    #: Unused BIC non professionnel deficits, by year of origin (10-year limit).
+    deficits: dict[int, Decimal] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class LmnpYearResult:
+    """The tax figures of one fiscal year. One field per cerfa line."""
+
+    year: int
+
+    # ── 2033-B, A: résultat comptable ────────────────────────────────────────
+    revenue_218: Decimal
+    other_income_209: Decimal
+    external_charges_242: Decimal
+    accounting_fees: Decimal
+    taxes_244: Decimal
+    cfe_243: Decimal
+    depreciation_254: Decimal
+    #: 270 = 218 + 209 − 242 − 244 − 254
+    operating_result_270: Decimal
+    financial_charges_294: Decimal
+    #: 310 = 270 − 294 (bénéfice ou perte comptable)
+    accounting_result_310: Decimal
+
+    # ── Art. 39 C: amortization cap ──────────────────────────────────────────
+    #: max(0, 218 + 209 − (242 − frais de comptabilité) − 244 − 294)
+    depreciation_cap_39c: Decimal
+    #: min(254, cap): the part of this year's dotation that is deductible.
+    depreciation_deducted: Decimal
+    #: 318 = 254 − déduit: réintégration "amortissements non déductibles".
+    depreciation_reintegrated_318: Decimal
+    #: Stock of deferred amortization at the start of the year.
+    deferred_depreciation_start: Decimal
+    #: 350 = min(stock début, max(0, 310 + 318)): déduction des ARD antérieurs.
+    deferred_depreciation_used_350: Decimal
+    #: Stock at the end of the year = début + 318 − 350 (SUIV39C).
+    deferred_depreciation_end: Decimal
+
+    # ── 2033-B, B: résultat fiscal ───────────────────────────────────────────
+    #: 352 = 310 + 318 − 350, signed (bénéfice > 0, déficit < 0).
+    fiscal_result_352: Decimal
+    #: Déficits antérieurs encore reportables au début de l'année (after the
+    #: 10-year purge), by year of origin.
+    prior_deficits_start: dict[int, Decimal]
+    #: 360 = déficits antérieurs imputés = min(Σ disponibles, max(0, 352)).
+    prior_deficits_used_360: Decimal
+    #: Déficits reportables en fin d'année, by year of origin (includes this year).
+    deficits_end: dict[int, Decimal]
+    #: 370 = 352 − 360 when 352 > 0, else 352.
+    fiscal_result_370: Decimal
+
+    # ── 2042-C PRO ───────────────────────────────────────────────────────────
+    #: 5NA revenus imposables, régime réel, cas général = max(0, 370).
+    case_5na: Decimal
+    #: 5NY déficit de l'année, régime réel, cas général = max(0, −352).
+    case_5ny: Decimal
+    #: 5CD durée de l'exercice en mois (12, or fewer for the first year).
+    case_5cd: int
+    #: (box, year of origin, remaining deficit) for 5GJ (N-1) … 5GA (N-10).
+    deficit_cases: tuple[tuple[str, int, Decimal], ...]
+
+    @property
+    def is_profit(self) -> bool:
+        return self.fiscal_result_352 >= ZERO
+
+    @property
+    def deficit_carryforward(self) -> Decimal:
+        """Total deficit still reportable at the end of the year."""
+        return sum(self.deficits_end.values(), ZERO)
+
+    def as_dict(self) -> dict:
+        """Plain dict (JSON-friendly after freezing) of every field."""
+        data = asdict(self)
+        data["is_profit"] = self.is_profit
+        data["deficit_carryforward"] = self.deficit_carryforward
+        return data
+
+
+def exercise_months(year: int, activity_start: datetime.date | None) -> int:
+    """Return the length of the fiscal year in months (2042-C PRO 5CD).
+
+    The first fiscal year runs from the start of the activity to 31 December;
+    every other year is a full 12-month year (Glad only handles calendar years).
     """
-    raw = _get_lmnp_summary_raw(property_id, year)
-    recettes = raw["recettes"]
-    charges = raw["charges"]
-    charges_exploitation = raw["charges_exploitation"]
-    charges_financieres = raw["charges_financieres"]
-    result_before_amort = recettes - charges
+    if activity_start is not None and activity_start.year == year:
+        return 12 - activity_start.month + 1
+    return 12
 
-    # Re-compute by_category and by_line for external consumers
-    by_category = _get_category_totals_for_year(property_id, year)
 
+def compute_year(
+    inputs: LmnpYearInputs, carry: FiscalCarry | None = None
+) -> tuple[LmnpYearResult, FiscalCarry]:
+    """Compute the tax figures of one year and the carry for the next one.
+
+    Pure function: this is the whole LMNP réel computation. Each step names
+    the cerfa line it fills; see the module docstring for the sources.
+    """
+    carry = carry or FiscalCarry()
+    year = inputs.year
+    income = inputs.revenue_218 + inputs.other_income_209
+
+    # A - Résultat comptable (2033-B)
+    operating_result_270 = (
+        income
+        - inputs.external_charges_242
+        - inputs.taxes_244
+        - inputs.depreciation_254
+    )
+    accounting_result_310 = operating_result_270 - inputs.financial_charges_294
+
+    # Art. 39 C: the dotation is deductible up to the rents minus the charges
+    # "afférentes au bien" (interest and taxes included, accounting fees excluded).
+    depreciation_cap_39c = max(
+        ZERO,
+        income
+        - (inputs.external_charges_242 - inputs.accounting_fees)
+        - inputs.taxes_244
+        - inputs.financial_charges_294,
+    )
+    depreciation_deducted = min(inputs.depreciation_254, depreciation_cap_39c)
+    depreciation_reintegrated_318 = inputs.depreciation_254 - depreciation_deducted
+
+    # Deferred amortization of previous years is deducted (line 350) as soon as
+    # the result before that deduction is a profit, without creating a deficit.
+    result_before_deferred = accounting_result_310 + depreciation_reintegrated_318
+    deferred_depreciation_used_350 = min(
+        carry.deferred_depreciation, max(ZERO, result_before_deferred)
+    )
+    deferred_depreciation_end = (
+        carry.deferred_depreciation
+        + depreciation_reintegrated_318
+        - deferred_depreciation_used_350
+    )
+
+    # B - Résultat fiscal avant imputation des déficits antérieurs (352)
+    fiscal_result_352 = result_before_deferred - deferred_depreciation_used_350
+
+    # Déficits antérieurs: a deficit born in year N is usable from N+1 to N+10.
+    prior_deficits_start = {
+        origin: amount
+        for origin, amount in sorted(carry.deficits.items())
+        if origin + DEFICIT_CARRYFORWARD_YEARS >= year and amount > ZERO
+    }
+    deficits_end = dict(prior_deficits_start)
+    prior_deficits_used_360 = ZERO
+    if fiscal_result_352 > ZERO:
+        remaining_profit = fiscal_result_352
+        for origin in sorted(deficits_end):  # oldest first
+            if remaining_profit <= ZERO:
+                break
+            used = min(deficits_end[origin], remaining_profit)
+            deficits_end[origin] -= used
+            remaining_profit -= used
+            prior_deficits_used_360 += used
+        deficits_end = {o: d for o, d in deficits_end.items() if d > ZERO}
+        fiscal_result_370 = fiscal_result_352 - prior_deficits_used_360
+    else:
+        if fiscal_result_352 < ZERO:
+            deficits_end[year] = -fiscal_result_352
+        fiscal_result_370 = fiscal_result_352
+
+    result = LmnpYearResult(
+        year=year,
+        revenue_218=inputs.revenue_218,
+        other_income_209=inputs.other_income_209,
+        external_charges_242=inputs.external_charges_242,
+        accounting_fees=inputs.accounting_fees,
+        taxes_244=inputs.taxes_244,
+        cfe_243=inputs.cfe_243,
+        depreciation_254=inputs.depreciation_254,
+        operating_result_270=operating_result_270,
+        financial_charges_294=inputs.financial_charges_294,
+        accounting_result_310=accounting_result_310,
+        depreciation_cap_39c=depreciation_cap_39c,
+        depreciation_deducted=depreciation_deducted,
+        depreciation_reintegrated_318=depreciation_reintegrated_318,
+        deferred_depreciation_start=carry.deferred_depreciation,
+        deferred_depreciation_used_350=deferred_depreciation_used_350,
+        deferred_depreciation_end=deferred_depreciation_end,
+        fiscal_result_352=fiscal_result_352,
+        prior_deficits_start=prior_deficits_start,
+        prior_deficits_used_360=prior_deficits_used_360,
+        deficits_end=deficits_end,
+        fiscal_result_370=fiscal_result_370,
+        case_5na=max(ZERO, fiscal_result_370),
+        case_5ny=max(ZERO, -fiscal_result_352),
+        case_5cd=exercise_months(year, inputs.activity_start),
+        deficit_cases=tuple(
+            (box, year - offset, deficits_end.get(year - offset, ZERO))
+            for offset, box in enumerate(DEFICIT_CASES_5G, start=1)
+        ),
+    )
+    next_carry = FiscalCarry(
+        deferred_depreciation=deferred_depreciation_end, deficits=dict(deficits_end)
+    )
+    return result, next_carry
+
+
+def compute_years(inputs_by_year: Iterable[LmnpYearInputs]) -> list[LmnpYearResult]:
+    """Run ``compute_year`` chronologically over consecutive years."""
+    results: list[LmnpYearResult] = []
+    carry = FiscalCarry()
+    for inputs in sorted(inputs_by_year, key=lambda i: i.year):
+        result, carry = compute_year(inputs, carry)
+        results.append(result)
+    return results
+
+
+# ─── Ledger aggregation ───────────────────────────────────────────────────────
+
+
+def get_category_totals_for_year(property_id: int, year: int) -> dict[str, Decimal]:
+    """
+    Return per-management-category totals for ``property_id`` and ``year``.
+
+    Handles recurring entries correctly: a recurring entry whose start date is
+    before ``year`` (or whose occurrences span multiple years) is expanded and
+    each occurrence falling within [year-01-01, year-12-31] is counted.
+
+    For ``loan_interest`` and ``loan_insurance`` categories, ledger entries are
+    used when present. When no manual ``loan_interest`` ledger entries exist for
+    the year, the interest column of the loan amortization table is used instead
+    (summed over all loans that have amortization entries for that year).
+    """
+    from property.models import (
+        PropertyLedgerEntry,
+        PropertyLoan,
+        PropertyLoanAmortizationEntry,
+    )
+
+    year_start = datetime.date(year, 1, 1)
+    year_end = datetime.date(year, 12, 31)
+    base_filter = {"property_id": property_id, "amount_currency": "EUR"}
+
+    # ── Non-recurring: entry_date within the year ──────────────────────────
+    non_recurring_qs = PropertyLedgerEntry.objects.filter(
+        **base_filter,
+        recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
+        entry_date__gte=year_start,
+        entry_date__lte=year_end,
+    ).exclude(capitalized_as__isnull=False)
+
+    by_category: dict[str, Decimal] = {}
+    for row in non_recurring_qs.values("management_category").annotate(
+        total=Sum("amount")
+    ):
+        by_category[row["management_category"]] = row["total"] or Decimal(0)
+
+    # ── Recurring: entries that overlap the year ───────────────────────────
+    recurring_qs = (
+        PropertyLedgerEntry.objects.filter(**base_filter)
+        .exclude(recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE)
+        .exclude(capitalized_as__isnull=False)
+        .filter(
+            entry_date__lte=year_end,
+        )
+        .filter(
+            Q(recurrence_end_date__gte=year_start) | Q(recurrence_end_date__isnull=True)
+        )
+        .prefetch_related("exceptions")
+    )
+
+    for entry in recurring_qs:
+        occurrences = entry.generate_occurrences(end_date=year_end)
+        for occ in occurrences:
+            if occ["date"] < year_start:
+                continue
+            cat = entry.management_category
+            by_category[cat] = by_category.get(cat, Decimal(0)) + occ["amount"].amount
+
+    # ── Fallback: use loan amortization entries for loan_interest ─────────
+    # When no manual loan_interest ledger entries exist for the year, sum the
+    # interest column from PropertyLoanAmortizationEntry for all property loans.
+    loan_interest_key = str(ManagementCategory.LOAN_INTEREST)
+    if not by_category.get(loan_interest_key):
+        loans = PropertyLoan.objects.filter(property_id=property_id)
+        amort_interest_total = Decimal(0)
+        for loan in loans:
+            result = PropertyLoanAmortizationEntry.objects.filter(
+                loan=loan,
+                date__gte=year_start,
+                date__lte=year_end,
+            ).aggregate(total=Sum("interest"))
+            amort_interest_total += result["total"] or Decimal(0)
+        if amort_interest_total > Decimal(0):
+            by_category[loan_interest_key] = amort_interest_total
+
+    return by_category
+
+
+# ─── Database loaders ─────────────────────────────────────────────────────────
+
+
+def _resolve_properties(properties: Sequence | int) -> list:
+    """Accept Property instances, ids or a single id and return Property objects."""
+    from property.models import Property
+
+    if isinstance(properties, int):
+        properties = [properties]
+    ids = [p if isinstance(p, int) else p.pk for p in properties]
+    found = {p.pk: p for p in Property.objects.filter(pk__in=ids)}
+    return [found[i] for i in ids if i in found]
+
+
+def get_activity_start_date(properties: Sequence) -> datetime.date | None:
+    """Return the first day of the LMNP activity across ``properties``."""
+    starts = [p.amortization_start_date for p in properties if p.buying_date]
+    return min(starts) if starts else None
+
+
+def get_first_fiscal_year(properties: Sequence, assets: Sequence) -> int | None:
+    """Return the first fiscal year of the activity, or None without any data."""
+    years = [p.amortization_start_date.year for p in properties if p.buying_date] + [
+        a.beginning_date.year for a in assets if a.beginning_date
+    ]
+    return min(years) if years else None
+
+
+def _total_dotation(assets: Iterable, year: int) -> Decimal:
+    return sum((a.get_annual_amortization(year) for a in assets), ZERO)
+
+
+def get_property_year_lines(
+    property_id: int, year: int, assets: Sequence | None = None
+) -> dict:
+    """Return the 2033-B "A - résultat comptable" lines of one property for a year.
+
+    This is the per-property detail shown on the dashboard; the fiscal layer
+    (art. 39 C cap, deferred amortization, deficits) is computed once for the
+    whole activity by ``compute_activity``.
+
+    Keys: year, recettes (218 + 209), charges (242 + 244 + 294),
+    charges_exploitation (242 + 244), charges_financieres (294),
+    accounting_fees, result (recettes − charges), amortization_total (254),
+    cerfa_310 (result − 254), by_category, by_line, by_line_categories.
+    """
+    from property.models import AmortizationAsset
+
+    if assets is None:
+        assets = list(AmortizationAsset.objects.filter(property_id=property_id))
+
+    by_category = get_category_totals_for_year(property_id, year)
+
+    recettes = charges = charges_exploitation = charges_financieres = ZERO
+    accounting_fees = ZERO
     by_line: dict[str, Decimal] = {}
     for cat, total in by_category.items():
         try:
             cat_enum = ManagementCategory(cat)
         except ValueError:
             continue
-        line = cat_enum.lmnp_line
-        if line:
-            by_line[line] = by_line.get(line, Decimal(0)) + total
+        if cat_enum.lmnp_line:
+            by_line[cat_enum.lmnp_line] = by_line.get(cat_enum.lmnp_line, ZERO) + total
+        if cat_enum.lmnp_section == "recettes":
+            recettes += total
+        elif cat_enum.lmnp_section == "charges":
+            charges += total
+            if cat_enum.lmnp_line == "294":
+                charges_financieres += total
+            else:
+                charges_exploitation += total
+            if cat_enum.value in CAP_39C_EXCLUDED_CATEGORIES:
+                accounting_fees += total
 
-    # Line 243: CFE sub-total (subset of line 244)
-    cfe_total = by_category.get("cfe", Decimal(0))
-    if cfe_total > Decimal(0):
+    cfe_total = by_category.get(str(ManagementCategory.CFE), ZERO)
+    if cfe_total > ZERO:
         by_line["243"] = cfe_total
 
-    # Art. 39C: compute deferred balance from prior years
-    deferred_prior = get_deferred_amortization_balance(property_id, year - 1)
-    amortization_total = get_total_amortization(property_id, year)
-    available_amort = amortization_total + deferred_prior
-
-    if result_before_amort <= Decimal(0):
-        # Operating deficit: art. 39C — amortization cannot worsen the deficit
-        amortization_deductible = Decimal(0)
-        amortization_deferred = (
-            amortization_total  # current year dotation fully deferred
-        )
-        deferred_balance = deferred_prior + amortization_total
-        # taxable_result = actual deficit (NOT zero — art. 39C only prevents amort
-        # from creating/deepening a deficit, but charges can still cause one)
-        taxable_result = result_before_amort
-    else:
-        amortization_deductible = min(available_amort, result_before_amort)
-        amortization_deferred = available_amort - amortization_deductible
-        deferred_balance = amortization_deferred
-        taxable_result = result_before_amort - amortization_deductible
-
-    # Cerfa 2033-B line 254: dotation déduite
-    if amortization_deductible > Decimal(0):
-        by_line["254"] = amortization_deductible
-
-    # Cerfa 2033-B computed lines
-    cerfa_310 = result_before_amort - amortization_total  # résultat comptable
-    # Réintégration amortissements excédentaires (art. 39-4 CGI):
-    # when the accounting result is a loss, reintegrate abs(cerfa_310) to cap at zero;
-    # when the result is a gain, reintegrate the full dotation.
-    if cerfa_310 < Decimal(0):
-        cerfa_318 = abs(cerfa_310)
-    else:
-        cerfa_318 = amortization_total
+    amortization_total = _total_dotation(assets, year)
+    result = recettes - charges
+    if amortization_total > ZERO:
+        by_line["254"] = amortization_total
 
     return {
         "year": year,
@@ -179,84 +543,134 @@ def get_lmnp_summary(property_id: int, year: int) -> dict:
         "charges": charges,
         "charges_exploitation": charges_exploitation,
         "charges_financieres": charges_financieres,
-        "result": result_before_amort,
+        "accounting_fees": accounting_fees,
+        "result": result,
         "amortization_total": amortization_total,
-        "deferred_prior": deferred_prior,
-        "amortization_deductible": amortization_deductible,
-        "amortization_deferred": amortization_deferred,
-        "deferred_balance": deferred_balance,
-        "taxable_result": taxable_result,
+        "cerfa_310": result - amortization_total,
         "by_category": by_category,
         "by_line": by_line,
         "by_line_categories": _build_by_line_categories(by_category),
-        "cerfa_310": cerfa_310,
-        "cerfa_318": cerfa_318,
     }
 
 
-# ─── Fiscal deficit carryforward helpers ──────────────────────────────────────
+def build_year_inputs(
+    year: int, lines: Iterable[dict], activity_start: datetime.date | None
+) -> LmnpYearInputs:
+    """Sum the per-property lines of a year into the engine inputs."""
+    lines = list(lines)
 
+    def total(key: str) -> Decimal:
+        return sum((line[key] for line in lines), ZERO)
 
-def get_fiscal_deficit_history(property_id: int, year: int) -> dict[int, Decimal]:
-    """
-    Return remaining LMNP fiscal deficit by origin year at end of ``year``.
+    def line_total(number: str) -> Decimal:
+        return sum((line["by_line"].get(number, ZERO) for line in lines), ZERO)
 
-    LMNP fiscal deficits (result_before_amort - amort_deductible < 0) are
-    reportable against future LMNP profits for up to 10 years (art. 156 CGI).
-    Profits reduce the oldest outstanding deficits first.
-
-    Returns:
-        dict mapping origin_year → remaining_deficit_amount (> 0).
-    """
-    from property.models import AmortizationAsset, Property
-
-    # Determine start year from first asset or property buying_date
-    qs = AmortizationAsset.objects.filter(property_id=property_id).order_by(
-        "beginning_date"
+    return LmnpYearInputs(
+        year=year,
+        revenue_218=line_total("218"),
+        other_income_209=line_total("209"),
+        external_charges_242=line_total("242"),
+        accounting_fees=total("accounting_fees"),
+        taxes_244=line_total("244"),
+        cfe_243=line_total("243"),
+        financial_charges_294=line_total("294"),
+        depreciation_254=total("amortization_total"),
+        activity_start=activity_start,
     )
-    if qs.exists():
-        first_year = qs.first().beginning_date.year  # ty: ignore[unresolved-attribute]
-    else:
-        try:
-            prop = Property.objects.get(pk=property_id)
-            first_year = prop.buying_date.year if prop.buying_date else year
-        except Property.DoesNotExist:
-            return {}
-
-    if year < first_year:
-        return {}
-
-    deficits: dict[int, Decimal] = {}
-
-    for y in range(first_year, year + 1):
-        # Remove expired deficits (older than 10 years: oy < y - 10 means expired)
-        # A deficit from year oy is reportable in years oy+1 to oy+10 inclusive.
-        cutoff = y - 10
-        deficits = {oy: d for oy, d in deficits.items() if oy >= cutoff}
-
-        # Get fiscal result before deficit imputation (after art. 39C amort deferral)
-        summary = get_lmnp_summary(property_id, y)
-        fiscal_result = summary["taxable_result"]
-
-        if fiscal_result < Decimal(0):
-            deficits[y] = abs(fiscal_result)
-        elif fiscal_result > Decimal(0):
-            # Apply oldest deficits first
-            profit_remaining = fiscal_result
-            for deficit_year in sorted(deficits.keys()):
-                if profit_remaining <= Decimal(0):
-                    break
-                use = min(deficits[deficit_year], profit_remaining)
-                deficits[deficit_year] -= use
-                profit_remaining -= use
-            deficits = {oy: d for oy, d in deficits.items() if d > Decimal(0)}
-
-    return deficits
 
 
-def get_fiscal_deficit_carryforward(property_id: int, year: int) -> Decimal:
-    """Return the total cumulative LMNP fiscal deficit carryforward at end of ``year``."""
-    return sum(get_fiscal_deficit_history(property_id, year).values(), Decimal(0))
+def compute_activity(properties: Sequence | int, year: int) -> list[LmnpYearResult]:
+    """Compute every fiscal year of the LMNP activity, from its start to ``year``.
+
+    The activity groups all the given properties: French tax law knows one
+    LMNP activity per taxpayer (one 2033-B, one 2042-C PRO), so the art. 39 C
+    cap and the deficits are tracked globally, not per property.
+    Returns an empty list when ``year`` precedes the start of the activity.
+    """
+    from property.models import AmortizationAsset
+
+    props = _resolve_properties(properties)
+    if not props:
+        return []
+    assets_by_property: dict[int, list] = {p.pk: [] for p in props}
+    for asset in AmortizationAsset.objects.filter(property_id__in=assets_by_property):
+        assets_by_property[asset.property_id].append(asset)  # ty: ignore[unresolved-attribute]
+    all_assets = [a for assets in assets_by_property.values() for a in assets]
+
+    first_year = get_first_fiscal_year(props, all_assets)
+    if first_year is None or year < first_year:
+        return []
+    activity_start = get_activity_start_date(props)
+
+    inputs = [
+        build_year_inputs(
+            y,
+            (get_property_year_lines(p.pk, y, assets_by_property[p.pk]) for p in props),
+            activity_start,
+        )
+        for y in range(first_year, year + 1)
+    ]
+    return compute_years(inputs)
+
+
+def compute_activity_year(properties: Sequence | int, year: int) -> LmnpYearResult:
+    """Return the ``LmnpYearResult`` of ``year`` (all zeros before the activity)."""
+    results = compute_activity(properties, year)
+    if results:
+        return results[-1]
+    props = _resolve_properties(properties)
+    empty = LmnpYearInputs(year=year, activity_start=get_activity_start_date(props))
+    return compute_year(empty)[0]
+
+
+# ─── Backward-compatible wrappers ─────────────────────────────────────────────
+
+
+def get_lmnp_summary(property_id: int, year: int) -> dict:
+    """Return the annual LMNP summary of one property, as if it were alone.
+
+    Combines ``get_property_year_lines`` with the fiscal layer computed on the
+    property alone. Legacy keys kept for the tests and the per-property views:
+    taxable_result (352), amortization_deductible, amortization_deferred (318),
+    deferred_prior (deferred stock at start), deferred_balance (at end),
+    cerfa_318, cerfa_350, cerfa_352, cerfa_370.
+    """
+    summary = get_property_year_lines(property_id, year)
+    fiscal = compute_activity_year(property_id, year)
+    summary.update(
+        {
+            "plafond_39c": fiscal.depreciation_cap_39c,
+            "amortization_deductible": fiscal.depreciation_deducted,
+            "amortization_deferred": fiscal.depreciation_reintegrated_318,
+            "deferred_prior": fiscal.deferred_depreciation_start,
+            "deferred_balance": fiscal.deferred_depreciation_end,
+            "cerfa_318": fiscal.depreciation_reintegrated_318,
+            "cerfa_350": fiscal.deferred_depreciation_used_350,
+            "cerfa_352": fiscal.fiscal_result_352,
+            "cerfa_370": fiscal.fiscal_result_370,
+            "taxable_result": fiscal.fiscal_result_352,
+        }
+    )
+    return summary
+
+
+def get_deferred_amortization_balance(properties: Sequence | int, year: int) -> Decimal:
+    """Return the deferred amortization (art. 39 C) still to deduct at the end of ``year``."""
+    results = compute_activity(properties, year)
+    return results[-1].deferred_depreciation_end if results else ZERO
+
+
+def get_fiscal_deficit_history(
+    properties: Sequence | int, year: int
+) -> dict[int, Decimal]:
+    """Return the deficits still reportable at the end of ``year``, by year of origin."""
+    results = compute_activity(properties, year)
+    return dict(results[-1].deficits_end) if results else {}
+
+
+def get_fiscal_deficit_carryforward(properties: Sequence | int, year: int) -> Decimal:
+    """Return the total deficit still reportable at the end of ``year``."""
+    return sum(get_fiscal_deficit_history(properties, year).values(), ZERO)
 
 
 # ─── Amortization helpers ────────────────────────────────────────────────────
@@ -455,155 +869,7 @@ def get_total_amortization(property_id: int, year: int) -> Decimal:
     return sum((row["annual_dotation"] for row in table), Decimal(0))
 
 
-def get_deferred_amortization_balance(property_id: int, year: int) -> Decimal:
-    """
-    Compute the cumulative deferred amortization balance at the end of `year`.
-
-    Deferred amortization from prior years is used in subsequent years when the
-    operating result (recettes - charges) allows it (art. 39C CGI).
-
-    This function iterates from the first acquisition year of any asset up to
-    `year`, applying the art. 39C rule each year to derive the carryforward.
-    """
-    from property.models import AmortizationAsset
-
-    earliest_qs = AmortizationAsset.objects.filter(property_id=property_id).order_by(
-        "beginning_date"
-    )
-    if not earliest_qs.exists():
-        return Decimal(0)
-
-    first_year = earliest_qs.first().beginning_date.year  # ty: ignore[unresolved-attribute]
-    if year < first_year:
-        return Decimal(0)
-
-    deferred_balance = Decimal(0)
-
-    for y in range(first_year, year + 1):
-        summary = _get_lmnp_summary_raw(property_id, y)
-        result_before_amort = summary["recettes"] - summary["charges"]
-        total_dotation = get_total_amortization(property_id, y)
-        available_amort = total_dotation + deferred_balance
-
-        if result_before_amort <= Decimal(0):
-            # Operating deficit: cannot deduct any amortization
-            deferred_balance += total_dotation
-        else:
-            deductible = min(available_amort, result_before_amort)
-            deferred_balance = available_amort - deductible
-
-    return max(Decimal(0), deferred_balance)
-
-
-def _get_category_totals_for_year(property_id: int, year: int) -> dict[str, Decimal]:
-    """
-    Return per-management-category totals for ``property_id`` and ``year``.
-
-    Handles recurring entries correctly: a recurring entry whose start date is
-    before ``year`` (or whose occurrences span multiple years) is expanded and
-    each occurrence falling within [year-01-01, year-12-31] is counted.
-
-    For ``loan_interest`` and ``loan_insurance`` categories, ledger entries are
-    used when present. When no manual ``loan_interest`` ledger entries exist for
-    the year, the interest column of the loan amortization table is used instead
-    (summed over all loans that have amortization entries for that year).
-    """
-    from property.models import (
-        PropertyLedgerEntry,
-        PropertyLoan,
-        PropertyLoanAmortizationEntry,
-    )
-
-    year_start = datetime.date(year, 1, 1)
-    year_end = datetime.date(year, 12, 31)
-    base_filter = {"property_id": property_id, "amount_currency": "EUR"}
-
-    # ── Non-recurring: entry_date within the year ──────────────────────────
-    non_recurring_qs = PropertyLedgerEntry.objects.filter(
-        **base_filter,
-        recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE,
-        entry_date__gte=year_start,
-        entry_date__lte=year_end,
-    ).exclude(capitalized_as__isnull=False)
-
-    by_category: dict[str, Decimal] = {}
-    for row in non_recurring_qs.values("management_category").annotate(
-        total=Sum("amount")
-    ):
-        by_category[row["management_category"]] = row["total"] or Decimal(0)
-
-    # ── Recurring: entries that overlap the year ───────────────────────────
-    recurring_qs = (
-        PropertyLedgerEntry.objects.filter(**base_filter)
-        .exclude(recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE)
-        .exclude(capitalized_as__isnull=False)
-        .filter(
-            entry_date__lte=year_end,
-        )
-        .filter(
-            Q(recurrence_end_date__gte=year_start) | Q(recurrence_end_date__isnull=True)
-        )
-        .prefetch_related("exceptions")
-    )
-
-    for entry in recurring_qs:
-        occurrences = entry.generate_occurrences(end_date=year_end)
-        for occ in occurrences:
-            if occ["date"] < year_start:
-                continue
-            cat = entry.management_category
-            by_category[cat] = by_category.get(cat, Decimal(0)) + occ["amount"].amount
-
-    # ── Fallback: use loan amortization entries for loan_interest ─────────
-    # When no manual loan_interest ledger entries exist for the year, sum the
-    # interest column from PropertyLoanAmortizationEntry for all property loans.
-    loan_interest_key = str(ManagementCategory.LOAN_INTEREST)
-    if not by_category.get(loan_interest_key):
-        loans = PropertyLoan.objects.filter(property_id=property_id)
-        amort_interest_total = Decimal(0)
-        for loan in loans:
-            result = PropertyLoanAmortizationEntry.objects.filter(
-                loan=loan,
-                date__gte=year_start,
-                date__lte=year_end,
-            ).aggregate(total=Sum("interest"))
-            amort_interest_total += result["total"] or Decimal(0)
-        if amort_interest_total > Decimal(0):
-            by_category[loan_interest_key] = amort_interest_total
-
-    return by_category
-
-
-def _get_lmnp_summary_raw(property_id: int, year: int) -> dict:
-    """Internal: return recettes and charges from ledger entries (no amortization)."""
-    by_category = _get_category_totals_for_year(property_id, year)
-
-    recettes = Decimal(0)
-    charges = Decimal(0)
-    charges_exploitation = Decimal(0)
-    charges_financieres = Decimal(0)
-    for cat, total in by_category.items():
-        try:
-            cat_enum = ManagementCategory(cat)
-        except ValueError:
-            continue
-        if cat_enum.lmnp_section == "recettes":
-            recettes += total
-        elif cat_enum.lmnp_section == "charges":
-            charges += total
-            if cat_enum.lmnp_line == "294":
-                charges_financieres += total
-            else:
-                charges_exploitation += total
-    return {
-        "recettes": recettes,
-        "charges": charges,
-        "charges_exploitation": charges_exploitation,
-        "charges_financieres": charges_financieres,
-    }
-
-
-# ─── Multi-property aggregation (liasse fiscale complète) ─────────────────────
+# ─── 2033-A / 2033-C ──────────────────────────────────────────────────────────
 
 
 def get_bilan_data(property_id: int, year: int) -> dict:
@@ -615,7 +881,7 @@ def get_bilan_data(property_id: int, year: int) -> dict:
       - amortissements_cumules: sum of cumulative amortizations up to year
       - valeur_nette_comptable: brut - cumulé
       - emprunts: remaining loan balance at year-end
-      - resultat_exercice: taxable_result from LMNP summary
+      - resultat_exercice: résultat comptable (2033-B 310) of the property
       - capital_individuel: net equity minus current result (ligne 120)
       - total_capitaux_propres: valeur_nette_comptable - emprunts (balance sheet equity)
       - cout_revient_acquisitions: gross value of assets acquired during the year
@@ -635,7 +901,7 @@ def get_bilan_data(property_id: int, year: int) -> dict:
         (loan.remaining_balance(year_end).amount for loan in loans), Decimal(0)
     )
 
-    summary = get_lmnp_summary(property_id, year)
+    summary = get_property_year_lines(property_id, year, list(assets))
 
     # On the 2033-A balance sheet the Passif must equal the Actif net.
     # Actif net = immobilisations brutes − amortissements cumulés = brut − cumul
@@ -769,207 +1035,164 @@ def get_accounting_data(properties: list, year: int) -> dict:
     """
     Aggregate the full LMNP liasse fiscale for a list of properties.
 
-    Returns a dict with keys for each cerfa form:
-      - form_2033b: 2033-B Compte de résultat (aggregated + per-property breakdown)
-      - form_2033a: 2033-A Bilan simplifié (aggregated)
-      - form_2033c: 2033-C Immobilisations (per-property)
-      - form_2031: 2031 résultat BIC summary
-      - form_2042c: 2042-C PRO cases 5NK/5NZ + deficit carryforward (deficit_cases_list)
+    Returns a dict with one key per cerfa form:
+      - form_2033b: compte de résultat (activity totals + per-property lines)
+      - form_2033a: bilan simplifié
+      - form_2033c: immobilisations et amortissements
+      - form_2031: résultat BIC (2031 / 2031-bis)
+      - form_suiv39c: deferred amortization, one row per fiscal year
+      - form_2042c: 2042-C PRO boxes 5NA / 5NY / 5CD / 5GA…5GJ
+      - years: every ``LmnpYearResult`` of the activity as dicts (oldest first)
     """
-    # ── 2033-B: aggregate by cerfa line ──────────────────────────────────────
-    agg_recettes = Decimal(0)
-    agg_charges_exploitation = Decimal(0)
-    agg_charges_financieres = Decimal(0)
-    agg_amort_total = Decimal(0)
-    agg_amort_deductible = Decimal(0)
-    agg_amort_deferred = Decimal(0)
-    agg_deferred_prior = Decimal(0)
-    agg_taxable_result = Decimal(0)
-    agg_cerfa_310 = Decimal(0)
-    agg_cerfa_318 = Decimal(0)
+    from property.models import AmortizationAsset
 
-    # Aggregated cerfa line amounts
+    years = compute_activity(properties, year)
+    current = compute_activity_year(properties, year) if not years else years[-1]
+
+    assets_by_property: dict[int, list] = {p.pk: [] for p in properties}
+    for asset in AmortizationAsset.objects.filter(property_id__in=assets_by_property):
+        assets_by_property[asset.property_id].append(asset)  # ty: ignore[unresolved-attribute]
+
+    per_prop_summaries = [
+        {
+            "property": prop,
+            "summary": get_property_year_lines(
+                prop.pk, year, assets_by_property[prop.pk]
+            ),
+        }
+        for prop in properties
+    ]
     agg_by_line: dict[str, Decimal] = {}
+    for item in per_prop_summaries:
+        for line, amount in item["summary"]["by_line"].items():
+            agg_by_line[line] = agg_by_line.get(line, ZERO) + amount
 
-    # Per-property summaries for other forms
-    per_prop_summaries: list[dict] = []
-
-    for prop in properties:
-        summary = get_lmnp_summary(prop.pk, year)
-        agg_recettes += summary["recettes"]
-        agg_charges_exploitation += summary["charges_exploitation"]
-        agg_charges_financieres += summary["charges_financieres"]
-        agg_amort_total += summary["amortization_total"]
-        agg_amort_deductible += summary["amortization_deductible"]
-        agg_amort_deferred += summary["amortization_deferred"]
-        agg_deferred_prior += summary["deferred_prior"]
-        agg_taxable_result += summary["taxable_result"]
-        agg_cerfa_310 += summary["cerfa_310"]
-        agg_cerfa_318 += summary["cerfa_318"]
-
-        for line, amount in summary["by_line"].items():
-            agg_by_line[line] = agg_by_line.get(line, Decimal(0)) + amount
-        per_prop_summaries.append({"property": prop, "summary": summary})
-
-    # Cerfa 2033-B line 352: résultat fiscal avant déficits = max(0, taxable_result)
-    agg_cerfa_352 = max(Decimal(0), agg_taxable_result)
-    # Cerfa 2033-B line 370: résultat fiscal final (after deficit imputation, always >= 0)
-    # Computed from 2042-C PRO data below
-
-    _agg_impots_taxes = agg_by_line.get("244", Decimal(0))
+    # ── 2033-B ────────────────────────────────────────────────────────────────
     form_2033b = {
-        "recettes": agg_recettes,
-        "autres_charges_externes": agg_charges_exploitation - _agg_impots_taxes,
-        "charges_financieres": agg_charges_financieres,
-        "impots_taxes": _agg_impots_taxes,
-        "cfe": agg_by_line.get("243", Decimal(0)),
-        "amortization_total": agg_amort_total,
-        "deferred_prior": agg_deferred_prior,
-        "amortization_deductible": agg_amort_deductible,
-        "amortization_deferred": agg_amort_deferred,
-        "taxable_result": agg_taxable_result,
-        "cerfa_310": agg_cerfa_310,
-        "cerfa_318": agg_cerfa_318,
-        "cerfa_352": agg_cerfa_352,
+        "recettes": current.revenue_218 + current.other_income_209,
+        "production_vendue_218": current.revenue_218,
+        "autres_produits_209": current.other_income_209,
+        "autres_charges_externes": current.external_charges_242,
+        "impots_taxes": current.taxes_244,
+        "cfe": current.cfe_243,
+        "amortization_total": current.depreciation_254,
+        "resultat_exploitation_270": current.operating_result_270,
+        "charges_financieres": current.financial_charges_294,
+        "cerfa_310": current.accounting_result_310,
+        "plafond_39c": current.depreciation_cap_39c,
+        "amortization_deductible": current.depreciation_deducted,
+        "cerfa_318": current.depreciation_reintegrated_318,
+        "amortization_deferred": current.depreciation_reintegrated_318,
+        "deferred_prior": current.deferred_depreciation_start,
+        "cerfa_350": current.deferred_depreciation_used_350,
+        "deferred_balance": current.deferred_depreciation_end,
+        "cerfa_352": current.fiscal_result_352,
+        "taxable_result": current.fiscal_result_352,
+        "deficits_anterieurs": sum(current.prior_deficits_start.values(), ZERO),
+        "cerfa_360": current.prior_deficits_used_360,
+        "cerfa_370": current.fiscal_result_370,
         "by_line": agg_by_line,
         "per_prop": per_prop_summaries,
     }
 
-    # ── 2033-A: aggregate bilan ───────────────────────────────────────────────
-    agg_brut = Decimal(0)
-    agg_cumul = Decimal(0)
-    agg_emprunts = Decimal(0)
-    agg_capital = Decimal(0)
-    agg_capitaux_propres = Decimal(0)
-    agg_cout_revient = Decimal(0)
-    per_prop_bilan: list[dict] = []
-
-    for prop in properties:
-        bilan = get_bilan_data(prop.pk, year)
-        agg_brut += bilan["immobilisations_brutes"]
-        agg_cumul += bilan["amortissements_cumules"]
-        agg_emprunts += bilan["emprunts"]
-        agg_capital += bilan["capital_individuel"]
-        agg_capitaux_propres += bilan["total_capitaux_propres"]
-        agg_cout_revient += bilan["cout_revient_acquisitions"]
-        per_prop_bilan.append({"property": prop, "bilan": bilan})
-
+    # ── 2033-A ────────────────────────────────────────────────────────────────
+    per_prop_bilan = [
+        {"property": prop, "bilan": get_bilan_data(prop.pk, year)}
+        for prop in properties
+    ]
+    bilan_keys = (
+        "immobilisations_brutes",
+        "amortissements_cumules",
+        "emprunts",
+        "capital_individuel",
+        "total_capitaux_propres",
+        "cout_revient_acquisitions",
+    )
     form_2033a = {
-        "immobilisations_brutes": agg_brut,
-        "amortissements_cumules": agg_cumul,
-        "valeur_nette_comptable": agg_brut - agg_cumul,
-        "emprunts": agg_emprunts,
-        "resultat_exercice": agg_cerfa_310,  # 2033-A ligne 136: résultat COMPTABLE
-        "capital_individuel": agg_capital,
-        "total_capitaux_propres": agg_capitaux_propres,
-        "cout_revient_acquisitions": agg_cout_revient,
-        "charges_constatees_avance": Decimal(0),  # actif circulant ligne 092
-        "per_prop": per_prop_bilan,
+        key: sum((item["bilan"][key] for item in per_prop_bilan), ZERO)
+        for key in bilan_keys
     }
+    form_2033a["valeur_nette_comptable"] = (
+        form_2033a["immobilisations_brutes"] - form_2033a["amortissements_cumules"]
+    )
+    form_2033a["resultat_exercice"] = current.accounting_result_310  # ligne 136
+    form_2033a["charges_constatees_avance"] = ZERO  # ligne 092
+    form_2033a["per_prop"] = per_prop_bilan
 
-    # ── 2033-C: immobilisation movements per property ─────────────────────────
-    _zero_c = Decimal(0)
-    categories_c = ["terrains", "constructions", "installations", "autres"]
-    agg_by_cerfa: dict[str, dict] = {
+    # ── 2033-C ────────────────────────────────────────────────────────────────
+    movement_keys = (
+        "value_start",
+        "acquisitions",
+        "diminutions",
+        "value_end",
+        "amort_start",
+        "dotation",
+        "amort_end",
+    )
+    categories_c = ("terrains", "constructions", "installations", "autres")
+    per_prop_immobilisations = [
+        {"property": prop, "movements": get_immobilisation_movements(prop.pk, year)}
+        for prop in properties
+    ]
+    agg_by_cerfa = {
         cat: {
-            "value_start": _zero_c,
-            "acquisitions": _zero_c,
-            "diminutions": _zero_c,
-            "value_end": _zero_c,
-            "amort_start": _zero_c,
-            "dotation": _zero_c,
-            "amort_end": _zero_c,
+            key: sum(
+                (
+                    item["movements"]["by_cerfa_category"][cat].get(key, ZERO)
+                    for item in per_prop_immobilisations
+                ),
+                ZERO,
+            )
+            for key in movement_keys
         }
         for cat in categories_c
     }
-    per_prop_immobilisations: list[dict] = []
-    for prop in properties:
-        movements = get_immobilisation_movements(prop.pk, year)
-        per_prop_immobilisations.append({"property": prop, "movements": movements})
-        for cat in categories_c:
-            row = movements["by_cerfa_category"][cat]
-            agg_by_cerfa[cat]["value_start"] += row["value_start"]
-            agg_by_cerfa[cat]["acquisitions"] += row["acquisitions"]
-            agg_by_cerfa[cat]["diminutions"] += row.get("diminutions", _zero_c)
-            agg_by_cerfa[cat]["value_end"] += row["value_end"]
-            agg_by_cerfa[cat]["amort_start"] += row["amort_start"]
-            agg_by_cerfa[cat]["dotation"] += row["dotation"]
-            agg_by_cerfa[cat]["amort_end"] += row["amort_end"]
-
-    agg_totals_c = {
-        "value_start": sum(r["value_start"] for r in agg_by_cerfa.values()),
-        "acquisitions": sum(r["acquisitions"] for r in agg_by_cerfa.values()),
-        "diminutions": sum(r["diminutions"] for r in agg_by_cerfa.values()),
-        "value_end": sum(r["value_end"] for r in agg_by_cerfa.values()),
-        "amort_start": sum(r["amort_start"] for r in agg_by_cerfa.values()),
-        "dotation": sum(r["dotation"] for r in agg_by_cerfa.values()),
-        "amort_end": sum(r["amort_end"] for r in agg_by_cerfa.values()),
-    }
-
     form_2033c = {
         "per_prop": per_prop_immobilisations,
         "by_cerfa_category": agg_by_cerfa,
-        "totals": agg_totals_c,
+        "totals": {
+            key: sum((row[key] for row in agg_by_cerfa.values()), ZERO)
+            for key in movement_keys
+        },
     }
 
-    # ── 2031: BIC result summary ──────────────────────────────────────────────
-    form_2031 = {}
+    # ── 2031 / 2031-bis ───────────────────────────────────────────────────────
+    form_2031 = {
+        "resultat_fiscal_352": current.fiscal_result_352,
+        "resultat_fiscal_370": current.fiscal_result_370,
+        "benefice": current.case_5na,
+        "deficit": current.case_5ny,
+    }
+
+    # ── SUIV39C ───────────────────────────────────────────────────────────────
+    form_suiv39c = {
+        "rows": [
+            {
+                "year": r.year,
+                "deferred_start": r.deferred_depreciation_start,
+                "dotation": r.depreciation_254,
+                "deducted": r.depreciation_deducted,
+                "reintegrated_318": r.depreciation_reintegrated_318,
+                "used_350": r.deferred_depreciation_used_350,
+                "deferred_end": r.deferred_depreciation_end,
+            }
+            for r in years
+        ],
+        "deferred_end": current.deferred_depreciation_end,
+    }
 
     # ── 2042-C PRO ────────────────────────────────────────────────────────────
-    # Aggregate deficit carryforward across all properties
-    agg_deficit_history: dict[int, Decimal] = {}
-    for prop in properties:
-        prop_history = get_fiscal_deficit_history(prop.pk, year)
-        for origin_year, deficit in prop_history.items():
-            agg_deficit_history[origin_year] = (
-                agg_deficit_history.get(origin_year, Decimal(0)) + deficit
-            )
-
-    # Total available deficit carryforward
-    total_deficit_carryforward = sum(agg_deficit_history.values(), Decimal(0))
-
-    if agg_taxable_result >= Decimal(0):
-        # Benefice: impute prior deficits
-        case_5nk = max(Decimal(0), agg_taxable_result - total_deficit_carryforward)
-        case_5nz = Decimal(0)
-    else:
-        # Deficit year
-        case_5nk = Decimal(0)
-        case_5nz = abs(agg_taxable_result)
-
-    # Cerfa 2033-B line 370: result after deficit imputation
-    agg_cerfa_370 = case_5nk
-
-    form_2033b["cerfa_370"] = agg_cerfa_370
-
-    case_labels = ["5GJ", "5GI", "5GH", "5GG", "5GF", "5GE", "5GD", "5GC", "5GB", "5GA"]
-
-    # Duration of exercise in months (standard = 12)
-    today = datetime.date.today()
-    if today.year == year:
-        exercise_months = today.month
-    else:
-        exercise_months = 12
-
-    deficit_cases_list = [
-        {
-            "label": label,
-            "origin_year": year - i,
-            "amount": agg_deficit_history.get(year - i, Decimal(0)),
-        }
-        for i, label in enumerate(case_labels, start=1)
-    ]
-
     form_2042c = {
-        "case_5nk": case_5nk,  # résultat bénéficiaire après imputation déficits (non-adhérent CGA)
-        "case_5na": case_5nk,  # résultat bénéficiaire après imputation déficits (adhérent CGA/OGA)
-        "case_5nz": case_5nz,  # résultat déficitaire de l'année (non-adhérent CGA)
-        "case_5ny": case_5nz,  # résultat déficitaire de l'année (adhérent CGA/OGA)
-        "deficit_carryforward": total_deficit_carryforward,
-        "deficit_history": agg_deficit_history,
-        "deficit_cases_list": deficit_cases_list,
-        "case_5cd": exercise_months,
-        "is_benefice": agg_taxable_result >= Decimal(0),
+        "case_5na": current.case_5na,
+        "case_5ny": current.case_5ny,
+        "case_5cd": current.case_5cd,
+        "deficit_carryforward": current.deficit_carryforward,
+        "deficit_history": dict(current.deficits_end),
+        "deficit_cases_list": [
+            {"label": box, "origin_year": origin, "amount": amount}
+            for box, origin, amount in current.deficit_cases
+        ],
+        "is_benefice": current.is_profit,
     }
 
     return {
@@ -977,7 +1200,9 @@ def get_accounting_data(properties: list, year: int) -> dict:
         "form_2033a": form_2033a,
         "form_2033c": form_2033c,
         "form_2031": form_2031,
+        "form_suiv39c": form_suiv39c,
         "form_2042c": form_2042c,
+        "years": [r.as_dict() for r in years],
     }
 
 

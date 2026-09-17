@@ -574,7 +574,7 @@ class TestGetBilanData:
 
 @pytest.mark.django_db
 class TestAmortizationEntryFallbackForLoanInterest:
-    """_get_category_totals_for_year should use amortization entries when no manual loan_interest entries exist."""
+    """get_category_totals_for_year should use amortization entries when no manual loan_interest entries exist."""
 
     def _make_property(self, name="Amort Fallback Prop"):
         return Property.objects.create(
@@ -597,7 +597,7 @@ class TestAmortizationEntryFallbackForLoanInterest:
 
     def test_uses_amortization_entries_when_no_ledger_entries(self):
         """When no loan_interest ledger entries exist, the amortization table interest is used."""
-        from property.services.tax_lmnp import _get_category_totals_for_year
+        from property.services.tax_lmnp import get_category_totals_for_year
 
         prop = self._make_property()
         loan = self._make_loan(prop)
@@ -618,13 +618,13 @@ class TestAmortizationEntryFallbackForLoanInterest:
             remaining_balance_amount=Money(Decimal(148998), "EUR"),
         )
 
-        totals = _get_category_totals_for_year(prop.pk, 2022)
+        totals = get_category_totals_for_year(prop.pk, 2022)
         assert "loan_interest" in totals
         assert totals["loan_interest"] == Decimal("437.50") + Decimal("435.50")
 
     def test_manual_ledger_entries_take_precedence(self):
         """When manual loan_interest ledger entries exist, they override amortization entries."""
-        from property.services.tax_lmnp import _get_category_totals_for_year
+        from property.services.tax_lmnp import get_category_totals_for_year
 
         prop = self._make_property("Precedence Prop")
         loan = self._make_loan(prop)
@@ -648,24 +648,24 @@ class TestAmortizationEntryFallbackForLoanInterest:
             remaining_balance_amount=Money(Decimal(149500), "EUR"),
         )
 
-        totals = _get_category_totals_for_year(prop.pk, 2022)
+        totals = get_category_totals_for_year(prop.pk, 2022)
         # Should use the manual ledger entry (1200), not the amortization entry (437.50)
         assert totals["loan_interest"] == Decimal(1200)
 
     def test_no_amortization_entries_defaults_to_zero(self):
         """When no ledger entries and no amortization entries, loan_interest is absent/zero."""
-        from property.services.tax_lmnp import _get_category_totals_for_year
+        from property.services.tax_lmnp import get_category_totals_for_year
 
         prop = self._make_property("Zero Prop")
         self._make_loan(prop)
 
-        totals = _get_category_totals_for_year(prop.pk, 2022)
+        totals = get_category_totals_for_year(prop.pk, 2022)
         # No amortization entries → loan_interest not in totals (defaults to 0)
         assert totals.get("loan_interest", Decimal(0)) == Decimal(0)
 
     def test_amortization_entries_outside_year_not_counted(self):
         """Only amortization entries within the requested year are summed."""
-        from property.services.tax_lmnp import _get_category_totals_for_year
+        from property.services.tax_lmnp import get_category_totals_for_year
 
         prop = self._make_property("Year Filter Prop")
         loan = self._make_loan(prop)
@@ -687,7 +687,7 @@ class TestAmortizationEntryFallbackForLoanInterest:
             remaining_balance_amount=Money(Decimal(150000), "EUR"),
         )
 
-        totals = _get_category_totals_for_year(prop.pk, 2022)
+        totals = get_category_totals_for_year(prop.pk, 2022)
         assert totals["loan_interest"] == Decimal(300)
 
     def test_lmnp_summary_uses_amortization_interest(self):

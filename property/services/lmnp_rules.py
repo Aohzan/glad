@@ -90,6 +90,11 @@ DEFAULT_COMPONENTS: tuple[dict, ...] = (
     },
 )
 
+# Ledger categories (ManagementCategory values) that are deductible but are not
+# "charges afférentes au bien" for the art. 39 C cap: BOI-BIC-AMT-20-40-10-20 § 70
+# explicitly excludes accounting fees.
+CAP_39C_EXCLUDED_CATEGORIES = frozenset({"accounting_fees"})
+
 # Furniture and works below this amount (excl. VAT) may be expensed instead of
 # being capitalised (tolerance of BOI-BIC-CHG-20-30-10 § 90).
 SMALL_EQUIPMENT_THRESHOLD = Decimal(600)
