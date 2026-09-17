@@ -3,6 +3,12 @@ ARG PYTHON_VERSION=3.14
 ARG UV_VERSION=0.12.15
 
 # ---------------------------------------------------------------------------
+# uv binary (pinned version, pulled via a dedicated stage: BuildKit does not
+# support ARG expansion directly inside COPY --from=<image>:${ARG})
+# ---------------------------------------------------------------------------
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+
+# ---------------------------------------------------------------------------
 # Front-end vendor assets (Bootstrap, ApexCharts, Leaflet, ...)
 # ---------------------------------------------------------------------------
 FROM node:24-slim AS vendors
@@ -15,8 +21,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 # Python virtual environment (runtime dependencies only)
 # ---------------------------------------------------------------------------
 FROM python:${PYTHON_VERSION}-slim-trixie AS builder
-ARG UV_VERSION
-COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /bin/uv
+COPY --from=uv /uv /bin/uv
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON_DOWNLOADS=never \
