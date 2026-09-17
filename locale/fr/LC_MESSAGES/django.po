@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-01 23:36+0200\n"
+"POT-Creation-Date: 2026-09-17 22:31+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -686,11 +686,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:226
+#: glad/settings.py:254
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:227
+#: glad/settings.py:255
 msgid "French"
 msgstr "Français"
 
