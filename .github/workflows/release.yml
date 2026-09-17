@@ -1,45 +1,76 @@
+---
 name: Release
 
 on:
   push:
-    branches:
-      - main
-      - beta
-  pull_request:
-    branches:
-      - main
-      - beta
+    branches: [main, beta]
+  workflow_dispatch:
 
-permissions:
-  contents: read
+# Never run two releases at once, and never cancel one halfway.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions: {}
 
 jobs:
   release:
-    name: Release
+    name: Semantic release
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      id-token: write
+      contents: write # push the release commit and tag, create the GitHub release
+    outputs:
+      released: ${{ steps.release.outputs.released }}
+      tag: ${{ steps.release.outputs.tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref || github.ref_name }}
+          # semantic-release pushes the release commit and tag with this token.
+          persist-credentials: true
 
-      - name: Setup | Force correct release branch on workflow sha
-        run: git checkout -B ${{ github.ref_name }}
+      - name: Force correct release branch on workflow sha
+        run: git checkout -B "$BRANCH"
+        env:
+          BRANCH: ${{ github.ref_name }}
 
-      - name: Setup | Install uv
-        uses: astral-sh/setup-uv@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
 
-      - name: Setup | Install Python & Project dependencies
-        run: uv sync --extra build
+      - name: Install python-semantic-release
+        run: uv sync --locked --no-dev --extra build
 
-      - name: Release | Semantic Version Release
+      - name: Semantic version release
         id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: uv run semantic-release -v version
+        run: |
+          before="$(git rev-parse HEAD)"
+          uv run --no-sync semantic-release -v version
+          after="$(git rev-parse HEAD)"
+          tag="$(git tag --points-at HEAD | grep '^v' | head -n 1 || true)"
+          if [ "$before" != "$after" ] && [ -n "$tag" ]; then
+            echo "Released $tag"
+            echo "released=true" >> "$GITHUB_OUTPUT"
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          else
+            echo "No release made"
+            echo "released=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  docker:
+    # Tags pushed with GITHUB_TOKEN do not trigger other workflows,
+    # so the image for the release is built from here.
+    name: Docker image for release
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    permissions:
+      contents: read
+      packages: write
+    uses: $/.github/workflows/docker-publish.yml
+    with:
+      ref: ${{ needs.release.outputs.tag }}
