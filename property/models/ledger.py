@@ -123,6 +123,15 @@ class ManagementCategory(str, enum.Enum):
         "242",
         "Autres frais généraux",
     )
+    # Deductible (2033-B line 242) but excluded from the art. 39 C amortization cap:
+    # accounting fees are not "charges afférentes au bien" (BOI-BIC-AMT-20-40-10-20 § 70).
+    ACCOUNTING_FEES = (  # ty: ignore[invalid-assignment]
+        "accounting_fees",
+        _("Accounting fees"),
+        "charges",
+        "242",
+        "Frais de comptabilité",
+    )
     COOWNERSHIP = (  # ty: ignore[invalid-assignment]
         "coownership",
         _("Co-ownership fees"),
