@@ -12,11 +12,13 @@ from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from base.models import BaseModel
+from property.services.lmnp_rules import DEFAULT_COMPONENTS
 from property.utils import (
     PropertyProgression,
     add_months_safe,  # noqa: F401
     calculate_monthly_payment,
 )
+from property.utils.date_utils import days360
 
 if TYPE_CHECKING:
     from property.models.lease import Lease
@@ -523,6 +525,17 @@ class Property(BaseModel):
         verbose_name=_("Tax regime"),
         help_text=_("Tax regime applicable to this property (e.g. LMNP réel)."),
     )
+    lmnp_start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("LMNP activity start date"),
+        help_text=_(
+            "Start of the furnished rental activity under the régime réel "
+            "(registration date, or 1 January of the year you switched from "
+            "micro-BIC). Amortization and the first fiscal year start on the later "
+            "of this date and the buying date. Leave empty to use the buying date."
+        ),
+    )
 
     def __str__(self) -> str:
         return str(self.name)
@@ -530,6 +543,17 @@ class Property(BaseModel):
     class Meta:
         verbose_name = _("property")
         verbose_name_plural = _("properties")
+
+    @property
+    def amortization_start_date(self) -> datetime.date:
+        """Return the date from which the property is amortized for LMNP.
+
+        A property is amortized once it is both owned and part of the LMNP
+        activity, i.e. from ``max(buying_date, lmnp_start_date)``.
+        """
+        if self.lmnp_start_date and self.lmnp_start_date > self.buying_date:
+            return self.lmnp_start_date
+        return self.buying_date
 
     @property
     def currency(self) -> str:
@@ -755,46 +779,10 @@ class AmortizationSetup(BaseModel):
     the standard components automatically via ``initialize_components()``.
     """
 
-    # Standard LMNP component breakdown (% of total value, duration in years).
-    # The remaining land percentage (default 15 %) is never depreciable.
-    STANDARD_COMPONENTS: list[dict] = [
-        {
-            "label": "Terrain",
-            "pct": 15,
-            "duration": None,
-            "cerfa_category": "terrains",
-        },
-        {
-            "label": "Gros œuvre",
-            "pct": 45,
-            "duration": 75,
-            "cerfa_category": "constructions",
-        },
-        {
-            "label": "Étanchéité",
-            "pct": 7,
-            "duration": 25,
-            "cerfa_category": "constructions",
-        },
-        {
-            "label": "Toiture",
-            "pct": 8,
-            "duration": 25,
-            "cerfa_category": "constructions",
-        },
-        {
-            "label": "Agencements intérieurs",
-            "pct": 19,
-            "duration": 12,
-            "cerfa_category": "installations",
-        },
-        {
-            "label": "Installations électriques",
-            "pct": 6,
-            "duration": 30,
-            "cerfa_category": "installations",
-        },
-    ]
+    # Default LMNP component breakdown (share of total value, useful life in years).
+    # Kept as a class attribute for backward compatibility; the source of truth is
+    # property.services.lmnp_rules.DEFAULT_COMPONENTS.
+    STANDARD_COMPONENTS: list[dict] = list(DEFAULT_COMPONENTS)
 
     class Meta:
         verbose_name = _("amortization setup")
@@ -828,10 +816,15 @@ class AmortizationSetup(BaseModel):
         return f"{self.property.name} — amortization setup"
 
     def initialize_components(self) -> list[AmortizationAsset]:
-        """Create the standard LMNP amortization components for this setup.
+        """Create the default LMNP amortization components for this setup.
 
-        Uses the property buying_date as beginning_date.  Only the
-        depreciable share (100 - land_percentage) is split across components.
+        - The land component gets ``land_percentage`` of ``total_value`` and is
+          never depreciated.
+        - The depreciable share (``100 - land_percentage``) is split between the
+          other components in proportion to their default shares.
+        - Amortization starts when the property is both owned and part of the
+          LMNP activity: ``max(buying_date, lmnp_start_date)``.
+
         Existing initial components are deleted before new ones are created.
         """
         AmortizationAsset.objects.filter(
@@ -839,22 +832,32 @@ class AmortizationSetup(BaseModel):
         ).delete()
 
         currency = str(self.total_value.currency)
-        buying_date = self.property.buying_date
-        created: list[AmortizationAsset] = []
+        total = self.total_value.amount
+        beginning_date = self.property.amortization_start_date
+        cents = Decimal("0.01")
 
-        for comp in self.STANDARD_COMPONENTS:
-            # pct is % of total property value (land + bâti)
-            component_value = (
-                self.total_value.amount * Decimal(str(comp["pct"])) / Decimal(100)
-            )
+        land_share = self.land_percentage / Decimal(100)
+        depreciable_components = [c for c in DEFAULT_COMPONENTS if c["duration"]]
+        depreciable_pct_sum = sum(Decimal(c["pct"]) for c in depreciable_components)
+
+        values: dict[str, Decimal] = {}
+        for comp in depreciable_components:
+            share = (1 - land_share) * Decimal(comp["pct"]) / depreciable_pct_sum
+            values[comp["label"]] = (total * share).quantize(cents)
+        # Land takes the remainder so that the components add up exactly to the total.
+        land_value = total - sum(values.values(), Decimal(0))
+
+        created: list[AmortizationAsset] = []
+        for comp in DEFAULT_COMPONENTS:
+            value = land_value if comp["duration"] is None else values[comp["label"]]
             asset = AmortizationAsset(
                 property=self.property,
                 label=comp["label"],
-                beginning_date=buying_date,
-                value_total=Money(component_value.quantize(Decimal("0.01")), currency),
+                beginning_date=beginning_date,
+                value_total=Money(value, currency),
                 duration_years=comp["duration"],
                 is_initial_component=True,
-                cerfa_category=comp.get("cerfa_category", ""),
+                cerfa_category=comp["cerfa_category"],
             )
             asset.save()
             created.append(asset)
@@ -974,44 +977,65 @@ class AmortizationAsset(BaseModel):
         """
         return Money(self.value_total.amount, str(self.value_total.currency))
 
-    def get_annual_amortization(self, year: int) -> Decimal:
-        """Return the linear amortization dotation for a given fiscal year.
+    @builtins.property
+    def amortization_end_year(self) -> int | None:
+        """Return the last year in which a dotation is recorded, or None.
 
-        Applies day-based prorata temporis in the first and last years.
-        Returns ``Decimal("0")`` outside the asset's useful life or for non-depreciable assets.
+        An asset acquired on 1 January is fully amortized after exactly
+        ``duration_years`` years. Any other start date adds one more year that
+        carries the remainder of the first-year prorata.
         """
         if (
             not self.beginning_date
             or not self.duration_years
             or not self.is_depreciable
         ):
+            return None
+        starts_on_january_first = (
+            self.beginning_date.month == 1 and self.beginning_date.day == 1
+        )
+        return (
+            self.beginning_date.year
+            + self.duration_years
+            - (1 if starts_on_january_first else 0)
+        )
+
+    def get_annual_amortization(self, year: int) -> Decimal:
+        """Return the linear amortization dotation (2033-C line 572) for a year.
+
+        Formula, identical to the reference LMNP workbook:
+          - first year:  ``value / (duration × 360) × DAYS360(start, 31/12)``
+            (prorata temporis on a 30/360 basis);
+          - full years:  ``value / duration``;
+          - last year:   ``value − Σ previous dotations`` (the remainder, so that
+            the dotations add up exactly to the depreciable base).
+
+        Returns ``Decimal("0")`` outside the asset's useful life or for land.
+        """
+        end_year = self.amortization_end_year
+        if end_year is None or self.beginning_date is None or not self.duration_years:
             return Decimal(0)
 
         start_year = self.beginning_date.year
-        has_partial_first_year = not (
-            self.beginning_date.month == 1 and self.beginning_date.day == 1
-        )
-        end_year = (
-            start_year + self.duration_years + (1 if has_partial_first_year else 0)
-        )
-
-        if year < start_year or year >= end_year:
+        if year < start_year or year > end_year:
             return Decimal(0)
 
-        annual = self.depreciable_base().amount / Decimal(self.duration_years)
+        base = self.depreciable_base().amount
+        cents = Decimal("0.01")
+        annual = base / Decimal(self.duration_years)
 
-        if has_partial_first_year:
-            days_first = (datetime.date(start_year, 12, 31) - self.beginning_date).days
-            if year == start_year:
-                return (annual * Decimal(days_first) / Decimal(365)).quantize(
-                    Decimal("0.01")
-                )
-            if year == end_year - 1:
-                return (annual * Decimal(365 - days_first) / Decimal(365)).quantize(
-                    Decimal("0.01")
-                )
+        if year == end_year:
+            already_amortized = sum(
+                (self.get_annual_amortization(y) for y in range(start_year, year)),
+                Decimal(0),
+            )
+            return max(Decimal(0), base - already_amortized).quantize(cents)
 
-        return annual.quantize(Decimal("0.01"))
+        if year == start_year:
+            days = days360(self.beginning_date, datetime.date(start_year, 12, 31))
+            return (annual * Decimal(days) / Decimal(360)).quantize(cents)
+
+        return annual.quantize(cents)
 
     def cumulative_amortization(self, up_to_year: int) -> Decimal:
         """Return the sum of all annual amortizations from acquisition year to *up_to_year* (inclusive)."""

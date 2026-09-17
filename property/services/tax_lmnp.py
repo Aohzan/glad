@@ -304,11 +304,7 @@ def get_amortization_table(property_id: int, year: int) -> list[dict]:
             global_pct = (
                 asset.value_total.amount / setup_total * Decimal(100)
             ).quantize(Decimal("0.1"))
-        end_year = (
-            asset.beginning_date.year + asset.duration_years
-            if asset.beginning_date and asset.duration_years
-            else None
-        )
+        end_year = asset.amortization_end_year
         pct_amortized = (
             (cumul / base.amount * Decimal(100)).quantize(Decimal("0.1"))
             if base.amount > Decimal(0) and asset.is_depreciable
@@ -381,7 +377,9 @@ def get_amortization_schedule(property_id: int) -> dict:
 
     first_year = min(a.beginning_date.year for a in depreciable_assets)
     last_year = max(
-        a.beginning_date.year + a.duration_years - 1 for a in depreciable_assets
+        end_year
+        for a in depreciable_assets
+        if (end_year := a.amortization_end_year) is not None
     )
 
     # Totals consider only depreciable assets (land is not amortized)

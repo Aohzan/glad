@@ -3,6 +3,7 @@
 from property.utils.date_utils import (
     add_months_safe,
     add_years_safe,
+    days360,
     iter_month_starts,
     month_end,
     month_start,
@@ -28,6 +29,7 @@ __all__ = [
     "build_loan_monthly_maps",
     # loan math
     "calculate_monthly_payment",
+    "days360",
     # recurrence
     "generate_recurring_occurrences",
     "iter_month_starts",

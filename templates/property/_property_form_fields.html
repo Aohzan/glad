@@ -317,6 +317,19 @@
     </label>
     {{ property_form.tax_regime }}
   </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.lmnp_start_date.id_for_label }}" class="form-label">
+      {{ property_form.lmnp_start_date.label }}
+    </label>
+    {{ property_form.lmnp_start_date }}
+    {% if property_form.lmnp_start_date.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.lmnp_start_date.errors.0 }}</div>
+    {% endif %}
+    {% if property_form.lmnp_start_date.help_text %}
+      <div class="form-text">{{ property_form.lmnp_start_date.help_text }}</div>
+    {% endif %}
+  </div>
 </div>
 
 {# ── Selling & Status ────────────────────────────────────────────────── #}
