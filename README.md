@@ -26,7 +26,7 @@
 - **Ledger** — categorized income and expense entries (rent, management fees, works, insurance, property tax, etc.) with recurring support and CSV import
 - **Management mandates** — track property managers with fee structures
 - **Financial reporting** — monthly balance sheets, accounting dashboard, income/expense summaries with deductible breakdown
-- **LMNP** (*beta*) — accounting support
+- **LMNP** (*beta*) — accounting support: cerfa 2033/2031/2042-C PRO computed from the ledger, frozen yearly declarations and PDF export (see [docs/lmnp.md](docs/lmnp.md))
 - **SCPI** — track SCPI shares with valuation and dividend history
 
 ### Web application
