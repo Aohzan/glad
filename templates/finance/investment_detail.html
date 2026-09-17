@@ -182,7 +182,7 @@
 {% block scripts %}
 {% url "finance:chart_data" data_type="investment_account" object_id=account.pk as chart_url %}
 {% include "finance/_account_chart_script.html" with chart_url=chart_url %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var btn = document.getElementById('toggleClosedHoldings');
   if (!btn) return;

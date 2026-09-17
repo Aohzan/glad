@@ -235,7 +235,7 @@
 {{ dividends_json|json_script:"dividends-data" }}
 {% include "property/_datatable_helper.html" %}
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var _i18n = {
     edit:     "{% translate 'Edit' %}",
@@ -295,7 +295,7 @@
         var editUrl = '/property/scpi/' + scpiPk + '/dividend/' + d.id + '/edit/';
         return '<div class="btn-group btn-group-sm">' +
           '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _i18n.edit + '"><i class="bi bi-pencil"></i></a>' +
-          '<button type="button" class="btn btn-outline-danger" onclick="if(confirm(\'' + _i18n.confirm + '\')) document.getElementById(\'deleteDiv\'+' + d.id + ').submit();" title="' + _i18n.delete + '"><i class="bi bi-trash"></i></button>' +
+          '<button type="button" class="btn btn-outline-danger" data-confirm="' + _i18n.confirm + '" data-submit-form="deleteDiv' + d.id + '" title="' + _i18n.delete + '"><i class="bi bi-trash"></i></button>' +
           '</div>';
       }
     }

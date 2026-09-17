@@ -85,7 +85,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   const ownershipField = document.getElementById('id_ownership_type');
   const dismembermentDiv = document.getElementById('dismemberment-fields');

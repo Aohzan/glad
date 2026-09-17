@@ -1,5 +1,5 @@
 {% load i18n %}
-<script>
+<script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function() {
   const CHART_URL = '{{ chart_url }}';
   var currencyCode = '{{ account.currency|default:"EUR" }}';

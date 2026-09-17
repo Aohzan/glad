@@ -247,7 +247,7 @@
 {{ cashflow_total_expenses_series|json_script:"cashflow-total-expenses-series" }}
 {% include "property/_datatable_helper.html" %}
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var _cfI18n = {
     expense:     "{% translate 'Expense' %}",

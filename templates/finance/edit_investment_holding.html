@@ -117,7 +117,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var isinInput = document.getElementById('{{ form.isin.id_for_label }}');
   var autofillBtn = document.getElementById('holdingAutofillBtn');

@@ -105,7 +105,7 @@
 {% endblock %}
 
 {% block scripts %}
-  <script>
+  <script nonce="{{ csp_nonce }}">
     document.addEventListener('DOMContentLoaded', function() {
       document.querySelectorAll('input[name$="new_value"], input[name$="new_quantity"]').forEach(function(input) {
         input.addEventListener('focus', function() {

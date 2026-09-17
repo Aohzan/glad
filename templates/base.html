@@ -198,8 +198,41 @@
 
     <script src="{% static 'vendors/bootstrap/bootstrap.bundle.min.js' %}"></script>
 
+    <!-- Declarative handlers (CSP forbids inline on* attributes) -->
+    <script nonce="{{ csp_nonce }}">
+        // <form data-confirm="..."> asks for confirmation before submitting.
+        document.addEventListener('submit', function (event) {
+            var form = event.target.closest('form[data-confirm]');
+            if (form && !window.confirm(form.dataset.confirm)) {
+                event.preventDefault();
+            }
+        });
+        // <button data-confirm="..."> asks before acting; with data-submit-form="<id>"
+        // it submits that form instead of its own.
+        document.addEventListener('click', function (event) {
+            var button = event.target.closest('button[data-confirm]');
+            if (!button) return;
+            if (!window.confirm(button.dataset.confirm)) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                return;
+            }
+            if (button.dataset.submitForm) {
+                event.preventDefault();
+                var target = document.getElementById(button.dataset.submitForm);
+                if (target) target.submit();
+            }
+        });
+        // <select data-submit-on-change> submits its form on change.
+        document.addEventListener('change', function (event) {
+            if (event.target.matches('[data-submit-on-change]') && event.target.form) {
+                event.target.form.submit();
+            }
+        });
+    </script>
+
     <!-- Global ApexCharts defaults — hero palette -->
-    <script>
+    <script nonce="{{ csp_nonce }}">
         // Hero-palette color set (blue-400, emerald-400, violet-400, orange-400, pink-400, yellow-400)
         var APEX_HERO_COLORS = ['#60a5fa', '#34d399', '#a78bfa', '#fb923c', '#f472b6', '#facc15'];
 
@@ -232,7 +265,7 @@
     </script>
 
     <!-- Dark mode toggle script -->
-    <script>
+    <script nonce="{{ csp_nonce }}">
         // Function to set the theme
         function setTheme(themeName, savePreference = true) {
             document.documentElement.setAttribute('data-bs-theme', themeName);
@@ -411,7 +444,7 @@
     </script>
 
     <!-- Service Worker Registration -->
-    <script>
+    <script nonce="{{ csp_nonce }}">
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('{% static "service-worker.js" %}').then(function(registration) {

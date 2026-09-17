@@ -29,7 +29,7 @@
 <div class="container py-4">
 
   {# Inline data for JS #}
-  <script>
+  <script nonce="{{ csp_nonce }}">
     const PROPERTY_PKS = {{ property_pks|safe }};
     const SCPI_PKS = {{ scpi_pks|safe }};
     const API = {
@@ -247,7 +247,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ csp_nonce }}">
 /* ── Utilities ─────────────────────────────────────────────────────────── */
 function fmt(amount, currency) {
   try {

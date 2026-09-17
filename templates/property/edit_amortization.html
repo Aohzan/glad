@@ -184,7 +184,7 @@
 
 {% block scripts %}
 <script src="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.js' %}"></script>
-<script>
+<script nonce="{{ csp_nonce }}">
   document.addEventListener('DOMContentLoaded', function() {
     const sourceTransactions = document.getElementById('{{ form.source_transactions.id_for_label }}');
     new MultiSelect('#{{ form.source_transactions.id_for_label }}', {
