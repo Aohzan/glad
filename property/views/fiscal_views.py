@@ -58,8 +58,16 @@ def get_amortization_context(property_obj: Property) -> dict:
                 acquisition_fees_breakdown[str(label)] = amount
                 acquisition_fees_total += amount
 
+    # Acquisition fees can only be capitalised when the property was bought in the
+    # year the LMNP activity started (same rule as the reference workbook).
+    fees_capitalizable = (
+        property_obj.lmnp_start_date is None
+        or property_obj.lmnp_start_date.year == property_obj.buying_date.year
+    )
     amortization_init_form = AmortizationInitForm(
-        initial={"extra_amount": acquisition_fees_total}
+        initial={
+            "extra_amount": acquisition_fees_total if fees_capitalizable else Decimal(0)
+        }
     )
 
     return {
@@ -78,6 +86,7 @@ def get_amortization_context(property_obj: Property) -> dict:
         "amortization_init_form": amortization_init_form,
         "acquisition_fees_breakdown": acquisition_fees_breakdown,
         "acquisition_fees_total": acquisition_fees_total,
+        "acquisition_fees_capitalizable": fees_capitalizable,
     }
 
 

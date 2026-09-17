@@ -74,12 +74,6 @@ class TestAmortizationAssetCreation:
         assert "Gros œuvre" in s
         assert structure_asset.property.name in s
 
-    def test_default_durations_constant(self):
-        pass  # DEFAULT_DURATIONS removed with category
-
-    def test_category_choices(self):
-        pass  # Category enum removed
-
 
 @pytest.mark.django_db
 class TestDepreciableBase:
@@ -117,12 +111,12 @@ class TestGetAnnualAmortization:
         assert dotation == expected
 
     def test_first_year_prorata_july(self, fittings_asset):
-        """Acquisition on July 1: day-based prorata = 183/365 of annual."""
+        """Acquisition on July 1: 30/360 prorata = 180/360 of the annual dotation."""
         dotation = fittings_asset.get_annual_amortization(2020)
         annual = Decimal(10000) / Decimal(12)
-        # July 1 to Dec 31 = 183 days
-        expected = (annual * Decimal(183) / Decimal(365)).quantize(Decimal("0.01"))
-        assert dotation == expected
+        # July 1 to Dec 31 = 180 days on a 30/360 basis (DAYS360)
+        expected = (annual * Decimal(180) / Decimal(360)).quantize(Decimal("0.01"))
+        assert dotation == expected == Decimal("416.67")
 
     def test_middle_years_fittings(self, fittings_asset):
         """Years 2021–2031 are full years for fittings asset (12-year life, July start)."""
@@ -131,32 +125,33 @@ class TestGetAnnualAmortization:
             assert fittings_asset.get_annual_amortization(y) == annual
 
     def test_last_year_prorata_mid_year_start(self, fittings_asset):
-        """Fittings asset acquired July 2020 (12 years): last year is 2032, complement prorata."""
-        # July 1 to Dec 31 = 183 days → last year = 365 - 183 = 182 days
+        """Fittings asset acquired July 2020 (12 years): 2032 carries the remainder."""
         dotation = fittings_asset.get_annual_amortization(2032)
-        annual = Decimal(10000) / Decimal(12)
-        expected = (annual * Decimal(182) / Decimal(365)).quantize(Decimal("0.01"))
-        assert dotation == expected
+        previous = sum(
+            fittings_asset.get_annual_amortization(y) for y in range(2020, 2032)
+        )
+        assert dotation == Decimal(10000) - previous
+        assert dotation == Decimal("416.70")
 
     def test_zero_after_last_partial_year(self, fittings_asset):
         """Year 2033 and beyond must return 0 for fittings asset (July 2020, 12 years)."""
         assert fittings_asset.get_annual_amortization(2033) == Decimal(0)
 
     def test_first_year_prorata_mid_month(self, property_obj):
-        """Acquisition on Oct 16: day-based prorata = 76/365 of annual."""
+        """Acquisition on Oct 16: 30/360 prorata = 75/360 of annual (reference workbook)."""
         asset = AmortizationAsset.objects.create(
             property=property_obj,
             label="Test mid-month",
             beginning_date=datetime.date(2025, 10, 16),
-            value_total=Money(44025, "EUR"),
+            value_total=Money(Decimal("44025.30"), "EUR"),
             duration_years=70,
         )
         dotation = asset.get_annual_amortization(2025)
-        annual = Decimal(44025) / Decimal(70)
-        # Oct 16 to Dec 31 = 76 days
-        expected = (annual * Decimal(76) / Decimal(365)).quantize(Decimal("0.01"))
+        annual = Decimal("44025.30") / Decimal(70)
+        # Oct 16 to Dec 31 = 75 days on a 30/360 basis (DAYS360)
+        expected = (annual * Decimal(75) / Decimal(360)).quantize(Decimal("0.01"))
         assert dotation == expected
-        assert dotation == Decimal("130.95")
+        assert dotation == Decimal("131.03")
 
     def test_total_amortization_equals_base_january_start(self, structure_asset):
         """Total over full life must equal the depreciable base (January start)."""
@@ -164,9 +159,7 @@ class TestGetAnnualAmortization:
             structure_asset.get_annual_amortization(y) for y in range(2020, 2095)
         )
         base = structure_asset.depreciable_base().amount
-        assert abs(total - base) <= Decimal(
-            "1.00"
-        )  # rounding tolerance (75 years * 0.01)
+        assert total == base  # the last year carries the rounding remainder
 
     def test_total_amortization_equals_base_mid_year_start(self, fittings_asset):
         """Total over full life must equal the depreciable base (July start)."""
@@ -174,15 +167,21 @@ class TestGetAnnualAmortization:
             fittings_asset.get_annual_amortization(y) for y in range(2020, 2033)
         )
         base = fittings_asset.depreciable_base().amount
-        assert abs(total - base) <= Decimal(
-            "0.50"
-        )  # rounding tolerance (13 years * 0.01)
+        assert total == base  # the last year carries the rounding remainder
 
-    def test_last_full_year_january_asset_returns_annual(self, structure_asset):
-        """For a January-start asset, the final active year (2094) must return a full dotation."""
+    def test_last_full_year_january_asset_returns_remainder(self, structure_asset):
+        """For a January-start asset, the final active year (2094) carries the remainder.
+
+        The remainder differs from the annual dotation only by the accumulated
+        rounding of the previous years (a few cents).
+        """
         dotation = structure_asset.get_annual_amortization(2094)
-        expected = (Decimal(170000) / Decimal(75)).quantize(Decimal("0.01"))
-        assert dotation == expected
+        annual = (Decimal(170000) / Decimal(75)).quantize(Decimal("0.01"))
+        previous = sum(
+            structure_asset.get_annual_amortization(y) for y in range(2020, 2094)
+        )
+        assert dotation == Decimal(170000) - previous
+        assert abs(dotation - annual) < Decimal("1.00")
 
 
 @pytest.mark.django_db

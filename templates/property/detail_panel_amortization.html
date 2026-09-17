@@ -50,6 +50,12 @@
             {% endfor %}
             <span class="fw-semibold">= {{ acquisition_fees_total|floatformat:0 }} €</span>
           </div>
+          {% if not acquisition_fees_capitalizable %}
+          <div class="alert alert-warning py-1 px-2 small mb-2">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            {% translate "The property was bought before the year the LMNP activity started: acquisition fees cannot be depreciated and are set to 0 by default." %}
+          </div>
+          {% endif %}
           {% endif %}
           <div class="input-group">
             {{ amortization_init_form.extra_amount }}

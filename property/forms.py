@@ -148,6 +148,7 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "cadastral_parcel_number",
             "is_active",
             "tax_regime",
+            "lmnp_start_date",
             "floor_area",
             "total_surface",
             "number_of_rooms",
@@ -164,6 +165,9 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
         widgets = {
             "buying_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "selling_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "lmnp_start_date": forms.DateInput(
+                attrs={"type": "date"}, format="%Y-%m-%d"
+            ),
             "street_number": forms.TextInput(attrs={"class": "form-control"}),
             "street_name": forms.TextInput(attrs={"class": "form-control"}),
             "additional_address": forms.TextInput(attrs={"class": "form-control"}),
@@ -457,8 +461,10 @@ class AmortizationInitForm(forms.Form):
     extra_amount = forms.DecimalField(
         label=_("Acquisition fees to include"),
         help_text=_(
-            "Additional amount to add to the purchase price for depreciation "
-            "(notary fees, agency fees, miscellaneous). Set to 0 to exclude."
+            "Acquisition fees (notary, agency, loan set-up) added to the purchase "
+            "price and depreciated with it. This irrevocable option is only allowed "
+            "when the property was bought in the year the LMNP activity started; "
+            "otherwise the fees are lost. Set to 0 to exclude."
         ),
         min_value=Decimal(0),
         decimal_places=2,
