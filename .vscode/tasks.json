@@ -94,17 +94,7 @@
     {
       "label": "Ruff",
       "type": "shell",
-      "command": "uvx isort . && uvx ruff format && uvx ruff check --fix",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Pylint",
-      "type": "shell",
-      "command": "uvx pylint glad --output-format=colorized --disable=R0903",
+      "command": "uv run ruff check --fix && uv run ruff format",
       "presentation": {
         "reveal": "always",
         "panel": "new"
