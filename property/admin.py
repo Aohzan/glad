@@ -7,6 +7,7 @@ from property.models import (
     AmortizationAsset,
     AmortizationSetup,
     Lease,
+    LmnpDeclarationSnapshot,
     ManagementMandate,
     Property,
     PropertyLedgerEntry,
@@ -291,3 +292,10 @@ class SCPIDividendAdmin(admin.ModelAdmin):
     list_filter = ("scpi",)
     search_fields = ("scpi__name",)
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(LmnpDeclarationSnapshot)
+class LmnpDeclarationSnapshotAdmin(admin.ModelAdmin):
+    list_display = ("fiscal_year", "created_at", "rules_version", "created_by")
+    list_filter = ("fiscal_year",)
+    readonly_fields = ("data", "property_names", "created_at", "updated_at")

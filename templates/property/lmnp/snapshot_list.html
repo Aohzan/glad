@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Liasses LMNP figées{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <h1 class="h4 mb-0"><i class="bi bi-archive me-2"></i>Liasses LMNP figées</h1>
+    <a class="btn btn-outline-secondary btn-sm ms-auto" href="{% url 'property:lmnp_accounting' %}">
+      <i class="bi bi-calculator me-1"></i>Retour à la comptabilité
+    </a>
+  </div>
+
+  {% if not snapshots %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-1"></i>
+    Aucune liasse figée. Depuis la comptabilité LMNP, choisissez un exercice puis « Figer l'exercice »
+    pour conserver une copie des chiffres déclarés.
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-sm table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Exercice</th>
+            <th>Figée le</th>
+            <th>Biens</th>
+            <th>Règles</th>
+            <th>Note</th>
+            <th class="text-end">Résultat fiscal (370)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for snap in snapshots %}
+          <tr>
+            <td class="fw-semibold">{{ snap.fiscal_year }}</td>
+            <td>{{ snap.created_at|date:"d/m/Y H:i" }}</td>
+            <td>{{ snap.property_names|join:", " }}</td>
+            <td><code>{{ snap.rules_version }}</code></td>
+            <td class="text-body-secondary small">{{ snap.notes|default:"—" }}</td>
+            <td class="text-end">{{ snap.data.accounting.form_2033b.cerfa_370|floatformat:0 }} €</td>
+            <td class="text-end text-nowrap">
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'property:lmnp_snapshot_detail' snap.pk %}" title="Consulter"><i class="bi bi-eye"></i></a>
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'property:lmnp_snapshot_pdf' snap.pk %}" title="Télécharger le PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+              <form method="post" action="{% url 'property:lmnp_snapshot_delete' snap.pk %}" class="d-inline"
+                    onsubmit="return confirm('Supprimer cette liasse figée ?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm" title="Supprimer"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -101,6 +101,32 @@ urlpatterns = [
     ),
     # Accounting dashboard (all LMNP réel properties)
     path("lmnp_accounting/", views.accounting_lmnp_reel, name="lmnp_accounting"),
+    path("lmnp_accounting/pdf/", views.lmnp_pdf, name="lmnp_pdf"),
+    path(
+        "lmnp_accounting/snapshots/",
+        views.lmnp_snapshot_list,
+        name="lmnp_snapshot_list",
+    ),
+    path(
+        "lmnp_accounting/snapshots/create/",
+        views.lmnp_snapshot_create,
+        name="lmnp_snapshot_create",
+    ),
+    path(
+        "lmnp_accounting/snapshots/<int:pk>/",
+        views.lmnp_snapshot_detail,
+        name="lmnp_snapshot_detail",
+    ),
+    path(
+        "lmnp_accounting/snapshots/<int:pk>/pdf/",
+        views.lmnp_snapshot_pdf,
+        name="lmnp_snapshot_pdf",
+    ),
+    path(
+        "lmnp_accounting/snapshots/<int:pk>/delete/",
+        views.lmnp_snapshot_delete,
+        name="lmnp_snapshot_delete",
+    ),
     # Income & expenses report
     path("report/", views.report_view, name="report"),
     # All loans dashboard

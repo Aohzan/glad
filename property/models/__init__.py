@@ -8,6 +8,7 @@ from property.models.asset import (
     PropertyLoanAmortizationEntry,
     PropertyValue,
 )
+from property.models.fiscal import LmnpDeclarationSnapshot
 from property.models.lease import Lease
 from property.models.ledger import (
     ManagementCategory,
@@ -28,6 +29,7 @@ __all__ = [
     "AmortizationAsset",
     "AmortizationSetup",
     "Lease",
+    "LmnpDeclarationSnapshot",
     "ManagementCategory",
     "ManagementMandate",
     "Property",
