@@ -1,6 +1,6 @@
 [project]
 name = "glad"
-version = "0.0.0"
+version = "1.2.0"
 description = "Web app to follow its investments and properties"
 
 authors = [{ name = "Aohzan", email = "aohzan@gmail.com" }]
