@@ -11,7 +11,7 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 # ---------------------------------------------------------------------------
 # Front-end vendor assets (Bootstrap, ApexCharts, Leaflet, ...)
 # ---------------------------------------------------------------------------
-FROM node:24-slim AS vendors
+FROM node:25-slim AS vendors
 WORKDIR /app
 COPY package.json package-lock.json ./
 # postinstall (vendor-copy) populates static/vendors/
