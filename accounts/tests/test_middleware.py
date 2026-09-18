@@ -1,10 +1,11 @@
 """Tests for accounts/middleware.py."""
 
 import time
+from inspect import iscoroutinefunction
 from unittest.mock import MagicMock, patch
 
 import pytest
-from asgiref.sync import async_to_sync, iscoroutinefunction
+from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 

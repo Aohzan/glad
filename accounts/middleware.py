@@ -1,8 +1,9 @@
 """Middleware for the accounts app."""
 
 import time
+from inspect import iscoroutinefunction, markcoroutinefunction
 
-from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
+from asgiref.sync import sync_to_async
 
 
 class SessionTimeoutMiddleware:
@@ -22,7 +23,7 @@ class SessionTimeoutMiddleware:
         self.get_response = get_response
         self.async_mode = iscoroutinefunction(get_response)
         if self.async_mode:
-            markcoroutinefunction(self)  # ty: ignore[invalid-argument-type]
+            markcoroutinefunction(self)
 
     def __call__(self, request):
         if self.async_mode:

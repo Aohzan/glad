@@ -94,7 +94,7 @@
 - Add email notification
   ([`118951c`](https://github.com/Aohzan/glad/commit/118951c21554dae06f8ccd5063ddd1b27fe79dce))
 
-- Add synthesis accoutn export
+- Add synthesis account export
   ([`32f0b78`](https://github.com/Aohzan/glad/commit/32f0b7899f435dd99d790fdc963ff1180395ef06))
 
 - **docker**: Build a smaller image that runs as an unprivileged user
@@ -124,7 +124,7 @@
 - **scpi**: Add batch update
   ([`ad7113c`](https://github.com/Aohzan/glad/commit/ad7113c1f39186a7ee2858725a07c69cab5d8588))
 
-- **scpi**: Add theorical value
+- **scpi**: Add theoretical value
   ([`b2c5b34`](https://github.com/Aohzan/glad/commit/b2c5b349fb511d44416ff555de5492a793153f75))
 
 - **security**: Derive the HTTPS settings from APP_URL
