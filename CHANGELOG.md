@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.4.0 (2026-09-30)
+
+### Features
+
+- **property**: Add track records
+  ([`c1d3d25`](https://github.com/Aohzan/glad/commit/c1d3d259342c12486f5837f92206565de84a2689))
+
+
 ## v1.3.0 (2026-09-30)
 
 ### Bug Fixes
