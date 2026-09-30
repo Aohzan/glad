@@ -60,6 +60,7 @@ from property.views.fiscal_views import (
 )
 from property.views.index_views import index
 from property.views.loans_views import all_loans_view
+from property.views.rent_revision_views import apply_lease_rent_revision
 
 property_dashboard_card_api = PropertyDashboardCardApiView.as_view()
 scpi_dashboard_card_api = SCPIDashboardCardApiView.as_view()
@@ -90,6 +91,7 @@ __all__ = [
     "add_scpi_share_price",
     "address_autocomplete_api",
     "all_loans_view",
+    "apply_lease_rent_revision",
     "batch_scpi_dividends",
     "cadastral_lookup_api",
     "check_ledger_entry_occurrence",

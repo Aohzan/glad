@@ -2437,6 +2437,50 @@ def generate_scpi() -> str:
 """
 
 
+#: Published IRL values (quarter start → value), from INSEE series 001515333.
+IRL_VALUES = {
+    (2021, 2): "131.12",
+    (2021, 3): "131.67",
+    (2021, 4): "132.62",
+    (2022, 1): "133.93",
+    (2022, 2): "135.84",
+    (2022, 3): "136.27",
+    (2022, 4): "137.26",
+    (2023, 1): "138.61",
+    (2023, 2): "140.59",
+    (2023, 3): "141.03",
+    (2023, 4): "142.06",
+    (2024, 1): "143.46",
+    (2024, 2): "145.17",
+    (2024, 3): "144.51",
+    (2024, 4): "144.64",
+    (2025, 1): "145.47",
+    (2025, 2): "146.68",
+    (2025, 3): "145.77",
+    (2025, 4): "145.78",
+    (2026, 1): "146.6",
+    (2026, 2): "148.37",
+}
+
+
+def generate_irl_rows() -> str:
+    """Rows of the IRL history published by INSEE."""
+    rows = []
+    for pk, ((year, quarter), value) in enumerate(IRL_VALUES.items(), start=1):
+        rows.append(
+            f"""- model: base.economicindexvalue
+  pk: {pk}
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    index: irl
+    period: {year}-{(quarter - 1) * 3 + 1:02d}-01
+    value: "{value}"
+"""
+        )
+    return "".join(rows)
+
+
 def generate_property() -> str:
     """Generate property.yaml with dynamic dates.
 
@@ -2448,8 +2492,13 @@ def generate_property() -> str:
           rental transactions with tenant and lease, LMNP réel tax regime with amortization
       4 - Maison de campagne (HO): no loan, no lease, expenses + punctual Airbnb income
     """
+    irl_rows = generate_irl_rows()
     return f"""# generated with scripts/generate_fixtures.py
 ---
+# ─────────────────────────────────────────────────────────────────────────────
+# IRL history (rent reference index), used by the rent revision
+# ─────────────────────────────────────────────────────────────────────────────
+{irl_rows}
 # ─────────────────────────────────────────────────────────────────────────────
 # PROPERTY 1 — Résidence principale (House, bought 8 years ago)
 #   Loan: 1 standard 20-year mortgage
@@ -2863,6 +2912,8 @@ def generate_property() -> str:
     deposit_amount: 1500.00
     deposit_amount_currency: EUR
     periodicity: monthly
+    irl_reference_quarter: 2
+    irl_reference_value: "140.59"
     notes: "Bail meublé 1 an renouvelable"
 # Transactions — Property 2
 - model: property.propertyledgerentry
@@ -3131,6 +3182,8 @@ def generate_property() -> str:
     deposit_amount: 1040.00
     deposit_amount_currency: EUR
     periodicity: monthly
+    irl_reference_quarter: 3
+    irl_reference_value: "142.06"
     notes: "Bail meublé étudiant"
 # Transactions — Property 3
 - model: property.propertyledgerentry

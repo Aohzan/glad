@@ -335,6 +335,9 @@ class LeaseForm(MoneyInputGroupMixin, forms.ModelForm):
             "charges_amount",
             "deposit_amount",
             "periodicity",
+            "irl_reference_quarter",
+            "irl_reference_value",
+            "last_rent_revision_date",
             "notes",
         ]
         widgets = {
@@ -344,6 +347,11 @@ class LeaseForm(MoneyInputGroupMixin, forms.ModelForm):
             "lease_type": forms.Select(attrs={"class": "form-select"}),
             "status": forms.Select(attrs={"class": "form-select"}),
             "periodicity": forms.Select(attrs={"class": "form-select"}),
+            "irl_reference_quarter": forms.Select(attrs={"class": "form-select"}),
+            "irl_reference_value": forms.NumberInput(attrs={"step": "0.01"}),
+            "last_rent_revision_date": forms.DateInput(
+                attrs={"type": "date"}, format="%Y-%m-%d"
+            ),
             "notes": forms.Textarea(attrs={"rows": 2}),
         }
 
