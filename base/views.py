@@ -9,8 +9,14 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
+from base.models import EconomicIndex
+from base.services.insee import InseeError, refresh_index
 from property.models import Property
 from property.models.scpi import SCPI
 from property.services.checks import pending_checks_summary
@@ -79,6 +85,26 @@ class IndexView(TemplateView):
                 "property_checks": pending_checks_summary() if property_pks else None,
             },
         )
+
+
+@require_POST  # type: ignore
+def refresh_economic_indices(request: HttpRequest) -> HttpResponse:
+    """Download the latest INSEE index values, then go back to the ``next`` page."""
+    try:
+        for index in EconomicIndex:
+            refresh_index(index)
+    except InseeError:
+        messages.error(request, _("Could not download the INSEE indices."))
+    else:
+        messages.success(request, _("INSEE indices updated."))
+    next_url = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = reverse("index")
+    return redirect(next_url)
 
 
 @login_not_required

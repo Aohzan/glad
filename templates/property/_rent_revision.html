@@ -1,0 +1,46 @@
+{% load i18n format_money %}
+{% with rev=lease.rent_revision %}
+{% if rev %}
+<div class="border-top mt-2 pt-2" id="rent-revision-{{ lease.pk }}">
+  <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">
+    <i class="bi bi-arrow-repeat me-1"></i>{% translate "Rent revision (IRL)" %}
+  </p>
+  <div class="d-flex flex-wrap align-items-center gap-3 small">
+    <span>
+      {% translate "Anniversary" %} <strong>{{ rev.due_date }}</strong>
+      {% if rev.is_due %}<span class="badge bg-warning text-dark ms-1">{% translate "Due" %}</span>{% endif %}
+    </span>
+    {% if rev.status == "frozen" %}
+      <span class="text-danger">{% translate "Rent frozen: F and G rated housing cannot have its rent increased." %}</span>
+    {% elif rev.status == "missing_reference" %}
+      <span class="text-body-secondary">{% translate "Set the IRL reference quarter and value in the lease to compute the revision." %}</span>
+    {% elif rev.status == "missing_index" %}
+      <span class="text-body-secondary">{% translate "The IRL of the reference quarter is not available yet." %}</span>
+    {% else %}
+      <span>
+        {% blocktranslate with period=rev.new_index.period_label value=rev.new_index.value reference=rev.reference_value %}IRL {{ period }}: {{ value }} (reference {{ reference }}){% endblocktranslate %}
+      </span>
+      <span>
+        {% translate "New rent" %} <strong>{{ rev.new_rent|format_money }}</strong>
+        <span class="text-success">(+{{ rev.increase|format_money }})</span>
+      </span>
+      {% if rev.is_due %}
+      <form method="post" action="{% url 'property:apply_rent_revision' property.pk lease.pk %}" class="d-flex align-items-center gap-2 ms-auto">
+        {% csrf_token %}
+        <label class="visually-hidden" for="effective-date-{{ lease.pk }}">{% translate "Effective date" %}</label>
+        <input type="date" class="form-control form-control-sm" id="effective-date-{{ lease.pk }}" name="effective_date" value="{{ rev.due_date|date:'Y-m-d' }}" min="{{ rev.due_date|date:'Y-m-d' }}">
+        <button type="submit" class="btn btn-sm btn-primary text-nowrap">{% translate "Apply revision" %}</button>
+      </form>
+      {% endif %}
+    {% endif %}
+    {% if rev.status == "missing_index" or rev.status == "ready" %}
+    <form method="post" action="{% url 'refresh_economic_indices' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'property:detail' property.pk %}#leases-panel">
+      <button type="submit" class="btn btn-sm btn-link p-0">{% translate "Update IRL from INSEE" %}</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endwith %}

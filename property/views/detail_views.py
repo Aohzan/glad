@@ -28,6 +28,7 @@ from property.models import (
     PropertyValue,
 )
 from property.services.cashflow import build_balance_sheet
+from property.services.rent_revision import get_rent_revision
 from property.utils import (
     add_years_safe,
     build_loan_maps_from_loan_obj,
@@ -962,7 +963,13 @@ def property_panel_loans(request: HttpRequest, pk: int) -> HttpResponse:
 def property_panel_leases(request: HttpRequest, pk: int) -> HttpResponse:
     """Return the Leases panel HTML fragment."""
     prop = get_object_or_404(Property, pk=pk)
-    property_leases = Lease.objects.filter(property=prop).order_by("-start_date")
+    property_leases = list(
+        Lease.objects.filter(property=prop)
+        .select_related("property")
+        .order_by("-start_date")
+    )
+    for lease in property_leases:
+        lease.rent_revision = get_rent_revision(lease)  # ty: ignore[unresolved-attribute]
     context = {
         "property": prop,
         "property_leases": property_leases,

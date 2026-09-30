@@ -86,6 +86,11 @@ urlpatterns = [
         views.delete_lease,
         name="delete_lease",
     ),
+    path(
+        "<int:property_pk>/lease/<int:lease_pk>/rent-revision/",
+        cast(Callable[..., HttpResponseBase], views.apply_lease_rent_revision),
+        name="apply_rent_revision",
+    ),
     # Mandates
     path("<int:property_pk>/mandate/new/", views.edit_mandate, name="new_mandate"),
     path(

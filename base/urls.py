@@ -1,5 +1,9 @@
 """URL configuration for the base app."""
 
+from collections.abc import Callable
+from typing import cast
+
+from django.http import HttpResponseBase
 from django.urls import path
 
 from base import api_views, views
@@ -20,4 +24,9 @@ urlpatterns = [
         name="api_recent_operations",
     ),
     path("api/alerts/", api_views.AlertsApiView.as_view(), name="api_alerts"),
+    path(
+        "indices/refresh/",
+        cast(Callable[..., HttpResponseBase], views.refresh_economic_indices),
+        name="refresh_economic_indices",
+    ),
 ]

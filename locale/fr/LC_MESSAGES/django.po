@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-30 23:03+0200\n"
+"POT-Creation-Date: 2026-09-30 23:17+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -110,6 +110,35 @@ msgstr "Date"
 #: base/forms.py:66
 msgid "Recurrence End Date"
 msgstr "Date de fin de récurrence"
+
+#: base/models.py:24
+msgid "Rent reference index (IRL)"
+msgstr "Indice de référence des loyers (IRL)"
+
+#: base/models.py:25
+msgid "Consumer price index"
+msgstr "Indice des prix à la consommation"
+
+#: base/models.py:32
+msgid "economic index value"
+msgstr "valeur d'indice économique"
+
+#: base/models.py:33
+msgid "economic index values"
+msgstr "valeurs d'indices économiques"
+
+#: base/models.py:59
+#, python-brace-format
+msgid "Q{quarter} {year}"
+msgstr "T{quarter} {year}"
+
+#: base/views.py:97
+msgid "Could not download the INSEE indices."
+msgstr "Impossible de télécharger les indices INSEE."
+
+#: base/views.py:99
+msgid "INSEE indices updated."
+msgstr "Indices INSEE mis à jour."
 
 #: finance/admin.py:55
 #, python-format
@@ -227,7 +256,7 @@ msgstr "Épargne"
 msgid "Data type to import"
 msgstr "Type de données à importer"
 
-#: finance/forms.py:174 property/forms.py:788
+#: finance/forms.py:174 property/forms.py:796
 msgid "CSV File"
 msgstr "Fichier CSV"
 
@@ -247,7 +276,7 @@ msgstr ""
 "ex. FR0010315770 — Le remplissage automatique récupérera le code, le nom, "
 "l'émetteur, les frais et la valeur initiale"
 
-#: finance/forms.py:375 property/forms.py:759 property/models/lease.py:64
+#: finance/forms.py:375 property/forms.py:767 property/models/lease.py:64
 #: property/models/management.py:46
 #: templates/property/detail_panel_amortization.html:132
 #: templates/property/detail_panel_leases.html:52
@@ -257,7 +286,7 @@ msgstr ""
 msgid "Start date"
 msgstr "Date de début"
 
-#: finance/forms.py:378 property/forms.py:767 property/models/lease.py:65
+#: finance/forms.py:378 property/forms.py:775 property/models/lease.py:65
 #: property/models/management.py:50 templates/property/detail.html:520
 #: templates/property/detail_panel_cashflow.html:192
 #: templates/property/detail_panel_leases.html:56
@@ -764,15 +793,15 @@ msgstr "Fichier CSV"
 msgid "Columns: date, capital, interets, capital_restant"
 msgstr "Colonnes : date, capital, interets, capital_restant"
 
-#: property/forms.py:439
+#: property/forms.py:447
 msgid "Duration is required for depreciable assets."
 msgstr "La durée est requise pour les actifs amortissables."
 
-#: property/forms.py:466
+#: property/forms.py:474
 msgid "Acquisition fees to include"
 msgstr "Frais d'acquisition à inclure"
 
-#: property/forms.py:468
+#: property/forms.py:476
 msgid ""
 "Acquisition fees (notary, agency, loan set-up) added to the purchase price "
 "and depreciated with it. This irrevocable option is only allowed when the "
@@ -784,46 +813,46 @@ msgstr ""
 "le bien a été acheté l'année du début de l'activité LMNP ; sinon les frais "
 "sont perdus. Mettre 0 pour exclure."
 
-#: property/forms.py:487 property/models/asset.py:840
+#: property/forms.py:495 property/models/asset.py:840
 msgid "Land percentage (%)"
 msgstr "Pourcentage du terrain (%)"
 
-#: property/forms.py:489 property/models/asset.py:842
+#: property/forms.py:497 property/models/asset.py:842
 msgid ""
 "Non-depreciable land share as a percentage of total value. Default: 15 %."
 msgstr ""
 "Part de terrain non amortissable en pourcentage de la valeur totale. "
 "Défaut : 15 %."
 
-#: property/forms.py:705 property/models/asset.py:314
+#: property/forms.py:713 property/models/asset.py:314
 #: property/models/scpi.py:622 templates/property/_dividend_table_header.html:5
 msgid "Payment date"
 msgstr "Date de paiement"
 
-#: property/forms.py:721 templates/admin/bulk_update_date.html:27
+#: property/forms.py:729 templates/admin/bulk_update_date.html:27
 msgid "Update"
 msgstr "Mise à jour"
 
-#: property/forms.py:728 property/models/scpi.py:628
+#: property/forms.py:736 property/models/scpi.py:628
 #: templates/property/_dividend_table_header.html:6
 #: templates/property/scpi_dividend_batch.html:45
 msgid "Gross amount"
 msgstr "Montant brut"
 
-#: property/forms.py:736 property/models/scpi.py:634
+#: property/forms.py:744 property/models/scpi.py:634
 #: templates/property/_dividend_table_header.html:7
 #: templates/property/scpi_dividend_batch.html:46
 msgid "Net amount"
 msgstr "Montant net"
 
-#: property/forms.py:754 property/models/fiscal.py:34 templates/base.html:77
+#: property/forms.py:762 property/models/fiscal.py:34 templates/base.html:77
 #: templates/index.html:54 templates/index.html:181
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:17
 msgid "Properties"
 msgstr "Immobilier"
 
-#: property/forms.py:790
+#: property/forms.py:798
 msgid ""
 "Please upload a CSV file with columns: date, amount, category, description"
 msgstr ""
@@ -1470,6 +1499,47 @@ msgstr "Dépôt de garantie"
 #: templates/property/edit_lease.html:91
 msgid "Periodicity"
 msgstr "Périodicite"
+
+#: property/models/lease.py:93
+msgid "Q1"
+msgstr "T1"
+
+#: property/models/lease.py:93
+msgid "Q2"
+msgstr "T2"
+
+#: property/models/lease.py:93
+msgid "Q3"
+msgstr "T3"
+
+#: property/models/lease.py:93
+msgid "Q4"
+msgstr "T4"
+
+#: property/models/lease.py:94
+msgid "IRL reference quarter"
+msgstr "Trimestre de référence IRL"
+
+#: property/models/lease.py:96
+msgid ""
+"Quarter of the rent reference index named in the lease, usually the last one "
+"published when it was signed."
+msgstr ""
+"Trimestre de l'indice de référence des loyers indiqué dans le bail, en "
+"général le dernier publié à la signature."
+
+#: property/models/lease.py:105
+msgid "IRL reference value"
+msgstr "Valeur IRL de référence"
+
+#: property/models/lease.py:106
+msgid "IRL value of the current rent (at signing or last revision)."
+msgstr ""
+"Valeur de l'IRL du loyer actuel (à la signature ou à la dernière révision)."
+
+#: property/models/lease.py:109
+msgid "Last rent revision"
+msgstr "Dernière révision du loyer"
 
 #: property/models/ledger.py:72
 msgid "Rent collected"
@@ -2344,23 +2414,23 @@ msgstr "%(count)d ligne(s) n'ont pas pu être importée(s)."
 msgid "Row %(num)d: %(reason)s"
 msgstr "Ligne %(num)d : %(reason)s"
 
-#: property/views/detail_views.py:697
+#: property/views/detail_views.py:698
 msgid "Property value added."
 msgstr "Valeur de propriété ajoutée."
 
-#: property/views/detail_views.py:708
+#: property/views/detail_views.py:709
 msgid "Unable to add property value."
 msgstr "Impossible d'ajouter la valeur de propriété."
 
-#: property/views/detail_views.py:721
+#: property/views/detail_views.py:722
 msgid "Entry added."
 msgstr "Écriture ajoutée."
 
-#: property/views/detail_views.py:732
+#: property/views/detail_views.py:733
 msgid "Unable to add entry."
 msgstr "Impossible d'ajouter l'écriture."
 
-#: property/views/detail_views.py:736
+#: property/views/detail_views.py:737
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 
@@ -2458,6 +2528,20 @@ msgstr ""
 #: property/views/fiscal_views.py:365
 msgid "Frozen declaration deleted."
 msgstr "Liasse figée supprimée."
+
+#: property/views/rent_revision_views.py:29
+msgid "The rent revision cannot be computed."
+msgstr "La révision du loyer ne peut pas être calculée."
+
+#: property/views/rent_revision_views.py:32
+msgid "The rent revision is not due yet."
+msgstr "La révision du loyer n'est pas encore échue."
+
+#: property/views/rent_revision_views.py:44
+#, python-brace-format
+msgid "Rent revised to {rent}; {count} recurring rent series updated."
+msgstr ""
+"Loyer révisé à {rent} ; {count} série(s) de loyers récurrents mise(s) à jour."
 
 #: property/views/scpi_views.py:357
 msgid "SCPI updated successfully."
@@ -4240,6 +4324,56 @@ msgstr "Impossible de trouver les informations cadastrales pour ce lieu."
 msgid "An error occurred during cadastral lookup."
 msgstr "Une erreur s'est produite lors de la recherche cadastrale."
 
+#: templates/property/_rent_revision.html:6
+#: templates/property/edit_lease.html:172
+msgid "Rent revision (IRL)"
+msgstr "Révision du loyer (IRL)"
+
+#: templates/property/_rent_revision.html:10
+msgid "Anniversary"
+msgstr "Date anniversaire"
+
+#: templates/property/_rent_revision.html:11
+msgid "Due"
+msgstr "À faire"
+
+#: templates/property/_rent_revision.html:14
+msgid "Rent frozen: F and G rated housing cannot have its rent increased."
+msgstr ""
+"Loyer gelé : le loyer d'un logement classé F ou G ne peut pas être augmenté."
+
+#: templates/property/_rent_revision.html:16
+msgid ""
+"Set the IRL reference quarter and value in the lease to compute the revision."
+msgstr ""
+"Renseignez le trimestre et la valeur IRL de référence du bail pour calculer "
+"la révision."
+
+#: templates/property/_rent_revision.html:18
+msgid "The IRL of the reference quarter is not available yet."
+msgstr "L'IRL du trimestre de référence n'est pas encore disponible."
+
+#: templates/property/_rent_revision.html:21
+#, python-format
+msgid "IRL %(period)s: %(value)s (reference %(reference)s)"
+msgstr "IRL %(period)s : %(value)s (référence %(reference)s)"
+
+#: templates/property/_rent_revision.html:24
+msgid "New rent"
+msgstr "Nouveau loyer"
+
+#: templates/property/_rent_revision.html:30
+msgid "Effective date"
+msgstr "Date d'effet"
+
+#: templates/property/_rent_revision.html:32
+msgid "Apply revision"
+msgstr "Appliquer la révision"
+
+#: templates/property/_rent_revision.html:40
+msgid "Update IRL from INSEE"
+msgstr "Mettre à jour l'IRL depuis l'INSEE"
+
 #: templates/property/all_loans.html:19
 msgid "Export CSV"
 msgstr "Export CSV"
@@ -5115,16 +5249,16 @@ msgstr ""
 msgid "Add lease"
 msgstr "Ajouter un bail"
 
-#: templates/property/detail_panel_leases.html:87
+#: templates/property/detail_panel_leases.html:88
 msgid "Delete lease"
 msgstr "Supprimer le bail"
 
-#: templates/property/detail_panel_leases.html:88
+#: templates/property/detail_panel_leases.html:89
 #, python-format
 msgid "Are you sure you want to delete the lease starting %(start)s?"
 msgstr "Êtes-vous sûr de vouloir supprimer le bail débutant le %(start)s ?"
 
-#: templates/property/detail_panel_leases.html:94
+#: templates/property/detail_panel_leases.html:95
 msgid "No leases recorded yet."
 msgstr "Aucun bail enregistré pour le moment."
 
