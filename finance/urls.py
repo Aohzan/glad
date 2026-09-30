@@ -96,6 +96,36 @@ urlpatterns = [
         views.delete_saving_deposit,
         name="delete_saving_deposit",
     ),
+    # ─── Other assets ─────────────────────────────────────────────────────────
+    path("other/", views.other_asset_list, name="other_asset_list"),
+    path("other/new/", views.create_other_asset, name="new_other_asset"),
+    path("other/<int:pk>/", views.other_asset_detail, name="other_asset_detail"),
+    path("other/<int:pk>/edit/", views.edit_other_asset, name="edit_other_asset"),
+    path(
+        "other/<int:pk>/delete/",
+        cast(Callable[..., HttpResponseBase], views.delete_other_asset),
+        name="delete_other_asset",
+    ),
+    path(
+        "other/<int:pk>/price/",
+        cast(Callable[..., HttpResponseBase], views.update_other_asset_price),
+        name="update_other_asset_price",
+    ),
+    path(
+        "other/<int:asset_pk>/value/new/",
+        views.edit_other_asset_value,
+        name="new_other_asset_value",
+    ),
+    path(
+        "other/<int:asset_pk>/value/<int:value_pk>/edit/",
+        views.edit_other_asset_value,
+        name="edit_other_asset_value",
+    ),
+    path(
+        "other/<int:asset_pk>/value/<int:value_pk>/delete/",
+        views.delete_other_asset_value,
+        name="delete_other_asset_value",
+    ),
     # ─── Investment accounts ──────────────────────────────────────────────────
     path("investment/new/", views.create_investment, name="new_investment"),
     path("investment/<int:pk>/", views.investment_detail, name="investment_detail"),

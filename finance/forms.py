@@ -13,6 +13,7 @@ from finance.models.investment_account import (
     InvestmentAccountHolding,
     InvestmentAccountHoldingHistory,
 )
+from finance.models.other_asset import OtherAsset, OtherAssetValue
 from finance.models.saving_account import (
     SavingAccount,
     SavingAccountDeposit,
@@ -394,3 +395,48 @@ class BackfillHoldingHistoryForm(forms.Form):
                     )
                 )
         return cleaned_data
+
+
+class OtherAssetForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for creating/editing an other asset."""
+
+    class Meta:
+        model = OtherAsset
+        fields = [
+            "name",
+            "category",
+            "owner",
+            "acquisition_date",
+            "acquisition_value",
+            "quantity",
+            "ticker",
+            "liquidity",
+            "is_active",
+            "sold_date",
+            "notes",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "category": forms.Select(attrs={"class": "form-select"}),
+            "owner": forms.TextInput(attrs={"class": "form-control"}),
+            "acquisition_date": DATE_WIDGET,
+            "quantity": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.00000001"}
+            ),
+            "ticker": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "BTC-EUR"}
+            ),
+            "liquidity": forms.Select(attrs={"class": "form-select"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "sold_date": DATE_WIDGET,
+            "notes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        }
+
+
+class OtherAssetValueForm(MoneyInputGroupMixin, forms.ModelForm):
+    """Form for creating/editing an other asset value entry."""
+
+    class Meta:
+        model = OtherAssetValue
+        fields = ["value", "value_date"]
+        widgets = {"value_date": DATE_WIDGET}
