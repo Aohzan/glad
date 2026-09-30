@@ -16,6 +16,13 @@ from finance.views import other_asset_views
 TODAY = datetime.date.today()
 
 
+@pytest.fixture(autouse=True)
+def _no_other_assets(request):
+    """Start without assets, whatever the session fixtures loaded."""
+    if request.node.get_closest_marker("django_db"):
+        OtherAsset.objects.all().delete()
+
+
 def _asset(**kwargs) -> OtherAsset:
     defaults = {
         "name": "Gold coins",

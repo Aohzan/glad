@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from moneyed import Money
 
+from base.services.snapshots import month_starts, net_worth_history
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountCash,
@@ -244,130 +245,25 @@ class PatrimonyChartApiView(View):
     """Return patrimony evolution series for the evolution chart."""
 
     def get(self, request):
-        totals = _get_currency_totals()
-        dc = totals["default_currency"]
-        saving_accounts = totals["saving_accounts"]
-        investment_accounts = totals["investment_accounts"]
-        properties = totals["properties"]
-        scpi_investments = totals["scpi_investments"]
+        dc = _get_currency_totals()["default_currency"]
+        months = month_starts(int(request.GET.get("range", 2)) * 12)
+        history = net_worth_history(months, dc)
 
-        now = datetime.datetime.now()
-        months_range = int(request.GET.get("range", 2)) * 12
-        months = []
-        investments_series = []
-        savings_series = []
-        properties_net_series = []
-        properties_loans_series = []
-        scpi_series = []
-        other_series = []
-        all_other_assets = [
-            asset for asset in OtherAsset.objects.all() if asset.currency == dc
-        ]
-
-        for i in range(months_range, -1, -1):
-            year = now.year
-            month = now.month - i
-            while month <= 0:
-                month += 12
-                year -= 1
-            month_date = datetime.datetime(year, month, 1)
-            months.append(month_date.strftime("%b %Y"))
-
-            # Savings
-            month_saving_accounts = list(saving_accounts)
-            month_saving_accounts.extend(
-                SavingAccount.objects.filter(
-                    is_active=False, closing_date__gt=month_date.date()
-                )
-            )
-            month_saving_total = 0.0
-            for account in month_saving_accounts:
-                if account.currency == dc:
-                    try:
-                        value = account.get_value(max_date=month_date)
-                        if value:
-                            month_saving_total += float(value.amount)
-                    except TypeError:
-                        value = account.get_value(max_date=month_date.date())
-                        if value:
-                            month_saving_total += float(value.amount)
-                    except Exception:
-                        pass
-
-            # Investments
-            month_investment_accounts = list(investment_accounts)
-            month_investment_accounts.extend(
-                InvestmentAccount.objects.filter(
-                    is_active=False, closing_date__gt=month_date.date()
-                )
-            )
-            month_investment_total = 0.0
-            for account in month_investment_accounts:
-                if account.currency == dc:
-                    try:
-                        value = account.get_value(max_date=month_date)
-                        if value:
-                            month_investment_total += float(value.amount)
-                    except TypeError:
-                        value = account.get_value(max_date=month_date.date())
-                        if value:
-                            month_investment_total += float(value.amount)
-                    except Exception:
-                        pass
-
-            # Properties
-            month_properties = [
-                p for p in properties if p.buying_date <= month_date.date()
-            ]
-            month_property_net_total = 0.0
-            month_property_gross_total = 0.0
-            for prop in month_properties:
-                if prop.currency == dc:
-                    try:
-                        net_val = prop.net_value_at_date(month_date.date())
-                        if net_val:
-                            month_property_net_total += float(net_val.amount)
-                        gross_val = prop.get_value(max_date=month_date)
-                        if gross_val:
-                            month_property_gross_total += float(gross_val.amount)
-                    except Exception:
-                        pass
-
-            # SCPI — use estimated value at the month date
-            month_scpi_total = 0.0
-            for inv in scpi_investments:
-                if inv.currency == dc:
-                    try:
-                        val = inv.get_estimated_value(month_date.date())
-                        if val:
-                            month_scpi_total += float(val.amount)
-                    except Exception:
-                        pass
-
-            other_series.append(
-                sum(
-                    float(asset.get_value(month_date.date()).amount)
-                    for asset in all_other_assets
-                )
-            )
-            investments_series.append(month_investment_total)
-            savings_series.append(month_saving_total)
-            properties_net_series.append(month_property_net_total)
-            # loans = gross - net (negative equity portion)
-            properties_loans_series.append(
-                month_property_gross_total - month_property_net_total
-            )
-            scpi_series.append(month_scpi_total)
+        def series(name: str) -> list[float]:
+            return [float(values[name]) for values in history]
 
         return JsonResponse(
             {
-                "months": months,
-                "investments": investments_series,
-                "savings": savings_series,
-                "properties_net": properties_net_series,
-                "properties_loans": properties_loans_series,
-                "scpi": scpi_series,
-                "other": other_series,
+                "months": [m.strftime("%b %Y") for m in months],
+                "investments": series("investments"),
+                "savings": series("savings"),
+                "properties_net": series("properties_net"),
+                # loans = gross - net (negative equity portion)
+                "properties_loans": [
+                    float(v["properties_gross"] - v["properties_net"]) for v in history
+                ],
+                "scpi": series("scpi"),
+                "other": series("other"),
             }
         )
 

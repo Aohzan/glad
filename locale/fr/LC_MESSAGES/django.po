@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-30 23:39+0200\n"
+"POT-Creation-Date: 2026-09-30 23:45+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -195,6 +195,14 @@ msgstr "valeurs d'indices économiques"
 #, python-brace-format
 msgid "Q{quarter} {year}"
 msgstr "T{quarter} {year}"
+
+#: base/models.py:73
+msgid "net worth snapshot"
+msgstr "instantané du patrimoine"
+
+#: base/models.py:74
+msgid "net worth snapshots"
+msgstr "instantanés du patrimoine"
 
 #: base/services/allocation.py:88
 msgid "Not classified"
