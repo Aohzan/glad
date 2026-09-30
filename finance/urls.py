@@ -210,6 +210,16 @@ urlpatterns = [
         name="delete_holding_history",
     ),
     path(
+        "investment/<int:account_pk>/holding/<int:holding_pk>/rate/new/",
+        cast(Callable[..., HttpResponseBase], views.add_euro_fund_rate),
+        name="add_euro_fund_rate",
+    ),
+    path(
+        "investment/<int:account_pk>/holding/<int:holding_pk>/rate/<int:rate_pk>/delete/",
+        cast(Callable[..., HttpResponseBase], views.delete_euro_fund_rate),
+        name="delete_euro_fund_rate",
+    ),
+    path(
         "investment/<int:account_pk>/holding/<int:holding_pk>/history/backfill/",
         views.backfill_holding_history,
         name="backfill_holding_history",
