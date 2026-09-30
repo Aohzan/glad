@@ -701,11 +701,18 @@ const PANEL_URLS = {
   {% if show_amortization_tab %}amortization: "{% url 'property:panel_amortization' property.pk %}",{% endif %}
 };
 
+// Panel fragments are rendered in their own response, so their scripts carry a
+// different CSP nonce: re-stamp them with this page's nonce so they may run.
+const PAGE_CSP_NONCE = "{{ csp_nonce }}";
+
 function injectHTML(container, html) {
   container.innerHTML = html;
   container.querySelectorAll('script').forEach(function(oldScript) {
     const newScript = document.createElement('script');
-    Array.from(oldScript.attributes).forEach(function(attr) { newScript.setAttribute(attr.name, attr.value); });
+    Array.from(oldScript.attributes).forEach(function(attr) {
+      if (attr.name !== 'nonce') newScript.setAttribute(attr.name, attr.value);
+    });
+    newScript.nonce = PAGE_CSP_NONCE;
     newScript.textContent = oldScript.textContent;
     oldScript.parentNode.replaceChild(newScript, oldScript);
   });
