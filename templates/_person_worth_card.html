@@ -1,0 +1,25 @@
+{% load i18n format_money %}
+<div class="col-md-6 col-xl-4">
+  <div class="card shadow-sm rounded-4 h-100">
+    <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
+      <h2 class="section-title mb-0"><i class="bi {{ icon }} me-2 text-primary"></i>{{ person.label }}</h2>
+      <span class="fw-bold">{{ person.total|format_money_amount:currency }}</span>
+    </div>
+    <div class="card-body">
+      <table class="table table-sm mb-0">
+        <tbody>
+          {% for key, kind in kinds.items %}
+          {% with amount=person.by_kind|get_item:key %}
+          {% if amount %}
+          <tr><td>{{ kind.label }}</td><td class="text-end">{{ amount|format_money_amount:currency }}</td></tr>
+          {% endif %}
+          {% endwith %}
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if person.unvalued %}
+      <div class="small text-warning mt-2"><i class="bi bi-exclamation-triangle me-1"></i>{% translate "Dismembered rights without date:" %} {{ person.unvalued|join:", " }}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>

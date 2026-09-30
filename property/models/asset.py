@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
@@ -551,6 +552,7 @@ class Property(BaseModel):
         verbose_name=_("Tax regime"),
         help_text=_("Tax regime applicable to this property (e.g. LMNP réel)."),
     )
+    ownerships = GenericRelation("base.Ownership")
     lmnp_start_date = models.DateField(
         null=True,
         blank=True,

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n format_money static %}
+{% load i18n format_money static ownership %}
 
 {% block title %}{{ scpi }} — {% translate "SCPI" %}{% endblock %}
 
@@ -168,6 +168,7 @@
                 {% else %}bg-info-subtle text-info-emphasis{% endif %}">
                 {{ inv.get_ownership_type_display }}
               </span>
+              <div class="small mt-1">{% owners_summary inv %}</div>
             </td>
             <td class="text-end">{{ row.total_invested|format_money }}</td>
             <td class="text-end">

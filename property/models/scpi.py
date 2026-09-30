@@ -4,6 +4,7 @@ import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -272,6 +273,7 @@ class SCPIInvestment(BaseModel):
         ),
     )
     notes = models.TextField(blank=True, default="")
+    ownerships = GenericRelation("base.Ownership")
 
     def __str__(self) -> str:
         return f"{self.scpi} — {self.shares_count} shares ({self.subscription_date})"

@@ -10,6 +10,7 @@ value comes from a value history, which can be filled from a market quote
 import datetime
 from typing import TYPE_CHECKING
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
@@ -115,6 +116,7 @@ class OtherAsset(BaseModel):
     is_active = models.BooleanField(default=True, verbose_name=_("Active"))
     sold_date = models.DateField(null=True, blank=True, verbose_name=_("Sold date"))
     notes = models.TextField(blank=True, verbose_name=_("Notes"))
+    ownerships = GenericRelation("base.Ownership")
 
     def __str__(self) -> str:
         return str(self.name)

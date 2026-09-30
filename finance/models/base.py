@@ -3,6 +3,7 @@
 import datetime
 from typing import TYPE_CHECKING
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -95,6 +96,7 @@ class AbstractAccount(BaseModel):
         ),
     )
     closing_date = models.DateField(null=True, blank=True)
+    ownerships = GenericRelation("base.Ownership")
 
     @property
     def current_value(self):
