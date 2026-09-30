@@ -246,6 +246,10 @@ class PropertyLoan(BaseModel):
             or self.end_date is None
         ):
             return Money(Decimal(0), currency)
+        # The maps are keyed by month: a loan starting later in the current
+        # month has not paid anything yet.
+        if as_of_date < (self.first_payment_date or self.start_date):
+            return Money(Decimal(0), currency)
 
         interest_map, _principal_map, _insurance_map = build_loan_maps_from_loan_obj(
             self, Decimal(0)
