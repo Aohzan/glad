@@ -1,4 +1,4 @@
-{% load i18n format_money %}
+{% load i18n format_money ownership %}
 
 {# ── Property information card ─────────────────────────────────────────── #}
 <div class="card shadow-sm rounded-4 mb-3">
@@ -66,6 +66,11 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="mb-3">
+      <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Owners" %}</p>
+      {% owners_summary property %}
     </div>
 
     {% include "property/_dpe_status.html" %}

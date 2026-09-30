@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{% translate "Net worth by owner" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <h1 class="mb-0 h3"><i class="bi bi-people me-2 text-primary"></i>{% translate "Net worth by owner" %}</h1>
+    <form method="post" class="d-flex gap-2 align-items-end">
+      {% csrf_token %}
+      <div>
+        <label for="{{ birth_form.birth_date.id_for_label }}" class="form-label small mb-1">{{ birth_form.birth_date.label }}</label>
+        {{ birth_form.birth_date }}
+      </div>
+      <button type="submit" class="btn btn-outline-primary">{% translate "Save" %}</button>
+    </form>
+  </div>
+  <div class="row g-3">
+    {% for person in people %}{% include "_person_worth_card.html" with icon="bi-person" %}{% endfor %}
+    {% if unassigned.total %}{% include "_person_worth_card.html" with person=unassigned icon="bi-house-heart" %}{% endif %}
+    {% if outside.total %}{% include "_person_worth_card.html" with person=outside icon="bi-box-arrow-up-right" %}{% endif %}
+  </div>
+  <p class="small text-body-secondary mt-3 mb-0">
+    {% translate "Each asset counts for the share and the value of the right held by each owner. Assets without owner are shown as not assigned; the part held by people who are not users of the application is shown as outside the household. Real estate is counted net of the remaining loans." %}
+  </p>
+</div>
+{% endblock %}

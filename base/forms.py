@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import TYPE_CHECKING, cast
 
 from django import forms
+from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from djmoney.forms.fields import MoneyField
 
+from base.models import Ownership, display_name
 from base.widgets import BootstrapMoneyWidget
 
 if TYPE_CHECKING:
@@ -77,4 +80,93 @@ class MonthlyExpensesForm(forms.Form):
         max_digits=10,
         decimal_places=2,
         widget=forms.NumberInput(attrs={"class": "form-control", "step": "10"}),
+    )
+
+
+class UserChoiceField(forms.ModelChoiceField):
+    """Active users, shown by their full name."""
+
+    def label_from_instance(self, obj) -> str:
+        return display_name(obj)
+
+
+class OwnershipForm(forms.ModelForm):
+    """Add or update the share of an asset held by a household member."""
+
+    user = UserChoiceField(
+        queryset=get_user_model().objects.filter(is_active=True),
+        label=_("Owner"),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    class Meta:
+        model = Ownership
+        fields = [
+            "user",
+            "share",
+            "right",
+            "usufructuary_birth_date",
+            "usufruct_end_date",
+        ]
+        widgets = {
+            "share": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+            "right": forms.Select(attrs={"class": "form-select"}),
+            "usufructuary_birth_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+            "usufruct_end_date": forms.DateInput(
+                attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+            ),
+        }
+
+    def __init__(self, *args, others=(), dismemberable=True, **kwargs):
+        """*others* are the other ownership rows of the asset."""
+        super().__init__(*args, **kwargs)
+        self.others = list(others)
+        if not dismemberable:
+            for name in ("right", "usufructuary_birth_date", "usufruct_end_date"):
+                del self.fields[name]
+
+    def clean(self):
+        cleaned = super().clean() or {}
+        right = cleaned.get("right", Ownership.Right.FULL)
+        share = cleaned.get("share")
+        if right != Ownership.Right.FULL and not (
+            cleaned.get("usufruct_end_date")
+            or cleaned.get("usufructuary_birth_date")
+            or (
+                right == Ownership.Right.USUFRUCT
+                and getattr(
+                    getattr(cleaned.get("user"), "profile", None), "birth_date", None
+                )
+            )
+        ):
+            raise forms.ValidationError(
+                _(
+                    "A dismembered right needs the usufruct end date or the birth "
+                    "date of the usufructuary."
+                )
+            )
+        if share is not None:
+            totals = {right_: Decimal(0) for right_ in Ownership.Right.values}
+            for other in self.others:
+                totals[other.right] += other.share
+            totals[right] += share
+            held = totals[Ownership.Right.FULL] + max(
+                totals[Ownership.Right.BARE], totals[Ownership.Right.USUFRUCT]
+            )
+            if held > 100:
+                raise forms.ValidationError(_("The shares of the owners exceed 100 %."))
+        return cleaned
+
+
+class BirthDateForm(forms.Form):
+    """Birth date of the current user, used to value a life usufruct."""
+
+    birth_date = forms.DateField(
+        label=_("My birth date"),
+        required=False,
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+        ),
     )

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n format_money static %}
+{% load i18n format_money static ownership %}
 
 {% block title %}{{ asset }}{% endblock %}
 
@@ -42,12 +42,10 @@
           <small class="text-body-secondary">{% translate "Liquidity" %}</small>
           <div>{{ asset.get_effective_liquidity_display }}</div>
         </div>
-        {% if asset.owner %}
         <div class="col-md-3">
-          <small class="text-body-secondary">{% translate "Owner" %}</small>
-          <div>{{ asset.owner }}</div>
+          <small class="text-body-secondary">{% translate "Owners" %}</small>
+          <div>{% owners_summary asset asset.owner %}</div>
         </div>
-        {% endif %}
         {% if asset.quantity %}
         <div class="col-md-3">
           <small class="text-body-secondary">{% translate "Quantity" %}</small>

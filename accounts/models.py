@@ -34,6 +34,12 @@ class UserProfile(models.Model):
         ),
     )
 
+    birth_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Birth date"),
+        help_text=_("Used to value a life usufruct (article 669 CGI)."),
+    )
     monthly_expenses = models.DecimalField(
         max_digits=10,
         decimal_places=2,
