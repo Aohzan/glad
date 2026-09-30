@@ -31,6 +31,7 @@
             {{ form.opening_cash_value }}
             {% if form.opening_cash_value.errors %}<div class="invalid-feedback d-block">{{ form.opening_cash_value.errors }}</div>{% endif %}
           </div>
+          <div class="col-md-12">{% include "_form_field.html" with field=form.benchmark_symbol %}</div>
         </div>
       </div>
     </div>

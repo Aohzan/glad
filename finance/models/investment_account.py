@@ -80,6 +80,16 @@ class InvestmentAccount(AbstractAccount):
         default=Decimal(0),  # type: ignore[call-arg]
         null=False,
     )
+    benchmark_symbol = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        verbose_name=_("Benchmark"),
+        help_text=_(
+            "Yahoo Finance symbol or ISIN of an index fund quoted in the account "
+            "currency (e.g. CW8.PA for MSCI World), to compare the performance."
+        ),
+    )
 
     @property
     def currency(self) -> str:

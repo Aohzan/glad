@@ -51,6 +51,7 @@
     </div>
   </div>
 
+  {% include "finance/_performance_card.html" %}
   {% include "finance/_envelope_card.html" %}
   {% if interest_estimate %}{% include "finance/_interest_estimate_card.html" with estimate=interest_estimate %}{% endif %}
 

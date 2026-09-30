@@ -29,6 +29,7 @@ from finance.models.investment_account import (
     InvestmentAccountHoldingHistory,
 )
 from finance.services.market_data import MarketDataError, fetch_historical_prices
+from finance.services.performance import account_performance
 from finance.views.crud_views import _delete_account_related, _edit_account_related
 
 DETAIL_URL = "finance:investment_detail"
@@ -58,6 +59,7 @@ def investment_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "total_deposits": total_deposits,
             "capital_gain": capital_gain,
             "euro_fund_split": account.euro_fund_split(),
+            "performance": account_performance(account),
         },
     )
 
