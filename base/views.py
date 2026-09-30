@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
 from base.models import EconomicIndex
+from base.services.deadlines import upcoming_deadlines
 from base.services.insee import InseeError, refresh_index
 from property.models import Property
 from property.models.scpi import SCPI
@@ -64,6 +65,9 @@ def safe_date_compare(date_obj, datetime_obj):
         return date_obj <= datetime_obj
 
 
+DASHBOARD_DEADLINES = 8
+
+
 class IndexView(TemplateView):
     """View for the index page — shells out to async API endpoints."""
 
@@ -83,6 +87,7 @@ class IndexView(TemplateView):
                 "property_pks": property_pks,
                 "scpi_pks": scpi_pks,
                 "property_checks": pending_checks_summary() if property_pks else None,
+                "deadlines": upcoming_deadlines(limit=DASHBOARD_DEADLINES),
             },
         )
 

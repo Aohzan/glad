@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-30 23:17+0200\n"
+"POT-Creation-Date: 2026-09-30 23:20+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -132,11 +132,37 @@ msgstr "valeurs d'indices économiques"
 msgid "Q{quarter} {year}"
 msgstr "T{quarter} {year}"
 
-#: base/views.py:97
+#: base/services/deadlines.py:85
+msgid "End of the loan"
+msgstr "Fin du prêt"
+
+#: base/services/deadlines.py:105 templates/property/_rent_revision.html:6
+#: templates/property/edit_lease.html:172
+msgid "Rent revision (IRL)"
+msgstr "Révision du loyer (IRL)"
+
+#: base/services/deadlines.py:114
+msgid "End of the lease"
+msgstr "Fin du bail"
+
+#: base/services/deadlines.py:140
+#, python-format
+msgid "Rental ban for DPE %(rating)s housing"
+msgstr "Interdiction de location des logements classés %(rating)s"
+
+#: base/services/deadlines.py:150
+msgid "DPE expiry"
+msgstr "Expiration du DPE"
+
+#: base/services/deadlines.py:166
+msgid "End of the dismemberment"
+msgstr "Fin du démembrement"
+
+#: base/views.py:102
 msgid "Could not download the INSEE indices."
 msgstr "Impossible de télécharger les indices INSEE."
 
-#: base/views.py:99
+#: base/views.py:104
 msgid "INSEE indices updated."
 msgstr "Indices INSEE mis à jour."
 
@@ -846,7 +872,7 @@ msgid "Net amount"
 msgstr "Montant net"
 
 #: property/forms.py:762 property/models/fiscal.py:34 templates/base.html:77
-#: templates/index.html:54 templates/index.html:181
+#: templates/index.html:54 templates/index.html:183
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:17
 msgid "Properties"
@@ -1869,7 +1895,7 @@ msgstr "Annuel"
 #: property/models/scpi.py:37 property/models/scpi.py:38
 #: property/models/scpi.py:158 property/models/scpi.py:207
 #: property/models/scpi.py:620 templates/base.html:82 templates/index.html:55
-#: templates/index.html:218 templates/property/scpi_detail.html:12
+#: templates/index.html:220 templates/property/scpi_detail.html:12
 #: templates/property/scpi_detail.html:136
 #: templates/property/scpi_dividend_batch.html:10
 #: templates/property/scpi_dividend_batch.html:44
@@ -2653,6 +2679,28 @@ msgstr "Erreur serveur"
 msgid "An unexpected error occurred. Please try again later."
 msgstr "Une erreur inconnue est survenue. Merci de réessayer plus tard."
 
+#: templates/_deadlines_card.html:6
+msgid "Upcoming deadlines"
+msgstr "Échéances à venir"
+
+#: templates/_deadlines_card.html:21
+#, python-format
+msgid "%(days)s day ago"
+msgid_plural "%(days)s days ago"
+msgstr[0] "il y a %(days)s jour"
+msgstr[1] "il y a %(days)s jours"
+
+#: templates/_deadlines_card.html:22 templates/index.html:71
+msgid "today"
+msgstr "aujourd'hui"
+
+#: templates/_deadlines_card.html:23
+#, python-format
+msgid "in %(days)s day"
+msgid_plural "in %(days)s days"
+msgstr[0] "dans %(days)s jour"
+msgstr[1] "dans %(days)s jours"
+
 #: templates/accounts/emails/login_notification.html:10
 #: templates/accounts/settings.html:45
 msgid "Login notification"
@@ -2969,7 +3017,7 @@ msgstr "Accueil"
 
 #: templates/base.html:43 templates/finance/_account_detail_header.html:4
 #: templates/finance/index.html:5 templates/finance/index.html:17
-#: templates/index.html:122
+#: templates/index.html:124
 msgid "Finance"
 msgstr "Finance"
 
@@ -3044,7 +3092,7 @@ msgstr "Comptabilité LMNP"
 msgid "Favorite properties"
 msgstr "Propriétés favorites"
 
-#: templates/base.html:100 templates/index.html:208
+#: templates/base.html:100 templates/index.html:210
 #: templates/property/index.html:163
 msgid "Add your first property"
 msgstr "Ajouter votre première propriété"
@@ -4040,12 +4088,12 @@ msgstr "Net"
 msgid "Loans"
 msgstr "Prêts"
 
-#: templates/index.html:52 templates/index.html:147
+#: templates/index.html:52 templates/index.html:149
 #: templates/property/scpi_fund_detail.html:136
 msgid "Investments"
 msgstr "Investissements"
 
-#: templates/index.html:53 templates/index.html:160
+#: templates/index.html:53 templates/index.html:162
 msgid "Savings"
 msgstr "Épargnes"
 
@@ -4090,17 +4138,13 @@ msgstr "Aucune opération récente."
 msgid "Patrimony Evolution"
 msgstr "Évolution du patrimoine"
 
-#: templates/index.html:67 templates/index.html:131
+#: templates/index.html:67 templates/index.html:133
 msgid "Breakdown"
 msgstr "Répartition"
 
 #: templates/index.html:68
 msgid "No accounts yet."
 msgstr "Aucun compte actuellement."
-
-#: templates/index.html:71
-msgid "today"
-msgstr "aujourd'hui"
 
 #: templates/index.html:73 templates/property/scpi_detail.html:165
 #: templates/property/scpi_fund_detail.html:218
@@ -4139,11 +4183,11 @@ msgstr "5A"
 msgid "10Y"
 msgstr "10A"
 
-#: templates/index.html:124 templates/index.html:183 templates/index.html:220
+#: templates/index.html:126 templates/index.html:185 templates/index.html:222
 msgid "View all"
 msgstr "Voir tout"
 
-#: templates/index.html:190
+#: templates/index.html:192
 #, python-format
 msgid "%(counter)s recurring entry to check (oldest: %(days)s days)."
 msgid_plural "%(counter)s recurring entries to check (oldest: %(days)s days)."
@@ -4154,19 +4198,19 @@ msgstr[1] ""
 "%(counter)s écritures récurrentes à pointer (la plus ancienne : %(days)s "
 "jours)."
 
-#: templates/index.html:192 templates/property/detail_panel_cashflow.html:21
+#: templates/index.html:194 templates/property/detail_panel_cashflow.html:21
 msgid "Check entries"
 msgstr "Pointer les écritures"
 
-#: templates/index.html:206
+#: templates/index.html:208
 msgid "No properties yet."
 msgstr "Aucune propriété actuellement."
 
-#: templates/index.html:236
+#: templates/index.html:238
 msgid "Recent Operations"
 msgstr "Opérations récentes"
 
-#: templates/index.html:238
+#: templates/index.html:240
 msgid "See all"
 msgstr "Voir tout"
 
@@ -4323,11 +4367,6 @@ msgstr "Impossible de trouver les informations cadastrales pour ce lieu."
 #: templates/property/_property_form_fields.html:513
 msgid "An error occurred during cadastral lookup."
 msgstr "Une erreur s'est produite lors de la recherche cadastrale."
-
-#: templates/property/_rent_revision.html:6
-#: templates/property/edit_lease.html:172
-msgid "Rent revision (IRL)"
-msgstr "Révision du loyer (IRL)"
 
 #: templates/property/_rent_revision.html:10
 msgid "Anniversary"
