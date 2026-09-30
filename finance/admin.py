@@ -11,6 +11,7 @@ from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 from finance.models.investment_account import (
+    EuroFundRate,
     InvestmentAccount,
     InvestmentAccountCash,
     InvestmentAccountDeposit,
@@ -28,6 +29,7 @@ from finance.models.saving_account import (
 
 admin.site.register(SavingAccountType)
 admin.site.register(InvestmentAccountType)
+admin.site.register(EuroFundRate)
 admin.site.register(OtherAsset)
 admin.site.register(OtherAssetValue)
 

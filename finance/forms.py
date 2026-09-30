@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from base.forms import MoneyInputGroupMixin
 from finance.models.investment_account import (
+    EuroFundRate,
     InvestmentAccount,
     InvestmentAccountCash,
     InvestmentAccountDeposit,
@@ -442,3 +443,16 @@ class OtherAssetValueForm(MoneyInputGroupMixin, forms.ModelForm):
         model = OtherAssetValue
         fields = ["value", "value_date"]
         widgets = {"value_date": DATE_WIDGET}
+
+
+class EuroFundRateForm(forms.ModelForm):
+    """Form for recording the yearly rate credited by a euro fund."""
+
+    class Meta:
+        model = EuroFundRate
+        fields = ["year", "rate", "notes"]
+        widgets = {
+            "year": forms.NumberInput(attrs={"class": "form-control", "min": 1900}),
+            "rate": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+            "notes": forms.TextInput(attrs={"class": "form-control"}),
+        }

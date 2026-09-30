@@ -1268,6 +1268,33 @@ def generate_investmentaccount() -> str:
     deposit_date: {ds(M12)}
     source: Virement bancaire
     update_account_cash: true
+- model: finance.eurofundrate
+  pk: 1
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    holding_id: 7
+    year: {TODAY.year - 3}
+    rate: "2.00"
+    notes: ""
+- model: finance.eurofundrate
+  pk: 2
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    holding_id: 7
+    year: {TODAY.year - 2}
+    rate: "2.60"
+    notes: "Bonus de 0,5 % avec 30 % d'UC"
+- model: finance.eurofundrate
+  pk: 3
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    holding_id: 7
+    year: {TODAY.year - 1}
+    rate: "2.50"
+    notes: ""
 """
 
 

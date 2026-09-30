@@ -2,6 +2,7 @@
 
 from .chart_views import chart_data
 from .csv_views import csv_export, csv_export_synthesis, csv_import, csv_import_confirm
+from .euro_fund_views import add_euro_fund_rate, delete_euro_fund_rate
 from .index_views import index
 from .investment_views import (
     backfill_holding_history,
@@ -44,6 +45,7 @@ from .saving_views import (
 from .update_views import update_accounts
 
 __all__ = [
+    "add_euro_fund_rate",
     "backfill_holding_history",
     "chart_data",
     "create_investment",
@@ -53,6 +55,7 @@ __all__ = [
     "csv_export_synthesis",
     "csv_import",
     "csv_import_confirm",
+    "delete_euro_fund_rate",
     "delete_holding_history",
     "delete_investment",
     "delete_investment_cash",
