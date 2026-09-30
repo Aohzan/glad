@@ -799,3 +799,55 @@ class PropertyCSVImportForm(forms.Form):
         ),
         widget=forms.FileInput(attrs={"class": "form-control", "accept": ".csv"}),
     )
+
+
+# ─── Resale simulation ────────────────────────────────────────────────────────
+
+
+class ResaleSimulationForm(forms.Form):
+    """Hypotheses of a simulated property sale."""
+
+    sale_price = forms.DecimalField(
+        label=_("Sale price"),
+        min_value=0,
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "1000"}),
+    )
+    sale_date = forms.DateField(
+        label=_("Sale date"),
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+        ),
+    )
+    seller_fees = forms.DecimalField(
+        label=_("Fees paid by the seller"),
+        help_text=_("Agency fees paid by the seller, diagnostics…"),
+        required=False,
+        min_value=0,
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "100"}),
+    )
+    actual_works = forms.DecimalField(
+        label=_("Works not already deducted"),
+        help_text=_(
+            "Construction, extension or improvement works with invoices, not "
+            "deducted from rental income nor amortized."
+        ),
+        required=False,
+        min_value=0,
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "100"}),
+    )
+    main_residence = forms.BooleanField(
+        label=_("Main residence at the time of the sale (exempt)"),
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+    service_residence = forms.BooleanField(
+        label=_("Student, senior or care residence (no LMNP reintegration)"),
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )

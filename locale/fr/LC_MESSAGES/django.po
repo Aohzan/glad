@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-30 23:55+0200\n"
+"POT-Creation-Date: 2026-09-30 23:59+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -168,7 +168,7 @@ msgstr "Autre"
 #: templates/finance/edit_saving_value.html:29
 #: templates/finance/holding_detail.html:142
 #: templates/finance/investment_detail.html:149
-#: templates/property/detail.html:458 templates/property/detail.html:555
+#: templates/property/detail.html:463 templates/property/detail.html:560
 #: templates/property/detail_panel_cashflow.html:36
 #: templates/property/detail_panel_cashflow.html:109
 #: templates/property/detail_panel_loans.html:296
@@ -554,7 +554,7 @@ msgid "Start date"
 msgstr "Date de début"
 
 #: finance/forms.py:386 property/forms.py:775 property/models/lease.py:65
-#: property/models/management.py:50 templates/property/detail.html:520
+#: property/models/management.py:50 templates/property/detail.html:525
 #: templates/property/detail_panel_cashflow.html:192
 #: templates/property/detail_panel_leases.html:56
 #: templates/property/detail_panel_mandate.html:34
@@ -738,7 +738,7 @@ msgstr "Taux net de frais de gestion, avant prélèvements sociaux."
 #: templates/finance/other_asset_detail.html:77
 #: templates/property/_dividend_table_header.html:8
 #: templates/property/_notes_card.html:4 templates/property/_notes_card.html:8
-#: templates/property/detail.html:499
+#: templates/property/detail.html:504
 #: templates/property/detail_panel_cashflow.html:174
 #: templates/property/detail_panel_leases.html:77
 #: templates/property/detail_panel_mandate.html:52
@@ -789,7 +789,7 @@ msgstr "Nom"
 #: templates/finance/other_asset_detail.html:38
 #: templates/finance/other_asset_list.html:22
 #: templates/property/_report_category_table.html:11
-#: templates/property/detail.html:407
+#: templates/property/detail.html:412
 #: templates/property/detail_panel_cashflow.html:38
 #: templates/property/detail_panel_cashflow.html:136
 #: templates/property/detail_panel_cashflow.html:308
@@ -882,8 +882,8 @@ msgstr "valeurs d'autres actifs"
 #: templates/finance/holding_detail.html:220 templates/finance/index.html:125
 #: templates/finance/index.html:216 templates/finance/investment_detail.html:80
 #: templates/finance/investment_detail.html:150
-#: templates/property/csv_confirm.html:53 templates/property/detail.html:350
-#: templates/property/detail.html:556
+#: templates/property/csv_confirm.html:53 templates/property/detail.html:355
+#: templates/property/detail.html:561
 #: templates/property/detail_panel_amortization.html:133
 #: templates/property/scpi_fund_detail.html:351
 #: templates/property/scpi_theoretical_value_form.html:46
@@ -1045,7 +1045,7 @@ msgstr " et {} erreurs supplémentaires"
 
 #: finance/views/csv_views.py:541
 #: templates/finance/_account_detail_common_info.html:3
-#: templates/property/detail.html:386
+#: templates/property/detail.html:391
 #: templates/property/detail_panel_cashflow.html:75
 #: templates/property/detail_panel_info.html:17
 #: templates/property/detail_panel_leases.html:48
@@ -1253,7 +1253,7 @@ msgid "French"
 msgstr "Français"
 
 #: property/forms.py:60 property/models/ledger.py:315
-#: templates/property/detail.html:469
+#: templates/property/detail.html:474
 #: templates/property/detail_panel_cashflow.html:118
 msgid "Reference period"
 msgstr "Période de référence"
@@ -1340,6 +1340,42 @@ msgstr ""
 "Veuillez télécharger un fichier CSV avec les colonnes : date, montant, "
 "catégorie, description"
 
+#: property/forms.py:811 templates/property/resale_simulation.html:62
+msgid "Sale price"
+msgstr "Prix de vente"
+
+#: property/forms.py:818
+msgid "Sale date"
+msgstr "Date de vente"
+
+#: property/forms.py:824 templates/property/resale_simulation.html:63
+msgid "Fees paid by the seller"
+msgstr "Frais à la charge du vendeur"
+
+#: property/forms.py:825
+msgid "Agency fees paid by the seller, diagnostics…"
+msgstr "Frais d'agence payés par le vendeur, diagnostics…"
+
+#: property/forms.py:833
+msgid "Works not already deducted"
+msgstr "Travaux non déjà déduits"
+
+#: property/forms.py:835
+msgid ""
+"Construction, extension or improvement works with invoices, not deducted "
+"from rental income nor amortized."
+msgstr ""
+"Travaux de construction, d'agrandissement ou d'amélioration justifiés par "
+"des factures, ni déduits des revenus locatifs ni amortis."
+
+#: property/forms.py:845
+msgid "Main residence at the time of the sale (exempt)"
+msgstr "Résidence principale au jour de la vente (exonérée)"
+
+#: property/forms.py:850
+msgid "Student, senior or care residence (no LMNP reintegration)"
+msgstr "Résidence étudiante, senior ou EHPAD (pas de réintégration LMNP)"
+
 #: property/models/asset.py:37
 msgid "property loan"
 msgstr "prêt immobilier"
@@ -1416,7 +1452,7 @@ msgstr "entrées d'amortissement"
 msgid "Loan"
 msgstr "Prêt"
 
-#: property/models/asset.py:319 templates/property/detail.html:125
+#: property/models/asset.py:319 templates/property/detail.html:130
 msgid "Capital repaid"
 msgstr "Capital remboursé"
 
@@ -1666,7 +1702,7 @@ msgstr "valeurs de propriétés"
 msgid "Manual"
 msgstr "Manuel"
 
-#: property/models/asset.py:790 templates/property/detail.html:96
+#: property/models/asset.py:790 templates/property/detail.html:101
 msgid "DVF estimate"
 msgstr "Estimation DVF"
 
@@ -2015,7 +2051,7 @@ msgstr "Charges de copropriété"
 msgid "Routine maintenance"
 msgstr "Entretien courant"
 
-#: property/models/ledger.py:150
+#: property/models/ledger.py:150 templates/property/resale_simulation.html:72
 msgid "Works"
 msgstr "Travaux"
 
@@ -2070,7 +2106,7 @@ msgid "ALUR works fund"
 msgstr "Fonds travaux (ALUR)"
 
 #: property/models/ledger.py:241 templates/index.html:48
-#: templates/property/detail.html:391 templates/property/detail.html:414
+#: templates/property/detail.html:396 templates/property/detail.html:419
 #: templates/property/detail_panel_balance.html:64
 #: templates/property/detail_panel_cashflow.html:85
 #: templates/property/detail_panel_cashflow.html:143
@@ -2079,7 +2115,7 @@ msgstr "Fonds travaux (ALUR)"
 msgid "Income"
 msgstr "Revenu"
 
-#: property/models/ledger.py:242 templates/property/detail.html:395
+#: property/models/ledger.py:242 templates/property/detail.html:400
 #: templates/property/detail_panel_cashflow.html:94
 #: templates/property/detail_panel_cashflow.html:293
 #: templates/property/occurrence_checks.html:85
@@ -2102,7 +2138,7 @@ msgstr "écriture comptable"
 msgid "ledger entries"
 msgstr "écritures comptables"
 
-#: property/models/ledger.py:295 templates/property/detail.html:430
+#: property/models/ledger.py:295 templates/property/detail.html:435
 #: templates/property/detail_panel_cashflow.html:126
 msgid "Lease"
 msgstr "Bail"
@@ -2114,7 +2150,7 @@ msgstr "Type de flux"
 #: property/models/ledger.py:305 templates/finance/_deposits_panel.html:16
 #: templates/finance/_edit_deposit_fields.html:3
 #: templates/property/_report_category_table.html:12
-#: templates/property/detail.html:451
+#: templates/property/detail.html:456
 #: templates/property/detail_panel_cashflow.html:39
 #: templates/property/detail_panel_cashflow.html:102
 #: templates/property/edit_entry_occurrence.html:40
@@ -2134,7 +2170,7 @@ msgid "The month/period this entry covers, e.g. first day of March 2024."
 msgstr ""
 "Le mois/période que couvre cette écriture, ex. premier jour de mars 2024."
 
-#: property/models/ledger.py:329 templates/property/detail.html:488
+#: property/models/ledger.py:329 templates/property/detail.html:493
 #: templates/property/detail_panel_cashflow.html:158
 msgid "Third party"
 msgstr "Tiers"
@@ -3175,7 +3211,7 @@ msgstr "Saisissez votre adresse email"
 #: templates/finance/_euro_fund_rates_panel.html:25 templates/owners.html:16
 #: templates/owners_manage.html:63 templates/property/_edit_form_footer.html:6
 #: templates/property/_form_submit_buttons.html:4
-#: templates/property/detail.html:362 templates/property/detail.html:534
+#: templates/property/detail.html:367 templates/property/detail.html:539
 #: templates/property/edit_amortization.html:174
 #: templates/property/edit_entry.html:12
 #: templates/property/edit_entry_occurrence.html:81
@@ -3376,7 +3412,7 @@ msgstr[1] ""
 #: templates/property/_property_form_card.html:16
 #: templates/property/csv_confirm.html:37
 #: templates/property/delete_entry_occurrence.html:30
-#: templates/property/detail.html:361 templates/property/detail.html:532
+#: templates/property/detail.html:366 templates/property/detail.html:537
 #: templates/property/detail_panel_balance.html:42
 #: templates/property/detail_panel_cashflow.html:201
 #: templates/property/detail_panel_cashflow.html:231
@@ -3577,6 +3613,8 @@ msgstr "Investi"
 #: templates/finance/_account_chart_script.html:367
 #: templates/finance/_account_stats.html:8
 #: templates/finance/other_asset_detail.html:64
+#: templates/property/resale_simulation.html:39
+#: templates/property/resale_simulation.html:83
 #: templates/property/scpi_fund_detail.html:153
 msgid "Capital gain"
 msgstr "Plus-value"
@@ -3597,7 +3635,7 @@ msgstr "Propriétaires"
 #: templates/finance/investment_detail.html:109
 #: templates/finance/other_asset_detail.html:26
 #: templates/property/_edit_page_header.html:17
-#: templates/property/detail.html:51
+#: templates/property/detail.html:55
 #: templates/property/detail_panel_cashflow.html:297
 #: templates/property/detail_panel_loans.html:39 templates/property/edit.html:5
 #: templates/property/scpi_detail.html:124
@@ -3615,7 +3653,7 @@ msgstr "Modifier"
 #: templates/finance/holding_detail.html:26
 #: templates/finance/investment_detail.html:112
 #: templates/finance/other_asset_detail.html:29
-#: templates/property/detail.html:569
+#: templates/property/detail.html:574
 #: templates/property/detail_panel_cashflow.html:233
 #: templates/property/detail_panel_cashflow.html:302
 #: templates/property/detail_panel_loans.html:159
@@ -3666,7 +3704,7 @@ msgstr "Ajouter un dépôt"
 #: templates/finance/investment_detail.html:83
 #: templates/finance/investment_detail.html:151
 #: templates/property/_dividend_table_header.html:9
-#: templates/property/detail.html:557
+#: templates/property/detail.html:562
 #: templates/property/detail_panel_cashflow.html:41
 msgid "Actions"
 msgstr "Actions"
@@ -3711,10 +3749,10 @@ msgstr "Date de clôture"
 #: templates/property/_contact_card.html:12
 #: templates/property/_contact_card.html:23
 #: templates/property/_contact_card.html:36
-#: templates/property/_notes_card.html:9 templates/property/detail.html:431
-#: templates/property/detail.html:470 templates/property/detail.html:482
-#: templates/property/detail.html:489 templates/property/detail.html:500
-#: templates/property/detail.html:521
+#: templates/property/_notes_card.html:9 templates/property/detail.html:436
+#: templates/property/detail.html:475 templates/property/detail.html:487
+#: templates/property/detail.html:494 templates/property/detail.html:505
+#: templates/property/detail.html:526
 #: templates/property/detail_panel_cashflow.html:119
 #: templates/property/detail_panel_cashflow.html:127
 #: templates/property/detail_panel_cashflow.html:159
@@ -3910,7 +3948,7 @@ msgid "Closed"
 msgstr "Clôturé"
 
 #: templates/finance/_value_history_panel.html:5
-#: templates/property/detail.html:99
+#: templates/property/detail.html:104
 msgid "Value history"
 msgstr "Historique des valeurs"
 
@@ -4105,7 +4143,7 @@ msgid "New history entry"
 msgstr "Nouvelle entrée d'historique"
 
 #: templates/finance/edit_holding_history.html:29
-#: templates/property/detail.html:356
+#: templates/property/detail.html:361
 msgid "Valuation date"
 msgstr "Date d'évaluation"
 
@@ -4310,11 +4348,11 @@ msgstr "paramètres"
 msgid "No ISIN configured for this holding."
 msgstr "Aucun ISIN configuré pour ce titre."
 
-#: templates/finance/holding_detail.html:55 templates/property/detail.html:278
-#: templates/property/detail.html:285 templates/property/detail.html:292
-#: templates/property/detail.html:299 templates/property/detail.html:306
-#: templates/property/detail.html:313 templates/property/detail.html:320
-#: templates/property/detail.html:328
+#: templates/finance/holding_detail.html:55 templates/property/detail.html:283
+#: templates/property/detail.html:290 templates/property/detail.html:297
+#: templates/property/detail.html:304 templates/property/detail.html:311
+#: templates/property/detail.html:318 templates/property/detail.html:325
+#: templates/property/detail.html:333
 msgid "Loading..."
 msgstr "Chargement..."
 
@@ -4534,7 +4572,7 @@ msgstr "Acquisition"
 
 #: templates/finance/other_asset_detail.html:60
 #: templates/finance/other_asset_list.html:25
-#: templates/finance/saving_detail.html:37 templates/property/detail.html:80
+#: templates/finance/saving_detail.html:37 templates/property/detail.html:85
 msgid "Current value"
 msgstr "Valeur actuelle"
 
@@ -4598,7 +4636,7 @@ msgstr "Tableau de bord"
 msgid "Could not load data."
 msgstr "Echec du chargement des données."
 
-#: templates/index.html:49 templates/property/detail.html:420
+#: templates/index.html:49 templates/property/detail.html:425
 #: templates/property/detail_panel_balance.html:68
 #: templates/property/detail_panel_cashflow.html:148
 #: templates/property/detail_panel_cashflow.html:305
@@ -4610,7 +4648,7 @@ msgid "Net"
 msgstr "Net"
 
 #: templates/index.html:51 templates/property/all_loans.html:92
-#: templates/property/detail.html:240
+#: templates/property/detail.html:245
 #: templates/property/detail_panel_loans.html:22
 #: templates/property/index.html:120
 msgid "Loans"
@@ -5155,7 +5193,7 @@ msgstr "Colonne"
 msgid "Required"
 msgstr "Requis"
 
-#: templates/property/csv_import.html:53 templates/property/detail.html:481
+#: templates/property/csv_import.html:53 templates/property/detail.html:486
 #: templates/property/detail_panel_cashflow.html:40
 #: templates/property/detail_panel_cashflow.html:167
 #: templates/property/edit_entry_occurrence.html:50
@@ -5238,11 +5276,17 @@ msgstr "Confirmer la suppression"
 msgid "Inactive"
 msgstr "Inactive"
 
-#: templates/property/detail.html:63
+#: templates/property/detail.html:52
+#: templates/property/resale_simulation.html:4
+#: templates/property/resale_simulation.html:10
+msgid "Resale simulation"
+msgstr "Simulation de revente"
+
+#: templates/property/detail.html:68
 msgid "Monthly cash flow (12m median)"
 msgstr "Flux de trésorerie mensuel (médiane 12 mois)"
 
-#: templates/property/detail.html:67
+#: templates/property/detail.html:72
 msgid ""
 "Median monthly cashflow over the last 12 months: for each month, revenues "
 "minus expenses and all loan repayments (interest + principal + insurance). "
@@ -5253,7 +5297,7 @@ msgstr ""
 "assurance). La valeur médiane est utilisée pour réduire l'impact des mois "
 "exceptionnels."
 
-#: templates/property/detail.html:88
+#: templates/property/detail.html:93
 #, python-format
 msgid ""
 "Progression vs. gross buying price (%(buying)s): (current value − gross "
@@ -5262,15 +5306,15 @@ msgstr ""
 "Progression par rapport au prix d'acquisition global (%(buying)s) : (valeur "
 "actuelle − prix d'acquisition global) / prix d'acquisition global × 100"
 
-#: templates/property/detail.html:93
+#: templates/property/detail.html:98
 msgid "Add valuation"
 msgstr "Ajouter une évaluation"
 
-#: templates/property/detail.html:111
+#: templates/property/detail.html:116
 msgid "Net value"
 msgstr "Valeur nette"
 
-#: templates/property/detail.html:115
+#: templates/property/detail.html:120
 msgid ""
 "Current estimated value minus the total remaining balance on all active "
 "loans."
@@ -5278,7 +5322,7 @@ msgstr ""
 "Valeur estimée actuelle diminuée du capital restant dû sur l'ensemble des "
 "prêts en cours."
 
-#: templates/property/detail.html:129
+#: templates/property/detail.html:134
 msgid ""
 "Total principal already repaid across all loans since the start of the "
 "investment."
@@ -5286,92 +5330,92 @@ msgstr ""
 "Capital total déjà remboursé sur l'ensemble des prêts depuis le début de "
 "l'investissement."
 
-#: templates/property/detail.html:150
+#: templates/property/detail.html:155
 msgid "Info"
 msgstr "Infos"
 
-#: templates/property/detail.html:164
+#: templates/property/detail.html:169
 msgid "Cash flow"
 msgstr "Flux de trésorerie"
 
-#: templates/property/detail.html:178
+#: templates/property/detail.html:183
 msgid "Balance sheet"
 msgstr "Bilan"
 
-#: templates/property/detail.html:192
+#: templates/property/detail.html:197
 #: templates/property/detail_panel_leases.html:4
 msgid "Leases"
 msgstr "Baux"
 
-#: templates/property/detail.html:209
+#: templates/property/detail.html:214
 msgid "Mandate"
 msgstr "Mandat"
 
-#: templates/property/detail.html:226
+#: templates/property/detail.html:231
 msgid "Value & Projection"
 msgstr "Valeur & Projection"
 
-#: templates/property/detail.html:258
+#: templates/property/detail.html:263
 msgid "Amortissement"
 msgstr "Amortissement"
 
-#: templates/property/detail.html:266
+#: templates/property/detail.html:271
 msgid "More"
 msgstr "Plus"
 
-#: templates/property/detail.html:345
+#: templates/property/detail.html:350
 msgid "Add property valuation"
 msgstr "Ajouter une évaluation de propriété"
 
-#: templates/property/detail.html:377 templates/property/detail.html:840
+#: templates/property/detail.html:382 templates/property/detail.html:845
 msgid "Add income / expense"
 msgstr "Ajouter un revenu / une dépense"
 
-#: templates/property/detail.html:412
+#: templates/property/detail.html:417
 #: templates/property/detail_panel_cashflow.html:142
 msgid "Select a category"
 msgstr "Sélectionner une catégorie"
 
-#: templates/property/detail.html:434
+#: templates/property/detail.html:439
 msgid "Select a lease"
 msgstr "Choisir un bail"
 
-#: templates/property/detail.html:509
+#: templates/property/detail.html:514
 #: templates/property/detail_panel_cashflow.html:181
 msgid "Recurrence"
 msgstr "Récurrence"
 
-#: templates/property/detail.html:514
+#: templates/property/detail.html:519
 #: templates/property/detail_panel_cashflow.html:186
 msgid "Frequency"
 msgstr "Fréquence"
 
-#: templates/property/detail.html:546
+#: templates/property/detail.html:551
 msgid "Property value history"
 msgstr "Historique des valeurs de propriété"
 
-#: templates/property/detail.html:566
+#: templates/property/detail.html:571
 msgid "Are you sure you want to delete this valuation?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette évaluation ?"
 
-#: templates/property/detail.html:580
+#: templates/property/detail.html:585
 msgid "No valuations recorded yet."
 msgstr "Aucune évaluation enregistrée pour le moment."
 
-#: templates/property/detail.html:584 templates/property/detail.html:634
+#: templates/property/detail.html:589 templates/property/detail.html:639
 #: templates/property/detail_panel_cashflow.html:252
 msgid "Close"
 msgstr "Fermer"
 
-#: templates/property/detail.html:596
+#: templates/property/detail.html:601
 msgid "DVF price estimation"
 msgstr "Estimation du prix DVF"
 
-#: templates/property/detail.html:603
+#: templates/property/detail.html:608
 msgid "Fetching comparable sales data..."
 msgstr "Récupération des données de ventes comparables..."
 
-#: templates/property/detail.html:609
+#: templates/property/detail.html:614
 msgid ""
 "Estimated value based on comparable sales in the same cadastral section over "
 "the last 5 years:"
@@ -5379,15 +5423,15 @@ msgstr ""
 "Valeur estimée à partir des ventes comparables dans la même section "
 "cadastrale sur les 5 dernières années :"
 
-#: templates/property/detail.html:615
+#: templates/property/detail.html:620
 msgid "Median price/m²"
 msgstr "Prix médian/m²"
 
-#: templates/property/detail.html:621
+#: templates/property/detail.html:626
 msgid "Comparable sales"
 msgstr "Ventes comparables"
 
-#: templates/property/detail.html:628
+#: templates/property/detail.html:633
 msgid ""
 "This estimation is based on the French DVF (Demandes de Valeurs Foncières) "
 "public dataset. It is indicative and should not replace a professional "
@@ -5397,15 +5441,15 @@ msgstr ""
 "(Demandes de Valeurs Foncières). Elle est indicative et ne remplace pas une "
 "estimation notariale."
 
-#: templates/property/detail.html:636
+#: templates/property/detail.html:641
 msgid "Save as valuation"
 msgstr "Enregistrer comme évaluation"
 
-#: templates/property/detail.html:650
+#: templates/property/detail.html:655
 msgid "Price estimation update"
 msgstr "Mise à jour de l'estimation du prix"
 
-#: templates/property/detail.html:655
+#: templates/property/detail.html:660
 msgid ""
 "The DVF price estimation for this property hasn't been updated in over 6 "
 "months. Would you like to refresh it now?"
@@ -5413,31 +5457,31 @@ msgstr ""
 "L'estimation du prix DVF pour cette propriété n'a pas été mise à jour depuis "
 "plus de 6 mois. Souhaitez-vous la rafraîchir maintenant ?"
 
-#: templates/property/detail.html:658
+#: templates/property/detail.html:663
 msgid "Later"
 msgstr "Plus tard"
 
-#: templates/property/detail.html:660
+#: templates/property/detail.html:665
 msgid "Update estimation"
 msgstr "Mettre à jour l'estimation"
 
-#: templates/property/detail.html:731
+#: templates/property/detail.html:736
 msgid "Could not load panel."
 msgstr "Impossible de charger le panneau."
 
-#: templates/property/detail.html:797
+#: templates/property/detail.html:802
 msgid "Add income"
 msgstr "Ajouter un revenu"
 
-#: templates/property/detail.html:799
+#: templates/property/detail.html:804
 msgid "Add expense"
 msgstr "Ajouter une dépense"
 
-#: templates/property/detail.html:958
+#: templates/property/detail.html:963
 msgid "Floor area is required for estimation."
 msgstr "La surface est requise pour l'estimation."
 
-#: templates/property/detail.html:959
+#: templates/property/detail.html:964
 msgid ""
 "Cadastral information (INSEE code and section) is required. Fill the address "
 "and look up cadastral info in the property edit form."
@@ -5446,40 +5490,40 @@ msgstr ""
 "Renseignez l'adresse et recherchez les infos cadastrales dans le formulaire "
 "de modification du bien."
 
-#: templates/property/detail.html:960
+#: templates/property/detail.html:965
 msgid "This property type is not supported by the DVF estimation."
 msgstr "Ce type de bien n'est pas pris en charge par l'estimation DVF."
 
-#: templates/property/detail.html:961
+#: templates/property/detail.html:966
 msgid "No comparable sales found in this area for the last 5 years."
 msgstr ""
 "Aucune vente comparable trouvée dans ce secteur sur les 5 dernières années."
 
-#: templates/property/detail.html:962
+#: templates/property/detail.html:967
 msgid "Estimation unavailable."
 msgstr "Estimation indisponible."
 
-#: templates/property/detail.html:968
+#: templates/property/detail.html:973
 msgid "Search details:"
 msgstr "Détails de la recherche :"
 
-#: templates/property/detail.html:969
+#: templates/property/detail.html:974
 msgid "Total mutations found:"
 msgstr "Mutations trouvées au total :"
 
-#: templates/property/detail.html:970
+#: templates/property/detail.html:975
 msgid "Excluded by type:"
 msgstr "Exclues par type :"
 
-#: templates/property/detail.html:971
+#: templates/property/detail.html:976
 msgid "Excluded (older than 5 years):"
 msgstr "Exclues (plus de 5 ans) :"
 
-#: templates/property/detail.html:972
+#: templates/property/detail.html:977
 msgid "Excluded (invalid data):"
 msgstr "Exclues (données invalides) :"
 
-#: templates/property/detail.html:992
+#: templates/property/detail.html:997
 msgid "An error occurred while fetching the estimation."
 msgstr "Une erreur s'est produite lors de la récupération de l'estimation."
 
@@ -5496,6 +5540,7 @@ msgstr ""
 "automatiquement créer les lignes d'amortissement lié au LMNP"
 
 #: templates/property/detail_panel_amortization.html:20
+#: templates/property/resale_simulation.html:65
 msgid "Purchase price"
 msgstr "Prix d'acquisition"
 
@@ -6408,6 +6453,116 @@ msgstr ""
 #: templates/property/report.html:154
 msgid "Select properties"
 msgstr "Choisir les propriétés"
+
+#: templates/property/resale_simulation.html:27
+msgid "Simulate"
+msgstr "Simuler"
+
+#: templates/property/resale_simulation.html:43
+msgid "Taxes"
+msgstr "Impôts"
+
+#: templates/property/resale_simulation.html:47
+#: templates/property/resale_simulation.html:101
+msgid "Net proceeds"
+msgstr "Produit net"
+
+#: templates/property/resale_simulation.html:49
+msgid "after taxes and loan repayment"
+msgstr "après impôts et remboursement des prêts"
+
+#: templates/property/resale_simulation.html:53
+msgid "The sale of the main residence is exempt from capital gain tax."
+msgstr ""
+"La vente de la résidence principale est exonérée d'impôt sur la plus-value."
+
+#: templates/property/resale_simulation.html:64
+msgid "Net sale price"
+msgstr "Prix de vente net"
+
+#: templates/property/resale_simulation.html:67
+msgid "Acquisition fees"
+msgstr "Frais d'acquisition"
+
+#: templates/property/resale_simulation.html:68
+#, python-format
+msgid "flat 7.5 %%"
+msgstr "forfait 7,5 %%"
+
+#: templates/property/resale_simulation.html:68
+#: templates/property/resale_simulation.html:73
+msgid "actual"
+msgstr "réels"
+
+#: templates/property/resale_simulation.html:73
+#, python-format
+msgid "flat 15 %% after 5 years"
+msgstr "forfait 15 %% après 5 ans"
+
+#: templates/property/resale_simulation.html:78
+msgid "LMNP amortization deducted (finance act 2025)"
+msgstr "Amortissements LMNP déduits (loi de finances 2025)"
+
+#: templates/property/resale_simulation.html:82
+msgid "Adjusted purchase price"
+msgstr "Prix d'acquisition corrigé"
+
+#: templates/property/resale_simulation.html:84
+#, python-format
+msgid "Held %(years)s full year"
+msgid_plural "Held %(years)s full years"
+msgstr[0] "Détenu depuis %(years)s année pleine"
+msgstr[1] "Détenu depuis %(years)s années pleines"
+
+#: templates/property/resale_simulation.html:87
+#, python-format
+msgid "Income tax (19 %%)"
+msgstr "Impôt sur le revenu (19 %%)"
+
+#: templates/property/resale_simulation.html:87
+#: templates/property/resale_simulation.html:91
+#, python-format
+msgid "allowance %(pct)s %%"
+msgstr "abattement %(pct)s %%"
+
+#: templates/property/resale_simulation.html:87
+#: templates/property/resale_simulation.html:91
+msgid "base"
+msgstr "base"
+
+#: templates/property/resale_simulation.html:91
+#, python-format
+msgid "Social charges (17.2 %%)"
+msgstr "Prélèvements sociaux (17,2 %%)"
+
+#: templates/property/resale_simulation.html:95
+msgid "Surtax on gains above 50,000 €"
+msgstr "Surtaxe sur les plus-values de plus de 50 000 €"
+
+#: templates/property/resale_simulation.html:95
+msgid "per seller"
+msgstr "par vendeur"
+
+#: templates/property/resale_simulation.html:99
+msgid "Total taxes"
+msgstr "Total des impôts"
+
+#: templates/property/resale_simulation.html:100
+msgid "Remaining loans at the sale date"
+msgstr "Capital restant dû à la date de vente"
+
+#: templates/property/resale_simulation.html:109
+msgid ""
+"Indicative estimate of the capital gain of individuals (art. 150 U CGI). The "
+"LMNP amortization added back is the one deducted in the fiscal years "
+"computed from the ledger, up to the year before the sale, for this property "
+"alone. Early repayment penalties and the notary's fees are not included."
+msgstr ""
+"Estimation indicative de la plus-value des particuliers (art. 150 U du CGI). "
+"Les amortissements LMNP réintégrés sont ceux déduits sur les exercices "
+"calculés à partir des écritures, jusqu'à l'année précédant la vente, pour ce "
+"seul bien. Les indemnités de remboursement anticipé et les frais de "
+"mainlevée ne sont pas inclus."
 
 #: templates/property/scpi_detail.html:4 templates/property/scpi_detail.html:11
 msgid "Investment detail"

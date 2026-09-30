@@ -47,9 +47,14 @@
             {% endif %}
           </div>
         </div>
-        <a href="{% url 'property:edit' property.pk %}" class="btn btn-sm" style="background:rgba(0,0,0,.1);color:inherit;border:none">
-          <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
-        </a>
+        <div class="d-flex gap-1">
+          <a href="{% url 'property:resale_simulation' property.pk %}" class="btn btn-sm" style="background:rgba(0,0,0,.1);color:inherit;border:none">
+            <i class="bi bi-calculator me-1"></i>{% translate "Resale simulation" %}
+          </a>
+          <a href="{% url 'property:edit' property.pk %}" class="btn btn-sm" style="background:rgba(0,0,0,.1);color:inherit;border:none">
+            <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+          </a>
+        </div>
       </div>
     </div>
   </div>
