@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-30 22:57+0200\n"
+"POT-Creation-Date: 2026-09-30 22:59+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -95,7 +95,7 @@ msgstr "Bloqué jusqu'à une échéance"
 #: templates/finance/edit_saving_value.html:29
 #: templates/finance/holding_detail.html:140
 #: templates/finance/investment_detail.html:146
-#: templates/finance/saving_detail.html:73 templates/property/detail.html:458
+#: templates/finance/saving_detail.html:74 templates/property/detail.html:458
 #: templates/property/detail.html:555
 #: templates/property/detail_panel_cashflow.html:36
 #: templates/property/detail_panel_cashflow.html:109
@@ -486,7 +486,7 @@ msgstr "Espèces"
 #: finance/views/crud_views.py:43 finance/views/csv_views.py:319
 #: finance/views/investment_views.py:71 finance/views/investment_views.py:97
 #: finance/views/investment_views.py:297 finance/views/investment_views.py:437
-#: finance/views/saving_views.py:58 finance/views/saving_views.py:84
+#: finance/views/saving_views.py:60 finance/views/saving_views.py:86
 #: finance/views/update_views.py:340 property/views/check_views.py:132
 #: property/views/crud_views.py:126 property/views/crud_views.py:314
 #: property/views/crud_views.py:421 property/views/edit_views.py:44
@@ -499,7 +499,7 @@ msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
 
 #: finance/views/crud_views.py:68 finance/views/investment_views.py:119
-#: finance/views/investment_views.py:338 finance/views/saving_views.py:104
+#: finance/views/investment_views.py:338 finance/views/saving_views.py:106
 #: property/views/check_views.py:212 property/views/check_views.py:244
 #: property/views/crud_views.py:70 property/views/crud_views.py:143
 #: property/views/crud_views.py:358 property/views/crud_views.py:443
@@ -626,11 +626,11 @@ msgstr "Titre enregistré avec succès."
 msgid "Holding deleted successfully."
 msgstr "Titre supprimé avec succès."
 
-#: finance/views/investment_views.py:203 finance/views/saving_views.py:167
+#: finance/views/investment_views.py:203 finance/views/saving_views.py:169
 msgid "Deposit saved successfully."
 msgstr "Dépôt enregistré avec succès."
 
-#: finance/views/investment_views.py:219 finance/views/saving_views.py:183
+#: finance/views/investment_views.py:219 finance/views/saving_views.py:185
 msgid "Deposit deleted successfully."
 msgstr "Dépôt supprimé avec succès."
 
@@ -672,23 +672,23 @@ msgstr "{count} entrées d'historique créées."
 msgid "No new history entries were created."
 msgstr "Aucune nouvelle entrée d'historique n'a été créée."
 
-#: finance/views/saving_views.py:56
+#: finance/views/saving_views.py:58
 msgid "Saving account created successfully."
 msgstr "Compte d'épargne créé avec succès."
 
-#: finance/views/saving_views.py:82
+#: finance/views/saving_views.py:84
 msgid "Saving account updated successfully."
 msgstr "Compte d'épargne mis à jour avec succès."
 
-#: finance/views/saving_views.py:109
+#: finance/views/saving_views.py:111
 msgid "Saving account deleted successfully."
 msgstr "Compte d'épargne supprimé avec succès."
 
-#: finance/views/saving_views.py:129
+#: finance/views/saving_views.py:131
 msgid "Value entry saved successfully."
 msgstr "Écriture de valeur enregistrée avec succès."
 
-#: finance/views/saving_views.py:145
+#: finance/views/saving_views.py:147
 msgid "Value entry deleted successfully."
 msgstr "Écriture de valeur supprimée avec succès."
 
@@ -3061,7 +3061,7 @@ msgstr "Progression sur 30 jours"
 #: templates/finance/holding_detail.html:218 templates/finance/index.html:122
 #: templates/finance/index.html:213 templates/finance/investment_detail.html:77
 #: templates/finance/investment_detail.html:147
-#: templates/finance/saving_detail.html:74
+#: templates/finance/saving_detail.html:75
 #: templates/property/csv_confirm.html:53 templates/property/detail.html:350
 #: templates/property/detail.html:556
 #: templates/property/detail_panel_amortization.html:133
@@ -3098,7 +3098,7 @@ msgstr "Ajouter un dépôt"
 #: templates/finance/holding_detail.html:144
 #: templates/finance/investment_detail.html:80
 #: templates/finance/investment_detail.html:148
-#: templates/finance/saving_detail.html:75
+#: templates/finance/saving_detail.html:76
 #: templates/property/_dividend_table_header.html:9
 #: templates/property/detail.html:557
 #: templates/property/detail_panel_cashflow.html:41
@@ -3234,6 +3234,43 @@ msgstr "Actualiser"
 #: templates/finance/_holding_update_row.html:43
 msgid "Current qty:"
 msgstr "Quantité actuelle :"
+
+#: templates/finance/_interest_estimate_card.html:4
+#, python-format
+msgid "Interest %(year)s"
+msgstr "Intérêts %(year)s"
+
+#: templates/finance/_interest_estimate_card.html:9
+msgid "Earned so far"
+msgstr "Acquis à ce jour"
+
+#: templates/finance/_interest_estimate_card.html:11
+#, python-format
+msgid "%(counter)s fortnight elapsed"
+msgid_plural "%(counter)s fortnights elapsed"
+msgstr[0] "%(counter)s quinzaine écoulée"
+msgstr[1] "%(counter)s quinzaines écoulées"
+
+#: templates/finance/_interest_estimate_card.html:14
+msgid "Projected on 31 December"
+msgstr "Projection au 31 décembre"
+
+#: templates/finance/_interest_estimate_card.html:18
+#: templates/finance/saving_detail.html:23
+msgid "Interest rate"
+msgstr "Taux d'intérêt"
+
+#: templates/finance/_interest_estimate_card.html:23
+msgid ""
+"Fortnight rule: deposits earn interest from the next fortnight (1st or "
+"16th), withdrawals stop earning from the start of their fortnight. Based on "
+"the balance on 1 January and the deposits recorded this year, at the current "
+"rate, assuming no further movement."
+msgstr ""
+"Règle des quinzaines : les versements rapportent à partir de la quinzaine "
+"suivante (le 1er ou le 16), les retraits cessent de rapporter dès le début "
+"de leur quinzaine. Calcul basé sur le solde au 1er janvier et les versements "
+"enregistrés cette année, au taux actuel, sans autre mouvement."
 
 #: templates/finance/_status_badge.html:8
 #: templates/finance/investment_detail.html:95
@@ -3826,39 +3863,35 @@ msgstr ""
 "Êtes-vous sûr de vouloir supprimer ce compte d'investissement et toutes ses "
 "données ?"
 
-#: templates/finance/saving_detail.html:23
-msgid "Interest rate"
-msgstr "Taux d'intérêt"
-
 #: templates/finance/saving_detail.html:37 templates/property/detail.html:80
 msgid "Current value"
 msgstr "Valeur actuelle"
 
-#: templates/finance/saving_detail.html:62 templates/property/detail.html:99
+#: templates/finance/saving_detail.html:63 templates/property/detail.html:99
 msgid "Value history"
 msgstr "Historique des valeurs"
 
-#: templates/finance/saving_detail.html:64
+#: templates/finance/saving_detail.html:65
 msgid "Add value"
 msgstr "Ajouter une valeur"
 
-#: templates/finance/saving_detail.html:87
+#: templates/finance/saving_detail.html:88
 msgid "Delete value entry"
 msgstr "Supprimer l'écriture de valeur"
 
-#: templates/finance/saving_detail.html:88
+#: templates/finance/saving_detail.html:89
 msgid "Are you sure you want to delete this value entry?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette écriture de valeur ?"
 
-#: templates/finance/saving_detail.html:97
+#: templates/finance/saving_detail.html:98
 msgid "No value entries yet."
 msgstr "Aucune écriture de valeur actuellement."
 
-#: templates/finance/saving_detail.html:107
+#: templates/finance/saving_detail.html:108
 msgid "Delete saving account"
 msgstr "Supprimer le compte d'épargne"
 
-#: templates/finance/saving_detail.html:108
+#: templates/finance/saving_detail.html:109
 msgid "Are you sure you want to delete this saving account and all its data?"
 msgstr ""
 "Êtes-vous sûr de vouloir supprimer ce compte d'épargne et toutes ses "

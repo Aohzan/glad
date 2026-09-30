@@ -17,6 +17,7 @@ from finance.models.saving_account import (
     SavingAccountDeposit,
     SavingAccountValue,
 )
+from finance.services.interest import estimate_account_interest
 from finance.views.crud_views import _delete_account_related, _edit_account_related
 
 DETAIL_URL = "finance:saving_detail"
@@ -43,6 +44,7 @@ def saving_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "progression": progression,
             "total_deposits": total_deposits,
             "capital_gain": capital_gain,
+            "interest_estimate": estimate_account_interest(account),
         },
     )
 
