@@ -9,7 +9,15 @@ from django.utils.translation import gettext_lazy as _
 if TYPE_CHECKING:
     from moneyed import Money
 
+from base.choices import Liquidity
 from base.models import BaseModel
+from finance.envelopes import (
+    CeilingUsage,
+    EnvelopeRule,
+    MilestoneStatus,
+    get_rule,
+    milestone_statuses,
+)
 from finance.utils import AccountProgression
 
 
@@ -124,6 +132,47 @@ class AbstractAccount(BaseModel):
         ``opening_value``).
         """
         raise NotImplementedError  # pragma: no cover
+
+    @property
+    def envelope_rule(self) -> EnvelopeRule:
+        """Regulatory rules of the account envelope (ceiling, milestones…)."""
+        return get_rule(self.account_type.code)  # ty: ignore[unresolved-attribute]
+
+    @property
+    def liquidity(self) -> str:
+        """Liquidity level of the account envelope."""
+        return self.envelope_rule.liquidity
+
+    def get_liquidity_display(self) -> str:
+        """Human-readable liquidity level."""
+        return str(Liquidity(self.liquidity).label)
+
+    @property
+    def ceiling_usage(self) -> CeilingUsage | None:
+        """Deposits counted against the envelope ceiling, or None without ceiling.
+
+        The opening value counts as a deposit. Withdrawals (negative deposits)
+        free up room only for envelopes whose rule allows it.
+        """
+        from django.db.models import Q, Sum
+
+        rule = self.envelope_rule
+        if rule.deposit_ceiling is None:
+            return None
+        deposits = self.deposits  # ty: ignore[unresolved-attribute]
+        if not rule.withdrawals_free_ceiling:
+            deposits = deposits.filter(Q(amount__gt=0))
+        total = deposits.aggregate(total=Sum("amount"))["total"] or 0
+        return CeilingUsage(
+            ceiling=rule.deposit_ceiling,
+            contributed=self.opening_amount.amount + total,
+            currency=self.currency,  # ty: ignore[unresolved-attribute]
+        )
+
+    @property
+    def milestones(self) -> list[MilestoneStatus]:
+        """Tax and contractual milestones dated from the opening date."""
+        return milestone_statuses(self.envelope_rule, self.opening_date)
 
     def compute_capital_gain(self) -> tuple[Money, Money]:
         """Compute and return ``(total_deposits, capital_gain)`` as Money objects.
