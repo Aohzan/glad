@@ -209,7 +209,7 @@ class TestApplyRentRevision:
             datetime.date(2024, 3, 5),
             recurrence_end_date=datetime.date(2024, 12, 31),
         )
-        revision = _revision(lease, today=datetime.date(2025, 3, 10))
+        revision = _revision(lease, today=datetime.date(2025, 3, 1))
         assert apply_rent_revision(revision) == 2
 
         lease.refresh_from_db()
@@ -230,6 +230,14 @@ class TestApplyRentRevision:
         assert other.recurrence_end_date is None
         ended.refresh_from_db()
         assert ended.recurrence_end_date == datetime.date(2024, 12, 31)
+
+    def test_late_claim_applies_from_today(self, lease, irl_history):
+        entry = _rent_entry(lease, "1000.00", datetime.date(2024, 3, 5))
+        revision = _revision(lease, today=datetime.date(2025, 3, 10))
+        assert revision.default_effective_date == datetime.date(2025, 3, 10)
+        apply_rent_revision(revision)
+        entry.refresh_from_db()
+        assert entry.recurrence_end_date == datetime.date(2025, 4, 4)
 
     def test_effective_date_never_before_anniversary(self, lease, irl_history):
         entry = _rent_entry(lease, "1000.00", datetime.date(2024, 3, 5))
