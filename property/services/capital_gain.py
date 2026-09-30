@@ -206,7 +206,9 @@ def estimate_resale(prop: Property, inputs: ResaleInputs) -> ResaleEstimate:
     holding_years = relativedelta(inputs.sale_date, prop.buying_date).years
     flat_works = (
         _round(purchase_price * FLAT_WORKS)
-        if holding_years > FLAT_WORKS_MIN_YEARS
+        # Held for more than five years, not five full years plus one.
+        if inputs.sale_date
+        > prop.buying_date + relativedelta(years=FLAT_WORKS_MIN_YEARS)
         else Decimal(0)
     )
     reintegration = (
