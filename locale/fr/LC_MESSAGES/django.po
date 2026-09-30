@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-18 00:17+0200\n"
+"POT-Creation-Date: 2026-09-30 21:18+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -432,7 +432,7 @@ msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 
 #: finance/views/chart_views.py:125 finance/views/index_views.py:92
 #: templates/finance/_account_chart_script.html:83
-#: templates/finance/update.html:75
+#: templates/finance/update.html:80
 msgid "Cash"
 msgstr "Espèces"
 
@@ -3696,12 +3696,16 @@ msgstr "Finance - Mettre à jour tous les comptes"
 msgid "Update all your accounts"
 msgstr "Mettre à jour tous vos comptes"
 
-#: templates/finance/update.html:99
+#: templates/finance/update.html:67
+msgid "Fetch all"
+msgstr "Tout actualiser"
+
+#: templates/finance/update.html:104
 #: templates/property/scpi_dividend_batch.html:80
 msgid "Valider"
 msgstr "Valider"
 
-#: templates/finance/update.html:143 templates/finance/update.html:153
+#: templates/finance/update.html:159 templates/finance/update.html:169
 msgid "Could not fetch a live value for this holding."
 msgstr "Impossible de récupérer une valeur en direct pour ce titre."
 
