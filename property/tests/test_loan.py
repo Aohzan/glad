@@ -232,6 +232,22 @@ class PropertyLoanTestCase(TestCase):
             Decimal(0),
         )
 
+    def test_interest_paid_to_date_loan_starting_later_this_month(self):
+        """A loan starting later in the current month has paid no interest yet."""
+        loan = PropertyLoan.objects.create(
+            property=self.property,
+            name="Month-end Loan",
+            start_date=datetime.date(2026, 10, 31),
+            end_date=datetime.date(2027, 10, 31),
+            original_amount=Money(20000, "EUR"),
+            monthly_payment=Money(200, "EUR"),
+            interest_rate=Decimal("2.0"),
+        )
+        self.assertEqual(
+            loan.interest_paid_to_date(datetime.date(2026, 10, 1)).amount,
+            Decimal(0),
+        )
+
     def test_interest_paid_to_date_uses_amortization_entries(self):
         """When amortization entries exist, interest paid should sum them."""
         from property.models import PropertyLoanAmortizationEntry
