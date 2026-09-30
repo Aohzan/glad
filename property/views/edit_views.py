@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 from moneyed import Money
 
+from base.services.snapshots import invalidate_from
 from property.forms import PropertyEditForm, PropertyLoanForm
 from property.models import Property, PropertyLoan, PropertyLoanAmortizationEntry
 
@@ -243,6 +244,8 @@ def import_loan_amortization(
     with transaction.atomic():
         PropertyLoanAmortizationEntry.objects.filter(loan=loan).delete()
         PropertyLoanAmortizationEntry.objects.bulk_create(entries)
+        # bulk_create sends no signal: drop the net worth history it changes.
+        invalidate_from(min(e.date for e in entries))
 
     messages.success(request, _("%(n)d entries imported.") % {"n": len(entries)})
     return redirect(redirect_url)
@@ -300,6 +303,8 @@ def generate_loan_amortization(
     with transaction.atomic():
         PropertyLoanAmortizationEntry.objects.filter(loan=loan).delete()
         PropertyLoanAmortizationEntry.objects.bulk_create(entries)
+        # bulk_create sends no signal: drop the net worth history it changes.
+        invalidate_from(min(e.date for e in entries))
 
     messages.success(request, _("%(n)d entries generated.") % {"n": len(entries)})
     return redirect(redirect_url)

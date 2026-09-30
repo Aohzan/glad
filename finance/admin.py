@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
+from base.services.snapshots import invalidate_from
 from finance.models.investment_account import (
     EuroFundRate,
     InvestmentAccount,
@@ -55,6 +56,8 @@ class BulkUpdateDateMixin:
             new_date = request.POST.get(post_key)
             if new_date:
                 count = queryset.update(**{date_field: new_date})
+                # update() sends no signal: drop the net worth history.
+                invalidate_from(None)
                 messages.success(
                     request,
                     _("Successfully updated %(field)s for %(count)d items.")
