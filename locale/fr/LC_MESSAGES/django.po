@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 00:08+0200\n"
+"POT-Creation-Date: 2026-10-01 00:17+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -296,8 +296,8 @@ msgstr "Propriétaire enregistré."
 #: finance/views/saving_views.py:88 finance/views/update_views.py:340
 #: property/views/check_views.py:132 property/views/crud_views.py:126
 #: property/views/crud_views.py:314 property/views/crud_views.py:421
-#: property/views/edit_views.py:44 property/views/edit_views.py:82
-#: property/views/edit_views.py:99 property/views/scpi_views.py:399
+#: property/views/edit_views.py:45 property/views/edit_views.py:83
+#: property/views/edit_views.py:100 property/views/scpi_views.py:399
 #: property/views/scpi_views.py:447 property/views/scpi_views.py:500
 #: property/views/scpi_views.py:591 property/views/scpi_views.py:640
 #: templates/finance/_form_error_alert.html:4
@@ -407,24 +407,24 @@ msgstr "Impossible de télécharger les indices INSEE."
 msgid "INSEE indices updated."
 msgstr "Indices INSEE mis à jour."
 
-#: finance/admin.py:60
+#: finance/admin.py:63
 #, python-format
 msgid "Successfully updated %(field)s for %(count)d items."
 msgstr "%(field)s mis à jour avec succès pour %(count)d éléments."
 
-#: finance/admin.py:216 finance/admin.py:224
+#: finance/admin.py:219 finance/admin.py:227
 msgid "Bulk update valuation date"
 msgstr "Mise à jour groupée de la date d'évaluation"
 
-#: finance/admin.py:225
+#: finance/admin.py:228
 msgid "New valuation date"
 msgstr "Nouvelle date d'évaluation"
 
-#: finance/admin.py:243 finance/admin.py:251
+#: finance/admin.py:246 finance/admin.py:254
 msgid "Bulk update value date"
 msgstr "Mise à jour groupée de la date de valeur"
 
-#: finance/admin.py:252
+#: finance/admin.py:255
 msgid "New value date"
 msgstr "Nouvelle valeur"
 
@@ -2860,60 +2860,60 @@ msgstr "Impossible d'ajouter l'écriture."
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 
-#: property/views/edit_views.py:41
+#: property/views/edit_views.py:42
 msgid "Property updated successfully."
 msgstr "Propriété mise à jour avec succès."
 
-#: property/views/edit_views.py:67
+#: property/views/edit_views.py:68
 msgid "Loans updated successfully."
 msgstr "Prêts mis à jour avec succès."
 
-#: property/views/edit_views.py:96
+#: property/views/edit_views.py:97
 msgid "Property created successfully."
 msgstr "Propriété créée avec succès."
 
-#: property/views/edit_views.py:161
+#: property/views/edit_views.py:162
 msgid "No file provided."
 msgstr "Aucun fichier fourni."
 
-#: property/views/edit_views.py:171
+#: property/views/edit_views.py:172
 msgid "Could not decode file — use UTF-8 or Latin-1."
 msgstr ""
 "Impossible de décoder le fichier — utilisez l'encodage UTF-8 ou Latin-1."
 
-#: property/views/edit_views.py:176
+#: property/views/edit_views.py:177
 msgid "Empty file."
 msgstr "Fichier vide."
 
-#: property/views/edit_views.py:202
+#: property/views/edit_views.py:203
 #, python-format
 msgid "Missing columns: %(cols)s"
 msgstr "Colonnes manquantes : %(cols)s"
 
-#: property/views/edit_views.py:221
+#: property/views/edit_views.py:222
 #, python-format
 msgid "Row %(n)d: %(err)s"
 msgstr "Ligne %(n)d : %(err)s"
 
-#: property/views/edit_views.py:240
+#: property/views/edit_views.py:241
 msgid "No valid rows found in the file."
 msgstr "Aucune ligne valide trouvée dans le fichier."
 
-#: property/views/edit_views.py:247
+#: property/views/edit_views.py:250
 #, python-format
 msgid "%(n)d entries imported."
 msgstr "%(n)d entrée(s) importée(s)."
 
-#: property/views/edit_views.py:265
+#: property/views/edit_views.py:268
 msgid "Cannot generate: loan has no monthly payment."
 msgstr "Impossible de générer : le prêt n'a pas de mensualité."
 
-#: property/views/edit_views.py:304
+#: property/views/edit_views.py:309
 #, python-format
 msgid "%(n)d entries generated."
 msgstr "%(n)d entrée(s) générée(s)."
 
-#: property/views/edit_views.py:315
+#: property/views/edit_views.py:320
 #, python-format
 msgid "%(n)d entries cleared."
 msgstr "%(n)d entrée(s) effacée(s)."

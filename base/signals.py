@@ -59,7 +59,13 @@ def _dated_post_delete(sender, instance, **kwargs):
     invalidate_from(getattr(instance, DATED_MODELS[sender]))
 
 
-def _undated_change(sender, instance, **kwargs):
+#: Fields that never change a value (saving only them keeps the snapshots).
+_COSMETIC_FIELDS = frozenset({"is_favorite"})
+
+
+def _undated_change(sender, instance, update_fields=None, **kwargs):
+    if update_fields and set(update_fields) <= _COSMETIC_FIELDS:
+        return
     invalidate_from(None)
 
 

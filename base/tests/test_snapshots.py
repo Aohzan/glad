@@ -6,12 +6,19 @@ from io import StringIO
 
 import pytest
 from django.core.management import call_command
+from django.urls import reverse
 from moneyed import Money
 
 from base.models import NetWorthSnapshot
 from base.services import snapshots
 from base.services.snapshots import invalidate_from, month_starts, net_worth_history
 from finance.models.other_asset import OtherAsset, OtherAssetValue
+from finance.models.saving_account import (
+    SavingAccount,
+    SavingAccountType,
+    SavingAccountValue,
+)
+from property.models import Property, PropertyLoan
 
 CURRENCY = "XAU"  # isolates the test data from any other fixture
 D = datetime.date
@@ -144,3 +151,68 @@ class TestCommand:
         )
         assert "12 snapshot(s) computed" in out.getvalue()
         assert not NetWorthSnapshot.objects.filter(month=D(1990, 1, 1)).exists()
+
+
+class TestSignalBypasses:
+    def test_favorite_toggle_keeps_snapshots(self, asset):
+        account_type = SavingAccountType.objects.get_or_create(code="LA", name="LA")[0]
+        account = SavingAccount.objects.create(
+            account_type=account_type, opening_value=Money(1, CURRENCY)
+        )
+        _snapshot(D(2020, 1, 1))
+        account.is_favorite = True
+        account.save(update_fields=["is_favorite"])
+        assert NetWorthSnapshot.objects.exists()
+
+    def test_generated_amortization_invalidates(self, admin_client):
+        prop = Property.objects.create(
+            name="Snapshot flat",
+            property_type=Property.APARTMENT,
+            buying_value=Money(100000, "EUR"),
+            buying_date=D(2020, 1, 1),
+        )
+        loan = PropertyLoan.objects.create(
+            property=prop,
+            name="Loan",
+            start_date=D(2020, 1, 1),
+            end_date=D(2030, 1, 1),
+            original_amount=Money(50000, "EUR"),
+            monthly_payment=Money(500, "EUR"),
+            interest_rate=Decimal("1.5"),
+        )
+        _snapshot(D(2019, 1, 1))
+        _snapshot(D(2021, 1, 1))
+        admin_client.post(
+            reverse(
+                "property:loan_amortization_generate",
+                kwargs={"pk": prop.pk, "loan_pk": loan.pk},
+            )
+        )
+        assert loan.amortization_entries.exists()
+        assert list(NetWorthSnapshot.objects.values_list("month", flat=True)) == [
+            D(2019, 1, 1)
+        ]
+
+    def test_admin_bulk_date_update_invalidates(self, admin_client, asset):
+        account_type = SavingAccountType.objects.get_or_create(code="LA", name="LA")[0]
+        account = SavingAccount.objects.create(
+            account_type=account_type, opening_value=Money(1, CURRENCY)
+        )
+        value = SavingAccountValue.objects.create(
+            account=account,
+            value=Money(2, CURRENCY),
+            value_date=datetime.datetime(2024, 1, 15),
+        )
+        _snapshot(D(2020, 1, 1))
+        admin_client.post(
+            reverse("admin:finance_savingaccountvalue_changelist"),
+            {
+                "action": "bulk_update_value_date",
+                "_selected_action": [str(value.pk)],
+                "apply": "1",
+                "new_value_date": "2023-06-01T00:00",
+            },
+        )
+        value.refresh_from_db()
+        assert value.value_date.year == 2023
+        assert not NetWorthSnapshot.objects.exists()
