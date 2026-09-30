@@ -488,3 +488,13 @@ footer {
 [data-bs-theme="dark"] .datatable-sorter::after {
   border-bottom-color: #dee2e6;
 }
+
+/* Energy performance diagnosis (DPE) rating colours */
+.dpe-badge { color: #1f2937; min-width: 2rem; }
+.dpe-a { background: #319834; color: #fff; }
+.dpe-b { background: #33cc31; }
+.dpe-c { background: #cbfc34; }
+.dpe-d { background: #fbfe06; }
+.dpe-e { background: #fbcc05; }
+.dpe-f { background: #fc9935; }
+.dpe-g { background: #fc0205; color: #fff; }
