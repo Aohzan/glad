@@ -556,3 +556,16 @@ def test_detail_view_balance_sheet_full_year_range(user_client):
     assert response.status_code == 200
     assert response.context["bs_date_from"] == datetime.date(2023, 1, 1)
     assert response.context["bs_date_to"] == datetime.date(2023, 12, 31)
+
+
+@pytest.mark.django_db
+def test_detail_view_injects_panel_scripts_with_page_nonce(user_client):
+    """Async panel scripts are re-stamped with the detail page's own CSP nonce."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:detail", kwargs={"pk": prop.pk}))
+    assert response.status_code == 200
+    csp = response["Content-Security-Policy"]
+    nonce = csp.split("'nonce-", 1)[1].split("'", 1)[0]
+    content = response.content.decode()
+    assert f'const PAGE_CSP_NONCE = "{nonce}";' in content
+    assert "newScript.nonce = PAGE_CSP_NONCE;" in content

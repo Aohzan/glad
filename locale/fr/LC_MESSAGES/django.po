@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-30 21:37+0200\n"
+"POT-Creation-Date: 2026-09-30 21:38+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -4298,7 +4298,7 @@ msgstr "Plus"
 msgid "Add property valuation"
 msgstr "Ajouter une évaluation de propriété"
 
-#: templates/property/detail.html:377 templates/property/detail.html:833
+#: templates/property/detail.html:377 templates/property/detail.html:840
 msgid "Add income / expense"
 msgstr "Ajouter un revenu / une dépense"
 
@@ -4395,23 +4395,23 @@ msgstr "Plus tard"
 msgid "Update estimation"
 msgstr "Mettre à jour l'estimation"
 
-#: templates/property/detail.html:724
+#: templates/property/detail.html:731
 msgid "Could not load panel."
 msgstr "Impossible de charger le panneau."
 
-#: templates/property/detail.html:790
+#: templates/property/detail.html:797
 msgid "Add income"
 msgstr "Ajouter un revenu"
 
-#: templates/property/detail.html:792
+#: templates/property/detail.html:799
 msgid "Add expense"
 msgstr "Ajouter une dépense"
 
-#: templates/property/detail.html:951
+#: templates/property/detail.html:958
 msgid "Floor area is required for estimation."
 msgstr "La surface est requise pour l'estimation."
 
-#: templates/property/detail.html:952
+#: templates/property/detail.html:959
 msgid ""
 "Cadastral information (INSEE code and section) is required. Fill the address "
 "and look up cadastral info in the property edit form."
@@ -4420,40 +4420,40 @@ msgstr ""
 "Renseignez l'adresse et recherchez les infos cadastrales dans le formulaire "
 "de modification du bien."
 
-#: templates/property/detail.html:953
+#: templates/property/detail.html:960
 msgid "This property type is not supported by the DVF estimation."
 msgstr "Ce type de bien n'est pas pris en charge par l'estimation DVF."
 
-#: templates/property/detail.html:954
+#: templates/property/detail.html:961
 msgid "No comparable sales found in this area for the last 5 years."
 msgstr ""
 "Aucune vente comparable trouvée dans ce secteur sur les 5 dernières années."
 
-#: templates/property/detail.html:955
+#: templates/property/detail.html:962
 msgid "Estimation unavailable."
 msgstr "Estimation indisponible."
 
-#: templates/property/detail.html:961
+#: templates/property/detail.html:968
 msgid "Search details:"
 msgstr "Détails de la recherche :"
 
-#: templates/property/detail.html:962
+#: templates/property/detail.html:969
 msgid "Total mutations found:"
 msgstr "Mutations trouvées au total :"
 
-#: templates/property/detail.html:963
+#: templates/property/detail.html:970
 msgid "Excluded by type:"
 msgstr "Exclues par type :"
 
-#: templates/property/detail.html:964
+#: templates/property/detail.html:971
 msgid "Excluded (older than 5 years):"
 msgstr "Exclues (plus de 5 ans) :"
 
-#: templates/property/detail.html:965
+#: templates/property/detail.html:972
 msgid "Excluded (invalid data):"
 msgstr "Exclues (données invalides) :"
 
-#: templates/property/detail.html:985
+#: templates/property/detail.html:992
 msgid "An error occurred while fetching the estimation."
 msgstr "Une erreur s'est produite lors de la récupération de l'estimation."
 
