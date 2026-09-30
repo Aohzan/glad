@@ -238,6 +238,34 @@ def test_holding_live_info_success(
 
 
 @pytest.mark.django_db
+def test_holding_live_info_total_value_rounded_to_cents(
+    admin_client, investment_account_for_live_info, holding_with_isin
+):
+    quote = LiveQuote(
+        name="World ETF",
+        price=Decimal("12.3456"),
+        currency="EUR",
+        previous_close=None,
+        day_high=None,
+        day_low=None,
+        year_high=None,
+        year_low=None,
+        fifty_day_average=None,
+        two_hundred_day_average=None,
+        exchange=None,
+        as_of=datetime.datetime.now(),
+    )
+    with patch("finance.views.api_views.get_live_quote", return_value=quote):
+        response = get_json(
+            admin_client,
+            _live_info_url(investment_account_for_live_info, holding_with_isin),
+        )
+    assert response.status_code == 200
+    # 12.3456 * 10 = 123.456 -> 123.46
+    assert response.json()["total_value"] == 123.46
+
+
+@pytest.mark.django_db
 def test_holding_live_info_currency_mismatch(
     admin_client, investment_account_for_live_info, holding_with_isin
 ):
