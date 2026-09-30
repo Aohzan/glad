@@ -59,9 +59,14 @@
             <i class="bi bi-graph-up me-1"></i>{% translate 'Investment accounts' %}
           </div>
           {% for account_name, formsets_by_type in investment_accounts_formsets.items %}
-            <div class="mb-3">
-              <div class="bg-body-secondary px-3 py-2 rounded mb-2 fw-semibold">
-                <i class="bi bi-bank me-1"></i>{{ account_name }}
+            <div class="mb-3" data-account-block>
+              <div class="bg-body-secondary px-3 py-2 rounded mb-2 fw-semibold d-flex align-items-center gap-2">
+                <span><i class="bi bi-bank me-1"></i>{{ account_name }}</span>
+                {% if live_data_enabled %}
+                <button type="button" class="btn btn-sm btn-outline-secondary fetch-all-live-values-btn py-0 px-2 ms-auto d-none">
+                  <i class="bi bi-broadcast me-1"></i>{% translate "Fetch all" %}
+                </button>
+                {% endif %}
               </div>
 
               <!-- Cash -->
@@ -118,6 +123,17 @@
         });
         input.addEventListener('input', function() {
           this.value = this.value.replace(/[^0-9.,]/g, '');
+        });
+      });
+
+      document.querySelectorAll('.fetch-all-live-values-btn').forEach(function(btn) {
+        const rowButtons = btn.closest('[data-account-block]').querySelectorAll('.fetch-live-value-btn');
+        if (rowButtons.length === 0) return;
+        btn.classList.remove('d-none');
+        btn.addEventListener('click', function() {
+          rowButtons.forEach(function(rowBtn) {
+            if (!rowBtn.disabled) rowBtn.click();
+          });
         });
       });
 

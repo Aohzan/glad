@@ -340,6 +340,9 @@ def test_update_view_shows_fetch_button_when_isin_and_live_data_enabled(
     response = user_client.get(reverse("finance:update"))
     assert b"fetch-live-value-btn" in response.content
     assert b"data-live-info-url" in response.content
+    assert b'class="btn btn-sm btn-outline-secondary fetch-all-live-values-btn' in (
+        response.content
+    )
 
 
 @pytest.mark.django_db
@@ -379,6 +382,9 @@ def test_update_view_hides_fetch_button_when_live_data_disabled(
     )
     response = user_client.get(reverse("finance:update"))
     assert b"data-live-info-url" not in response.content
+    assert b'class="btn btn-sm btn-outline-secondary fetch-all-live-values-btn' not in (
+        response.content
+    )
 
 
 @pytest.mark.django_db
