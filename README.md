@@ -17,6 +17,11 @@
 - Portfolio dashboard with gain/loss tracking across all accounts
 - Batch update to easily update prices and valuations for multiple accounts at once
 - CSV import/export for bulk data entry
+- **French envelopes** — deposit ceilings (Livret A, LDDS, LEP, PEL, PEA…), tax milestones (PEA 5 years, life insurance 8 years, PEL 10/15 years) and liquidity of each account type
+- Savings book interest estimated with the fortnight rule (règle des quinzaines)
+- Annualized money-weighted return (XIRR), real return deflated with the INSEE consumer price index, and comparison with a benchmark index fund
+- Life insurance split between euro funds and units of account, with the yearly credited rates
+- **Other assets** — vehicles, precious metals, crypto-assets, unlisted shares, collectibles, optionally valued from a market symbol
 
 ### Properties
 
@@ -28,6 +33,15 @@
 - **Financial reporting** — monthly balance sheets, accounting dashboard, income/expense summaries with deductible breakdown
 - **LMNP** (*beta*) — accounting support: cerfa 2033/2031/2042-C PRO computed from the ledger, frozen yearly declarations and PDF export (see [docs/lmnp.md](docs/lmnp.md))
 - **SCPI** — track SCPI shares with valuation and dividend history
+- **Rent revision** — yearly IRL revision of the leases from the INSEE index, applied to the lease and its recurring rent entries
+- **DPE** — energy rating with the rental bans (G 2025, F 2028, E 2034), the rent freeze of F/G housing and the diagnosis validity
+- **Resale simulation** — capital gain tax with allowances, surtax and the add-back of the LMNP amortization (finance act 2025)
+
+### Net worth
+
+- Dashboard with the upcoming deadlines of every asset and a monthly net worth history stored as snapshots
+- Allocation by asset class and by liquidity, and emergency fund sized in months of expenses
+- Owners among the application users, with shares and dismembered rights valued with article 669 CGI, and the net worth of each owner
 
 ### Web application
 
