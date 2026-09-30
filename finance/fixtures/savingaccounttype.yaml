@@ -48,3 +48,10 @@
     updated_at: 2025-01-01 00:00:00.000000
     name: Compte épargne
     code: DIV
+- model: finance.savingaccounttype
+  pk: 8
+  fields:
+    created_at: 2026-10-01 00:00:00.000000
+    updated_at: 2026-10-01 00:00:00.000000
+    name: Livret d'épargne populaire
+    code: LEP
