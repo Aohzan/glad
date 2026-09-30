@@ -2,6 +2,7 @@
 
 import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -10,6 +11,9 @@ from moneyed import Money
 
 from base.models import BaseModel
 from finance.models.base import AbstractAccount, AbstractAccountType
+
+if TYPE_CHECKING:
+    from django.db.models.fields.related_descriptors import RelatedManager
 
 
 class SavingAccountType(AbstractAccountType):
@@ -29,8 +33,8 @@ class SavingAccountType(AbstractAccountType):
 class SavingAccount(AbstractAccount):
     """Saving account has a value."""
 
-    deposits: models.Manager[SavingAccountDeposit]
-    values: models.Manager[SavingAccountValue]
+    deposits: RelatedManager[SavingAccountDeposit]
+    values: RelatedManager[SavingAccountValue]
 
     class Meta(AbstractAccount.Meta):
         verbose_name = _("saving account")
