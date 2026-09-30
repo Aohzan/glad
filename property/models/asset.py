@@ -12,6 +12,7 @@ from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from base.models import BaseModel
+from property.services.energy import DpeStatus, get_dpe_status
 from property.services.lmnp_rules import DEFAULT_COMPONENTS
 from property.utils import (
     PropertyProgression,
@@ -516,6 +517,29 @@ class Property(BaseModel):
         verbose_name=_("Number of rooms"),
     )
 
+    class EnergyRating(models.TextChoices):
+        A = "A", "A"
+        B = "B", "B"
+        C = "C", "C"
+        D = "D", "D"
+        E = "E", "E"
+        F = "F", "F"
+        G = "G", "G"
+
+    dpe_rating = models.CharField(
+        max_length=1,
+        choices=EnergyRating.choices,
+        blank=True,
+        default="",
+        verbose_name=_("Energy rating (DPE)"),
+    )
+    dpe_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("DPE date"),
+        help_text=_("Date the energy performance diagnosis was carried out."),
+    )
+
     class TaxRegime(models.TextChoices):
         NONE = "none", _("None")
         LMNP_REEL = "lmnp_reel", _("LMNP réel")
@@ -734,6 +758,11 @@ class Property(BaseModel):
         if not total_original:
             return 0.0
         return float((self.total_paid_loans.amount / total_original) * 100)
+
+    @property
+    def dpe_status(self) -> DpeStatus | None:
+        """Rental ban and validity status of the energy rating, None without DPE."""
+        return get_dpe_status(self.dpe_rating, self.dpe_date)
 
     @property
     def active_lease(self):

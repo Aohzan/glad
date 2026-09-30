@@ -152,6 +152,8 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "floor_area",
             "total_surface",
             "number_of_rooms",
+            "dpe_rating",
+            "dpe_date",
             "buying_value",
             "notary_fees",
             "agency_fees",
@@ -168,6 +170,8 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "lmnp_start_date": forms.DateInput(
                 attrs={"type": "date"}, format="%Y-%m-%d"
             ),
+            "dpe_rating": forms.Select(attrs={"class": "form-select"}),
+            "dpe_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "street_number": forms.TextInput(attrs={"class": "form-control"}),
             "street_name": forms.TextInput(attrs={"class": "form-control"}),
             "additional_address": forms.TextInput(attrs={"class": "form-control"}),

@@ -286,6 +286,27 @@
   </div>
 
   <div class="col-md-4">
+    <label for="{{ property_form.dpe_rating.id_for_label }}" class="form-label">
+      {{ property_form.dpe_rating.label }}
+    </label>
+    {{ property_form.dpe_rating }}
+    {% if property_form.dpe_rating.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.dpe_rating.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label for="{{ property_form.dpe_date.id_for_label }}" class="form-label">
+      {{ property_form.dpe_date.label }}
+    </label>
+    {{ property_form.dpe_date }}
+    {% if property_form.dpe_date.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.dpe_date.errors.0 }}</div>
+    {% endif %}
+    <div class="form-text">{{ property_form.dpe_date.help_text }}</div>
+  </div>
+
+  <div class="col-md-4">
     <label for="{{ property_form.coproperty_share.id_for_label }}" class="form-label">
       {{ property_form.coproperty_share.label }}
     </label>

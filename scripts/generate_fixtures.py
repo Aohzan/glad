@@ -2489,6 +2489,8 @@ def generate_property() -> str:
     floor_area: "112.50"
     total_surface: "135.00"
     number_of_rooms: 5
+    dpe_rating: C
+    dpe_date: {ds(M60)}
     tax_regime: none
 - model: property.propertyvalue
   pk: 1
@@ -2650,6 +2652,8 @@ def generate_property() -> str:
     floor_area: "42.00"
     total_surface: "55.00"
     number_of_rooms: 2
+    dpe_rating: D
+    dpe_date: {ds(M24)}
     coproperty_share: "250.00"
     shares_count: "1000.000000"
     tax_regime: lmnp_reel
@@ -3060,6 +3064,8 @@ def generate_property() -> str:
     floor_area: "22.00"
     total_surface: "28.00"
     number_of_rooms: 1
+    dpe_rating: F
+    dpe_date: {ds(M36)}
     coproperty_share: "75.00"
     shares_count: "1000.000000"
     tax_regime: lmnp_reel
@@ -3288,6 +3294,8 @@ def generate_property() -> str:
     floor_area: "95.00"
     total_surface: "115.00"
     number_of_rooms: 4
+    dpe_rating: G
+    dpe_date: {ds(M60)}
     tax_regime: none
 - model: property.propertyvalue
   pk: 9
