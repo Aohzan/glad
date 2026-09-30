@@ -61,6 +61,7 @@ from property.views.fiscal_views import (
 from property.views.index_views import index
 from property.views.loans_views import all_loans_view
 from property.views.rent_revision_views import apply_lease_rent_revision
+from property.views.resale_views import resale_simulation
 
 property_dashboard_card_api = PropertyDashboardCardApiView.as_view()
 scpi_dashboard_card_api = SCPIDashboardCardApiView.as_view()
@@ -144,6 +145,7 @@ __all__ = [
     "property_panel_mandate",
     "property_panel_projection",
     "report_view",
+    "resale_simulation",
     "scpi_dashboard_card_api",
     "scpi_fund_detail",
     "scpi_list",
