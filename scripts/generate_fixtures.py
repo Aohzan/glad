@@ -162,6 +162,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF MSCI World
+    asset_class: equities
     code: WRLD
     isin: IE00B4L5Y983
     is_active: true
@@ -277,6 +278,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF S&P 500
+    asset_class: equities
     code: SP5
     is_active: true
     initial_quantity: 80
@@ -381,6 +383,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF Europe Stoxx 600
+    asset_class: equities
     code: EU6
     is_active: true
     initial_quantity: 150
@@ -455,6 +458,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF Nasdaq Tech
+    asset_class: equities
     code: NSDQ
     is_active: true
     initial_quantity: 50
@@ -529,6 +533,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF Énergie
+    asset_class: equities
     code: ENRG
     is_active: true
     initial_quantity: 100
@@ -583,6 +588,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF Obligations
+    asset_class: bonds
     code: OBLIG
     is_active: true
     initial_quantity: 200
@@ -823,6 +829,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 2
     name: Fonds Euros
+    asset_class: euro_fund
     code: FE
     is_active: true
     initial_quantity: 1
@@ -907,6 +914,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 2
     name: UC Actions Monde
+    asset_class: equities
     code: ACM
     is_active: true
     initial_quantity: 100
@@ -981,6 +989,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 2
     name: UC Immobilier
+    asset_class: real_estate
     code: IMM
     is_active: true
     initial_quantity: 50
@@ -1045,6 +1054,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 2
     name: UC Obligations
+    asset_class: bonds
     code: OBLU
     is_active: true
     initial_quantity: 200

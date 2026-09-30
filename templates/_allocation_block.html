@@ -1,0 +1,24 @@
+{% load i18n format_money %}
+<div class="card shadow-sm rounded-4 h-100">
+  <div class="card-header border-0 pb-0">
+    <h2 class="section-title mb-0"><i class="bi {{ icon }} me-2 text-primary"></i>{{ title }}</h2>
+  </div>
+  <div class="card-body">
+    {% if rows %}
+    <div id="{{ chart_id }}" style="min-height:260px"></div>
+    <table class="table table-sm align-middle mb-0 mt-3">
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ row.label }}</td>
+          <td class="text-end">{{ row.amount|format_money_amount:allocation.currency }}</td>
+          <td class="text-end text-body-secondary" style="width:4.5rem">{{ row.percent|floatformat:1 }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-body-secondary mb-0"><em>{% translate "No assets yet." %}</em></p>
+    {% endif %}
+  </div>
+</div>

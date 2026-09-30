@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
+from base.choices import AssetClass
 from base.models import BaseModel
 from finance.models.base import AbstractAccount, AbstractAccountType
 from finance.utils import AccountProgression
@@ -241,6 +242,14 @@ class InvestmentAccountHolding(BaseModel):
         null=True,
         blank=True,
         help_text=_("Issuer of the holding"),
+    )
+    asset_class = models.CharField(
+        max_length=20,
+        choices=AssetClass.choices,
+        blank=True,
+        default="",
+        verbose_name=_("Asset class"),
+        help_text=_("Main exposure of the holding, used for the allocation."),
     )
     is_active = models.BooleanField(default=True)
     initial_quantity = models.DecimalField(

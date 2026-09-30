@@ -3,6 +3,7 @@
 import datetime
 from typing import Any
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_not_required
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -15,7 +16,13 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
+from base.forms import MonthlyExpensesForm
 from base.models import EconomicIndex
+from base.services.allocation import (
+    EMERGENCY_FUND_MONTHS,
+    compute_allocation,
+    emergency_fund,
+)
 from base.services.deadlines import upcoming_deadlines
 from base.services.insee import InseeError, refresh_index
 from property.models import Property
@@ -90,6 +97,47 @@ class IndexView(TemplateView):
                 "deadlines": upcoming_deadlines(limit=DASHBOARD_DEADLINES),
             },
         )
+
+
+def allocation(request: HttpRequest) -> HttpResponse:
+    """Breakdown of the assets by class and liquidity, with the emergency fund."""
+    profile = request.user.profile  # ty: ignore[unresolved-attribute]
+    if request.method == "POST":
+        form = MonthlyExpensesForm(request.POST)
+        if form.is_valid():
+            profile.monthly_expenses = form.cleaned_data["monthly_expenses"]
+            profile.save(update_fields=["monthly_expenses"])
+            messages.success(request, _("Monthly expenses saved."))
+            return redirect("allocation")
+    else:
+        form = MonthlyExpensesForm(
+            initial={"monthly_expenses": profile.monthly_expenses}
+        )
+    result = compute_allocation(settings.DEFAULT_CURRENCY)
+    by_class = result.by_asset_class()
+    by_liquidity = result.by_liquidity()
+    return render(
+        request,
+        "allocation.html",
+        {
+            "allocation": result,
+            "by_class": by_class,
+            "by_liquidity": by_liquidity,
+            "fund": emergency_fund(result, profile.monthly_expenses),
+            "fund_months": EMERGENCY_FUND_MONTHS,
+            "form": form,
+            "chart_data": {
+                "classes": {
+                    "labels": [r.label for r in by_class],
+                    "values": [float(r.amount) for r in by_class],
+                },
+                "liquidity": {
+                    "labels": [r.label for r in by_liquidity],
+                    "values": [float(r.amount) for r in by_liquidity],
+                },
+            },
+        },
+    )
 
 
 @require_POST  # type: ignore

@@ -1,7 +1,8 @@
 """Assets that are neither accounts nor real estate: vehicles, gold, crypto…
 
 A single model covers every kind of asset: the category only sets sensible
-defaults (liquidity for now), so new kinds of assets need no new model. The
+defaults (asset class, liquidity, icon), so new kinds of assets need no new
+model. The
 value comes from a value history, which can be filled from a market quote
 (quantity × price of a Yahoo Finance symbol) for listed assets.
 """
@@ -14,7 +15,7 @@ from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
-from base.choices import Liquidity
+from base.choices import AssetClass, Liquidity
 from base.models import BaseModel
 
 if TYPE_CHECKING:
@@ -42,6 +43,14 @@ class OtherAsset(BaseModel):
         Category.COMPANY_SHARES: Liquidity.ILLIQUID,
         Category.COLLECTIBLES: Liquidity.ILLIQUID,
         Category.OTHER: Liquidity.ILLIQUID,
+    }
+    CATEGORY_ASSET_CLASS = {
+        Category.VEHICLE: AssetClass.TANGIBLE,
+        Category.PRECIOUS_METALS: AssetClass.COMMODITIES,
+        Category.CRYPTO: AssetClass.CRYPTO,
+        Category.COMPANY_SHARES: AssetClass.PRIVATE_EQUITY,
+        Category.COLLECTIBLES: AssetClass.TANGIBLE,
+        Category.OTHER: AssetClass.OTHER,
     }
     CATEGORY_ICONS = {
         Category.VEHICLE: "bi-car-front",
@@ -130,6 +139,11 @@ class OtherAsset(BaseModel):
     def get_effective_liquidity_display(self) -> str:
         """Human-readable liquidity."""
         return str(Liquidity(self.effective_liquidity).label)
+
+    @property
+    def asset_class(self) -> str:
+        """Asset class of the category."""
+        return self.CATEGORY_ASSET_CLASS.get(self.category, AssetClass.OTHER)
 
     @property
     def has_market_price(self) -> bool:
