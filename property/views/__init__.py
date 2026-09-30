@@ -7,6 +7,11 @@ from property.views.api_views import (
     PropertyDvfEstimateApiView,
     SCPIDashboardCardApiView,
 )
+from property.views.check_views import (
+    check_ledger_entry_occurrence,
+    occurrence_checks,
+    uncheck_ledger_entry_occurrence,
+)
 from property.views.crud_views import (
     delete_lease,
     delete_ledger_entry,
@@ -87,6 +92,7 @@ __all__ = [
     "all_loans_view",
     "batch_scpi_dividends",
     "cadastral_lookup_api",
+    "check_ledger_entry_occurrence",
     "clear_loan_amortization",
     "create_amortization_asset",
     "create_property",
@@ -124,6 +130,7 @@ __all__ = [
     "lmnp_snapshot_list",
     "lmnp_snapshot_pdf",
     "manage_property_loans",
+    "occurrence_checks",
     "property_dashboard_card_api",
     "property_dvf_estimate_api",
     "property_panel_amortization",
@@ -139,4 +146,5 @@ __all__ = [
     "scpi_fund_detail",
     "scpi_list",
     "toggle_property_favorite",
+    "uncheck_ledger_entry_occurrence",
 ]

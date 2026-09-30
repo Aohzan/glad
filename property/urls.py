@@ -64,6 +64,16 @@ urlpatterns = [
         views.delete_ledger_entry_occurrence,
         name="delete_entry_occurrence",
     ),
+    path(
+        "<int:property_pk>/entry/<int:entry_pk>/occurrence/<str:occurrence_date>/check/",
+        views.check_ledger_entry_occurrence,
+        name="check_occurrence",
+    ),
+    path(
+        "<int:property_pk>/entry/<int:entry_pk>/occurrence/<str:occurrence_date>/uncheck/",
+        views.uncheck_ledger_entry_occurrence,
+        name="uncheck_occurrence",
+    ),
     # Leases
     path("<int:property_pk>/lease/new/", views.edit_lease, name="new_lease"),
     path(
@@ -129,6 +139,7 @@ urlpatterns = [
     ),
     # Income & expenses report
     path("report/", views.report_view, name="report"),
+    path("checks/", views.occurrence_checks, name="checks"),
     # All loans dashboard
     path("loans/", views.all_loans_view, name="all_loans"),
     # Amortization initialization

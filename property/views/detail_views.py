@@ -514,13 +514,7 @@ class PropertyDetailView(DetailView):
         rows: list[dict] = []
         for entry in entries_qs:
             cat_label = entry.get_management_category_display()
-            lease_name = entry.lease.name if entry.lease else ""
-            descriptions = [entry.description] if entry.description else []
-            if entry.third_party:
-                descriptions.insert(0, entry.third_party)
-            if lease_name:
-                descriptions.append(lease_name)
-            base_description = " - ".join(descriptions)
+            base_description = entry.display_label
             is_capitalized = entry.capitalized_as.exists()  # ty: ignore[unresolved-attribute]
             for occurrence in entry.generate_occurrences():
                 is_recurring = occurrence["is_recurring"]
@@ -534,9 +528,12 @@ class PropertyDetailView(DetailView):
                         or base_description,
                         "is_recurring": is_recurring,
                         "is_capitalized": is_capitalized,
-                        "occurrence_date": occurrence["date"].isoformat()
+                        "occurrence_date": occurrence["occurrence_date"].isoformat()
                         if is_recurring
                         else None,
+                        "planned_amount": float(entry.amount.amount),
+                        "is_checked": occurrence.get("is_checked", False),
+                        "is_moved": occurrence.get("actual_date") is not None,
                         "has_exception": occurrence.get("has_exception", False),
                         "parent_id": entry.pk,
                         "property_id": property_obj.pk,

@@ -17,6 +17,9 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
   <h6 class="mb-0">{% translate "Transactions" %}</h6>
   <div class="d-flex gap-2">
+    <a href="{% url 'property:checks' %}?property={{ property.pk }}" class="btn btn-sm btn-outline-success">
+      <i class="bi bi-check2-square me-1"></i>{% translate "Check entries" %}
+    </a>
     <a href="{% url 'property:csv_import' property.pk %}" class="btn btn-sm btn-outline-secondary">
       <i class="bi bi-upload me-1"></i>{% translate "Import CSV" %}
     </a>
@@ -236,6 +239,43 @@
 </div>
 {% endfor %}
 
+{# ── Check / uncheck a recurring occurrence (shared, filled by JS) ───────── #}
+<div class="modal fade" id="checkOccurrenceModal" tabindex="-1" aria-labelledby="checkOccurrenceModalTitle" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="" id="checkOccurrenceForm">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="checkOccurrenceModalTitle">
+            <i class="bi bi-check2-circle me-2 text-success"></i>{% translate "Check entry" %}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% translate 'Close' %}"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-body-secondary mb-3" id="checkOccurrenceLabel"></p>
+          <div class="row g-3">
+            <div class="col-6">
+              <label for="checkOccurrenceDate" class="form-label">{% translate "Actual date" %}</label>
+              <input type="date" class="form-control" id="checkOccurrenceDate" name="actual_date" max="{% now 'Y-m-d' %}" required>
+            </div>
+            <div class="col-6">
+              <label for="checkOccurrenceAmount" class="form-label">{% translate "Actual amount" %}</label>
+              <input type="text" inputmode="decimal" class="form-control text-end" id="checkOccurrenceAmount" name="actual_amount" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
+          <button type="submit" class="btn btn-success"><i class="bi bi-check2-circle me-1"></i>{% translate "Check" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<form method="post" action="" id="uncheckOccurrenceForm" class="d-none">
+  {% csrf_token %}
+</form>
+
 {# ── JSON data for charts and DataTable ──────────────────────────────────── #}
 {{ transactions_json|json_script:"transactions-data" }}
 {{ cashflow_revenue_series|json_script:"cashflow-revenue-series" }}
@@ -255,6 +295,10 @@
     recurring:   "{% translate 'Recurring' %}",
     capitalized: "{% translate 'Linked to an amortization asset' %}",
     edit:        "{% translate 'Edit' %}",
+    check:       "{% translate 'Check' %}",
+    checked:     "{% translate 'Checked' %}",
+    uncheck:     "{% translate 'Checked — click to uncheck' %}",
+    plannedOn:   "{% translate 'Planned on' %}",
     delete:      "{% translate 'Delete' %}",
     noData:      "{% translate 'No transactions found' %}",
     search:      "{% translate 'Search' %}",
@@ -272,11 +316,22 @@
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 }).format(amount);
   }
 
+  function buildCheckButton(row, occurrenceUrl) {
+    if (row.is_checked) {
+      return '<button type="button" class="btn btn-success" data-uncheck-url="' + occurrenceUrl + 'uncheck/" title="' + _cfI18n.uncheck + '"><i class="bi bi-check-circle-fill"></i></button>';
+    }
+    return '<button type="button" class="btn btn-outline-success" data-check-url="' + occurrenceUrl + 'check/"' +
+      ' data-check-date="' + row.date + '" data-check-amount="' + row.amount.toFixed(2) + '"' +
+      ' title="' + _cfI18n.check + '"><i class="bi bi-check2-circle"></i></button>';
+  }
+
   function buildActionButtons(row) {
     if (row.is_recurring && row.occurrence_date) {
-      var editUrl = '/property/' + row.property_id + '/entry/' + row.parent_id + '/occurrence/' + row.occurrence_date + '/edit/';
-      var delUrl  = '/property/' + row.property_id + '/entry/' + row.parent_id + '/occurrence/' + row.occurrence_date + '/delete/';
+      var occurrenceUrl = '/property/' + row.property_id + '/entry/' + row.parent_id + '/occurrence/' + row.occurrence_date + '/';
+      var editUrl = occurrenceUrl + 'edit/';
+      var delUrl  = occurrenceUrl + 'delete/';
       return '<div class="btn-group btn-group-sm" role="group">' +
+        buildCheckButton(row, occurrenceUrl) +
         '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _cfI18n.edit + '"><i class="bi bi-pencil"></i></a>' +
         '<a href="' + delUrl  + '" class="btn btn-outline-danger" title="' + _cfI18n.delete + '"><i class="bi bi-trash"></i></a>' +
         '</div>';
@@ -304,7 +359,7 @@
       row.category || '',
       String(row.amount),
       row.description || '',
-      JSON.stringify({ parent_id: row.parent_id, is_recurring: row.is_recurring, is_capitalized: row.is_capitalized, occurrence_date: row.occurrence_date, property_id: row.property_id }),
+      JSON.stringify({ parent_id: row.parent_id, is_recurring: row.is_recurring, is_capitalized: row.is_capitalized, occurrence_date: row.occurrence_date, property_id: row.property_id, is_checked: row.is_checked, is_moved: row.is_moved, date: row.date, amount: row.amount }),
     ];
   });
 
@@ -343,11 +398,37 @@
           var d = JSON.parse(value);
           var recurIcon = d.is_recurring ? ' <i class="bi bi-arrow-repeat text-primary ms-1" title="' + _cfI18n.recurring + '"></i>' : '';
           var capitalizedIcon = d.is_capitalized ? ' <i class="bi bi-box-seam text-warning ms-1" title="' + _cfI18n.capitalized + '"></i>' : '';
-          return buildActionButtons(d) + recurIcon + capitalizedIcon;
+          var movedIcon = d.is_moved ? ' <i class="bi bi-calendar-event text-body-secondary ms-1" title="' + _cfI18n.plannedOn + ' ' + d.occurrence_date + '"></i>' : '';
+          return buildActionButtons(d) + recurIcon + movedIcon + capitalizedIcon;
         }
       }
     ]
   );
+
+  // ── Check / uncheck recurring occurrences ─────────────────────────────────
+  var transactionsTable = document.getElementById('transactions-table');
+  var checkModalEl = document.getElementById('checkOccurrenceModal');
+  var checkForm = document.getElementById('checkOccurrenceForm');
+  var uncheckForm = document.getElementById('uncheckOccurrenceForm');
+  transactionsTable.addEventListener('click', function(e) {
+    var checkBtn = e.target.closest('[data-check-url]');
+    if (checkBtn) {
+      checkForm.action = checkBtn.dataset.checkUrl;
+      checkForm.elements.actual_date.value = checkBtn.dataset.checkDate;
+      checkForm.elements.actual_amount.value = checkBtn.dataset.checkAmount;
+      var rowEl = checkBtn.closest('tr');
+      document.getElementById('checkOccurrenceLabel').textContent = rowEl
+        ? Array.from(rowEl.cells).slice(2, 5).map(function(c) { return c.textContent.trim(); }).filter(Boolean).join(' · ')
+        : '';
+      bootstrap.Modal.getOrCreateInstance(checkModalEl).show();
+      return;
+    }
+    var uncheckBtn = e.target.closest('[data-uncheck-url]');
+    if (uncheckBtn) {
+      uncheckForm.action = uncheckBtn.dataset.uncheckUrl;
+      uncheckForm.submit();
+    }
+  });
 
   datatable.on('datatable.init', function() {
     var headers = datatable.dom.querySelectorAll('thead th');
