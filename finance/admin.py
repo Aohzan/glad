@@ -18,6 +18,7 @@ from finance.models.investment_account import (
     InvestmentAccountHoldingHistory,
     InvestmentAccountType,
 )
+from finance.models.other_asset import OtherAsset, OtherAssetValue
 from finance.models.saving_account import (
     SavingAccount,
     SavingAccountDeposit,
@@ -27,6 +28,8 @@ from finance.models.saving_account import (
 
 admin.site.register(SavingAccountType)
 admin.site.register(InvestmentAccountType)
+admin.site.register(OtherAsset)
+admin.site.register(OtherAssetValue)
 
 
 class BulkUpdateDateMixin:

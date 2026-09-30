@@ -3906,12 +3906,91 @@ def generate_property() -> str:
 """
 
 
+def generate_otherasset() -> str:
+    """Generate otherasset.yaml: a car, gold coins and bitcoins (with market symbol)."""
+    return f"""# generated with scripts/generate_fixtures.py
+---
+- model: finance.otherasset
+  pk: 1
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(RECENT)}
+    name: Voiture familiale
+    category: vehicle
+    owner: Commun
+    acquisition_date: {ds(M36)}
+    acquisition_value: 28000
+    acquisition_value_currency: EUR
+    is_active: true
+- model: finance.otherassetvalue
+  pk: 1
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    asset_id: 1
+    value: 21000
+    value_currency: EUR
+    value_date: {ds(M12)}
+- model: finance.otherasset
+  pk: 2
+  fields:
+    created_at: {dt(M60)}
+    updated_at: {dt(RECENT)}
+    name: Napoléons 20 francs
+    category: precious_metals
+    owner: Mister
+    acquisition_date: {ds(M60)}
+    acquisition_value: 3600
+    acquisition_value_currency: EUR
+    quantity: 10
+    is_active: true
+    notes: Pièces d'or conservées au coffre
+- model: finance.otherassetvalue
+  pk: 2
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    asset_id: 2
+    value: 5900
+    value_currency: EUR
+    value_date: {ds(M6)}
+- model: finance.otherasset
+  pk: 3
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(RECENT)}
+    name: Bitcoin
+    category: crypto
+    owner: Madame
+    acquisition_date: {ds(M24)}
+    acquisition_value: 5000
+    acquisition_value_currency: EUR
+    quantity: 0.12
+    ticker: BTC-EUR
+    is_active: true
+- model: finance.otherasset
+  pk: 4
+  fields:
+    created_at: {dt(M60)}
+    updated_at: {dt(M12)}
+    name: Ancienne moto
+    category: vehicle
+    owner: Mister
+    acquisition_date: {ds(M60)}
+    acquisition_value: 9000
+    acquisition_value_currency: EUR
+    is_active: false
+    sold_date: {ds(M12)}
+"""
+
+
 def main() -> None:
     """Generate all test fixture files."""
     print("Generating dynamic test fixtures...")
     os.makedirs(FIXTURES_DIR, exist_ok=True)
     write_fixture("investmentaccount.yaml", generate_investmentaccount())
     write_fixture("savingaccount.yaml", generate_savingaccount())
+    write_fixture("otherasset.yaml", generate_otherasset())
     write_fixture("scpi.yaml", generate_scpi())
     write_fixture("property.yaml", generate_property())
     print("Done.")

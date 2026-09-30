@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% if value %}{% translate "Edit value entry" %}{% else %}{% translate "New value entry" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+
+  {% translate "Edit value entry" as edit_title %}
+  {% translate "New value entry" as new_title %}
+  {% url 'finance:other_asset_detail' account.pk as back_url %}
+  {% include "finance/_edit_page_header.html" with is_edit=value edit_title=edit_title new_title=new_title back_url=back_url back_label=account %}
+
+  {% include "finance/_form_error_alert.html" %}
+  {% include "_form_non_field_errors.html" %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-3">
+          {% include "finance/_edit_value_field.html" %}
+          <div class="col-md-6">{% include "_form_field.html" with field=form.value_date %}</div>
+        </div>
+      </div>
+    </div>
+    {% include "finance/_edit_form_footer.html" with cancel_url=back_url %}
+  </form>
+
+</div>
+{% endblock %}

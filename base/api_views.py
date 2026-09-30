@@ -2,6 +2,7 @@
 
 import datetime
 from collections import defaultdict
+from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -14,6 +15,7 @@ from finance.models.investment_account import (
     InvestmentAccountCash,
     InvestmentAccountHoldingHistory,
 )
+from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount, SavingAccountValue
 from glad.settings import DEFAULT_CURRENCY
 from property.models import Property
@@ -69,11 +71,15 @@ def _get_currency_totals() -> dict:
         scpi_investments, lambda inv: inv.get_estimated_value(today)
     )
 
+    other_assets = OtherAsset.objects.filter(is_active=True)
+    other_by_currency = _sum_by_currency(other_assets, lambda a: a.current_value)
+
     all_currencies = set(
         list(investment_by_currency)
         + list(saving_by_currency)
         + list(properties_net_by_currency)
         + list(scpi_by_currency)
+        + list(other_by_currency)
     )
     net_worth_by_currency: dict[str, Money] = {}
     for currency in all_currencies:
@@ -82,6 +88,7 @@ def _get_currency_totals() -> dict:
             + investment_by_currency.get(currency, Money(0, currency))
             + properties_net_by_currency.get(currency, Money(0, currency))
             + scpi_by_currency.get(currency, Money(0, currency))
+            + other_by_currency.get(currency, Money(0, currency))
         )
 
     default_currency = _resolve_default_currency(
@@ -98,6 +105,8 @@ def _get_currency_totals() -> dict:
         "properties_net_by_currency": properties_net_by_currency,
         "properties_gross_by_currency": properties_gross_by_currency,
         "scpi_by_currency": scpi_by_currency,
+        "other_assets": other_assets,
+        "other_by_currency": other_by_currency,
         "net_worth_by_currency": net_worth_by_currency,
         "default_currency": default_currency,
     }
@@ -120,8 +129,13 @@ class NetWorthApiView(View):
         total_investments = investment_by_currency.get(dc, Money(0, dc))
         total_properties_net = properties_net_by_currency.get(dc, Money(0, dc))
         total_scpi = scpi_by_currency.get(dc, Money(0, dc))
+        total_other = totals["other_by_currency"].get(dc, Money(0, dc))
         total_net_worth = (
-            total_savings + total_investments + total_properties_net + total_scpi
+            total_savings
+            + total_investments
+            + total_properties_net
+            + total_scpi
+            + total_other
         )
 
         # 30-day progression
@@ -175,12 +189,26 @@ class NetWorthApiView(View):
                     except Exception:
                         pass
 
-            old_total = old_saving.amount + old_investment.amount + old_property.amount
+            old_other = sum(
+                (
+                    asset.get_value(thirty_days_ago.date()).amount
+                    for asset in OtherAsset.objects.all()
+                    if asset.currency == dc
+                ),
+                Decimal(0),
+            )
+            old_total = (
+                old_saving.amount
+                + old_investment.amount
+                + old_property.amount
+                + old_other
+            )
             current_total = (
                 total_savings.amount
                 + total_investments.amount
                 + total_properties_net.amount
                 + total_scpi.amount
+                + total_other.amount
             )
             if old_total > 0:
                 global_progression = round(
@@ -196,10 +224,12 @@ class NetWorthApiView(View):
                 "total_savings": float(total_savings.amount),
                 "total_properties_net": float(total_properties_net.amount),
                 "total_scpi": float(total_scpi.amount),
+                "total_other": float(total_other.amount),
                 "has_investments": totals["investment_accounts"].exists(),
                 "has_savings": totals["saving_accounts"].exists(),
                 "has_properties": totals["properties"].exists(),
                 "has_scpi": totals["scpi_investments"].exists(),
+                "has_other": totals["other_assets"].exists(),
                 "global_progression": global_progression,
                 "currency": dc,
                 "net_worth_by_currency": {
@@ -229,6 +259,10 @@ class PatrimonyChartApiView(View):
         properties_net_series = []
         properties_loans_series = []
         scpi_series = []
+        other_series = []
+        all_other_assets = [
+            asset for asset in OtherAsset.objects.all() if asset.currency == dc
+        ]
 
         for i in range(months_range, -1, -1):
             year = now.year
@@ -310,6 +344,12 @@ class PatrimonyChartApiView(View):
                     except Exception:
                         pass
 
+            other_series.append(
+                sum(
+                    float(asset.get_value(month_date.date()).amount)
+                    for asset in all_other_assets
+                )
+            )
             investments_series.append(month_investment_total)
             savings_series.append(month_saving_total)
             properties_net_series.append(month_property_net_total)
@@ -327,6 +367,7 @@ class PatrimonyChartApiView(View):
                 "properties_net": properties_net_series,
                 "properties_loans": properties_loans_series,
                 "scpi": scpi_series,
+                "other": other_series,
             }
         )
 

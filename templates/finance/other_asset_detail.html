@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load i18n format_money static %}
+
+{% block title %}{{ asset }}{% endblock %}
+
+{% block extra_head %}
+<script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{% url 'finance:other_asset_list' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>{% translate "Other assets" %}
+    </a>
+    <h1 class="h4 mb-0 ms-1"><i class="bi {{ asset.icon }} me-1"></i>{{ asset }}</h1>
+    <div class="ms-auto d-flex gap-1">
+      {% if asset.has_market_price and live_data_enabled %}
+      <form method="post" action="{% url 'finance:update_other_asset_price' asset.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-broadcast me-1"></i>{% translate "Update from market price" %}</button>
+      </form>
+      {% endif %}
+      <a href="{% url 'finance:edit_other_asset' asset.pk %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+      </a>
+      <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAssetModal">
+        <i class="bi bi-trash me-1"></i>{% translate "Delete" %}
+      </button>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Category" %}</small>
+          <div>{{ asset.get_category_display }}</div>
+        </div>
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Liquidity" %}</small>
+          <div>{{ asset.get_effective_liquidity_display }}</div>
+        </div>
+        {% if asset.owner %}
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Owner" %}</small>
+          <div>{{ asset.owner }}</div>
+        </div>
+        {% endif %}
+        {% if asset.quantity %}
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Quantity" %}</small>
+          <div>{{ asset.quantity|floatformat:"-8" }}{% if asset.ticker %} <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ asset.ticker }}</span>{% endif %}</div>
+        </div>
+        {% endif %}
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Acquisition" %}</small>
+          <div>{{ asset.acquisition_value|format_money }} <small class="text-body-secondary">{{ asset.acquisition_date }}</small></div>
+        </div>
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Current value" %}</small>
+          <div><strong>{{ asset.current_value|format_money }}</strong></div>
+        </div>
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Capital gain" %}</small>
+          <div class="{% if asset.capital_gain.amount > 0 %}text-success{% elif asset.capital_gain.amount < 0 %}text-danger{% endif %}">
+            <strong>{{ asset.capital_gain|format_money }}</strong>
+          </div>
+        </div>
+        {% if asset.sold_date %}
+        <div class="col-md-3">
+          <small class="text-body-secondary">{% translate "Sold date" %}</small>
+          <div>{{ asset.sold_date }}</div>
+        </div>
+        {% endif %}
+        {% if asset.notes %}
+        <div class="col-12">
+          <small class="text-body-secondary">{% translate "Notes" %}</small>
+          <div>{{ asset.notes|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% include "finance/_account_chart_panel.html" %}
+
+  {% url 'finance:new_other_asset_value' asset.pk as new_value_url %}
+  {% include "finance/_value_history_panel.html" with parent_pk=asset.pk edit_value_url_name="finance:edit_other_asset_value" delete_value_url_name="finance:delete_other_asset_value" %}
+
+  {% url 'finance:delete_other_asset' asset.pk as delete_asset_url %}
+  {% translate "Delete asset" as del_title %}
+  {% translate "Are you sure you want to delete this asset and its value history?" as del_text %}
+  {% include "finance/_delete_modal.html" with modal_id="deleteAssetModal" delete_url=delete_asset_url modal_title=del_title confirm_text=del_text %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% url "finance:chart_data" data_type="other_asset" object_id=asset.pk as chart_url %}
+{% include "finance/_account_chart_script.html" with chart_url=chart_url %}
+{% endblock %}

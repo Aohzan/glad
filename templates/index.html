@@ -53,6 +53,7 @@
       savings:     "{% translate 'Savings' %}",
       properties:  "{% translate 'Properties' %}",
       scpi:        "{% translate 'SCPI' %}",
+      other:       "{% translate 'Other assets' %}",
       occupancy:   "{% translate 'Occupancy' %}",
       rooms:       "{% translate 'rooms' %}",
       repaid:      "{% translate 'repaid' %}",
@@ -321,6 +322,10 @@ function loadHero() {
               <p class="hero-stat-label mb-0"><i class="bi bi-building me-1"></i>${i18n.scpi}</p>
               <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#a78bfa;font-size:.45rem;vertical-align:middle"></i>${fmt(data.total_scpi, cur)}</p>
             </div>` : ''}
+            ${data.has_other ? `<div class="hero-stat-item text-center">
+              <p class="hero-stat-label mb-0"><i class="bi bi-gem me-1"></i>${i18n.other}</p>
+              <p class="hero-stat-value mb-0"><i class="bi bi-circle-fill me-1" style="color:#f472b6;font-size:.45rem;vertical-align:middle"></i>${fmt(data.total_other, cur)}</p>
+            </div>` : ''}
           </div>
         </div>
       </div>`;
@@ -339,11 +344,13 @@ function renderEvolutionChart(data, rangeYear) {
   const start  = rangeMonths ? Math.max(0, total - rangeMonths) : 0;
   const months = data.months.slice(start);
   const hasSCPI = data.scpi && data.scpi.some(v => v > 0);
+  const hasOther = data.other && data.other.some(v => v > 0);
   const series = [
     { name: i18n.investments, data: data.investments.slice(start) },
     { name: i18n.savings,     data: data.savings.slice(start) },
     { name: i18n.properties,  data: data.properties_net.slice(start) },
     ...(hasSCPI ? [{ name: i18n.scpi, data: data.scpi.slice(start) }] : []),
+    ...(hasOther ? [{ name: i18n.other, data: data.other.slice(start) }] : []),
   ];
   const options = {
     chart: {
@@ -363,7 +370,7 @@ function renderEvolutionChart(data, rangeYear) {
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth', width: 2 },
     fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: .45, opacityTo: .05 } },
-    colors: ['#60a5fa', '#34d399', '#fdba74', '#a78bfa'],
+    colors: ['#60a5fa', '#34d399', '#fdba74', ...(hasSCPI ? ['#a78bfa'] : []), '#f472b6'],
     tooltip: {
       theme: 'dark', shared: true, intersect: false,
       y: { formatter: v => fmt(v, 'EUR') },

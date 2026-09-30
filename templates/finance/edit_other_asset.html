@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% if asset %}{% translate "Edit asset" %}{% else %}{% translate "New asset" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+
+  {% translate "Edit asset" as edit_title %}
+  {% translate "New asset" as new_title %}
+  {% if asset %}{% url 'finance:other_asset_detail' asset.pk as back_url %}{% else %}{% url 'finance:other_asset_list' as back_url %}{% endif %}
+  {% translate "Other assets" as list_label %}
+  {% include "finance/_edit_page_header.html" with is_edit=asset edit_title=edit_title new_title=new_title back_url=back_url back_label=asset|default:list_label %}
+
+  {% include "finance/_form_error_alert.html" %}
+  {% include "_form_non_field_errors.html" %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-3">
+          {% for field in form %}
+          <div class="{% if field.name == 'notes' %}col-12{% else %}col-md-6{% endif %}">
+            {% if field.name == "is_active" %}
+            <div class="form-check mt-4">
+              {{ field }}
+              <label for="{{ field.id_for_label }}" class="form-check-label">{{ field.label }}</label>
+            </div>
+            {% else %}
+            {% include "_form_field.html" %}
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% include "finance/_edit_form_footer.html" with cancel_url=back_url %}
+  </form>
+
+</div>
+{% endblock %}
