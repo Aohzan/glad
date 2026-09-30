@@ -1,8 +1,9 @@
 """Model for unified financial flows: PropertyLedgerEntry."""
 
+import builtins
 import datetime
 import enum
-from typing import ClassVar, Self
+from typing import Any, ClassVar, Self
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -390,14 +391,35 @@ class PropertyLedgerEntry(BaseModel):
             )
         )
 
+    @builtins.property
+    def display_label(self) -> str:
+        """Human-readable label: third party - description - lease name."""
+        parts = [self.description] if self.description else []
+        if self.third_party:
+            parts.insert(0, self.third_party)
+        if self.lease_id and self.lease:  # ty: ignore[unresolved-attribute]
+            parts.append(self.lease.name)
+        return " - ".join(parts)
+
     def generate_occurrences(self, end_date: datetime.date | None = None) -> list[dict]:
         """Generate all occurrences, applying any saved exception overrides/deletions.
+
+        Each occurrence dict holds ``date`` (effective date: the actual date when the
+        occurrence has been checked with a different date, otherwise the scheduled
+        date) and, for recurring entries, ``occurrence_date`` (the scheduled date,
+        which identifies the occurrence), ``is_checked`` and ``actual_date``.
 
         Uses Django's prefetch cache when ``prefetch_related('exceptions')`` has been
         called on the queryset, otherwise falls back to one extra DB query per entry.
         Callers that do not prefetch still get correct results; prefetching is only
         needed for performance.
         """
+        is_recurring_entry = bool(self.pk) and self.recurrence_type != self.NONE
+        generation_end = end_date
+        if is_recurring_entry and end_date is not None:
+            # Actual dates are never in the future, so an occurrence scheduled after
+            # end_date (but before today) may have been paid within the range.
+            generation_end = max(end_date, datetime.date.today())
         raw = generate_recurring_occurrences(
             start_date=self.entry_date,
             amount=self.amount,
@@ -408,33 +430,39 @@ class PropertyLedgerEntry(BaseModel):
             recurrence_biannual=self.BIANNUAL,
             recurrence_yearly=self.YEARLY,
             recurrence_end_date=self.recurrence_end_date,
-            end_date=end_date,
+            end_date=generation_end,
         )
         # Only look up exceptions for saved, recurring entries
-        if not self.pk or self.recurrence_type == self.NONE:
+        if not is_recurring_entry:
             return raw
 
         exceptions_qs = self.exceptions.all()  # ty: ignore[unresolved-attribute]  # uses prefetch cache if available
-        if not exceptions_qs:
-            return raw
-
         exc_map = {exc.occurrence_date: exc for exc in exceptions_qs}
         result = []
         for occurrence in raw:
+            updated: dict[str, Any] = {
+                **occurrence,
+                "occurrence_date": occurrence["date"],
+                "is_checked": False,
+                "actual_date": None,
+            }
             exc = exc_map.get(occurrence["date"])
-            if exc is None:
-                result.append(occurrence)
+            if exc is not None:
+                if exc.is_deleted:
+                    continue
+                if exc.amount_override is not None:
+                    updated["amount"] = exc.amount_override
+                if exc.description_override is not None:
+                    updated["description_override"] = exc.description_override
+                if exc.notes_override is not None:
+                    updated["notes_override"] = exc.notes_override
+                if exc.actual_date is not None:
+                    updated["date"] = exc.actual_date
+                    updated["actual_date"] = exc.actual_date
+                updated["is_checked"] = exc.is_checked
+                updated["has_exception"] = True
+            if end_date is not None and updated["date"] > end_date:
                 continue
-            if exc.is_deleted:
-                continue
-            updated = dict(occurrence)
-            if exc.amount_override is not None:
-                updated["amount"] = exc.amount_override
-            if exc.description_override is not None:
-                updated["description_override"] = exc.description_override
-            if exc.notes_override is not None:
-                updated["notes_override"] = exc.notes_override
-            updated["has_exception"] = True
             result.append(updated)
         return result
 
@@ -479,6 +507,17 @@ class PropertyLedgerEntryException(BaseModel):
         blank=True,
         null=True,
         verbose_name=_("Notes override"),
+    )
+    is_checked = models.BooleanField(
+        default=False,
+        verbose_name=_("Is checked"),
+        help_text=_("The planned transfer has been verified on the bank account."),
+    )
+    actual_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Actual date"),
+        help_text=_("Actual transfer date, when it differs from the planned date."),
     )
 
     class Meta:

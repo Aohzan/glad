@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{% translate "Entries to check" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="max-width: 1400px;">
+
+  {% url 'property:index' as back_url %}
+  {% translate "Entries to check" as page_title %}
+  {% include "property/_edit_page_header.html" with page_title=page_title title_icon_class="bi-check2-square" back_url=back_url back_label=_("Estate") %}
+
+  <div class="d-flex flex-wrap gap-3 align-items-end mb-3">
+    <form method="get" action="{% url 'property:checks' %}" class="d-flex gap-2 align-items-end">
+      <div>
+        <label for="check-property-filter" class="form-label small mb-1">{% translate "Property" %}</label>
+        <select id="check-property-filter" name="property" class="form-select form-select-sm" data-autosubmit>
+          <option value="">{% translate "All properties" %}</option>
+          {% for prop in properties %}
+          <option value="{{ prop.pk }}"{% if selected_property and prop.pk == selected_property.pk %} selected{% endif %}>{{ prop.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </form>
+
+    {% if total_count %}
+    <form method="post" action="{% url 'property:checks' %}" class="d-flex gap-2 align-items-end ms-md-auto" id="check-all-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="{{ action_check_all }}">
+      {% if selected_property %}<input type="hidden" name="property" value="{{ selected_property.pk }}">{% endif %}
+      <div>
+        <label for="check-all-up-to" class="form-label small mb-1">{% translate "Check everything scheduled up to" %}</label>
+        <input type="date" id="check-all-up-to" name="up_to" class="form-control form-control-sm" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" required>
+      </div>
+      <button type="submit" class="btn btn-sm btn-outline-success" data-confirm="{% translate 'Mark all these entries as checked with their planned date and amount?' %}">
+        <i class="bi bi-check2-all me-1"></i>{% translate "Check all" %}
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <form method="post" action="{% url 'property:checks' %}" id="checks-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="{{ action_save }}">
+    {% if selected_property %}<input type="hidden" name="property" value="{{ selected_property.pk }}">{% endif %}
+
+    <div class="card mb-3">
+      <div class="card-header py-2 d-flex justify-content-between align-items-center">
+        <h3 class="card-title h6 mb-0">
+          <i class="bi bi-list-check me-1"></i>{% blocktranslate count counter=total_count %}{{ counter }} entry to check{% plural %}{{ counter }} entries to check{% endblocktranslate %}
+        </h3>
+        {% if hidden_count %}
+        <span class="small text-body-secondary">{% blocktranslate with shown=rows|length %}Showing the {{ shown }} oldest, {{ hidden_count }} more after saving.{% endblocktranslate %}</span>
+        {% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>{% translate "Property" %}</th>
+              <th>{% translate "Kind" %}</th>
+              <th>{% translate "Entry" %}</th>
+              <th>{% translate "Planned date" %}</th>
+              <th style="width: 160px;">{% translate "Actual date" %}</th>
+              <th class="text-end">{% translate "Planned amount" %}</th>
+              <th style="width: 140px;">{% translate "Actual amount" %}</th>
+              <th class="text-center">
+                <label class="d-flex flex-column align-items-center gap-1 mb-0">
+                  <span>{% translate "Check" %}</span>
+                  <input type="checkbox" class="form-check-input" id="check-all-rows" title="{% translate 'Select all' %}">
+                </label>
+              </th>
+              <th class="text-center">{% translate "Delete" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            {% with p=row.pending entry=row.pending.entry %}
+            <tr data-check-row class="{% if row.error %}table-danger{% endif %}">
+              <td><a href="{% url 'property:detail' pk=entry.property.pk %}#cashflow-panel" class="text-decoration-none">{{ entry.property.name }}</a></td>
+              <td>
+                {% if entry.flow_type == "income" %}
+                <span class="badge text-bg-success-subtle text-success-emphasis"><i class="bi bi-arrow-down-circle me-1"></i>{% translate "Income" %}</span>
+                {% else %}
+                <span class="badge text-bg-danger-subtle text-danger-emphasis"><i class="bi bi-arrow-up-circle me-1"></i>{% translate "Expense" %}</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="fw-semibold">{{ entry.get_management_category_display }}</div>
+                {% if entry.display_label %}<div class="small text-body-secondary">{{ entry.display_label }}</div>{% endif %}
+                {% if row.error %}<div class="small text-danger">{{ row.error }}</div>{% endif %}
+              </td>
+              <td class="text-nowrap">{{ p.planned_date|date:"SHORT_DATE_FORMAT" }}</td>
+              <td>
+                <input type="date" name="date_{{ p.key }}" value="{{ row.actual_date }}" max="{{ today|date:'Y-m-d' }}" class="form-control form-control-sm" data-row-input aria-label="{% translate 'Actual date' %}">
+              </td>
+              <td class="text-end text-nowrap">{{ p.planned_amount|format_money }}</td>
+              <td>
+                <input type="text" inputmode="decimal" name="amount_{{ p.key }}" value="{{ row.actual_amount }}" class="form-control form-control-sm text-end" data-row-input aria-label="{% translate 'Actual amount' %}">
+              </td>
+              <td class="text-center">
+                <input type="checkbox" name="check_{{ p.key }}" value="1" class="form-check-input" data-row-check{% if row.is_checked %} checked{% endif %} aria-label="{% translate 'Check' %}">
+              </td>
+              <td class="text-center">
+                <input type="checkbox" name="delete_{{ p.key }}" value="1" class="form-check-input border-danger" data-row-delete{% if row.is_deleted %} checked{% endif %} aria-label="{% translate 'Delete this occurrence' %}" title="{% translate 'Delete this occurrence' %}">
+              </td>
+            </tr>
+            {% endwith %}
+            {% empty %}
+            <tr>
+              <td colspan="9" class="text-center text-body-secondary py-4">
+                <i class="bi bi-check-circle text-success me-1"></i>{% translate "All recurring entries are checked." %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {% if rows %}
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle me-1"></i>{% translate "Save" %}
+      </button>
+    </div>
+    {% endif %}
+  </form>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ csp_nonce }}">
+  document.addEventListener('DOMContentLoaded', function () {
+    var filter = document.querySelector('[data-autosubmit]');
+    if (filter) {
+      filter.addEventListener('change', function () { this.form.submit(); });
+    }
+
+    var confirmBtn = document.querySelector('#check-all-form [data-confirm]');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function (e) {
+        if (!window.confirm(this.dataset.confirm)) e.preventDefault();
+      });
+    }
+
+    var rows = Array.from(document.querySelectorAll('[data-check-row]'));
+    rows.forEach(function (row) {
+      var check = row.querySelector('[data-row-check]');
+      var del = row.querySelector('[data-row-delete]');
+      row.querySelectorAll('[data-row-input]').forEach(function (input) {
+        ['focus', 'input', 'change'].forEach(function (evt) {
+          input.addEventListener(evt, function () {
+            check.checked = true;
+            del.checked = false;
+          });
+        });
+      });
+      check.addEventListener('change', function () { if (check.checked) del.checked = false; });
+      del.addEventListener('change', function () { if (del.checked) check.checked = false; });
+    });
+
+    var checkAll = document.getElementById('check-all-rows');
+    if (checkAll) {
+      checkAll.addEventListener('change', function () {
+        rows.forEach(function (row) {
+          row.querySelector('[data-row-check]').checked = checkAll.checked;
+          if (checkAll.checked) row.querySelector('[data-row-delete]').checked = false;
+        });
+      });
+    }
+
+    // Only post the rows that were touched, to keep the request small.
+    var form = document.getElementById('checks-form');
+    form.addEventListener('submit', function () {
+      rows.forEach(function (row) {
+        var touched = row.querySelector('[data-row-check]').checked || row.querySelector('[data-row-delete]').checked;
+        row.querySelectorAll('[data-row-input]').forEach(function (input) { input.disabled = !touched; });
+      });
+    });
+  });
+</script>
+{% endblock %}

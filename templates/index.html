@@ -183,6 +183,15 @@
         <i class="bi bi-arrow-right me-1"></i>{% translate 'View all' %}
       </a>
     </div>
+    {% if property_checks.level %}
+    <div class="alert alert-{{ property_checks.level }} d-flex flex-wrap align-items-center gap-2 py-2 px-3 mb-3 small" role="alert" id="property-checks-alert">
+      <i class="bi bi-exclamation-triangle"></i>
+      <span>
+        {% blocktranslate count counter=property_checks.count with days=property_checks.oldest_days %}{{ counter }} recurring entry to check (oldest: {{ days }} days).{% plural %}{{ counter }} recurring entries to check (oldest: {{ days }} days).{% endblocktranslate %}
+      </span>
+      <a href="{% url 'property:checks' %}" class="alert-link ms-auto">{% translate "Check entries" %} <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% endif %}
     <div class="prop-scroll-track" id="properties-grid">
       {% for pk in property_pks %}
       {% url 'property:detail' pk=pk as card_url %}

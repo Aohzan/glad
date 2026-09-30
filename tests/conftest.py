@@ -28,16 +28,9 @@ User = get_user_model()
 
 @pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
-    """Load fixtures from tests/fixtures and finance/fixtures directories."""
+    """Load fixtures from finance/fixtures and tests/fixtures directories."""
     with django_db_blocker.unblock():
-        # Load fixtures from tests/fixtures directory
-        fixtures_dir = os.path.join(os.path.dirname(__file__), "fixtures")
-        fixture_files = glob.glob(os.path.join(fixtures_dir, "*.yaml"))
-        for fixture_file in fixture_files:
-            fixture_name = os.path.basename(fixture_file)
-            call_command("loaddata", os.path.join("tests", "fixtures", fixture_name))
-
-        # Load fixtures from finance/fixtures directory
+        # Load finance/fixtures first: tests/fixtures reference their account types
         finance_fixtures_dir = os.path.join(
             os.path.dirname(os.path.dirname(__file__)), "finance", "fixtures"
         )
@@ -45,6 +38,13 @@ def django_db_setup(django_db_setup, django_db_blocker):
         for fixture_file in finance_fixture_files:
             fixture_name = os.path.basename(fixture_file)
             call_command("loaddata", os.path.join("finance", "fixtures", fixture_name))
+
+        # Load fixtures from tests/fixtures directory
+        fixtures_dir = os.path.join(os.path.dirname(__file__), "fixtures")
+        fixture_files = glob.glob(os.path.join(fixtures_dir, "*.yaml"))
+        for fixture_file in fixture_files:
+            fixture_name = os.path.basename(fixture_file)
+            call_command("loaddata", os.path.join("tests", "fixtures", fixture_name))
 
 
 # Constants for test users

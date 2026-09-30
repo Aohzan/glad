@@ -23,6 +23,7 @@ from property.models import (
     PropertyLedgerEntryException,
     PropertyValue,
 )
+from property.services.checks import delete_occurrence
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -189,7 +190,10 @@ def _is_valid_occurrence(
     entry: PropertyLedgerEntry, occurrence_date: datetime.date
 ) -> bool:
     """Return True if occurrence_date is a real occurrence of the entry."""
-    return any(occ["date"] == occurrence_date for occ in entry.generate_occurrences())
+    return any(
+        occ.get("occurrence_date") == occurrence_date
+        for occ in entry.generate_occurrences()
+    )
 
 
 def _get_entry_and_occurrence(
@@ -364,16 +368,7 @@ def delete_ledger_entry_occurrence(
         messages.success(request, _("Entry deleted successfully."))
 
     elif scope == RECURRENCE_SCOPE_THIS:
-        PropertyLedgerEntryException.objects.update_or_create(
-            parent_entry=entry,
-            occurrence_date=occ_date,
-            defaults={
-                "is_deleted": True,
-                "amount_override": None,
-                "description_override": None,
-                "notes_override": None,
-            },
-        )
+        delete_occurrence(entry, occ_date)
         messages.success(request, _("Occurrence deleted successfully."))
 
     elif scope == RECURRENCE_SCOPE_FUTURE:

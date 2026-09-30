@@ -13,6 +13,7 @@ from django.views.generic import TemplateView
 
 from property.models import Property
 from property.models.scpi import SCPI
+from property.services.checks import pending_checks_summary
 
 
 def get_object_or_redirect(
@@ -75,6 +76,7 @@ class IndexView(TemplateView):
             {
                 "property_pks": property_pks,
                 "scpi_pks": scpi_pks,
+                "property_checks": pending_checks_summary() if property_pks else None,
             },
         )
 

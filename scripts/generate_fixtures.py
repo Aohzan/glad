@@ -43,6 +43,21 @@ def years_ahead(n: int, ref: datetime.date) -> datetime.date:
         return ref.replace(year=ref.year + n, day=28)
 
 
+def monthly_occurrence(start: datetime.date, n: int) -> datetime.date:
+    """Return the n-th occurrence of a monthly recurrence (0 = start).
+
+    Mirrors property.utils.add_months_safe applied step by step, so the day is
+    clamped the same way as in PropertyLedgerEntry.generate_occurrences.
+    """
+    current = start
+    for _ in range(n):
+        total_months = current.year * 12 + current.month
+        year, month = total_months // 12, total_months % 12 + 1
+        day = min(current.day, calendar.monthrange(year, month)[1])
+        current = datetime.date(year, month, day)
+    return current
+
+
 def dt(d: datetime.date) -> str:
     """Format as YAML datetime string."""
     return f"{d} 00:00:00.000000"
@@ -3046,7 +3061,7 @@ def generate_property() -> str:
     total_surface: "28.00"
     number_of_rooms: 1
     coproperty_share: "75.00"
-    shares_count: "10000.000000"
+    shares_count: "1000.000000"
     tax_regime: lmnp_reel
 - model: property.propertyvalue
   pk: 7
@@ -3783,6 +3798,50 @@ def generate_property() -> str:
     amount_override_currency: EUR
     description_override: Loyer mensuel (indexé)
     notes_override: Revalorisation IRL janvier
+# Checked occurrences of the monthly rent (entry 15, starting M24); the most
+# recent occurrences stay unchecked so the dashboard shows a checking alert.
+- model: property.propertyledgerentryexception
+  pk: 3
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    parent_entry: 15
+    occurrence_date: {ds(monthly_occurrence(M24, 12))}
+    is_deleted: false
+    is_checked: true
+    actual_date: null
+    amount_override: null
+    amount_override_currency: EUR
+    description_override: null
+    notes_override: null
+- model: property.propertyledgerentryexception
+  pk: 4
+  fields:
+    created_at: {dt(M11)}
+    updated_at: {dt(M11)}
+    parent_entry: 15
+    occurrence_date: {ds(monthly_occurrence(M24, 13))}
+    is_deleted: false
+    is_checked: true
+    actual_date: {ds(monthly_occurrence(M24, 13) + datetime.timedelta(days=3))}
+    amount_override: 510.00
+    amount_override_currency: EUR
+    description_override: null
+    notes_override: null
+- model: property.propertyledgerentryexception
+  pk: 5
+  fields:
+    created_at: {dt(M10)}
+    updated_at: {dt(M10)}
+    parent_entry: 15
+    occurrence_date: {ds(monthly_occurrence(M24, 14))}
+    is_deleted: false
+    is_checked: true
+    actual_date: null
+    amount_override: null
+    amount_override_currency: EUR
+    description_override: null
+    notes_override: null
 """
 
 
