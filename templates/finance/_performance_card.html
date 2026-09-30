@@ -1,0 +1,58 @@
+{% load i18n %}
+{% if performance.xirr is not None %}
+<div class="card mb-4" id="performance-panel">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>{% translate "Annualized performance" %}</h5>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <small class="text-body-secondary">{% translate "Money-weighted return (XIRR)" %}</small>
+        <div class="fs-5 fw-semibold {% if performance.xirr > 0 %}text-success{% elif performance.xirr < 0 %}text-danger{% endif %}">{{ performance.xirr_percent|floatformat:2 }}% <small class="text-body-secondary fw-normal">/ {% translate "year" %}</small></div>
+      </div>
+      <div class="col-md-4">
+        <small class="text-body-secondary">{% translate "Real return (after inflation)" %}</small>
+        {% if performance.real_xirr is not None %}
+        <div class="fs-5 fw-semibold {% if performance.real_xirr > 0 %}text-success{% elif performance.real_xirr < 0 %}text-danger{% endif %}">{{ performance.real_xirr_percent|floatformat:2 }}% <small class="text-body-secondary fw-normal">/ {% translate "year" %}</small></div>
+        {% else %}
+        <form method="post" action="{% url 'refresh_economic_indices' %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}#performance-panel">
+          <button type="submit" class="btn btn-sm btn-link p-0">{% translate "Download the consumer price index from INSEE" %}</button>
+        </form>
+        {% endif %}
+      </div>
+      {% if benchmark_url %}
+      <div class="col-md-4" id="benchmark-result" data-url="{{ benchmark_url }}">
+        <small class="text-body-secondary">{% blocktranslate with symbol=account.benchmark_symbol %}Same deposits in {{ symbol }}{% endblocktranslate %}</small>
+        <div class="fs-5 fw-semibold" data-benchmark-value><span class="spinner-border spinner-border-sm text-body-secondary" role="status"></span></div>
+      </div>
+      {% endif %}
+    </div>
+    <p class="small text-body-secondary mt-3 mb-0">
+      {% translate "Yearly rate earned on the money actually invested, taking into account the date of each deposit and withdrawal. The real return deflates each flow with the INSEE consumer price index." %}
+    </p>
+  </div>
+</div>
+{% if benchmark_url %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  const box = document.getElementById('benchmark-result');
+  const target = box.querySelector('[data-benchmark-value]');
+  fetch(box.dataset.url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+    .then(r => r.json())
+    .then(data => {
+      if (data.xirr_percent === null || data.xirr_percent === undefined) {
+        target.textContent = '—';
+        target.title = data.error || '';
+        return;
+      }
+      const v = data.xirr_percent;
+      target.className = 'fs-5 fw-semibold ' + (v > 0 ? 'text-success' : v < 0 ? 'text-danger' : '');
+      target.textContent = (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+    })
+    .catch(() => { target.textContent = '—'; });
+})();
+</script>
+{% endif %}
+{% endif %}

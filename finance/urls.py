@@ -8,6 +8,7 @@ from django.urls import path
 
 from finance import views
 from finance.views.api_views import (
+    AccountBenchmarkApiView,
     AccountsSummaryApiView,
     HoldingAutofillApiView,
     HoldingLiveInfoApiView,
@@ -48,6 +49,11 @@ urlpatterns = [
         "api/investment/<int:account_pk>/holding/<int:holding_pk>/live-info/",
         HoldingLiveInfoApiView.as_view(),
         name="api_holding_live_info",
+    ),
+    path(
+        "api/investment/<int:pk>/benchmark/",
+        AccountBenchmarkApiView.as_view(),
+        name="api_investment_benchmark",
     ),
     path(
         "api/investments/live-change/",

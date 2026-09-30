@@ -20,6 +20,7 @@ from finance.services.market_data import (
     fetch_holding_autofill,
     get_live_quote,
 )
+from finance.services.performance import account_cash_flows, benchmark_xirr
 
 _ISIN_RE = re.compile(r"^[A-Z0-9]{12}$")
 
@@ -282,4 +283,30 @@ class InvestmentLiveChangeApiView(View):
 
         return JsonResponse(
             {"enabled": True, "accounts": accounts_data, "alerts": alerts}
+        )
+
+
+@method_decorator(login_required, name="dispatch")
+class AccountBenchmarkApiView(View):
+    """Return the XIRR the account deposits would have earned in its benchmark."""
+
+    def get(self, request, pk):
+        if not getattr(request.user.profile, "live_data_enabled", True):
+            return JsonResponse({"error": "live_data_disabled"}, status=403)
+        account = get_object_or_404(InvestmentAccount, pk=pk)
+        if not account.benchmark_symbol:
+            return JsonResponse({"error": "no_benchmark"}, status=400)
+        try:
+            rate = benchmark_xirr(
+                account_cash_flows(account),
+                account.benchmark_symbol,
+                account.currency,
+            )
+        except MarketDataError as exc:
+            return JsonResponse({"error": str(exc)}, status=502)
+        return JsonResponse(
+            {
+                "symbol": account.benchmark_symbol,
+                "xirr_percent": None if rate is None else round(rate * 100, 2),
+            }
         )

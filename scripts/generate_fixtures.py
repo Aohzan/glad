@@ -154,6 +154,7 @@ def generate_investmentaccount() -> str:
     opening_date: {ds(M84)}
     opening_cash_value: 0
     opening_cash_value_currency: EUR
+    benchmark_symbol: CW8.PA
 # ── Holding 1: ETF MSCI World (profit +42%) ───────────────────────────────────
 - model: finance.investmentaccountholding
   pk: 1
@@ -2500,21 +2501,40 @@ IRL_VALUES = {
 }
 
 
-def generate_irl_rows() -> str:
-    """Rows of the IRL history published by INSEE."""
-    rows = []
-    for pk, ((year, quarter), value) in enumerate(IRL_VALUES.items(), start=1):
-        rows.append(
-            f"""- model: base.economicindexvalue
+#: January consumer price index (base 2025, excl. tobacco), series 011814056.
+CPI_VALUES = {
+    2020: "86.75",
+    2021: "87.0",
+    2022: "89.55",
+    2023: "95.03",
+    2024: "97.78",
+    2025: "99.32",
+    2026: "99.57",
+}
+
+
+def _index_row(pk: int, index: str, period: str, value: str) -> str:
+    return f"""- model: base.economicindexvalue
   pk: {pk}
   fields:
     created_at: {dt(RECENT)}
     updated_at: {dt(RECENT)}
-    index: irl
-    period: {year}-{(quarter - 1) * 3 + 1:02d}-01
+    index: {index}
+    period: {period}
     value: "{value}"
 """
-        )
+
+
+def generate_irl_rows() -> str:
+    """Rows of the IRL and consumer price index history published by INSEE."""
+    rows = [
+        _index_row(pk, "irl", f"{year}-{(quarter - 1) * 3 + 1:02d}-01", value)
+        for pk, ((year, quarter), value) in enumerate(IRL_VALUES.items(), start=1)
+    ]
+    rows += [
+        _index_row(pk, "cpi", f"{year}-01-01", value)
+        for pk, (year, value) in enumerate(CPI_VALUES.items(), start=len(rows) + 1)
+    ]
     return "".join(rows)
 
 
@@ -2533,7 +2553,7 @@ def generate_property() -> str:
     return f"""# generated with scripts/generate_fixtures.py
 ---
 # ─────────────────────────────────────────────────────────────────────────────
-# IRL history (rent reference index), used by the rent revision
+# INSEE indices: IRL (rent revision) and consumer prices (real returns)
 # ─────────────────────────────────────────────────────────────────────────────
 {irl_rows}
 # ─────────────────────────────────────────────────────────────────────────────

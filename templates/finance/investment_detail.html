@@ -47,6 +47,8 @@
     </div>
   </div>
 
+  {% if account.benchmark_symbol and live_data_enabled %}{% url 'finance:api_investment_benchmark' account.pk as benchmark_url %}{% endif %}
+  {% include "finance/_performance_card.html" with benchmark_url=benchmark_url %}
   {% include "finance/_envelope_card.html" %}
   {% include "finance/_euro_fund_split.html" %}
 

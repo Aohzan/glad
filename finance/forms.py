@@ -276,11 +276,15 @@ class InvestmentAccountForm(MoneyInputGroupMixin, forms.ModelForm):
             "commentaire",
             "opening_date",
             "opening_cash_value",
+            "benchmark_symbol",
             "is_active",
             "closing_date",
         ]
         widgets = {
             **_COMMON_ACCOUNT_WIDGETS,
+            "benchmark_symbol": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "CW8.PA"}
+            ),
         }
 
 
