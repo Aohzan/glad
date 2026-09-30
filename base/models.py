@@ -60,3 +60,44 @@ class EconomicIndexValue(BaseModel):
                 quarter=self.quarter, year=self.period.year
             )
         return self.period.strftime("%Y-%m")
+
+
+class NetWorthSnapshot(BaseModel):
+    """Net worth at the start of a past month, stored to draw the history quickly.
+
+    Snapshots are derived data: they are deleted whenever a value they depend
+    on changes and recomputed on the next request.
+    """
+
+    class Meta:
+        verbose_name = _("net worth snapshot")
+        verbose_name_plural = _("net worth snapshots")
+        ordering = ["-month"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["month", "currency"], name="unique_net_worth_snapshot"
+            ),
+        ]
+
+    month = models.DateField()
+    currency = models.CharField(max_length=3)
+    savings = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    investments = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    properties_net = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    properties_gross = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    scpi = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    other = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+
+    def __str__(self) -> str:
+        return f"{self.month:%Y-%m} {self.currency}: {self.total}"
+
+    @property
+    def total(self):
+        """Net worth of the month."""
+        return (
+            self.savings
+            + self.investments
+            + self.properties_net
+            + self.scpi
+            + self.other
+        )
