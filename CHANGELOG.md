@@ -2,6 +2,50 @@
 
 <!-- version list -->
 
+## v1.3.0 (2026-09-30)
+
+### Bug Fixes
+
+- **finance**: Round live holding total value to 2 decimals
+  ([`45b8717`](https://github.com/Aohzan/glad/commit/45b8717b7a1943657fdd8a2069ddeed54df06956))
+
+- **i18n**: Rename French Fetch label to Actualiser
+  ([`915ee2b`](https://github.com/Aohzan/glad/commit/915ee2bad031f167e6d5ee4e6d69db52e00575b6))
+
+- **property**: Run async panel scripts with the page CSP nonce
+  ([`dad0fe0`](https://github.com/Aohzan/glad/commit/dad0fe0e5da13433f37ba12e8e1254fd953c888d))
+
+- **types**: Annotate reverse relations with RelatedManager for django-stubs 6.1.1
+  ([`84be307`](https://github.com/Aohzan/glad/commit/84be30749a36593359f4c33d9d82a49e5315833a))
+
+### Build System
+
+- **deps**: Bump astral-sh/setup-uv from 10.1.0 to 10.2.0
+  ([`3ed2487`](https://github.com/Aohzan/glad/commit/3ed2487856b2209523f83066c3dc4ba29e60871d))
+
+- **deps-dev**: Bump django-stubs from 6.1.0 to 6.1.1
+  ([`82e8ba9`](https://github.com/Aohzan/glad/commit/82e8ba922eb6dc6e1a7171a375fc3e605e727002))
+
+- **deps-dev**: Bump ruff from 0.16.5 to 0.16.7
+  ([`44444ba`](https://github.com/Aohzan/glad/commit/44444bab2c4900a354c7c4d0e77142cd205b22b5))
+
+- **deps-dev**: Bump ruff from 0.16.7 to 0.16.8
+  ([`7a6558c`](https://github.com/Aohzan/glad/commit/7a6558cb66fc4a3587542ab596f9e7999e1ad79a))
+
+- **deps-dev**: Bump ty from 0.0.77 to 0.0.80
+  ([`4fb4d8c`](https://github.com/Aohzan/glad/commit/4fb4d8c0b6394ee77b7e5fea747d8403e66eaea6))
+
+### Chores
+
+- Fix lint issues
+  ([`725334e`](https://github.com/Aohzan/glad/commit/725334ec8a90d0ac97a76005f5b7aae7a80026e5))
+
+### Features
+
+- **finance**: Add Fetch all button per investment account on batch update
+  ([`6e60046`](https://github.com/Aohzan/glad/commit/6e60046e71dd9cf9912945d03bfd7e51906ac0b2))
+
+
 ## v1.2.0 (2026-09-18)
 
 ### Bug Fixes
