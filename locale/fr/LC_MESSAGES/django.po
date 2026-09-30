@@ -3049,7 +3049,7 @@ msgstr "Dépôt"
 
 #: templates/finance/_holding_update_row.html:26
 msgid "Fetch"
-msgstr "Récupérer"
+msgstr "Actualiser"
 
 #: templates/finance/_holding_update_row.html:43
 msgid "Current qty:"
