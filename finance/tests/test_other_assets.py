@@ -147,6 +147,22 @@ class TestOtherAssetViews:
         assert response.status_code == 302
         assert not OtherAsset.objects.filter(pk=asset.pk).exists()
 
+    def test_inactive_asset_needs_a_sale_date(self, user_client):
+        data = {
+            "name": "Sold car",
+            "category": "vehicle",
+            "acquisition_date": "2023-05-01",
+            "acquisition_value_0": "20000",
+            "acquisition_value_1": "EUR",
+        }
+        response = user_client.post(reverse("finance:new_other_asset"), data)
+        assert response.status_code == 200
+        assert "sold_date" in response.context["form"].errors
+        response = user_client.post(
+            reverse("finance:new_other_asset"), {**data, "sold_date": "2025-01-01"}
+        )
+        assert response.status_code == 302
+
     def test_value_crud(self, user_client):
         asset = _asset()
         url = reverse("finance:new_other_asset_value", args=[asset.pk])
