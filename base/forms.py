@@ -65,3 +65,16 @@ def recurrence_end_field(with_class: bool = False) -> forms.DateField:
         input_formats=["%Y-%m-%d"],
         label=_("Recurrence End Date"),
     )
+
+
+class MonthlyExpensesForm(forms.Form):
+    """Monthly household expenses used to size the emergency fund."""
+
+    monthly_expenses = forms.DecimalField(
+        label=_("Monthly expenses"),
+        required=False,
+        min_value=0,
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "10"}),
+    )

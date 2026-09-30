@@ -34,6 +34,17 @@ class UserProfile(models.Model):
         ),
     )
 
+    monthly_expenses = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("Monthly expenses"),
+        help_text=_(
+            "Usual household spending per month, used to size the emergency fund."
+        ),
+    )
+
     class Meta:
         verbose_name = _("User profile")
         verbose_name_plural = _("User profiles")

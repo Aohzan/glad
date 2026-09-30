@@ -294,6 +294,7 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
             "isin",
             "fees",
             "issuer",
+            "asset_class",
             "is_active",
             "initial_quantity",
             "initial_value",
@@ -313,6 +314,7 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
             ),
             "fees": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "issuer": forms.TextInput(attrs={"class": "form-control"}),
+            "asset_class": forms.Select(attrs={"class": "form-select"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "initial_quantity": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.000001"}

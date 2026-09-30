@@ -10,6 +10,7 @@ from base import api_views, views
 
 urlpatterns = [
     path("", views.IndexView.as_view(), name="index"),
+    path("allocation/", views.allocation, name="allocation"),
     path("health", views.healthcheck),
     path("favicon.ico", views.favicon),
     path("api/net-worth/", api_views.NetWorthApiView.as_view(), name="api_net_worth"),
