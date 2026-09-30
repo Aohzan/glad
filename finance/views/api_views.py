@@ -1,7 +1,7 @@
 """API views for the finance app — JSON endpoints for the dashboard."""
 
 import re
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -157,7 +157,11 @@ class HoldingLiveInfoApiView(View):
             return JsonResponse({"error": str(exc)}, status=502)
 
         quantity = holding.quantity
-        total_value = quote.price * quantity if quantity else None
+        total_value = (
+            (quote.price * quantity).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            if quantity
+            else None
+        )
         currency_mismatch = quote.currency != holding.account.currency
 
         return JsonResponse(
