@@ -77,6 +77,11 @@ class RentRevision:
         return self.due_date <= self.today
 
     @property
+    def default_effective_date(self) -> datetime.date:
+        """The anniversary, or today for a late claim (it is not retroactive)."""
+        return max(self.due_date, self.today)
+
+    @property
     def reference_value(self) -> Decimal | None:
         """IRL the change is measured from.
 
@@ -209,14 +214,17 @@ def apply_rent_revision(
 ) -> int:
     """Apply *revision* to the lease and its rent series; return the series updated.
 
-    *effective_date* defaults to the anniversary. It cannot be earlier: a
-    revision is never retroactive before the anniversary.
+    *effective_date* defaults to the anniversary, or to today when the
+    revision is claimed late: it then only applies from the claim. It can
+    never be earlier than the anniversary.
     """
     new_rent = revision.new_rent
     if new_rent is None:
         raise ValueError("The rent revision cannot be computed.")
     assert revision.new_index is not None
-    effective_date = max(effective_date or revision.due_date, revision.due_date)
+    effective_date = max(
+        effective_date or revision.default_effective_date, revision.due_date
+    )
     lease = revision.lease
     old_rent = lease.rent_amount
     with transaction.atomic():

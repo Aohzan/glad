@@ -28,7 +28,7 @@
       <form method="post" action="{% url 'property:apply_rent_revision' property.pk lease.pk %}" class="d-flex align-items-center gap-2 ms-auto">
         {% csrf_token %}
         <label class="visually-hidden" for="effective-date-{{ lease.pk }}">{% translate "Effective date" %}</label>
-        <input type="date" class="form-control form-control-sm" id="effective-date-{{ lease.pk }}" name="effective_date" value="{{ rev.due_date|date:'Y-m-d' }}" min="{{ rev.due_date|date:'Y-m-d' }}">
+        <input type="date" class="form-control form-control-sm" id="effective-date-{{ lease.pk }}" name="effective_date" value="{{ rev.default_effective_date|date:'Y-m-d' }}" min="{{ rev.due_date|date:'Y-m-d' }}">
         <button type="submit" class="btn btn-sm btn-primary text-nowrap">{% translate "Apply revision" %}</button>
       </form>
       {% endif %}
