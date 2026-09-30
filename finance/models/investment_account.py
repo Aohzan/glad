@@ -2,6 +2,7 @@
 
 import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +12,9 @@ from moneyed import Money
 from base.models import BaseModel
 from finance.models.base import AbstractAccount, AbstractAccountType
 from finance.utils import AccountProgression
+
+if TYPE_CHECKING:
+    from django.db.models.fields.related_descriptors import RelatedManager
 
 
 class InvestmentAccountType(AbstractAccountType):
@@ -30,8 +34,8 @@ class InvestmentAccountType(AbstractAccountType):
 class InvestmentAccount(AbstractAccount):
     """Investment account has a cash value and multiple holdings."""
 
-    deposits: models.Manager[InvestmentAccountDeposit]
-    cash_values: models.Manager[InvestmentAccountCash]
+    deposits: RelatedManager[InvestmentAccountDeposit]
+    cash_values: RelatedManager[InvestmentAccountCash]
 
     class Meta(AbstractAccount.Meta):
         verbose_name = _("investment account")

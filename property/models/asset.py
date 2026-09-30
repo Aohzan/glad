@@ -21,13 +21,15 @@ from property.utils import (
 from property.utils.date_utils import days360
 
 if TYPE_CHECKING:
+    from django.db.models.fields.related_descriptors import RelatedManager
+
     from property.models.lease import Lease
 
 
 class PropertyLoan(BaseModel):
     """Model representing a property loan."""
 
-    amortization_entries: models.Manager[PropertyLoanAmortizationEntry]
+    amortization_entries: RelatedManager[PropertyLoanAmortizationEntry]
 
     class Meta:
         verbose_name = _("property loan")
@@ -332,9 +334,9 @@ class PropertyLoanAmortizationEntry(BaseModel):
 class Property(BaseModel):
     """Model representing a property."""
 
-    property_values: models.Manager[PropertyValue]
-    leases: models.Manager[Lease]
-    loans: models.Manager[PropertyLoan]
+    property_values: RelatedManager[PropertyValue]
+    leases: RelatedManager[Lease]
+    loans: RelatedManager[PropertyLoan]
 
     HOUSE = "HO"
     APARTMENT = "AP"

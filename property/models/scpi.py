@@ -6,12 +6,14 @@ from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.manager import Manager
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from base.models import BaseModel
+
+if TYPE_CHECKING:
+    from django.db.models.fields.related_descriptors import RelatedManager
 
 
 class SCPI(BaseModel):
@@ -22,9 +24,9 @@ class SCPI(BaseModel):
     """
 
     if TYPE_CHECKING:
-        share_prices: Manager[SCPISharePrice]
-        dividends: Manager[SCPIDividend]
-        investments: Manager[SCPIInvestment]
+        share_prices: RelatedManager[SCPISharePrice]
+        dividends: RelatedManager[SCPIDividend]
+        investments: RelatedManager[SCPIInvestment]
 
     class DividendRecurrence(models.TextChoices):
         MONTHLY = "monthly", _("Monthly")
@@ -186,7 +188,7 @@ class SCPIInvestment(BaseModel):
     """
 
     if TYPE_CHECKING:
-        theoretical_values: Manager[SCPIBareOwnershipTheoreticalValue]
+        theoretical_values: RelatedManager[SCPIBareOwnershipTheoreticalValue]
 
     class OwnershipType(models.TextChoices):
         FULL = "full", _("Full ownership")
