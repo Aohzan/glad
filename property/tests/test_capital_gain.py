@@ -121,6 +121,15 @@ class TestEstimate:
         assert estimate.flat_works_used is False
         assert estimate.income_tax_allowance == 0
 
+    def test_flat_works_after_five_years(self, house):
+        house.buying_date = D(2020, 3, 1)
+        house.save()
+        estimate = estimate_resale(house, _inputs(sale_date=D(2025, 9, 1)))
+        assert estimate.holding_years == 5
+        assert estimate.works == Decimal("30000.00")
+        exactly = estimate_resale(house, _inputs(sale_date=D(2025, 3, 1)))
+        assert exactly.works == 0
+
     def test_main_residence_is_exempt(self, house):
         estimate = estimate_resale(house, _inputs(main_residence=True))
         assert estimate.is_exempt is True
