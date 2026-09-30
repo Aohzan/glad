@@ -439,6 +439,14 @@ class OtherAssetForm(MoneyInputGroupMixin, forms.ModelForm):
             "notes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         }
 
+    def clean(self):
+        cleaned = super().clean() or {}
+        # The history values an asset until its sale date: an asset that is no
+        # longer held needs one.
+        if not cleaned.get("is_active") and not cleaned.get("sold_date"):
+            self.add_error("sold_date", _("Set the sale date of an inactive asset."))
+        return cleaned
+
 
 class OtherAssetValueForm(MoneyInputGroupMixin, forms.ModelForm):
     """Form for creating/editing an other asset value entry."""

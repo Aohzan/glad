@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 00:17+0200\n"
+"POT-Creation-Date: 2026-10-01 00:18+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -571,6 +571,10 @@ msgstr "La date de début doit être antérieure à la date de fin."
 #, python-brace-format
 msgid "The date range cannot exceed {years} years."
 msgstr "La plage de dates ne peut pas dépasser {years} ans."
+
+#: finance/forms.py:447
+msgid "Set the sale date of an inactive asset."
+msgstr "Renseignez la date de vente d'un actif inactif."
 
 #: finance/models/base.py:74
 msgid "Name of the account (optional)"
