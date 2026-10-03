@@ -3,6 +3,7 @@
 import datetime
 from decimal import Decimal
 from importlib import import_module
+from types import SimpleNamespace
 
 import pytest
 from django.apps import apps
@@ -284,23 +285,90 @@ class TestViews:
         assert not Ownership.objects.filter(user=user).exists()
 
 
+class _LegacyAssets:
+    """Stand-in for a historical model still carrying the free-text owner."""
+
+    def __init__(self, rows):
+        self.objects = self
+        self.rows = rows
+
+    def exclude(self, **kwargs):
+        return self
+
+    def __iter__(self):
+        return iter(self.rows)
+
+
+class _LegacyApps:
+    """App registry whose saving accounts carry the given owner texts."""
+
+    def __init__(self, owners):
+        self.savings = [SimpleNamespace(pk=a.pk, owner=text) for a, text in owners]
+
+    def get_model(self, app_label, model_name):
+        if app_label == "finance":
+            return _LegacyAssets(self.savings if model_name == "savingaccount" else [])
+        return apps.get_model(app_label, model_name)
+
+
+def _migration(name):
+    return import_module(f"base.migrations.{name}")
+
+
 @pytest.mark.django_db
 class TestDataMigration:
     def test_owner_text_becomes_ownership(self):
         alice = _user("alice", first_name="Alice")
         _user("alice2", first_name="Twin")
         _user("alice3", first_name="Twin")
-        matched = _saving("Matched")
-        matched.owner = "ALICE"
-        matched.save()
-        ambiguous = _saving("Ambiguous")
-        ambiguous.owner = "twin"
-        ambiguous.save()
-        shared = _saving("Shared")
-        shared.owner = "Both of us"
-        shared.save()
-        module = import_module("base.migrations.0004_ownership_from_owner_text")
-        module.forwards(apps, None)
+        matched, ambiguous, shared = (
+            _saving("Matched"),
+            _saving("Ambiguous"),
+            _saving("Shared"),
+        )
+        legacy = _LegacyApps(
+            [(matched, "ALICE"), (ambiguous, "twin"), (shared, "Both of us")]
+        )
+        _migration("0004_ownership_from_owner_text").forwards(legacy, None)
         assert [o.user for o in ownerships_of(matched)] == [alice]
         assert ownerships_of(ambiguous) == []
         assert ownerships_of(shared) == []
+
+    def test_remaining_texts_before_the_field_is_dropped(self):
+        User.objects.update(is_active=False)
+        alice = _user("alice", first_name="Alice")
+        bob = _user("bob")
+        child = _user("child-zoe", first_name="Zoé")
+        child.profile.is_child = True
+        child.profile.save()
+        matched, joint, other, owned, blank = (
+            _saving(name) for name in ("Matched", "Joint", "Other", "Owned", "Blank")
+        )
+        _own(owned, bob)
+        legacy = _LegacyApps(
+            [
+                (matched, " alice "),
+                (joint, "Foyer"),
+                (other, "Grandma"),
+                (owned, "Alice"),
+                (blank, "  "),
+            ]
+        )
+        _migration("0005_ownership_from_remaining_owner_text").forwards(legacy, None)
+        assert [(o.user, o.share) for o in ownerships_of(matched)] == [
+            (alice, Decimal(100))
+        ]
+        assert sorted((o.user.username, o.share) for o in ownerships_of(joint)) == [
+            ("alice", Decimal(50)),
+            ("bob", Decimal(50)),
+        ]
+        assert ownerships_of(other) == []
+        assert [o.user for o in ownerships_of(owned)] == [bob]
+        assert ownerships_of(blank) == []
+
+    def test_split_of_three(self):
+        assert _migration("0005_ownership_from_remaining_owner_text")._split(3) == [
+            Decimal("33.33"),
+            Decimal("33.33"),
+            Decimal("33.34"),
+        ]

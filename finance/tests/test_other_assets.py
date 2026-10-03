@@ -111,10 +111,11 @@ class TestOtherAssetViews:
         assert "Update from market price" in content
         assert "In a safe" in content
 
-    def test_create_edit_delete(self, user_client):
+    def test_create_edit_delete(self, user, user_client):
         response = user_client.post(
             reverse("finance:new_other_asset"),
             {
+                "owners": [user.pk],
                 "name": "Car",
                 "category": "vehicle",
                 "acquisition_date": "2023-05-01",
@@ -147,8 +148,9 @@ class TestOtherAssetViews:
         assert response.status_code == 302
         assert not OtherAsset.objects.filter(pk=asset.pk).exists()
 
-    def test_inactive_asset_needs_a_sale_date(self, user_client):
+    def test_inactive_asset_needs_a_sale_date(self, user, user_client):
         data = {
+            "owners": [user.pk],
             "name": "Sold car",
             "category": "vehicle",
             "acquisition_date": "2023-05-01",

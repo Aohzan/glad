@@ -6,9 +6,12 @@ import io
 from decimal import Decimal
 
 import pytest
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from moneyed import Money
 
+from base.models import Ownership
 from finance.models.investment_account import (
     InvestmentAccountCash,
     InvestmentAccountHolding,
@@ -24,6 +27,26 @@ def _parse_csv(response):
     content = response.content.decode("utf-8")
     reader = csv.reader(io.StringIO(content))
     return list(reader)
+
+
+@pytest.fixture(autouse=True)
+def _owned_by_test_owner(request, db):
+    """The account fixtures of a test are held by a user named "Test Owner"."""
+    owner = User.objects.create(
+        username="test-owner", first_name="Test", last_name="Owner"
+    )
+    for name in (
+        "active_saving_account",
+        "inactive_saving_account",
+        "active_investment_account",
+    ):
+        if name in request.fixturenames:
+            account = request.getfixturevalue(name)
+            Ownership.objects.create(
+                content_type=ContentType.objects.get_for_model(account),
+                object_id=account.pk,
+                user=owner,
+            )
 
 
 def _find_row_by_owner(rows, owner):
@@ -135,17 +158,13 @@ def test_csv_export_synthesis_excludes_inactive(
     response = user_client.get(reverse("finance:csv_export_synthesis"))
     rows = _parse_csv(response)
     owners = [row[1] for row in rows[1:]]
-    assert active_saving_account.owner in owners
-    active_row = _find_row_by_owner(rows, active_saving_account.owner)
+    assert "Test Owner" in owners
+    active_row = _find_row_by_owner(rows, "Test Owner")
     assert active_row is not None
     assert active_row[2] == "Test Bank"
     inactive_row = None
     for row in rows[1:]:
-        if (
-            row[1] == inactive_saving_account.owner
-            and row[2] == "Test Bank"
-            and row not in [active_row]
-        ):
+        if row[1] == "Test Owner" and row[2] == "Test Bank" and row not in [active_row]:
             inactive_row = row
     assert inactive_row is None
 
@@ -159,11 +178,13 @@ def test_csv_export_synthesis_header_contains_date(user_client):
 
 
 @pytest.mark.django_db
-def test_csv_export_synthesis_empty_owner_institution(user_client, saving_account_type):
+def test_csv_export_synthesis_household_owner_empty_institution(
+    user_client, saving_account_type
+):
+    """An account without owner is held by the household."""
     SavingAccount.objects.create(
         account_type=saving_account_type,
         name="NoOwnerAccount",
-        owner="",
         institution="",
         is_active=True,
         opening_value=Money(Decimal("500.00"), "EUR"),
@@ -176,7 +197,7 @@ def test_csv_export_synthesis_empty_owner_institution(user_client, saving_accoun
     account_rows = [
         r
         for r in rows[1:]
-        if r[0] == str(saving_account_type) and r[1] == "" and r[2] == ""
+        if r[0] == str(saving_account_type) and r[1] == "Household" and r[2] == ""
     ]
     assert len(account_rows) >= 1
 

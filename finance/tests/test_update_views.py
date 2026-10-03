@@ -31,7 +31,6 @@ def saving_account(saving_account_type):
     return SavingAccount.objects.create(
         account_type=saving_account_type,
         name="Test Livret",
-        owner="Test Owner",
         institution="Test Bank",
         is_active=True,
         opening_value=Money(Decimal("1000.00"), "EUR"),
@@ -50,7 +49,6 @@ def investment_account(investment_account_type):
     return InvestmentAccount.objects.create(
         account_type=investment_account_type,
         name="Test PEA",
-        owner="Test Owner",
         institution="Test Broker",
         is_active=True,
         opening_cash_value=Money(Decimal("5000.00"), "EUR"),

@@ -165,7 +165,6 @@ class TestHolders:
         resolver = HolderResolver()
         saving = assets["saving"]
         assert resolver.label(saving) == "Household"
-        assert resolver.label(saving, legacy="Alice") == "Alice"
         alice = User.objects.create(username="alice", first_name="Alice")
         bob = User.objects.create(username="bob")
         content_type = ContentType.objects.get_for_model(saving)

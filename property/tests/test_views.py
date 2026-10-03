@@ -632,12 +632,13 @@ def test_edit_property_loan_forms_with_schedules_context(user_client):
 
 
 @pytest.mark.django_db
-def test_edit_property_post_saves_property(user_client):
+def test_edit_property_post_saves_property(user, user_client):
     """POST with valid data updates the property."""
     prop = _make_property()
     response = user_client.post(
         reverse("property:edit", args=[prop.pk]),
         {
+            "owners": [user.pk],
             "name": "Updated Name",
             "property_type": Property.HOUSE,
             "buying_value_0": "210000",
@@ -706,12 +707,13 @@ def test_create_property_get_renders_form(user_client):
 
 
 @pytest.mark.django_db
-def test_create_property_post_valid_creates_and_redirects(user_client):
+def test_create_property_post_valid_creates_and_redirects(user, user_client):
     """POST with valid data creates a property and redirects to the edit view."""
     assert Property.objects.count() == 0
     response = user_client.post(
         reverse("property:create"),
         {
+            "owners": [user.pk],
             "name": "New Flat",
             "property_type": Property.APARTMENT,
             "buying_value_0": "180000",

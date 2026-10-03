@@ -31,7 +31,6 @@ def investment_account(investment_type):
     return InvestmentAccount.objects.create(
         account_type=investment_type,
         name="My PEA",
-        owner="Test Owner",
         institution="Test Broker",
         is_active=True,
         opening_cash_value=Money(Decimal("5000.00"), "EUR"),
@@ -191,13 +190,13 @@ class TestCreateInvestment:
         assert response.status_code == 200
         assert "form" in response.context
 
-    def test_post_create_valid(self, user_client, investment_type):
+    def test_post_create_valid(self, user, user_client, investment_type):
         """POST with valid data creates an account and redirects."""
         url = reverse("finance:new_investment")
         data = {
+            "owners": [user.pk],
             "account_type": investment_type.pk,
             "name": "New Investment",
-            "owner": "Owner",
             "institution": "Broker",
             "opening_date": "2025-01-01",
             "opening_cash_value_0": "2000.00",
@@ -232,10 +231,13 @@ class TestEditInvestment:
         assert response.status_code == 200
         assert response.context["account"] == investment_account
 
-    def test_post_edit_valid(self, user_client, investment_account, investment_type):
+    def test_post_edit_valid(
+        self, user, user_client, investment_account, investment_type
+    ):
         """POST with valid data updates the account."""
         url = reverse("finance:edit_investment", kwargs={"pk": investment_account.pk})
         data = {
+            "owners": [user.pk],
             "account_type": investment_type.pk,
             "name": "Updated PEA",
             "opening_date": "2025-01-01",

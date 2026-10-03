@@ -37,7 +37,6 @@ def active_saving_account(saving_account_type):
     return SavingAccount.objects.create(
         account_type=saving_account_type,
         name="Test Active Saving Account",
-        owner="Test Owner",
         institution="Test Bank",
         is_active=True,
         opening_value=Money(Decimal("1000.00"), "EUR"),
@@ -54,7 +53,6 @@ def inactive_saving_account(saving_account_type):
     return SavingAccount.objects.create(
         account_type=saving_account_type,
         name="Test Inactive Saving Account",
-        owner="Test Owner",
         institution="Test Bank",
         is_active=False,
         opening_value=Money(Decimal("500.00"), "EUR"),
@@ -90,7 +88,6 @@ def active_investment_account(investment_account_type):
     return InvestmentAccount.objects.create(
         account_type=investment_account_type,
         name="Test Active Investment Account",
-        owner="Test Owner",
         institution="Test Broker",
         is_active=True,
         opening_cash_value=Money(Decimal("2000.00"), "EUR"),
@@ -106,7 +103,6 @@ def inactive_investment_account(investment_account_type):
     return InvestmentAccount.objects.create(
         account_type=investment_account_type,
         name="Test Inactive Investment Account",
-        owner="Test Owner",
         institution="Test Broker",
         is_active=False,
         opening_cash_value=Money(Decimal("1000.00"), "EUR"),

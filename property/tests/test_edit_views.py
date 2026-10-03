@@ -29,9 +29,10 @@ class TestEditProperty:
         assert response.status_code == 200
         assert "property_form" in response.context
 
-    def test_post_edit_property_valid(self, user_client, property_obj):
+    def test_post_edit_property_valid(self, user, user_client, property_obj):
         url = reverse("property:edit", kwargs={"pk": property_obj.pk})
         data = {
+            "owners": [user.pk],
             "name": "Updated Property Name",
             "property_type": Property.APARTMENT,
             "buying_value_0": "200000",
@@ -77,9 +78,10 @@ class TestCreateProperty:
         assert response.status_code == 200
         assert "property_form" in response.context
 
-    def test_post_create_property_valid(self, user_client):
+    def test_post_create_property_valid(self, user, user_client):
         url = reverse("property:create")
         data = {
+            "owners": [user.pk],
             "name": "New Property",
             "property_type": Property.HOUSE,
             "buying_value_0": "300000",

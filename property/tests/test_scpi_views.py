@@ -224,9 +224,10 @@ class TestEditSCPIInvestment:
         response = user_client.get(url)
         assert response.status_code == 200
 
-    def test_post_create_investment(self, user_client, scpi):
+    def test_post_create_investment(self, user, user_client, scpi):
         url = reverse("property:scpi_investment_new")
         data = {
+            "owners": [user.pk],
             "scpi": scpi.pk,
             "subscription_date": "2023-06-01",
             "shares_count": "5.0000",
@@ -251,11 +252,12 @@ class TestEditSCPIInvestment:
         response = user_client.get(url)
         assert response.status_code == 200
 
-    def test_post_edit_investment(self, user_client, investment):
+    def test_post_edit_investment(self, user, user_client, investment):
         url = reverse(
             "property:scpi_investment_edit", kwargs={"investment_pk": investment.pk}
         )
         data = {
+            "owners": [user.pk],
             "scpi": investment.scpi.pk,
             "subscription_date": "2023-06-01",
             "shares_count": "15.0000",  # changed

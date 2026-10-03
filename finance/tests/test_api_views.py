@@ -5,9 +5,11 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from moneyed import Money
 
+from base.models import Ownership
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountCash,
@@ -126,7 +128,9 @@ def test_accounts_summary_investment_type(admin_client, investment_account_type,
         account_type=investment_account_type,
         opening_cash_value=Money(0, "EUR"),
         is_active=True,
-        owner=str(user),
+    )
+    Ownership.objects.create(
+        content_type=ContentType.objects.get_for_model(inv), object_id=inv.pk, user=user
     )
     InvestmentAccountCash.objects.create(
         account=inv, value=Money(5000, "EUR"), value_date=datetime.date.today()
@@ -135,6 +139,9 @@ def test_accounts_summary_investment_type(admin_client, investment_account_type,
     data = response.json()
     investment_accounts = [a for a in data["accounts"] if a["type"] == "investment"]
     assert any("PEA" in a["name"] for a in investment_accounts)
+    assert {a["owner"] for a in investment_accounts if "PEA" in a["name"]} == {
+        user.username
+    }
 
 
 # ─── HoldingLiveInfoApiView ─────────────────────────────────────────────────
