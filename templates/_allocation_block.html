@@ -1,7 +1,7 @@
 {% load i18n format_money %}
 <div class="card shadow-sm rounded-4 h-100">
   <div class="card-header border-0 pb-0">
-    <h2 class="section-title mb-0"><i class="bi {{ icon }} me-2 text-primary"></i>{{ title }}</h2>
+    <h2 class="section-title mb-0">{% icon icon "me-2 text-primary" %}{{ title }}</h2>
   </div>
   <div class="card-body">
     {% if rows %}

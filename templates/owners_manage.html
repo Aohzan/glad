@@ -6,8 +6,8 @@
 {% block content %}
 <div class="container py-4" style="max-width: 860px;">
   <div class="d-flex align-items-center gap-2 mb-4">
-    <a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{{ asset }}</a>
-    <h1 class="h4 mb-0 ms-1"><i class="bi bi-people me-1"></i>{% translate "Owners" %}</h1>
+    <a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary">{% icon "arrow-left" "me-1" %}{{ asset }}</a>
+    <h1 class="h4 mb-0 ms-1">{% icon "users" "me-1" %}{% translate "Owners" %}</h1>
   </div>
 
   <div class="card mb-4">
@@ -36,7 +36,7 @@
             <td class="text-end">
               <form method="post" action="{% url 'delete_ownership' row.obj.pk %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger" title="{% translate 'Remove' %}"><i class="bi bi-x-lg"></i></button>
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="{% translate 'Remove' %}">{% icon "x" %}</button>
               </form>
             </td>
           </tr>
@@ -50,7 +50,7 @@
   </div>
 
   <div class="card">
-    <div class="card-header py-2"><h6 class="mb-0"><i class="bi bi-person-plus me-1"></i>{% translate "Add or update an owner" %}</h6></div>
+    <div class="card-header py-2"><h6 class="mb-0">{% icon "user-plus" "me-1" %}{% translate "Add or update an owner" %}</h6></div>
     <div class="card-body">
       {% include "_form_non_field_errors.html" %}
       <form method="post">
@@ -60,7 +60,7 @@
           <div class="col-md-6">{% include "_form_field.html" %}</div>
           {% endfor %}
         </div>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{% translate "Save" %}</button>
+        <button type="submit" class="btn btn-primary">{% icon "check" "me-1" %}{% translate "Save" %}</button>
       </form>
       {% if kind.dismemberable %}
       <p class="small text-body-secondary mt-3 mb-0">{% translate "Dismembered rights are valued with article 669 CGI: a life usufruct from the age of the usufructuary (90 % before 21 years, 10 points less every ten years, 10 % from 91 years), a temporary usufruct at 23 % per period of ten years, the bare ownership being worth the rest." %}</p>

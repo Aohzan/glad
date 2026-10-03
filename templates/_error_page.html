@@ -1,0 +1,7 @@
+{% load i18n %}
+<div class="g-card g-error">
+  <span class="g-error__code{% if tone %} g-{{ tone }}{% endif %}">{{ code }}</span>
+  <h1 class="g-h2">{{ heading }}</h1>
+  <p class="g-muted mb-0">{{ message }}</p>
+  <a href="{% url 'index' %}" class="btn btn-primary">{% icon "house" %}{% translate "Back to Home" %}</a>
+</div>
