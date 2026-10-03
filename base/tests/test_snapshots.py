@@ -6,6 +6,8 @@ from io import StringIO
 
 import pytest
 from django.core.management import call_command
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from moneyed import Money
 
@@ -25,6 +27,7 @@ from finance.models.saving_account import (
     SavingAccountValue,
 )
 from property.models import Property, PropertyLoan, PropertyValue
+from property.models.scpi import SCPI, SCPIInvestment, SCPISharePrice
 
 CURRENCY = "XAU"  # isolates the test data from any other fixture
 D = datetime.date
@@ -50,7 +53,7 @@ def asset():
 
 @pytest.fixture
 def valued_assets(saving_account_type, investment_account_type):
-    """A saving account, an investment account and a property with a loan."""
+    """A saving and an investment account, a property with a loan and a SCPI."""
     saving = SavingAccount.objects.create(
         account_type=saving_account_type,
         opening_value=Money(100, CURRENCY),
@@ -98,7 +101,17 @@ def valued_assets(saving_account_type, investment_account_type):
         monthly_payment=Money(Decimal("386.03"), CURRENCY),
         interest_rate=Decimal("1.5"),
     )
-    return saving, investment, prop
+    scpi = SCPI.objects.create(name="Snapshot SCPI")
+    SCPISharePrice.objects.create(
+        scpi=scpi, date=D(2024, 2, 1), subscription_value=Money(210, CURRENCY)
+    )
+    scpi_investment = SCPIInvestment.objects.create(
+        scpi=scpi,
+        subscription_date=D(2023, 1, 1),
+        shares_count=Decimal(10),
+        unit_purchase_price=Money(200, CURRENCY),
+    )
+    return saving, investment, prop, scpi_investment
 
 
 def _snapshot(month, other="1"):
@@ -175,9 +188,9 @@ class TestHistory:
         history = net_worth_history([D(2024, 5, 1)], CURRENCY, today=D(2024, 4, 1))
         assert history[0]["other"] == Decimal(1500)
 
-    def test_values_match_the_models(self, valued_assets):
+    def test_values_match_the_models(self, valued_assets, asset):
         """Past months read the values up to their start, today up to its end."""
-        saving, investment, prop = valued_assets
+        saving, investment, prop, scpi_investment = valued_assets
         months = [D(2024, 1, 1), D(2024, 2, 1), D(2024, 3, 1), D(2024, 3, 15)]
         history = net_worth_history(months, CURRENCY, today=D(2024, 3, 15))
         moments = [
@@ -196,6 +209,12 @@ class TestHistory:
         assert [h["properties_net"] for h in history] == [
             prop.net_value_at_date(m).amount for m in months
         ]
+        assert [h["scpi"] for h in history] == [
+            scpi_investment.get_estimated_value(m).amount for m in months
+        ]
+        assert [h["other"] for h in history] == [
+            asset.get_value(m).amount for m in months
+        ]
         assert [h["investments"] for h in history] == [
             Decimal(500),  # opening cash 200 + initial value 300
             Decimal(550),  # cash 250 from February 1st
@@ -204,13 +223,36 @@ class TestHistory:
         ]
 
     def test_months_are_computed_without_queries(
-        self, valued_assets, django_assert_num_queries
+        self, valued_assets, asset, django_assert_num_queries
     ):
-        """The account and property histories are read once for all the months."""
+        """The histories of every asset are read once for all the months."""
         assets = snapshots._load_assets(CURRENCY)
         with django_assert_num_queries(0):
             for month in month_starts(24, today=D(2024, 3, 15)):
                 snapshots.compute_month(assets, month)
+
+    def test_missing_months_are_stored_in_one_query(self, valued_assets):
+        today = D(2024, 3, 15)
+        with CaptureQueriesContext(connection) as queries:
+            net_worth_history(month_starts(12, today), CURRENCY, today=today)
+
+        inserts = [q for q in queries.captured_queries if q["sql"].startswith("INSERT")]
+        assert len(inserts) == 1
+        assert NetWorthSnapshot.objects.filter(currency=CURRENCY).count() == 12
+
+    def test_month_stored_meanwhile_is_updated(self, asset, monkeypatch):
+        """A month that a concurrent request stored meanwhile gets the new values."""
+        original = snapshots.compute_month
+
+        def _compute_while_stored(assets, month, at=None):
+            _snapshot(month, other="42")
+            return original(assets, month, at)
+
+        monkeypatch.setattr(snapshots, "compute_month", _compute_while_stored)
+        net_worth_history([D(2024, 1, 1)], CURRENCY, today=D(2024, 4, 1))
+
+        stored = NetWorthSnapshot.objects.get(month=D(2024, 1, 1), currency=CURRENCY)
+        assert stored.other == Decimal(1000)
 
     def test_unvaluable_asset_counts_as_zero(self, asset, monkeypatch):
         def _fail(self, max_date=None):
