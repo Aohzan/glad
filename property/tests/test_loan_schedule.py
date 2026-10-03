@@ -208,6 +208,74 @@ class ImportLoanAmortizationViewTest(TestCase):
         assert first_entry is not None
         self.assertEqual(first_entry.date, datetime.date(2020, 1, 1))
 
+    def _messages(self, response):
+        return [(m.level_tag, str(m)) for m in response.wsgi_request._messages]
+
+    def _small_loan(self) -> PropertyLoan:
+        """1 000 € repaid in two installments, as the CSVs below describe."""
+        self.loan = PropertyLoan.objects.create(
+            property=self.prop,
+            name="Small",
+            start_date=datetime.date(2020, 1, 15),
+            end_date=datetime.date(2020, 3, 15),
+            original_amount=Money(1000, "EUR"),
+            interest_rate=Decimal(2),
+        )
+        return self.loan
+
+    def test_duplicate_dates_are_rejected(self):
+        csv = (
+            "date,capital,interets,capital_restant\n"
+            "2020-02-15,499,1.67,501\n2020-02-15,501,0.84,0\n"
+        )
+        response = self._csv_upload(csv)
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(
+            PropertyLoanAmortizationEntry.objects.filter(loan=self.loan).exists()
+        )
+        ((level, message),) = self._messages(response)
+        self.assertEqual(level, "danger")
+        self.assertIn("Several rows are dated", message)
+
+    def test_complete_table_has_no_warning(self):
+        self._small_loan()
+        csv = (
+            "date,capital,interets,capital_restant\n"
+            "2020-02-15,499,1.67,501\n2020-03-15,501,0.84,0\n"
+        )
+        response = self._csv_upload(csv)
+        self.assertEqual(self._messages(response), [("success", "2 entries imported.")])
+
+    def test_partial_table_is_flagged(self):
+        """Only the remaining installments: the start and the end do not match."""
+        csv = (
+            "date,capital,interets,capital_restant\n"
+            "2025-01-01,700,450,150000\n2025-02-01,702,448,149298\n"
+        )
+        response = self._csv_upload(csv)
+        levels = [level for level, _message in self._messages(response)]
+        self.assertEqual(levels, ["success", "warning", "warning"])
+        warnings = [message for _level, message in self._messages(response)][1:]
+        self.assertIn("150,700.00", warnings[0])
+        self.assertIn("200,000.00", warnings[0])
+        self.assertIn("149,298.00", warnings[1])
+        # The entries are imported anyway.
+        self.assertEqual(
+            PropertyLoanAmortizationEntry.objects.filter(loan=self.loan).count(), 2
+        )
+
+    def test_rows_before_the_disbursement_are_flagged(self):
+        self._small_loan()
+        csv = (
+            "date,capital,interets,capital_restant\n"
+            "2020-01-01,499,1.67,501\n2020-03-15,501,0.84,0\n"
+        )
+        response = self._csv_upload(csv)
+        self.assertEqual(
+            self._messages(response)[1],
+            ("warning", "1 row is dated before the start date of the loan."),
+        )
+
     def test_semicolon_separator(self):
         csv = "date;capital;interets;capital_restant\n2020-01-01;576,64;583,33;199423,36\n"
         self._csv_upload(csv)
