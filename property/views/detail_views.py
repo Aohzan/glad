@@ -26,7 +26,7 @@ from property.models import (
     PropertyValue,
 )
 from property.services.cashflow import build_balance_sheet
-from property.services.loans import loan_costs_by_month
+from property.services.loans import loan_costs_by_month, without_loan_entries
 from property.services.monthly_flows import monthly_flows, occurrences_by_month
 from property.services.rent_revision import get_rent_revision
 from property.utils import (
@@ -283,8 +283,8 @@ class PropertyDetailView(DetailView):
         list[dict],
     ]:
         """Build monthly cashflow series from ledger entries and loans."""
-        entries_qs = PropertyLedgerEntry.objects.filter(
-            property=property_obj
+        entries_qs = without_loan_entries(
+            PropertyLedgerEntry.objects.filter(property=property_obj), property_obj
         ).prefetch_related("exceptions")
         revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
         expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
@@ -364,16 +364,9 @@ class PropertyDetailView(DetailView):
                     }
                 )
 
-        # Exclude loan_interest and loan_insurance: those are already shown as
-        # dedicated computed series in the breakdown chart (from loan_costs_by_month).
-        _LOAN_COST_CATS = {
-            PropertyLedgerEntry.ManagementCategory.LOAN_INTEREST,
-            PropertyLedgerEntry.ManagementCategory.LOAN_INSURANCE,
-        }
         expense_by_type_series = [
             {"label": expense_by_mgmt_cat[k]["label"], "data": type_month_series[k]}
             for k in expense_by_mgmt_cat
-            if k not in _LOAN_COST_CATS
         ]
 
         return (
@@ -757,6 +750,7 @@ def property_panel_cashflow(request: HttpRequest, pk: int) -> HttpResponse:
         "cashflow_loan_principal_series": loan_principal_series,
         "cashflow_loan_insurance_series": loan_insurance_series,
         "cashflow_total_expenses_series": total_expenses_series,
+        "cashflow_has_loans": prop.loans.exists(),
         "entries_with_forms": entries_with_forms,
         "ledger_income_categories": [
             (c.value, c.label)

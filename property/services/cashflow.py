@@ -63,7 +63,7 @@ def build_balance_sheet(
     - gross_yield_annual: Decimal | None  (annualised income / property value × 100)
     """
     from property.models import PropertyLedgerEntry
-    from property.services.loans import loan_costs_between
+    from property.services.loans import loan_costs_between, without_loan_entries
     from property.utils import iter_month_starts, month_end, month_start
 
     start_month = month_start(date_from)
@@ -71,8 +71,8 @@ def build_balance_sheet(
     end_of_range = month_end(date_to)
 
     # ── Ledger entries in range ───────────────────────────────────────────────
-    entries_qs = PropertyLedgerEntry.objects.filter(
-        property=property_obj
+    entries_qs = without_loan_entries(
+        PropertyLedgerEntry.objects.filter(property=property_obj), property_obj
     ).prefetch_related("exceptions")
 
     # Aggregate occurrences by management_category within the date range

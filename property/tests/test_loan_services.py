@@ -4,13 +4,26 @@ import datetime
 from decimal import Decimal
 
 import pytest
+from django.urls import reverse
 from moneyed import Money
 
-from property.models import Property, PropertyLoan, PropertyLoanAmortizationEntry
-from property.services.loans import loan_costs_between, loan_costs_by_month
+from property.models import (
+    Property,
+    PropertyLedgerEntry,
+    PropertyLoan,
+    PropertyLoanAmortizationEntry,
+)
+from property.services.cashflow import build_balance_sheet
+from property.services.loans import (
+    loan_costs_between,
+    loan_costs_by_month,
+    without_loan_entries,
+)
+from property.services.monthly_flows import monthly_flows
 from property.utils import LoanCosts
 
 D = datetime.date
+FEBRUARY_20 = D(2020, 2, 20)
 
 
 @pytest.fixture
@@ -85,3 +98,77 @@ def test_loan_costs_between_counts_the_due_dates_in_the_range(two_loans):
     assert loan_costs_between([computed, imported], D(2019, 1, 1), D(2019, 12, 31)) == (
         LoanCosts()
     )
+
+
+def _interest_statement(prop, day=FEBRUARY_20) -> PropertyLedgerEntry:
+    """A ledger entry recording loan interest, as kept for the LMNP return."""
+    return PropertyLedgerEntry.objects.create(
+        property=prop,
+        description="Interest statement",
+        flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+        management_category=PropertyLedgerEntry.ManagementCategory.LOAN_INTEREST,
+        amount=Money(500, "EUR"),
+        entry_date=day,
+    )
+
+
+def _repair(prop, day=FEBRUARY_20) -> PropertyLedgerEntry:
+    return PropertyLedgerEntry.objects.create(
+        property=prop,
+        description="Repair",
+        flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+        management_category=PropertyLedgerEntry.ManagementCategory.MAINTENANCE,
+        amount=Money(200, "EUR"),
+        entry_date=day,
+    )
+
+
+def test_loan_entries_stay_without_a_loan(prop):
+    interest = _interest_statement(prop)
+    repair = _repair(prop)
+    entries = PropertyLedgerEntry.objects.filter(property=prop)
+    assert set(without_loan_entries(entries, prop)) == {interest, repair}
+
+
+def test_loan_entries_are_left_out_with_a_loan(prop, two_loans):
+    _interest_statement(prop)
+    repair = _repair(prop)
+    entries = PropertyLedgerEntry.objects.filter(property=prop)
+    assert list(without_loan_entries(entries, prop)) == [repair]
+
+
+def test_balance_sheet_counts_the_loan_costs_once(prop, two_loans):
+    _interest_statement(prop)
+    _repair(prop)
+    result = build_balance_sheet(prop, D(2020, 2, 1), D(2020, 2, 29))
+    assert result["total_expenses"] == Decimal(200)
+    assert result["total_loan_interest"] == Decimal("583.33") + Decimal("1.50")
+
+
+def test_monthly_flows_count_the_loan_costs_once(prop, two_loans):
+    _interest_statement(prop, D(2020, 3, 20))
+    flows = monthly_flows(prop, today=D(2020, 3, 31))
+    computed, imported = two_loans
+    # February and March, each with an installment of both loans.
+    expected = [
+        computed.schedule().by_month()[month].total
+        + imported.schedule().by_month()[month].total
+        for month in ((2020, 2), (2020, 3))
+    ]
+    assert flows.charges == Decimal(0)
+    assert flows.loan == sum(expected) / 2
+
+
+@pytest.mark.django_db
+def test_cash_flow_panel_counts_the_loan_costs_once(user_client, prop, two_loans):
+    _interest_statement(prop)
+    _repair(prop)
+    response = user_client.get(reverse("property:panel_cashflow", args=[prop.pk]))
+    month = {p["x"]: p["y"] for p in response.context["cashflow_total_expenses_series"]}
+    february = two_loans[0].schedule().by_month()[(2020, 2)].total + (
+        two_loans[1].schedule().by_month()[(2020, 2)].total
+    )
+    assert month["2020-02-01"] == pytest.approx(float(february) + 200)
+    labels = [s["label"] for s in response.context["cashflow_expense_by_type_series"]]
+    assert labels == ["Routine maintenance"]
+    assert response.context["cashflow_has_loans"] is True

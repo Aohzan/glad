@@ -532,11 +532,13 @@
       toolbar: { show: false }, background: 'transparent',
       events: { beforeZoom: function(ctx) { ctx.w.config.xaxis.range = undefined; } }
     },
-    series: cashflowBreakdownExpenseSeries.concat([
+    // The loan costs come from the loan schedules; without a loan, the loan
+    // entries of the ledger are plain expense categories.
+    series: cashflowBreakdownExpenseSeries.concat({% if cashflow_has_loans %}[
       { name: '{% filter escapejs %}{% translate "Loan interest" %}{% endfilter %}', data: cashflowNegatedLoanInterestSeries },
       { name: '{% filter escapejs %}{% translate "Loan principal" %}{% endfilter %}', data: cashflowNegatedLoanPrincipalSeries },
       { name: '{% filter escapejs %}{% translate "Loan insurance" %}{% endfilter %}', data: cashflowNegatedLoanInsuranceSeries }
-    ]),
+    ]{% else %}[]{% endif %}),
     plotOptions: { bar: { columnWidth: '55%' } },
     dataLabels: { enabled: false },
     xaxis: sharedXaxis,

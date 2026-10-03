@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from property.models import Property, PropertyLedgerEntry
-from property.services.loans import loan_costs_by_month
+from property.services.loans import loan_costs_by_month, without_loan_entries
 from property.utils import LoanCosts, iter_month_starts, month_end, month_start
 
 
@@ -50,8 +50,8 @@ def monthly_flows(
     end_month = month_start(today)
     start_month = month_start(datetime.date(today.year - 1, today.month, 1))
 
-    entries_qs = PropertyLedgerEntry.objects.filter(
-        property=property_obj
+    entries_qs = without_loan_entries(
+        PropertyLedgerEntry.objects.filter(property=property_obj), property_obj
     ).prefetch_related("exceptions")
     revenue_by_month = occurrences_by_month(
         entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME), end_month
