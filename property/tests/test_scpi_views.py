@@ -665,4 +665,4 @@ class TestSCPITheoreticalValueViews:
         )
         response = user_client.get(url)
         assert response.status_code == 200
-        assert b"bi-bookmark-check" in response.content
+        assert b"#bookmark-check" in response.content

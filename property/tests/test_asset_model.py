@@ -171,11 +171,11 @@ class TestPropertyModel:
 
     def test_icon_land(self):
         prop = Property(property_type=Property.LAND)
-        assert prop.icon == "tree"
+        assert prop.icon == "trees"
 
     def test_icon_other(self):
         prop = Property(property_type=Property.OTHER)
-        assert prop.icon == "question-circle"
+        assert prop.icon == "circle-question-mark"
 
     def test_get_value_no_valuations(self, property_obj):
         value = property_obj.get_value()
