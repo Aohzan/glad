@@ -67,12 +67,19 @@ def _load_assets(currency: str) -> _Assets:
         saving_accounts=saving_accounts,
         investment_accounts=investment_accounts,
         properties=properties,
+        # The prices and values are prefetched for the valuations of every month.
         scpi_investments=[
             i
-            for i in SCPIInvestment.objects.select_related("scpi")
+            for i in SCPIInvestment.objects.select_related("scpi").prefetch_related(
+                "scpi__share_prices", "theoretical_values"
+            )
             if i.currency == currency
         ],
-        other_assets=[a for a in OtherAsset.objects.all() if a.currency == currency],
+        other_assets=[
+            a
+            for a in OtherAsset.objects.prefetch_related("values")
+            if a.currency == currency
+        ],
         # The value histories are read once and resolved in memory every month.
         saving_values=SavingValues(saving_accounts),
         investment_values=InvestmentValues(investment_accounts),

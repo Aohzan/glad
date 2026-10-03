@@ -1,5 +1,6 @@
 """General models for the application."""
 
+import datetime
 from decimal import Decimal
 
 from django.conf import settings
@@ -23,6 +24,26 @@ class BaseModel(models.Model):
         """Meta options for the base model."""
 
         abstract = True
+
+    def latest_related(self, relation: str, date_field: str, day: datetime.date):
+        """Latest object of *relation* whose *date_field* is on or before *day*.
+
+        Reads the objects loaded by ``prefetch_related(relation)`` when there are
+        some, so a value computed month by month runs no query; queries the
+        latest one otherwise. None when there is none.
+        """
+        manager = getattr(self, relation)
+        if relation in getattr(self, "_prefetched_objects_cache", {}):
+            return max(
+                (o for o in manager.all() if getattr(o, date_field) <= day),
+                key=lambda o: getattr(o, date_field),
+                default=None,
+            )
+        return (
+            manager.filter(**{f"{date_field}__lte": day})
+            .order_by(f"-{date_field}")
+            .first()
+        )
 
 
 class EconomicIndex(models.TextChoices):

@@ -160,8 +160,7 @@ class OtherAsset(BaseModel):
             self.sold_date and max_date >= self.sold_date
         ):
             return Money(0, self.currency)
-        last = self.values.filter(value_date__lte=max_date).order_by("-value_date")
-        latest = last.first()
+        latest = self.latest_related("values", "value_date", max_date)
         return latest.value if latest else self.acquisition_value
 
     @property

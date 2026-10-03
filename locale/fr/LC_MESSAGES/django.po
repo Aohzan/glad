@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 23:17+0200\n"
+"POT-Creation-Date: 2026-10-03 23:27+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -205,7 +205,7 @@ msgstr "Immobilier"
 #: base/services/dashboard.py:49 base/services/ownership.py:134
 #: property/models/scpi.py:38 property/models/scpi.py:39
 #: property/models/scpi.py:159 property/models/scpi.py:208
-#: property/models/scpi.py:622 templates/base.html:59 templates/base.html:116
+#: property/models/scpi.py:618 templates/base.html:59 templates/base.html:116
 #: templates/property/scpi_detail.html:12
 #: templates/property/scpi_detail.html:136
 #: templates/property/scpi_dividend_batch.html:10
@@ -290,9 +290,9 @@ msgstr "Dettes"
 msgid "Could not load chart data."
 msgstr "Impossible de charger les données du graphique."
 
-#: base/forms.py:61 finance/models/other_asset.py:195
+#: base/forms.py:61 finance/models/other_asset.py:194
 #: property/models/ledger.py:309 property/models/scpi.py:161
-#: property/models/scpi.py:590
+#: property/models/scpi.py:586
 #: templates/accounts/emails/login_notification.html:16
 #: templates/finance/_deposits_panel.html:15
 #: templates/finance/_edit_deposit_fields.html:8
@@ -360,7 +360,7 @@ msgstr ""
 "Les autres droits ne laissent aucune part aux nouveaux propriétaires : "
 "définissez les quotes-parts sur la page des propriétaires."
 
-#: base/forms.py:247 base/models.py:160 finance/views/csv_views.py:543
+#: base/forms.py:247 base/models.py:181 finance/views/csv_views.py:543
 #: templates/owners_manage.html:22
 msgid "Owner"
 msgstr "Propriétaire"
@@ -373,81 +373,81 @@ msgstr ""
 "Un droit démembré nécessite la date de fin de l'usufruit ou la date de "
 "naissance de l'usufruitier."
 
-#: base/models.py:31
+#: base/models.py:52
 msgid "Rent reference index (IRL)"
 msgstr "Indice de référence des loyers (IRL)"
 
-#: base/models.py:32
+#: base/models.py:53
 msgid "Consumer price index"
 msgstr "Indice des prix à la consommation"
 
-#: base/models.py:39
+#: base/models.py:60
 msgid "economic index value"
 msgstr "valeur d'indice économique"
 
-#: base/models.py:40
+#: base/models.py:61
 msgid "economic index values"
 msgstr "valeurs d'indices économiques"
 
-#: base/models.py:66
+#: base/models.py:87
 #, python-brace-format
 msgid "Q{quarter} {year}"
 msgstr "T{quarter} {year}"
 
-#: base/models.py:80
+#: base/models.py:101
 msgid "net worth snapshot"
 msgstr "instantané du patrimoine"
 
-#: base/models.py:81
+#: base/models.py:102
 msgid "net worth snapshots"
 msgstr "instantanés du patrimoine"
 
-#: base/models.py:137 property/models/scpi.py:195
+#: base/models.py:158 property/models/scpi.py:195
 msgid "Full ownership"
 msgstr "Pleine propriété"
 
-#: base/models.py:138 property/models/scpi.py:196
+#: base/models.py:159 property/models/scpi.py:196
 msgid "Bare ownership (nue-propriété)"
 msgstr "Nue-propriété"
 
-#: base/models.py:139 property/models/scpi.py:197
+#: base/models.py:160 property/models/scpi.py:197
 msgid "Usufruct (usufruit)"
 msgstr "Usufruit"
 
-#: base/models.py:142
+#: base/models.py:163
 msgid "ownership"
 msgstr "détention"
 
-#: base/models.py:143
+#: base/models.py:164
 msgid "ownerships"
 msgstr "détentions"
 
-#: base/models.py:167
+#: base/models.py:188
 msgid "Share (%)"
 msgstr "Quote-part (%)"
 
-#: base/models.py:168
+#: base/models.py:189
 msgid "Part of the asset held, e.g. 50 for a couple in indivision."
 msgstr "Part de l'actif détenue, ex. 50 pour un couple en indivision."
 
-#: base/models.py:174 templates/owners_manage.html:24
+#: base/models.py:195 templates/owners_manage.html:24
 msgid "Right"
 msgstr "Droit"
 
-#: base/models.py:179
+#: base/models.py:200
 msgid "Usufructuary birth date"
 msgstr "Date de naissance de l'usufruitier"
 
-#: base/models.py:180
+#: base/models.py:201
 msgid "For a life usufruct, valued with the scale of article 669 CGI."
 msgstr ""
 "Pour un usufruit viager, valorisé selon le barème de l'article 669 du CGI."
 
-#: base/models.py:185
+#: base/models.py:206
 msgid "Usufruct end date"
 msgstr "Date de fin de l'usufruit"
 
-#: base/models.py:186
+#: base/models.py:207
 msgid "For a temporary usufruct: 23 % per period of ten years."
 msgstr "Pour un usufruit temporaire : 23 % par période de dix ans."
 
@@ -738,7 +738,7 @@ msgstr "Type de données à exporter"
 msgid "Accounts to export"
 msgstr "Comptes à exporter"
 
-#: finance/forms.py:174 property/models/scpi.py:588
+#: finance/forms.py:174 property/models/scpi.py:584
 msgid "Investment"
 msgstr "Investissement"
 
@@ -977,7 +977,7 @@ msgstr "Taux net de frais de gestion, avant prélèvements sociaux."
 
 #: finance/models/investment_account.py:497 finance/models/other_asset.py:115
 #: property/models/asset.py:915 property/models/fiscal.py:42
-#: property/models/scpi.py:73 property/models/scpi.py:600
+#: property/models/scpi.py:73 property/models/scpi.py:596
 #: templates/finance/_euro_fund_rates_panel.html:35
 #: templates/finance/other_asset_detail.html:77
 #: templates/property/_dividend_table_header.html:8
@@ -1106,15 +1106,15 @@ msgstr "Actif"
 msgid "Sold date"
 msgstr "Date de revente"
 
-#: finance/models/other_asset.py:182
+#: finance/models/other_asset.py:181
 msgid "other asset value"
 msgstr "valeur d'autre actif"
 
-#: finance/models/other_asset.py:183
+#: finance/models/other_asset.py:182
 msgid "other asset values"
 msgstr "valeurs d'autres actifs"
 
-#: finance/models/other_asset.py:194 templates/dashboard/_registry.html:18
+#: finance/models/other_asset.py:193 templates/dashboard/_registry.html:18
 #: templates/finance/_account_table_header.html:5
 #: templates/finance/_accounts_head.html:1
 #: templates/finance/_edit_value_field.html:3
@@ -1571,7 +1571,7 @@ msgstr ""
 "Défaut : 15 %."
 
 #: property/forms.py:767 property/models/asset.py:255
-#: property/models/scpi.py:624 templates/property/_dividend_table_header.html:5
+#: property/models/scpi.py:620 templates/property/_dividend_table_header.html:5
 msgid "Payment date"
 msgstr "Date de paiement"
 
@@ -1579,13 +1579,13 @@ msgstr "Date de paiement"
 msgid "Update"
 msgstr "Mise à jour"
 
-#: property/forms.py:790 property/models/scpi.py:630
+#: property/forms.py:790 property/models/scpi.py:626
 #: templates/property/_dividend_table_header.html:6
 #: templates/property/scpi_dividend_batch.html:45
 msgid "Gross amount"
 msgstr "Montant brut"
 
-#: property/forms.py:798 property/models/scpi.py:636
+#: property/forms.py:798 property/models/scpi.py:632
 #: templates/property/_dividend_table_header.html:7
 #: templates/property/scpi_dividend_batch.html:46
 msgid "Net amount"
@@ -2742,19 +2742,19 @@ msgstr ""
 msgid "Bare ownership ratio must be between 0 and 100."
 msgstr "La quote-part de nue-propriété doit être comprise entre 0 et 100."
 
-#: property/models/scpi.py:579
+#: property/models/scpi.py:575
 msgid "Bare ownership theoretical value"
 msgstr "Valeur théorique de nue-propriété"
 
-#: property/models/scpi.py:580
+#: property/models/scpi.py:576
 msgid "Bare ownership theoretical values"
 msgstr "Valeurs théorique de nue-propriété"
 
-#: property/models/scpi.py:594
+#: property/models/scpi.py:590
 msgid "Theoretical value"
 msgstr "Valeur théorique"
 
-#: property/models/scpi.py:596
+#: property/models/scpi.py:592
 msgid ""
 "Estimated value of the bare ownership at this date, as provided by the SCPI "
 "or a notarial assessment."
@@ -2762,19 +2762,19 @@ msgstr ""
 "Valeur estimée de nue-propriété à cette date, fournie par la SCPI ou une "
 "estimation notariale."
 
-#: property/models/scpi.py:614
+#: property/models/scpi.py:610
 msgid "SCPI dividend"
 msgstr "Dividende SCPI"
 
-#: property/models/scpi.py:615
+#: property/models/scpi.py:611
 msgid "SCPI dividends"
 msgstr "Dividendes SCPI"
 
-#: property/models/scpi.py:631
+#: property/models/scpi.py:627
 msgid "Gross dividend before any withholding tax."
 msgstr "Dividende brut avant tout prélèvement fiscal."
 
-#: property/models/scpi.py:637
+#: property/models/scpi.py:633
 msgid "Net dividend received after withholding tax."
 msgstr "Dividende net reçu après prélèvements fiscaux."
 
