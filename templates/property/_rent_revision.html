@@ -3,7 +3,7 @@
 {% if rev %}
 <div class="border-top mt-2 pt-2" id="rent-revision-{{ lease.pk }}">
   <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">
-    <i class="bi bi-arrow-repeat me-1"></i>{% translate "Rent revision (IRL)" %}
+    {% icon "refresh-cw" "me-1" %}{% translate "Rent revision (IRL)" %}
   </p>
   <div class="d-flex flex-wrap align-items-center gap-3 small">
     <span>

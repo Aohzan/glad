@@ -13,10 +13,10 @@
   {# ── Header ───────────────────────────────────────────────────────────── #}
   <div class="d-flex align-items-center justify-content-between gap-3 mb-4 flex-wrap">
     <h1 class="h4 mb-0">
-      <i class="bi bi-bank me-2"></i>{% translate "All Loans" %}
+      {% icon "landmark" "me-2" %}{% translate "All Loans" %}
     </h1>
     <a href="?format=csv" class="btn btn-outline-secondary">
-      <i class="bi bi-file-earmark-arrow-down me-1"></i>{% translate "Export CSV" %}
+      {% icon "file-down" "me-1" %}{% translate "Export CSV" %}
     </a>
   </div>
 
@@ -28,7 +28,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-calendar-month me-1"></i>{% translate "Total mensuality" %}
+            {% icon "calendar" "me-1" %}{% translate "Total mensuality" %}
           </p>
           <p class="fs-4 fw-bold mb-0">{{ summary.total_mensuality|format_money }}</p>
         </div>
@@ -38,7 +38,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-cash-stack me-1"></i>{% translate "Total capital paid" %}
+            {% icon "banknote" "me-1" %}{% translate "Total capital paid" %}
           </p>
           <p class="fs-4 fw-bold mb-0">{{ summary.total_capital_paid|format_money }}</p>
         </div>
@@ -48,7 +48,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-percent me-1"></i>{% translate "Total interest paid" %}
+            {% icon "percent" "me-1" %}{% translate "Total interest paid" %}
           </p>
           <p class="fs-4 fw-bold mb-0">{{ summary.total_interest_paid|format_money }}</p>
         </div>
@@ -58,7 +58,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-shield-check me-1"></i>{% translate "Total insurance paid" %}
+            {% icon "shield-check" "me-1" %}{% translate "Total insurance paid" %}
           </p>
           <p class="fs-4 fw-bold mb-0">{{ summary.total_insurance_paid|format_money }}</p>
         </div>
@@ -68,7 +68,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-warning small fw-semibold mb-1">
-            <i class="bi bi-hourglass-split me-1"></i>{% translate "Remaining to pay" %}
+            {% icon "hourglass" "me-1" %}{% translate "Remaining to pay" %}
           </p>
           <p class="fs-4 fw-bold mb-0 text-warning">{{ summary.total_remaining|format_money }}</p>
         </div>
@@ -79,7 +79,7 @@
   {# ── Loans amortization chart ── #}
   <div class="card mb-4">
     <div class="card-header py-2">
-      <h6 class="mb-0"><i class="bi bi-bar-chart-line me-1"></i>{% translate "Amortization schedule" %}</h6>
+      <h6 class="mb-0">{% icon "chart-column" "me-1" %}{% translate "Amortization schedule" %}</h6>
     </div>
     <div class="card-body p-2">
       <div id="loan-amortization-chart" style="height: 320px;"></div>
@@ -89,7 +89,7 @@
   {# ── Loans table ── #}
   <div class="card mb-3">
     <div class="card-header py-2">
-      <h6 class="mb-0"><i class="bi bi-table me-1"></i>{% translate "Loans" %}</h6>
+      <h6 class="mb-0">{% icon "table" "me-1" %}{% translate "Loans" %}</h6>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -119,7 +119,7 @@
               <td>
                 {{ item.loan.name|default:"—" }}
                 {% if item.loan.amortization_entries.exists %}
-                  <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;"><i class="bi bi-table"></i></span>
+                  <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;">{% icon "table" %}</span>
                 {% endif %}
               </td>
               <td>{{ item.loan.lender|default:"—" }}</td>
@@ -159,7 +159,7 @@
 
   {% else %}
   <div class="alert alert-info">
-    <i class="bi bi-info-circle me-1"></i>
+    {% icon "info" "me-1" %}
     {% translate "No loans found." %}
   </div>
   {% endif %}

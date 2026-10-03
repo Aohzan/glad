@@ -88,10 +88,10 @@
       width: [3, 3, 3, 3, 3, 3],
       dashArray: [0, 7, 0, 7, 0, 7]
     },
-    colors: ['#60a5fa', '#93c5fd', '#f87171', '#fca5a5', '#34d399', '#6ee7b7'],
+    colors: [gToken('c2'), gToken('c2'), gToken('neg'), gToken('neg'), gToken('accent'), gToken('accent')],
     markers: { size: 0 },
     annotations: {
-      xaxis: [{ x: new Date(projectionStartDate).getTime(), borderColor: '#6c757d', label: { style: { background: '#6c757d', color: '#fff' } } }]
+      xaxis: [{ x: new Date(projectionStartDate).getTime(), borderColor: gToken('dim'), label: { style: { background: gToken('dim'), color: gToken('panel') } } }]
     },
     yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString(); } } },
     tooltip: {

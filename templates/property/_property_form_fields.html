@@ -104,7 +104,7 @@
   </div>
   <div class="col-md-3 d-flex align-items-end">
     <button type="button" class="btn btn-outline-secondary w-100" id="btnCadastralLookup">
-      <i class="bi bi-geo me-1"></i>{% translate "Look up cadastral info" %}
+      {% icon "map-pin" "me-1" %}{% translate "Look up cadastral info" %}
     </button>
   </div>
 </div>
@@ -142,7 +142,7 @@
 
   <div class="col-md-4">
     <label class="form-label text-body-secondary d-flex align-items-center gap-1">
-      <i class="bi bi-calculator"></i>
+      {% icon "calculator" %}
       {% translate "Total purchase cost" %}
     </label>
     <div class="input-group flex-wrap">
@@ -151,7 +151,7 @@
       <span class="input-group-text" id="id_total_purchase_cost_currency">EUR</span>
     </div>
     <div class="form-text">
-      <i class="bi bi-info-circle me-1"></i>{% translate "Buying value + all fees (auto-calculated, not editable)" %}
+      {% icon "info" "me-1" %}{% translate "Buying value + all fees (auto-calculated, not editable)" %}
     </div>
   </div>
 
@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .finally(function () {
           btnCadastral.disabled = false;
-          btnCadastral.innerHTML = '<i class="bi bi-geo me-1"></i>{% filter escapejs %}{% translate "Look up cadastral info" %}{% endfilter %}';
+          btnCadastral.innerHTML = '' + gIcon('map-pin', 'me-1') + '{% filter escapejs %}{% translate "Look up cadastral info" %}{% endfilter %}';
         });
     });
   }

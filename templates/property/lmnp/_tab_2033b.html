@@ -15,7 +15,7 @@
 
       {# — Production vendue — Services — #}
       <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-recettes" aria-expanded="false" style="cursor:pointer;">
-        <td>Production vendue — Services <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+        <td>Production vendue — Services <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
         <td class="text-end fw-semibold text-success">{{ accounting.form_2033b.recettes|floatformat:0 }} €</td>
       </tr>
       <tr class="collapse" id="b-recettes">
@@ -47,7 +47,7 @@
       </tr>
       {# — Autres charges externes — #}
       <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-autres-charges" aria-expanded="false" style="cursor:pointer;">
-        <td>Autres charges externes <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+        <td>Autres charges externes <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
         <td class="text-end text-danger">{{ accounting.form_2033b.autres_charges_externes|floatformat:0 }} €</td>
       </tr>
       <tr class="collapse" id="b-autres-charges">
@@ -75,7 +75,7 @@
 
       {# — Impôts et taxes — #}
       <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-impots" aria-expanded="false" style="cursor:pointer;">
-        <td>Impôts, taxes et versements assimilés <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+        <td>Impôts, taxes et versements assimilés <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
         <td class="text-end text-danger">{{ accounting.form_2033b.impots_taxes|floatformat:0 }} €</td>
       </tr>
       <tr class="collapse" id="b-impots">
@@ -110,7 +110,7 @@
       {# — Dotation aux amortissements — #}
       {% if accounting.form_2033b.per_prop|length > 1 %}
       <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-dotation" aria-expanded="false" style="cursor:pointer;">
-        <td>Dotation aux amortissements <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+        <td>Dotation aux amortissements <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
       {% else %}
       <tr>
         <td>Dotation aux amortissements</td>
@@ -136,7 +136,7 @@
 
       {# — Charges financières — #}
       <tr role="button" data-bs-toggle="collapse" data-bs-target="#b-financieres" aria-expanded="false" style="cursor:pointer;">
-        <td>Charges financières (V) <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+        <td>Charges financières (V) <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
         <td class="text-end text-danger">{{ accounting.form_2033b.charges_financieres|floatformat:0 }} €</td>
       </tr>
       <tr class="collapse" id="b-financieres">
@@ -165,7 +165,7 @@
       {# — Bénéfices ou pertes (310) — #}
       {% if accounting.form_2033b.per_prop|length > 1 %}
       <tr class="table-light fw-semibold" role="button" data-bs-toggle="collapse" data-bs-target="#b-310" aria-expanded="false" style="cursor:pointer;">
-        <td>2 - Bénéfices ou pertes — Produits (I+III+IV) – Charges (II+V+VI+VII)"<i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+        <td>2 - Bénéfices ou pertes — Produits (I+III+IV) – Charges (II+V+VI+VII)"<span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
       {% else %}
       <tr class="table-light fw-semibold">
         <td>2 - Bénéfices ou pertes — Produits (I+III+IV) – Charges (II+V+VI+VII)"</td>
@@ -194,7 +194,7 @@
   <h6>B - Résultat fiscal</h6>
   {% with b=accounting.form_2033b %}
   <div class="alert alert-info py-2 small">
-    <i class="bi bi-info-circle me-1"></i>
+    {% icon "info" "me-1" %}
     <strong>Plafond d'amortissement déductible (art. 39 C CGI)</strong> =
     produits − charges afférentes au bien (hors frais de comptabilité) − impôts − intérêts =
     <strong>{{ b.plafond_39c|floatformat:0 }} €</strong>.

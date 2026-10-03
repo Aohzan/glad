@@ -1,9 +1,9 @@
 {% load i18n format_money %}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h6 class="mb-0"><i class="bi bi-person-badge me-1"></i>{% translate "Management mandates" %}</h6>
+  <h6 class="mb-0">{% icon "id-card" "me-1" %}{% translate "Management mandates" %}</h6>
   <a href="{% url 'property:new_mandate' property.pk %}" class="btn btn-sm btn-outline-primary">
-    <i class="bi bi-plus-circle me-1"></i>{% translate "Add mandate" %}
+    {% icon "circle-plus" "me-1" %}{% translate "Add mandate" %}
   </a>
 </div>
 
@@ -65,7 +65,7 @@
   {% endfor %}
 {% else %}
   <div class="text-center py-5 text-body-secondary">
-    <i class="bi bi-person-badge display-4 d-block mb-2"></i>
+    {% icon "id-card" "display-4 d-block mb-2" %}
     <p class="mb-0">{% translate "No management mandates recorded yet." %}</p>
   </div>
 {% endif %}

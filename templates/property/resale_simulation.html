@@ -6,8 +6,8 @@
 {% block content %}
 <div class="container py-4" style="max-width: 1000px;">
   <div class="d-flex align-items-center gap-2 mb-4">
-    <a href="{% url 'property:detail' property.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{{ property.name }}</a>
-    <h1 class="h4 mb-0 ms-1"><i class="bi bi-calculator me-1"></i>{% translate "Resale simulation" %}</h1>
+    <a href="{% url 'property:detail' property.pk %}" class="btn btn-sm btn-outline-secondary">{% icon "arrow-left" "me-1" %}{{ property.name }}</a>
+    <h1 class="h4 mb-0 ms-1">{% icon "calculator" "me-1" %}{% translate "Resale simulation" %}</h1>
   </div>
 
   <div class="row g-4">
@@ -24,7 +24,7 @@
             {% include "_form_field.html" %}
             {% endif %}
           {% endfor %}
-          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-arrow-repeat me-1"></i>{% translate "Simulate" %}</button>
+          <button type="submit" class="btn btn-primary w-100">{% icon "refresh-cw" "me-1" %}{% translate "Simulate" %}</button>
         </div>
       </form>
     </div>
@@ -50,7 +50,7 @@
             </div>
           </div>
           {% if estimate.is_exempt %}
-          <div class="alert alert-success small mt-3 mb-0"><i class="bi bi-check-circle me-1"></i>{% translate "The sale of the main residence is exempt from capital gain tax." %}</div>
+          <div class="alert alert-success small mt-3 mb-0">{% icon "circle-check" "me-1" %}{% translate "The sale of the main residence is exempt from capital gain tax." %}</div>
           {% endif %}
         </div>
       </div>

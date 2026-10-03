@@ -10,19 +10,19 @@
       {% if form.required %}
         {% if form.status == "ok" %}
           <span class="badge rounded-pill bg-success fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
-            <i class="bi bi-check-circle me-1"></i>{{ form.name }}
+            {% icon "circle-check" "me-1" %}{{ form.name }}
           </span>
         {% elif form.status == "warning" %}
           <span class="badge rounded-pill bg-warning text-dark fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
-            <i class="bi bi-exclamation-circle me-1"></i>{{ form.name }}
+            {% icon "circle-alert" "me-1" %}{{ form.name }}
           </span>
         {% elif form.status == "incomplete" %}
           <span class="badge rounded-pill bg-danger fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
-            <i class="bi bi-x-circle me-1"></i>{{ form.name }}
+            {% icon "circle-x" "me-1" %}{{ form.name }}
           </span>
         {% else %}{# auto #}
           <span class="badge rounded-pill bg-secondary fs-6 fw-normal px-3 py-2" title="{{ form.label }}">
-            <i class="bi bi-robot me-1"></i>{{ form.name }}
+            {% icon "bot" "me-1" %}{{ form.name }}
           </span>
         {% endif %}
       {% else %}
@@ -40,10 +40,10 @@
   {% for prop_data in checklist.properties %}
   <div class="card mb-3">
     <div class="card-header d-flex align-items-center gap-2 py-2">
-      <i class="bi bi-house-door"></i>
+      {% icon "house" %}
       <a href="{% url 'property:detail' prop_data.property.id %}" class="fw-semibold text-decoration-none">{{ prop_data.property.name }}</a>
       {% if not prop_data.has_issues %}
-        <span class="badge bg-success ms-auto"><i class="bi bi-check-lg me-1"></i>Complet</span>
+        <span class="badge bg-success ms-auto">{% icon "check" "me-1" %}Complet</span>
       {% else %}
         <span class="badge bg-danger ms-auto">{{ prop_data.issue_count }} problème(s)</span>
       {% endif %}
@@ -63,13 +63,13 @@
           <tr>
             <td class="text-center">
               {% if check.status == "ok" %}
-                <i class="bi bi-check-circle-fill text-success"></i>
+                {% icon "circle-check" "text-success" %}
               {% elif check.status == "warning" %}
-                <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                {% icon "triangle-alert" "text-warning" %}
               {% elif check.status == "missing" %}
-                <i class="bi bi-x-circle-fill text-danger"></i>
+                {% icon "circle-x" "text-danger" %}
               {% else %}{# na #}
-                <i class="bi bi-dash-circle text-secondary"></i>
+                {% icon "circle-minus" "text-secondary" %}
               {% endif %}
             </td>
             <td class="fw-semibold">{{ check.label }}</td>
@@ -85,11 +85,11 @@
 
   {# ── Legend ────────────────────────────────────────────────────────── #}
   <div class="d-flex flex-wrap gap-3 mt-3 small text-body-secondary">
-    <span><i class="bi bi-check-circle-fill text-success me-1"></i>OK — données présentes</span>
-    <span><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Avertissement — données recommandées manquantes</span>
-    <span><i class="bi bi-x-circle-fill text-danger me-1"></i>Manquant — données requises absentes</span>
-    <span><i class="bi bi-dash-circle text-secondary me-1"></i>N/A — non applicable</span>
-    <span><i class="bi bi-robot text-secondary me-1"></i>Auto — calculé automatiquement</span>
+    <span>{% icon "circle-check" "text-success me-1" %}OK — données présentes</span>
+    <span>{% icon "triangle-alert" "text-warning me-1" %}Avertissement — données recommandées manquantes</span>
+    <span>{% icon "circle-x" "text-danger me-1" %}Manquant — données requises absentes</span>
+    <span>{% icon "circle-minus" "text-secondary me-1" %}N/A — non applicable</span>
+    <span>{% icon "bot" "text-secondary me-1" %}Auto — calculé automatiquement</span>
   </div>
   {% endif %}
 </div>{# /tab-checklist #}

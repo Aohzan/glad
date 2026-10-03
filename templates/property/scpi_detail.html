@@ -9,7 +9,7 @@
   {# ── Header ──────────────────────────────────────────────────────────────── #}
   {% url 'property:scpi_list' as back_url %}
   {% translate "Investment detail" as page_title %}
-  {% include "property/_edit_page_header.html" with back_url=back_url back_label=_("SCPI") page_title=page_title title_icon_class="bi-building-check" %}
+  {% include "property/_edit_page_header.html" with back_url=back_url back_label=_("SCPI") page_title=page_title title_icon="building" %}
 
   {# ── Summary cards ───────────────────────────────────────────────────────── #}
   <div class="row g-3 mb-4">
@@ -54,7 +54,7 @@
   {# ── Resale estimate ─────────────────────────────────────────────────────── #}
   <div class="card shadow-sm rounded-4 mb-4">
     <div class="card-header border-0">
-      <h2 class="h5 mb-0"><i class="bi bi-tag me-2 text-primary"></i>{% translate "Estimated resale" %}</h2>
+      <h2 class="h5 mb-0">{% icon "tag" "me-2 text-primary" %}{% translate "Estimated resale" %}</h2>
     </div>
     <div class="card-body">
       <div class="row g-3">
@@ -83,7 +83,7 @@
     <div class="col-md-6">
       <div class="card shadow-sm rounded-4 h-100">
         <div class="card-header border-0">
-          <h2 class="h5 mb-0"><i class="bi bi-info-circle me-2 text-primary"></i>{% translate "Investment details" %}</h2>
+          <h2 class="h5 mb-0">{% icon "info" "me-2 text-primary" %}{% translate "Investment details" %}</h2>
         </div>
         <div class="card-body">
           <dl class="row mb-0">
@@ -121,10 +121,10 @@
         </div>
         <div class="card-footer border-0 bg-transparent d-flex gap-2">
           <a href="{% url 'property:scpi_investment_edit' investment_pk=investment.pk %}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+            {% icon "pencil" "me-1" %}{% translate "Edit" %}
           </a>
           <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteInvModal">
-            <i class="bi bi-trash me-1"></i>{% translate "Delete" %}
+            {% icon "trash" "me-1" %}{% translate "Delete" %}
           </button>
         </div>
       </div>
@@ -133,7 +133,7 @@
     <div class="col-md-6">
       <div class="card shadow-sm rounded-4 h-100">
         <div class="card-header border-0">
-          <h2 class="h5 mb-0"><i class="bi bi-building me-2 text-primary"></i>{% translate "SCPI" %}</h2>
+          <h2 class="h5 mb-0">{% icon "building" "me-2 text-primary" %}{% translate "SCPI" %}</h2>
         </div>
         <div class="card-body">
           <dl class="row mb-0">
@@ -149,10 +149,10 @@
         </div>
         <div class="card-footer border-0 bg-transparent">
           <a href="{% url 'property:scpi_edit' scpi_pk=scpi.pk %}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-pencil me-1"></i>{% translate "Edit fund" %}
+            {% icon "pencil" "me-1" %}{% translate "Edit fund" %}
           </a>
           <a href="{% url 'property:scpi_share_price_add' scpi_pk=scpi.pk %}" class="btn btn-sm btn-outline-primary ms-2">
-            <i class="bi bi-plus me-1"></i>{% translate "Add share price" %}
+            {% icon "plus" "me-1" %}{% translate "Add share price" %}
           </a>
         </div>
       </div>
@@ -162,11 +162,11 @@
   {# ── Dividends ────────────────────────────────────────────────────────────── #}
   <div class="card shadow-sm rounded-4">
     <div class="card-header border-0 d-flex justify-content-between align-items-center">
-      <h2 class="h5 mb-0"><i class="bi bi-cash-stack me-2 text-primary"></i>{% translate "Dividends" %}
+      <h2 class="h5 mb-0">{% icon "banknote" "me-2 text-primary" %}{% translate "Dividends" %}
         <span class="badge bg-secondary ms-1">{{ dividends|length }}</span>
       </h2>
       <a href="{% url 'property:scpi_dividend_add' scpi_pk=investment.scpi.pk %}" class="btn btn-sm btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>{% translate "Add dividend" %}
+        {% icon "circle-plus" "me-1" %}{% translate "Add dividend" %}
       </a>
     </div>
     {% if dividends %}
@@ -182,10 +182,10 @@
             <td>
               <div class="btn-group btn-group-sm">
                 <a href="{% url 'property:scpi_dividend_edit' scpi_pk=investment.scpi.pk dividend_pk=div.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
-                  <i class="bi bi-pencil"></i>
+                  {% icon "pencil" %}
                 </a>
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteDiv{{ div.pk }}" title="{% translate 'Delete' %}">
-                  <i class="bi bi-trash"></i>
+                  {% icon "trash" %}
                 </button>
               </div>
               {% url 'property:scpi_dividend_delete' scpi_pk=investment.scpi.pk dividend_pk=div.pk as del_div_url %}

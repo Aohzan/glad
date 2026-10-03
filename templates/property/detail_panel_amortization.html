@@ -5,7 +5,7 @@
 <div class="card mb-4 border-info">
   <div class="card-body py-4">
     <div class="text-center mb-4">
-      <i class="bi bi-box-seam fs-1 text-info mb-3 d-block"></i>
+      {% icon "package" "fs-1 text-info mb-3 d-block" %}
       <h5 class="mb-2">{% translate "No amortization components yet" %}</h5>
       <p class="text-body-secondary mb-0">
         {% translate "Configure the parameters below then click the button to automatically create the standard LMNP depreciation components." %}
@@ -19,7 +19,7 @@
         <div class="col-12 col-md-6">
           <label class="form-label fw-semibold text-body-secondary small">{% translate "Purchase price" %}</label>
           <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-house"></i></span>
+            <span class="input-group-text">{% icon "house" %}</span>
             <input type="text" class="form-control" value="{{ property.buying_value.amount|floatformat:0 }}" readonly>
             <span class="input-group-text">€</span>
           </div>
@@ -52,7 +52,7 @@
           </div>
           {% if not acquisition_fees_capitalizable %}
           <div class="alert alert-warning py-1 px-2 small mb-2">
-            <i class="bi bi-exclamation-triangle me-1"></i>
+            {% icon "triangle-alert" "me-1" %}
             {% translate "The property was bought before the year the LMNP activity started: acquisition fees cannot be depreciated and are set to 0 by default." %}
           </div>
           {% endif %}
@@ -67,7 +67,7 @@
       </div>
       <div class="text-center">
         <button type="submit" class="btn btn-info">
-          <i class="bi bi-magic me-1"></i>{% translate "Initialize default amortization" %}
+          {% icon "wand-sparkles" "me-1" %}{% translate "Initialize default amortization" %}
         </button>
       </div>
     </form>
@@ -120,7 +120,7 @@
 <div class="card mb-4">
   <div class="card-header py-2">
     <h6 class="mb-0">
-      <i class="bi bi-table me-1"></i>{% translate "Amortization components" %}
+      {% icon "table" "me-1" %}{% translate "Amortization components" %}
     </h6>
   </div>
   <div class="card-body p-0">
@@ -167,7 +167,7 @@
               <td class="text-end">
                 <a href="{% url 'property:edit_amortization' property.pk row.asset_pk %}"
                    class="btn btn-xs btn-outline-secondary btn-sm py-0 px-1 me-1">
-                  <i class="bi bi-pencil"></i>
+                  {% icon "pencil" %}
                 </a>
                 <form method="post"
                       action="{% url 'property:delete_amortization' property.pk row.asset_pk %}"
@@ -175,7 +175,7 @@
                       data-confirm="{% translate 'Delete this immobilisation?' %}">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-xs btn-outline-danger btn-sm py-0 px-1">
-                    <i class="bi bi-trash"></i>
+                    {% icon "trash" %}
                   </button>
                 </form>
               </td>
@@ -193,7 +193,7 @@
   </div>
   <div class="card-footer d-flex justify-content-end py-2">
     <a href="{% url 'property:new_amortization' property.pk %}" class="btn btn-sm btn-outline-primary">
-      <i class="bi bi-plus-circle me-1"></i>{% translate "Add immobilisation" %}
+      {% icon "circle-plus" "me-1" %}{% translate "Add immobilisation" %}
     </a>
   </div>
 </div>
@@ -202,7 +202,7 @@
 <div class="card mb-4">
   <div class="card-header py-2">
     <h6 class="mb-0">
-      <i class="bi bi-bar-chart me-1"></i>{% translate "Annual dotation chart" %}
+      {% icon "chart-column" "me-1" %}{% translate "Annual dotation chart" %}
     </h6>
   </div>
   <div class="card-body p-2">
@@ -214,7 +214,7 @@
 <div class="card">
   <div class="card-header py-2">
     <h6 class="mb-0">
-      <i class="bi bi-list-ol me-1"></i>{% translate "Amortization schedule" %}
+      {% icon "list-ordered" "me-1" %}{% translate "Amortization schedule" %}
     </h6>
   </div>
   <div class="card-body p-0">
@@ -236,7 +236,7 @@
                 aria-expanded="false"
                 style="cursor:pointer;">
               <td>
-                <i class="bi bi-chevron-right amort-chevron me-1 small text-body-secondary"></i>
+                {% icon "chevron-right" "amort-chevron me-1 small text-body-secondary" %}
                 {% if row.year == amortization_current_year %}
                   <strong>{{ row.year }} ◀</strong>
                 {% else %}
@@ -291,10 +291,10 @@ document.querySelectorAll('.amort-row').forEach(function(row) {
   var detail = document.querySelector(target);
   if (!detail) return;
   detail.addEventListener('show.bs.collapse', function() {
-    row.querySelector('.amort-chevron').classList.replace('bi-chevron-right', 'bi-chevron-down');
+    row.querySelector('.amort-chevron').style.transform = 'rotate(90deg)';
   });
   detail.addEventListener('hide.bs.collapse', function() {
-    row.querySelector('.amort-chevron').classList.replace('bi-chevron-down', 'bi-chevron-right');
+    row.querySelector('.amort-chevron').style.transform = '';
   });
 });
 </script>
@@ -344,7 +344,7 @@ document.querySelectorAll('.amort-row').forEach(function(row) {
     },
     yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString() + ' €'; } } },
     annotations: {
-      xaxis: [{ x: defaultYear, borderColor: '#60a5fa', label: { text: String(defaultYear), style: { color: '#fff', background: '#60a5fa' } } }]
+      xaxis: [{ x: defaultYear, borderColor: gToken('accent'), label: { text: String(defaultYear), style: { color: gToken('on-accent'), background: gToken('accent') } } }]
     },
     tooltip: {
       theme: getCurrentTheme(),

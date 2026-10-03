@@ -16,7 +16,7 @@
   {% url 'property:scpi_list' as back_url %}
   {% url 'property:scpi_edit' scpi_pk=scpi.pk as edit_url %}
   {% blocktranslate with scpi_name=scpi asvar page_title %}SCPI — {{ scpi_name }}{% endblocktranslate %}
-  {% include "property/_edit_page_header.html" with back_url=back_url edit_url=edit_url back_label=_("SCPI") page_title=page_title title_icon_class="bi-building-check" %}
+  {% include "property/_edit_page_header.html" with back_url=back_url edit_url=edit_url back_label=_("SCPI") page_title=page_title title_icon="building" %}
 
   {# ── Fund info band ───────────────────────────────────────────────────────── #}
   <div class="card shadow-sm rounded-4 mb-4">
@@ -42,7 +42,7 @@
           <p class="text-body-secondary small mb-0">
             {% translate "Share price" %}
             <a href="{% url 'property:scpi_share_price_add' scpi_pk=scpi.pk %}" class="btn btn-sm btn-outline-primary ms-2">
-              <i class="bi bi-plus me-1"></i>
+              {% icon "plus" "me-1" %}
             </a>
           </p>
           <p class="fw-semibold mb-0">{{ scpi.current_subscription_value|format_money|default:"—" }}</p>
@@ -122,7 +122,7 @@
   {% if chart_months != "[]" %}
   <div class="card shadow-sm rounded-4 mb-4">
     <div class="card-header border-0">
-      <h2 class="h5 mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>{% translate "Invested, estimated value & dividends over time" %}</h2>
+      <h2 class="h5 mb-0">{% icon "chart-line" "me-2 text-primary" %}{% translate "Invested, estimated value & dividends over time" %}</h2>
     </div>
     <div class="card-body pt-0">
       <div id="scpi-fund-chart" style="height: 300px;"></div>
@@ -133,9 +133,9 @@
   {# ── Investments table ───────────────────────────────────────────────────── #}
   <div class="card shadow-sm rounded-4 mb-4">
     <div class="card-header border-0 d-flex justify-content-between align-items-center">
-      <h2 class="h5 mb-0"><i class="bi bi-list-ul me-2 text-primary"></i>{% translate "Investments" %}</h2>
+      <h2 class="h5 mb-0">{% icon "list" "me-2 text-primary" %}{% translate "Investments" %}</h2>
       <a href="{% url 'property:scpi_investment_new' %}" class="btn btn-sm btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>{% translate "Add investment" %}
+        {% icon "circle-plus" "me-1" %}{% translate "Add investment" %}
       </a>
     </div>
     {% if investment_rows %}
@@ -174,7 +174,7 @@
             <td class="text-end">
               {{ row.estimated_value|format_money }}
               {% if row.theoretical_values %}
-              <br><small class="text-body-secondary" title="{% translate 'Based on theoretical value' %}"><i class="bi bi-bookmark-check"></i> {{ row.theoretical_values.0.date }}</small>
+              <br><small class="text-body-secondary" title="{% translate 'Based on theoretical value' %}">{% icon "bookmark-check" %} {{ row.theoretical_values.0.date }}</small>
               {% endif %}
             </td>
             <td class="text-end">{{ row.estimated_resale|format_money }}</td>
@@ -184,15 +184,15 @@
             <td>
               <div class="btn-group btn-group-sm">
                 <a href="{% url 'property:scpi_investment_edit' investment_pk=inv.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
-                  <i class="bi bi-pencil"></i>
+                  {% icon "pencil" %}
                 </a>
                 {% if inv.ownership_type != 'full' %}
                 <a href="{% url 'property:scpi_theoretical_value_add' investment_pk=inv.pk %}" class="btn btn-outline-primary" title="{% translate 'Theoretical values' %}">
-                  <i class="bi bi-bookmark-plus"></i>
+                  {% icon "bookmark-plus" %}
                 </a>
                 {% endif %}
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteInv{{ inv.pk }}" title="{% translate 'Delete' %}">
-                  <i class="bi bi-trash"></i>
+                  {% icon "trash" %}
                 </button>
               </div>
               {% url 'property:scpi_investment_delete' investment_pk=inv.pk as del_url %}
@@ -216,10 +216,10 @@
   <div class="card shadow-sm rounded-4">
     <div class="card-header border-0 d-flex justify-content-between align-items-center">
       <h2 class="h5 mb-0">
-        <i class="bi bi-cash-stack me-2 text-primary"></i>{% translate "Dividends" %}
+        {% icon "banknote" "me-2 text-primary" %}{% translate "Dividends" %}
       </h2>
       <a href="{% url 'property:scpi_dividend_add' scpi_pk=scpi.pk %}" class="btn btn-sm btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>{% translate "Add dividend" %}
+        {% icon "circle-plus" "me-1" %}{% translate "Add dividend" %}
       </a>
     </div>
     <div class="table-responsive">
@@ -295,8 +295,8 @@
         var d = JSON.parse(value);
         var editUrl = '/property/scpi/' + scpiPk + '/dividend/' + d.id + '/edit/';
         return '<div class="btn-group btn-group-sm">' +
-          '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _i18n.edit + '"><i class="bi bi-pencil"></i></a>' +
-          '<button type="button" class="btn btn-outline-danger" data-confirm="' + _i18n.confirm + '" data-submit-form="deleteDiv' + d.id + '" title="' + _i18n.delete + '"><i class="bi bi-trash"></i></button>' +
+          '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _i18n.edit + '">' + gIcon('pencil') + '</a>' +
+          '<button type="button" class="btn btn-outline-danger" data-confirm="' + _i18n.confirm + '" data-submit-form="deleteDiv' + d.id + '" title="' + _i18n.delete + '">' + gIcon('trash') + '</button>' +
           '</div>';
       }
     }
@@ -331,7 +331,7 @@
       ],
       stroke: { curve: 'smooth', width: [2, 2, 0] },
       fill: { opacity: [1, 1, 0.85] },
-      colors: ['#60a5fa', '#a78bfa', '#34d399'],
+      colors: [gToken('c2'), gToken('accent'), gToken('pos')],
       dataLabels: { enabled: false },
       xaxis: {
         categories: chartMonths,
@@ -364,7 +364,7 @@
         }
       ],
       tooltip: { theme: getCurrentTheme() },
-      grid: { borderColor: getCurrentTheme() === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
+      grid: { borderColor: gToken('line') },
       legend: { position: 'top', fontSize: '11px' },
       plotOptions: { bar: { columnWidth: '60%', borderRadius: 2 } }
     };
@@ -377,7 +377,7 @@
         theme: { mode: dark ? 'dark' : 'light' },
         chart: { background: 'transparent' },
         tooltip: { theme: dark ? 'dark' : 'light' },
-        grid: { borderColor: dark ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
+        grid: { borderColor: gToken('line') },
       });
     };
   })();
