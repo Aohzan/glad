@@ -6,12 +6,14 @@ from typing import cast
 from django.http import HttpResponseBase
 from django.urls import path
 
-from base import api_views, ownership_views, views
+from base import api_views, ownership_views, tracking_views, views
 
 urlpatterns = [
     path("", views.IndexView.as_view(), name="index"),
     path("allocation/", views.allocation, name="allocation"),
     path("owners/", ownership_views.owners_overview, name="owners"),
+    path("deadlines/", tracking_views.deadlines, name="deadlines"),
+    path("operations/", tracking_views.operations, name="operations"),
     path(
         "owners/remove/<int:pk>/",
         cast(Callable[..., HttpResponseBase], ownership_views.delete_ownership),
