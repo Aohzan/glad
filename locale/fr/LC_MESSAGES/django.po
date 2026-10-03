@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 09:19+0200\n"
+"POT-Creation-Date: 2026-10-03 14:31+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -15,29 +15,33 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: accounts/models.py:18
+#: accounts/admin.py:40 accounts/admin.py:69 accounts/models.py:41
+msgid "Birth date"
+msgstr "Date de naissance"
+
+#: accounts/models.py:19
 msgid "Session timeout (minutes)"
 msgstr "Délai d'expiration de session (minutes)"
 
-#: accounts/models.py:20
+#: accounts/models.py:21
 msgid "Auto-logout after this many minutes of inactivity. Default: 15 minutes."
 msgstr ""
 "Déconnexion automatique après ce nombre de minutes d'inactivité. Par "
 "défaut : 15 minutes."
 
-#: accounts/models.py:25
+#: accounts/models.py:26
 msgid "Notify on login"
 msgstr "Notification lors de la connexion"
 
-#: accounts/models.py:26
+#: accounts/models.py:27
 msgid "Receive an email notification when you log in."
 msgstr "Recevoir un email lors de la connexion à votre compte."
 
-#: accounts/models.py:30
+#: accounts/models.py:31
 msgid "Enable live market data"
 msgstr "Activer les données de marché en direct"
 
-#: accounts/models.py:32
+#: accounts/models.py:33
 msgid ""
 "Fetch real-time market data from Yahoo Finance for holdings and ISIN "
 "autofill. Disable to avoid external network calls."
@@ -46,49 +50,57 @@ msgstr ""
 "titres et le remplissage automatique de l'ISIN. Désactivez pour éviter les "
 "appels réseau externes."
 
-#: accounts/models.py:40
-msgid "Birth date"
-msgstr "Date de naissance"
-
-#: accounts/models.py:41
+#: accounts/models.py:42
 msgid "Used to value a life usufruct (article 669 CGI)."
 msgstr "Utilisée pour valoriser un usufruit viager (article 669 du CGI)."
 
-#: accounts/models.py:48 base/forms.py:77
+#: accounts/models.py:46 accounts/models.py:97
+msgid "Child"
+msgstr "Enfant"
+
+#: accounts/models.py:47
+msgid "A child is a household member who cannot log in."
+msgstr "Un enfant est un membre du foyer qui ne peut pas se connecter."
+
+#: accounts/models.py:54 base/forms.py:83
 msgid "Monthly expenses"
 msgstr "Dépenses mensuelles"
 
-#: accounts/models.py:50
+#: accounts/models.py:56
 msgid "Usual household spending per month, used to size the emergency fund."
 msgstr ""
 "Dépenses habituelles du foyer par mois, utilisées pour dimensionner "
 "l'épargne de précaution."
 
-#: accounts/models.py:55
+#: accounts/models.py:61
 msgid "User profile"
 msgstr "Profil utilisateur"
 
-#: accounts/models.py:56
+#: accounts/models.py:62
 msgid "User profiles"
 msgstr "Profils utilisateur"
 
-#: accounts/models.py:82
+#: accounts/models.py:98
+msgid "Children"
+msgstr "Enfants"
+
+#: accounts/models.py:114
 msgid "Passkey credential"
 msgstr "Identification via passkey"
 
-#: accounts/models.py:83
+#: accounts/models.py:115
 msgid "Passkey credentials"
 msgstr "Identification via passkey"
 
-#: accounts/views.py:65
+#: accounts/views.py:66
 msgid "Password updated successfully."
 msgstr "Mise à jour du mot de passe réussie"
 
-#: accounts/views.py:267
+#: accounts/views.py:268
 msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
-#: base/choices.py:10 templates/allocation.html:25
+#: base/choices.py:10 templates/allocation.html:39
 msgid "Available immediately"
 msgstr "Disponible immédiatement"
 
@@ -182,7 +194,7 @@ msgid "CSV import / export"
 msgstr "Import / export CSV"
 
 #: base/context_processors.py:44 base/search_views.py:75
-#: base/services/dashboard.py:46 property/forms.py:762
+#: base/services/dashboard.py:46 property/forms.py:767
 #: property/models/fiscal.py:34 templates/base.html:55
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:6
@@ -190,7 +202,7 @@ msgid "Properties"
 msgstr "Immobilier"
 
 #: base/context_processors.py:45 base/search_views.py:76
-#: base/services/dashboard.py:49 base/services/ownership.py:120
+#: base/services/dashboard.py:49 base/services/ownership.py:122
 #: property/models/scpi.py:38 property/models/scpi.py:39
 #: property/models/scpi.py:159 property/models/scpi.py:208
 #: property/models/scpi.py:622 templates/base.html:56 templates/base.html:113
@@ -278,7 +290,7 @@ msgstr "Dettes"
 msgid "Could not load chart data."
 msgstr "Impossible de charger les données du graphique."
 
-#: base/forms.py:56 finance/models/other_asset.py:198
+#: base/forms.py:62 finance/models/other_asset.py:195
 #: property/models/ledger.py:309 property/models/scpi.py:161
 #: property/models/scpi.py:590
 #: templates/accounts/emails/login_notification.html:16
@@ -300,18 +312,43 @@ msgstr "Impossible de charger les données du graphique."
 msgid "Date"
 msgstr "Date"
 
-#: base/forms.py:69
+#: base/forms.py:75
 msgid "Recurrence End Date"
 msgstr "Date de fin de récurrence"
 
-#: base/forms.py:98 base/models.py:149 finance/models/other_asset.py:78
-#: finance/views/csv_views.py:542
-#: templates/finance/_edit_account_info_card.html:24
+#: base/forms.py:127 base/forms.py:236
+#: templates/finance/_account_detail_common_info.html:7
+#: templates/finance/other_asset_detail.html:46 templates/owners_manage.html:4
+#: templates/owners_manage.html:10 templates/property/detail_panel_info.html:72
+msgid "Owners"
+msgstr "Propriétaires"
+
+#: base/forms.py:130
+msgid ""
+"Several owners share the asset equally; set other shares or a dismembered "
+"right on the owners page."
+msgstr ""
+"Plusieurs propriétaires se partagent l'actif à parts égales ; définissez "
+"d'autres quotes-parts ou un démembrement sur la page des propriétaires."
+
+#: base/forms.py:133
+msgid "Choose at least one owner."
+msgstr "Choisissez au moins un propriétaire."
+
+#: base/forms.py:152
+msgid ""
+"The other rights leave no share to the new owners: set the shares on the "
+"owners page."
+msgstr ""
+"Les autres droits ne laissent aucune part aux nouveaux propriétaires : "
+"définissez les quotes-parts sur la page des propriétaires."
+
+#: base/forms.py:168 base/models.py:160 finance/views/csv_views.py:543
 #: templates/owners_manage.html:19
 msgid "Owner"
 msgstr "Propriétaire"
 
-#: base/forms.py:146
+#: base/forms.py:216
 msgid ""
 "A dismembered right needs the usufruct end date or the birth date of the "
 "usufructuary."
@@ -319,89 +356,89 @@ msgstr ""
 "Un droit démembré nécessite la date de fin de l'usufruit ou la date de "
 "naissance de l'usufruitier."
 
-#: base/forms.py:159
+#: base/forms.py:229
 msgid "The shares of the owners exceed 100 %."
 msgstr "Les quotes-parts des propriétaires dépassent 100 %."
 
-#: base/forms.py:167
+#: base/forms.py:251
 msgid "My birth date"
 msgstr "Ma date de naissance"
 
-#: base/models.py:30
+#: base/models.py:31
 msgid "Rent reference index (IRL)"
 msgstr "Indice de référence des loyers (IRL)"
 
-#: base/models.py:31
+#: base/models.py:32
 msgid "Consumer price index"
 msgstr "Indice des prix à la consommation"
 
-#: base/models.py:38
+#: base/models.py:39
 msgid "economic index value"
 msgstr "valeur d'indice économique"
 
-#: base/models.py:39
+#: base/models.py:40
 msgid "economic index values"
 msgstr "valeurs d'indices économiques"
 
-#: base/models.py:65
+#: base/models.py:66
 #, python-brace-format
 msgid "Q{quarter} {year}"
 msgstr "T{quarter} {year}"
 
-#: base/models.py:79
+#: base/models.py:80
 msgid "net worth snapshot"
 msgstr "instantané du patrimoine"
 
-#: base/models.py:80
+#: base/models.py:81
 msgid "net worth snapshots"
 msgstr "instantanés du patrimoine"
 
-#: base/models.py:126 property/models/scpi.py:195
+#: base/models.py:137 property/models/scpi.py:195
 msgid "Full ownership"
 msgstr "Pleine propriété"
 
-#: base/models.py:127 property/models/scpi.py:196
+#: base/models.py:138 property/models/scpi.py:196
 msgid "Bare ownership (nue-propriété)"
 msgstr "Nue-propriété"
 
-#: base/models.py:128 property/models/scpi.py:197
+#: base/models.py:139 property/models/scpi.py:197
 msgid "Usufruct (usufruit)"
 msgstr "Usufruit"
 
-#: base/models.py:131
+#: base/models.py:142
 msgid "ownership"
 msgstr "détention"
 
-#: base/models.py:132
+#: base/models.py:143
 msgid "ownerships"
 msgstr "détentions"
 
-#: base/models.py:156
+#: base/models.py:167
 msgid "Share (%)"
 msgstr "Quote-part (%)"
 
-#: base/models.py:157
+#: base/models.py:168
 msgid "Part of the asset held, e.g. 50 for a couple in indivision."
 msgstr "Part de l'actif détenue, ex. 50 pour un couple en indivision."
 
-#: base/models.py:163 templates/owners_manage.html:21
+#: base/models.py:174 templates/owners_manage.html:21
 msgid "Right"
 msgstr "Droit"
 
-#: base/models.py:168
+#: base/models.py:179
 msgid "Usufructuary birth date"
 msgstr "Date de naissance de l'usufruitier"
 
-#: base/models.py:169
+#: base/models.py:180
 msgid "For a life usufruct, valued with the scale of article 669 CGI."
 msgstr ""
 "Pour un usufruit viager, valorisé selon le barème de l'article 669 du CGI."
 
-#: base/models.py:174
+#: base/models.py:185
 msgid "Usufruct end date"
 msgstr "Date de fin de l'usufruit"
 
-#: base/models.py:175
+#: base/models.py:186
 msgid "For a temporary usufruct: 23 % per period of ten years."
 msgstr "Pour un usufruit temporaire : 23 % par période de dix ans."
 
@@ -410,7 +447,7 @@ msgid "Owner saved."
 msgstr "Propriétaire enregistré."
 
 #: base/ownership_views.py:47 finance/views/crud_views.py:43
-#: finance/views/csv_views.py:319 finance/views/euro_fund_views.py:35
+#: finance/views/csv_views.py:320 finance/views/euro_fund_views.py:35
 #: finance/views/investment_views.py:75 finance/views/investment_views.py:101
 #: finance/views/investment_views.py:309 finance/views/investment_views.py:449
 #: finance/views/other_asset_views.py:62 finance/views/saving_views.py:62
@@ -438,11 +475,11 @@ msgstr "Date de naissance enregistrée."
 msgid "Page"
 msgstr "Page"
 
-#: base/services/allocation.py:88
+#: base/services/allocation.py:93
 msgid "Not classified"
 msgstr "Non classé"
 
-#: base/services/allocation.py:114 finance/views/chart_views.py:128
+#: base/services/allocation.py:140 finance/views/chart_views.py:128
 #: finance/views/index_views.py:123
 #: templates/finance/_account_chart_script.html:83
 #: templates/finance/_euro_fund_split.html:15 templates/finance/update.html:80
@@ -509,15 +546,15 @@ msgstr "Évaluation de bien"
 msgid "Dividend"
 msgstr "Dividende"
 
-#: base/services/ownership.py:113 templates/base.html:111
+#: base/services/ownership.py:115 templates/base.html:111
 msgid "Saving account"
 msgstr "Compte d'épargne"
 
-#: base/services/ownership.py:115 templates/base.html:110
+#: base/services/ownership.py:117 templates/base.html:110
 msgid "Investment account"
 msgstr "Compte d'investissement"
 
-#: base/services/ownership.py:118 property/models/asset.py:832
+#: base/services/ownership.py:120 property/models/asset.py:832
 #: property/models/asset.py:929 property/models/lease.py:44
 #: property/models/ledger.py:287 property/models/management.py:38
 #: templates/base.html:112 templates/dashboard/_property.html:28
@@ -528,32 +565,32 @@ msgstr "Compte d'investissement"
 msgid "Property"
 msgstr "Propriété"
 
-#: base/services/ownership.py:122 templates/base.html:114
+#: base/services/ownership.py:124 templates/base.html:114
 msgid "Other asset"
 msgstr "Autre actif"
 
-#: base/services/ownership.py:194
+#: base/services/ownership.py:275
 msgid "Not assigned"
 msgstr "Non attribué"
 
-#: base/services/ownership.py:195
+#: base/services/ownership.py:276
 msgid "Outside the household"
 msgstr "Hors du foyer"
 
-#: base/services/ownership.py:251 templates/_owners_summary.html:8
+#: base/services/ownership.py:360
 msgid "Household"
 msgstr "Foyer"
 
-#: base/services/ownership.py:253
+#: base/services/ownership.py:362
 msgid "Joint"
 msgstr "Commun"
 
-#: base/services/ownership.py:257
+#: base/services/ownership.py:366
 #, python-format
 msgid "%(name)s (bare)"
 msgstr "%(name)s (nue-propriété)"
 
-#: base/services/ownership.py:259
+#: base/services/ownership.py:368
 #, python-format
 msgid "%(name)s (usufruct)"
 msgstr "%(name)s (usufruit)"
@@ -575,15 +612,15 @@ msgstr "Dépôts"
 msgid "Dividends"
 msgstr "Dividendes"
 
-#: base/views.py:78
+#: base/views.py:83
 msgid "Monthly expenses saved."
 msgstr "Dépenses mensuelles enregistrées."
 
-#: base/views.py:118
+#: base/views.py:137
 msgid "Could not download the INSEE indices."
 msgstr "Impossible de télécharger les indices INSEE."
 
-#: base/views.py:120
+#: base/views.py:139
 msgid "INSEE indices updated."
 msgstr "Indices INSEE mis à jour."
 
@@ -703,7 +740,7 @@ msgstr "Épargne"
 msgid "Data type to import"
 msgstr "Type de données à importer"
 
-#: finance/forms.py:176 property/forms.py:796
+#: finance/forms.py:176 property/forms.py:801
 msgid "CSV File"
 msgstr "Fichier CSV"
 
@@ -715,7 +752,7 @@ msgstr "Merci d'envoyer un fichier CSV"
 msgid "Map to account"
 msgstr "Associer au compte"
 
-#: finance/forms.py:315
+#: finance/forms.py:312
 msgid ""
 "e.g. FR0010315770 — Autofill will fetch code, name, issuer, fees & initial "
 "value"
@@ -723,7 +760,7 @@ msgstr ""
 "ex. FR0010315770 — Le remplissage automatique récupérera le code, le nom, "
 "l'émetteur, les frais et la valeur initiale"
 
-#: finance/forms.py:383 property/forms.py:767 property/models/lease.py:64
+#: finance/forms.py:380 property/forms.py:772 property/models/lease.py:64
 #: property/models/management.py:46
 #: templates/property/detail_panel_amortization.html:132
 #: templates/property/detail_panel_leases.html:52
@@ -733,7 +770,7 @@ msgstr ""
 msgid "Start date"
 msgstr "Date de début"
 
-#: finance/forms.py:386 property/forms.py:775 property/models/lease.py:65
+#: finance/forms.py:383 property/forms.py:780 property/models/lease.py:65
 #: property/models/management.py:50 templates/property/detail.html:525
 #: templates/property/detail_panel_cashflow.html:192
 #: templates/property/detail_panel_leases.html:56
@@ -743,47 +780,43 @@ msgstr "Date de début"
 msgid "End date"
 msgstr "Date de fin"
 
-#: finance/forms.py:396
+#: finance/forms.py:393
 msgid "Start date must be before the end date."
 msgstr "La date de début doit être antérieure à la date de fin."
 
-#: finance/forms.py:400
+#: finance/forms.py:397
 #, python-brace-format
 msgid "The date range cannot exceed {years} years."
 msgstr "La plage de dates ne peut pas dépasser {years} ans."
 
-#: finance/forms.py:447
+#: finance/forms.py:444
 msgid "Set the sale date of an inactive asset."
 msgstr "Renseignez la date de vente d'un actif inactif."
 
-#: finance/models/base.py:74
+#: finance/models/base.py:73
 msgid "Name of the account (optional)"
 msgstr "Nom du compte (optionnel)"
 
-#: finance/models/base.py:80
-msgid "Owner of the account (optional)"
-msgstr "Propriétaire du compte (optionnel)"
-
-#: finance/models/base.py:86
+#: finance/models/base.py:79
 msgid "Institution where the account is held (optional)"
 msgstr "Institution où le compte est détenu (optionnel)"
 
-#: finance/models/base.py:93 property/models/asset.py:430
+#: finance/models/base.py:86 property/models/asset.py:430
 msgid "Favorite"
 msgstr "Favori"
 
-#: finance/models/base.py:95
+#: finance/models/base.py:88
 msgid ""
 "Mark this account as a favorite for quick access in the navigation menu."
 msgstr ""
 "Marquer ce compte comme favori pour un accès rapide dans le menu de "
 "navigation."
 
-#: finance/models/base.py:123
+#: finance/models/base.py:114
 msgid "at"
 msgstr "chez"
 
-#: finance/models/base.py:125 finance/models/investment_account.py:331
+#: finance/models/base.py:116 finance/models/investment_account.py:331
 msgid "(closed)"
 msgstr "(clôturé)"
 
@@ -915,7 +948,7 @@ msgstr "Taux servi (%)"
 msgid "Rate net of management fees, before social charges."
 msgstr "Taux net de frais de gestion, avant prélèvements sociaux."
 
-#: finance/models/investment_account.py:497 finance/models/other_asset.py:118
+#: finance/models/investment_account.py:497 finance/models/other_asset.py:115
 #: property/models/asset.py:984 property/models/fiscal.py:42
 #: property/models/scpi.py:73 property/models/scpi.py:600
 #: templates/finance/_euro_fund_rates_panel.html:35
@@ -980,19 +1013,19 @@ msgstr "Nom"
 msgid "Category"
 msgstr "Catégorie"
 
-#: finance/models/other_asset.py:81
+#: finance/models/other_asset.py:78
 msgid "Acquisition date"
 msgstr "Date d'acquisition"
 
-#: finance/models/other_asset.py:87 templates/finance/other_asset_list.html:24
+#: finance/models/other_asset.py:84 templates/finance/other_asset_list.html:24
 msgid "Acquisition value"
 msgstr "Valeur d'acquisition"
 
-#: finance/models/other_asset.py:88
+#: finance/models/other_asset.py:85
 msgid "Price paid, fees included."
 msgstr "Prix payé, frais inclus."
 
-#: finance/models/other_asset.py:95
+#: finance/models/other_asset.py:92
 #: templates/finance/edit_holding_history.html:35
 #: templates/finance/holding_detail.html:144
 #: templates/finance/holding_detail.html:211
@@ -1002,15 +1035,15 @@ msgstr "Prix payé, frais inclus."
 msgid "Quantity"
 msgstr "Quantité"
 
-#: finance/models/other_asset.py:96
+#: finance/models/other_asset.py:93
 msgid "Units held, e.g. 0.5 for half a bitcoin or 10 gold coins."
 msgstr "Unités détenues, ex. 0,5 pour un demi bitcoin ou 10 pièces d'or."
 
-#: finance/models/other_asset.py:102
+#: finance/models/other_asset.py:99
 msgid "Market symbol"
 msgstr "Symbole de marché"
 
-#: finance/models/other_asset.py:104
+#: finance/models/other_asset.py:101
 msgid ""
 "Yahoo Finance symbol quoted in the asset currency (e.g. BTC-EUR), used with "
 "the quantity to update the value."
@@ -1018,18 +1051,18 @@ msgstr ""
 "Symbole Yahoo Finance coté dans la devise de l'actif (ex. BTC-EUR), utilisé "
 "avec la quantité pour mettre à jour la valeur."
 
-#: finance/models/other_asset.py:113
+#: finance/models/other_asset.py:110
 #: templates/finance/_account_detail_common_info.html:17
 #: templates/finance/other_asset_detail.html:42
 #: templates/finance/other_asset_list.html:23
 msgid "Liquidity"
 msgstr "Liquidité"
 
-#: finance/models/other_asset.py:114
+#: finance/models/other_asset.py:111
 msgid "Leave empty to use the default of the category."
 msgstr "Laisser vide pour utiliser la valeur par défaut de la catégorie."
 
-#: finance/models/other_asset.py:116 property/models/asset.py:425
+#: finance/models/other_asset.py:113 property/models/asset.py:425
 #: property/models/lease.py:21
 #: templates/finance/_edit_account_dates_card.html:25
 #: templates/finance/_status_badge.html:6
@@ -1040,21 +1073,21 @@ msgstr "Laisser vide pour utiliser la valeur par défaut de la catégorie."
 msgid "Active"
 msgstr "Actif"
 
-#: finance/models/other_asset.py:117 property/models/scpi.py:240
+#: finance/models/other_asset.py:114 property/models/scpi.py:240
 #: templates/finance/other_asset_detail.html:71
 #: templates/property/scpi_detail.html:105
 msgid "Sold date"
 msgstr "Date de revente"
 
-#: finance/models/other_asset.py:185
+#: finance/models/other_asset.py:182
 msgid "other asset value"
 msgstr "valeur d'autre actif"
 
-#: finance/models/other_asset.py:186
+#: finance/models/other_asset.py:183
 msgid "other asset values"
 msgstr "valeurs d'autres actifs"
 
-#: finance/models/other_asset.py:197 templates/dashboard/_registry.html:18
+#: finance/models/other_asset.py:194 templates/dashboard/_registry.html:18
 #: templates/finance/_account_table_header.html:5
 #: templates/finance/_accounts_head.html:1
 #: templates/finance/_edit_value_field.html:3
@@ -1170,65 +1203,65 @@ msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 msgid "Invalid request method."
 msgstr "Méthode de requête invalide."
 
-#: finance/views/csv_views.py:53 finance/views/csv_views.py:65
+#: finance/views/csv_views.py:54 finance/views/csv_views.py:66
 msgid "Some accounts could not be found."
 msgstr "Certains comptes n'ont pas été trouvés."
 
-#: finance/views/csv_views.py:68
+#: finance/views/csv_views.py:69
 msgid "No account selected or found for export."
 msgstr "Aucun compte sélectionné ou trouvé pour l'export"
 
-#: finance/views/csv_views.py:141
+#: finance/views/csv_views.py:142
 msgid "No data to export for selected accounts."
 msgstr "Aucune donnée à exporter pour les comptes sélectionnés."
 
-#: finance/views/csv_views.py:189 finance/views/csv_views.py:222
+#: finance/views/csv_views.py:190 finance/views/csv_views.py:223
 msgid "CSV file is missing required columns for the selected type."
 msgstr ""
 "Le fichier CSV n'a pas les noms de colonnes requises pour le type "
 "sélectionné."
 
-#: finance/views/csv_views.py:306 property/views/csv_views.py:129
+#: finance/views/csv_views.py:307 property/views/csv_views.py:129
 msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
-#: finance/views/csv_views.py:367
+#: finance/views/csv_views.py:368
 msgid "No mapping found for account"
 msgstr "Aucune correspondance trouvée pour le compte"
 
-#: finance/views/csv_views.py:455
+#: finance/views/csv_views.py:456
 msgid "No mapping found for holding"
 msgstr "Aucune correspondance trouvée pour le titre"
 
-#: finance/views/csv_views.py:493
+#: finance/views/csv_views.py:494
 msgid "An error occurred during import: "
 msgstr "Une erreur s'est produite pendant l'import : "
 
-#: finance/views/csv_views.py:508
+#: finance/views/csv_views.py:509
 #, python-brace-format
 msgid "Successfully imported {} records. {} duplicate records were ignored."
 msgstr "{} enregistrements importés avec succès. {} doublons ignorés."
 
-#: finance/views/csv_views.py:514
+#: finance/views/csv_views.py:515
 #, python-brace-format
 msgid "Successfully imported {} records."
 msgstr "Enregistrements {} importés avec succès."
 
-#: finance/views/csv_views.py:519
+#: finance/views/csv_views.py:520
 #, python-brace-format
 msgid "No new records imported. {} duplicate records were ignored."
 msgstr "Pas de nouvelle données importées. {} données existantes ignorées."
 
-#: finance/views/csv_views.py:525
+#: finance/views/csv_views.py:526
 msgid "Errors in rows: "
 msgstr "Erreurs dans les lignes : "
 
-#: finance/views/csv_views.py:529
+#: finance/views/csv_views.py:530
 #, python-brace-format
 msgid " and {} more errors"
 msgstr " et {} erreurs supplémentaires"
 
-#: finance/views/csv_views.py:541
+#: finance/views/csv_views.py:542
 #: templates/finance/_account_detail_common_info.html:3
 #: templates/property/detail.html:391
 #: templates/property/detail_panel_cashflow.html:75
@@ -1237,20 +1270,20 @@ msgstr " et {} erreurs supplémentaires"
 msgid "Type"
 msgstr "Type"
 
-#: finance/views/csv_views.py:543
+#: finance/views/csv_views.py:544
 #: templates/finance/_account_detail_common_info.html:12
 #: templates/finance/_accounts_head.html:1
-#: templates/finance/_edit_account_info_card.html:32
+#: templates/finance/_edit_account_info_card.html:24
 msgid "Institution"
 msgstr "Établissement"
 
-#: finance/views/csv_views.py:544
+#: finance/views/csv_views.py:545
 #, python-format
 msgid "Value at %(date)s"
 msgstr "Valeur au %(date)s"
 
-#: finance/views/csv_views.py:584 templates/allocation.html:14
-#: templates/dashboard/_property.html:39 templates/dashboard/_registry.html:39
+#: finance/views/csv_views.py:586 templates/dashboard/_property.html:39
+#: templates/dashboard/_registry.html:39
 #: templates/finance/_account_chart_script.html:248
 #: templates/finance/_account_chart_script.html:274
 #: templates/finance/_account_chart_script.html:340
@@ -1430,45 +1463,45 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:257
+#: glad/settings.py:259
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:258
+#: glad/settings.py:260
 msgid "French"
 msgstr "Français"
 
-#: property/forms.py:60 property/models/ledger.py:315
+#: property/forms.py:65 property/models/ledger.py:315
 #: templates/property/detail.html:474
 #: templates/property/detail_panel_cashflow.html:118
 msgid "Reference period"
 msgstr "Période de référence"
 
-#: property/forms.py:206
+#: property/forms.py:211
 msgid "Duration (months)"
 msgstr "Durée (mois)"
 
-#: property/forms.py:207
+#: property/forms.py:212
 msgid "e.g. 240 for 20 years"
 msgstr "ex. 240 pour 20 ans"
 
-#: property/forms.py:310
+#: property/forms.py:315
 msgid "CSV file"
 msgstr "Fichier CSV"
 
-#: property/forms.py:311
+#: property/forms.py:316
 msgid "Columns: date, capital, interets, capital_restant"
 msgstr "Colonnes : date, capital, interets, capital_restant"
 
-#: property/forms.py:447
+#: property/forms.py:452
 msgid "Duration is required for depreciable assets."
 msgstr "La durée est requise pour les actifs amortissables."
 
-#: property/forms.py:474
+#: property/forms.py:479
 msgid "Acquisition fees to include"
 msgstr "Frais d'acquisition à inclure"
 
-#: property/forms.py:476
+#: property/forms.py:481
 msgid ""
 "Acquisition fees (notary, agency, loan set-up) added to the purchase price "
 "and depreciated with it. This irrevocable option is only allowed when the "
@@ -1480,66 +1513,66 @@ msgstr ""
 "le bien a été acheté l'année du début de l'activité LMNP ; sinon les frais "
 "sont perdus. Mettre 0 pour exclure."
 
-#: property/forms.py:495 property/models/asset.py:846
+#: property/forms.py:500 property/models/asset.py:846
 msgid "Land percentage (%)"
 msgstr "Pourcentage du terrain (%)"
 
-#: property/forms.py:497 property/models/asset.py:848
+#: property/forms.py:502 property/models/asset.py:848
 msgid ""
 "Non-depreciable land share as a percentage of total value. Default: 15 %."
 msgstr ""
 "Part de terrain non amortissable en pourcentage de la valeur totale. "
 "Défaut : 15 %."
 
-#: property/forms.py:713 property/models/asset.py:319
+#: property/forms.py:718 property/models/asset.py:319
 #: property/models/scpi.py:624 templates/property/_dividend_table_header.html:5
 msgid "Payment date"
 msgstr "Date de paiement"
 
-#: property/forms.py:729 templates/admin/bulk_update_date.html:27
+#: property/forms.py:734 templates/admin/bulk_update_date.html:27
 msgid "Update"
 msgstr "Mise à jour"
 
-#: property/forms.py:736 property/models/scpi.py:630
+#: property/forms.py:741 property/models/scpi.py:630
 #: templates/property/_dividend_table_header.html:6
 #: templates/property/scpi_dividend_batch.html:45
 msgid "Gross amount"
 msgstr "Montant brut"
 
-#: property/forms.py:744 property/models/scpi.py:636
+#: property/forms.py:749 property/models/scpi.py:636
 #: templates/property/_dividend_table_header.html:7
 #: templates/property/scpi_dividend_batch.html:46
 msgid "Net amount"
 msgstr "Montant net"
 
-#: property/forms.py:798
+#: property/forms.py:803
 msgid ""
 "Please upload a CSV file with columns: date, amount, category, description"
 msgstr ""
 "Veuillez télécharger un fichier CSV avec les colonnes : date, montant, "
 "catégorie, description"
 
-#: property/forms.py:811 templates/property/resale_simulation.html:62
+#: property/forms.py:816 templates/property/resale_simulation.html:62
 msgid "Sale price"
 msgstr "Prix de vente"
 
-#: property/forms.py:818
+#: property/forms.py:823
 msgid "Sale date"
 msgstr "Date de vente"
 
-#: property/forms.py:824 templates/property/resale_simulation.html:63
+#: property/forms.py:829 templates/property/resale_simulation.html:63
 msgid "Fees paid by the seller"
 msgstr "Frais à la charge du vendeur"
 
-#: property/forms.py:825
+#: property/forms.py:830
 msgid "Agency fees paid by the seller, diagnostics…"
 msgstr "Frais d'agence payés par le vendeur, diagnostics…"
 
-#: property/forms.py:833
+#: property/forms.py:838
 msgid "Works not already deducted"
 msgstr "Travaux non déjà déduits"
 
-#: property/forms.py:835
+#: property/forms.py:840
 msgid ""
 "Construction, extension or improvement works with invoices, not deducted "
 "from rental income nor amortized."
@@ -1547,11 +1580,11 @@ msgstr ""
 "Travaux de construction, d'agrandissement ou d'amélioration justifiés par "
 "des factures, ni déduits des revenus locatifs ni amortis."
 
-#: property/forms.py:845
+#: property/forms.py:850
 msgid "Main residence at the time of the sale (exempt)"
 msgstr "Résidence principale au jour de la vente (exonérée)"
 
-#: property/forms.py:850
+#: property/forms.py:855
 msgid "Student, senior or care residence (no LMNP reintegration)"
 msgstr "Résidence étudiante, senior ou EHPAD (pas de réintégration LMNP)"
 
@@ -2471,7 +2504,7 @@ msgid "Manager name"
 msgstr "Nom du gestionnaire"
 
 #: property/models/management.py:43 templates/property/_contact_card.html:35
-#: templates/property/_property_form_fields.html:29
+#: templates/property/_property_form_fields.html:31
 #: templates/property/detail_panel_info.html:81
 #: templates/property/edit_mandate.html:53
 msgid "Address"
@@ -3303,6 +3336,14 @@ msgid_plural "In %(months)s months"
 msgstr[0] "Dans %(months)s mois"
 msgstr[1] "Dans %(months)s mois"
 
+#: templates/_owners_summary.html:8
+msgid "Choose the owners when editing the asset."
+msgstr "Choisissez les propriétaires en modifiant l'actif."
+
+#: templates/_owners_summary.html:8
+msgid "No owner"
+msgstr "Aucun propriétaire"
+
 #: templates/_owners_summary.html:10
 msgid "Manage owners"
 msgstr "Gérer les propriétaires"
@@ -3396,7 +3437,7 @@ msgid "Enter your email address"
 msgstr "Saisissez votre adresse email"
 
 #: templates/accounts/settings.html:31 templates/accounts/settings.html:150
-#: templates/allocation.html:47 templates/finance/_edit_form_footer.html:4
+#: templates/allocation.html:61 templates/finance/_edit_form_footer.html:4
 #: templates/finance/_euro_fund_rates_panel.html:25 templates/owners.html:16
 #: templates/owners_manage.html:63 templates/property/_edit_form_footer.html:6
 #: templates/property/_form_submit_buttons.html:4
@@ -3617,34 +3658,67 @@ msgstr "Annuler"
 msgid "Items to be updated:"
 msgstr "Éléments à mettre à jour :"
 
-#: templates/allocation.html:20
+#: templates/allocation.html:16
+msgid "Household total"
+msgstr "Total du foyer"
+
+#: templates/allocation.html:18
+msgid "Selection"
+msgstr "Sélection"
+
+#: templates/allocation.html:19
+msgid "household"
+msgstr "foyer"
+
+#: templates/allocation.html:27
+msgid "Whole household"
+msgstr "Tout le foyer"
+
+#: templates/allocation.html:28 templates/property/detail_panel_balance.html:15
+#: templates/property/detail_panel_balance.html:41
+#: templates/property/report.html:45
+msgid "Apply"
+msgstr "Appliquer"
+
+#: templates/allocation.html:34
 msgid "Emergency fund"
 msgstr "Épargne de précaution"
 
-#: templates/allocation.html:30
+#: templates/allocation.html:44
 msgid "Months of expenses covered"
 msgstr "Mois de dépenses couverts"
 
-#: templates/allocation.html:33
+#: templates/allocation.html:47
 #, python-format
 msgid "Target: %(low)s to %(high)s months"
 msgstr "Objectif : %(low)s à %(high)s mois"
 
-#: templates/allocation.html:37
+#: templates/allocation.html:51
 msgid "Enter your monthly expenses to size your emergency fund."
 msgstr ""
 "Saisissez vos dépenses mensuelles pour dimensionner votre épargne de "
 "précaution."
 
-#: templates/allocation.html:56
+#: templates/allocation.html:70
 msgid "By asset class"
 msgstr "Par classe d'actifs"
 
-#: templates/allocation.html:60
+#: templates/allocation.html:74
 msgid "By liquidity"
 msgstr "Par liquidité"
 
-#: templates/allocation.html:65
+#: templates/allocation.html:79
+msgid ""
+"Each asset counts for the share held by the chosen owners; with every member "
+"chosen, the total is the household's part of the assets. The emergency fund "
+"always covers the whole household."
+msgstr ""
+"Chaque actif compte pour la quote-part détenue par les propriétaires "
+"choisis ; avec tous les membres choisis, le total est la part des actifs "
+"détenue par le foyer. L'épargne de précaution couvre toujours l'ensemble du "
+"foyer."
+
+#: templates/allocation.html:80
 msgid ""
 "Real estate is counted net of the remaining loans. Only assets in the "
 "reference currency are included. Set the asset class of each holding to "
@@ -3992,12 +4066,6 @@ msgstr "Investi"
 msgid "Capital gain"
 msgstr "Plus-value"
 
-#: templates/finance/_account_detail_common_info.html:7
-#: templates/finance/other_asset_detail.html:46 templates/owners_manage.html:4
-#: templates/owners_manage.html:10 templates/property/detail_panel_info.html:72
-msgid "Owners"
-msgstr "Propriétaires"
-
 #: templates/finance/_account_detail_header.html:11
 #: templates/finance/_item_actions.html:3
 #: templates/finance/holding_detail.html:23
@@ -4106,7 +4174,6 @@ msgstr "Date de clôture"
 #: templates/finance/_edit_account_dates_card.html:17
 #: templates/finance/_edit_account_info_card.html:17
 #: templates/finance/_edit_account_info_card.html:25
-#: templates/finance/_edit_account_info_card.html:33
 #: templates/finance/_edit_deposit_fields.html:15
 #: templates/finance/edit_holding_history.html:36
 #: templates/finance/edit_holding_history.html:44
@@ -5079,14 +5146,15 @@ msgstr "Page %(number)s sur %(total)s"
 msgid ""
 "Each asset counts for the share and the value of the right held by each "
 "owner. Assets without owner are shown as not assigned; the part held by "
-"people who are not users of the application is shown as outside the "
-"household. Real estate is counted net of the remaining loans."
+"people who are not household members is shown as outside the household. "
+"Children are added in the administration. Real estate is counted net of the "
+"remaining loans."
 msgstr ""
 "Chaque actif compte pour la quote-part et la valeur du droit détenu par "
 "chaque propriétaire. Les actifs sans propriétaire apparaissent comme non "
-"attribués ; la part détenue par des personnes qui ne sont pas utilisatrices "
-"de l'application apparaît hors du foyer. L'immobilier est compté net du "
-"capital restant dû."
+"attribués ; la part détenue par des personnes qui ne sont pas membres du "
+"foyer apparaît hors du foyer. Les enfants s'ajoutent dans l'administration. "
+"L'immobilier est compté net du capital restant dû."
 
 #: templates/owners_manage.html:20
 #, python-format
@@ -5200,69 +5268,69 @@ msgstr "Toutes les occurrences"
 msgid "Property Details"
 msgstr "Détails de la propriété"
 
-#: templates/property/_property_form_fields.html:32
+#: templates/property/_property_form_fields.html:34
 msgid "Search address"
 msgstr "Rechercher une adresse"
 
-#: templates/property/_property_form_fields.html:35
+#: templates/property/_property_form_fields.html:37
 msgid "Start typing a French address..."
 msgstr "Commencez à taper une adresse française..."
 
-#: templates/property/_property_form_fields.html:39
+#: templates/property/_property_form_fields.html:41
 msgid "Select a suggestion to auto-fill the fields below."
 msgstr ""
 "Sélectionnez une suggestion pour remplir automatiquement les champs ci-"
 "dessous."
 
-#: templates/property/_property_form_fields.html:85
+#: templates/property/_property_form_fields.html:87
 #: templates/property/detail_panel_info.html:89
 msgid "Cadastral information"
 msgstr "Informations cadastrales"
 
-#: templates/property/_property_form_fields.html:107
-#: templates/property/_property_form_fields.html:518
+#: templates/property/_property_form_fields.html:109
+#: templates/property/_property_form_fields.html:520
 msgid "Look up cadastral info"
 msgstr "Rechercher les infos cadastrales"
 
-#: templates/property/_property_form_fields.html:113
+#: templates/property/_property_form_fields.html:115
 msgid "Purchase"
 msgstr "Acquisition"
 
-#: templates/property/_property_form_fields.html:146
+#: templates/property/_property_form_fields.html:148
 msgid "Total purchase cost"
 msgstr "Coût total d'achat"
 
-#: templates/property/_property_form_fields.html:154
+#: templates/property/_property_form_fields.html:156
 msgid "Buying value + all fees (auto-calculated, not editable)"
 msgstr ""
 "Prix d'achat + tous les frais (calculé automatiquement, non modifiable)"
 
-#: templates/property/_property_form_fields.html:159
+#: templates/property/_property_form_fields.html:161
 msgid "Purchase fees"
 msgstr "Frais d'acquisition"
 
-#: templates/property/_property_form_fields.html:250
+#: templates/property/_property_form_fields.html:252
 msgid "Characteristics"
 msgstr "Caractéristiques"
 
-#: templates/property/_property_form_fields.html:357
+#: templates/property/_property_form_fields.html:359
 msgid "Selling & Status"
 msgstr "Vente & Statut"
 
-#: templates/property/_property_form_fields.html:486
+#: templates/property/_property_form_fields.html:488
 msgid "Please select an address first to get coordinates."
 msgstr ""
 "Veuillez d'abord sélectionner une adresse pour obtenir les coordonnées."
 
-#: templates/property/_property_form_fields.html:493
+#: templates/property/_property_form_fields.html:495
 msgid "Looking up..."
 msgstr "Recherche..."
 
-#: templates/property/_property_form_fields.html:504
+#: templates/property/_property_form_fields.html:506
 msgid "Could not find cadastral information for this location."
 msgstr "Impossible de trouver les informations cadastrales pour ce lieu."
 
-#: templates/property/_property_form_fields.html:513
+#: templates/property/_property_form_fields.html:515
 msgid "An error occurred during cadastral lookup."
 msgstr "Une erreur s'est produite lors de la recherche cadastrale."
 
@@ -5927,12 +5995,6 @@ msgstr "Progression"
 #: templates/property/detail_panel_amortization.html:276
 msgid "No data"
 msgstr "Pas de données"
-
-#: templates/property/detail_panel_balance.html:15
-#: templates/property/detail_panel_balance.html:41
-#: templates/property/report.html:45
-msgid "Apply"
-msgstr "Appliquer"
 
 #: templates/property/detail_panel_balance.html:30
 msgid "Last 1 year"
@@ -7197,7 +7259,7 @@ msgstr ""
 msgid "Computed bought value:"
 msgstr "Valeur d'achat calculée :"
 
-#: templates/property/scpi_investment_form.html:66
+#: templates/property/scpi_investment_form.html:67
 #, python-format
 msgid ""
 "\n"
