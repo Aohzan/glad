@@ -185,8 +185,8 @@ def test_calculate_monthly_payment_standard_french_amortization():
         annual_insurance_rate=None,
         duration_months=240,
     )
-    # Expected ~1159.97
-    assert abs(float(monthly_pi) - 1159.97) < 1.0
+    # M = C·i / (1 − (1 + i)^−n) = 1159.919… with i = 3.5 % / 12
+    assert monthly_pi == Decimal("1159.92")
     assert monthly_ins == Decimal(0)
     assert total == monthly_pi
 
