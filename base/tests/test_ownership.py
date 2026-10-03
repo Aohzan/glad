@@ -234,7 +234,7 @@ class TestViews:
 
         response = user_client.post(url, {"user": user.pk, "share": "40"})
         assert response.status_code == 302
-        response = user_client.post(url, {"user": user.pk, "share": "70"})
+        user_client.post(url, {"user": user.pk, "share": "70"})
         ownership = Ownership.objects.get(object_id=account.pk, user=user)
         assert ownership.share == Decimal(70)
         assert user_client.get(url).context["rows"][0]["ratio"] == 1

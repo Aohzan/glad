@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
@@ -18,9 +18,6 @@ from base.services.ownership import (
     plan_owners,
 )
 from base.widgets import BootstrapMoneyWidget, PeoplePicker
-
-if TYPE_CHECKING:
-    from django.forms import BaseForm, BaseModelForm
 
 
 class MoneyInputGroupMixin:
@@ -40,7 +37,7 @@ class MoneyInputGroupMixin:
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        form = cast("BaseForm", self)
+        form = cast(forms.BaseForm, self)
         for field in form.fields.values():
             if isinstance(field, MoneyField):
                 old_widget = field.widget
@@ -120,7 +117,7 @@ class OwnersFormMixin:
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        form = cast("BaseModelForm", self)
+        form = cast(forms.BaseModelForm, self)
         self.owner_rows = ownerships_of(form.instance) if form.instance.pk else []
         self.owners_plan = OwnersPlan()
         owners = PeopleField(
@@ -143,7 +140,7 @@ class OwnersFormMixin:
         form.fields = dict(fields)
 
     def clean_owners(self):
-        owners = cast("BaseModelForm", self).cleaned_data["owners"]
+        owners = cast(forms.BaseModelForm, self).cleaned_data["owners"]
         try:
             self.owners_plan = plan_owners(self.owner_rows, owners)
         except NoShareLeftError:
@@ -157,7 +154,7 @@ class OwnersFormMixin:
 
     def _save_m2m(self):
         super()._save_m2m()  # ty: ignore[unresolved-attribute]
-        apply_owners(cast("BaseModelForm", self).instance, self.owners_plan)
+        apply_owners(cast(forms.BaseModelForm, self).instance, self.owners_plan)
 
 
 class OwnershipForm(forms.ModelForm):
