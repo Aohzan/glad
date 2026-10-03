@@ -2,7 +2,7 @@
 <div class="col-md-6 col-xl-4">
   <div class="card shadow-sm rounded-4 h-100">
     <div class="card-header border-0 pb-0 d-flex justify-content-between align-items-center">
-      <h2 class="section-title mb-0"><i class="bi {{ icon }} me-2 text-primary"></i>{{ person.label }}</h2>
+      <h2 class="section-title mb-0">{% icon icon "me-2 text-primary" %}{{ person.label }}</h2>
       <span class="fw-bold">{{ person.total|format_money_amount:currency }}</span>
     </div>
     <div class="card-body">
@@ -18,7 +18,7 @@
         </tbody>
       </table>
       {% if person.unvalued %}
-      <div class="small text-warning mt-2"><i class="bi bi-exclamation-triangle me-1"></i>{% translate "Dismembered rights without date:" %} {{ person.unvalued|join:", " }}</div>
+      <div class="small text-warning mt-2">{% icon "triangle-alert" "me-1" %}{% translate "Dismembered rights without date:" %} {{ person.unvalued|join:", " }}</div>
       {% endif %}
     </div>
   </div>

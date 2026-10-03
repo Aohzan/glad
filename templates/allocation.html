@@ -10,14 +10,14 @@
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0 h3"><i class="bi bi-pie-chart me-2 text-primary"></i>{% translate "Allocation" %}</h1>
+    <h1 class="mb-0 h3">{% icon "chart-pie" "me-2 text-primary" %}{% translate "Allocation" %}</h1>
     <span class="text-body-secondary">{% translate "Total" %} <strong>{{ allocation.total|format_money_amount:allocation.currency }}</strong></span>
   </div>
 
   {# ── Emergency fund ── #}
   <div class="card shadow-sm rounded-4 mb-4" id="emergency-fund">
     <div class="card-header border-0 pb-0">
-      <h2 class="section-title mb-0"><i class="bi bi-life-preserver me-2 text-primary"></i>{% translate "Emergency fund" %}</h2>
+      <h2 class="section-title mb-0">{% icon "life-buoy" "me-2 text-primary" %}{% translate "Emergency fund" %}</h2>
     </div>
     <div class="card-body">
       <div class="row g-3 align-items-end">
@@ -54,11 +54,11 @@
   <div class="row g-4">
     <div class="col-lg-6">
       {% translate "By asset class" as class_title %}
-      {% include "_allocation_block.html" with title=class_title rows=by_class chart_id="chart-classes" icon="bi-diagram-3" %}
+      {% include "_allocation_block.html" with title=class_title rows=by_class chart_id="chart-classes" icon="network" %}
     </div>
     <div class="col-lg-6">
       {% translate "By liquidity" as liquidity_title %}
-      {% include "_allocation_block.html" with title=liquidity_title rows=by_liquidity chart_id="chart-liquidity" icon="bi-droplet" %}
+      {% include "_allocation_block.html" with title=liquidity_title rows=by_liquidity chart_id="chart-liquidity" icon="droplet" %}
     </div>
   </div>
   <p class="small text-body-secondary mt-3 mb-0">

@@ -6,11 +6,11 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <h1 class="mb-4"><i class="bi bi-gear me-2"></i>{% translate "Settings" %}</h1>
+        <h1 class="mb-4">{% icon "settings" "me-2" %}{% translate "Settings" %}</h1>
 
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-person me-2"></i>{% translate "Profile" %}</h5>
+                <h5 class="mb-0">{% icon "user" "me-2" %}{% translate "Profile" %}</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between gap-3">
@@ -28,7 +28,7 @@
                 </div>
                 <div class="d-flex justify-content-end mt-2">
                     <button id="email-save" class="btn btn-outline-primary btn-sm" type="button">
-                        <i class="bi bi-save me-2"></i>{% translate "Save" %}
+                        {% icon "save" "me-2" %}{% translate "Save" %}
                     </button>
                 </div>
                 <div id="email-status" class="mt-2 small" aria-live="polite"></div>
@@ -37,7 +37,7 @@
 
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-bell me-2"></i>{% translate "Notifications" %}</h5>
+                <h5 class="mb-0">{% icon "bell" "me-2" %}{% translate "Notifications" %}</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between gap-3">
@@ -58,7 +58,7 @@
 
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-broadcast me-2"></i>{% translate "Data" %}</h5>
+                <h5 class="mb-0">{% icon "radio" "me-2" %}{% translate "Data" %}</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between gap-3">
@@ -79,7 +79,7 @@
 
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>{% translate "Security" %}</h5>
+                <h5 class="mb-0">{% icon "shield" "me-2" %}{% translate "Security" %}</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between gap-3">
@@ -93,7 +93,7 @@
                 <button class="btn btn-outline-primary btn-sm mt-2" type="button" data-bs-toggle="collapse"
                     data-bs-target="#password-change" aria-expanded="{% if form.errors %}true{% else %}false{% endif %}"
                     aria-controls="password-change">
-                    <i class="bi bi-key me-2"></i>{% translate "Change Password" %}
+                    {% icon "key-round" "me-2" %}{% translate "Change Password" %}
                 </button>
                 <div class="collapse mt-3{% if form.errors %} show{% endif %}" id="password-change">
                     {% include "_form_non_field_errors.html" %}
@@ -104,7 +104,7 @@
                         {% include "_form_field.html" with field=form.new_password2 %}
                         <div class="d-grid">
                             <button type="submit" class="btn btn-outline-primary">
-                                <i class="bi bi-key me-2"></i>{% translate "Change Password" %}
+                                {% icon "key-round" "me-2" %}{% translate "Change Password" %}
                             </button>
                         </div>
                     </form>
@@ -117,15 +117,15 @@
                             {% translate "Register a passkey so you can log in with fingerprint or face recognition." %}
                         </p>
                         <p class="text-muted small mb-0">
-                            <i class="bi bi-info-circle me-1"></i>{% translate "You can replace your passkey at any time." %}
+                            {% icon "info" "me-1" %}{% translate "You can replace your passkey at any time." %}
                         </p>
                     </div>
                     <div class="d-flex flex-column gap-2 align-items-end">
                         <button id="passkey-register" class="btn btn-outline-primary btn-sm" type="button">
-                            <i class="bi bi-key me-2"></i>{% translate "Register passkey" %}
+                            {% icon "key-round" "me-2" %}{% translate "Register passkey" %}
                         </button>
                         <button id="passkey-delete" class="btn btn-outline-danger btn-sm" type="button">
-                            <i class="bi bi-trash me-2"></i>{% translate "Remove passkey" %}
+                            {% icon "trash" "me-2" %}{% translate "Remove passkey" %}
                         </button>
                     </div>
                 </div>
@@ -147,7 +147,7 @@
                 </div>
                 <div class="d-flex justify-content-end mt-2">
                     <button id="session-timeout-save" class="btn btn-outline-primary btn-sm" type="button">
-                        <i class="bi bi-save me-2"></i>{% translate "Save" %}
+                        {% icon "save" "me-2" %}{% translate "Save" %}
                     </button>
                 </div>
                 <div id="session-timeout-status" class="mt-2 small" aria-live="polite"></div>
