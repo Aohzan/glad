@@ -216,3 +216,19 @@ class TestSignalBypasses:
         value.refresh_from_db()
         assert value.value_date.year == 2023
         assert not NetWorthSnapshot.objects.exists()
+
+
+@pytest.mark.django_db
+def test_migration_drops_the_snapshots_computed_before_the_loan_schedules():
+    import importlib
+
+    from django.apps import apps
+
+    migration = importlib.import_module(
+        "base.migrations.0006_rebuild_net_worth_after_loan_schedules"
+    )
+    NetWorthSnapshot.objects.create(
+        month=datetime.date(2024, 1, 1), currency="EUR", properties_net=0
+    )
+    migration.drop_snapshots(apps, None)
+    assert not NetWorthSnapshot.objects.exists()
