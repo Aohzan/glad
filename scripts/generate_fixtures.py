@@ -147,7 +147,6 @@ def generate_investmentaccount() -> str:
     created_at: {dt(M84)}
     updated_at: {dt(RECENT)}
     account_type_id: 1
-    owner: Commun
     institution: TopBanque
     is_active: true
     is_favorite: true
@@ -816,7 +815,6 @@ def generate_investmentaccount() -> str:
     created_at: {dt(M60)}
     updated_at: {dt(RECENT)}
     account_type_id: 2
-    owner: Mister
     institution: SuperAssur
     is_active: true
     opening_date: {ds(M60)}
@@ -1319,7 +1317,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 2
     name: Livret A
-    owner: Mister
     institution: Crédit Apicole
     is_active: true
     opening_date: {ds(M60)}
@@ -1533,7 +1530,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 4
     name: LDDS
-    owner: Mister
     institution: Crédit Apicole
     is_active: true
     opening_date: {ds(M60)}
@@ -1636,7 +1632,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 2
     name: Livret A
-    owner: Madame
     institution: FortuneBank
     is_active: true
     opening_date: {ds(M48)}
@@ -1759,7 +1754,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 5
     name: PEL
-    owner: Commun
     institution: FortuneBank
     is_active: true
     opening_date: {ds(M72)}
@@ -1873,7 +1867,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 6
     name: CEL
-    owner: Commun
     institution: FortuneBank
     is_active: true
     opening_date: {ds(M36)}
@@ -3974,7 +3967,6 @@ def generate_otherasset() -> str:
     updated_at: {dt(RECENT)}
     name: Voiture familiale
     category: vehicle
-    owner: Commun
     acquisition_date: {ds(M36)}
     acquisition_value: 28000
     acquisition_value_currency: EUR
@@ -3995,7 +3987,6 @@ def generate_otherasset() -> str:
     updated_at: {dt(RECENT)}
     name: Napoléons 20 francs
     category: precious_metals
-    owner: Mister
     acquisition_date: {ds(M60)}
     acquisition_value: 3600
     acquisition_value_currency: EUR
@@ -4018,7 +4009,6 @@ def generate_otherasset() -> str:
     updated_at: {dt(RECENT)}
     name: Bitcoin
     category: crypto
-    owner: Madame
     acquisition_date: {ds(M24)}
     acquisition_value: 5000
     acquisition_value_currency: EUR
@@ -4032,13 +4022,86 @@ def generate_otherasset() -> str:
     updated_at: {dt(M12)}
     name: Ancienne moto
     category: vehicle
-    owner: Mister
     acquisition_date: {ds(M60)}
     acquisition_value: 9000
     acquisition_value_currency: EUR
     is_active: false
     sold_date: {ds(M12)}
 """
+
+
+# === Household: two adults and a child owning the assets ===
+
+MISTER, MADAME, CHILD = 101, 102, 103
+
+#: (app, model, object pk, user pk, share, right) — property 4 is left
+#: without owner, property 3 is half held outside the household.
+OWNERSHIPS = [
+    ("finance", "savingaccount", 1, MISTER, "100", "full"),
+    ("finance", "savingaccount", 2, MISTER, "100", "full"),
+    ("finance", "savingaccount", 3, MADAME, "100", "full"),
+    ("finance", "savingaccount", 4, MISTER, "50", "full"),
+    ("finance", "savingaccount", 4, MADAME, "50", "full"),
+    ("finance", "savingaccount", 5, MISTER, "50", "full"),
+    ("finance", "savingaccount", 5, MADAME, "50", "full"),
+    ("finance", "investmentaccount", 1, MISTER, "50", "full"),
+    ("finance", "investmentaccount", 1, MADAME, "50", "full"),
+    ("finance", "investmentaccount", 2, MISTER, "100", "full"),
+    ("finance", "otherasset", 1, MISTER, "50", "full"),
+    ("finance", "otherasset", 1, MADAME, "50", "full"),
+    ("finance", "otherasset", 2, MISTER, "100", "full"),
+    ("finance", "otherasset", 3, MADAME, "100", "full"),
+    ("finance", "otherasset", 4, MISTER, "100", "full"),
+    ("property", "property", 1, MISTER, "50", "full"),
+    ("property", "property", 1, MADAME, "50", "full"),
+    ("property", "property", 2, MADAME, "100", "usufruct"),
+    ("property", "property", 2, CHILD, "100", "bare"),
+    ("property", "property", 3, MISTER, "50", "full"),
+    ("property", "scpiinvestment", 1, MISTER, "100", "full"),
+    ("property", "scpiinvestment", 2, CHILD, "100", "full"),
+    ("property", "scpiinvestment", 3, MISTER, "50", "full"),
+    ("property", "scpiinvestment", 3, MADAME, "50", "full"),
+]
+
+
+def generate_household() -> str:
+    """Household members (a child among them) and the ownership of the assets."""
+    members = [
+        (MISTER, "mister", "Mister", "1985-03-12", "false"),
+        (MADAME, "madame", "Madame", "1987-06-20", "false"),
+        (CHILD, "child-lea", "Léa", "2018-09-01", "true"),
+    ]
+    out = ""
+    for pk, username, first_name, birth_date, child in members:
+        out += f"""- model: auth.user
+  pk: {pk}
+  fields:
+    username: {username}
+    first_name: {first_name}
+    password: "!"
+    is_active: true
+    date_joined: {dt(M24)}
+- model: accounts.userprofile
+  pk: {pk}
+  fields:
+    user: {pk}
+    birth_date: {birth_date}
+    is_child: {child}
+    notify_on_login: false
+"""
+    for pk, (app, model, object_id, user, share, right) in enumerate(OWNERSHIPS, 1):
+        out += f"""- model: base.ownership
+  pk: {pk}
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    content_type: [{app}, {model}]
+    object_id: {object_id}
+    user: {user}
+    share: "{share}"
+    right: {right}
+"""
+    return out
 
 
 def main() -> None:
@@ -4050,6 +4113,7 @@ def main() -> None:
     write_fixture("otherasset.yaml", generate_otherasset())
     write_fixture("scpi.yaml", generate_scpi())
     write_fixture("property.yaml", generate_property())
+    write_fixture("household.yaml", generate_household())
     print("Done.")
 
 
