@@ -17,7 +17,7 @@
     "simple-datatables": "^10.3.0"
   },
   "devDependencies": {
-    "jscpd": "4.3.0",
+    "jscpd": "5.3.2",
     "vendor-copy": "3.0.1"
   },
   "vendorCopy": [

@@ -1,5 +1,11 @@
 {
-  "format": "markup,javascript,css,python,django",
+  "format": [
+    "markup",
+    "javascript",
+    "css",
+    "python",
+    "django"
+  ],
   "formats-exts": {
     "django": "html"
   },
