@@ -262,32 +262,62 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             if duration:
                 self.fields["duration_months"].initial = duration
 
+    #: Fields the monthly payment is computed from.
+    PAYMENT_FIELDS = ("original_amount", "interest_rate", "duration_months")
+    #: Fields the monthly insurance is computed from.
+    INSURANCE_FIELDS = ("original_amount", "insurance_rate")
+
+    def _computed_from_changed(self, fields: tuple[str, ...]) -> bool:
+        """Whether a new loan is created or one of *fields* was edited.
+
+        An unchanged loan keeps its stored amounts, which may have been set
+        by hand (e.g. in the admin) to match the bank's offer.
+        """
+        return self.instance.pk is None or any(
+            name in self.changed_data for name in fields
+        )
+
     def clean(self):
         cleaned_data = super().clean() or {}
+        # An empty rate means no interest or no insurance (both columns are
+        # NOT NULL, so None cannot be saved).
+        for rate in ("interest_rate", "insurance_rate"):
+            if rate in cleaned_data and cleaned_data[rate] is None:
+                cleaned_data[rate] = Decimal(0)
         start_date = cleaned_data.get("start_date")
+        first_payment_date = cleaned_data.get("first_payment_date")
         duration_months = cleaned_data.get("duration_months")
         original_amount = cleaned_data.get("original_amount")
         interest_rate = cleaned_data.get("interest_rate")
         insurance_rate = cleaned_data.get("insurance_rate")
 
+        if start_date and first_payment_date and first_payment_date <= start_date:
+            self.add_error(
+                "first_payment_date",
+                _("The first payment date must be after the start date."),
+            )
+
         if start_date and duration_months:
             # Compute end_date from start_date + duration_months
             cleaned_data["end_date"] = add_months_safe(start_date, duration_months)
 
-        # Only auto-compute monthly_payment for standard (non-smoothed) loans
-        # i.e. when interest_rate is provided and no schedule exists yet
         if original_amount and interest_rate is not None and duration_months:
-            monthly_pi, monthly_ins, _ = calculate_monthly_payment(
+            monthly_pi, monthly_ins, _total = calculate_monthly_payment(
                 original_amount=original_amount.amount,
                 annual_interest_rate=interest_rate,
                 annual_insurance_rate=insurance_rate or Decimal(0),
                 duration_months=duration_months,
             )
             currency = str(original_amount.currency)
-            cleaned_data["monthly_payment"] = Money(monthly_pi, currency)
-            cleaned_data["insurance"] = (
-                Money(monthly_ins, currency) if insurance_rate else None
-            )
+            if (
+                self._computed_from_changed(self.PAYMENT_FIELDS)
+                or self.instance.monthly_payment is None
+            ):
+                cleaned_data["monthly_payment"] = Money(monthly_pi, currency)
+            if self._computed_from_changed(self.INSURANCE_FIELDS):
+                cleaned_data["insurance"] = (
+                    Money(monthly_ins, currency) if insurance_rate else None
+                )
 
         return cleaned_data
 
@@ -300,9 +330,6 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             instance.monthly_payment = self.cleaned_data["monthly_payment"]
         if "insurance" in self.cleaned_data:
             instance.insurance = self.cleaned_data["insurance"]
-        # insurance_rate defaults to 0 if not provided
-        if instance.insurance_rate is None:
-            instance.insurance_rate = Decimal(0)
         if commit:
             instance.save()
         return instance
