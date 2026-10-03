@@ -1,0 +1,28 @@
+{% load i18n %}
+{% with dpe=property.dpe_status %}
+{% if dpe %}
+<div class="mb-3" id="dpe-status">
+  <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Energy rating (DPE)" %}</p>
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <span class="badge fs-6 dpe-badge dpe-{{ dpe.rating|lower }}">{{ dpe.rating }}</span>
+    {% if dpe.expires_on %}
+    <span class="small {% if dpe.is_expired %}text-danger{% else %}text-body-secondary{% endif %}">
+      {% if dpe.is_expired %}{% blocktranslate with date=dpe.expires_on %}Expired on {{ date }}{% endblocktranslate %}{% else %}{% blocktranslate with date=dpe.expires_on %}Valid until {{ date }}{% endblocktranslate %}{% endif %}
+    </span>
+    {% endif %}
+  </div>
+  {% if dpe.level %}
+  <div class="alert alert-{{ dpe.level }} small py-2 px-3 mt-2 mb-0">
+    {% icon "triangle-alert" "me-1" %}
+    {% if dpe.is_banned %}
+      {% blocktranslate with date=dpe.ban_date rating=dpe.rating %}Housing rated {{ rating }} cannot be rented out as a main residence since {{ date }}.{% endblocktranslate %}
+    {% elif dpe.ban_date %}
+      {% blocktranslate with date=dpe.ban_date rating=dpe.rating %}Housing rated {{ rating }} can no longer be rented out as a main residence from {{ date }}.{% endblocktranslate %}
+    {% endif %}
+    {% if dpe.rent_frozen %}{% translate "The rent cannot be increased (no IRL revision)." %}{% endif %}
+    {% if dpe.is_expired %}{% translate "The DPE has expired: a new diagnosis is needed to sell or let." %}{% elif dpe.expires_soon %}{% translate "The DPE expires soon." %}{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endwith %}

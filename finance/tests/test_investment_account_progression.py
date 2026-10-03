@@ -26,7 +26,6 @@ class InvestmentAccountProgressionTestCase(TestCase):
         self.account = InvestmentAccount.objects.create(
             account_type=self.account_type,
             name="Test Investment Account",
-            owner="Test Owner",
             opening_cash_value=Money(1000, "EUR"),
             opening_date=datetime.date.today() - datetime.timedelta(days=60),
         )

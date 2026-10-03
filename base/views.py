@@ -3,17 +3,26 @@
 import datetime
 from typing import Any
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_not_required
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
-from django.views.generic import TemplateView
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _
+from django.views.decorators.http import require_POST
 
-from property.models import Property
-from property.models.scpi import SCPI
-from property.services.checks import pending_checks_summary
+from base.forms import MonthlyExpensesForm, PeopleFilterForm
+from base.models import EconomicIndex
+from base.services.allocation import (
+    EMERGENCY_FUND_MONTHS,
+    compute_allocation,
+    emergency_fund,
+)
+from base.services.insee import InseeError, refresh_index
 
 
 def get_object_or_redirect(
@@ -58,27 +67,84 @@ def safe_date_compare(date_obj, datetime_obj):
         return date_obj <= datetime_obj
 
 
-class IndexView(TemplateView):
-    """View for the index page — shells out to async API endpoints."""
+def allocation(request: HttpRequest) -> HttpResponse:
+    """Breakdown of the assets by class and liquidity, with the emergency fund.
 
-    template_name = "index.html"
-
-    def get(self, request, *args, **kwargs):
-        property_pks = list(
-            Property.objects.filter(is_active=True)
-            .order_by("-is_favorite", "name")
-            .values_list("pk", flat=True)
+    The breakdown covers the part of the assets held by the household members
+    chosen in the ``people`` parameter (all of them by default); the emergency
+    fund always covers the whole household, whose expenses it is sized on.
+    """
+    profile = request.user.profile  # ty: ignore[unresolved-attribute]
+    if request.method == "POST":
+        form = MonthlyExpensesForm(request.POST)
+        if form.is_valid():
+            profile.monthly_expenses = form.cleaned_data["monthly_expenses"]
+            profile.save(update_fields=["monthly_expenses"])
+            messages.success(request, _("Monthly expenses saved."))
+            return redirect("allocation")
+    else:
+        form = MonthlyExpensesForm(
+            initial={"monthly_expenses": profile.monthly_expenses}
         )
-        scpi_pks = list(SCPI.objects.order_by("name").values_list("pk", flat=True))
-        return render(
-            request,
-            self.template_name,
-            {
-                "property_pks": property_pks,
-                "scpi_pks": scpi_pks,
-                "property_checks": pending_checks_summary() if property_pks else None,
+    people_form = PeopleFilterForm(request.GET or None)
+    people = people_form.selected()
+    if people is None:
+        people_form = PeopleFilterForm(
+            initial={"people": list(people_form.fields["people"].queryset)}  # ty: ignore[unresolved-attribute]
+        )
+    household = compute_allocation(settings.DEFAULT_CURRENCY)
+    result = (
+        household
+        if people is None
+        else compute_allocation(settings.DEFAULT_CURRENCY, people)
+    )
+    by_class = result.by_asset_class()
+    by_liquidity = result.by_liquidity()
+    return render(
+        request,
+        "allocation.html",
+        {
+            "allocation": result,
+            "by_class": by_class,
+            "by_liquidity": by_liquidity,
+            "fund": emergency_fund(household, profile.monthly_expenses),
+            "household_total": household.total,
+            "people_form": people_form,
+            "is_household": people is None,
+            "fund_months": EMERGENCY_FUND_MONTHS,
+            "form": form,
+            "chart_data": {
+                "classes": {
+                    "labels": [r.label for r in by_class],
+                    "values": [float(r.amount) for r in by_class],
+                },
+                "liquidity": {
+                    "labels": [r.label for r in by_liquidity],
+                    "values": [float(r.amount) for r in by_liquidity],
+                },
             },
-        )
+        },
+    )
+
+
+@require_POST  # type: ignore
+def refresh_economic_indices(request: HttpRequest) -> HttpResponse:
+    """Download the latest INSEE index values, then go back to the ``next`` page."""
+    try:
+        for index in EconomicIndex:
+            refresh_index(index)
+    except InseeError:
+        messages.error(request, _("Could not download the INSEE indices."))
+    else:
+        messages.success(request, _("INSEE indices updated."))
+    next_url = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = reverse("index")
+    return redirect(next_url)
 
 
 @login_not_required
@@ -89,6 +155,18 @@ def favicon(request):
     says, and without this route every one of them raises a ``Resolver404``.
     """
     return redirect(staticfiles_storage.url("favicon.ico"), permanent=True)
+
+
+@login_not_required
+def apple_touch_icon(request):
+    """Redirect the root /apple-touch-icon*.png lookups to the static file.
+
+    iOS requests them when a page is added to the home screen, sometimes before
+    reading the ``<link rel="apple-touch-icon">`` of the page.
+    """
+    return redirect(
+        staticfiles_storage.url("icons/apple-touch-icon.png"), permanent=True
+    )
 
 
 @login_not_required

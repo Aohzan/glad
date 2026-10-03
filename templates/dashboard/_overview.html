@@ -1,0 +1,68 @@
+{% load i18n glad_format %}
+<section class="g-card g-card--hero g-hero" id="hero" data-currency="{{ currency }}">
+  <div class="g-hero__summary">
+    <div class="g-hero__head">
+      <span class="g-kpi__label">{% translate "Net worth" %}</span>
+      <span class="g-hero__value">{{ hero.net|money0:currency }}</span>
+      <span class="g-hero__change">
+        <span class="g-tag {% if hero.change_30d > 0 %}g-tag--pos{% elif hero.change_30d < 0 %}g-tag--neg{% endif %}">{{ hero.change_30d_pct|pct }}</span>
+        <span class="g-muted">{% blocktranslate with amount=hero.change_30d|signed_money0:currency %}{{ amount }} over 30 days{% endblocktranslate %}</span>
+      </span>
+    </div>
+    <dl class="g-hero__rows">
+      <div class="g-hero__row"><dt>{% translate "Gross assets" %}</dt><dd>{{ hero.gross|money0:currency }}</dd></div>
+      <div class="g-divider-fade"></div>
+      <div class="g-hero__row"><dt>{% translate "Property debts" %}</dt><dd>{% if hero.debt %}−{% endif %}{{ hero.debt|money0:currency }}</dd></div>
+      <div class="g-divider-fade"></div>
+      <div class="g-hero__row"><dt>{% translate "Change over 12 months" %}</dt><dd class="{{ hero.change_12m|tone }}">{% if hero.change_12m is None %}—{% else %}{{ hero.change_12m|signed_money0:currency }} · {{ hero.change_12m_pct|pct }}{% endif %}</dd></div>
+    </dl>
+    <div class="g-hero__ratio">
+      <div class="g-hero__ratio-head"><span>{% translate "Debt ratio" %}</span><strong>{{ hero.debt_ratio|share:0 }}</strong></div>
+      <span class="g-bar"><span style="width:{{ hero.debt_ratio|css_pct }}"></span></span>
+    </div>
+  </div>
+  <div class="g-hero__chart">
+    <div class="g-hero__chart-head">
+      <div class="g-legend">
+        <h2 class="g-h2">{% translate "Evolution" %}</h2>
+        <span class="g-legend__item"><span class="g-legend__line"></span>{% translate "Net" %}</span>
+        <button type="button" class="g-legend__item" id="chart-gross-toggle" aria-pressed="true"><span class="g-legend__line g-legend__line--dashed"></span>{% translate "Gross" %}</button>
+      </div>
+      <div class="g-seg" role="group" aria-label="{% translate 'Period' %}" id="chart-range">
+        <button type="button" class="g-seg__item is-active" data-range="1">{% translate "1Y" %}</button>
+        <button type="button" class="g-seg__item" data-range="2">{% translate "2Y" %}</button>
+        <button type="button" class="g-seg__item" data-range="5">{% translate "5Y" %}</button>
+        <button type="button" class="g-seg__item" data-range="10">{% translate "10Y" %}</button>
+      </div>
+    </div>
+    <div class="g-chart" id="chart-evolution" role="img" aria-label="{% translate 'Net worth evolution' %}"></div>
+  </div>
+</section>
+
+{% if groups %}
+<section class="g-card" id="allocation">
+  <div class="g-stacked" aria-hidden="true">{% for g in groups %}<span style="width:{{ g.share|css_pct }};--g-dot:var(--g-{{ g.asset_class.color }})"></span>{% endfor %}</div>
+  <div class="g-kpis">
+    <button type="button" class="g-kpi" data-g-filter-class="" aria-pressed="true">
+      <span class="g-kpi__label"><span class="g-dot"></span>{% translate "Total net" %}</span>
+      <span class="g-kpi__value">{{ hero.net|money0:currency }}</span>
+      <span class="g-kpi__sub"><span class="g-strong {{ hero.change_30d|tone }}">{{ hero.change_30d_pct|pct }}</span><span>{% translate "30 days" %}</span></span>
+    </button>
+    {% for g in groups %}
+    <button type="button" class="g-kpi" data-g-filter-class="{{ g.kind }}" aria-pressed="false">
+      <span class="g-kpi__label"><span class="g-dot" style="--g-dot:var(--g-{{ g.asset_class.color }})"></span>{{ g.asset_class.label }}</span>
+      <span class="g-kpi__value">{{ g.value|money0:currency }}</span>
+      <span class="g-kpi__sub"><span class="g-strong {{ g.change_pct|tone }}">{% if g.change_pct %}{{ g.change_pct|pct }}{% else %}{% translate "Stable" %}{% endif %}</span><span>{% blocktranslate with share=g.share|share %}{{ share }} of net{% endblocktranslate %}</span></span>
+    </button>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<div class="g-row">
+  {% include "dashboard/_registry.html" %}
+  <div class="g-col-side g-stack">
+    {% include "dashboard/_watch.html" %}
+    {% include "dashboard/_recent_operations.html" %}
+  </div>
+</div>

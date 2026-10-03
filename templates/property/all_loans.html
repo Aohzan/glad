@@ -13,10 +13,10 @@
   {# ── Header ───────────────────────────────────────────────────────────── #}
   <div class="d-flex align-items-center justify-content-between gap-3 mb-4 flex-wrap">
     <h1 class="h4 mb-0">
-      <i class="bi bi-bank me-2"></i>{% translate "All Loans" %}
+      {% icon "landmark" "me-2" %}{% translate "All Loans" %}
     </h1>
     <a href="?format=csv" class="btn btn-outline-secondary">
-      <i class="bi bi-file-earmark-arrow-down me-1"></i>{% translate "Export CSV" %}
+      {% icon "file-down" "me-1" %}{% translate "Export CSV" %}
     </a>
   </div>
 
@@ -28,7 +28,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-calendar-month me-1"></i>{% translate "Total mensuality" %}
+            {% icon "calendar" "me-1" %}{% translate "Total mensuality" %}
           </p>
           <p class="fs-4 fw-bold mb-0">{{ summary.total_mensuality|format_money }}</p>
         </div>
@@ -38,7 +38,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-cash-stack me-1"></i>{% translate "Total capital paid" %}
+            {% icon "banknote" "me-1" %}{% translate "Total capital paid" %}
           </p>
           <p class="fs-4 fw-bold mb-0">{{ summary.total_capital_paid|format_money }}</p>
         </div>
@@ -48,7 +48,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-percent me-1"></i>{% translate "Total interest paid" %}
+            {% icon "percent" "me-1" %}{% translate "Total interest paid" %}
           </p>
           <p class="fs-4 fw-bold mb-0">{{ summary.total_interest_paid|format_money }}</p>
         </div>
@@ -58,7 +58,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-shield-check me-1"></i>{% translate "Total insurance paid" %}
+            {% icon "shield-check" "me-1" %}{% translate "Total insurance paid" %}
           </p>
           <p class="fs-4 fw-bold mb-0">{{ summary.total_insurance_paid|format_money }}</p>
         </div>
@@ -68,7 +68,7 @@
       <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
         <div class="card-body py-3 px-4">
           <p class="text-uppercase text-warning small fw-semibold mb-1">
-            <i class="bi bi-hourglass-split me-1"></i>{% translate "Remaining to pay" %}
+            {% icon "hourglass" "me-1" %}{% translate "Remaining to pay" %}
           </p>
           <p class="fs-4 fw-bold mb-0 text-warning">{{ summary.total_remaining|format_money }}</p>
         </div>
@@ -79,7 +79,7 @@
   {# ── Loans amortization chart ── #}
   <div class="card mb-4">
     <div class="card-header py-2">
-      <h6 class="mb-0"><i class="bi bi-bar-chart-line me-1"></i>{% translate "Amortization schedule" %}</h6>
+      <h6 class="mb-0">{% icon "chart-column" "me-1" %}{% translate "Amortization schedule" %}</h6>
     </div>
     <div class="card-body p-2">
       <div id="loan-amortization-chart" style="height: 320px;"></div>
@@ -89,7 +89,7 @@
   {# ── Loans table ── #}
   <div class="card mb-3">
     <div class="card-header py-2">
-      <h6 class="mb-0"><i class="bi bi-table me-1"></i>{% translate "Loans" %}</h6>
+      <h6 class="mb-0">{% icon "table" "me-1" %}{% translate "Loans" %}</h6>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -114,12 +114,12 @@
             {% for item in loans_with_totals %}
             <tr>
               <td>
-                <a href="{% url 'property:detail' item.property.pk %}">{{ item.property.name }}</a>
+                <a href="{% url 'property:detail' item.loan.property.pk %}">{{ item.loan.property.name }}</a>
               </td>
               <td>
                 {{ item.loan.name|default:"—" }}
-                {% if item.loan.amortization_entries.exists %}
-                  <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;"><i class="bi bi-table"></i></span>
+                {% if item.has_table %}
+                  <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;">{% icon "table" %}</span>
                 {% endif %}
               </td>
               <td>{{ item.loan.lender|default:"—" }}</td>
@@ -127,10 +127,10 @@
               <td>{{ item.loan.end_date }}</td>
               <td class="text-end">{{ item.loan.original_amount|format_money }}</td>
               <td class="text-end">
-                {% if item.loan.monthly_payment %}
-                  {{ item.loan.monthly_payment|format_money }}
-                  {% if item.loan.insurance %}
-                    <span class="text-body-secondary small d-block">+ {{ item.loan.insurance|format_money }} {% translate "ins." %}</span>
+                {% if item.monthly_payment %}
+                  {{ item.monthly_payment|format_money }}
+                  {% if item.monthly_insurance %}
+                    <span class="text-body-secondary small d-block">+ {{ item.monthly_insurance|format_money }} {% translate "ins." %}</span>
                   {% endif %}
                 {% else %}—{% endif %}
               </td>
@@ -141,10 +141,10 @@
               <td class="text-end">{{ item.interest_paid|format_money }}</td>
               <td class="text-end">{{ item.insurance_paid|format_money }}</td>
               <td class="text-end fw-semibold">
-                {% if item.remaining_balance.amount == 0 %}
+                {% if item.loan.start_date > today %}
+                  <span class="text-body-secondary fw-normal">{% translate "Not disbursed yet" %}</span>
+                {% elif item.remaining_balance.amount == 0 %}
                   <span class="text-success">{{ item.remaining_balance|format_money }}</span>
-                {% elif item.loan.start_date > today %}
-                  <span class="text-danger">{{ item.remaining_balance|format_money }}</span>
                 {% else %}
                   <span class="text-warning">{{ item.remaining_balance|format_money }}</span>
                 {% endif %}
@@ -159,7 +159,7 @@
 
   {% else %}
   <div class="alert alert-info">
-    <i class="bi bi-info-circle me-1"></i>
+    {% icon "info" "me-1" %}
     {% translate "No loans found." %}
   </div>
   {% endif %}
@@ -169,98 +169,6 @@
 
 {% block scripts %}
 {% if loans_with_totals %}
-<script nonce="{{ csp_nonce }}">
-(function() {
-  var chartData = {{ loan_chart_data_json|safe }};
-  if (!chartData || !chartData.loans || chartData.loans.length === 0) return;
-
-  var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-
-  // Stacked bar series (one per loan)
-  var barSeries = chartData.loans.map(function(loan) {
-    return { name: loan.name, type: 'bar', data: loan.data };
-  });
-
-  // Line series for capital and interest totals
-  var lineSeries = [
-    { name: '{% filter escapejs %}{% translate "Total capital" %}{% endfilter %}', type: 'line', data: chartData.total_capital },
-    { name: '{% filter escapejs %}{% translate "Total interest" %}{% endfilter %}', type: 'line', data: chartData.total_interest },
-  ];
-
-  var allSeries = barSeries.concat(lineSeries);
-
-  var yaxis = [
-    {
-      seriesName: barSeries[0].name,
-      labels: { formatter: function(v) { return new Intl.NumberFormat('fr-FR', {style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v); } },
-    }
-  ];
-  for (var i = 1; i < barSeries.length; i++) {
-    yaxis.push({ seriesName: barSeries[0].name, show: false });
-  }
-  yaxis.push({ seriesName: '{% filter escapejs %}{% translate "Total capital" %}{% endfilter %}', show: false });
-  yaxis.push({ seriesName: '{% filter escapejs %}{% translate "Total interest" %}{% endfilter %}', show: false });
-
-  var options = {
-    series: allSeries,
-    chart: {
-      type: 'bar',
-      height: 320,
-      stacked: true,
-      toolbar: { show: false },
-      background: 'transparent',
-      animations: { enabled: false },
-    },
-    theme: { mode: isDark ? 'dark' : 'light' },
-    plotOptions: {
-      bar: { columnWidth: '70%' }
-    },
-    stroke: {
-      width: allSeries.map(function(s) { return s.type === 'line' ? 2 : 0; }),
-      curve: 'smooth',
-    },
-    markers: {
-      size: allSeries.map(function() { return 0; }),
-    },
-    xaxis: {
-      type: 'datetime',
-      labels: {
-        datetimeUTC: false,
-        format: 'MMM yy',
-      },
-    },
-    yaxis: yaxis,
-    legend: { position: 'top' },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      x: { format: 'MMM yyyy' },
-      y: {
-        formatter: function(v) {
-          return new Intl.NumberFormat('fr-FR', {style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
-        }
-      }
-    },
-    dataLabels: { enabled: false },
-    grid: { strokeDashArray: 4 },
-  };
-
-  var chartEl = document.querySelector('#loan-amortization-chart');
-  if (chartEl) {
-    var chart = new ApexCharts(chartEl, options);
-    chart.render();
-
-    window.updateChartsTheme = function(themeName) {
-      var dark = themeName === 'dark';
-      chart.updateOptions({
-        theme: { mode: dark ? 'dark' : 'light' },
-        chart: { background: 'transparent' },
-        tooltip: { theme: dark ? 'dark' : 'light' },
-        grid: { strokeDashArray: 4 },
-      });
-    };
-  }
-})();
-</script>
+{% include "property/_loan_chart.html" with chart_height=320 %}
 {% endif %}
 {% endblock %}

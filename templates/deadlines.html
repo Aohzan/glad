@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Deadlines" %}{% endblock %}
+{% block page_kicker %}{% translate "Tracking" %}{% endblock %}
+{% block page_title %}{% translate "Deadlines" %}{% endblock %}
+{% block page_description %}{% translate "Events to anticipate over the next 12 months" %}{% endblock %}
+
+{% block content %}
+<div class="g-stack g-deadlines">
+  {% regroup upcoming by month as months %}
+  {% for group in months %}
+  {% include "_deadline_group.html" with items=group.list %}
+  {% empty %}
+  <div class="g-card g-empty">{% translate "No deadline in the next 12 months." %}</div>
+  {% endfor %}
+  {% if past %}
+  {% translate "Past · last 30 days" as group_label %}
+  {% include "_deadline_group.html" with items=past label=group_label muted=True %}
+  {% endif %}
+</div>
+{% endblock %}

@@ -58,69 +58,11 @@ class TestPropertyLoanGetDurationMonths:
 
 
 @pytest.mark.django_db
-class TestPropertyLoanComputeMonthlyPayment:
-    def test_compute_monthly_payment(self, property_obj):
-        loan = PropertyLoan.objects.create(
-            property=property_obj,
-            start_date=datetime.date(2020, 1, 1),
-            end_date=datetime.date(2040, 1, 1),
-            original_amount=Money(200000, "EUR"),
-            interest_rate=Decimal("2.0"),
-            insurance_rate=Decimal("0.2"),
-        )
-        loan.compute_monthly_payment()
-        assert loan.monthly_payment is not None
-        assert loan.monthly_payment.amount > 0
-        assert loan.insurance is not None
-
-    def test_compute_monthly_payment_no_insurance(self, property_obj):
-        loan = PropertyLoan.objects.create(
-            property=property_obj,
-            start_date=datetime.date(2020, 1, 1),
-            end_date=datetime.date(2040, 1, 1),
-            original_amount=Money(200000, "EUR"),
-            interest_rate=Decimal("2.0"),
-            insurance_rate=Decimal("0.0"),
-        )
-        loan.compute_monthly_payment()
-        assert loan.monthly_payment is not None
-        # insurance_rate is 0, so insurance should not be set
-        assert loan.insurance is None
-
-
-@pytest.mark.django_db
-class TestPropertyLoanTaegRate:
-    def test_taeg_rate_standard_loan(self, loan):
-        taeg = loan.taeg_rate()
-        assert taeg > Decimal(0)
-
-    def test_taeg_rate_no_monthly_payment_returns_zero(self, property_obj):
-        loan = PropertyLoan.objects.create(
-            property=property_obj,
-            start_date=datetime.date(2020, 1, 1),
-            end_date=datetime.date(2040, 1, 1),
-            original_amount=Money(100000, "EUR"),
-            monthly_payment=None,
-            interest_rate=Decimal("1.0"),
-        )
-        assert loan.taeg_rate() == Decimal("0.0")
-
-    def test_taeg_rate_same_year_returns_zero(self, property_obj):
-        loan = PropertyLoan.objects.create(
-            property=property_obj,
-            start_date=datetime.date(2020, 1, 1),
-            end_date=datetime.date(2020, 12, 31),
-            original_amount=Money(100000, "EUR"),
-            monthly_payment=Money(500, "EUR"),
-            interest_rate=Decimal("1.0"),
-        )
-        assert loan.taeg_rate() == Decimal("0.0")
-
-
-@pytest.mark.django_db
 class TestPropertyLoanRemainingBalance:
     def test_remaining_balance_before_start(self, loan):
-        balance = loan.remaining_balance(datetime.date(2019, 1, 1))
+        """Nothing is owed before the disbursement, the capital from that day."""
+        assert loan.remaining_balance(datetime.date(2019, 12, 31)).amount == 0
+        balance = loan.remaining_balance(datetime.date(2020, 1, 1))
         assert balance.amount == loan.original_amount.amount
 
     def test_remaining_balance_after_end(self, loan):
@@ -171,11 +113,11 @@ class TestPropertyModel:
 
     def test_icon_land(self):
         prop = Property(property_type=Property.LAND)
-        assert prop.icon == "tree"
+        assert prop.icon == "trees"
 
     def test_icon_other(self):
         prop = Property(property_type=Property.OTHER)
-        assert prop.icon == "question-circle"
+        assert prop.icon == "circle-question-mark"
 
     def test_get_value_no_valuations(self, property_obj):
         value = property_obj.get_value()

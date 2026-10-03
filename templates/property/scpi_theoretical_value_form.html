@@ -17,7 +17,7 @@
     {% csrf_token %}
     <div class="card mb-3">
       <div class="card-header py-2">
-        <h6 class="mb-0"><i class="bi bi-building me-1"></i>{{ investment }}</h6>
+        <h6 class="mb-0">{% icon "building" "me-1" %}{{ investment }}</h6>
       </div>
       <div class="card-body">
         <div class="row g-3">
@@ -57,12 +57,12 @@
             <td>
               <div class="btn-group btn-group-sm">
                 <a href="{% url 'property:scpi_theoretical_value_edit' investment_pk=investment.pk value_pk=val.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
-                  <i class="bi bi-pencil"></i>
+                  {% icon "pencil" %}
                 </a>
                 <form method="post" action="{% url 'property:scpi_theoretical_value_delete' investment_pk=investment.pk value_pk=val.pk %}" class="d-inline">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-outline-danger" data-confirm="{% translate 'Delete this theoretical value?' %}">
-                    <i class="bi bi-trash"></i>
+                    {% icon "trash" %}
                   </button>
                 </form>
               </div>

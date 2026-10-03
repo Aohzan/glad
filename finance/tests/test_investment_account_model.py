@@ -46,13 +46,11 @@ def test_investment_account_str_name_matches_type_code(investment_account_type):
     account = InvestmentAccount.objects.create(
         account_type=investment_account_type,
         name=investment_account_type.code,  # e.g. "TIT"
-        owner="Bob",
         is_active=True,
         opening_cash_value=Money(Decimal(0), "EUR"),
     )
-    # name matches code → account_name = "TIT", then owner appended
-    assert investment_account_type.code in str(account)
-    assert "Bob" in str(account)
+    # name matches code → account_name = "TIT"
+    assert str(account) == investment_account_type.code
 
 
 @pytest.mark.django_db

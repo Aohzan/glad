@@ -23,7 +23,7 @@
         {# Terrains #}
         {% if agg.terrains.value_end %}
         <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-terrains" aria-expanded="false" style="cursor:pointer;"{% endif %}>
-          <td>Terrains{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td>Terrains{% if accounting.form_2033c.per_prop|length > 1 %} <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span>{% endif %}</td>
           <td class="text-end">{{ agg.terrains.value_start|floatformat:0 }} €</td>
           <td class="text-end text-success">{{ agg.terrains.acquisitions|floatformat:0 }} €</td>
           <td class="text-end text-danger">{{ agg.terrains.diminutions|floatformat:0 }} €</td>
@@ -53,7 +53,7 @@
         {# Constructions #}
         {% if agg.constructions.value_end %}
         <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-constructions" aria-expanded="false" style="cursor:pointer;"{% endif %}>
-          <td>Constructions{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td>Constructions{% if accounting.form_2033c.per_prop|length > 1 %} <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span>{% endif %}</td>
           <td class="text-end">{{ agg.constructions.value_start|floatformat:0 }} €</td>
           <td class="text-end text-success">{{ agg.constructions.acquisitions|floatformat:0 }} €</td>
           <td class="text-end text-danger">{{ agg.constructions.diminutions|floatformat:0 }} €</td>
@@ -83,7 +83,7 @@
         {# Installations #}
         {% if agg.installations.value_end %}
         <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-installations" aria-expanded="false" style="cursor:pointer;"{% endif %}>
-          <td>Installations générales, agencements{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td>Installations générales, agencements{% if accounting.form_2033c.per_prop|length > 1 %} <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span>{% endif %}</td>
           <td class="text-end">{{ agg.installations.value_start|floatformat:0 }} €</td>
           <td class="text-end text-success">{{ agg.installations.acquisitions|floatformat:0 }} €</td>
           <td class="text-end text-danger">{{ agg.installations.diminutions|floatformat:0 }} €</td>
@@ -113,7 +113,7 @@
         {# Autres #}
         {% if agg.autres.value_end %}
         <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ci-autres" aria-expanded="false" style="cursor:pointer;"{% endif %}>
-          <td>Autres immobilisations corporelles{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td>Autres immobilisations corporelles{% if accounting.form_2033c.per_prop|length > 1 %} <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span>{% endif %}</td>
           <td class="text-end">{{ agg.autres.value_start|floatformat:0 }} €</td>
           <td class="text-end text-success">{{ agg.autres.acquisitions|floatformat:0 }} €</td>
           <td class="text-end text-danger">{{ agg.autres.diminutions|floatformat:0 }} €</td>
@@ -175,7 +175,7 @@
         {# Terrains #}
         {% if agg.terrains.amort_end %}
         <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-terrains" aria-expanded="false" style="cursor:pointer;"{% endif %}>
-          <td>Terrains{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td>Terrains{% if accounting.form_2033c.per_prop|length > 1 %} <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span>{% endif %}</td>
           <td class="text-end text-body-secondary">{{ agg.terrains.amort_start|floatformat:0 }} €</td>
           <td class="text-end text-primary">{{ agg.terrains.dotation|floatformat:0 }} €</td>
           <td class="text-end text-danger">{{ agg.terrains.diminutions|floatformat:0 }} €</td>
@@ -205,7 +205,7 @@
         {# Constructions #}
         {% if agg.constructions.amort_end %}
         <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-constructions" aria-expanded="false" style="cursor:pointer;"{% endif %}>
-          <td>Constructions{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td>Constructions{% if accounting.form_2033c.per_prop|length > 1 %} <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span>{% endif %}</td>
           <td class="text-end text-body-secondary">{{ agg.constructions.amort_start|floatformat:0 }} €</td>
           <td class="text-end text-primary">{{ agg.constructions.dotation|floatformat:0 }} €</td>
           <td class="text-end text-danger">{{ agg.constructions.diminutions|floatformat:0 }} €</td>
@@ -235,7 +235,7 @@
         {# Installations #}
         {% if agg.installations.amort_end %}
         <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-installations" aria-expanded="false" style="cursor:pointer;"{% endif %}>
-          <td>Installations générales, agencements{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td>Installations générales, agencements{% if accounting.form_2033c.per_prop|length > 1 %} <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span>{% endif %}</td>
           <td class="text-end text-body-secondary">{{ agg.installations.amort_start|floatformat:0 }} €</td>
           <td class="text-end text-primary">{{ agg.installations.dotation|floatformat:0 }} €</td>
           <td class="text-end text-danger">{{ agg.installations.diminutions|floatformat:0 }} €</td>
@@ -265,7 +265,7 @@
         {# Autres #}
         {% if agg.autres.amort_end %}
         <tr {% if accounting.form_2033c.per_prop|length > 1 %}role="button" data-bs-toggle="collapse" data-bs-target="#ca-autres" aria-expanded="false" style="cursor:pointer;"{% endif %}>
-          <td>Autres immobilisations corporelles{% if accounting.form_2033c.per_prop|length > 1 %} <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i>{% endif %}</td>
+          <td>Autres immobilisations corporelles{% if accounting.form_2033c.per_prop|length > 1 %} <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span>{% endif %}</td>
           <td class="text-end text-body-secondary">{{ agg.autres.amort_start|floatformat:0 }} €</td>
           <td class="text-end text-primary">{{ agg.autres.dotation|floatformat:0 }} €</td>
           <td class="text-end text-danger">{{ agg.autres.diminutions|floatformat:0 }} €</td>
@@ -311,7 +311,7 @@
   {# ── III. Plus-values / Moins-values ── #}
   <h6 class="text-uppercase text-body-secondary small fw-semibold mb-2">III — Plus-values et moins-values</h6>
   <div class="alert alert-secondary py-2 small mb-4">
-    <i class="bi bi-dash-circle me-1"></i>
+    {% icon "circle-minus" "me-1" %}
     Aucune cession d'actif enregistrée pour cette année.
     Cette section se remplira automatiquement lors de la saisie d'une cession.
   </div>

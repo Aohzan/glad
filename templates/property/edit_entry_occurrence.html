@@ -8,7 +8,7 @@
 
   {% url 'property:detail' property.pk as back_url %}
   {% translate "Edit occurrence" as page_title %}
-  {% include "property/_edit_page_header.html" with back_url=back_url back_label=property.name page_title=page_title title_icon_class="bi-calendar-event" %}
+  {% include "property/_edit_page_header.html" with back_url=back_url back_label=property.name page_title=page_title title_icon="calendar-days" %}
 
   {# ── Occurrence info banner ──────────────────────────────────────────────── #}
   {% include "property/_occurrence_info_banner.html" with alert_class="alert-info" %}
@@ -28,7 +28,7 @@
     <div id="override-fields">
       <div class="card mb-3">
         <div class="card-header py-2">
-          <h6 class="mb-0"><i class="bi bi-pencil me-1"></i>{% translate "Overrides" %}</h6>
+          <h6 class="mb-0">{% icon "pencil" "me-1" %}{% translate "Overrides" %}</h6>
         </div>
         <div class="card-body">
           <p class="text-body-secondary small mb-3">
@@ -72,13 +72,13 @@
 
     {# ── Redirect notice (shown when scope=all) ──────────────────────────── #}
     <div id="redirect-notice" class="alert alert-warning d-none">
-      <i class="bi bi-arrow-right-circle me-1"></i>
+      {% icon "circle-arrow-right" "me-1" %}
       {% translate "You will be redirected to the full entry edit form." %}
     </div>
 
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-primary">
-        <i class="bi bi-check-lg me-1"></i>{% translate "Save" %}
+        {% icon "check" "me-1" %}{% translate "Save" %}
       </button>
       <a href="{% url 'property:detail' property.pk %}#cashflow-panel" class="btn btn-outline-secondary">
         {% translate "Cancel" %}

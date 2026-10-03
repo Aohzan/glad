@@ -10,7 +10,7 @@
 
   <div class="mb-3">
     <a href="{% url 'property:detail' property.pk %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>{% translate 'Back to property' %}
+      {% icon "arrow-left" "me-1" %}{% translate 'Back to property' %}
     </a>
   </div>
 
@@ -20,7 +20,7 @@
     </div>
     <div class="card-body">
       <div class="alert alert-info" role="alert">
-        <i class="bi bi-info-circle me-2"></i>
+        {% icon "info" "me-2" %}
         {% translate 'Upload a CSV file containing your transactions. You will be able to review the data before confirming the import.' %}
       </div>
 
@@ -31,7 +31,7 @@
 
         <div class="mt-4">
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-arrow-right me-1"></i>{% translate 'Next' %}
+            {% icon "arrow-right" "me-1" %}{% translate 'Next' %}
           </button>
         </div>
       </form>
@@ -92,7 +92,7 @@
       {% include "property/_valid_categories_table.html" with table_class="table table-sm table-bordered" value_header=value_header %}
 
       <div class="alert alert-warning mt-3" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
+        {% icon "triangle-alert" "me-2" %}
         {% translate 'The flow type (income or expense) is automatically determined by the sign of the amount. Income categories require a positive amount; expense categories require a negative amount.' %}
       </div>
     </div>

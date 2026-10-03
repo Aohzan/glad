@@ -3,13 +3,22 @@
 import datetime
 from typing import TYPE_CHECKING
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 if TYPE_CHECKING:
     from moneyed import Money
 
+from base.choices import Liquidity
 from base.models import BaseModel
+from finance.envelopes import (
+    CeilingUsage,
+    EnvelopeRule,
+    MilestoneStatus,
+    get_rule,
+    milestone_statuses,
+)
 from finance.utils import AccountProgression
 
 
@@ -52,23 +61,16 @@ class AbstractAccount(BaseModel):
 
     class Meta:
         abstract = True
-        ordering = ["account_type", "name", "owner", "institution"]
+        ordering = ["account_type", "name", "institution"]
         indexes = [
-            models.Index(fields=["account_type", "name", "owner", "institution"]),
+            models.Index(fields=["account_type", "name", "institution"]),
         ]
-        unique_together = ("account_type", "name", "owner", "institution")
 
     name = models.CharField(
         max_length=255,
         null=True,
         blank=True,
         help_text=_("Name of the account (optional)"),
-    )
-    owner = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text=_("Owner of the account (optional)"),
     )
     institution = models.CharField(
         max_length=255,
@@ -87,6 +89,7 @@ class AbstractAccount(BaseModel):
         ),
     )
     closing_date = models.DateField(null=True, blank=True)
+    ownerships = GenericRelation("base.Ownership")
 
     @property
     def current_value(self):
@@ -105,10 +108,8 @@ class AbstractAccount(BaseModel):
         return account_name + self._account_name_suffix()
 
     def _account_name_suffix(self) -> str:
-        """Return the owner / institution / closed suffix shared by all account __str__."""
+        """Return the institution / closed suffix shared by all account __str__."""
         suffix = ""
-        if self.owner:
-            suffix += f" {self.owner}"
         if self.institution:
             suffix += f" {_('at')} {self.institution}"
         if not self.is_active:
@@ -124,6 +125,47 @@ class AbstractAccount(BaseModel):
         ``opening_value``).
         """
         raise NotImplementedError  # pragma: no cover
+
+    @property
+    def envelope_rule(self) -> EnvelopeRule:
+        """Regulatory rules of the account envelope (ceiling, milestones…)."""
+        return get_rule(self.account_type.code)  # ty: ignore[unresolved-attribute]
+
+    @property
+    def liquidity(self) -> str:
+        """Liquidity level of the account envelope."""
+        return self.envelope_rule.liquidity
+
+    def get_liquidity_display(self) -> str:
+        """Human-readable liquidity level."""
+        return str(Liquidity(self.liquidity).label)
+
+    @property
+    def ceiling_usage(self) -> CeilingUsage | None:
+        """Deposits counted against the envelope ceiling, or None without ceiling.
+
+        The opening value counts as a deposit. Withdrawals (negative deposits)
+        free up room only for envelopes whose rule allows it.
+        """
+        from django.db.models import Q, Sum
+
+        rule = self.envelope_rule
+        if rule.deposit_ceiling is None:
+            return None
+        deposits = self.deposits  # ty: ignore[unresolved-attribute]
+        if not rule.withdrawals_free_ceiling:
+            deposits = deposits.filter(Q(amount__gt=0))
+        total = deposits.aggregate(total=Sum("amount"))["total"] or 0
+        return CeilingUsage(
+            ceiling=rule.deposit_ceiling,
+            contributed=self.opening_amount.amount + total,
+            currency=self.currency,  # ty: ignore[unresolved-attribute]
+        )
+
+    @property
+    def milestones(self) -> list[MilestoneStatus]:
+        """Tax and contractual milestones dated from the opening date."""
+        return milestone_statuses(self.envelope_rule, self.opening_date)
 
     def compute_capital_gain(self) -> tuple[Money, Money]:
         """Compute and return ``(total_deposits, capital_gain)`` as Money objects.

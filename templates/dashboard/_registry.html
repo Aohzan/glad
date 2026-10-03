@@ -1,0 +1,47 @@
+{% load i18n glad_format %}
+<section class="g-card g-col-main" id="registry" data-total="{{ hero.net|stringformat:'f' }}" data-currency="{{ currency }}">
+  <div class="g-section-head">
+    <div class="g-section-head__title">
+      <h2 class="g-h2" id="registry-title" data-default="{% translate 'Asset registry' %}">{% translate "Asset registry" %}</h2>
+      <span class="g-meta" id="registry-count" data-one="{% translate 'asset' %}" data-many="{% translate 'assets' %}">{% blocktranslate count counter=asset_count %}{{ counter }} asset{% plural %}{{ counter }} assets{% endblocktranslate %}</span>
+      <button type="button" class="g-link" id="registry-reset" hidden>{% translate "Reset" %}</button>
+    </div>
+    {% if holders|length > 1 %}
+    <div class="g-seg" role="group" aria-label="{% translate 'Holder' %}">
+      <button type="button" class="g-seg__item is-active" data-g-filter-holder="">{% translate "All" %}</button>
+      {% for holder in holders %}<button type="button" class="g-seg__item" data-g-filter-holder="{{ holder }}">{{ holder }}</button>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  <div class="g-table-wrap">
+    <div class="g-table" style="--g-cols: minmax(200px, 2.4fr) 110px 130px 84px 130px">
+      <div class="g-table__head"><span>{% translate "Asset" %}</span><span>{% translate "Holder" %}</span><span class="g-cell-end">{% translate "Value" %}</span><span class="g-cell-end">{% translate "30 d" %}</span><span class="g-cell-end">{% translate "Weight" %}</span></div>
+      {% for g in groups %}
+      <a class="g-table__group" href="{% url g.asset_class.url_name %}" data-g-group="{{ g.kind }}" data-label="{{ g.asset_class.label }}">
+        <span class="d-flex align-items-center gap-2 fw-semibold"><span class="g-dot" style="--g-dot:var(--g-{{ g.asset_class.color }})"></span>{{ g.asset_class.label }}<span class="g-meta fw-normal" data-g-count data-one="{% translate 'line' %}" data-many="{% translate 'lines' %}">{% blocktranslate count counter=g.rows|length %}{{ counter }} line{% plural %}{{ counter }} lines{% endblocktranslate %}</span></span>
+        <span></span>
+        <span class="g-cell-end fw-semibold" data-g-value>{{ g.value|money0:currency }}</span>
+        <span class="g-cell-end small fw-semibold {{ g.change_pct|tone }}" data-g-change>{{ g.change_pct|pct }}</span>
+        <span class="g-cell-end small g-muted" data-g-weight>{{ g.share|share }}</span>
+      </a>
+      {% for r in g.rows %}
+      <a class="g-table__row" href="{{ r.url }}" data-kind="{{ r.kind }}" data-holder="{{ r.holder }}" data-search="{{ r.name|lower }} {{ r.sub|lower }}" data-value="{{ r.value|stringformat:'f' }}" data-old="{{ r.old_value|stringformat:'f' }}">
+        <span class="g-cell-main"><span class="g-cell-title">{{ r.name }}</span>{% if r.sub %}<span class="g-cell-sub">{{ r.sub }}</span>{% endif %}</span>
+        <span class="g-muted text-truncate">{{ r.holder }}</span>
+        <span class="g-cell-end g-strong">{{ r.value|money0:currency }}</span>
+        <span class="g-cell-end {{ r.change_pct|tone }}">{{ r.change_pct|pct }}</span>
+        <span class="g-weight"><span class="g-bar g-bar--thin"><span style="width:{% if r.value > 0 %}{{ r.value|percent_of:max_value|css_pct:3 }}{% else %}0%{% endif %}"></span></span><span class="g-weight__pct">{{ r.value|percent_of:hero.net|share }}</span></span>
+      </a>
+      {% endfor %}
+      {% endfor %}
+      <div class="g-table__empty" id="registry-empty"{% if groups %} hidden{% endif %}>{% if groups %}{% translate "No asset matches these filters." %}{% else %}{% translate "No asset yet: add an account or a property to start." %}{% endif %}</div>
+      <div class="g-table__total">
+        <span>{% translate "Total" %}</span>
+        <span></span>
+        <span class="g-cell-end" id="registry-total">{{ hero.net|money0:currency }}</span>
+        <span class="g-cell-end small {{ hero.change_30d|tone }}" id="registry-change">{{ hero.change_30d_pct|pct }}</span>
+        <span class="g-cell-end small g-muted fw-normal" id="registry-weight">{% if hero.net %}{{ 100|share }}{% else %}—{% endif %}</span>
+      </div>
+    </div>
+  </div>
+</section>

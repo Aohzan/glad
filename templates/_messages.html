@@ -1,0 +1,10 @@
+{% if messages %}
+<div class="g-messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {% if message.tags == 'error' or message.tags == 'danger' %}{% icon "triangle-alert" %}{% elif message.tags == 'warning' %}{% icon "circle-alert" %}{% elif message.tags == 'success' %}{% icon "circle-check" %}{% elif message.tags == 'info' %}{% icon "info" %}{% else %}{% icon "message-circle" %}{% endif %}
+        <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

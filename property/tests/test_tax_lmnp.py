@@ -652,16 +652,65 @@ class TestAmortizationEntryFallbackForLoanInterest:
         # Should use the manual ledger entry (1200), not the amortization entry (437.50)
         assert totals["loan_interest"] == Decimal(1200)
 
-    def test_no_amortization_entries_defaults_to_zero(self):
-        """When no ledger entries and no amortization entries, loan_interest is absent/zero."""
+    def test_unfrozen_year_uses_the_computed_schedule(self):
+        """Without ledger entries nor table, the loan parameters give the interest."""
         from property.services.tax_lmnp import get_category_totals_for_year
 
-        prop = self._make_property("Zero Prop")
-        self._make_loan(prop)
+        prop = self._make_property("Computed Prop")
+        loan = self._make_loan(prop)
 
         totals = get_category_totals_for_year(prop.pk, 2022)
-        # No amortization entries → loan_interest not in totals (defaults to 0)
-        assert totals.get("loan_interest", Decimal(0)) == Decimal(0)
+        year = loan.schedule().paid_between(
+            datetime.date(2022, 1, 1), datetime.date(2022, 12, 31)
+        )
+        # The 12 installments of 2022 (the first one fell on 2020-03-01).
+        assert len([i for i in loan.schedule() if i.date.year == 2022]) == 12
+        assert totals["loan_interest"] == year.interest
+        assert year.interest > Decimal(4500)
+        assert "loan_insurance" not in totals
+
+    def test_frozen_year_keeps_the_tables_only(self):
+        """A filed (frozen) year keeps the rule it was declared with."""
+        from property.models import LmnpDeclarationSnapshot
+        from property.services.tax_lmnp import get_category_totals_for_year
+
+        prop = self._make_property("Frozen Prop")
+        loan = self._make_loan(prop)
+        loan.insurance = Money(30, "EUR")
+        loan.save()
+        snapshot = LmnpDeclarationSnapshot.objects.create(
+            fiscal_year=2022, rules_version="2022", data={}
+        )
+        snapshot.properties.add(prop)
+
+        totals = get_category_totals_for_year(prop.pk, 2022)
+        assert "loan_interest" not in totals
+        assert "loan_insurance" not in totals
+        # The next year is not frozen: the schedule fills it.
+        assert get_category_totals_for_year(prop.pk, 2023)["loan_insurance"] == (
+            Decimal(360)
+        )
+
+    def test_ledger_insurance_comes_first(self):
+        """A yearly insurance recorded in the ledger is not replaced."""
+        from property.services.tax_lmnp import get_category_totals_for_year
+
+        prop = self._make_property("Ledger Insurance Prop")
+        loan = self._make_loan(prop)
+        loan.insurance = Money(30, "EUR")
+        loan.save()
+        PropertyLedgerEntry.objects.create(
+            property=prop,
+            description="Borrower insurance",
+            flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+            management_category=PropertyLedgerEntry.ManagementCategory.LOAN_INSURANCE,
+            amount=Money(400, "EUR"),
+            entry_date=datetime.date(2022, 12, 31),
+        )
+
+        totals = get_category_totals_for_year(prop.pk, 2022)
+        assert totals["loan_insurance"] == Decimal(400)
+        assert totals["loan_interest"] > Decimal(0)
 
     def test_amortization_entries_outside_year_not_counted(self):
         """Only amortization entries within the requested year are summed."""

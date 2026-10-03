@@ -8,6 +8,7 @@ from django.urls import path
 
 from finance import views
 from finance.views.api_views import (
+    AccountBenchmarkApiView,
     AccountsSummaryApiView,
     HoldingAutofillApiView,
     HoldingLiveInfoApiView,
@@ -48,6 +49,11 @@ urlpatterns = [
         "api/investment/<int:account_pk>/holding/<int:holding_pk>/live-info/",
         HoldingLiveInfoApiView.as_view(),
         name="api_holding_live_info",
+    ),
+    path(
+        "api/investment/<int:pk>/benchmark/",
+        AccountBenchmarkApiView.as_view(),
+        name="api_investment_benchmark",
     ),
     path(
         "api/investments/live-change/",
@@ -95,6 +101,36 @@ urlpatterns = [
         "saving/<int:account_pk>/deposit/<int:deposit_pk>/delete/",
         views.delete_saving_deposit,
         name="delete_saving_deposit",
+    ),
+    # ─── Other assets ─────────────────────────────────────────────────────────
+    path("other/", views.other_asset_list, name="other_asset_list"),
+    path("other/new/", views.create_other_asset, name="new_other_asset"),
+    path("other/<int:pk>/", views.other_asset_detail, name="other_asset_detail"),
+    path("other/<int:pk>/edit/", views.edit_other_asset, name="edit_other_asset"),
+    path(
+        "other/<int:pk>/delete/",
+        cast(Callable[..., HttpResponseBase], views.delete_other_asset),
+        name="delete_other_asset",
+    ),
+    path(
+        "other/<int:pk>/price/",
+        cast(Callable[..., HttpResponseBase], views.update_other_asset_price),
+        name="update_other_asset_price",
+    ),
+    path(
+        "other/<int:asset_pk>/value/new/",
+        views.edit_other_asset_value,
+        name="new_other_asset_value",
+    ),
+    path(
+        "other/<int:asset_pk>/value/<int:value_pk>/edit/",
+        views.edit_other_asset_value,
+        name="edit_other_asset_value",
+    ),
+    path(
+        "other/<int:asset_pk>/value/<int:value_pk>/delete/",
+        views.delete_other_asset_value,
+        name="delete_other_asset_value",
     ),
     # ─── Investment accounts ──────────────────────────────────────────────────
     path("investment/new/", views.create_investment, name="new_investment"),
@@ -178,6 +214,16 @@ urlpatterns = [
         "investment/<int:account_pk>/holding/<int:holding_pk>/history/<int:history_pk>/delete/",
         views.delete_holding_history,
         name="delete_holding_history",
+    ),
+    path(
+        "investment/<int:account_pk>/holding/<int:holding_pk>/rate/new/",
+        cast(Callable[..., HttpResponseBase], views.add_euro_fund_rate),
+        name="add_euro_fund_rate",
+    ),
+    path(
+        "investment/<int:account_pk>/holding/<int:holding_pk>/rate/<int:rate_pk>/delete/",
+        cast(Callable[..., HttpResponseBase], views.delete_euro_fund_rate),
+        name="delete_euro_fund_rate",
     ),
     path(
         "investment/<int:account_pk>/holding/<int:holding_pk>/history/backfill/",

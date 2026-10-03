@@ -5,6 +5,9 @@
   {% translate "Edit" %} - {{ property.name }}
 {% endblock %}
 
+{% block breadcrumb_parents %}{% url 'property:detail' property.pk as url %}{% include "_crumb.html" with label=property.name %}{% endblock %}
+{% block breadcrumb %}{% translate "Edit" %}{% endblock %}
+
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -13,12 +16,12 @@
       <p class="text-body-secondary mb-0">{{ property.name }}</p>
     </div>
     <a href="{% url 'property:detail' property.pk %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> {% translate "Back" %}
+      {% icon "arrow-left" %} {% translate "Back" %}
     </a>
   </div>
 
   {% url 'property:detail' property.pk as cancel_url %}
   {% translate "Save Changes" as submit_label %}
-  {% include "property/_property_form_card.html" with cancel_url=cancel_url submit_label=submit_label submit_icon_class="bi-check-lg" %}
+  {% include "property/_property_form_card.html" with cancel_url=cancel_url submit_label=submit_label submit_icon="check" %}
 </div>
 {% endblock %}

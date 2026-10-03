@@ -9,12 +9,23 @@ always show relevant recent data on each database reset.
 import calendar
 import datetime
 import os
+import sys
+from decimal import Decimal
 
 TODAY = datetime.date.today()
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 FIXTURES_DIR = os.path.join(PROJECT_DIR, "tests", "fixtures")
 
+# The loan schedules come from the app's engine, so the fixtures stay consistent
+# with what the app computes (it does not need Django).
+sys.path.insert(0, PROJECT_DIR)
+from property.utils.loan_utils import (
+    Schedule,
+    build_schedule,
+    calculate_monthly_payment,
+    due_date,
+)
 
 # === Date helpers ===
 
@@ -109,21 +120,66 @@ M72 = months_ago(72)
 M84 = months_ago(84)
 M96 = months_ago(96)
 
-# Property loan first payment dates (≈ 1 month after disbursement)
-LOAN1_FIRST_PAYMENT = months_ago(95)
-LOAN2_FIRST_PAYMENT = months_ago(47)
+# Property loans: (capital, annual rate %, installments, disbursement, first payment).
+# Without a first payment date, the first installment falls one month after the
+# disbursement; loans 2A and 2B are debited on the 5th (a broken first period).
+LOAN2_FIRST_PAYMENT = months_ago(47).replace(day=5)
+LOAN1 = (Decimal(256000), Decimal("1.85"), 240, M96, None)
+LOAN2A = (Decimal(80000), Decimal("2.95"), 120, M48, LOAN2_FIRST_PAYMENT)
+LOAN2B = (Decimal(105000), Decimal("3.10"), 240, M48, LOAN2_FIRST_PAYMENT)
+LOAN3 = (Decimal(72000), Decimal("2.40"), 96, M48, months_ago(47))
+LOAN5 = (Decimal(30000), Decimal("3.90"), 180, M2, None)  # above the parking value
+LOAN6 = (Decimal(90000), Decimal("1.50"), 240, M84, None)  # repaid with the sale
 
-# Property loan end dates
-LOAN1_END = years_ahead(20, M96)  # Property 1 — 20-year loan started 8 years ago
-LOAN2A_END = years_ahead(
-    10, M48
-)  # Property 2 — smoothed 10-year loan started 4 years ago
-LOAN2B_END = years_ahead(
-    20, M48
-)  # Property 2 — smoothed 20-year loan started 4 years ago
-LOAN3_END = years_ahead(
-    8, M48
-)  # Property 3 — 8-year loan started 4 years ago (ends in ~4y)
+
+def loan_end(loan: tuple) -> datetime.date:
+    """Date of the last installment, the end date the loan form saves."""
+    _capital, _rate, count, start, first_payment = loan
+    return due_date(start, first_payment, count - 1)
+
+
+def loan_payment(loan: tuple) -> Decimal:
+    """Monthly annuity (principal and interest) the loan form saves."""
+    capital, rate, count, _start, _first_payment = loan
+    return calculate_monthly_payment(
+        original_amount=capital,
+        annual_interest_rate=rate,
+        annual_insurance_rate=None,
+        duration_months=count,
+    )[0]
+
+
+def loan_schedule(loan: tuple) -> Schedule:
+    capital, rate, count, start, first_payment = loan
+    return build_schedule(
+        capital=capital,
+        annual_rate=rate,
+        count=count,
+        disbursement_date=start,
+        first_payment_date=first_payment,
+    )
+
+
+def amortization_entries(first_pk: int, loan_pk: int, schedule: Schedule) -> str:
+    """YAML rows of a bank amortization table holding every installment."""
+    return "".join(
+        f"""- model: property.propertyloanamortizationentry
+  pk: {pk}
+  fields:
+    created_at: {dt(schedule.disbursement_date)}
+    updated_at: {dt(schedule.disbursement_date)}
+    loan: {loan_pk}
+    date: {ds(installment.date)}
+    capital: {installment.principal}
+    capital_currency: EUR
+    interest: {installment.interest}
+    interest_currency: EUR
+    remaining_balance_amount: {installment.balance}
+    remaining_balance_amount_currency: EUR
+"""
+        for pk, installment in enumerate(schedule, start=first_pk)
+    )
+
 
 # SCPI dismemberment end date
 SCPI3_RECO = years_ahead(10, M24)  # SCPI 3 bare ownership reconstitution in 10 years
@@ -147,13 +203,13 @@ def generate_investmentaccount() -> str:
     created_at: {dt(M84)}
     updated_at: {dt(RECENT)}
     account_type_id: 1
-    owner: Commun
     institution: TopBanque
     is_active: true
     is_favorite: true
     opening_date: {ds(M84)}
     opening_cash_value: 0
     opening_cash_value_currency: EUR
+    benchmark_symbol: CW8.PA
 # ── Holding 1: ETF MSCI World (profit +42%) ───────────────────────────────────
 - model: finance.investmentaccountholding
   pk: 1
@@ -162,6 +218,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF MSCI World
+    asset_class: equities
     code: WRLD
     isin: IE00B4L5Y983
     is_active: true
@@ -277,6 +334,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF S&P 500
+    asset_class: equities
     code: SP5
     is_active: true
     initial_quantity: 80
@@ -381,6 +439,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF Europe Stoxx 600
+    asset_class: equities
     code: EU6
     is_active: true
     initial_quantity: 150
@@ -455,6 +514,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF Nasdaq Tech
+    asset_class: equities
     code: NSDQ
     is_active: true
     initial_quantity: 50
@@ -529,6 +589,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF Énergie
+    asset_class: equities
     code: ENRG
     is_active: true
     initial_quantity: 100
@@ -583,6 +644,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 1
     name: ETF Obligations
+    asset_class: bonds
     code: OBLIG
     is_active: true
     initial_quantity: 200
@@ -809,7 +871,6 @@ def generate_investmentaccount() -> str:
     created_at: {dt(M60)}
     updated_at: {dt(RECENT)}
     account_type_id: 2
-    owner: Mister
     institution: SuperAssur
     is_active: true
     opening_date: {ds(M60)}
@@ -823,6 +884,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 2
     name: Fonds Euros
+    asset_class: euro_fund
     code: FE
     is_active: true
     initial_quantity: 1
@@ -907,6 +969,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 2
     name: UC Actions Monde
+    asset_class: equities
     code: ACM
     is_active: true
     initial_quantity: 100
@@ -981,6 +1044,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 2
     name: UC Immobilier
+    asset_class: real_estate
     code: IMM
     is_active: true
     initial_quantity: 50
@@ -1045,6 +1109,7 @@ def generate_investmentaccount() -> str:
     updated_at: {dt(RECENT)}
     account_id: 2
     name: UC Obligations
+    asset_class: bonds
     code: OBLU
     is_active: true
     initial_quantity: 200
@@ -1258,6 +1323,33 @@ def generate_investmentaccount() -> str:
     deposit_date: {ds(M12)}
     source: Virement bancaire
     update_account_cash: true
+- model: finance.eurofundrate
+  pk: 1
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    holding_id: 7
+    year: {TODAY.year - 3}
+    rate: "2.00"
+    notes: ""
+- model: finance.eurofundrate
+  pk: 2
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    holding_id: 7
+    year: {TODAY.year - 2}
+    rate: "2.60"
+    notes: "Bonus de 0,5 % avec 30 % d'UC"
+- model: finance.eurofundrate
+  pk: 3
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    holding_id: 7
+    year: {TODAY.year - 1}
+    rate: "2.50"
+    notes: ""
 """
 
 
@@ -1281,7 +1373,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 2
     name: Livret A
-    owner: Mister
     institution: Crédit Apicole
     is_active: true
     opening_date: {ds(M60)}
@@ -1495,7 +1586,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 4
     name: LDDS
-    owner: Mister
     institution: Crédit Apicole
     is_active: true
     opening_date: {ds(M60)}
@@ -1598,7 +1688,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 2
     name: Livret A
-    owner: Madame
     institution: FortuneBank
     is_active: true
     opening_date: {ds(M48)}
@@ -1721,7 +1810,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 5
     name: PEL
-    owner: Commun
     institution: FortuneBank
     is_active: true
     opening_date: {ds(M72)}
@@ -1835,7 +1923,6 @@ def generate_savingaccount() -> str:
     updated_at: {dt(RECENT)}
     account_type_id: 6
     name: CEL
-    owner: Commun
     institution: FortuneBank
     is_active: true
     opening_date: {ds(M36)}
@@ -2437,19 +2524,93 @@ def generate_scpi() -> str:
 """
 
 
+#: Published IRL values (quarter start → value), from INSEE series 001515333.
+IRL_VALUES = {
+    (2021, 2): "131.12",
+    (2021, 3): "131.67",
+    (2021, 4): "132.62",
+    (2022, 1): "133.93",
+    (2022, 2): "135.84",
+    (2022, 3): "136.27",
+    (2022, 4): "137.26",
+    (2023, 1): "138.61",
+    (2023, 2): "140.59",
+    (2023, 3): "141.03",
+    (2023, 4): "142.06",
+    (2024, 1): "143.46",
+    (2024, 2): "145.17",
+    (2024, 3): "144.51",
+    (2024, 4): "144.64",
+    (2025, 1): "145.47",
+    (2025, 2): "146.68",
+    (2025, 3): "145.77",
+    (2025, 4): "145.78",
+    (2026, 1): "146.6",
+    (2026, 2): "148.37",
+}
+
+
+#: January consumer price index (base 2025, excl. tobacco), series 011814056.
+CPI_VALUES = {
+    2020: "86.75",
+    2021: "87.0",
+    2022: "89.55",
+    2023: "95.03",
+    2024: "97.78",
+    2025: "99.32",
+    2026: "99.57",
+}
+
+
+def _index_row(pk: int, index: str, period: str, value: str) -> str:
+    return f"""- model: base.economicindexvalue
+  pk: {pk}
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    index: {index}
+    period: {period}
+    value: "{value}"
+"""
+
+
+def generate_irl_rows() -> str:
+    """Rows of the IRL and consumer price index history published by INSEE."""
+    rows = [
+        _index_row(pk, "irl", f"{year}-{(quarter - 1) * 3 + 1:02d}-01", value)
+        for pk, ((year, quarter), value) in enumerate(IRL_VALUES.items(), start=1)
+    ]
+    rows += [
+        _index_row(pk, "cpi", f"{year}-01-01", value)
+        for pk, (year, value) in enumerate(CPI_VALUES.items(), start=len(rows) + 1)
+    ]
+    return "".join(rows)
+
+
 def generate_property() -> str:
     """Generate property.yaml with dynamic dates.
 
     Properties:
-      1 - Résidence principale (HO): 1 standard 20-year loan, typical owner expenses
-      2 - Appartement locatif Nice (AP): 2 smoothed loans (prêt lisseur, 10y + 20y),
-          active lease, full rental transactions, LMNP réel tax regime with amortization
+      1 - Résidence principale (HO): 1 standard 20-year loan without first payment
+          date, typical owner expenses
+      2 - Appartement locatif Nice (AP): a 10-year loan with the bank's full
+          amortization table and a 20-year loan computed from its parameters, both
+          with a broken first period, active lease, full rental transactions, LMNP
+          réel tax regime with amortization
       3 - Studio meublé Lyon (AP): 1 short loan ending in ~4 years, active lease,
           rental transactions with tenant and lease, LMNP réel tax regime with amortization
       4 - Maison de campagne (HO): no loan, no lease, expenses + punctual Airbnb income
+      5 - Parking Bordeaux (OT): bought 2 months ago with a loan above its value
+          (negative equity)
+      6 - Studio vendu Toulouse (AP): sold a year ago, its loan repaid with the sale
     """
+    irl_rows = generate_irl_rows()
     return f"""# generated with scripts/generate_fixtures.py
 ---
+# ─────────────────────────────────────────────────────────────────────────────
+# INSEE indices: IRL (rent revision) and consumer prices (real returns)
+# ─────────────────────────────────────────────────────────────────────────────
+{irl_rows}
 # ─────────────────────────────────────────────────────────────────────────────
 # PROPERTY 1 — Résidence principale (House, bought 8 years ago)
 #   Loan: 1 standard 20-year mortgage
@@ -2489,6 +2650,8 @@ def generate_property() -> str:
     floor_area: "112.50"
     total_surface: "135.00"
     number_of_rooms: 5
+    dpe_rating: C
+    dpe_date: {ds(M60)}
     tax_regime: none
 - model: property.propertyvalue
   pk: 1
@@ -2517,7 +2680,7 @@ def generate_property() -> str:
     value: 375000.00
     valuation_date: {ds(RECENT)}
     source: dvf_estimate
-# Loan 1 — standard 20-year mortgage at 1.85 %
+# Loan 1 — standard 20-year mortgage at 1.85 %, no first payment date
 - model: property.propertyloan
   pk: 1
   fields:
@@ -2531,13 +2694,13 @@ def generate_property() -> str:
     interest_rate: "1.85"
     insurance_rate: "0.18"
     start_date: {ds(M96)}
-    end_date: {ds(LOAN1_END)}
-    monthly_payment: 1285.00
+    end_date: {ds(loan_end(LOAN1))}
+    monthly_payment: {loan_payment(LOAN1)}
     monthly_payment_currency: EUR
     insurance: 38.40
     insurance_currency: EUR
     bank_reference: "CA-2024-001234"
-    first_payment_date: {ds(LOAN1_FIRST_PAYMENT)}
+    first_payment_date: null
 # Transactions — Property 1
 - model: property.propertyledgerentry
   pk: 1
@@ -2611,7 +2774,8 @@ def generate_property() -> str:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PROPERTY 2 — Appartement locatif Nice (Apartment, bought 4 years ago)
-#   Loans: 2 smoothed loans (prêt lisseur) — 10-year + 20-year
+#   Loans: a 10-year loan with the bank's amortization table and a 20-year loan
+#   computed from its parameters, both debited on the 5th (broken first period)
 #   Lease: active furnished lease with tenant
 # ─────────────────────────────────────────────────────────────────────────────
 - model: property.property
@@ -2650,6 +2814,8 @@ def generate_property() -> str:
     floor_area: "42.00"
     total_surface: "55.00"
     number_of_rooms: 2
+    dpe_rating: D
+    dpe_date: {ds(M24)}
     coproperty_share: "250.00"
     shares_count: "1000.000000"
     tax_regime: lmnp_reel
@@ -2680,162 +2846,48 @@ def generate_property() -> str:
     value: 195000.00
     valuation_date: {ds(RECENT)}
     source: dvf_estimate
-# Loan 2A — smoothed 10-year
-#   Schedule total: 1×834.00 + 59×667.00 + 60×666.67 = 834.00 + 39353.00 + 40000.20 ≈ 80000
-#   Tranches: first month higher (setup fee), then two equal halves
-#   sum = 1×834 + 59×667 + 60×666.67 = 834 + 39353 + 40000.20 = 80187.20 → adjust last tranche
-#   Simpler: 1×800 + 119×666.39 + 1×600.59 = 800 + 79300.41 + 600.59 = 80701 → too high
-#   Use: 1×800.00 + 118×666.00 + 1×666.52 = 800 + 78588 + 666.52 = 80054.52 → close
-#   Exact: 1×800.00 + 118×666.00 + 1×612.00 = 800 + 78588 + 612 = 80000
+# Loan 2A — 10-year loan with the full amortization table printed by the bank
 - model: property.propertyloan
   pk: 2
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    name: Prêt lissé
+    name: Prêt amortissable
     lender: Crédit Mutuel
     original_amount: 80000
     original_amount_currency: EUR
     interest_rate: "2.95"
     insurance_rate: "0.00"
     start_date: {ds(M48)}
-    end_date: {ds(LOAN2A_END)}
-    monthly_payment: null
+    end_date: {ds(loan_end(LOAN2A))}
+    monthly_payment: {loan_payment(LOAN2A)}
     monthly_payment_currency: EUR
     insurance: null
     insurance_currency: EUR
     bank_reference: "CM-2024-005678"
     first_payment_date: {ds(LOAN2_FIRST_PAYMENT)}
-# Amortization entries — Loan 2A (80 000 EUR, 2.95 %, 120 months)
-- model: property.propertyloanamortizationentry
-  pk: 1
-  fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
-    loan: 2
-    date: {ds(M48)}
-    capital: 574.46
-    capital_currency: EUR
-    interest: 196.67
-    interest_currency: EUR
-    remaining_balance_amount: 79425.54
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 2
-  fields:
-    created_at: {dt(M47)}
-    updated_at: {dt(M47)}
-    loan: 2
-    date: {ds(M47)}
-    capital: 575.87
-    capital_currency: EUR
-    interest: 195.26
-    interest_currency: EUR
-    remaining_balance_amount: 78849.67
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 3
-  fields:
-    created_at: {dt(M12)}
-    updated_at: {dt(M12)}
-    loan: 2
-    date: {ds(M12)}
-    capital: 626.86
-    capital_currency: EUR
-    interest: 144.27
-    interest_currency: EUR
-    remaining_balance_amount: 58065.14
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 4
-  fields:
-    created_at: {dt(M1)}
-    updated_at: {dt(M1)}
-    loan: 2
-    date: {ds(M1)}
-    capital: 643.03
-    capital_currency: EUR
-    interest: 128.10
-    interest_currency: EUR
-    remaining_balance_amount: 51473.11
-    remaining_balance_amount_currency: EUR
-# Loan 2B — smoothed 20-year
-#   Schedule total: 1×1050.00 + 238×437.00 + 1×437.40 = 1050 + 103906 + 437.40 = 105393.40 → adjust
-#   Exact: 1×1050.00 + 238×437.00 + 1×44.00 = 1050 + 103906 + 44 = 105000
+{amortization_entries(1, 2, loan_schedule(LOAN2A))}# Loan 2B — 20-year loan computed from its parameters
 - model: property.propertyloan
   pk: 3
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    name: Prêt
+    name: Prêt complémentaire
     lender: Crédit Mutuel
     original_amount: 105000
     original_amount_currency: EUR
     interest_rate: "3.10"
     insurance_rate: "0.00"
     start_date: {ds(M48)}
-    end_date: {ds(LOAN2B_END)}
-    monthly_payment: null
+    end_date: {ds(loan_end(LOAN2B))}
+    monthly_payment: {loan_payment(LOAN2B)}
     monthly_payment_currency: EUR
     insurance: null
     insurance_currency: EUR
     bank_reference: "CM-2024-005679"
     first_payment_date: {ds(LOAN2_FIRST_PAYMENT)}
-# Amortization entries — Loan 2B (105 000 EUR, 3.10 %, 240 months)
-- model: property.propertyloanamortizationentry
-  pk: 5
-  fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
-    loan: 3
-    date: {ds(M48)}
-    capital: 316.42
-    capital_currency: EUR
-    interest: 271.25
-    interest_currency: EUR
-    remaining_balance_amount: 104683.58
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 6
-  fields:
-    created_at: {dt(M47)}
-    updated_at: {dt(M47)}
-    loan: 3
-    date: {ds(M47)}
-    capital: 317.24
-    capital_currency: EUR
-    interest: 270.43
-    interest_currency: EUR
-    remaining_balance_amount: 104366.34
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 7
-  fields:
-    created_at: {dt(M12)}
-    updated_at: {dt(M12)}
-    loan: 3
-    date: {ds(M12)}
-    capital: 347.05
-    capital_currency: EUR
-    interest: 240.62
-    interest_currency: EUR
-    remaining_balance_amount: 92806.95
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 8
-  fields:
-    created_at: {dt(M1)}
-    updated_at: {dt(M1)}
-    loan: 3
-    date: {ds(M1)}
-    capital: 356.07
-    capital_currency: EUR
-    interest: 231.60
-    interest_currency: EUR
-    remaining_balance_amount: 89277.93
-    remaining_balance_amount_currency: EUR
 # Lease 1 — Nice apartment (active furnished)
 - model: property.lease
   pk: 1
@@ -2859,6 +2911,8 @@ def generate_property() -> str:
     deposit_amount: 1500.00
     deposit_amount_currency: EUR
     periodicity: monthly
+    irl_reference_quarter: 2
+    irl_reference_value: "140.59"
     notes: "Bail meublé 1 an renouvelable"
 # Transactions — Property 2
 - model: property.propertyledgerentry
@@ -3060,6 +3114,8 @@ def generate_property() -> str:
     floor_area: "22.00"
     total_surface: "28.00"
     number_of_rooms: 1
+    dpe_rating: F
+    dpe_date: {ds(M36)}
     coproperty_share: "75.00"
     shares_count: "1000.000000"
     tax_regime: lmnp_reel
@@ -3095,13 +3151,13 @@ def generate_property() -> str:
     interest_rate: "2.40"
     insurance_rate: "0.22"
     start_date: {ds(M48)}
-    end_date: {ds(LOAN3_END)}
-    monthly_payment: 870.00
+    end_date: {ds(loan_end(LOAN3))}
+    monthly_payment: {loan_payment(LOAN3)}
     monthly_payment_currency: EUR
     insurance: 13.20
     insurance_currency: EUR
     bank_reference: "BNP-2024-009012"
-    first_payment_date: {ds(LOAN2_FIRST_PAYMENT)}
+    first_payment_date: {ds(LOAN3[4])}
 # Lease 2 — Lyon studio (active furnished)
 - model: property.lease
   pk: 2
@@ -3125,6 +3181,8 @@ def generate_property() -> str:
     deposit_amount: 1040.00
     deposit_amount_currency: EUR
     periodicity: monthly
+    irl_reference_quarter: 3
+    irl_reference_value: "142.06"
     notes: "Bail meublé étudiant"
 # Transactions — Property 3
 - model: property.propertyledgerentry
@@ -3288,6 +3346,8 @@ def generate_property() -> str:
     floor_area: "95.00"
     total_surface: "115.00"
     number_of_rooms: 4
+    dpe_rating: G
+    dpe_date: {ds(M60)}
     tax_regime: none
 - model: property.propertyvalue
   pk: 9
@@ -3842,7 +3902,261 @@ def generate_property() -> str:
     amount_override_currency: EUR
     description_override: null
     notes_override: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 5 — Parking Bordeaux (bought 2 months ago, financed at 110 %)
+#   Loan: above the value of the parking, a negative equity
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.property
+  pk: 5
+  fields:
+    created_at: {dt(M2)}
+    updated_at: {dt(RECENT)}
+    property_type: OT
+    name: Parking Bordeaux
+    street_name: cours de l'Intendance
+    postal_code: "33000"
+    city: Bordeaux
+    country: France
+    is_active: true
+    buying_value: 25000.00
+    buying_value_currency: EUR
+    notary_fees: 2500.00
+    notary_fees_currency: EUR
+    buying_date: {ds(M2)}
+    selling_value_currency: EUR
+    tax_regime: none
+- model: property.propertyvalue
+  pk: 12
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    property: 5
+    value: 24000.00
+    valuation_date: {ds(RECENT)}
+    source: manual
+- model: property.propertyloan
+  pk: 5
+  fields:
+    created_at: {dt(M2)}
+    updated_at: {dt(M2)}
+    property: 5
+    name: Prêt parking
+    lender: Boursorama
+    original_amount: 30000
+    original_amount_currency: EUR
+    interest_rate: "3.90"
+    insurance_rate: "0.30"
+    start_date: {ds(M2)}
+    end_date: {ds(loan_end(LOAN5))}
+    monthly_payment: {loan_payment(LOAN5)}
+    monthly_payment_currency: EUR
+    insurance: 7.50
+    insurance_currency: EUR
+    first_payment_date: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 6 — Studio vendu Toulouse (bought 7 years ago, sold a year ago)
+#   Loan: repaid with the sale, no installment after the selling date
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.property
+  pk: 6
+  fields:
+    created_at: {dt(M84)}
+    updated_at: {dt(M12)}
+    property_type: AP
+    name: Studio vendu Toulouse
+    street_name: rue du Taur
+    postal_code: "31000"
+    city: Toulouse
+    country: France
+    is_active: false
+    buying_value: 110000.00
+    buying_value_currency: EUR
+    notary_fees: 8500.00
+    notary_fees_currency: EUR
+    buying_date: {ds(M84)}
+    selling_date: {ds(M12)}
+    selling_value: 128000.00
+    selling_value_currency: EUR
+    tax_regime: none
+- model: property.propertyvalue
+  pk: 13
+  fields:
+    created_at: {dt(M84)}
+    updated_at: {dt(M84)}
+    property: 6
+    value: 110000.00
+    valuation_date: {ds(M84)}
+    source: manual
+- model: property.propertyloan
+  pk: 6
+  fields:
+    created_at: {dt(M84)}
+    updated_at: {dt(M84)}
+    property: 6
+    name: Prêt studio
+    lender: LCL
+    original_amount: 90000
+    original_amount_currency: EUR
+    interest_rate: "1.50"
+    insurance_rate: "0.00"
+    start_date: {ds(M84)}
+    end_date: {ds(loan_end(LOAN6))}
+    monthly_payment: {loan_payment(LOAN6)}
+    monthly_payment_currency: EUR
+    insurance: null
+    insurance_currency: EUR
+    first_payment_date: null
 """
+
+
+def generate_otherasset() -> str:
+    """Generate otherasset.yaml: a car, gold coins and bitcoins (with market symbol)."""
+    return f"""# generated with scripts/generate_fixtures.py
+---
+- model: finance.otherasset
+  pk: 1
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(RECENT)}
+    name: Voiture familiale
+    category: vehicle
+    acquisition_date: {ds(M36)}
+    acquisition_value: 28000
+    acquisition_value_currency: EUR
+    is_active: true
+- model: finance.otherassetvalue
+  pk: 1
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    asset_id: 1
+    value: 21000
+    value_currency: EUR
+    value_date: {ds(M12)}
+- model: finance.otherasset
+  pk: 2
+  fields:
+    created_at: {dt(M60)}
+    updated_at: {dt(RECENT)}
+    name: Napoléons 20 francs
+    category: precious_metals
+    acquisition_date: {ds(M60)}
+    acquisition_value: 3600
+    acquisition_value_currency: EUR
+    quantity: 10
+    is_active: true
+    notes: Pièces d'or conservées au coffre
+- model: finance.otherassetvalue
+  pk: 2
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    asset_id: 2
+    value: 5900
+    value_currency: EUR
+    value_date: {ds(M6)}
+- model: finance.otherasset
+  pk: 3
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(RECENT)}
+    name: Bitcoin
+    category: crypto
+    acquisition_date: {ds(M24)}
+    acquisition_value: 5000
+    acquisition_value_currency: EUR
+    quantity: 0.12
+    ticker: BTC-EUR
+    is_active: true
+- model: finance.otherasset
+  pk: 4
+  fields:
+    created_at: {dt(M60)}
+    updated_at: {dt(M12)}
+    name: Ancienne moto
+    category: vehicle
+    acquisition_date: {ds(M60)}
+    acquisition_value: 9000
+    acquisition_value_currency: EUR
+    is_active: false
+    sold_date: {ds(M12)}
+"""
+
+
+# === Household: two adults and a child owning the assets ===
+
+MISTER, MADAME, CHILD = 101, 102, 103
+
+#: (app, model, object pk, user pk, share, right) — property 4 is left
+#: without owner, property 3 is half held outside the household.
+OWNERSHIPS = [
+    ("finance", "savingaccount", 1, MISTER, "100", "full"),
+    ("finance", "savingaccount", 2, MISTER, "100", "full"),
+    ("finance", "savingaccount", 3, MADAME, "100", "full"),
+    ("finance", "savingaccount", 4, MISTER, "50", "full"),
+    ("finance", "savingaccount", 4, MADAME, "50", "full"),
+    ("finance", "savingaccount", 5, MISTER, "50", "full"),
+    ("finance", "savingaccount", 5, MADAME, "50", "full"),
+    ("finance", "investmentaccount", 1, MISTER, "50", "full"),
+    ("finance", "investmentaccount", 1, MADAME, "50", "full"),
+    ("finance", "investmentaccount", 2, MISTER, "100", "full"),
+    ("finance", "otherasset", 1, MISTER, "50", "full"),
+    ("finance", "otherasset", 1, MADAME, "50", "full"),
+    ("finance", "otherasset", 2, MISTER, "100", "full"),
+    ("finance", "otherasset", 3, MADAME, "100", "full"),
+    ("finance", "otherasset", 4, MISTER, "100", "full"),
+    ("property", "property", 1, MISTER, "50", "full"),
+    ("property", "property", 1, MADAME, "50", "full"),
+    ("property", "property", 2, MADAME, "100", "usufruct"),
+    ("property", "property", 2, CHILD, "100", "bare"),
+    ("property", "property", 3, MISTER, "50", "full"),
+    ("property", "scpiinvestment", 1, MISTER, "100", "full"),
+    ("property", "scpiinvestment", 2, CHILD, "100", "full"),
+    ("property", "scpiinvestment", 3, MISTER, "50", "full"),
+    ("property", "scpiinvestment", 3, MADAME, "50", "full"),
+]
+
+
+def generate_household() -> str:
+    """Household members (a child among them) and the ownership of the assets."""
+    members = [
+        (MISTER, "mister", "Mister", "1985-03-12", "false"),
+        (MADAME, "madame", "Madame", "1987-06-20", "false"),
+        (CHILD, "child-lea", "Léa", "2018-09-01", "true"),
+    ]
+    out = ""
+    for pk, username, first_name, birth_date, child in members:
+        out += f"""- model: auth.user
+  pk: {pk}
+  fields:
+    username: {username}
+    first_name: {first_name}
+    password: "!"
+    is_active: true
+    date_joined: {dt(M24)}
+- model: accounts.userprofile
+  pk: {pk}
+  fields:
+    user: {pk}
+    birth_date: {birth_date}
+    is_child: {child}
+    notify_on_login: false
+"""
+    for pk, (app, model, object_id, user, share, right) in enumerate(OWNERSHIPS, 1):
+        out += f"""- model: base.ownership
+  pk: {pk}
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    content_type: [{app}, {model}]
+    object_id: {object_id}
+    user: {user}
+    share: "{share}"
+    right: {right}
+"""
+    return out
 
 
 def main() -> None:
@@ -3851,8 +4165,10 @@ def main() -> None:
     os.makedirs(FIXTURES_DIR, exist_ok=True)
     write_fixture("investmentaccount.yaml", generate_investmentaccount())
     write_fixture("savingaccount.yaml", generate_savingaccount())
+    write_fixture("otherasset.yaml", generate_otherasset())
     write_fixture("scpi.yaml", generate_scpi())
     write_fixture("property.yaml", generate_property())
+    write_fixture("household.yaml", generate_household())
     print("Done.")
 
 

@@ -406,11 +406,10 @@ def test_build_balance_sheet_with_standard_loan():
 
 
 @pytest.mark.django_db
-def test_build_balance_sheet_skips_loan_without_payment():
-    """build_balance_sheet skips loans with no monthly_payment and not smoothed."""
+def test_build_balance_sheet_computes_a_missing_payment():
+    """A loan saved without a monthly payment is repaid by the annuity."""
     prop = _make_property()
-    # Loan with no monthly_payment and no schedule (not smoothed)
-    PropertyLoan.objects.create(
+    loan = PropertyLoan.objects.create(
         property=prop,
         name="Incomplete Loan",
         lender="Bank",
@@ -425,9 +424,14 @@ def test_build_balance_sheet_skips_loan_without_payment():
         datetime.date(2020, 1, 1),
         datetime.date(2020, 12, 31),
     )
-    # No payment data → no loan costs
-    assert result["total_loan_interest"] == Decimal(0)
-    assert result["total_loan_principal"] == Decimal(0)
+    # 71 installments from February 2020 to December 2025, 11 of them in 2020.
+    schedule = loan.schedule()
+    assert len(schedule) == 71
+    in_2020 = [i for i in schedule if i.date.year == 2020]
+    assert len(in_2020) == 11
+    assert result["total_loan_principal"] == sum(i.principal for i in in_2020)
+    assert result["total_loan_interest"] == sum(i.interest for i in in_2020)
+    assert result["total_loan_principal"] > Decimal(15000)
 
 
 @pytest.mark.django_db

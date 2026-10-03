@@ -61,6 +61,16 @@ Les catégories d'écritures (`ManagementCategory`) portent directement leur
 ligne cerfa ; le dépôt de garantie, le capital remboursé et le fonds travaux
 ALUR n'entrent pas dans le résultat.
 
+Intérêts d'emprunt (294) et assurance emprunteur (242) : les écritures du grand
+livre priment (par exemple l'attestation annuelle d'intérêts de la banque).
+Sans écriture pour l'année, l'échéancier du prêt les fournit : le tableau
+d'amortissement importé, ou, pour un exercice qui n'est pas encore figé,
+l'échéancier calculé à partir des paramètres du prêt
+(`_add_loan_schedule_costs`). Un exercice figé garde la règle avec laquelle il
+a été déclaré (intérêts des tableaux d'amortissement seulement), pour que les
+reports des années suivantes restent ceux des liasses déposées. La checklist
+signale les intérêts estimés à partir des paramètres du prêt.
+
 ## 3. Plafonnement de l'amortissement (article 39 C)
 
 L'amortissement d'un bien loué par une personne physique ne peut ni créer ni

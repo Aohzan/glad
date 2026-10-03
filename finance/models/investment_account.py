@@ -1,6 +1,7 @@
 """Models for investment accounts, account types, holdings, and deposits."""
 
 import datetime
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -9,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
+from base.choices import AssetClass
 from base.models import BaseModel
 from finance.models.base import AbstractAccount, AbstractAccountType
 from finance.utils import AccountProgression
@@ -31,6 +33,34 @@ class InvestmentAccountType(AbstractAccountType):
         return str(self.name)
 
 
+@dataclass(frozen=True)
+class EuroFundSplit:
+    """Split of a life insurance contract between euro funds and units of account."""
+
+    euro_funds: Money
+    units: Money
+    cash: Money
+
+    @property
+    def total(self) -> Money:
+        """Value of the contract."""
+        return self.euro_funds + self.units + self.cash
+
+    def _percent(self, part: Money) -> float:
+        total = self.total.amount
+        return float(part.amount / total * 100) if total else 0.0
+
+    @property
+    def euro_funds_percent(self) -> float:
+        """Share of the euro funds."""
+        return self._percent(self.euro_funds)
+
+    @property
+    def units_percent(self) -> float:
+        """Share of the units of account."""
+        return self._percent(self.units)
+
+
 class InvestmentAccount(AbstractAccount):
     """Investment account has a cash value and multiple holdings."""
 
@@ -50,6 +80,16 @@ class InvestmentAccount(AbstractAccount):
         default=Decimal(0),  # type: ignore[call-arg]
         null=False,
     )
+    benchmark_symbol = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        verbose_name=_("Benchmark"),
+        help_text=_(
+            "Yahoo Finance symbol or ISIN of an index fund quoted in the account "
+            "currency (e.g. CW8.PA for MSCI World), to compare the performance."
+        ),
+    )
 
     @property
     def currency(self) -> str:
@@ -60,6 +100,18 @@ class InvestmentAccount(AbstractAccount):
     def opening_amount(self) -> Money:
         """Return opening_cash_value as the canonical opening amount."""
         return self.opening_cash_value
+
+    def euro_fund_split(self) -> EuroFundSplit | None:
+        """Euro funds versus units of account, None without euro fund holding."""
+        holdings = list(self.investmentaccountholding_set.filter(is_active=True))  # ty: ignore[unresolved-attribute]
+        if not any(h.is_euro_fund for h in holdings):
+            return None
+        zero = Money(0, self.currency)
+        euro_funds = sum((h.value for h in holdings if h.is_euro_fund), zero)
+        units = sum((h.value for h in holdings if not h.is_euro_fund), zero)
+        return EuroFundSplit(
+            euro_funds=euro_funds, units=units, cash=self.current_cash_value
+        )
 
     @property
     def current_cash_value(self) -> Money:
@@ -218,6 +270,8 @@ class InvestmentAccountDeposit(BaseModel):
 class InvestmentAccountHolding(BaseModel):
     """Model representing the holding of an account."""
 
+    euro_fund_rates: RelatedManager[EuroFundRate]
+
     class Meta:
         verbose_name = _("holding of investment account")
         verbose_name_plural = _("holdings of investment accounts")
@@ -241,6 +295,14 @@ class InvestmentAccountHolding(BaseModel):
         null=True,
         blank=True,
         help_text=_("Issuer of the holding"),
+    )
+    asset_class = models.CharField(
+        max_length=20,
+        choices=AssetClass.choices,
+        blank=True,
+        default="",
+        verbose_name=_("Asset class"),
+        help_text=_("Main exposure of the holding, used for the allocation."),
     )
     is_active = models.BooleanField(default=True)
     initial_quantity = models.DecimalField(
@@ -323,6 +385,11 @@ class InvestmentAccountHolding(BaseModel):
             return holding_last_value.quantity
         return Decimal(str(self.initial_quantity)) if self.initial_quantity else None
 
+    @property
+    def is_euro_fund(self) -> bool:
+        """True for a life insurance euro fund."""
+        return self.asset_class == AssetClass.EURO_FUND
+
     def get_progression(self, days: int) -> AccountProgression:
         """Get the progression of the holding over a specific number of days."""
         x_days_ago = datetime.datetime.now() - datetime.timedelta(days=days)
@@ -400,3 +467,34 @@ class InvestmentAccountHoldingHistory(BaseModel):
     def total_value(self) -> Decimal:
         """Get the total value of the holding."""
         return self.value.amount * self.quantity
+
+
+class EuroFundRate(BaseModel):
+    """Yearly rate credited by a life insurance euro fund."""
+
+    class Meta:
+        verbose_name = _("euro fund rate")
+        verbose_name_plural = _("euro fund rates")
+        ordering = ["holding", "-year"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["holding", "year"], name="unique_euro_fund_rate_year"
+            ),
+        ]
+
+    holding = models.ForeignKey(
+        InvestmentAccountHolding,
+        related_name="euro_fund_rates",
+        on_delete=models.CASCADE,
+    )
+    year = models.PositiveSmallIntegerField(verbose_name=_("Year"))
+    rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        verbose_name=_("Credited rate (%)"),
+        help_text=_("Rate net of management fees, before social charges."),
+    )
+    notes = models.CharField(max_length=255, blank=True, verbose_name=_("Notes"))
+
+    def __str__(self) -> str:
+        return f"{self.holding} {self.year}: {self.rate}%"

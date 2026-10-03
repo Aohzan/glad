@@ -10,7 +10,7 @@
 
   <div class="mb-3">
     <a href="{% url 'property:csv_import' property.pk %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>{% translate 'Back' %}
+      {% icon "arrow-left" "me-1" %}{% translate 'Back' %}
     </a>
   </div>
 
@@ -21,7 +21,7 @@
     <div class="card-body">
 
       <div class="alert alert-info" role="alert">
-        <i class="bi bi-info-circle me-2"></i>
+        {% icon "info" "me-2" %}
         {% blocktranslate with total=total_rows %}
           <strong>{{ total }}</strong> row(s) detected. Preview of the first rows below.
         {% endblocktranslate %}
@@ -34,10 +34,10 @@
         {% csrf_token %}
         <div class="d-flex gap-2">
           <a href="{% url 'property:detail' property.pk %}" class="btn btn-secondary">
-            <i class="bi bi-x-circle me-1"></i>{% translate 'Cancel' %}
+            {% icon "circle-x" "me-1" %}{% translate 'Cancel' %}
           </a>
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-circle me-1"></i>{% translate 'Import data' %}
+            {% icon "circle-check" "me-1" %}{% translate 'Import data' %}
           </button>
         </div>
       </form>

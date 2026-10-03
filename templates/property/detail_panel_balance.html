@@ -1,14 +1,14 @@
 {% load i18n format_money %}
 {# ── Date range picker https://github.com/Wernfried/daterangepicker #}
 <div class="d-flex justify-content-end gap-2 mb-3">
-  <form method="get" class="d-flex gap-2 align-items-right flex-wrap" id="bsRangeForm">
+  <form method="get" action="#balance-panel" class="d-flex gap-2 align-items-right flex-wrap" id="bsRangeForm">
     {% if request.GET.growth_rate %}<input type="hidden" name="growth_rate" value="{{ request.GET.growth_rate }}">{% endif %}
     <input type="hidden" name="start_date" id="bs_start_date" value="{{ bs_date_from|date:'Y-m-d' }}">
     <input type="hidden" name="end_date"   id="bs_end_date"   value="{{ bs_date_to|date:'Y-m-d' }}">
 
     <label class="form-label mb-0 align-self-center" for="bs_daterange_picker">{% translate "Period" %}</label>
     <div class="input-group input-group-sm" style="width:auto;">
-      <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+      <span class="input-group-text">{% icon "calendar" %}</span>
       <input type="text" id="bs_daterange_picker" class="form-control form-control-sm" style="min-width:220px;" readonly>
     </div>
 
@@ -63,15 +63,15 @@
 
   {% translate "Income" as income_title %}
   {% translate "No income in this period." as no_income_msg %}
-  {% include "property/_balance_section_card.html" with card_header_bg="bg-success-subtle" header_text_class="text-success-emphasis" header_icon="bi-arrow-down-circle" section_title=income_title section_rows=balance_sheet.income_rows section_total=balance_sheet.total_income empty_message=no_income_msg show_occupancy_rate=True %}
+  {% include "property/_balance_section_card.html" with card_header_bg="bg-success-subtle" header_text_class="text-success-emphasis" header_icon="circle-arrow-down" section_title=income_title section_rows=balance_sheet.income_rows section_total=balance_sheet.total_income empty_message=no_income_msg show_occupancy_rate=True %}
 
   {% translate "Expenses" as expenses_title %}
   {% translate "No expenses in this period." as no_expenses_msg %}
-  {% include "property/_balance_section_card.html" with card_header_bg="bg-danger-subtle" header_text_class="text-danger-emphasis" header_icon="bi-arrow-up-circle" section_title=expenses_title section_rows=balance_sheet.expense_rows section_total=balance_sheet.total_expenses empty_message=no_expenses_msg %}
+  {% include "property/_balance_section_card.html" with card_header_bg="bg-danger-subtle" header_text_class="text-danger-emphasis" header_icon="circle-arrow-up" section_title=expenses_title section_rows=balance_sheet.expense_rows section_total=balance_sheet.total_expenses empty_message=no_expenses_msg %}
 
   {% translate "Loan costs" as loan_costs_title %}
   {% translate "No loan costs in this period." as no_loan_costs_msg %}
-  {% include "property/_balance_section_card.html" with card_header_bg="bg-warning-subtle" header_text_class="text-warning-emphasis" header_icon="bi-bank" section_title=loan_costs_title section_rows=balance_sheet.loan_rows section_total=balance_sheet.total_loan_costs empty_message=no_loan_costs_msg %}
+  {% include "property/_balance_section_card.html" with card_header_bg="bg-warning-subtle" header_text_class="text-warning-emphasis" header_icon="landmark" section_title=loan_costs_title section_rows=balance_sheet.loan_rows section_total=balance_sheet.total_loan_costs empty_message=no_loan_costs_msg %}
 
 </div><!-- end .row breakdown -->
 

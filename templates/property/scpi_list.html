@@ -1,207 +1,64 @@
 {% extends "base.html" %}
-{% load i18n format_money static %}
+{% load i18n format_money glad_format %}
 
 {% block title %}{% translate "SCPI Investments" %}{% endblock %}
-
-{% block extra_head %}
-  <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
+{% block page_kicker %}{% translate "Wealth" %}{% endblock %}
+{% block page_title %}{% translate "SCPI" %}{% endblock %}
+{% block page_description %}{% translate "Shares of real estate investment companies" %}{% endblock %}
+{% block page_actions %}
+<a href="{% url 'property:scpi_dividend_batch' %}" class="btn btn-outline-secondary">{% icon "banknote" %}{% translate "Batch dividends" %}</a>
+<a href="{% url 'property:scpi_new' %}" class="btn btn-primary">{% icon "plus" %}{% translate "Add SCPI" %}</a>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="g-stack">
 
-  {# ── Header ──────────────────────────────────────────────────────────────── #}
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0"><i class="bi bi-building-check me-2 text-primary"></i>{% translate "SCPI" %}</h1>
-    <div class="d-flex gap-2">
-      <a href="{% url 'property:scpi_dividend_batch' %}" class="btn btn-outline-secondary">
-        <i class="bi bi-cash-stack me-1"></i>{% translate "Batch dividends" %}
-      </a>
-      <a href="{% url 'property:scpi_new' %}" class="btn btn-outline-secondary">
-        <i class="bi bi-building me-1"></i>{% translate "Add SCPI" %}
-      </a>
+  <section class="g-card g-kpis">
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Total invested" %}</span>
+      <span class="g-kpi__value">{{ global_total_invested|money0|default:"—" }}</span>
+      <span class="g-kpi__sub">{% blocktranslate count counter=fund_data|length %}{{ counter }} SCPI{% plural %}{{ counter }} SCPI{% endblocktranslate %}</span>
     </div>
-  </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Estimated resale" %}</span>
+      <span class="g-kpi__value">{{ global_total_resale|money0|default:"—" }}</span>
+      <span class="g-kpi__sub {{ global_gain_pct|tone }}">{% if global_gain_pct is not None %}{% blocktranslate with gain=global_gain_pct|pct %}{{ gain }} vs invested{% endblocktranslate %}{% endif %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Total dividends" %}</span>
+      <span class="g-kpi__value">{{ global_total_dividends|money0|default:"—" }}</span>
+      <span class="g-kpi__sub">{% translate "Since subscription" %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Avg. net yield" %}</span>
+      <span class="g-kpi__value">{{ global_net_rentability|share:2 }}</span>
+      <span class="g-kpi__sub">{% translate "Last 12 months / invested" %}</span>
+    </div>
+  </section>
 
-  {# ── KPI strip ───────────────────────────────────────────────────────────── #}
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
-        <div class="card-body py-3 px-4">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-cash-coin me-1"></i>{% translate "Total invested" %}
-          </p>
-          <p class="fs-4 fw-bold mb-0">{{ global_total_invested|format_money|default:"—" }}</p>
-        </div>
-      </div>
+  <section class="g-card" id="scpi-positions">
+    <div class="g-section-head">
+      <h2 class="g-h2">{% translate "Positions" %}</h2>
+      <span class="g-meta">{% translate "Net yield over the last 12 months" %}</span>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
-        <div class="card-body py-3 px-4">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-tag me-1"></i>{% translate "Estimated resale" %}
-          </p>
-          <p class="fs-4 fw-bold mb-0">{{ global_total_resale|format_money|default:"—" }}</p>
-          {% if global_gain_pct is not None %}
-          <p class="small mb-0 {% if global_gain_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
-            {% if global_gain_pct >= 0 %}+{% endif %}{{ global_gain_pct }}%
-          </p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
-        <div class="card-body py-3 px-4">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-cash-stack me-1"></i>{% translate "Total dividends" %}
-          </p>
-          <p class="fs-4 fw-bold mb-0">{{ global_total_dividends|format_money|default:"—" }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
-        <div class="card-body py-3 px-4">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-percent me-1"></i>{% translate "Avg. net yield" %}
-          </p>
-          <p class="fs-4 fw-bold mb-0">{{ global_net_rentability }}%</p>
-          <p class="small text-body-secondary mb-0">{% translate "Last 12 months / invested" %}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {# ── Fund cards ──────────────────────────────────────────────────────────── #}
-  {% for item in fund_data %}
-  {% with fund=item.fund %}
-  <div class="card shadow-sm rounded-4 mb-4">
-    <div class="card-header border-0 d-flex justify-content-between align-items-center">
-      <div>
-        <i class="bi bi-building me-2 text-primary"></i>{{ fund }}
-        {% if fund.management_company %}
-        <span class="text-body-secondary small ms-2">{{ fund.management_company }}</span>
-        {% endif %}
-      </div>
-      <div class="d-flex gap-2 align-items-center">
-        <a href="{% url 'property:scpi_fund_detail' scpi_pk=fund.pk %}" class="text-decoration-none btn btn-sm btn-outline-secondary">
-          <i class="bi bi-eye me-1"></i>{% translate "View" %}
+    <div class="g-table-wrap">
+      <div class="g-table" style="--g-cols: minmax(200px, 2fr) 120px 160px 120px 100px 130px; --g-table-min: 860px">
+        <div class="g-table__head"><span>{% translate "SCPI" %}</span><span class="g-cell-end">{% translate "Invested" %}</span><span class="g-cell-end">{% translate "Estimated resale" %}</span><span class="g-cell-end">{% translate "Dividends" %}</span><span class="g-cell-end">{% translate "Net yield" %}</span><span class="g-cell-end">{% translate "Growth / year" %}</span></div>
+        {% for item in fund_data %}
+        <a class="g-table__row" href="{% url 'property:scpi_fund_detail' scpi_pk=item.fund.pk %}">
+          <span class="g-cell-main"><span class="g-cell-title">{{ item.fund }}</span>{% if item.fund.management_company %}<span class="g-cell-sub">{{ item.fund.management_company }}</span>{% endif %}</span>
+          <span class="g-cell-end g-muted">{{ item.total_invested|money0|default:"—" }}</span>
+          <span class="g-cell-stack-end"><span class="g-strong">{{ item.total_resale|money0|default:"—" }}</span>{% if item.gain_pct is not None %}<span class="g-meta {{ item.gain_pct|tone }}">{% blocktranslate with gain=item.gain_pct|pct %}{{ gain }} vs invested{% endblocktranslate %}</span>{% endif %}</span>
+          <span class="g-cell-end">{% if item.total_dividends.amount %}{{ item.total_dividends|money0 }}{% else %}—{% endif %}</span>
+          <span class="g-cell-end">{{ item.net_rentability|share:2 }}</span>
+          <span class="g-cell-end g-strong {{ item.growth_rentability|tone }}">{{ item.growth_rentability|pct }}</span>
         </a>
+        {% empty %}
+        <div class="g-table__empty">{% translate "No SCPI funds yet." %} <a href="{% url 'property:scpi_new' %}">{% translate "Add your first SCPI fund." %}</a></div>
+        {% endfor %}
       </div>
     </div>
-
-    {# ── Fund KPIs ──────────────────────────────────────────────────────────── #}
-    <div class="card-body border-bottom">
-      <div class="row g-3">
-        <div class="col-6 col-md-3">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Total invested" %}</p>
-          <p class="fs-5 fw-bold mb-0">{{ item.total_invested|format_money|default:"—" }}</p>
-        </div>
-        <div class="col-6 col-md-3">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Estimated resale" %}</p>
-          <p class="fs-5 fw-bold mb-0">{{ item.total_resale|format_money|default:"—" }}</p>
-          {% if item.gain_pct is not None %}
-          <p class="small mb-0 {% if item.gain_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
-            {% if item.gain_pct >= 0 %}+{% endif %}{{ item.gain_pct }}%
-            {% translate "vs invested" %}
-          </p>
-          {% endif %}
-        </div>
-        <div class="col-6 col-md-3">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Total dividends" %}</p>
-          <p class="fs-5 fw-bold mb-0">{{ item.total_dividends|format_money|default:"—" }}</p>
-        </div>
-        <div class="col-6 col-md-3">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Net yield" %}</p>
-          <p class="fs-5 fw-bold mb-0">{{ item.net_rentability }}%</p>
-          <p class="small text-body-secondary mb-0">{% translate "Last 12 months" %}</p>
-        </div>
-        <div class="col-6 col-md-3">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">{% translate "Growth / year" %}</p>
-          <p class="fs-5 fw-bold mb-0 {% if item.growth_rentability >= 0 %}text-success{% else %}text-danger{% endif %}">
-            {% if item.growth_rentability > 0 %}+{% endif %}{{ item.growth_rentability }}%
-          </p>
-          <p class="small text-body-secondary mb-0">{% translate "Annualized" %}</p>
-        </div>
-      </div>
-    </div>
-
-    {# ── Fund chart ─────────────────────────────────────────────────────────── #}
-    {% comment %} TODO fix {% endcomment %}
-    {% comment %} {% if item.chart_months != "[]" %}
-    <div class="card-body">
-      <div id="scpi-chart-{{ fund.pk }}" style="height: 220px;"></div>
-    </div>
-    {% endif %} {% endcomment %}
-
-    {# ── Delete modal ───────────────────────────────────────────────────────── #}
-    {% url 'property:scpi_delete' scpi_pk=fund.pk as del_scpi_url %}
-    {% include "property/_delete_modal.html" with modal_prefix="deleteScpi" item_pk=fund.pk delete_url=del_scpi_url modal_title=_("Delete SCPI fund") confirm_text=_("Are you sure? This will also delete all related investments and dividends.") %}
-  </div>
-  {% endwith %}
-  {% empty %}
-  <div class="alert alert-info">
-    <i class="bi bi-info-circle me-1"></i>
-    {% translate "No SCPI funds yet." %}
-    <a href="{% url 'property:scpi_new' %}">{% translate "Add your first SCPI fund." %}</a>
-  </div>
-  {% endfor %}
+  </section>
 
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script nonce="{{ csp_nonce }}">
-(function () {
-  function getCurrentTheme() {
-    return document.documentElement.getAttribute('data-bs-theme') || 'light';
-  }
-
-  var fundCharts = [
-    {% for item in fund_data %}
-    {
-      id: "scpi-chart-{{ item.fund.pk }}",
-      dates: {{ item.chart_months|safe }},
-      prices: {{ item.chart_invested_monthly|safe }},
-      divAmounts: {{ item.chart_dividend_monthly|safe }},
-      recurrence: "{{ item.fund.dividend_recurrence }}"
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  ];
-
-  fundCharts.forEach(function(fd) {
-    var el = document.getElementById(fd.id);
-    if (!el) return;
-    if (!fd.dates.length && !fd.divAmounts.length) return;
-
-    var series = [];
-    if (fd.prices.length) {
-      series.push({ name: '{% filter escapejs %}{% translate "Invested" %}{% endfilter %}', type: 'line', data: fd.prices });
-    }
-    if (fd.divAmounts.length) {
-      series.push({ name: '{% filter escapejs %}{% translate "Dividends" %}{% endfilter %}', type: 'bar', data: fd.divAmounts });
-    }
-
-    var categories = fd.dates;
-
-    var options = {
-      chart: { type: 'line', height: 220, background: 'transparent', toolbar: { show: false }, animations: { enabled: false } },
-      theme: { mode: getCurrentTheme() },
-      series: series,
-      stroke: { curve: 'smooth', width: [2, 0] },
-      fill: { opacity: [1, 0.8] },
-      colors: ['#60a5fa', '#34d399'],
-      dataLabels: { enabled: false },
-      xaxis: { categories: categories, labels: { style: { fontSize: '10px' } } },
-      yaxis: { labels: { formatter: function(v) { return Math.round(v).toLocaleString(); }, style: { fontSize: '10px' } } },
-      tooltip: { theme: getCurrentTheme() },
-      grid: { borderColor: getCurrentTheme() === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
-      legend: { position: 'top', fontSize: '11px' },
-      plotOptions: { bar: { columnWidth: fd.recurrence === 'monthly' ? '80%' : fd.recurrence === 'quarterly' ? '70%' : '60%', borderRadius: 2 } }
-    };
-    new ApexCharts(el, options).render();
-  });
-})();
-</script>
 {% endblock %}

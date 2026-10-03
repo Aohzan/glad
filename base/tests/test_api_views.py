@@ -367,6 +367,8 @@ def test_patrimony_chart_structure(admin_client):
     assert "properties_loans" in data
     assert "scpi" in data
     assert len(data["months"]) == 25
+    assert data["dates"][-1] == datetime.date.today().isoformat()
+    assert data["dates"][-2].endswith("-01")
 
 
 @pytest.mark.django_db
@@ -541,9 +543,9 @@ def test_recent_operations_with_investment_cash(admin_client, investment_account
     )
     response = get_json(admin_client, reverse("api_recent_operations"))
     data = response.json()
-    cash_ops = [op for op in data["operations"] if op["icon"] == "bi-cash-coin"]
+    cash_ops = [op for op in data["operations"] if op["type_css"] == "primary"]
     assert len(cash_ops) >= 1
-    assert cash_ops[0]["type_css"] == "primary"
+    assert cash_ops[0]["icon"] == "refresh-cw"
 
 
 @pytest.mark.django_db
@@ -563,7 +565,7 @@ def test_recent_operations_with_holding_history(admin_client, investment_account
     )
     response = get_json(admin_client, reverse("api_recent_operations"))
     data = response.json()
-    holding_ops = [op for op in data["operations"] if op["icon"] == "bi-graph-up"]
+    holding_ops = [op for op in data["operations"] if op["icon"] == "chart-line"]
     assert len(holding_ops) >= 1
     assert holding_ops[0]["type_css"] == "info"
 

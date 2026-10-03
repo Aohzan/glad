@@ -17,7 +17,7 @@
 
   {% if not lease %}
     <div class="alert alert-warning">
-      <i class="bi bi-info-circle me-1"></i>{% translate "Do not forget to declare the new tenant on impots.gouv.fr." %}
+      {% icon "info" "me-1" %}{% translate "Do not forget to declare the new tenant on impots.gouv.fr." %}
     </div>
   {% endif %}
 
@@ -27,7 +27,7 @@
     {# ── Tenant ────────────────────────────────────────────────────────────── #}
     <div class="card mb-3">
       <div class="card-header py-2">
-        <h6 class="mb-0"><i class="bi bi-person me-1"></i>{% translate "Tenant" %}</h6>
+        <h6 class="mb-0">{% icon "user" "me-1" %}{% translate "Tenant" %}</h6>
       </div>
       <div class="card-body">
         <div class="row g-3">
@@ -68,7 +68,7 @@
     {# ── Status & Type ─────────────────────────────────────────────────────── #}
     <div class="card mb-3">
       <div class="card-header py-2">
-        <h6 class="mb-0"><i class="bi bi-info-circle me-1"></i>{% translate "Lease information" %}</h6>
+        <h6 class="mb-0">{% icon "info" "me-1" %}{% translate "Lease information" %}</h6>
       </div>
       <div class="card-body">
         <div class="row g-3">
@@ -100,7 +100,7 @@
     {# ── Dates ─────────────────────────────────────────────────────────────── #}
     <div class="card mb-3">
       <div class="card-header py-2">
-        <h6 class="mb-0"><i class="bi bi-calendar3 me-1"></i>{% translate "Dates" %}</h6>
+        <h6 class="mb-0">{% icon "calendar" "me-1" %}{% translate "Dates" %}</h6>
       </div>
       <div class="card-body">
         <div class="row g-3">
@@ -134,7 +134,7 @@
     {# ── Rent and charges ───────────────────────────────────────────────────── #}
     <div class="card mb-3">
       <div class="card-header py-2">
-        <h6 class="mb-0"><i class="bi bi-house-door me-1"></i>{% translate "Rent and charges" %}</h6>
+        <h6 class="mb-0">{% icon "house" "me-1" %}{% translate "Rent and charges" %}</h6>
       </div>
       <div class="card-body">
         <div class="row g-3">
@@ -162,6 +162,25 @@
             </div>
             {% if form.deposit_amount.errors %}<div class="invalid-feedback d-block">{{ form.deposit_amount.errors }}</div>{% endif %}
           </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Rent revision ──────────────────────────────────────────────────────── #}
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0">{% icon "refresh-cw" "me-1" %}{% translate "Rent revision (IRL)" %}</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          {% for field in form %}{% if field.name == "irl_reference_quarter" or field.name == "irl_reference_value" or field.name == "last_rent_revision_date" %}
+          <div class="col-md-4">
+            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          </div>
+          {% endif %}{% endfor %}
         </div>
       </div>
     </div>

@@ -1,0 +1,26 @@
+{% load i18n format_money %}
+<div class="card mb-4" id="interest-panel">
+  <div class="card-header">
+    <h5 class="mb-0">{% icon "percent" "me-2" %}{% blocktranslate with year=estimate.year %}Interest {{ year }}{% endblocktranslate %}</h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-4">
+        <small class="text-body-secondary">{% translate "Earned so far" %}</small>
+        <div><strong>{{ estimate.earned_to_date|format_money_amount:estimate.currency }}</strong></div>
+        <small class="text-body-secondary">{% blocktranslate count counter=estimate.elapsed_fortnights %}{{ counter }} fortnight elapsed{% plural %}{{ counter }} fortnights elapsed{% endblocktranslate %}</small>
+      </div>
+      <div class="col-md-4">
+        <small class="text-body-secondary">{% translate "Projected on 31 December" %}</small>
+        <div><strong>{{ estimate.projected_year_end|format_money_amount:estimate.currency }}</strong></div>
+      </div>
+      <div class="col-md-4">
+        <small class="text-body-secondary">{% translate "Interest rate" %}</small>
+        <div>{{ estimate.rate }}%</div>
+      </div>
+    </div>
+    <p class="small text-body-secondary mt-3 mb-0">
+      {% translate "Fortnight rule: deposits earn interest from the next fortnight (1st or 16th), withdrawals stop earning from the start of their fortnight. Based on the balance on 1 January and the deposits recorded this year, at the current rate, assuming no further movement." %}
+    </p>
+  </div>
+</div>

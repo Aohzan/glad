@@ -14,6 +14,7 @@ from moneyed import Money
 
 from finance.forms import (
     BackfillHoldingHistoryForm,
+    EuroFundRateForm,
     InvestmentAccountCashForm,
     InvestmentAccountDepositForm,
     InvestmentAccountForm,
@@ -28,6 +29,7 @@ from finance.models.investment_account import (
     InvestmentAccountHoldingHistory,
 )
 from finance.services.market_data import MarketDataError, fetch_historical_prices
+from finance.services.performance import account_performance
 from finance.views.crud_views import _delete_account_related, _edit_account_related
 
 DETAIL_URL = "finance:investment_detail"
@@ -56,6 +58,8 @@ def investment_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "progression": progression,
             "total_deposits": total_deposits,
             "capital_gain": capital_gain,
+            "euro_fund_split": account.euro_fund_split(),
+            "performance": account_performance(account),
         },
     )
 
@@ -172,6 +176,7 @@ def holding_detail(
         InvestmentAccountHolding, pk=holding_pk, account=account
     )
     history = holding.investmentaccountholdinghistory_set.all()  # ty: ignore[unresolved-attribute]
+    rates = list(holding.euro_fund_rates.all()) if holding.is_euro_fund else []
 
     return render(
         request,
@@ -180,6 +185,13 @@ def holding_detail(
             "account": account,
             "holding": holding,
             "history": history,
+            "euro_fund_rates": rates,
+            "average_rate": (
+                sum(r.rate for r in rates) / len(rates) if rates else None
+            ),
+            "rate_form": EuroFundRateForm(
+                initial={"year": datetime.date.today().year - 1}
+            ),
         },
     )
 

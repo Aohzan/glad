@@ -1,0 +1,48 @@
+{% load i18n glad_format %}
+{% if loans %}
+<section class="g-card g-col-half" id="liabilities">
+  <div class="g-section-head">
+    <h2 class="g-h2">{% translate "Liabilities" %}</h2>
+    <span class="g-meta">{% blocktranslate with monthly=loans_monthly|money0:currency %}Remaining capital · {{ monthly }} / month{% endblocktranslate %}</span>
+  </div>
+  {% for loan in loans %}
+  <a class="g-loan" href="{{ loan.url }}">
+    <span class="g-loan__head">
+      <span class="g-cell-main"><span class="g-cell-title">{{ loan.name }}</span><span class="g-cell-sub">{% if loan.lender %}{{ loan.lender }} · {% endif %}{% if loan.monthly %}{% blocktranslate with monthly=loan.monthly|money0:currency %}{{ monthly }} / month{% endblocktranslate %} · {% endif %}{% blocktranslate with end=loan.end_date|date:"F Y" %}ends {{ end }}{% endblocktranslate %}</span></span>
+      <span class="g-strong g-num">{{ loan.remaining|money0:currency }}</span>
+    </span>
+    <span class="g-loan__bar"><span class="g-bar"><span style="width:{{ loan.repaid_pct|css_pct }}"></span></span><span class="g-meta">{% blocktranslate with repaid=loan.repaid_pct|share:0 %}{{ repaid }} repaid{% endblocktranslate %}</span></span>
+  </a>
+  {% endfor %}
+  <div class="g-table__total g-loan__total"><span>{% translate "Total liabilities" %}</span><span class="g-cell-end">{{ loans_total|money0:currency }}</span></div>
+</section>
+{% endif %}
+{% if flows %}
+<section class="g-card g-col-half" id="property-flows">
+  <div class="g-section-head">
+    <h2 class="g-h2">{% translate "Property flows" %}</h2>
+    <span class="g-meta">{% translate "Monthly median over 12 months" %}</span>
+  </div>
+  <div class="g-table-wrap">
+    <div class="g-table" style="--g-cols: minmax(170px, 2fr) repeat(4, minmax(76px, 1fr)); --g-table-min: 520px">
+      <div class="g-table__head"><span>{% translate "Property" %}</span><span class="g-cell-end">{% translate "Rents" %}</span><span class="g-cell-end">{% translate "Charges" %}</span><span class="g-cell-end">{% translate "Loan" %}</span><span class="g-cell-end">{% translate "Balance" %}</span></div>
+      {% for f in flows %}
+      <a class="g-table__row" href="{{ f.url }}">
+        <span class="g-cell-title">{{ f.name }}</span>
+        <span class="g-cell-end">{% if f.rents %}+{{ f.rents|money0:currency }}{% else %}—{% endif %}</span>
+        <span class="g-cell-end g-muted">{% if f.charges %}−{{ f.charges|money0:currency }}{% else %}—{% endif %}</span>
+        <span class="g-cell-end g-muted">{% if f.loan %}−{{ f.loan|money0:currency }}{% else %}—{% endif %}</span>
+        <span class="g-cell-end g-strong {{ f.cashflow|tone }}">{{ f.cashflow|signed_money0:currency }}</span>
+      </a>
+      {% endfor %}
+      <div class="g-table__total">
+        <span>{% translate "Total" %}</span>
+        <span class="g-cell-end">{% if flows_total.rents %}+{{ flows_total.rents|money0:currency }}{% else %}—{% endif %}</span>
+        <span class="g-cell-end">{% if flows_total.charges %}−{{ flows_total.charges|money0:currency }}{% else %}—{% endif %}</span>
+        <span class="g-cell-end">{% if flows_total.loan %}−{{ flows_total.loan|money0:currency }}{% else %}—{% endif %}</span>
+        <span class="g-cell-end {{ flows_total.cashflow|tone }}">{{ flows_total.cashflow|signed_money0:currency }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}

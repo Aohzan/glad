@@ -12,7 +12,7 @@
     </div>
     <div class="card-body">
       <div class="alert alert-info" role="alert">
-        <i class="bi bi-info-circle me-2"></i>
+        {% icon "info" "me-2" %}
         {% translate 'Please upload a CSV file with your data. You will be able to map the columns in the next step.' %}
       </div>
 
@@ -25,10 +25,10 @@
 
         <div class="mt-4">
           <a href="{% url 'finance:index' %}" class="btn btn-secondary ms-2">
-            <i class="bi bi-arrow-left me-1"></i>{% translate 'Back' %}
+            {% icon "arrow-left" "me-1" %}{% translate 'Back' %}
           </a>
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-arrow-right me-1"></i>{% translate 'Next' %}
+            {% icon "arrow-right" "me-1" %}{% translate 'Next' %}
           </button>
         </div>
       </form>

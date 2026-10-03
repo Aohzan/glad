@@ -8,7 +8,7 @@
 
   {% url 'property:detail' property.pk as back_url %}
   {% translate "Delete occurrence" as page_title %}
-  {% include "property/_edit_page_header.html" with back_url=back_url back_label=property.name page_title=page_title title_icon_class="bi-trash text-danger" %}
+  {% include "property/_edit_page_header.html" with back_url=back_url back_label=property.name page_title=page_title title_icon="trash" %}
 
   {# ── Occurrence info banner ──────────────────────────────────────────────── #}
   {% include "property/_occurrence_info_banner.html" with alert_class="alert-warning" %}
@@ -24,7 +24,7 @@
 
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-danger">
-        <i class="bi bi-trash me-1"></i>{% translate "Confirm delete" %}
+        {% icon "trash" "me-1" %}{% translate "Confirm delete" %}
       </button>
       <a href="{% url 'property:detail' property.pk %}#cashflow-panel" class="btn btn-outline-secondary">
         {% translate "Cancel" %}

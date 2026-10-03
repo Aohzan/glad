@@ -1,28 +1,28 @@
 {% load i18n format_money %}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h6 class="section-title mb-0"><i class="bi bi-house-door me-2 text-primary"></i>{% translate "Leases" %}</h6>
+  <h6 class="section-title mb-0">{% icon "house" "me-2 text-primary" %}{% translate "Leases" %}</h6>
   <a href="{% url 'property:new_lease' property.pk %}" class="btn btn-sm btn-outline-primary">
-    <i class="bi bi-plus-circle me-1"></i>{% translate "Add lease" %}
+    {% icon "circle-plus" "me-1" %}{% translate "Add lease" %}
   </a>
 </div>
 
 {% if property_leases %}
   {% for lease in property_leases %}
     {% if lease.status == "active" %}
-      {% with border_color="#198754" %}
+      {% with border_color="var(--g-pos)" %}
     <div class="card mb-3 shadow-sm rounded-4 overflow-hidden" style="border-left:4px solid {{ border_color }} !important">
     {% endwith %}
     {% elif lease.status == "upcoming" %}
-      {% with border_color="#0dcaf0" %}
+      {% with border_color="var(--g-info)" %}
     <div class="card mb-3 shadow-sm rounded-4 overflow-hidden" style="border-left:4px solid {{ border_color }} !important">
     {% endwith %}
     {% elif lease.status == "notice" %}
-      {% with border_color="#ffc107" %}
+      {% with border_color="var(--g-warn)" %}
     <div class="card mb-3 shadow-sm rounded-4 overflow-hidden" style="border-left:4px solid {{ border_color }} !important">
     {% endwith %}
     {% else %}
-    <div class="card mb-3 shadow-sm rounded-4 overflow-hidden" style="border-left:4px solid #adb5bd !important">
+    <div class="card mb-3 shadow-sm rounded-4 overflow-hidden" style="border-left:4px solid var(--g-line-strong) !important">
     {% endif %}
       <div class="card-header border-0 py-2 d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
@@ -79,6 +79,7 @@
             </div>
           {% endif %}
         </div>
+        {% include "property/_rent_revision.html" %}
       </div>
     </div>
 
@@ -90,7 +91,7 @@
   {% endfor %}
 {% else %}
   <div class="text-center py-5 text-body-secondary">
-    <i class="bi bi-house-door display-4 d-block mb-2"></i>
+    {% icon "house" "display-4 d-block mb-2" %}
     <p class="mb-0">{% translate "No leases recorded yet." %}</p>
   </div>
 {% endif %}

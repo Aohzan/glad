@@ -8,3 +8,7 @@ class BaseConfig(AppConfig):
 
     default_auto_field = "django.db.models.BigAutoField"
     name = "base"
+
+    def ready(self):
+        """Connect the net worth snapshot invalidation signals."""
+        import base.signals  # noqa: F401

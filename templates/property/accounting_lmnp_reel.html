@@ -9,11 +9,11 @@
   {# ── Header ────────────────────────────────────────────────────────────── #}
   <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
     <h1 class="h4 mb-0">
-      <i class="bi bi-calculator me-2"></i>LMNP réel — Comptabilité
+      {% icon "calculator" "me-2" %}LMNP réel — Comptabilité
     </h1>
 
     <div class="d-flex align-items-center gap-2 ms-auto">
-      <i class="bi bi-info-circle me-1"></i><i>Ces informations font office d'aide mais peuvent comporter des erreurs, vérifiez toujours avec votre comptable ou expert-comptable.</i>
+      {% icon "info" "me-1" %}<i>Ces informations font office d'aide mais peuvent comporter des erreurs, vérifiez toujours avec votre comptable ou expert-comptable.</i>
     </div>
 
     <form method="get" class="d-flex align-items-center gap-2 ms-auto">
@@ -31,7 +31,7 @@
   {# ── Export / freeze ─────────────────────────────────────────────────── #}
   <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'property:lmnp_pdf' %}?year={{ year }}">
-      <i class="bi bi-file-earmark-pdf me-1"></i>Télécharger le PDF {{ year }}
+      {% icon "file-text" "me-1" %}Télécharger le PDF {{ year }}
     </a>
     <form method="post" action="{% url 'property:lmnp_snapshot_create' %}" class="d-flex align-items-center gap-2">
       {% csrf_token %}
@@ -40,16 +40,16 @@
              placeholder="Note (ex. : déclaration déposée le …)" maxlength="200">
       <button type="submit" class="btn btn-primary btn-sm"
               title="Enregistre une copie figée des chiffres de l'exercice {{ year }}, consultable et exportable en PDF même si les écritures changent ensuite.">
-        <i class="bi bi-snow me-1"></i>Figer l'exercice {{ year }}
+        {% icon "snowflake" "me-1" %}Figer l'exercice {{ year }}
       </button>
     </form>
     <a class="btn btn-link btn-sm ms-auto" href="{% url 'property:lmnp_snapshot_list' %}">
-      <i class="bi bi-archive me-1"></i>Liasses figées{% if snapshot_count %} ({{ snapshot_count }}){% endif %}
+      {% icon "archive" "me-1" %}Liasses figées{% if snapshot_count %} ({{ snapshot_count }}){% endif %}
     </a>
   </div>
   {% if snapshots %}
   <div class="alert alert-secondary py-2 small d-flex align-items-center gap-2 mb-3">
-    <i class="bi bi-snow"></i>
+    {% icon "snowflake" %}
     L'exercice {{ year }} a déjà été figé :
     {% for snap in snapshots %}
       <a href="{% url 'property:lmnp_snapshot_detail' snap.pk %}">{{ snap.created_at|date:"d/m/Y H:i" }}</a>{% if not forloop.last %},{% endif %}
@@ -61,7 +61,7 @@
 
   {% if not lmnp_properties %}
   <div class="alert alert-info">
-    <i class="bi bi-info-circle me-1"></i>
+    {% icon "info" "me-1" %}
     Aucun bien actif en LMNP réel sur l'exercice {{ year }}.
     Les biens dont l'activité démarre après cet exercice ne sont pas affichés ;
     choisissez une autre année ou définissez le régime fiscal sur un bien.

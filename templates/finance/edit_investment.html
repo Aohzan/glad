@@ -5,6 +5,9 @@
   {% if account %}{% translate "Edit investment account" %}{% else %}{% translate "New investment account" %}{% endif %}
 {% endblock %}
 
+{% block breadcrumb_parents %}{% if account %}{% url 'finance:investment_detail' account.pk as url %}{% include "_crumb.html" with label=account %}{% endif %}{% endblock %}
+{% block breadcrumb %}{% if account %}{% translate "Edit" %}{% else %}{% translate "New investment account" %}{% endif %}{% endblock %}
+
 {% block content %}
 <div class="container py-4" style="max-width: 760px;">
 
@@ -22,7 +25,7 @@
     {# ── Investment financial ────────────────────────────────────────────────── #}
     <div class="card mb-3">
       <div class="card-header py-2">
-        <h6 class="mb-0"><i class="bi bi-currency-euro me-1"></i>{% translate "Financial" %}</h6>
+        <h6 class="mb-0">{% icon "euro" "me-1" %}{% translate "Financial" %}</h6>
       </div>
       <div class="card-body">
         <div class="row g-3">
@@ -31,6 +34,7 @@
             {{ form.opening_cash_value }}
             {% if form.opening_cash_value.errors %}<div class="invalid-feedback d-block">{{ form.opening_cash_value.errors }}</div>{% endif %}
           </div>
+          <div class="col-md-12">{% include "_form_field.html" with field=form.benchmark_symbol %}</div>
         </div>
       </div>
     </div>

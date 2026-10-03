@@ -49,12 +49,12 @@ class TestAllLoansView:
         loans_with_totals = response.context["loans_with_totals"]
         assert len(loans_with_totals) == 1
         item = loans_with_totals[0]
-        assert item["property"] == prop
-        assert item["duration_months"] > 0
-        assert item["remaining_balance"] is not None
-        assert item["capital_paid"] is not None
-        assert item["interest_paid"] is not None
-        assert item["insurance_paid"] is not None
+        assert item.loan.property == prop
+        assert item.duration_months > 0
+        assert item.remaining_balance.amount > 0
+        assert item.capital_paid.amount > 0
+        assert item.interest_paid.amount > 0
+        assert item.insurance_paid.amount == 0
 
     def test_get_aggregates_across_multiple_properties(self, user_client):
         prop1 = _make_property("Prop A")
@@ -70,8 +70,8 @@ class TestAllLoansView:
         _make_loan(prop)
         response = user_client.get(reverse("property:all_loans"))
         summary = response.context["summary"]
-        assert summary["total_mensuality"].amount > Decimal(0)
-        assert summary["total_remaining"].amount > Decimal(0)
+        assert summary.total_mensuality == Money(700, "EUR")
+        assert summary.total_remaining.amount > Decimal(0)
 
     def test_summary_includes_insurance_paid(self, user_client):
         prop = _make_property()
@@ -82,13 +82,16 @@ class TestAllLoansView:
         )
         response = user_client.get(reverse("property:all_loans"))
         summary = response.context["summary"]
-        assert summary["total_insurance_paid"].amount > Decimal(0)
+        assert summary.total_insurance_paid.amount > Decimal(0)
+        assert summary.total_mensuality == Money(737, "EUR")
 
-    def test_chart_data_json_present(self, user_client):
+    def test_chart_data_present(self, user_client):
         prop = _make_property()
         _make_loan(prop)
         response = user_client.get(reverse("property:all_loans"))
-        assert "loan_chart_data_json" in response.context
+        assert response.context["loan_chart_data"]["currency"] == "EUR"
+        # The data reaches the chart through json_script, not inline JavaScript.
+        assert 'id="loan-chart-data"' in response.content.decode()
 
     def test_csv_export(self, user_client):
         prop = _make_property("My House")
@@ -111,43 +114,45 @@ class TestAllLoansView:
             or "login" in response["Location"]
         )
 
-    def test_loan_without_monthly_payment_has_no_total_repaid(self, user_client):
-        """A loan without a monthly_payment should not compute a total cost."""
+    def test_loan_without_monthly_payment_is_repaid_by_the_annuity(self, user_client):
+        """A loan saved without a monthly payment is repaid by its annuity."""
         prop = _make_property()
         _make_loan(prop, monthly_payment=None, interest_rate=Decimal("0.0"))
         response = user_client.get(reverse("property:all_loans"))
         item = response.context["loans_with_totals"][0]
-        assert item["total_repaid"] is None
-        assert item["total_cost"] is None
+        # 0 % and no insurance: the loan costs nothing.
+        assert item.total_cost == Money(0, "EUR")
+        assert item.total_repaid == Money(150_000, "EUR")
 
     def test_chart_uses_amortization_entries_when_present(self, user_client):
         """The chart should aggregate imported amortization entries for a loan."""
         prop = _make_property()
         loan = _make_loan(prop)
+        day = datetime.date.today() - datetime.timedelta(days=30)
         PropertyLoanAmortizationEntry.objects.create(
             loan=loan,
-            date=datetime.date.today() - datetime.timedelta(days=30),
+            date=day,
             capital=Money(280, "EUR"),
             interest=Money(20, "EUR"),
             remaining_balance_amount=Money(149_720, "EUR"),
         )
         response = user_client.get(reverse("property:all_loans"))
         assert response.status_code == 200
-        import json
+        chart_data = response.context["loan_chart_data"]
+        assert chart_data["loans"] == [
+            {
+                "name": "Test Prop — Test Loan",
+                "data": [{"x": day.strftime("%Y-%m-01"), "y": 300.0}],
+            }
+        ]
 
-        chart_data = json.loads(response.context["loan_chart_data_json"])
-        assert len(chart_data["loans"]) == 1
-        assert chart_data["loans"][0]["data"]
-
-    def test_chart_skips_loan_without_payment_or_rate_data(self, user_client):
-        """A loan with no monthly_payment/interest_rate is skipped from the chart."""
+    def test_chart_includes_a_loan_without_stored_payment(self, user_client):
+        """A loan saved without a monthly payment is charted with its annuity."""
         prop = _make_property()
         _make_loan(prop, monthly_payment=None, interest_rate=Decimal("0.0"))
         response = user_client.get(reverse("property:all_loans"))
-        import json
-
-        chart_data = json.loads(response.context["loan_chart_data_json"])
-        assert chart_data["loans"] == []
+        chart_data = response.context["loan_chart_data"]
+        assert len(chart_data["loans"]) == 1
 
     def test_summary_skips_mismatched_currency(self, user_client):
         """Loans in a different currency than the first one are excluded from totals."""
@@ -164,4 +169,4 @@ class TestAllLoansView:
         # Both loans are listed, but the summary only aggregates one currency.
         assert len(response.context["loans_with_totals"]) == 2
         summary = response.context["summary"]
-        assert str(summary["total_remaining"].currency) in ("EUR", "USD")
+        assert str(summary.total_remaining.currency) in ("EUR", "USD")

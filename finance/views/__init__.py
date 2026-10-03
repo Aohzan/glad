@@ -2,6 +2,7 @@
 
 from .chart_views import chart_data
 from .csv_views import csv_export, csv_export_synthesis, csv_import, csv_import_confirm
+from .euro_fund_views import add_euro_fund_rate, delete_euro_fund_rate
 from .index_views import index
 from .investment_views import (
     backfill_holding_history,
@@ -20,6 +21,16 @@ from .investment_views import (
     investment_detail,
     toggle_investment_favorite,
 )
+from .other_asset_views import (
+    create_other_asset,
+    delete_other_asset,
+    delete_other_asset_value,
+    edit_other_asset,
+    edit_other_asset_value,
+    other_asset_detail,
+    other_asset_list,
+    update_other_asset_price,
+)
 from .saving_views import (
     create_saving,
     delete_saving,
@@ -34,19 +45,24 @@ from .saving_views import (
 from .update_views import update_accounts
 
 __all__ = [
+    "add_euro_fund_rate",
     "backfill_holding_history",
     "chart_data",
     "create_investment",
+    "create_other_asset",
     "create_saving",
     "csv_export",
     "csv_export_synthesis",
     "csv_import",
     "csv_import_confirm",
+    "delete_euro_fund_rate",
     "delete_holding_history",
     "delete_investment",
     "delete_investment_cash",
     "delete_investment_deposit",
     "delete_investment_holding",
+    "delete_other_asset",
+    "delete_other_asset_value",
     "delete_saving",
     "delete_saving_deposit",
     "delete_saving_value",
@@ -55,14 +71,19 @@ __all__ = [
     "edit_investment_cash",
     "edit_investment_deposit",
     "edit_investment_holding",
+    "edit_other_asset",
+    "edit_other_asset_value",
     "edit_saving",
     "edit_saving_deposit",
     "edit_saving_value",
     "holding_detail",
     "index",
     "investment_detail",
+    "other_asset_detail",
+    "other_asset_list",
     "saving_detail",
     "toggle_investment_favorite",
     "toggle_saving_favorite",
     "update_accounts",
+    "update_other_asset_price",
 ]

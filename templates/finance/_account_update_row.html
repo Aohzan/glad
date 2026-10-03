@@ -3,7 +3,7 @@
   {{ form.account_id }}
   {% if form.non_field_errors %}
     <div class="text-danger small mb-1">
-      <i class="bi bi-exclamation-triangle me-1"></i>{{ form.non_field_errors }}
+      {% icon "triangle-alert" "me-1" %}{{ form.non_field_errors }}
     </div>
   {% endif %}
   <div class="d-flex align-items-start gap-3">

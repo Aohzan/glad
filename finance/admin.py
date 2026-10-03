@@ -10,7 +10,9 @@ from django.utils import timezone
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
+from base.services.snapshots import invalidate_from
 from finance.models.investment_account import (
+    EuroFundRate,
     InvestmentAccount,
     InvestmentAccountCash,
     InvestmentAccountDeposit,
@@ -18,6 +20,7 @@ from finance.models.investment_account import (
     InvestmentAccountHoldingHistory,
     InvestmentAccountType,
 )
+from finance.models.other_asset import OtherAsset, OtherAssetValue
 from finance.models.saving_account import (
     SavingAccount,
     SavingAccountDeposit,
@@ -27,6 +30,9 @@ from finance.models.saving_account import (
 
 admin.site.register(SavingAccountType)
 admin.site.register(InvestmentAccountType)
+admin.site.register(EuroFundRate)
+admin.site.register(OtherAsset)
+admin.site.register(OtherAssetValue)
 
 
 class BulkUpdateDateMixin:
@@ -50,6 +56,8 @@ class BulkUpdateDateMixin:
             new_date = request.POST.get(post_key)
             if new_date:
                 count = queryset.update(**{date_field: new_date})
+                # update() sends no signal: drop the net worth history.
+                invalidate_from(None)
                 messages.success(
                     request,
                     _("Successfully updated %(field)s for %(count)d items.")

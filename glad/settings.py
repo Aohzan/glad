@@ -145,7 +145,9 @@ TEMPLATES = [
                 "accounts.context_processors.session_config",
                 "property.context_processors.nav_properties",
                 "finance.context_processors.nav_accounts",
+                "base.context_processors.shell",
             ],
+            "builtins": ["base.templatetags.icons"],
         },
     },
 ]
@@ -199,6 +201,8 @@ else:
             },
         }
     }
+
+AUTHENTICATION_BACKENDS = ["accounts.backends.HouseholdModelBackend"]
 
 AUTH_PASSWORD_VALIDATORS = [
     {

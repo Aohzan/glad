@@ -12,12 +12,12 @@
       <h1>{% translate "Add property" %}</h1>
     </div>
     <a href="{% url 'property:index' %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> {% translate "Back" %}
+      {% icon "arrow-left" %} {% translate "Back" %}
     </a>
   </div>
 
   {% url 'property:index' as cancel_url %}
   {% translate "Create property" as submit_label %}
-  {% include "property/_property_form_card.html" with cancel_url=cancel_url submit_label=submit_label submit_icon_class="bi-plus-circle" %}
+  {% include "property/_property_form_card.html" with cancel_url=cancel_url submit_label=submit_label submit_icon="circle-plus" %}
 </div>
 {% endblock %}
