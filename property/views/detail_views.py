@@ -26,13 +26,11 @@ from property.models import (
     PropertyValue,
 )
 from property.services.cashflow import build_balance_sheet
-from property.services.monthly_flows import (
-    loan_costs_by_month,
-    monthly_flows,
-    occurrences_by_month,
-)
+from property.services.loans import loan_costs_by_month
+from property.services.monthly_flows import monthly_flows, occurrences_by_month
 from property.services.rent_revision import get_rent_revision
 from property.utils import (
+    LoanCosts,
     add_years_safe,
     build_loan_monthly_maps,
     iter_month_starts,
@@ -297,9 +295,7 @@ class PropertyDetailView(DetailView):
 
         revenue_by_month = occurrences_by_month(revenues_qs, end_month)
         expense_by_month = occurrences_by_month(expenses_qs, end_month)
-        loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month = (
-            loan_costs_by_month(loans_qs)
-        )
+        loan_by_month = loan_costs_by_month(property_obj.loans.all())
 
         # Breakdown of expenses by management_category
         expense_by_mgmt_cat: dict[str, dict] = {}
@@ -330,9 +326,10 @@ class PropertyDetailView(DetailView):
             month_key = (current.year, current.month)
 
             expense_value = float(expense_by_month.get(month_key, 0))
-            loan_interest_value = float(loan_interest_by_month.get(month_key, 0))
-            loan_principal_value = float(loan_principal_by_month.get(month_key, 0))
-            loan_insurance_value = float(loan_insurance_by_month.get(month_key, 0))
+            loan_costs = loan_by_month.get(month_key, LoanCosts())
+            loan_interest_value = float(loan_costs.interest)
+            loan_principal_value = float(loan_costs.principal)
+            loan_insurance_value = float(loan_costs.insurance)
             total_expenses_value = (
                 expense_value
                 + loan_interest_value
@@ -368,7 +365,7 @@ class PropertyDetailView(DetailView):
                 )
 
         # Exclude loan_interest and loan_insurance: those are already shown as
-        # dedicated computed series in the breakdown chart (from _loan_costs_by_month).
+        # dedicated computed series in the breakdown chart (from loan_costs_by_month).
         _LOAN_COST_CATS = {
             PropertyLedgerEntry.ManagementCategory.LOAN_INTEREST,
             PropertyLedgerEntry.ManagementCategory.LOAN_INSURANCE,

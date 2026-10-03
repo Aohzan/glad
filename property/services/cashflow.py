@@ -62,13 +62,9 @@ def build_balance_sheet(
     - occupancy_rate: Decimal  (0–100)
     - gross_yield_annual: Decimal | None  (annualised income / property value × 100)
     """
-    from property.models import PropertyLedgerEntry, PropertyLoan
-    from property.utils import (
-        build_loan_maps_from_loan_obj,
-        iter_month_starts,
-        month_end,
-        month_start,
-    )
+    from property.models import PropertyLedgerEntry
+    from property.services.loans import loan_costs_between
+    from property.utils import iter_month_starts, month_end, month_start
 
     start_month = month_start(date_from)
     end_month = month_start(date_to)
@@ -105,50 +101,10 @@ def build_balance_sheet(
                 expense_by_cat[cat]["amount"] += amount
 
     # ── Loan costs in range ───────────────────────────────────────────────────
-    from property.models import PropertyLoanAmortizationEntry
-
-    loans_qs = PropertyLoan.objects.filter(property=property_obj)
-    total_loan_interest = Decimal(0)
-    total_loan_principal = Decimal(0)
-    total_loan_insurance = Decimal(0)
-
-    for loan in loans_qs:
-        insurance_amount = (
-            loan.insurance.amount if loan.insurance is not None else Decimal(0)
-        )
-
-        # When amortization entries exist, use them for interest and principal.
-        amort_entries = list(
-            PropertyLoanAmortizationEntry.objects.filter(loan=loan).order_by("date")
-        )
-        if amort_entries:
-            for entry in amort_entries:
-                if entry.date < date_from or entry.date > end_of_range:
-                    continue
-                total_loan_interest += entry.interest.amount
-                total_loan_principal += entry.capital.amount
-            # Insurance still derived from loan params (not in amortization entries).
-            if insurance_amount > Decimal(0) and loan.start_date and loan.end_date:
-                _, _, insurance_map = build_loan_maps_from_loan_obj(
-                    loan, insurance_amount
-                )
-                for month in iter_month_starts(start_month, end_month):
-                    key = (month.year, month.month)
-                    total_loan_insurance += insurance_map.get(key, Decimal(0))
-            continue
-
-        # Fallback: compute from loan parameters when no amortization entries.
-        if loan.monthly_payment is None:
-            continue
-        interest_map, principal_map, insurance_map = build_loan_maps_from_loan_obj(
-            loan, insurance_amount
-        )
-
-        for month in iter_month_starts(start_month, end_month):
-            key = (month.year, month.month)
-            total_loan_interest += interest_map.get(key, Decimal(0))
-            total_loan_principal += principal_map.get(key, Decimal(0))
-            total_loan_insurance += insurance_map.get(key, Decimal(0))
+    loan_costs = loan_costs_between(property_obj.loans.all(), date_from, end_of_range)
+    total_loan_interest = loan_costs.interest
+    total_loan_principal = loan_costs.principal
+    total_loan_insurance = loan_costs.insurance
 
     # ── Totals ────────────────────────────────────────────────────────────────
     total_income = sum((v["amount"] for v in income_by_cat.values()), Decimal(0))
