@@ -9,10 +9,24 @@
 
 {% block content %}
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="mb-0 h3">{% icon "chart-pie" "me-2 text-primary" %}{% translate "Allocation" %}</h1>
-    <span class="text-body-secondary">{% translate "Total" %} <strong>{{ allocation.total|format_money_amount:allocation.currency }}</strong></span>
+    <span class="text-body-secondary" id="allocation-total">
+      {% if is_household %}
+        {% translate "Household total" %} <strong>{{ allocation.total|format_money_amount:allocation.currency }}</strong>
+      {% else %}
+        {% translate "Selection" %} <strong>{{ allocation.total|format_money_amount:allocation.currency }}</strong>
+        <span class="small">/ {% translate "household" %} {{ household_total|format_money_amount:allocation.currency }}</span>
+      {% endif %}
+    </span>
   </div>
+
+  <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-4" id="people-filter">
+    <span class="small text-body-secondary">{% icon "users" "me-1" %}{{ people_form.people.label }}</span>
+    {{ people_form.people }}
+    {% if not is_household %}<a href="{% url 'allocation' %}" class="btn btn-sm btn-link">{% translate "Whole household" %}</a>{% endif %}
+    <noscript><button type="submit" class="btn btn-sm btn-outline-primary">{% translate "Apply" %}</button></noscript>
+  </form>
 
   {# ── Emergency fund ── #}
   <div class="card shadow-sm rounded-4 mb-4" id="emergency-fund">
@@ -62,6 +76,7 @@
     </div>
   </div>
   <p class="small text-body-secondary mt-3 mb-0">
+    {% translate "Each asset counts for the share held by the chosen owners; with every member chosen, the total is the household's part of the assets. The emergency fund always covers the whole household." %}
     {% translate "Real estate is counted net of the remaining loans. Only assets in the reference currency are included. Set the asset class of each holding to refine the breakdown." %}
   </p>
 </div>
@@ -71,6 +86,8 @@
 {% block scripts %}
 <script nonce="{{ csp_nonce }}">
 (function () {
+  const filter = document.getElementById('people-filter');
+  filter.addEventListener('change', () => filter.submit());
   const data = JSON.parse(document.getElementById('allocation-data').textContent);
   const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
   const currency = "{{ allocation.currency|escapejs }}";

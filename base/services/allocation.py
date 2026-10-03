@@ -8,6 +8,9 @@ other currencies are left out, like on the dashboard):
   with the liquidity of the envelope;
 - properties (net of loans) and SCPI: real estate, illiquid;
 - other assets: the asset class and liquidity of their category.
+
+Each asset counts for the part held by the chosen household members, or by
+the whole household (see :func:`base.services.ownership.held_ratio`).
 """
 
 import datetime
@@ -17,6 +20,8 @@ from decimal import Decimal
 from django.utils.translation import gettext
 
 from base.choices import AssetClass, Liquidity
+from base.models import household_members
+from base.services.ownership import HolderResolver, held_ratio
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountHolding,
@@ -100,73 +105,102 @@ class Allocation:
         )
 
 
-def _investment_items(currency: str):
+class _Shares:
+    """Part of each asset held by some household members, or by all of them."""
+
+    def __init__(self, people: set[int] | None):
+        self.household = people is None
+        self.people = (
+            set(household_members().values_list("pk", flat=True))
+            if people is None
+            else people
+        )
+        self.holders = HolderResolver()
+        self.today = datetime.date.today()
+
+    def ratio(self, obj) -> Decimal:
+        """Part of the value of *obj* held by the members."""
+        return held_ratio(
+            self.holders.rows(obj), self.people, self.today, household=self.household
+        )
+
+
+def _investment_items(currency: str, shares: _Shares):
     holdings = InvestmentAccountHolding.objects.filter(is_active=True)
     by_account: dict[int, list[InvestmentAccountHolding]] = {}
     for holding in holdings:
         by_account.setdefault(holding.account_id, []).append(holding)  # ty: ignore[unresolved-attribute]
     accounts = InvestmentAccount.objects.active().select_related("account_type")
     for account in accounts:
-        if account.currency != currency:
+        ratio = shares.ratio(account)
+        if account.currency != currency or not ratio:
             continue
         liquidity = account.liquidity
         yield AllocationItem(
             label=f"{account} — {gettext('Cash')}",
-            amount=account.current_cash_value.amount,
+            amount=account.current_cash_value.amount * ratio,
             asset_class=AssetClass.CASH,
             liquidity=liquidity,
         )
         for holding in by_account.get(account.pk, []):
             yield AllocationItem(
                 label=f"{account} — {holding.short_name}",
-                amount=holding.value.amount,
+                amount=holding.value.amount * ratio,
                 asset_class=holding.asset_class or UNCLASSIFIED,
                 liquidity=liquidity,
             )
 
 
-def compute_allocation(currency: str) -> Allocation:
-    """Breakdown of the current assets held in *currency*."""
+def compute_allocation(currency: str, people: set[int] | None = None) -> Allocation:
+    """Breakdown of the current assets held in *currency*.
+
+    Each asset counts for the part held by the users *people* (primary keys),
+    or by the whole household when None.
+    """
     allocation = Allocation(currency=currency)
     items = allocation.items
+    shares = _Shares(people)
     for account in SavingAccount.objects.active().select_related("account_type"):
-        if account.currency == currency:
+        ratio = shares.ratio(account)
+        if account.currency == currency and ratio:
             items.append(
                 AllocationItem(
                     label=str(account),
-                    amount=account.current_value.amount,
+                    amount=account.current_value.amount * ratio,
                     asset_class=AssetClass.CASH,
                     liquidity=account.liquidity,
                 )
             )
-    items.extend(_investment_items(currency))
+    items.extend(_investment_items(currency, shares))
     for prop in Property.objects.filter(is_active=True):
-        if prop.currency == currency:
+        ratio = shares.ratio(prop)
+        if prop.currency == currency and ratio:
             items.append(
                 AllocationItem(
                     label=str(prop),
-                    amount=prop.net_value.amount,
+                    amount=prop.net_value.amount * ratio,
                     asset_class=AssetClass.REAL_ESTATE,
                     liquidity=Liquidity.ILLIQUID,
                 )
             )
-    today = datetime.date.today()
     for investment in SCPIInvestment.objects.select_related("scpi"):
-        if investment.currency == currency:
+        ratio = shares.ratio(investment)
+        if investment.currency == currency and ratio:
             items.append(
                 AllocationItem(
                     label=str(investment.scpi),
-                    amount=investment.get_estimated_value(today).amount,
+                    amount=investment.get_estimated_value(shares.today).amount * ratio,
                     asset_class=AssetClass.REAL_ESTATE,
                     liquidity=Liquidity.ILLIQUID,
                 )
             )
     for asset in OtherAsset.objects.filter(is_active=True):
-        if asset.currency == currency:
+        ratio = shares.ratio(asset)
+        if asset.currency == currency and ratio:
             items.append(
                 AllocationItem(
                     label=str(asset),
-                    amount=asset.current_value.amount,
+                    amount=asset.current_value.amount * ratio,
                     asset_class=asset.asset_class,
                     liquidity=asset.effective_liquidity,
                 )

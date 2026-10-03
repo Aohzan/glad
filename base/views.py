@@ -15,7 +15,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from base.forms import MonthlyExpensesForm
+from base.forms import MonthlyExpensesForm, PeopleFilterForm
 from base.models import EconomicIndex
 from base.services.allocation import (
     EMERGENCY_FUND_MONTHS,
@@ -68,7 +68,12 @@ def safe_date_compare(date_obj, datetime_obj):
 
 
 def allocation(request: HttpRequest) -> HttpResponse:
-    """Breakdown of the assets by class and liquidity, with the emergency fund."""
+    """Breakdown of the assets by class and liquidity, with the emergency fund.
+
+    The breakdown covers the part of the assets held by the household members
+    chosen in the ``people`` parameter (all of them by default); the emergency
+    fund always covers the whole household, whose expenses it is sized on.
+    """
     profile = request.user.profile  # ty: ignore[unresolved-attribute]
     if request.method == "POST":
         form = MonthlyExpensesForm(request.POST)
@@ -81,7 +86,18 @@ def allocation(request: HttpRequest) -> HttpResponse:
         form = MonthlyExpensesForm(
             initial={"monthly_expenses": profile.monthly_expenses}
         )
-    result = compute_allocation(settings.DEFAULT_CURRENCY)
+    people_form = PeopleFilterForm(request.GET or None)
+    people = people_form.selected()
+    if people is None:
+        people_form = PeopleFilterForm(
+            initial={"people": list(people_form.fields["people"].queryset)}  # ty: ignore[unresolved-attribute]
+        )
+    household = compute_allocation(settings.DEFAULT_CURRENCY)
+    result = (
+        household
+        if people is None
+        else compute_allocation(settings.DEFAULT_CURRENCY, people)
+    )
     by_class = result.by_asset_class()
     by_liquidity = result.by_liquidity()
     return render(
@@ -91,7 +107,10 @@ def allocation(request: HttpRequest) -> HttpResponse:
             "allocation": result,
             "by_class": by_class,
             "by_liquidity": by_liquidity,
-            "fund": emergency_fund(result, profile.monthly_expenses),
+            "fund": emergency_fund(household, profile.monthly_expenses),
+            "household_total": household.total,
+            "people_form": people_form,
+            "is_household": people is None,
             "fund_months": EMERGENCY_FUND_MONTHS,
             "form": form,
             "chart_data": {
