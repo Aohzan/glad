@@ -167,6 +167,7 @@ def net_worth_history(
     }
     assets: _Assets | None = None
     result = []
+    missing: list[NetWorthSnapshot] = []
     for month in months:
         snapshot = stored.get(month)
         if snapshot is not None:
@@ -181,10 +182,16 @@ def net_worth_history(
         )
         values = compute_month(assets, month, at)
         if month < current:
-            NetWorthSnapshot.objects.update_or_create(
-                month=month, currency=currency, defaults=values
-            )
+            missing.append(NetWorthSnapshot(month=month, currency=currency, **values))
         result.append(values)
+    # One query for all the computed months, which a concurrent request may
+    # have stored meanwhile.
+    NetWorthSnapshot.objects.bulk_create(
+        missing,
+        update_conflicts=True,
+        unique_fields=["month", "currency"],
+        update_fields=[*SERIES, "updated_at"],
+    )
     return result
 
 
