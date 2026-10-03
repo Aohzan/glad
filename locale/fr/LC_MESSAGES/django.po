@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 08:55+0200\n"
+"POT-Creation-Date: 2026-10-03 09:19+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -157,19 +157,19 @@ msgstr "Biens tangibles"
 msgid "Other"
 msgstr "Autre"
 
-#: base/context_processors.py:40 base/search_views.py:73 templates/base.html:52
+#: base/context_processors.py:40 base/search_views.py:73 templates/base.html:53
 #: templates/index.html:4 templates/index.html:6
 msgid "Dashboard"
 msgstr "Tableau de bord"
 
-#: base/context_processors.py:41 base/search_views.py:74 templates/base.html:53
+#: base/context_processors.py:41 base/search_views.py:74 templates/base.html:54
 #: templates/finance/_account_detail_header.html:4
 #: templates/finance/index.html:4 templates/finance/index.html:6
 msgid "Finance"
 msgstr "Finance"
 
 #: base/context_processors.py:42 base/search_views.py:77
-#: base/services/dashboard.py:50 templates/base.html:56
+#: base/services/dashboard.py:50 templates/base.html:57
 #: templates/finance/edit_other_asset.html:14
 #: templates/finance/other_asset_detail.html:15
 #: templates/finance/other_asset_list.html:4
@@ -177,13 +177,13 @@ msgstr "Finance"
 msgid "Other assets"
 msgstr "Autres actifs"
 
-#: base/context_processors.py:43 templates/base.html:74
+#: base/context_processors.py:43 templates/base.html:81
 msgid "CSV import / export"
 msgstr "Import / export CSV"
 
 #: base/context_processors.py:44 base/search_views.py:75
 #: base/services/dashboard.py:46 property/forms.py:762
-#: property/models/fiscal.py:34 templates/base.html:54
+#: property/models/fiscal.py:34 templates/base.html:55
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:6
 msgid "Properties"
@@ -193,7 +193,7 @@ msgstr "Immobilier"
 #: base/services/dashboard.py:49 base/services/ownership.py:120
 #: property/models/scpi.py:38 property/models/scpi.py:39
 #: property/models/scpi.py:159 property/models/scpi.py:208
-#: property/models/scpi.py:622 templates/base.html:55 templates/base.html:103
+#: property/models/scpi.py:622 templates/base.html:56 templates/base.html:113
 #: templates/property/scpi_detail.html:12
 #: templates/property/scpi_detail.html:136
 #: templates/property/scpi_dividend_batch.html:10
@@ -206,54 +206,54 @@ msgstr "Immobilier"
 msgid "SCPI"
 msgstr "SCPI"
 
-#: base/context_processors.py:46 base/search_views.py:82 templates/base.html:69
+#: base/context_processors.py:46 base/search_views.py:82 templates/base.html:74
 #: templates/property/all_loans.html:4 templates/property/all_loans.html:16
 msgid "All Loans"
 msgstr "Tous les prêts"
 
-#: base/context_processors.py:47 templates/base.html:68
+#: base/context_processors.py:47 templates/base.html:73
 #: templates/property/occurrence_checks.html:4
 #: templates/property/occurrence_checks.html:10
 msgid "Entries to check"
 msgstr "Écritures à pointer"
 
-#: base/context_processors.py:48 templates/base.html:62
+#: base/context_processors.py:48 templates/base.html:65
 #: templates/property/report.html:4 templates/property/report.html:16
 msgid "Income & Expenses Report"
 msgstr "Rapport revenus & charges"
 
-#: base/context_processors.py:49 templates/base.html:73
+#: base/context_processors.py:49 templates/base.html:80
 msgid "LMNP Accounting"
 msgstr "Comptabilité LMNP"
 
 #: base/context_processors.py:50 base/search_views.py:83
 #: templates/accounts/settings.html:4 templates/accounts/settings.html:9
-#: templates/base.html:143
+#: templates/base.html:153
 msgid "Settings"
 msgstr "Paramètres"
 
-#: base/context_processors.py:51 templates/base.html:76 templates/base.html:145
+#: base/context_processors.py:51 templates/base.html:83 templates/base.html:155
 msgid "Administration"
 msgstr "Administration"
 
 #: base/context_processors.py:52 base/search_views.py:78
 #: templates/allocation.html:4 templates/allocation.html:13
-#: templates/base.html:60
+#: templates/base.html:63
 msgid "Allocation"
 msgstr "Répartition"
 
-#: base/context_processors.py:53 base/search_views.py:79 templates/base.html:61
+#: base/context_processors.py:53 base/search_views.py:79 templates/base.html:64
 #: templates/owners.html:4 templates/owners.html:9
 msgid "Net worth by owner"
 msgstr "Patrimoine par propriétaire"
 
-#: base/context_processors.py:54 base/search_views.py:80 templates/base.html:66
+#: base/context_processors.py:54 base/search_views.py:80 templates/base.html:71
 #: templates/dashboard/_watch.html:5 templates/deadlines.html:4
 #: templates/deadlines.html:6
 msgid "Deadlines"
 msgstr "Échéances"
 
-#: base/context_processors.py:55 base/search_views.py:81 templates/base.html:67
+#: base/context_processors.py:55 base/search_views.py:81 templates/base.html:72
 #: templates/operations.html:4 templates/operations.html:6
 msgid "Operations"
 msgstr "Opérations"
@@ -509,18 +509,18 @@ msgstr "Évaluation de bien"
 msgid "Dividend"
 msgstr "Dividende"
 
-#: base/services/ownership.py:113 templates/base.html:101
+#: base/services/ownership.py:113 templates/base.html:111
 msgid "Saving account"
 msgstr "Compte d'épargne"
 
-#: base/services/ownership.py:115 templates/base.html:100
+#: base/services/ownership.py:115 templates/base.html:110
 msgid "Investment account"
 msgstr "Compte d'investissement"
 
 #: base/services/ownership.py:118 property/models/asset.py:832
 #: property/models/asset.py:929 property/models/lease.py:44
 #: property/models/ledger.py:287 property/models/management.py:38
-#: templates/base.html:102 templates/dashboard/_property.html:28
+#: templates/base.html:112 templates/dashboard/_property.html:28
 #: templates/property/all_loans.html:99 templates/property/index.html:4
 #: templates/property/index.html:68
 #: templates/property/occurrence_checks.html:16
@@ -528,7 +528,7 @@ msgstr "Compte d'investissement"
 msgid "Property"
 msgstr "Propriété"
 
-#: base/services/ownership.py:122 templates/base.html:104
+#: base/services/ownership.py:122 templates/base.html:114
 msgid "Other asset"
 msgstr "Autre actif"
 
@@ -3671,92 +3671,92 @@ msgstr "Navigation principale"
 msgid "Wealth"
 msgstr "Patrimoine"
 
-#: templates/base.html:59
+#: templates/base.html:61
 msgid "Analysis"
 msgstr "Analyse"
 
-#: templates/base.html:65 templates/deadlines.html:5
+#: templates/base.html:69 templates/deadlines.html:5
 #: templates/operations.html:5
 msgid "Tracking"
 msgstr "Suivi"
 
-#: templates/base.html:72
+#: templates/base.html:78
 msgid "Tools"
 msgstr "Outils"
 
-#: templates/base.html:81
+#: templates/base.html:89
 msgid "Favorites"
 msgstr "Favoris"
 
-#: templates/base.html:96
+#: templates/base.html:106
 msgid "Add an asset"
 msgstr "Ajouter un actif"
 
-#: templates/base.html:97
+#: templates/base.html:107
 msgid "Add"
 msgstr "Ajouter"
 
-#: templates/base.html:100
+#: templates/base.html:110
 msgid "PEA, life insurance, securities account"
 msgstr "PEA, assurance vie, compte-titres"
 
-#: templates/base.html:101
+#: templates/base.html:111
 msgid "Passbook, PEL, CEL"
 msgstr "Livret, PEL, CEL"
 
-#: templates/base.html:102
+#: templates/base.html:112
 msgid "Main residence, rental, LMNP"
 msgstr "Résidence principale, locatif, LMNP"
 
-#: templates/base.html:103
+#: templates/base.html:113
 msgid "Shares in full or bare ownership"
 msgstr "Parts en pleine ou nue-propriété"
 
-#: templates/base.html:104
+#: templates/base.html:114
 msgid "Vehicle, gold, crypto, collectibles"
 msgstr "Véhicule, or, crypto, objets de collection"
 
-#: templates/base.html:107 templates/base.html:108
+#: templates/base.html:117 templates/base.html:118
 msgid "Bulk update"
 msgstr "Mise à jour groupée"
 
-#: templates/base.html:110
+#: templates/base.html:120
 msgid "Collapse or expand the menu"
 msgstr "Replier ou déplier le menu"
 
-#: templates/base.html:111
+#: templates/base.html:121
 msgid "Collapse the menu"
 msgstr "Replier le menu"
 
-#: templates/base.html:120
+#: templates/base.html:130
 msgid "Open the menu"
 msgstr "Ouvrir le menu"
 
-#: templates/base.html:123
+#: templates/base.html:133
 msgid "Breadcrumb"
 msgstr "Fil d'Ariane"
 
-#: templates/base.html:129
+#: templates/base.html:139
 msgid "Search an asset"
 msgstr "Rechercher un actif"
 
-#: templates/base.html:131
+#: templates/base.html:141
 msgid "No result"
 msgstr "Aucun résultat"
 
-#: templates/base.html:133 templates/base.html:195
+#: templates/base.html:143 templates/base.html:205
 msgid "Toggle dark mode"
 msgstr "Basculer en mode sombre"
 
-#: templates/base.html:137
+#: templates/base.html:147
 msgid "My account"
 msgstr "Mon compte"
 
-#: templates/base.html:151 templates/base.html:201
+#: templates/base.html:161 templates/base.html:211
 msgid "Language"
 msgstr "Langue"
 
-#: templates/base.html:159
+#: templates/base.html:169
 msgid "Logout"
 msgstr "Déconnexion"
 

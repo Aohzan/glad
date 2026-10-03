@@ -56,6 +56,26 @@ SECTION_LABELS = {
 }
 
 
+#: Sidebar group holding each section; only the current one starts unfolded.
+SECTION_GROUPS = {
+    "dashboard": "wealth",
+    "finance": "wealth",
+    "property": "wealth",
+    "scpi": "wealth",
+    "other_assets": "wealth",
+    "allocation": "analysis",
+    "owners": "analysis",
+    "report": "analysis",
+    "deadlines": "tracking",
+    "operations": "tracking",
+    "checks": "tracking",
+    "loans": "tracking",
+    "lmnp": "tools",
+    "csv": "tools",
+    "admin": "tools",
+}
+
+
 def _nav_section(request) -> str:
     match = getattr(request, "resolver_match", None)
     if match is None:
@@ -87,13 +107,14 @@ def deadlines_soon_count(today: datetime.date | None = None) -> int:
 
 
 def shell(request):
-    """Expose the active sidebar section, the deadline badge and user initials."""
+    """Expose the active sidebar section and group, the deadline badge and initials."""
     user = getattr(request, "user", None)
     if user is None or not user.is_authenticated:
         return {"nav_section": ""}
     section = _nav_section(request)
     return {
         "nav_section": section,
+        "nav_group": SECTION_GROUPS.get(section, ""),
         "nav_section_label": SECTION_LABELS.get(section, ""),
         "deadlines_soon_count": deadlines_soon_count(),
         "user_initials": _initials(user),

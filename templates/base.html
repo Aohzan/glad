@@ -48,52 +48,62 @@
             </a>
             <nav class="g-nav" aria-label="{% translate 'Main navigation' %}">
                 <div class="g-nav__group">
-                    <span class="g-nav__label">{% translate "Wealth" %}</span>
-                    {% translate "Dashboard" as label %}{% include "_nav_item.html" with url_name="index" section="dashboard" icon="layout-dashboard" %}
-                    {% translate "Finance" as label %}{% include "_nav_item.html" with url_name="finance:index" section="finance" icon="wallet" %}
-                    {% translate "Properties" as label %}{% include "_nav_item.html" with url_name="property:index" section="property" icon="house" %}
-                    {% translate "SCPI" as label %}{% include "_nav_item.html" with url_name="property:scpi_list" section="scpi" icon="building" %}
-                    {% translate "Other assets" as label %}{% include "_nav_item.html" with url_name="finance:other_asset_list" section="other_assets" icon="gem" %}
+                    {% translate "Wealth" as label %}{% include "_nav_group_head.html" with group="wealth" %}
+                    <div class="g-nav__items" id="g-nav-wealth"{% if nav_group != "wealth" %} data-folded{% endif %}>
+                        {% translate "Dashboard" as label %}{% include "_nav_item.html" with url_name="index" section="dashboard" icon="layout-dashboard" %}
+                        {% translate "Finance" as label %}{% include "_nav_item.html" with url_name="finance:index" section="finance" icon="wallet" %}
+                        {% translate "Properties" as label %}{% include "_nav_item.html" with url_name="property:index" section="property" icon="house" %}
+                        {% translate "SCPI" as label %}{% include "_nav_item.html" with url_name="property:scpi_list" section="scpi" icon="building" %}
+                        {% translate "Other assets" as label %}{% include "_nav_item.html" with url_name="finance:other_asset_list" section="other_assets" icon="gem" %}
+                    </div>
                 </div>
                 <div class="g-nav__group">
-                    <span class="g-nav__label">{% translate "Analysis" %}</span>
-                    {% translate "Allocation" as label %}{% include "_nav_item.html" with url_name="allocation" section="allocation" icon="chart-pie" %}
-                    {% translate "Net worth by owner" as label %}{% include "_nav_item.html" with url_name="owners" section="owners" icon="users" %}
-                    {% translate "Income & Expenses Report" as label %}{% include "_nav_item.html" with url_name="property:report" section="report" icon="file-chart-column" %}
+                    {% translate "Analysis" as label %}{% include "_nav_group_head.html" with group="analysis" %}
+                    <div class="g-nav__items" id="g-nav-analysis"{% if nav_group != "analysis" %} data-folded{% endif %}>
+                        {% translate "Allocation" as label %}{% include "_nav_item.html" with url_name="allocation" section="allocation" icon="chart-pie" %}
+                        {% translate "Net worth by owner" as label %}{% include "_nav_item.html" with url_name="owners" section="owners" icon="users" %}
+                        {% translate "Income & Expenses Report" as label %}{% include "_nav_item.html" with url_name="property:report" section="report" icon="file-chart-column" %}
+                    </div>
                 </div>
                 <div class="g-nav__group">
-                    <span class="g-nav__label">{% translate "Tracking" %}</span>
-                    {% translate "Deadlines" as label %}{% include "_nav_item.html" with url_name="deadlines" section="deadlines" icon="calendar-clock" badge=deadlines_soon_count %}
-                    {% translate "Operations" as label %}{% include "_nav_item.html" with url_name="operations" section="operations" icon="arrow-left-right" %}
-                    {% translate "Entries to check" as label %}{% include "_nav_item.html" with url_name="property:checks" section="checks" icon="list-checks" %}
-                    {% translate "All Loans" as label %}{% include "_nav_item.html" with url_name="property:all_loans" section="loans" icon="landmark" %}
+                    {% translate "Tracking" as label %}{% include "_nav_group_head.html" with group="tracking" badge=deadlines_soon_count %}
+                    <div class="g-nav__items" id="g-nav-tracking"{% if nav_group != "tracking" %} data-folded{% endif %}>
+                        {% translate "Deadlines" as label %}{% include "_nav_item.html" with url_name="deadlines" section="deadlines" icon="calendar-clock" badge=deadlines_soon_count %}
+                        {% translate "Operations" as label %}{% include "_nav_item.html" with url_name="operations" section="operations" icon="arrow-left-right" %}
+                        {% translate "Entries to check" as label %}{% include "_nav_item.html" with url_name="property:checks" section="checks" icon="list-checks" %}
+                        {% translate "All Loans" as label %}{% include "_nav_item.html" with url_name="property:all_loans" section="loans" icon="landmark" %}
+                    </div>
                 </div>
                 <div class="g-nav__group">
-                    <span class="g-nav__label">{% translate "Tools" %}</span>
-                    {% translate "LMNP Accounting" as label %}{% include "_nav_item.html" with url_name="property:lmnp_accounting" section="lmnp" icon="calculator" %}
-                    {% translate "CSV import / export" as label %}{% include "_nav_item.html" with url_name="finance:csv_import" section="csv" icon="file-up" %}
-                    {% if user.is_superuser %}
-                    {% translate "Administration" as label %}{% include "_nav_item.html" with url_name="admin:index" section="admin" icon="shield" %}
-                    {% endif %}
+                    {% translate "Tools" as label %}{% include "_nav_group_head.html" with group="tools" %}
+                    <div class="g-nav__items" id="g-nav-tools"{% if nav_group != "tools" %} data-folded{% endif %}>
+                        {% translate "LMNP Accounting" as label %}{% include "_nav_item.html" with url_name="property:lmnp_accounting" section="lmnp" icon="calculator" %}
+                        {% translate "CSV import / export" as label %}{% include "_nav_item.html" with url_name="finance:csv_import" section="csv" icon="file-up" %}
+                        {% if user.is_superuser %}
+                        {% translate "Administration" as label %}{% include "_nav_item.html" with url_name="admin:index" section="admin" icon="shield" %}
+                        {% endif %}
+                    </div>
                 </div>
                 {% if nav_accounts or nav_properties %}
                 <div class="g-nav__group">
-                    <span class="g-nav__label">{% translate "Favorites" %}</span>
-                    {% for account in nav_accounts_investment %}
-                    <a class="g-nav__item" href="{% url 'finance:investment_detail' account.pk %}" title="{{ account }}">{% icon "chart-line" %}<span class="g-nav__text">{{ account }}</span></a>
-                    {% endfor %}
-                    {% for account in nav_accounts_saving %}
-                    <a class="g-nav__item" href="{% url 'finance:saving_detail' account.pk %}" title="{{ account }}">{% icon "piggy-bank" %}<span class="g-nav__text">{{ account }}</span></a>
-                    {% endfor %}
-                    {% for prop in nav_properties %}
-                    <a class="g-nav__item" href="{% url 'property:detail' prop.pk %}" title="{{ prop.name }}">{% icon prop.icon %}<span class="g-nav__text">{{ prop.name }}</span></a>
-                    {% endfor %}
+                    {% translate "Favorites" as label %}{% include "_nav_group_head.html" with group="favorites" %}
+                    <div class="g-nav__items" id="g-nav-favorites"{% if nav_group != "favorites" %} data-folded{% endif %}>
+                        {% for account in nav_accounts_investment %}
+                        <a class="g-nav__item" href="{% url 'finance:investment_detail' account.pk %}">{% icon "chart-line" %}<span class="g-nav__text">{{ account }}</span></a>
+                        {% endfor %}
+                        {% for account in nav_accounts_saving %}
+                        <a class="g-nav__item" href="{% url 'finance:saving_detail' account.pk %}">{% icon "piggy-bank" %}<span class="g-nav__text">{{ account }}</span></a>
+                        {% endfor %}
+                        {% for prop in nav_properties %}
+                        <a class="g-nav__item" href="{% url 'property:detail' prop.pk %}">{% icon prop.icon %}<span class="g-nav__text">{{ prop.name }}</span></a>
+                        {% endfor %}
+                    </div>
                 </div>
                 {% endif %}
             </nav>
             <div class="g-sidebar__foot">
                 <div class="dropup">
-                    <button type="button" class="btn btn-primary g-sidebar__btn" data-bs-toggle="dropdown" aria-expanded="false" title="{% translate 'Add an asset' %}" aria-label="{% translate 'Add an asset' %}">
+                    <button type="button" class="btn btn-primary g-sidebar__btn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% translate 'Add an asset' %}">
                         {% icon "plus" %}<span class="g-sidebar__label">{% translate "Add" %}</span>
                     </button>
                     <ul class="dropdown-menu g-add-menu">
@@ -104,10 +114,10 @@
                         {% translate "Other asset" as label %}{% translate "Vehicle, gold, crypto, collectibles" as sub %}{% include "_add_menu_item.html" with url_name="finance:new_other_asset" icon="gem" %}
                     </ul>
                 </div>
-                <a class="btn btn-outline-secondary g-sidebar__btn" href="{% url 'finance:update' %}" title="{% translate 'Bulk update' %}" aria-label="{% translate 'Bulk update' %}">
+                <a class="btn btn-outline-secondary g-sidebar__btn" href="{% url 'finance:update' %}" aria-label="{% translate 'Bulk update' %}">
                     {% icon "refresh-cw" %}<span class="g-sidebar__label">{% translate "Bulk update" %}</span>
                 </a>
-                <button type="button" class="g-sidebar__toggle" id="g-sidebar-toggle" aria-controls="g-sidebar" title="{% translate 'Collapse or expand the menu' %}">
+                <button type="button" class="g-sidebar__toggle" id="g-sidebar-toggle" aria-controls="g-sidebar" aria-label="{% translate 'Collapse or expand the menu' %}">
                     {% icon "chevrons-left" "g-icon--collapse" %}{% icon "chevrons-right" "g-icon--expand" %}<span class="g-sidebar__label">{% translate "Collapse the menu" %}</span>
                 </button>
             </div>
