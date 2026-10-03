@@ -5,6 +5,9 @@
   {% translate "Edit" %} - {{ property.name }}
 {% endblock %}
 
+{% block breadcrumb_parents %}{% url 'property:detail' property.pk as url %}{% include "_crumb.html" with label=property.name %}{% endblock %}
+{% block breadcrumb %}{% translate "Edit" %}{% endblock %}
+
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">

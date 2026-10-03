@@ -5,6 +5,8 @@
   {{ property.name }} {% translate "property" %}
 {% endblock %}
 
+{% block breadcrumb %}{{ property.name }}{% endblock %}
+
 {% block extra_head %}
   <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
   <link

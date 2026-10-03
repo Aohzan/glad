@@ -3,6 +3,7 @@
 import datetime
 
 from django.core.cache import cache
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from base.services.deadlines import SOON_DAYS, upcoming_deadlines
@@ -53,6 +54,27 @@ SECTION_LABELS = {
     "owners": _("Net worth by owner"),
     "deadlines": _("Deadlines"),
     "operations": _("Operations"),
+}
+
+
+#: Page each breadcrumb section links to.
+SECTION_URLS = {
+    "dashboard": "index",
+    "finance": "finance:index",
+    "other_assets": "finance:other_asset_list",
+    "csv": "finance:csv_import",
+    "property": "property:index",
+    "scpi": "property:scpi_list",
+    "loans": "property:all_loans",
+    "checks": "property:checks",
+    "report": "property:report",
+    "lmnp": "property:lmnp_accounting",
+    "account": "accounts:settings",
+    "admin": "admin:index",
+    "allocation": "allocation",
+    "owners": "owners",
+    "deadlines": "deadlines",
+    "operations": "operations",
 }
 
 
@@ -112,10 +134,15 @@ def shell(request):
     if user is None or not user.is_authenticated:
         return {"nav_section": ""}
     section = _nav_section(request)
+    section_url = SECTION_URLS.get(section, "")
+    match = getattr(request, "resolver_match", None)
     return {
         "nav_section": section,
         "nav_group": SECTION_GROUPS.get(section, ""),
         "nav_section_label": SECTION_LABELS.get(section, ""),
+        "nav_section_url": reverse(section_url) if section_url else "",
+        "nav_is_section_index": bool(section_url)
+        and getattr(match, "view_name", None) == section_url,
         "deadlines_soon_count": deadlines_soon_count(),
         "user_initials": _initials(user),
     }

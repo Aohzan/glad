@@ -5,6 +5,9 @@
   {% if asset %}{% translate "Edit asset" %}{% else %}{% translate "New asset" %}{% endif %}
 {% endblock %}
 
+{% block breadcrumb_parents %}{% if asset %}{% url 'finance:other_asset_detail' asset.pk as url %}{% include "_crumb.html" with label=asset %}{% endif %}{% endblock %}
+{% block breadcrumb %}{% if asset %}{% translate "Edit" %}{% else %}{% translate "New asset" %}{% endif %}{% endblock %}
+
 {% block content %}
 <div class="container py-4" style="max-width: 760px;">
 

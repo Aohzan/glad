@@ -3,6 +3,9 @@
 
 {% block title %}{% translate "Owners" %} — {{ asset }}{% endblock %}
 
+{% block breadcrumb_parents %}{% include "_crumb.html" with url=back_url label=asset %}{% endblock %}
+{% block breadcrumb %}{% translate "Owners" %}{% endblock %}
+
 {% block content %}
 <div class="container py-4" style="max-width: 860px;">
   <div class="d-flex align-items-center gap-2 mb-4">

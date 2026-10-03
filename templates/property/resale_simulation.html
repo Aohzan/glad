@@ -3,6 +3,9 @@
 
 {% block title %}{% translate "Resale simulation" %} — {{ property.name }}{% endblock %}
 
+{% block breadcrumb_parents %}{% url 'property:detail' property.pk as url %}{% include "_crumb.html" with label=property.name %}{% endblock %}
+{% block breadcrumb %}{% translate "Resale simulation" %}{% endblock %}
+
 {% block content %}
 <div class="container py-4" style="max-width: 1000px;">
   <div class="d-flex align-items-center gap-2 mb-4">

@@ -5,6 +5,9 @@
   {% if account %}{% translate "Edit saving account" %}{% else %}{% translate "New saving account" %}{% endif %}
 {% endblock %}
 
+{% block breadcrumb_parents %}{% if account %}{% url 'finance:saving_detail' account.pk as url %}{% include "_crumb.html" with label=account %}{% endif %}{% endblock %}
+{% block breadcrumb %}{% if account %}{% translate "Edit" %}{% else %}{% translate "New saving account" %}{% endif %}{% endblock %}
+
 {% block content %}
 <div class="container py-4" style="max-width: 760px;">
 

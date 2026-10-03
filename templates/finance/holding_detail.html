@@ -3,6 +3,8 @@
 
 {% block title %}{{ holding.short_name }}{% endblock %}
 
+{% block breadcrumb_parents %}{% url 'finance:investment_detail' account.pk as url %}{% include "_crumb.html" with label=account %}{% endblock %}
+
 {% block extra_head %}
 <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
 {% endblock %}

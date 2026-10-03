@@ -9,6 +9,9 @@
   {% endif %}
 {% endblock %}
 
+{% block breadcrumb_parents %}{% if scpi %}{% url 'property:scpi_fund_detail' scpi.pk as url %}{% include "_crumb.html" with label=scpi %}{% endif %}{% endblock %}
+{% block breadcrumb %}{% if scpi %}{% translate "Edit" %}{% else %}{% translate 'New SCPI fund' %}{% endif %}{% endblock %}
+
 {% block content %}
   <div class="container py-4" style="max-width: 680px;">
     {% url 'property:scpi_list' as back_url %}

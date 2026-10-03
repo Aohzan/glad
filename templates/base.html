@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-{% load i18n static %}
+{% load i18n static capture %}
 {% get_current_language as CURRENT_LANGUAGE %}
+{% capture page_title %}{% block title %}{% endblock %}{% endcapture %}
 <html data-bs-theme="light" lang="{{ CURRENT_LANGUAGE }}">
 
 <head>
@@ -14,7 +15,7 @@
     <meta name="theme-color" content="#11131e" media="(prefers-color-scheme: dark)">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <meta name="glad-icon-sprite" content="{% static 'vendors/lucide/sprite.svg' %}">
-    <title>{% block title %}{% endblock %} - Glad</title>
+    <title>{{ page_title }} - Glad</title>
     <link rel="manifest" href="{% static 'manifest.json' %}">
     <link rel="icon" href="{% static 'glad-mark.svg' %}" type="image/svg+xml">
     <link rel="alternate icon" href="{% static 'favicon.ico' %}">
@@ -133,7 +134,10 @@
                     <img class="g-topbar__mark" src="{% static 'glad-mark.svg' %}" alt="Glad">
                 </div>
                 <nav class="g-breadcrumb" aria-label="{% translate 'Breadcrumb' %}">
-                    <a href="{% url 'index' %}">Glad</a><span class="g-breadcrumb__sep">/</span><span class="g-breadcrumb__current">{% block breadcrumb %}{{ nav_section_label }}{% endblock %}</span>
+                    <a href="{% url 'index' %}">Glad</a>
+                    {% if nav_section_label %}<span class="g-breadcrumb__sep">/</span>{% if nav_is_section_index %}<span class="g-breadcrumb__current" aria-current="page">{{ nav_section_label }}</span>{% else %}<a href="{{ nav_section_url }}">{{ nav_section_label }}</a>{% endif %}{% endif %}
+                    {% block breadcrumb_parents %}{% endblock %}
+                    {% if not nav_is_section_index %}<span class="g-breadcrumb__sep">/</span><span class="g-breadcrumb__current" aria-current="page">{% block breadcrumb %}{{ page_title }}{% endblock %}</span>{% endif %}
                 </nav>
                 <div class="g-topbar__spacer"></div>
                 <div class="g-search" id="g-search" data-url="{% url 'api_search' %}">

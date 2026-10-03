@@ -3,6 +3,8 @@
 
 {% block title %}{% if investment %}{% translate "Edit investment" %}{% else %}{% translate "New SCPI investment" %}{% endif %}{% endblock %}
 
+{% block breadcrumb_parents %}{% if investment %}{% url 'property:scpi_fund_detail' investment.scpi_id as url %}{% include "_crumb.html" with label=investment.scpi %}{% endif %}{% endblock %}
+
 {% block content %}
 <div class="container py-4" style="max-width: 760px;">
 

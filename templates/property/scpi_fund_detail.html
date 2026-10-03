@@ -3,6 +3,8 @@
 
 {% block title %}{{ scpi }} — {% translate "SCPI" %}{% endblock %}
 
+{% block breadcrumb %}{{ scpi }}{% endblock %}
+
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'vendors/simple-datatables/simple-datatables.css' %}">
   <script src="{% static 'vendors/simple-datatables/simple-datatables.js' %}"></script>
