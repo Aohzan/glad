@@ -19,8 +19,10 @@ from base.models import NetWorthSnapshot
 from finance.models.investment_account import InvestmentAccount
 from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount
+from finance.services.history import InvestmentValues, SavingValues
 from property.models import Property
 from property.models.scpi import SCPIInvestment
+from property.services.history import PropertyValues
 
 logger = logging.getLogger(__name__)
 
@@ -43,30 +45,38 @@ class _Assets:
     properties: list[Property]
     scpi_investments: list[SCPIInvestment]
     other_assets: list[OtherAsset]
+    saving_values: SavingValues
+    investment_values: InvestmentValues
+    property_values: PropertyValues
 
 
 def _load_assets(currency: str) -> _Assets:
+    saving_accounts = [a for a in SavingAccount.objects.all() if a.currency == currency]
+    investment_accounts = [
+        a for a in InvestmentAccount.objects.all() if a.currency == currency
+    ]
+    # The loans are read once and their schedules kept for every month.
+    properties = [
+        p
+        for p in Property.objects.filter(is_active=True).prefetch_related(
+            "loans__amortization_entries"
+        )
+        if p.currency == currency
+    ]
     return _Assets(
-        saving_accounts=[
-            a for a in SavingAccount.objects.all() if a.currency == currency
-        ],
-        investment_accounts=[
-            a for a in InvestmentAccount.objects.all() if a.currency == currency
-        ],
-        # The loans are read once and their schedules kept for every month.
-        properties=[
-            p
-            for p in Property.objects.filter(is_active=True).prefetch_related(
-                "loans__amortization_entries"
-            )
-            if p.currency == currency
-        ],
+        saving_accounts=saving_accounts,
+        investment_accounts=investment_accounts,
+        properties=properties,
         scpi_investments=[
             i
             for i in SCPIInvestment.objects.select_related("scpi")
             if i.currency == currency
         ],
         other_assets=[a for a in OtherAsset.objects.all() if a.currency == currency],
+        # The value histories are read once and resolved in memory every month.
+        saving_values=SavingValues(saving_accounts),
+        investment_values=InvestmentValues(investment_accounts),
+        property_values=PropertyValues(properties),
     )
 
 
@@ -78,20 +88,12 @@ def _is_held(account, month: datetime.date) -> bool:
 
 
 def _amount(obj, compute) -> Decimal:
-    """``compute(obj).amount``, zero (and logged) when it cannot be computed."""
+    """``compute(obj)``, zero (and logged) when it cannot be computed."""
     try:
-        return compute(obj).amount
+        return compute(obj)
     except Exception:
         logger.warning("Cannot value %s", obj, exc_info=True)
         return Decimal(0)
-
-
-def _account_value(account, at: datetime.datetime):
-    """Account value at *at*, retried with a date for date-only lookups."""
-    try:
-        return account.get_value(max_date=at)
-    except TypeError:
-        return account.get_value(max_date=at.date())
 
 
 def compute_month(
@@ -106,24 +108,30 @@ def compute_month(
     values = dict.fromkeys(SERIES, Decimal(0))
     for account in assets.saving_accounts:
         if _is_held(account, month):
-            values["savings"] += _amount(account, lambda a: _account_value(a, at))
+            values["savings"] += _amount(
+                account, lambda a: assets.saving_values.at(a, at)
+            )
     for account in assets.investment_accounts:
         if _is_held(account, month):
-            values["investments"] += _amount(account, lambda a: _account_value(a, at))
+            values["investments"] += _amount(
+                account, lambda a: assets.investment_values.at(a, at)
+            )
     for prop in assets.properties:
         if prop.buying_date <= month:
             values["properties_net"] += _amount(
-                prop, lambda p: p.net_value_at_date(month)
+                prop, lambda p: assets.property_values.net_at(p, month)
             )
             values["properties_gross"] += _amount(
-                prop, lambda p: p.get_value(max_date=at)
+                prop, lambda p: assets.property_values.at(p, at)
             )
     for investment in assets.scpi_investments:
-        values["scpi"] += _amount(investment, lambda i: i.get_estimated_value(month))
+        values["scpi"] += _amount(
+            investment, lambda i: i.get_estimated_value(month).amount
+        )
     for asset in assets.other_assets:
         # An inactive asset without a sale date is left out, as on the dashboard.
         if asset.is_active or asset.sold_date:
-            values["other"] += _amount(asset, lambda a: a.get_value(month))
+            values["other"] += _amount(asset, lambda a: a.get_value(month).amount)
     return values
 
 
