@@ -52,8 +52,13 @@ def _load_assets(currency: str) -> _Assets:
         investment_accounts=[
             a for a in InvestmentAccount.objects.all() if a.currency == currency
         ],
+        # The loans are read once and their schedules kept for every month.
         properties=[
-            p for p in Property.objects.filter(is_active=True) if p.currency == currency
+            p
+            for p in Property.objects.filter(is_active=True).prefetch_related(
+                "loans__amortization_entries"
+            )
+            if p.currency == currency
         ],
         scpi_investments=[
             i

@@ -30,7 +30,7 @@ def index(request: HttpRequest) -> HttpResponse:
     properties = (
         Property.objects.order_by("-is_active", "name")
         .annotate(loans_count=Count("loans"))
-        .prefetch_related("leases")
+        .prefetch_related("leases", "loans__amortization_entries")
     )
     property_list: list[dict[str, Any]] = []
 

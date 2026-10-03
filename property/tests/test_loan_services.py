@@ -298,3 +298,16 @@ def test_chart_without_loans():
         "total_capital": [],
         "total_interest": [],
     }
+
+
+def test_prefetched_loans_are_read_once(django_assert_num_queries, prop, two_loans):
+    """A schedule is built once per loan, then queried at every date for free."""
+    prop = Property.objects.prefetch_related("loans__amortization_entries").get(
+        pk=prop.pk
+    )
+    with django_assert_num_queries(0):
+        balances = [
+            prop.total_remaining_loans_at_date(D(2021, month, 1)).amount
+            for month in range(1, 13)
+        ]
+    assert balances == sorted(balances, reverse=True)

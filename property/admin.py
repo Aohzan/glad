@@ -123,10 +123,19 @@ class PropertyAdmin(admin.ModelAdmin):
     list_filter = ("property_type", "is_active", "tax_regime")
     search_fields = ("name", "street_name", "city", "postal_code")
 
+    def get_queryset(self, request):
+        # net_value reads the schedule of every loan.
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related("loans__amortization_entries")
+        )
+
 
 @admin.register(PropertyLoan)
 class PropertyLoanAdmin(admin.ModelAdmin):
     inlines = [PropertyLoanAmortizationEntryInline]
+    list_select_related = ("property",)
     list_display = (
         "property",
         "name",
@@ -144,6 +153,9 @@ class PropertyLoanAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("amortization_entries")
 
 
 @admin.register(PropertyLedgerEntry)

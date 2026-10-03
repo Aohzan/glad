@@ -937,7 +937,11 @@ def get_bilan_data(property_id: int, year: int) -> dict:
     cumul = sum((a.cumulative_amortization(year) for a in assets), Decimal(0))
 
     year_end = datetime.date(year, 12, 31)
-    loans = PropertyLoan.objects.filter(property_id=property_id)
+    loans = (
+        PropertyLoan.objects.filter(property_id=property_id)
+        .select_related("property")
+        .prefetch_related("amortization_entries")
+    )
     emprunts = sum(
         (loan.remaining_balance(year_end).amount for loan in loans), Decimal(0)
     )

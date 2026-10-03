@@ -187,7 +187,12 @@ def _account_rows(model, kind, url_name, currency, holders, then):
 
 
 def _property_rows(currency, holders, then):
-    for prop in Property.objects.filter(is_active=True).order_by("name"):
+    properties = (
+        Property.objects.filter(is_active=True)
+        .prefetch_related("loans__amortization_entries")
+        .order_by("name")
+    )
+    for prop in properties:
         if prop.currency != currency:
             continue
         gross = prop.gross_value.amount
@@ -310,8 +315,10 @@ def hero_summary(
 def liabilities(today: datetime.date) -> list[Liability]:
     """Loans of the active properties not fully repaid, largest balance first."""
     result = []
-    loans = PropertyLoan.objects.filter(property__is_active=True).select_related(
-        "property"
+    loans = (
+        PropertyLoan.objects.filter(property__is_active=True)
+        .select_related("property")
+        .prefetch_related("amortization_entries")
     )
     for loan in loans:
         remaining = loan.remaining_balance(today).amount
