@@ -29,6 +29,12 @@
             <div class="col-12">
               {% include '_form_field.html' with field=form.name %}
             </div>
+            {% if form.owners %}
+            <div class="col-12">
+              {% include '_owners_field.html' with field=form.owners %}
+              <div class="form-text mt-n2">{% translate "The owners apply to every investment in this SCPI." %}</div>
+            </div>
+            {% endif %}
             <div class="col-12">
               {% include '_form_field.html' with field=form.management_company %}
             </div>

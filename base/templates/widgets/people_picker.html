@@ -1,4 +1,10 @@
-<div class="people-picker d-flex flex-wrap gap-2">{% for group, options, index in widget.optgroups %}{% for option in options %}
-  <input type="checkbox" class="btn-check" name="{{ option.name }}" value="{{ option.value|stringformat:'s' }}" id="{{ option.attrs.id }}" autocomplete="off"{% if option.selected %} checked{% endif %}>
-  <label class="btn btn-sm btn-outline-primary rounded-pill" for="{{ option.attrs.id }}">{{ option.label }}</label>{% endfor %}{% endfor %}
+{% load i18n %}<div class="people-picker"{% if widget.with_shares %} data-shares{% endif %}>{% for group, options, index in widget.optgroups %}{% for option in options %}
+  <div class="people-picker__item">
+    <input type="checkbox" class="btn-check" name="{{ option.name }}" value="{{ option.value|stringformat:'s' }}" id="{{ option.attrs.id }}" autocomplete="off"{% if option.selected %} checked{% endif %}>
+    <label class="people-picker__person" for="{{ option.attrs.id }}">{{ option.label }}</label>{% if widget.with_shares %}
+    <span class="people-picker__share">
+      <input type="number" class="form-control form-control-sm" name="{{ widget.name }}_share_{{ option.value|stringformat:'s' }}" value="{{ option.share }}" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="{% blocktranslate with name=option.label %}Share of {{ name }} (%){% endblocktranslate %}">
+      <span>%</span>
+    </span>{% endif %}
+  </div>{% endfor %}{% endfor %}
 </div>

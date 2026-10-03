@@ -36,6 +36,29 @@ class BootstrapMoneyWidget(MoneyWidget):
 
 
 class PeoplePicker(forms.CheckboxSelectMultiple):
-    """Checkboxes rendered as a row of toggle buttons, one per person."""
+    """Checkboxes rendered as a row of toggle buttons, one per person.
+
+    With *with_shares*, each chosen person also gets a share input named
+    ``<name>_share_<pk>``, prefilled from *shares* (keyed by primary key).
+    """
 
     template_name = "widgets/people_picker.html"
+
+    def __init__(self, attrs=None, choices=(), *, with_shares=False, shares=None):
+        super().__init__(attrs, choices)
+        self.with_shares = with_shares
+        self.shares = shares or {}
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context["widget"]["with_shares"] = self.with_shares
+        return context
+
+    def create_option(
+        self, name, value, label, selected, index, subindex=None, attrs=None
+    ):
+        option = super().create_option(
+            name, value, label, selected, index, subindex, attrs
+        )
+        option["share"] = self.shares.get(str(value), "")
+        return option

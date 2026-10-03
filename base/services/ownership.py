@@ -206,6 +206,25 @@ def plan_owners(rows: list[Ownership], users: Iterable) -> OwnersPlan:
     return OwnersPlan(delete=removed, save=holders)
 
 
+def plan_shares(rows: list[Ownership], shares: dict) -> OwnersPlan:
+    """Changes making the users of *shares* the full owners of an asset held through *rows*.
+
+    *shares* maps each user to the percentage of the asset they hold; the
+    owners left out are removed.
+    """
+    by_user = {row.user_id: row for row in rows}  # ty: ignore[unresolved-attribute]
+    plan = OwnersPlan(
+        delete=[row for row in rows if row.user_id not in {u.pk for u in shares}]  # ty: ignore[unresolved-attribute]
+    )
+    for user, share in shares.items():
+        row = by_user.get(user.pk) or Ownership(user=user)
+        if row.pk and row.share == share and row.right == Ownership.Right.FULL:
+            continue
+        row.share, row.right = share, Ownership.Right.FULL
+        plan.save.append(row)
+    return plan
+
+
 @transaction.atomic
 def apply_owners(asset, plan: OwnersPlan) -> None:
     """Delete and save the ownership rows of *plan* for *asset*."""

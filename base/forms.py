@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import cast
 
 from django import forms
@@ -11,11 +11,13 @@ from djmoney.forms.fields import MoneyField
 
 from base.models import Ownership, display_name, household_members
 from base.services.ownership import (
+    MIN_SHARE,
     NoShareLeftError,
     OwnersPlan,
     apply_owners,
     ownerships_of,
     plan_owners,
+    plan_shares,
 )
 from base.widgets import BootstrapMoneyWidget, PeoplePicker
 
@@ -105,32 +107,75 @@ class PeopleField(forms.ModelMultipleChoiceField):
         return display_name(obj)
 
 
-class OwnersFormMixin:
-    """Form mixin choosing the household members who own the saved asset.
+def _share_text(share: Decimal) -> str:
+    """A share as typed in its input: ``50`` or ``33.33``."""
+    text = f"{share.quantize(MIN_SHARE):f}"
+    return text.rstrip("0").rstrip(".")
 
-    Apply it before ``forms.ModelForm``. At least one owner is required; the
-    shares are updated as explained in :func:`plan_owners` once the asset is
-    saved. *owners_after* names the field the owners are shown after.
+
+class OwnersFormMixin:
+    """Form mixin choosing the household members who own the saved assets.
+
+    Apply it before ``forms.ModelForm``. At least one owner is required. Each
+    chosen member gets a share, an equal split by default; the shares are
+    left to :func:`plan_owners` when an asset carries a dismembered right,
+    which is set on the owners page. *owners_after* names the field the owners
+    are shown after.
     """
 
     owners_after: str | None = None
 
+    def owned_assets(self) -> list:
+        """Assets whose owners the form sets: the edited instance by default."""
+        return [cast(forms.BaseModelForm, self).instance]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         form = cast(forms.BaseModelForm, self)
-        self.owner_rows = ownerships_of(form.instance) if form.instance.pk else []
-        self.owners_plan = OwnersPlan()
+        self.owner_rows = [
+            (asset, ownerships_of(asset) if asset.pk else [])
+            for asset in self.owned_assets()
+        ]
+        self.owners_plans: list[tuple[object, OwnersPlan]] = []
+        if not self.owner_rows:
+            return
+        rows = [row for _asset, asset_rows in self.owner_rows for row in asset_rows]
+        self.owners_with_shares = all(row.right == Ownership.Right.FULL for row in rows)
+        users = list({row.user_id: row.user for row in rows}.values())  # ty: ignore[unresolved-attribute]
+        name = form.add_prefix("owners")
+        if form.is_bound:
+            shares = {
+                key.removeprefix(f"{name}_share_"): value
+                for key, value in form.data.items()
+                if key.startswith(f"{name}_share_")
+            }
+        else:
+            # The shares are shown when every asset splits them the same way.
+            splits = {
+                frozenset((row.user_id, row.share) for row in asset_rows)  # ty: ignore[unresolved-attribute]
+                for _asset, asset_rows in self.owner_rows
+            }
+            shares = (
+                {str(pk): _share_text(share) for pk, share in splits.pop()}
+                if len(splits) == 1
+                else {}
+            )
         owners = PeopleField(
             label=_("Owners"),
-            initial=[row.user for row in self.owner_rows],
+            initial=users,
+            widget=PeoplePicker(with_shares=self.owners_with_shares, shares=shares),
             help_text=_(
-                "Several owners share the asset equally; set other shares or a "
-                "dismembered right on the owners page."
+                "Share of each owner, in percent; the rest is held outside the household."
+            )
+            if self.owners_with_shares
+            else _(
+                "New owners share the full ownership equally; set the shares of a "
+                "dismembered asset on the owners page."
             ),
             error_messages={"required": _("Choose at least one owner.")},
         )
         fields = list(form.fields.items())
-        names = [name for name, _field in fields]
+        names = [field_name for field_name, _field in fields]
         position = (
             names.index(self.owners_after) + 1
             if self.owners_after in names
@@ -139,10 +184,46 @@ class OwnersFormMixin:
         fields.insert(position, ("owners", owners))
         form.fields = dict(fields)
 
+    def _posted_shares(self, owners) -> dict | None:
+        """Share typed for each owner, None when none is typed."""
+        form = cast(forms.BaseModelForm, self)
+        name = form.add_prefix("owners")
+        texts = {
+            user: str(form.data.get(f"{name}_share_{user.pk}", "")).strip()
+            for user in owners
+        }
+        if not any(texts.values()):
+            return None
+        shares = {}
+        for user, text in texts.items():
+            try:
+                share = Decimal(text.replace(",", ".")).quantize(MIN_SHARE)
+            except InvalidOperation:
+                raise forms.ValidationError(
+                    _("Enter the share of every owner, between 0.01 and 100.")
+                ) from None
+            if not MIN_SHARE <= share <= 100:
+                raise forms.ValidationError(
+                    _("Enter the share of every owner, between 0.01 and 100.")
+                )
+            shares[user] = share
+        if sum(shares.values()) > 100:
+            raise forms.ValidationError(_("The shares of the owners exceed 100 %."))
+        return shares
+
     def clean_owners(self):
         owners = cast(forms.BaseModelForm, self).cleaned_data["owners"]
+        shares = self._posted_shares(owners) if self.owners_with_shares else None
         try:
-            self.owners_plan = plan_owners(self.owner_rows, owners)
+            self.owners_plans = [
+                (
+                    asset,
+                    plan_owners(rows, owners)
+                    if shares is None
+                    else plan_shares(rows, shares),
+                )
+                for asset, rows in self.owner_rows
+            ]
         except NoShareLeftError:
             raise forms.ValidationError(
                 _(
@@ -154,7 +235,8 @@ class OwnersFormMixin:
 
     def _save_m2m(self):
         super()._save_m2m()  # ty: ignore[unresolved-attribute]
-        apply_owners(cast(forms.BaseModelForm, self).instance, self.owners_plan)
+        for asset, plan in self.owners_plans:
+            apply_owners(asset, plan)
 
 
 class OwnershipForm(forms.ModelForm):

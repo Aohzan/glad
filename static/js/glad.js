@@ -287,6 +287,27 @@
     }
   }, true);
 
+  // A people picker with shares splits 100 % equally between the chosen
+  // people each time one is added or removed; the shares stay editable.
+  document.addEventListener('change', function (event) {
+    var box = event.target;
+    if (!box.matches || !box.matches('.people-picker[data-shares] .btn-check')) return;
+    var items = Array.prototype.slice.call(
+      box.closest('.people-picker').querySelectorAll('.people-picker__item'));
+    var chosen = items.filter(function (item) { return item.querySelector('.btn-check').checked; });
+    var cents = chosen.length ? Math.floor(10000 / chosen.length) : 0;
+    items.forEach(function (item) {
+      var input = item.querySelector('.people-picker__share input');
+      var index = chosen.indexOf(item);
+      if (index < 0) {
+        input.value = '';
+      } else {
+        var share = index === chosen.length - 1 ? 10000 - cents * (chosen.length - 1) : cents;
+        input.value = String(share / 100);
+      }
+    });
+  });
+
   document.addEventListener('keydown', function (event) {
     var toggle = event.target.closest('[role="button"][data-bs-toggle]');
     if (toggle && toggle === event.target && (event.key === 'Enter' || event.key === ' ')) {

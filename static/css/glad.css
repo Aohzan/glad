@@ -1089,3 +1089,58 @@ button.g-legend__item[aria-pressed="false"] { opacity: .45; }
 }
 
 .g-container > .container { padding-top: 0 !important; padding-bottom: 0 !important; }
+
+/* ── People picker ──────────────────────────────────────────────────────── */
+
+.people-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.people-picker__item { display: inline-flex; align-items: center; gap: 6px; }
+
+.people-picker__person {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 8px;
+  border: 1px dashed var(--g-line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--g-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.people-picker__person:hover { color: var(--g-text); border-color: var(--g-dim); }
+
+.people-picker__person::before {
+  content: "";
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.btn-check:checked + .people-picker__person {
+  border: 1px solid var(--g-accent);
+  background: var(--g-accent);
+  color: var(--g-on-accent);
+  font-weight: 600;
+}
+
+.btn-check:checked + .people-picker__person::before {
+  content: "✓";
+  border-color: var(--g-on-accent);
+  background: var(--g-on-accent);
+  color: var(--g-accent);
+}
+
+.btn-check:focus-visible + .people-picker__person { outline: 2px solid var(--g-accent); outline-offset: 2px; }
+
+.people-picker__share { display: inline-flex; align-items: center; gap: 4px; color: var(--g-muted); font-size: 13px; }
+.people-picker__share input { width: 80px; }
+.btn-check:not(:checked) ~ .people-picker__share { display: none; }

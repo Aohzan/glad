@@ -525,8 +525,19 @@ class AmortizationInitForm(forms.Form):
 # ─── SCPI ────────────────────────────────────────────────────────────────────────────────
 
 
-class SCPIForm(MoneyInputGroupMixin, forms.ModelForm):
-    """Form for creating and editing a SCPI fund."""
+class SCPIForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
+    """Form for creating and editing a SCPI fund.
+
+    Once the fund has investments, its owners are set on all of them at once.
+    """
+
+    owners_after = "name"
+
+    def owned_assets(self) -> list:
+        """The investments of the fund (none while it is created)."""
+        if self.instance.pk is None:
+            return []
+        return list(self.instance.investments.all())
 
     class Meta:
         model = SCPI
@@ -755,7 +766,7 @@ class SCPIDividendBatchForm(forms.Form):
     )
 
 
-# ─── Income & Expenses Report ────────────────────────────────────────────────
+# ─── Property cash flow report ───────────────────────────────────────────────
 
 
 class PropertyReportFilterForm(forms.Form):
