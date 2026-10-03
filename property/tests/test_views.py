@@ -668,9 +668,12 @@ def test_edit_property_context_has_loans_with_totals_standard(user_client):
     loans_with_totals = response.context["loans_with_totals"]
     assert len(loans_with_totals) == 1
     item = loans_with_totals[0]
-    assert item["duration_months"] > 0
-    assert item["total_repaid"] is not None
-    assert item["total_cost"] is not None
+    total = item.loan.schedule().total
+    assert item.duration_months > 0
+    assert item.total_cost.amount == total.interest + total.insurance
+    assert item.total_repaid.amount == item.loan.original_amount.amount + (
+        total.interest + total.insurance
+    )
 
 
 @pytest.mark.django_db
@@ -682,7 +685,7 @@ def test_edit_property_context_has_loans_with_totals_second_loan(user_client):
     assert response.status_code == 200
     loans_with_totals = response.context["loans_with_totals"]
     assert len(loans_with_totals) == 1
-    assert loans_with_totals[0]["duration_months"] > 0
+    assert loans_with_totals[0].duration_months > 0
 
 
 @pytest.mark.django_db

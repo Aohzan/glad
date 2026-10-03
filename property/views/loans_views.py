@@ -5,11 +5,12 @@ import datetime
 import json
 from decimal import Decimal
 
+from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
-from moneyed import Money
 
 from property.models import PropertyLoan
+from property.services.loans import LoanRow, loan_rows, loans_summary
 from property.utils import build_loan_monthly_maps
 
 
@@ -17,44 +18,6 @@ def _loan_label(loan: PropertyLoan) -> str:
     """Return a human-readable label for a loan, prefixed by its property."""
     loan_name = loan.name or loan.lender or f"#{loan.pk}"
     return f"{loan.property.name} — {loan_name}"
-
-
-def _build_loans_with_totals(loans: list[PropertyLoan]) -> list[dict]:
-    """Build loan detail rows (property, duration, totals, remaining) for all loans."""
-    result = []
-    for loan in loans:
-        duration = loan.get_duration_months()
-        if loan.monthly_payment is not None and duration > 0:
-            monthly = loan.monthly_payment.amount
-            insurance = (
-                loan.insurance.amount if loan.insurance is not None else Decimal(0)
-            )
-            total_repaid = Money(
-                (monthly + insurance) * duration, loan.original_amount.currency
-            )
-        else:
-            total_repaid = None
-
-        total_cost = (
-            total_repaid.amount - loan.original_amount.amount
-            if total_repaid is not None
-            else None
-        )
-
-        result.append(
-            {
-                "property": loan.property,
-                "loan": loan,
-                "duration_months": duration,
-                "total_repaid": total_repaid,
-                "total_cost": total_cost,
-                "remaining_balance": loan.remaining_balance(),
-                "capital_paid": loan.amount_paid(),
-                "interest_paid": loan.interest_paid_to_date(),
-                "insurance_paid": loan.insurance_paid_to_date(),
-            }
-        )
-    return result
 
 
 def _build_all_loans_chart_data(loans: list[PropertyLoan]) -> dict:
@@ -145,54 +108,7 @@ def _build_all_loans_chart_data(loans: list[PropertyLoan]) -> dict:
     }
 
 
-def _compute_summary(loans_with_totals: list[dict]) -> dict:
-    """Compute aggregate summary metrics across all loans.
-
-    Loans in a currency different from the first encountered are skipped from
-    the totals to keep the aggregation consistent (multi-currency portfolios
-    are not expected in practice).
-    """
-    today = datetime.date.today()
-    currency: str | None = None
-    total_mensuality = Decimal(0)
-    total_capital_paid = Decimal(0)
-    total_interest_paid = Decimal(0)
-    total_insurance_paid = Decimal(0)
-    total_remaining = Decimal(0)
-
-    for item in loans_with_totals:
-        loan = item["loan"]
-        loan_currency = str(loan.original_amount.currency)
-        if currency is None:
-            currency = loan_currency
-        elif loan_currency != currency:
-            continue
-
-        total_capital_paid += item["capital_paid"].amount
-        total_interest_paid += item["interest_paid"].amount
-        total_insurance_paid += item["insurance_paid"].amount
-        total_remaining += item["remaining_balance"].amount
-
-        is_active = loan.start_date <= today and (
-            loan.end_date is None or today < loan.end_date
-        )
-        if is_active and loan.monthly_payment is not None:
-            insurance = (
-                loan.insurance.amount if loan.insurance is not None else Decimal(0)
-            )
-            total_mensuality += loan.monthly_payment.amount + insurance
-
-    currency = currency or "EUR"
-    return {
-        "total_mensuality": Money(total_mensuality, currency),
-        "total_capital_paid": Money(total_capital_paid, currency),
-        "total_interest_paid": Money(total_interest_paid, currency),
-        "total_insurance_paid": Money(total_insurance_paid, currency),
-        "total_remaining": Money(total_remaining, currency),
-    }
-
-
-def _export_loans_csv(loans_with_totals: list[dict]) -> HttpResponse:
+def _export_loans_csv(rows: list[LoanRow]) -> HttpResponse:
     """Build a CSV export response for the given loan rows."""
     response = HttpResponse(content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = 'attachment; filename="loans_export.csv"'
@@ -216,8 +132,8 @@ def _export_loans_csv(loans_with_totals: list[dict]) -> HttpResponse:
             "remaining_balance",
         ]
     )
-    for item in loans_with_totals:
-        loan = item["loan"]
+    for row in rows:
+        loan = row.loan
         writer.writerow(
             [
                 loan.property.name,
@@ -229,12 +145,12 @@ def _export_loans_csv(loans_with_totals: list[dict]) -> HttpResponse:
                 loan.monthly_payment.amount if loan.monthly_payment else "",
                 loan.insurance.amount if loan.insurance else "",
                 loan.interest_rate,
-                item["duration_months"],
-                item["capital_paid"].amount,
-                item["interest_paid"].amount,
-                item["insurance_paid"].amount,
-                item["total_cost"] if item["total_cost"] is not None else "",
-                item["remaining_balance"].amount,
+                row.duration_months,
+                row.capital_paid.amount,
+                row.interest_paid.amount,
+                row.insurance_paid.amount,
+                row.total_cost.amount,
+                row.remaining_balance.amount,
             ]
         )
     return response
@@ -248,18 +164,19 @@ def all_loans_view(request: HttpRequest) -> HttpResponse:
         .order_by("property__name", "start_date")
     )
 
-    loans_with_totals = _build_loans_with_totals(loans)
+    today = datetime.date.today()
+    loans_with_totals = loan_rows(loans, today)
 
     if request.GET.get("format") == "csv":
         return _export_loans_csv(loans_with_totals)
 
     chart_data = _build_all_loans_chart_data(loans)
-    summary = _compute_summary(loans_with_totals)
+    summary = loans_summary(loans_with_totals, settings.DEFAULT_CURRENCY)
 
     context = {
         "loans_with_totals": loans_with_totals,
         "loan_chart_data_json": json.dumps(chart_data),
         "summary": summary,
-        "today": datetime.date.today(),
+        "today": today,
     }
     return render(request, "property/all_loans.html", context)

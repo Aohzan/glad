@@ -17,6 +17,8 @@ from property.services.cashflow import build_balance_sheet
 from property.services.loans import (
     loan_costs_between,
     loan_costs_by_month,
+    loan_rows,
+    loans_summary,
     without_loan_entries,
 )
 from property.services.monthly_flows import monthly_flows
@@ -172,3 +174,79 @@ def test_cash_flow_panel_counts_the_loan_costs_once(user_client, prop, two_loans
     labels = [s["label"] for s in response.context["cashflow_expense_by_type_series"]]
     assert labels == ["Routine maintenance"]
     assert response.context["cashflow_has_loans"] is True
+
+
+def test_loan_rows_follow_the_schedules(two_loans):
+    computed, imported = two_loans
+    row, table_row = loan_rows([computed, imported], D(2020, 3, 1))
+
+    assert row.next_installment == computed.schedule().installments[1]
+    assert row.is_running
+    assert row.monthly_payment == Money(Decimal("1159.92"), "EUR")
+    assert row.monthly_insurance == Money(60, "EUR")
+    assert row.capital_paid == Money(Decimal("576.59"), "EUR")
+    assert row.interest_paid == Money(Decimal("583.33"), "EUR")
+    assert row.insurance_paid == Money(60, "EUR")
+    total = computed.schedule().total
+    assert row.total_cost == Money(total.interest + total.insurance, "EUR")
+    assert row.total_repaid == Money(200000 + total.interest + total.insurance, "EUR")
+    assert not row.has_table
+
+    # The table drives the payment of the second loan: its 5 March row.
+    assert table_row.has_table
+    assert len(table_row.entries) == 2
+    assert table_row.monthly_payment == Money(Decimal("501.84"), "EUR")
+    assert table_row.monthly_insurance == Money(1, "EUR")
+    assert table_row.total_cost == Money(Decimal("4.34"), "EUR")
+
+
+def test_loan_rows_before_and_after_the_installments(two_loans):
+    computed, imported = two_loans
+    row, table_row = loan_rows([computed, imported], D(2020, 1, 10))
+    assert not row.is_running
+    assert row.remaining_balance == Money(0, "EUR")
+    assert row.capital_paid == Money(0, "EUR")
+    # Not disbursed yet: the first installment is the next one.
+    assert row.next_installment == computed.schedule().installments[0]
+
+    (table_row,) = loan_rows([imported], D(2020, 4, 1))
+    assert not table_row.is_running
+    assert table_row.next_installment is None
+    # Without a next installment, the stored amounts are shown.
+    assert table_row.monthly_payment is None
+    assert table_row.monthly_insurance == Money(1, "EUR")
+    assert table_row.capital_paid == Money(1000, "EUR")
+
+
+def test_loan_rows_of_a_sold_property(prop, two_loans):
+    prop.selling_date = D(2030, 6, 20)
+    prop.save()
+    computed = PropertyLoan.objects.select_related("property").get(pk=two_loans[0].pk)
+    (row,) = loan_rows([computed], D(2031, 1, 1))
+    assert not row.is_running
+    assert row.remaining_balance == Money(0, "EUR")
+    assert row.capital_paid == Money(200000, "EUR")
+    assert row.interest_paid.amount == computed.schedule().total.interest
+
+
+def test_loans_summary_adds_the_running_loans(two_loans):
+    computed, imported = two_loans
+    rows = loan_rows([computed, imported], D(2020, 3, 1))
+    summary = loans_summary(rows, "EUR")
+    assert summary.total_mensuality == Money(
+        Decimal("1159.92") + 60 + Decimal("501.84") + 1, "EUR"
+    )
+    assert summary.total_remaining == Money(
+        computed.schedule().balance_at(D(2020, 3, 1)) + Decimal("501.00"), "EUR"
+    )
+    assert summary.total_capital_paid == Money(Decimal("576.59") + 499, "EUR")
+
+    # Once the second loan is repaid, only the first counts.
+    later = loans_summary(loan_rows([computed, imported], D(2020, 3, 6)), "EUR")
+    assert later.total_mensuality == Money(Decimal("1219.92"), "EUR")
+
+
+def test_loans_summary_without_loans():
+    summary = loans_summary([], "EUR")
+    assert summary.total_mensuality == Money(0, "EUR")
+    assert summary.total_remaining == Money(0, "EUR")

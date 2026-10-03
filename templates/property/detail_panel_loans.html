@@ -44,7 +44,7 @@
             <tr>
               <td>
                 {{ item.loan.name|default:"—" }}
-                {% if item.loan.amortization_entries.exists %}
+                {% if item.has_table %}
                   <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;">{% icon "table" %}</span>
                 {% endif %}
               </td>
@@ -57,10 +57,10 @@
               <td>{{ item.loan.end_date }}</td>
               <td class="text-end">{{ item.loan.original_amount|format_money }}</td>
               <td class="text-end">
-                {% if item.loan.monthly_payment %}
-                  {{ item.loan.monthly_payment|format_money }}
-                  {% if item.loan.insurance %}
-                    <span class="text-body-secondary small d-block">+ {{ item.loan.insurance|format_money }} {% translate "ins." %}</span>
+                {% if item.monthly_payment %}
+                  {{ item.monthly_payment|format_money }}
+                  {% if item.monthly_insurance %}
+                    <span class="text-body-secondary small d-block">+ {{ item.monthly_insurance|format_money }} {% translate "ins." %}</span>
                   {% endif %}
                 {% else %}
                   —
@@ -76,22 +76,17 @@
                 {% else %}—{% endif %}
               </td>
               <td class="text-end fw-semibold">
-                {% if item.total_cost is not None %}
-                  {% if item.total_repaid is not None %}
-                    <span class="text-body-secondary small d-block">{{ item.total_repaid|format_money }}</span>
-                  {% endif %}
-                {% else %}—{% endif %}
+                {{ item.total_cost|format_money }}
+                <span class="text-body-secondary small fw-normal d-block">{% translate "Total repaid" %} {{ item.total_repaid|format_money }}</span>
               </td>
               <td class="text-end fw-semibold">
-                {% if item.remaining_balance is not None %}
-                  {% if item.remaining_balance.amount == 0 %}
-                    <span class="text-success">{{ item.remaining_balance|format_money }}</span>
-                  {% elif item.loan.start_date > today %}
-                    <span class="text-danger">{{ item.remaining_balance|format_money }}</span>
-                  {% else %}
-                    <span class="text-warning">{{ item.remaining_balance|format_money }}</span>
-                  {% endif %}
-                {% else %}—{% endif %}
+                {% if item.loan.start_date > today %}
+                  <span class="text-body-secondary fw-normal">{% translate "Not disbursed yet" %}</span>
+                {% elif item.remaining_balance.amount == 0 %}
+                  <span class="text-success">{{ item.remaining_balance|format_money }}</span>
+                {% else %}
+                  <span class="text-warning">{{ item.remaining_balance|format_money }}</span>
+                {% endif %}
               </td>
               <td class="text-end">
                 <div class="d-flex gap-1 justify-content-end">
@@ -256,8 +251,8 @@
           <div class="mt-3 border-top pt-3">
             <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
               <h6 class="mb-0 text-body-secondary">{% translate "Amortization table" %}</h6>
-              {% if form.instance.amortization_entries.exists %}
-                <span class="badge bg-success-subtle text-success">{{ form.instance.amortization_entries.count }} {% translate "entries" %}</span>
+              {% if loan_entry.row.has_table %}
+                <span class="badge bg-success-subtle text-success">{{ loan_entry.row.entries|length }} {% translate "entries" %}</span>
               {% else %}
                 <span class="badge bg-secondary-subtle text-secondary">{% translate "Auto-calculated" %}</span>
               {% endif %}
@@ -278,7 +273,7 @@
                 {% icon "calculator" "me-1" %}{% translate "Generate auto" %}
               </button>
 
-              {% if form.instance.amortization_entries.exists %}
+              {% if loan_entry.row.has_table %}
               {# Clear — fetch POST to avoid nested-form issue #}
               <button type="button" class="btn btn-sm btn-outline-danger js-amort-clear"
                       data-url="{% url 'property:loan_amortization_clear' pk=property.pk loan_pk=form.instance.pk %}"
@@ -288,7 +283,7 @@
               {% endif %}
             </div>
 
-            {% if form.instance.amortization_entries.exists %}
+            {% if loan_entry.row.has_table %}
             <div style="max-height:300px;overflow-y:auto;">
               <table class="table table-sm table-striped table-bordered mb-0" style="font-size:.8rem;">
                 <thead class="table-light sticky-top">
@@ -300,7 +295,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for entry in form.instance.amortization_entries.all %}
+                  {% for entry in loan_entry.row.entries %}
                   <tr>
                     <td>{{ entry.date|date:"d/m/Y" }}</td>
                     <td class="text-end">{{ entry.capital.amount|floatformat:2 }}</td>

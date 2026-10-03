@@ -114,11 +114,11 @@
             {% for item in loans_with_totals %}
             <tr>
               <td>
-                <a href="{% url 'property:detail' item.property.pk %}">{{ item.property.name }}</a>
+                <a href="{% url 'property:detail' item.loan.property.pk %}">{{ item.loan.property.name }}</a>
               </td>
               <td>
                 {{ item.loan.name|default:"—" }}
-                {% if item.loan.amortization_entries.exists %}
+                {% if item.has_table %}
                   <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;">{% icon "table" %}</span>
                 {% endif %}
               </td>
@@ -127,10 +127,10 @@
               <td>{{ item.loan.end_date }}</td>
               <td class="text-end">{{ item.loan.original_amount|format_money }}</td>
               <td class="text-end">
-                {% if item.loan.monthly_payment %}
-                  {{ item.loan.monthly_payment|format_money }}
-                  {% if item.loan.insurance %}
-                    <span class="text-body-secondary small d-block">+ {{ item.loan.insurance|format_money }} {% translate "ins." %}</span>
+                {% if item.monthly_payment %}
+                  {{ item.monthly_payment|format_money }}
+                  {% if item.monthly_insurance %}
+                    <span class="text-body-secondary small d-block">+ {{ item.monthly_insurance|format_money }} {% translate "ins." %}</span>
                   {% endif %}
                 {% else %}—{% endif %}
               </td>
@@ -141,10 +141,10 @@
               <td class="text-end">{{ item.interest_paid|format_money }}</td>
               <td class="text-end">{{ item.insurance_paid|format_money }}</td>
               <td class="text-end fw-semibold">
-                {% if item.remaining_balance.amount == 0 %}
+                {% if item.loan.start_date > today %}
+                  <span class="text-body-secondary fw-normal">{% translate "Not disbursed yet" %}</span>
+                {% elif item.remaining_balance.amount == 0 %}
                   <span class="text-success">{{ item.remaining_balance|format_money }}</span>
-                {% elif item.loan.start_date > today %}
-                  <span class="text-danger">{{ item.remaining_balance|format_money }}</span>
                 {% else %}
                   <span class="text-warning">{{ item.remaining_balance|format_money }}</span>
                 {% endif %}

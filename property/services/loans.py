@@ -2,11 +2,19 @@
 
 import datetime
 from collections.abc import Iterable
+from dataclasses import dataclass
+from decimal import Decimal
 
 from django.db.models import QuerySet
+from moneyed import Money
 
-from property.models import Property, PropertyLedgerEntry, PropertyLoan
-from property.utils import LoanCosts
+from property.models import (
+    Property,
+    PropertyLedgerEntry,
+    PropertyLoan,
+    PropertyLoanAmortizationEntry,
+)
+from property.utils import Installment, LoanCosts
 
 #: Ledger categories of the loan costs, which the loan schedules already count.
 LOAN_LEDGER_CATEGORIES = (
@@ -50,4 +58,114 @@ def loan_costs_between(
     return sum(
         (loan.schedule().paid_between(first_day, last_day) for loan in loans),
         LoanCosts(),
+    )
+
+
+@dataclass(frozen=True)
+class LoanRow:
+    """A loan and the figures the loan tables show on a given day."""
+
+    loan: PropertyLoan
+    #: Rows of the amortization table, empty when the schedule is computed.
+    entries: list[PropertyLoanAmortizationEntry]
+    duration_months: int
+    next_installment: Installment | None
+    #: Disbursed and not fully repaid yet.
+    is_running: bool
+    remaining_balance: Money
+    capital_paid: Money
+    interest_paid: Money
+    insurance_paid: Money
+    #: Interest and insurance of every installment.
+    total_cost: Money
+    #: Capital plus total cost.
+    total_repaid: Money
+
+    @property
+    def has_table(self) -> bool:
+        return bool(self.entries)
+
+    @property
+    def monthly_payment(self) -> Money | None:
+        """Principal and interest of the next installment (or the stored payment)."""
+        if self.next_installment is not None:
+            return Money(self.next_installment.payment, self.loan.currency)
+        return self.loan.monthly_payment
+
+    @property
+    def monthly_insurance(self) -> Money | None:
+        if self.next_installment is not None:
+            if not self.next_installment.insurance:
+                return None
+            return Money(self.next_installment.insurance, self.loan.currency)
+        return self.loan.insurance
+
+
+def loan_rows(loans: Iterable[PropertyLoan], today: datetime.date) -> list[LoanRow]:
+    """The table rows of *loans* as of *today*.
+
+    Prefetch ``amortization_entries`` (and select ``property``) on *loans* to
+    read each loan with a single query.
+    """
+    rows = []
+    for loan in loans:
+        schedule = loan.schedule()
+        currency = loan.currency
+        paid = schedule.paid_to(today)
+        cost = schedule.total.interest + schedule.total.insurance
+        next_installment = schedule.next_installment(today)
+        rows.append(
+            LoanRow(
+                loan=loan,
+                entries=list(loan.amortization_entries.all()),
+                duration_months=loan.get_duration_months(),
+                next_installment=next_installment,
+                is_running=loan.start_date <= today and next_installment is not None,
+                remaining_balance=loan.remaining_balance(today),
+                capital_paid=loan.amount_paid(today),
+                interest_paid=Money(paid.interest, currency),
+                insurance_paid=Money(paid.insurance, currency),
+                total_cost=Money(cost, currency),
+                total_repaid=Money(loan.original_amount.amount + cost, currency),
+            )
+        )
+    return rows
+
+
+@dataclass(frozen=True)
+class LoansSummary:
+    """Totals of the loan rows sharing the currency of the first one."""
+
+    total_mensuality: Money
+    total_capital_paid: Money
+    total_interest_paid: Money
+    total_insurance_paid: Money
+    total_remaining: Money
+
+
+def loans_summary(rows: Iterable[LoanRow], default_currency: str) -> LoansSummary:
+    """Add up *rows*; loans in another currency than the first are left out.
+
+    The total mensuality adds the next installment (with its insurance) of
+    the loans currently being repaid.
+    """
+    currency: str | None = None
+    mensuality = capital = interest = insurance = remaining = Decimal(0)
+    for row in rows:
+        currency = currency or row.loan.currency
+        if row.loan.currency != currency:
+            continue
+        capital += row.capital_paid.amount
+        interest += row.interest_paid.amount
+        insurance += row.insurance_paid.amount
+        remaining += row.remaining_balance.amount
+        if row.is_running and row.next_installment is not None:
+            mensuality += row.next_installment.payment + row.next_installment.insurance
+    currency = currency or default_currency
+    return LoansSummary(
+        total_mensuality=Money(mensuality, currency),
+        total_capital_paid=Money(capital, currency),
+        total_interest_paid=Money(interest, currency),
+        total_insurance_paid=Money(insurance, currency),
+        total_remaining=Money(remaining, currency),
     )

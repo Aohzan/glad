@@ -26,7 +26,12 @@ from property.models import (
     PropertyValue,
 )
 from property.services.cashflow import build_balance_sheet
-from property.services.loans import loan_costs_by_month, without_loan_entries
+from property.services.loans import (
+    LoanRow,
+    loan_costs_by_month,
+    loan_rows,
+    without_loan_entries,
+)
 from property.services.monthly_flows import monthly_flows, occurrences_by_month
 from property.services.rent_revision import get_rent_revision
 from property.utils import (
@@ -517,42 +522,15 @@ class PropertyDetailView(DetailView):
             "total_interest": total_interest_series,
         }
 
-    def _build_loans_context(self, property_obj: Property) -> list[dict]:
-        """Build loan details with computed total cost for the Info tab."""
-        loans = PropertyLoan.objects.filter(property=property_obj).order_by(
-            "start_date"
+    def _build_loans_context(self, property_obj: Property) -> list[LoanRow]:
+        """Build the loan rows of the Loans tab."""
+        loans = (
+            PropertyLoan.objects.filter(property=property_obj)
+            .select_related("property")
+            .prefetch_related("amortization_entries")
+            .order_by("start_date")
         )
-        result = []
-        for loan in loans:
-            duration = loan.get_duration_months()
-            avg_monthly_payment = None
-            if loan.monthly_payment is not None and duration > 0:
-                monthly = loan.monthly_payment.amount
-                insurance = loan.insurance.amount if loan.insurance is not None else 0
-                total_repaid = Money(
-                    (monthly + insurance) * duration, loan.original_amount.currency
-                )
-            else:
-                total_repaid = None
-
-            total_cost = (
-                total_repaid.amount - loan.original_amount.amount
-                if total_repaid is not None
-                else None
-            )
-
-            remaining = loan.remaining_balance()
-            result.append(
-                {
-                    "loan": loan,
-                    "duration_months": duration,
-                    "total_repaid": total_repaid,
-                    "total_cost": total_cost,
-                    "avg_monthly_payment": avg_monthly_payment,
-                    "remaining_balance": remaining,
-                }
-            )
-        return result
+        return loan_rows(loans, datetime.date.today())
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Handle quick create forms from dashboard modals."""
@@ -619,12 +597,16 @@ class PropertyDetailView(DetailView):
         self._loan_formset_cache = loan_formset
         return loan_formset
 
-    def _build_loan_forms_ctx(self) -> list[dict]:
-        """Return each loan form as a simple dict (no schedule formsets)."""
+    def _build_loan_forms_ctx(self, rows: list[LoanRow] | None = None) -> list[dict]:
+        """Return each loan form with the table row of its loan (none if new)."""
         loan_formset = getattr(self, "_loan_formset_cache", None)
         if loan_formset is None:
             return []
-        return [{"form": form} for form in loan_formset.forms]
+        rows_by_pk = {row.loan.pk: row for row in rows or []}
+        return [
+            {"form": form, "row": rows_by_pk.get(form.instance.pk)}
+            for form in loan_formset.forms
+        ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -823,7 +805,7 @@ def property_panel_loans(request: HttpRequest, pk: int) -> HttpResponse:
     loans_with_totals = view._build_loans_context(prop)
     loan_chart_data = view._build_loan_chart_data(prop)
     loan_formset = view._build_loan_formset(prop)
-    loan_forms_ctx = view._build_loan_forms_ctx()
+    loan_forms_ctx = view._build_loan_forms_ctx(loans_with_totals)
     context = {
         "property": prop,
         "loans_with_totals": loans_with_totals,
