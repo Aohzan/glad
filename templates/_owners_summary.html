@@ -2,7 +2,7 @@
 <span class="owners-summary">
   {% for row in rows %}
     <span class="badge bg-primary-subtle text-primary-emphasis me-1">
-      {% if row.user.profile.is_child %}{% icon "baby" "me-1" %}{% else %}{% icon "user" "me-1" %}{% endif %}{{ row.user.get_full_name|default:row.user.get_username }} {{ row.share|floatformat:"-2" }}%{% if row.right != "full" %} · {{ row.get_right_display }}{% endif %}
+      {% if row.user.profile.is_child %}{% icon "baby" "me-1" %}{% else %}{% icon "user" "me-1" %}{% endif %}{{ row.user.first_name|default:row.user.get_username }} {{ row.share|floatformat:"-2" }}%{% if row.right != "full" %} · {{ row.get_right_display }}{% endif %}
     </span>
   {% empty %}
     <span class="badge bg-warning-subtle text-warning-emphasis me-1" title="{% translate 'Choose the owners when editing the asset.' %}">{% icon "triangle-alert" "me-1" %}{% translate "No owner" %}</span>

@@ -111,8 +111,8 @@ class NetWorthSnapshot(BaseModel):
 
 
 def display_name(user) -> str:
-    """Full name of a user, or the username when the name is empty."""
-    return user.get_full_name() or user.get_username()
+    """First name of a user, or the username when it is empty."""
+    return user.first_name.strip() or user.get_username()
 
 
 def household_members():

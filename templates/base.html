@@ -149,7 +149,7 @@
                     <button type="button" class="g-avatar" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% translate 'My account' %}">{{ user_initials }}</button>
                     <div class="dropdown-menu dropdown-menu-end g-user-menu">
                         <div class="g-user-menu__head">
-                            <span class="fw-semibold">{{ user.get_full_name|default:user.username }}</span>
+                            <span class="fw-semibold">{{ user.first_name|default:user.username }}</span>
                             {% if user.email %}<span class="g-meta">{{ user.email }}</span>{% endif %}
                         </div>
                         <a class="dropdown-item" href="{% url 'accounts:settings' %}">{% icon "settings" %}{% translate "Settings" %}</a>

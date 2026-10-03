@@ -26,7 +26,7 @@
         <tbody>
           {% for row in rows %}
           <tr>
-            <td>{{ row.obj.user.get_full_name|default:row.obj.user.get_username }}</td>
+            <td>{{ row.obj.user.first_name|default:row.obj.user.get_username }}</td>
             <td class="text-end">{{ row.obj.share|floatformat:"-2" }}</td>
             <td>
               {{ row.obj.get_right_display }}
