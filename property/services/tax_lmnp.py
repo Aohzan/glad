@@ -63,6 +63,7 @@ from property.services.lmnp_rules import (
     CAP_39C_EXCLUDED_CATEGORIES,
     DEFICIT_CARRYFORWARD_YEARS,
 )
+from property.utils import LoanCosts
 
 ZERO = Decimal(0)
 
@@ -390,8 +391,6 @@ def get_category_totals_for_year(property_id: int, year: int) -> dict[str, Decim
     """
     from property.models import (
         PropertyLedgerEntry,
-        PropertyLoan,
-        PropertyLoanAmortizationEntry,
     )
 
     year_start = datetime.date(year, 1, 1)
@@ -434,27 +433,69 @@ def get_category_totals_for_year(property_id: int, year: int) -> dict[str, Decim
             cat = entry.management_category
             by_category[cat] = by_category.get(cat, Decimal(0)) + occ["amount"].amount
 
-    # ── Fallback: use loan amortization entries for loan_interest ─────────
-    # When no manual loan_interest ledger entries exist for the year, sum the
-    # interest column from PropertyLoanAmortizationEntry for all property loans.
-    loan_interest_key = str(ManagementCategory.LOAN_INTEREST)
-    if not by_category.get(loan_interest_key):
-        loans = PropertyLoan.objects.filter(property_id=property_id)
-        amort_interest_total = Decimal(0)
-        for loan in loans:
-            result = PropertyLoanAmortizationEntry.objects.filter(
-                loan=loan,
-                date__gte=year_start,
-                date__lte=year_end,
-            ).aggregate(total=Sum("interest"))
-            amort_interest_total += result["total"] or Decimal(0)
-        if amort_interest_total > Decimal(0):
-            by_category[loan_interest_key] = amort_interest_total
+    # ── Fallback: the loan schedules for the loan interest and insurance ──
+    _add_loan_schedule_costs(by_category, property_id, year)
 
     return by_category
 
 
 # ─── Database loaders ─────────────────────────────────────────────────────────
+
+
+def is_frozen_year(property_id: int, year: int) -> bool:
+    """Whether the return of *year* was frozen (filed) for the property."""
+    from property.models import LmnpDeclarationSnapshot
+
+    return LmnpDeclarationSnapshot.objects.filter(
+        fiscal_year=year, properties=property_id
+    ).exists()
+
+
+def _add_loan_schedule_costs(
+    by_category: dict[str, Decimal], property_id: int, year: int
+) -> None:
+    """Fill the loan interest and insurance of *year* missing from the ledger.
+
+    The ledger comes first (the bank's yearly interest statement). Without
+    it, the loan schedules provide them: the amortization table, or for a
+    year whose return is not frozen yet, the schedule computed from the loan
+    parameters. A frozen (filed) year keeps the rule it was declared with,
+    the interest of the amortization tables only, so that the carryforwards
+    of the following years stay those of the filed returns.
+    """
+    from property.models import PropertyLoan, PropertyLoanAmortizationEntry
+
+    interest_key = str(ManagementCategory.LOAN_INTEREST)
+    insurance_key = str(ManagementCategory.LOAN_INSURANCE)
+    needs_interest = not by_category.get(interest_key)
+    needs_insurance = not by_category.get(insurance_key)
+    if not (needs_interest or needs_insurance):
+        return
+    year_start = datetime.date(year, 1, 1)
+    year_end = datetime.date(year, 12, 31)
+    if is_frozen_year(property_id, year):
+        if needs_interest:
+            interest = PropertyLoanAmortizationEntry.objects.filter(
+                loan__property_id=property_id,
+                date__gte=year_start,
+                date__lte=year_end,
+            ).aggregate(total=Sum("interest"))["total"] or Decimal(0)
+            if interest > ZERO:
+                by_category[interest_key] = interest
+        return
+    loans = (
+        PropertyLoan.objects.filter(property_id=property_id)
+        .select_related("property")
+        .prefetch_related("amortization_entries")
+    )
+    costs = sum(
+        (loan.schedule().paid_between(year_start, year_end) for loan in loans),
+        LoanCosts(),
+    )
+    if needs_interest and costs.interest > ZERO:
+        by_category[interest_key] = costs.interest
+    if needs_insurance and costs.insurance > ZERO:
+        by_category[insurance_key] = costs.insurance
 
 
 def _resolve_properties(properties: Sequence | int) -> list:
@@ -1293,6 +1334,7 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
         form_ref: str,
         required: bool = True,
         loan_active: bool | None = None,
+        loan_source: str | None = None,
     ) -> dict:
         """Build a single check result dict."""
         if check_id == "financial_charges":
@@ -1302,6 +1344,16 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
             elif count > 0:
                 status = "ok"
                 detail = _("%(count)d entry(ies) found.") % {"count": count}
+            elif loan_source == "table":
+                status = "ok"
+                detail = _("Interest read from the amortization tables.")
+            elif loan_source == "computed":
+                status = "warning"
+                detail = _(
+                    "Interest estimated from the loan parameters: import the"
+                    " bank's amortization table or record the yearly interest"
+                    " statement."
+                )
             else:
                 status = "warning"
                 detail = _("Loan detected but no financial charge entries found.")
@@ -1353,6 +1405,18 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
         )
         has_active_loan = bool(active_loans)
         fin_count = _count_entries_in_year(prop.pk, year, _CHECKLIST_FINANCIERES)
+        # Without ledger entries, the loan schedules provide the interest.
+        loan_source = None
+        if has_active_loan and not fin_count:
+            if all(
+                loan.amortization_entries.filter(
+                    date__gte=year_start, date__lte=year_end
+                ).exists()
+                for loan in active_loans
+            ):
+                loan_source = "table"
+            elif not is_frozen_year(prop.pk, year):
+                loan_source = "computed"
 
         # --- Amortization setup ---
         has_setup = AmortizationSetup.objects.filter(property=prop).exists()
@@ -1399,6 +1463,7 @@ def get_lmnp_checklist(properties: list, year: int) -> dict:
                 fin_count,
                 "2033-B",
                 loan_active=has_active_loan,
+                loan_source=loan_source,
             ),
             {
                 "id": "amortization_setup",
