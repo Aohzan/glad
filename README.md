@@ -26,7 +26,7 @@
 ### Properties
 
 - **Property management** — purchase price, fees (notary, agency, credit), valuation history, co-ownership share
-- **Loans** — multiple loans per property with amortization schedules; supports standard and smoothed loans (prêt lisseur)
+- **Loans** — multiple loans per property, each with one amortization schedule that every figure and chart reads: computed from the loan parameters (French amortization, broken first period handled as banks do) or imported from the bank's table as CSV, which also covers smoothed loans (prêt lisseur); repaid with the sale of the property
 - **Leases & tenants** — furnished/empty/commercial leases, rent, charges, security deposit, recurring entries
 - **Ledger** — categorized income and expense entries (rent, management fees, works, insurance, property tax, etc.) with recurring support and CSV import
 - **Management mandates** — track property managers with fee structures
