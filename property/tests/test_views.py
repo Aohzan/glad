@@ -257,6 +257,58 @@ def test_property_detail_view_projection_context(user_client):
 
 
 @pytest.mark.django_db
+def test_projection_history_follows_the_debt_month_by_month(user_client):
+    """The debt history is sampled monthly, not drawn between the valuations."""
+    property_obj = Property.objects.create(
+        name="Monthly history",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date(2020, 1, 15),
+        is_active=True,
+    )
+    PropertyValue.objects.create(
+        property=property_obj,
+        value=Money(230000, "EUR"),
+        valuation_date=datetime.date(2022, 6, 10),
+    )
+    loan = PropertyLoan.objects.create(
+        property=property_obj,
+        name="Main Loan",
+        start_date=datetime.date(2020, 1, 15),
+        end_date=datetime.date(2040, 1, 15),
+        original_amount=Money(200000, "EUR"),
+        monthly_payment=Money(Decimal("1159.92"), "EUR"),
+        interest_rate=Decimal("3.5"),
+    )
+
+    response = user_client.get(
+        reverse("property:panel_projection", args=[property_obj.pk])
+    )
+
+    debt = {p["x"]: p["y"] for p in response.context["debt_history_series"]}
+    value = {p["x"]: p["y"] for p in response.context["value_history_series"]}
+    net = {p["x"]: p["y"] for p in response.context["net_history_series"]}
+    # Every month start from the purchase to today, plus the valuation.
+    assert {"2020-02-01", "2021-07-01", "2022-06-10"} <= set(debt)
+    for day in ("2020-02-01", "2021-07-01", "2024-03-01"):
+        expected = loan.remaining_balance(datetime.date.fromisoformat(day))
+        assert debt[day] == float(expected.amount)
+        assert net[day] == pytest.approx(value[day] - debt[day])
+    # The value steps on the valuation date.
+    assert value["2022-06-01"] == 200000.0
+    assert value["2022-06-10"] == 230000.0
+    assert value["2022-07-01"] == 230000.0
+
+
+def test_panels_receive_the_page_parameters():
+    """The panel forms reload the page: the panels must get its query string."""
+    with open("templates/property/detail.html", encoding="utf-8") as template:
+        assert "fetch(PANEL_URLS[panelId] + window.location.search)" in (
+            template.read()
+        )
+
+
+@pytest.mark.django_db
 def test_property_detail_growth_rate_query_param(user_client):
     property_obj = Property.objects.create(
         name="Lake House",

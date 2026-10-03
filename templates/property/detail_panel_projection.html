@@ -1,7 +1,9 @@
 {% load i18n format_money %}
 
 <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-3">
-  <form method="get" class="d-flex gap-2 align-items-center">
+  <form method="get" action="#projection-panel" class="d-flex gap-2 align-items-center">
+    {% if request.GET.start_date %}<input type="hidden" name="start_date" value="{{ request.GET.start_date }}">{% endif %}
+    {% if request.GET.end_date %}<input type="hidden" name="end_date" value="{{ request.GET.end_date }}">{% endif %}
     <label for="growth-rate" class="form-label small mb-0 text-body-secondary">{% translate "Annual growth rate" %}</label>
     <input
       id="growth-rate"
@@ -84,7 +86,8 @@
     xaxis: { type: 'datetime' },
     dataLabels: { enabled: false },
     stroke: {
-      curve: ['smooth', 'smooth', 'straight', 'straight', 'smooth', 'smooth'],
+      // The history is sampled monthly: straight lines keep the valuation steps.
+      curve: ['straight', 'smooth', 'straight', 'straight', 'straight', 'smooth'],
       width: [3, 3, 3, 3, 3, 3],
       dashArray: [0, 7, 0, 7, 0, 7]
     },

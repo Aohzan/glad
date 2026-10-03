@@ -1,7 +1,7 @@
 {% load i18n format_money %}
 {# ── Date range picker https://github.com/Wernfried/daterangepicker #}
 <div class="d-flex justify-content-end gap-2 mb-3">
-  <form method="get" class="d-flex gap-2 align-items-right flex-wrap" id="bsRangeForm">
+  <form method="get" action="#balance-panel" class="d-flex gap-2 align-items-right flex-wrap" id="bsRangeForm">
     {% if request.GET.growth_rate %}<input type="hidden" name="growth_rate" value="{{ request.GET.growth_rate }}">{% endif %}
     <input type="hidden" name="start_date" id="bs_start_date" value="{{ bs_date_from|date:'Y-m-d' }}">
     <input type="hidden" name="end_date"   id="bs_end_date"   value="{{ bs_date_to|date:'Y-m-d' }}">

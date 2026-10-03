@@ -731,7 +731,9 @@ function loadPanel(panelId) {
   loadedPanels.add(panelId);
   const container = document.getElementById(panelId + '-panel');
   if (!container) return;
-  fetch(PANEL_URLS[panelId])
+  // The panel forms (growth rate, balance sheet period) reload the page with
+  // their parameters: hand them over to the panels.
+  fetch(PANEL_URLS[panelId] + window.location.search)
     .then(function(r) { return r.ok ? r.text() : Promise.reject(r.status); })
     .then(function(html) { injectHTML(container, html); })
     .catch(function() {

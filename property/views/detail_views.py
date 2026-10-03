@@ -1,5 +1,6 @@
 """Property detail dashboard view."""
 
+import bisect
 import datetime
 from decimal import Decimal
 
@@ -154,10 +155,16 @@ class PropertyDetailView(DetailView):
         except Exception:
             return default_rate
 
+    @staticmethod
+    def _debt_at(loans: list[PropertyLoan], day: datetime.date) -> Decimal:
+        return sum((loan.remaining_balance(day).amount for loan in loans), Decimal(0))
+
     def _build_projection_data(self, property_obj: Property) -> list[dict]:
         projection_years = list(range(1, 21))
         growth_rate = self._get_growth_rate()
         current_value = property_obj.get_value()
+        currency = str(current_value.currency)
+        loans = self._loans(property_obj)
         today = datetime.date.today()
 
         projections = []
@@ -166,8 +173,8 @@ class PropertyDetailView(DetailView):
             projected_amount = current_value.amount * (
                 (Decimal(1) + growth_rate) ** years
             )
-            projected_value = Money(projected_amount, str(current_value.currency))
-            projected_debt = property_obj.total_remaining_loans_at_date(as_of_date)
+            projected_value = Money(projected_amount, currency)
+            projected_debt = Money(self._debt_at(loans, as_of_date), currency)
             projected_net = projected_value - projected_debt
 
             projections.append(
@@ -191,47 +198,65 @@ class PropertyDetailView(DetailView):
     ) -> tuple[
         list[dict], list[dict], list[dict], list[dict], list[dict], list[dict], str
     ]:
+        """Value, debt and net value, monthly up to today then yearly.
+
+        The history is sampled at every month start (plus the purchase, the
+        valuations and today) so the debt follows its amortization curve
+        instead of straight lines between the valuations.
+        """
         today = datetime.date.today()
         current_value = property_obj.get_value()
-        current_debt = property_obj.total_remaining_loans_at_date(today)
+        loans = self._loans(property_obj)
+        current_debt = self._debt_at(loans, today)
 
-        valuation_dates = list(
+        valuations = list(
             PropertyValue.objects.filter(
-                property=property_obj,
-                valuation_date__lte=today,
-            ).values_list("valuation_date", flat=True)
+                property=property_obj, valuation_date__lte=today
+            )
+            .order_by("valuation_date")
+            .values_list("valuation_date", "value")
         )
-        historical_dates = sorted({property_obj.buying_date, today, *valuation_dates})
+        valuation_dates = [day for day, _value in valuations]
+        buying_date = property_obj.buying_date
+        historical_dates = sorted(
+            {
+                buying_date,
+                today,
+                *valuation_dates,
+                *(m for m in iter_month_starts(buying_date, today) if m > buying_date),
+            }
+        )
 
         value_history_series = []
         debt_history_series = []
         net_history_series = []
         for chart_date in historical_dates:
-            if chart_date == property_obj.buying_date:
-                historical_value = property_obj.buying_value_gross
+            if chart_date == buying_date:
+                historical_value = property_obj.buying_value_gross.amount
             else:
-                historical_value = property_obj.get_value(
-                    max_date=datetime.datetime.combine(chart_date, datetime.time.max),
+                count = bisect.bisect_right(valuation_dates, chart_date)
+                historical_value = (
+                    valuations[count - 1][1]
+                    if count
+                    else property_obj.get_value(
+                        max_date=datetime.datetime.combine(
+                            chart_date, datetime.time.max
+                        )
+                    ).amount
                 )
-            historical_debt = property_obj.total_remaining_loans_at_date(chart_date)
-            net_amount = historical_value.amount - historical_debt.amount
-            value_history_series.append(
-                {"x": chart_date.isoformat(), "y": float(historical_value.amount)}
-            )
-            debt_history_series.append(
-                {"x": chart_date.isoformat(), "y": float(historical_debt.amount)}
-            )
+            historical_debt = self._debt_at(loans, chart_date)
+            x = chart_date.isoformat()
+            value_history_series.append({"x": x, "y": float(historical_value)})
+            debt_history_series.append({"x": x, "y": float(historical_debt)})
             net_history_series.append(
-                {"x": chart_date.isoformat(), "y": float(net_amount)}
+                {"x": x, "y": float(historical_value - historical_debt)}
             )
 
-        current_net = current_value.amount - current_debt.amount
+        current_net = current_value.amount - current_debt
         value_projection_series = [
             {"x": today.isoformat(), "y": float(current_value.amount)}
         ]
-        debt_projection_series = [
-            {"x": today.isoformat(), "y": float(current_debt.amount)}
-        ]
+        debt_projection_series = [{"x": today.isoformat(), "y": float(current_debt)}]
         net_projection_series = [{"x": today.isoformat(), "y": float(current_net)}]
         for projection in projections:
             value_projection_series.append(
