@@ -289,6 +289,10 @@ class TestBenchmarkApi:
         monkeypatch.setattr(performance, "fetch_historical_prices", _fail)
         response = user_client.get(self._url(pea))
         assert response.status_code == 502
+        # The raw provider error stays in the logs.
+        assert response.json()["error"] == (
+            "Could not compute the performance of the benchmark."
+        )
 
     def test_no_benchmark(self, user_client, pea):
         pea.benchmark_symbol = ""

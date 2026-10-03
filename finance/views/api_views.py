@@ -1,5 +1,6 @@
 """API views for the finance app — JSON endpoints for the dashboard."""
 
+import logging
 import re
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -8,6 +9,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext as _
 from django.views import View
 
 from base.services.ownership import HolderResolver
@@ -24,6 +26,17 @@ from finance.services.market_data import (
 from finance.services.performance import account_cash_flows, benchmark_xirr
 
 _ISIN_RE = re.compile(r"^[A-Z0-9]{12}$")
+_LOGGER = logging.getLogger(__name__)
+
+
+def _market_data_error(exc: MarketDataError, message: str) -> JsonResponse:
+    """Log a failed market data lookup and answer with *message*.
+
+    The exception message can carry the raw error of the data provider, which
+    stays in the logs instead of reaching the browser.
+    """
+    _LOGGER.warning("Market data lookup failed: %s", exc)
+    return JsonResponse({"error": message}, status=502)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -157,7 +170,7 @@ class HoldingLiveInfoApiView(View):
         try:
             quote = get_live_quote(holding.isin, force_refresh=force)
         except MarketDataError as exc:
-            return JsonResponse({"error": str(exc)}, status=502)
+            return _market_data_error(exc, _("Could not load live data."))
 
         quantity = holding.quantity
         total_value = (
@@ -216,7 +229,7 @@ class HoldingAutofillApiView(View):
         try:
             autofill = fetch_holding_autofill(isin)
         except MarketDataError as exc:
-            return JsonResponse({"error": str(exc)}, status=502)
+            return _market_data_error(exc, _("Could not fetch data for this ISIN."))
 
         return JsonResponse(
             {
@@ -305,7 +318,9 @@ class AccountBenchmarkApiView(View):
                 account.currency,
             )
         except MarketDataError as exc:
-            return JsonResponse({"error": str(exc)}, status=502)
+            return _market_data_error(
+                exc, _("Could not compute the performance of the benchmark.")
+            )
         return JsonResponse(
             {
                 "symbol": account.benchmark_symbol,

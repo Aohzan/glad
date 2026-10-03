@@ -312,7 +312,7 @@ def test_holding_live_info_market_data_error(
             _live_info_url(investment_account_for_live_info, holding_with_isin),
         )
     assert response.status_code == 502
-    assert response.json()["error"] == "boom"
+    assert response.json()["error"] == "Could not load live data."
 
 
 @pytest.mark.django_db
@@ -386,7 +386,7 @@ def test_holding_autofill_market_data_error(admin_client):
             reverse("finance:api_holding_autofill") + "?isin=LU1681043599",
         )
     assert response.status_code == 502
-    assert response.json()["error"] == "boom"
+    assert response.json()["error"] == "Could not fetch data for this ISIN."
 
 
 @pytest.mark.django_db
