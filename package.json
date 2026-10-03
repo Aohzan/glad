@@ -7,11 +7,12 @@
     "postinstall": "vendor-copy"
   },
   "dependencies": {
+    "@fontsource-variable/figtree": "5.3.0",
     "@wernfried/daterangepicker": "5.3.8",
     "apexcharts": "6.7.0",
     "bootstrap": "5.3.8",
-    "bootstrap-icons": "1.13.1",
     "leaflet": "1.9.4",
+    "lucide-static": "1.50.0",
     "luxon": "3.7.2",
     "multi-select-dropdown-js": "^1.0.3",
     "simple-datatables": "^10.3.0"
@@ -36,10 +37,6 @@
     {
       "from": "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js.map",
       "to": "static/vendors/bootstrap/bootstrap.bundle.min.js.map"
-    },
-    {
-      "from": "node_modules/bootstrap-icons/font",
-      "to": "static/vendors/bootstrap-icons/font"
     },
     {
       "from": "node_modules/apexcharts/dist/apexcharts.min.js",
@@ -92,6 +89,22 @@
     {
       "from": "node_modules/multi-select-dropdown-js/MultiSelect.min.js",
       "to": "static/vendors/multi-select-dropdown-js/MultiSelect.min.js"
+    },
+    {
+      "from": "node_modules/lucide-static/sprite.svg",
+      "to": "static/vendors/lucide/sprite.svg"
+    },
+    {
+      "from": "node_modules/lucide-static/LICENSE",
+      "to": "static/vendors/lucide/LICENSE"
+    },
+    {
+      "from": "node_modules/@fontsource-variable/figtree/wght.css",
+      "to": "static/vendors/figtree/figtree.css"
+    },
+    {
+      "from": "node_modules/@fontsource-variable/figtree/files",
+      "to": "static/vendors/figtree/files"
     }
   ]
 }
