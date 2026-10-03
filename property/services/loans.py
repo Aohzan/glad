@@ -169,3 +169,57 @@ def loans_summary(rows: Iterable[LoanRow], default_currency: str) -> LoansSummar
         total_insurance_paid=Money(insurance, currency),
         total_remaining=Money(remaining, currency),
     )
+
+
+def _month_x(key: tuple[int, int]) -> str:
+    return f"{key[0]}-{key[1]:02d}-01"
+
+
+def loans_chart_data(
+    loans: Iterable[PropertyLoan], default_currency: str, *, with_property=False
+) -> dict:
+    """Monthly installments of *loans* for the stacked loan chart.
+
+    Returns ``loans`` (one series per loan: principal, interest and insurance
+    paid each month), ``total_capital`` and ``total_interest`` (all loans),
+    and the ``currency``. Every series covers the same months, the union of
+    the months of all loans with zeros where a loan has no installment:
+    ApexCharts stacks the bars of a datetime axis by position, not by date.
+    """
+    by_loan = [(loan, loan.schedule().by_month()) for loan in loans]
+    by_loan = [(loan, months) for loan, months in by_loan if months]
+    months = sorted({key for _loan, loan_months in by_loan for key in loan_months})
+    totals: dict[tuple[int, int], LoanCosts] = {}
+    series = []
+    names: set[str] = set()
+    for loan, loan_months in by_loan:
+        name = loan.name or loan.lender or f"#{loan.pk}"
+        if with_property:
+            name = f"{loan.property.name} — {name}"
+        if name in names:
+            name = f"{name} #{loan.pk}"
+        names.add(name)
+        series.append(
+            {
+                "name": name,
+                "data": [
+                    {
+                        "x": _month_x(key),
+                        "y": float(loan_months.get(key, LoanCosts()).total),
+                    }
+                    for key in months
+                ],
+            }
+        )
+        for key, costs in loan_months.items():
+            totals[key] = totals.get(key, LoanCosts()) + costs
+    return {
+        "currency": by_loan[0][0].currency if by_loan else default_currency,
+        "loans": series,
+        "total_capital": [
+            {"x": _month_x(key), "y": float(totals[key].principal)} for key in months
+        ],
+        "total_interest": [
+            {"x": _month_x(key), "y": float(totals[key].interest)} for key in months
+        ],
+    }

@@ -18,6 +18,7 @@ from property.services.loans import (
     loan_costs_between,
     loan_costs_by_month,
     loan_rows,
+    loans_chart_data,
     loans_summary,
     without_loan_entries,
 )
@@ -250,3 +251,50 @@ def test_loans_summary_without_loans():
     summary = loans_summary([], "EUR")
     assert summary.total_mensuality == Money(0, "EUR")
     assert summary.total_remaining == Money(0, "EUR")
+
+
+def test_chart_series_share_the_months_of_all_loans(two_loans):
+    computed, imported = two_loans
+    data = loans_chart_data([computed, imported], "EUR")
+
+    assert data["currency"] == "EUR"
+    main, works = data["loans"]
+    assert main["name"] == "Main"
+    assert works["name"] == "Works"
+    # Both series cover February 2020 to January 2040, the second one with
+    # zeros after its last installment, so the stacked bars line up by date.
+    assert [p["x"] for p in main["data"]] == [p["x"] for p in works["data"]]
+    assert main["data"][0] == {"x": "2020-02-01", "y": float(Decimal("1219.92"))}
+    # The imported table carries the loan insurance too.
+    assert works["data"][:3] == [
+        {"x": "2020-02-01", "y": float(Decimal("501.50"))},
+        {"x": "2020-03-01", "y": float(Decimal("502.84"))},
+        {"x": "2020-04-01", "y": 0.0},
+    ]
+    assert data["total_capital"][0] == {
+        "x": "2020-02-01",
+        "y": float(Decimal("576.59") + 499),
+    }
+    assert data["total_interest"][0] == {
+        "x": "2020-02-01",
+        "y": float(Decimal("583.33") + Decimal("1.50")),
+    }
+
+
+def test_chart_names_are_unique_and_can_name_the_property(prop, two_loans):
+    computed, imported = two_loans
+    imported.name = "Main"
+    data = loans_chart_data([computed, imported], "EUR", with_property=True)
+    assert [s["name"] for s in data["loans"]] == [
+        "Flat — Main",
+        f"Flat — Main #{imported.pk}",
+    ]
+
+
+def test_chart_without_loans():
+    assert loans_chart_data([], "USD") == {
+        "currency": "USD",
+        "loans": [],
+        "total_capital": [],
+        "total_interest": [],
+    }

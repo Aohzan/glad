@@ -292,7 +292,7 @@ def test_property_detail_capital_repaid_for_standard_loan(user_client):
         start_date=datetime.date(2020, 1, 1),
         end_date=datetime.date(2040, 1, 1),
         original_amount=Money(200000, "EUR"),
-        monthly_payment=Money(Decimal("1159.97"), "EUR"),
+        monthly_payment=Money(Decimal("1159.92"), "EUR"),
         interest_rate=Decimal("3.5"),
     )
 
@@ -593,7 +593,7 @@ def _make_standard_loan(prop):
         start_date=datetime.date(2020, 1, 1),
         end_date=datetime.date(2040, 1, 1),
         original_amount=Money(200_000, "EUR"),
-        monthly_payment=Money(Decimal("1159.97"), "EUR"),
+        monthly_payment=Money(Decimal("1159.92"), "EUR"),
         interest_rate=Decimal("3.5"),
     )
 

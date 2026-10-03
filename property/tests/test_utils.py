@@ -13,7 +13,6 @@ from property.utils import (
     PropertyRentability,
     add_months_safe,
     add_years_safe,
-    build_loan_monthly_maps,
     calculate_monthly_payment,
     generate_recurring_occurrences,
     iter_month_starts,
@@ -241,32 +240,3 @@ def test_calculate_monthly_payment_negative_duration():
     assert monthly_pi == Decimal(0)
     assert monthly_ins == Decimal(0)
     assert total == Decimal(0)
-
-
-def test_build_loan_monthly_maps_handles_interest_and_negative_principal():
-    interest_map, principal_map, insurance_map = build_loan_monthly_maps(
-        start_date=datetime.date(2025, 1, 1),
-        end_date=datetime.date(2025, 3, 1),
-        original_amount=Decimal(1000),
-        monthly_payment=Decimal(10),
-        interest_rate=Decimal(24),
-        insurance_amount=Decimal(2),
-    )
-    # monthly_rate=2%, so first month interest=20 and principal is clamped to 0
-    assert interest_map[(2025, 1)] == Decimal(20)
-    assert principal_map[(2025, 1)] == Decimal(0)
-    assert insurance_map[(2025, 1)] == Decimal(2)
-
-
-def test_build_loan_monthly_maps_handles_zero_duration():
-    interest_map, principal_map, insurance_map = build_loan_monthly_maps(
-        start_date=datetime.date(2025, 5, 1),
-        end_date=datetime.date(2025, 4, 1),
-        original_amount=Decimal(1000),
-        monthly_payment=Decimal(100),
-        interest_rate=None,
-        insurance_amount=Decimal(0),
-    )
-    assert interest_map == {}
-    assert principal_map == {}
-    assert insurance_map == {}

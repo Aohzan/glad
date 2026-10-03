@@ -157,6 +157,18 @@ class TestStoredPayment:
         assert last.principal > Decimal(1100)
         assert last.balance == Decimal(0)
 
+    def test_interest_is_rounded_to_the_cent(self):
+        """100 000 × 3.25 % / 12 = 270.833… → 270.83, so 700 repays 429.17."""
+        rounded = build_schedule(
+            capital=Decimal(100000),
+            annual_rate=Decimal("3.25"),
+            count=240,
+            disbursement_date=DISBURSED,
+            monthly_payment=Decimal(700),
+        ).installments[0]
+        assert rounded.interest == Decimal("270.83")
+        assert rounded.balance == Decimal("99570.83")
+
     def test_payment_below_the_interest_repays_nothing(self):
         schedule = _standard_loan(count=3, monthly_payment=Decimal(100))
         assert [i.principal for i in schedule.installments[:2]] == [

@@ -85,11 +85,13 @@ class TestAllLoansView:
         assert summary.total_insurance_paid.amount > Decimal(0)
         assert summary.total_mensuality == Money(737, "EUR")
 
-    def test_chart_data_json_present(self, user_client):
+    def test_chart_data_present(self, user_client):
         prop = _make_property()
         _make_loan(prop)
         response = user_client.get(reverse("property:all_loans"))
-        assert "loan_chart_data_json" in response.context
+        assert response.context["loan_chart_data"]["currency"] == "EUR"
+        # The data reaches the chart through json_script, not inline JavaScript.
+        assert 'id="loan-chart-data"' in response.content.decode()
 
     def test_csv_export(self, user_client):
         prop = _make_property("My House")
@@ -126,30 +128,31 @@ class TestAllLoansView:
         """The chart should aggregate imported amortization entries for a loan."""
         prop = _make_property()
         loan = _make_loan(prop)
+        day = datetime.date.today() - datetime.timedelta(days=30)
         PropertyLoanAmortizationEntry.objects.create(
             loan=loan,
-            date=datetime.date.today() - datetime.timedelta(days=30),
+            date=day,
             capital=Money(280, "EUR"),
             interest=Money(20, "EUR"),
             remaining_balance_amount=Money(149_720, "EUR"),
         )
         response = user_client.get(reverse("property:all_loans"))
         assert response.status_code == 200
-        import json
+        chart_data = response.context["loan_chart_data"]
+        assert chart_data["loans"] == [
+            {
+                "name": "Test Prop — Test Loan",
+                "data": [{"x": day.strftime("%Y-%m-01"), "y": 300.0}],
+            }
+        ]
 
-        chart_data = json.loads(response.context["loan_chart_data_json"])
-        assert len(chart_data["loans"]) == 1
-        assert chart_data["loans"][0]["data"]
-
-    def test_chart_skips_loan_without_payment_or_rate_data(self, user_client):
-        """A loan with no monthly_payment/interest_rate is skipped from the chart."""
+    def test_chart_includes_a_loan_without_stored_payment(self, user_client):
+        """A loan saved without a monthly payment is charted with its annuity."""
         prop = _make_property()
         _make_loan(prop, monthly_payment=None, interest_rate=Decimal("0.0"))
         response = user_client.get(reverse("property:all_loans"))
-        import json
-
-        chart_data = json.loads(response.context["loan_chart_data_json"])
-        assert chart_data["loans"] == []
+        chart_data = response.context["loan_chart_data"]
+        assert len(chart_data["loans"]) == 1
 
     def test_summary_skips_mismatched_currency(self, user_client):
         """Loans in a different currency than the first one are excluded from totals."""

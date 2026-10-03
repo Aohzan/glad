@@ -1,0 +1,63 @@
+{% load i18n %}
+{# Monthly installments stacked per loan, with the capital and interest totals. #}
+{# Expects loan_chart_data (property.services.loans.loans_chart_data), a #}
+{# #loan-amortization-chart container and an optional chart_height. #}
+{{ loan_chart_data|json_script:"loan-chart-data" }}
+<script nonce="{{ csp_nonce }}">
+(function() {
+  var chartData = JSON.parse(document.getElementById('loan-chart-data').textContent);
+  var chartEl = document.querySelector('#loan-amortization-chart');
+  if (!chartEl || !chartData.loans.length) return;
+
+  function money(digits) {
+    var format = new Intl.NumberFormat(document.documentElement.lang || 'fr', {
+      style: 'currency', currency: chartData.currency, maximumFractionDigits: digits
+    });
+    return function(v) { return format.format(v); };
+  }
+
+  // Every series covers the same months, since ApexCharts stacks the bars of
+  // a datetime axis by position, and a single y-axis keeps the bars and the
+  // lines on the same scale.
+  var series = chartData.loans.map(function(loan) {
+    return { name: loan.name, type: 'bar', data: loan.data };
+  }).concat([
+    { name: '{% filter escapejs %}{% translate "Total capital" %}{% endfilter %}', type: 'line', data: chartData.total_capital },
+    { name: '{% filter escapejs %}{% translate "Total interest" %}{% endfilter %}', type: 'line', data: chartData.total_interest }
+  ]);
+
+  var chart = new ApexCharts(chartEl, {
+    series: series,
+    chart: {
+      type: 'bar',
+      height: {{ chart_height|default:300 }},
+      stacked: true,
+      stackOnlyBar: true,
+      toolbar: { show: false },
+      background: 'transparent',
+      animations: { enabled: false }
+    },
+    theme: { mode: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light' },
+    plotOptions: { bar: { columnWidth: '70%' } },
+    stroke: { width: series.map(function(s) { return s.type === 'line' ? 2 : 0; }), curve: 'smooth' },
+    markers: { size: 0 },
+    xaxis: { type: 'datetime', labels: { datetimeUTC: false, format: 'MMM yy' } },
+    yaxis: { labels: { formatter: money(0) } },
+    legend: { position: 'top' },
+    tooltip: { shared: true, intersect: false, x: { format: 'MMM yyyy' }, y: { formatter: money(2) } },
+    dataLabels: { enabled: false },
+    grid: { strokeDashArray: 4 }
+  });
+  chart.render();
+
+  window._propertyPanelCharts = window._propertyPanelCharts || [];
+  window._propertyPanelCharts.push(chart);
+  if (typeof window.updateChartsTheme !== 'function') {
+    window.updateChartsTheme = function(themeName) {
+      window._propertyPanelCharts.forEach(function(c) {
+        if (c) c.updateOptions({ theme: { mode: themeName }, tooltip: { theme: themeName } });
+      });
+    };
+  }
+})();
+</script>
