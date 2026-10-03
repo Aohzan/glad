@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-01 00:18+0200\n"
+"POT-Creation-Date: 2026-10-03 08:55+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -157,6 +157,127 @@ msgstr "Biens tangibles"
 msgid "Other"
 msgstr "Autre"
 
+#: base/context_processors.py:40 base/search_views.py:73 templates/base.html:52
+#: templates/index.html:4 templates/index.html:6
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#: base/context_processors.py:41 base/search_views.py:74 templates/base.html:53
+#: templates/finance/_account_detail_header.html:4
+#: templates/finance/index.html:4 templates/finance/index.html:6
+msgid "Finance"
+msgstr "Finance"
+
+#: base/context_processors.py:42 base/search_views.py:77
+#: base/services/dashboard.py:50 templates/base.html:56
+#: templates/finance/edit_other_asset.html:14
+#: templates/finance/other_asset_detail.html:15
+#: templates/finance/other_asset_list.html:4
+#: templates/finance/other_asset_list.html:9
+msgid "Other assets"
+msgstr "Autres actifs"
+
+#: base/context_processors.py:43 templates/base.html:74
+msgid "CSV import / export"
+msgstr "Import / export CSV"
+
+#: base/context_processors.py:44 base/search_views.py:75
+#: base/services/dashboard.py:46 property/forms.py:762
+#: property/models/fiscal.py:34 templates/base.html:54
+#: templates/property/edit_manager.html:13
+#: templates/property/edit_tenant.html:13 templates/property/index.html:6
+msgid "Properties"
+msgstr "Immobilier"
+
+#: base/context_processors.py:45 base/search_views.py:76
+#: base/services/dashboard.py:49 base/services/ownership.py:120
+#: property/models/scpi.py:38 property/models/scpi.py:39
+#: property/models/scpi.py:159 property/models/scpi.py:208
+#: property/models/scpi.py:622 templates/base.html:55 templates/base.html:103
+#: templates/property/scpi_detail.html:12
+#: templates/property/scpi_detail.html:136
+#: templates/property/scpi_dividend_batch.html:10
+#: templates/property/scpi_dividend_batch.html:44
+#: templates/property/scpi_fund_detail.html:4
+#: templates/property/scpi_fund_detail.html:19
+#: templates/property/scpi_fund_form.html:17
+#: templates/property/scpi_investment_form.html:12
+#: templates/property/scpi_list.html:6 templates/property/scpi_list.html:46
+msgid "SCPI"
+msgstr "SCPI"
+
+#: base/context_processors.py:46 base/search_views.py:82 templates/base.html:69
+#: templates/property/all_loans.html:4 templates/property/all_loans.html:16
+msgid "All Loans"
+msgstr "Tous les prêts"
+
+#: base/context_processors.py:47 templates/base.html:68
+#: templates/property/occurrence_checks.html:4
+#: templates/property/occurrence_checks.html:10
+msgid "Entries to check"
+msgstr "Écritures à pointer"
+
+#: base/context_processors.py:48 templates/base.html:62
+#: templates/property/report.html:4 templates/property/report.html:16
+msgid "Income & Expenses Report"
+msgstr "Rapport revenus & charges"
+
+#: base/context_processors.py:49 templates/base.html:73
+msgid "LMNP Accounting"
+msgstr "Comptabilité LMNP"
+
+#: base/context_processors.py:50 base/search_views.py:83
+#: templates/accounts/settings.html:4 templates/accounts/settings.html:9
+#: templates/base.html:143
+msgid "Settings"
+msgstr "Paramètres"
+
+#: base/context_processors.py:51 templates/base.html:76 templates/base.html:145
+msgid "Administration"
+msgstr "Administration"
+
+#: base/context_processors.py:52 base/search_views.py:78
+#: templates/allocation.html:4 templates/allocation.html:13
+#: templates/base.html:60
+msgid "Allocation"
+msgstr "Répartition"
+
+#: base/context_processors.py:53 base/search_views.py:79 templates/base.html:61
+#: templates/owners.html:4 templates/owners.html:9
+msgid "Net worth by owner"
+msgstr "Patrimoine par propriétaire"
+
+#: base/context_processors.py:54 base/search_views.py:80 templates/base.html:66
+#: templates/dashboard/_watch.html:5 templates/deadlines.html:4
+#: templates/deadlines.html:6
+msgid "Deadlines"
+msgstr "Échéances"
+
+#: base/context_processors.py:55 base/search_views.py:81 templates/base.html:67
+#: templates/operations.html:4 templates/operations.html:6
+msgid "Operations"
+msgstr "Opérations"
+
+#: base/dashboard_views.py:26 templates/dashboard/_overview.html:28
+#: templates/property/report.html:104
+msgid "Net"
+msgstr "Net"
+
+#: base/dashboard_views.py:27 templates/dashboard/_overview.html:29
+#: templates/finance/_account_progression_cell.html:1
+#: templates/finance/_account_table_header.html:6
+#: templates/finance/index.html:83
+msgid "Gross"
+msgstr "Brut"
+
+#: base/dashboard_views.py:28
+msgid "Debts"
+msgstr "Dettes"
+
+#: base/dashboard_views.py:29 templates/finance/_account_chart_script.html:498
+msgid "Could not load chart data."
+msgstr "Impossible de charger les données du graphique."
+
 #: base/forms.py:56 finance/models/other_asset.py:198
 #: property/models/ledger.py:309 property/models/scpi.py:161
 #: property/models/scpi.py:590
@@ -167,7 +288,7 @@ msgstr "Autre"
 #: templates/finance/edit_investment_cash.html:33
 #: templates/finance/edit_saving_value.html:29
 #: templates/finance/holding_detail.html:142
-#: templates/finance/investment_detail.html:149
+#: templates/finance/investment_detail.html:149 templates/operations.html:23
 #: templates/property/detail.html:463 templates/property/detail.html:560
 #: templates/property/detail_panel_cashflow.html:36
 #: templates/property/detail_panel_cashflow.html:109
@@ -313,77 +434,101 @@ msgstr "Propriétaire retiré."
 msgid "Birth date saved."
 msgstr "Date de naissance enregistrée."
 
+#: base/search_views.py:86
+msgid "Page"
+msgstr "Page"
+
 #: base/services/allocation.py:88
 msgid "Not classified"
 msgstr "Non classé"
 
 #: base/services/allocation.py:114 finance/views/chart_views.py:128
-#: finance/views/index_views.py:92
+#: finance/views/index_views.py:123
 #: templates/finance/_account_chart_script.html:83
 #: templates/finance/_euro_fund_split.html:15 templates/finance/update.html:80
 msgid "Cash"
 msgstr "Espèces"
 
-#: base/services/deadlines.py:85
+#: base/services/dashboard.py:47 templates/finance/index.html:22
+#: templates/property/scpi_fund_detail.html:136
+msgid "Investments"
+msgstr "Investissements"
+
+#: base/services/dashboard.py:48 templates/finance/index.html:23
+msgid "Savings"
+msgstr "Épargnes"
+
+#: base/services/deadlines.py:100
 msgid "End of the loan"
 msgstr "Fin du prêt"
 
-#: base/services/deadlines.py:105 templates/property/_rent_revision.html:6
+#: base/services/deadlines.py:120 templates/property/_rent_revision.html:6
 #: templates/property/edit_lease.html:172
 msgid "Rent revision (IRL)"
 msgstr "Révision du loyer (IRL)"
 
-#: base/services/deadlines.py:114
+#: base/services/deadlines.py:129
 msgid "End of the lease"
 msgstr "Fin du bail"
 
-#: base/services/deadlines.py:140
+#: base/services/deadlines.py:155
 #, python-format
 msgid "Rental ban for DPE %(rating)s housing"
 msgstr "Interdiction de location des logements classés %(rating)s"
 
-#: base/services/deadlines.py:150
+#: base/services/deadlines.py:165
 msgid "DPE expiry"
 msgstr "Expiration du DPE"
 
-#: base/services/deadlines.py:166
+#: base/services/deadlines.py:181
 msgid "End of the dismemberment"
 msgstr "Fin du démembrement"
 
-#: base/services/ownership.py:113
+#: base/services/operations.py:59 base/services/operations.py:107
+msgid "Value update"
+msgstr "Mise à jour de valeur"
+
+#: base/services/operations.py:69 base/services/operations.py:88
+#: templates/finance/_edit_deposit_card.html:9
+msgid "Deposit"
+msgstr "Dépôt"
+
+#: base/services/operations.py:79
+msgid "Cash update"
+msgstr "Mise à jour des espèces"
+
+#: base/services/operations.py:97
+msgid "Holding valuation"
+msgstr "Valorisation de ligne"
+
+#: base/services/operations.py:116
+msgid "Property valuation"
+msgstr "Évaluation de bien"
+
+#: base/services/operations.py:125
+msgid "Dividend"
+msgstr "Dividende"
+
+#: base/services/ownership.py:113 templates/base.html:101
 msgid "Saving account"
 msgstr "Compte d'épargne"
 
-#: base/services/ownership.py:115
+#: base/services/ownership.py:115 templates/base.html:100
 msgid "Investment account"
 msgstr "Compte d'investissement"
 
 #: base/services/ownership.py:118 property/models/asset.py:832
 #: property/models/asset.py:929 property/models/lease.py:44
 #: property/models/ledger.py:287 property/models/management.py:38
-#: templates/property/all_loans.html:99 templates/property/index.html:5
+#: templates/base.html:102 templates/dashboard/_property.html:28
+#: templates/property/all_loans.html:99 templates/property/index.html:4
+#: templates/property/index.html:68
 #: templates/property/occurrence_checks.html:16
 #: templates/property/occurrence_checks.html:60
 msgid "Property"
 msgstr "Propriété"
 
-#: base/services/ownership.py:120 property/models/scpi.py:38
-#: property/models/scpi.py:39 property/models/scpi.py:159
-#: property/models/scpi.py:208 property/models/scpi.py:622
-#: templates/base.html:85 templates/index.html:55 templates/index.html:222
-#: templates/property/scpi_detail.html:12
-#: templates/property/scpi_detail.html:136
-#: templates/property/scpi_dividend_batch.html:10
-#: templates/property/scpi_dividend_batch.html:44
-#: templates/property/scpi_fund_detail.html:4
-#: templates/property/scpi_fund_detail.html:19
-#: templates/property/scpi_fund_form.html:17
-#: templates/property/scpi_investment_form.html:12
-#: templates/property/scpi_list.html:15
-msgid "SCPI"
-msgstr "SCPI"
-
-#: base/services/ownership.py:122
+#: base/services/ownership.py:122 templates/base.html:104
 msgid "Other asset"
 msgstr "Autre actif"
 
@@ -395,15 +540,50 @@ msgstr "Non attribué"
 msgid "Outside the household"
 msgstr "Hors du foyer"
 
-#: base/views.py:110
+#: base/services/ownership.py:251 templates/_owners_summary.html:8
+msgid "Household"
+msgstr "Foyer"
+
+#: base/services/ownership.py:253
+msgid "Joint"
+msgstr "Commun"
+
+#: base/services/ownership.py:257
+#, python-format
+msgid "%(name)s (bare)"
+msgstr "%(name)s (nue-propriété)"
+
+#: base/services/ownership.py:259
+#, python-format
+msgid "%(name)s (usufruct)"
+msgstr "%(name)s (usufruit)"
+
+#: base/tracking_views.py:18
+msgid "Valuations"
+msgstr "Évaluations"
+
+#: base/tracking_views.py:21 templates/finance/_deposits_panel.html:4
+msgid "Deposits"
+msgstr "Dépôts"
+
+#: base/tracking_views.py:22 templates/property/scpi_detail.html:165
+#: templates/property/scpi_fund_detail.html:219
+#: templates/property/scpi_fund_detail.html:330
+#: templates/property/scpi_fund_detail.html:360
+#: templates/property/scpi_fund_detail.html:362
+#: templates/property/scpi_list.html:46
+msgid "Dividends"
+msgstr "Dividendes"
+
+#: base/views.py:78
 msgid "Monthly expenses saved."
 msgstr "Dépenses mensuelles enregistrées."
 
-#: base/views.py:150
+#: base/views.py:118
 msgid "Could not download the INSEE indices."
 msgstr "Impossible de télécharger les indices INSEE."
 
-#: base/views.py:152
+#: base/views.py:120
 msgid "INSEE indices updated."
 msgstr "Indices INSEE mis à jour."
 
@@ -779,8 +959,8 @@ msgstr "autres actifs"
 #: property/models/asset.py:366 property/models/scpi.py:42
 #: templates/finance/_account_table_header.html:4
 #: templates/finance/edit_investment_holding.html:46
-#: templates/finance/holding_detail.html:61 templates/finance/index.html:124
-#: templates/finance/index.html:215 templates/finance/investment_detail.html:77
+#: templates/finance/holding_detail.html:61
+#: templates/finance/investment_detail.html:77
 #: templates/finance/other_asset_list.html:21
 #: templates/property/all_loans.html:100
 #: templates/property/detail_panel_loans.html:29
@@ -874,8 +1054,9 @@ msgstr "valeur d'autre actif"
 msgid "other asset values"
 msgstr "valeurs d'autres actifs"
 
-#: finance/models/other_asset.py:197
+#: finance/models/other_asset.py:197 templates/dashboard/_registry.html:18
 #: templates/finance/_account_table_header.html:5
+#: templates/finance/_accounts_head.html:1
 #: templates/finance/_edit_value_field.html:3
 #: templates/finance/_value_history_panel.html:17
 #: templates/finance/edit_investment_cash.html:28
@@ -883,8 +1064,8 @@ msgstr "valeurs d'autres actifs"
 #: templates/finance/holding_detail.html:209
 #: templates/finance/holding_detail.html:215
 #: templates/finance/holding_detail.html:216
-#: templates/finance/holding_detail.html:220 templates/finance/index.html:125
-#: templates/finance/index.html:216 templates/finance/investment_detail.html:80
+#: templates/finance/holding_detail.html:220
+#: templates/finance/investment_detail.html:80
 #: templates/finance/investment_detail.html:150
 #: templates/property/csv_confirm.html:53 templates/property/detail.html:355
 #: templates/property/detail.html:561
@@ -1058,6 +1239,7 @@ msgstr "Type"
 
 #: finance/views/csv_views.py:543
 #: templates/finance/_account_detail_common_info.html:12
+#: templates/finance/_accounts_head.html:1
 #: templates/finance/_edit_account_info_card.html:32
 msgid "Institution"
 msgstr "Établissement"
@@ -1068,16 +1250,16 @@ msgid "Value at %(date)s"
 msgstr "Valeur au %(date)s"
 
 #: finance/views/csv_views.py:584 templates/allocation.html:14
+#: templates/dashboard/_property.html:39 templates/dashboard/_registry.html:39
 #: templates/finance/_account_chart_script.html:248
 #: templates/finance/_account_chart_script.html:274
 #: templates/finance/_account_chart_script.html:340
 #: templates/finance/_account_chart_script.html:349
 #: templates/finance/_account_chart_script.html:426
-#: templates/finance/index.html:64 templates/finance/index.html:352
-#: templates/finance/other_asset_list.html:47
+#: templates/finance/index.html:193 templates/finance/other_asset_list.html:47
 #: templates/property/_balance_section_card.html:30
 #: templates/property/_report_category_table.html:27
-#: templates/property/scpi_detail.html:199
+#: templates/property/index.html:91 templates/property/scpi_detail.html:199
 msgid "Total"
 msgstr "Total"
 
@@ -1248,11 +1430,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:255
+#: glad/settings.py:257
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:256
+#: glad/settings.py:258
 msgid "French"
 msgstr "Français"
 
@@ -1329,13 +1511,6 @@ msgstr "Montant brut"
 #: templates/property/scpi_dividend_batch.html:46
 msgid "Net amount"
 msgstr "Montant net"
-
-#: property/forms.py:762 property/models/fiscal.py:34 templates/base.html:80
-#: templates/index.html:54 templates/index.html:185
-#: templates/property/edit_manager.html:13
-#: templates/property/edit_tenant.html:13 templates/property/index.html:17
-msgid "Properties"
-msgstr "Immobilier"
 
 #: property/forms.py:798
 msgid ""
@@ -1452,7 +1627,8 @@ msgstr "entrée d'amortissement"
 msgid "amortization entries"
 msgstr "entrées d'amortissement"
 
-#: property/models/asset.py:317 templates/property/detail_panel_loans.html:150
+#: property/models/asset.py:317 templates/dashboard/_property.html:28
+#: templates/property/detail_panel_loans.html:150
 msgid "Loan"
 msgstr "Prêt"
 
@@ -2109,8 +2285,8 @@ msgstr "Autres charges non déductibles"
 msgid "ALUR works fund"
 msgstr "Fonds travaux (ALUR)"
 
-#: property/models/ledger.py:241 templates/index.html:48
-#: templates/property/detail.html:396 templates/property/detail.html:419
+#: property/models/ledger.py:241 templates/property/detail.html:396
+#: templates/property/detail.html:419
 #: templates/property/detail_panel_balance.html:64
 #: templates/property/detail_panel_cashflow.html:85
 #: templates/property/detail_panel_cashflow.html:143
@@ -2152,7 +2328,7 @@ msgid "Flow type"
 msgstr "Type de flux"
 
 #: property/models/ledger.py:305 templates/finance/_deposits_panel.html:16
-#: templates/finance/_edit_deposit_fields.html:3
+#: templates/finance/_edit_deposit_fields.html:3 templates/operations.html:23
 #: templates/property/_report_category_table.html:12
 #: templates/property/detail.html:456
 #: templates/property/detail_panel_cashflow.html:39
@@ -2319,7 +2495,7 @@ msgstr "Pourcentage de commission (%)"
 msgid "Percentage of collected rent, e.g. 7.50 for 7.5%."
 msgstr "Pourcentage du loyer encaissé, ex. 7,50 pour 7,5%."
 
-#: property/models/management.py:77 templates/property/index.html:121
+#: property/models/management.py:77
 msgid "active"
 msgstr "actif"
 
@@ -2844,23 +3020,23 @@ msgstr "%(count)d ligne(s) n'ont pas pu être importée(s)."
 msgid "Row %(num)d: %(reason)s"
 msgstr "Ligne %(num)d : %(reason)s"
 
-#: property/views/detail_views.py:698
+#: property/views/detail_views.py:582
 msgid "Property value added."
 msgstr "Valeur de propriété ajoutée."
 
-#: property/views/detail_views.py:709
+#: property/views/detail_views.py:593
 msgid "Unable to add property value."
 msgstr "Impossible d'ajouter la valeur de propriété."
 
-#: property/views/detail_views.py:722
+#: property/views/detail_views.py:606
 msgid "Entry added."
 msgstr "Écriture ajoutée."
 
-#: property/views/detail_views.py:733
+#: property/views/detail_views.py:617
 msgid "Unable to add entry."
 msgstr "Impossible d'ajouter l'écriture."
 
-#: property/views/detail_views.py:737
+#: property/views/detail_views.py:621
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 
@@ -3038,28 +3214,23 @@ msgstr "Valeur théorique enregistrée avec succès."
 msgid "Theoretical value deleted successfully."
 msgstr "Valeur théorique supprimée avec succès."
 
-#: templates/400.html:4 templates/400.html:10
+#: templates/400.html:4 templates/400.html:7
 msgid "Bad Request"
 msgstr "Requête invalide"
 
-#: templates/400.html:11
+#: templates/400.html:8
 msgid "The server could not understand the request due to invalid syntax."
 msgstr "Le serveur n'a pas compris la requête à cause d'un problème de syntaxe"
-
-#: templates/400.html:13 templates/403.html:13 templates/404.html:13
-#: templates/500.html:21
-msgid "Back to Home"
-msgstr "Retour à l'accueil"
 
 #: templates/403.html:4
 msgid "Forbidden"
 msgstr "Interdit"
 
-#: templates/403.html:10
+#: templates/403.html:7
 msgid "Access Forbidden"
 msgstr "Accès interdit"
 
-#: templates/403.html:11
+#: templates/403.html:8
 msgid "You do not have permission to access this page."
 msgstr "Vous n'avez pas la permission d'accéder à cette page."
 
@@ -3067,11 +3238,11 @@ msgstr "Vous n'avez pas la permission d'accéder à cette page."
 msgid "Not Found"
 msgstr "Non trouvé"
 
-#: templates/404.html:10
+#: templates/404.html:7
 msgid "Page Not Found"
 msgstr "Page introuvable."
 
-#: templates/404.html:11
+#: templates/404.html:8
 msgid "The page you are looking for does not exist or has been moved."
 msgstr "La page que vous cherchez n'existe pas ou a été déplacée."
 
@@ -3083,35 +3254,54 @@ msgstr "Erreur serveur"
 msgid "An unexpected error occurred. Please try again later."
 msgstr "Une erreur inconnue est survenue. Merci de réessayer plus tard."
 
+#: templates/500.html:20 templates/_error_page.html:6
+msgid "Back to Home"
+msgstr "Retour à l'accueil"
+
 #: templates/_allocation_block.html:21
 msgid "No assets yet."
 msgstr "Aucun actif pour le moment."
 
-#: templates/_deadlines_card.html:6
-msgid "Upcoming deadlines"
-msgstr "Échéances à venir"
+#: templates/_chart_range_buttons.html:1 templates/dashboard/_overview.html:32
+msgid "1Y"
+msgstr "1A"
 
-#: templates/_deadlines_card.html:21
+#: templates/_chart_range_buttons.html:1 templates/dashboard/_overview.html:33
+msgid "2Y"
+msgstr "2A"
+
+#: templates/_chart_range_buttons.html:1 templates/dashboard/_overview.html:34
+msgid "5Y"
+msgstr "5A"
+
+#: templates/_chart_range_buttons.html:1 templates/dashboard/_overview.html:35
+msgid "10Y"
+msgstr "10A"
+
+#: templates/_days_left_tag.html:1
 #, python-format
 msgid "%(days)s day ago"
 msgid_plural "%(days)s days ago"
 msgstr[0] "il y a %(days)s jour"
 msgstr[1] "il y a %(days)s jours"
 
-#: templates/_deadlines_card.html:22 templates/index.html:72
-msgid "today"
-msgstr "aujourd'hui"
+#: templates/_days_left_tag.html:1
+msgid "Today"
+msgstr "Aujourd'hui"
 
-#: templates/_deadlines_card.html:23
+#: templates/_days_left_tag.html:1
 #, python-format
-msgid "in %(days)s day"
-msgid_plural "in %(days)s days"
-msgstr[0] "dans %(days)s jour"
-msgstr[1] "dans %(days)s jours"
+msgid "In %(days)s day"
+msgid_plural "In %(days)s days"
+msgstr[0] "Dans %(days)s jour"
+msgstr[1] "Dans %(days)s jours"
 
-#: templates/_owners_summary.html:8
-msgid "Household"
-msgstr "Foyer"
+#: templates/_days_left_tag.html:1
+#, python-format
+msgid "In %(months)s month"
+msgid_plural "In %(months)s months"
+msgstr[0] "Dans %(months)s mois"
+msgstr[1] "Dans %(months)s mois"
 
 #: templates/_owners_summary.html:10
 msgid "Manage owners"
@@ -3187,11 +3377,6 @@ msgstr ""
 msgid "Login notification on %(site_name)s"
 msgstr "Notification de connexion sur %(site_name)s"
 
-#: templates/accounts/settings.html:4 templates/accounts/settings.html:9
-#: templates/base.html:122
-msgid "Settings"
-msgstr "Paramètres"
-
 #: templates/accounts/settings.html:13
 msgid "Profile"
 msgstr "Profil"
@@ -3231,7 +3416,7 @@ msgstr "Notifications"
 msgid "Receive an email when someone logs in to your account."
 msgstr "Recevoir un email lorsqu'une connexion à votre compte est détectée."
 
-#: templates/accounts/settings.html:61 templates/base.html:53
+#: templates/accounts/settings.html:61
 msgid "Data"
 msgstr "Données"
 
@@ -3432,11 +3617,6 @@ msgstr "Annuler"
 msgid "Items to be updated:"
 msgstr "Éléments à mettre à jour :"
 
-#: templates/allocation.html:4 templates/allocation.html:13
-#: templates/base.html:50 templates/index.html:135
-msgid "Allocation"
-msgstr "Répartition"
-
 #: templates/allocation.html:20
 msgid "Emergency fund"
 msgstr "Épargne de précaution"
@@ -3474,131 +3654,320 @@ msgstr ""
 "devise de référence sont inclus. Renseignez la classe d'actifs de chaque "
 "titre pour affiner la répartition."
 
-#: templates/base.html:37
-msgid "Home"
-msgstr "Accueil"
+#: templates/base.html:44
+msgid "Main menu"
+msgstr "Menu principal"
 
-#: templates/base.html:43 templates/finance/_account_detail_header.html:4
-#: templates/finance/index.html:5 templates/finance/index.html:17
-#: templates/index.html:125
-msgid "Finance"
-msgstr "Finance"
+#: templates/base.html:45
+msgid "Glad, dashboard"
+msgstr "Glad, tableau de bord"
 
-#: templates/base.html:46 templates/finance/index.html:90
-msgid "Accounts"
-msgstr "Comptes"
+#: templates/base.html:49
+msgid "Main navigation"
+msgstr "Navigation principale"
 
-#: templates/base.html:47
-msgid "Overview"
-msgstr "Vue d'ensemble"
-
-#: templates/base.html:48
-msgid "Update all accounts"
-msgstr "Mettre à jour tous les comptes"
-
-#: templates/base.html:49 templates/finance/edit_other_asset.html:14
-#: templates/finance/index.html:26 templates/finance/other_asset_detail.html:15
-#: templates/finance/other_asset_list.html:4
-#: templates/finance/other_asset_list.html:9 templates/index.html:56
-msgid "Other assets"
-msgstr "Autres actifs"
-
-#: templates/base.html:51 templates/owners.html:4 templates/owners.html:9
-msgid "Net worth by owner"
-msgstr "Patrimoine par propriétaire"
-
-#: templates/base.html:54
-msgid "CSV Import"
-msgstr "Import CSV"
-
-#: templates/base.html:55
-msgid "CSV Export"
-msgstr "Export CSV"
-
-#: templates/base.html:57
-msgid "Favorite accounts"
-msgstr "Comptes favoris"
-
-#: templates/base.html:70 templates/base.html:101
-msgid "Add favorites to show them here"
-msgstr "Ajoutez des favoris pour les afficher ici"
-
-#: templates/base.html:72 templates/index.html:70
-msgid "Add your first account"
-msgstr "Ajouter votre premier compte"
-
-#: templates/base.html:83
-msgid "Portfolio"
+#: templates/base.html:51 templates/finance/index.html:5 templates/index.html:5
+#: templates/property/index.html:5 templates/property/scpi_list.html:5
+msgid "Wealth"
 msgstr "Patrimoine"
 
-#: templates/base.html:84 templates/property/occurrence_checks.html:11
-msgid "Estate"
-msgstr "Immobilier"
+#: templates/base.html:59
+msgid "Analysis"
+msgstr "Analyse"
 
-#: templates/base.html:86 templates/property/all_loans.html:4
-#: templates/property/all_loans.html:16
-msgid "All Loans"
-msgstr "Tous les prêts"
-
-#: templates/base.html:88
+#: templates/base.html:65 templates/deadlines.html:5
+#: templates/operations.html:5
 msgid "Tracking"
 msgstr "Suivi"
 
-#: templates/base.html:89 templates/property/occurrence_checks.html:4
-#: templates/property/occurrence_checks.html:10
-msgid "Entries to check"
-msgstr "Écritures à pointer"
+#: templates/base.html:72
+msgid "Tools"
+msgstr "Outils"
 
-#: templates/base.html:90 templates/property/report.html:4
-#: templates/property/report.html:16
-msgid "Income & Expenses Report"
-msgstr "Rapport revenus & charges"
+#: templates/base.html:81
+msgid "Favorites"
+msgstr "Favoris"
 
-#: templates/base.html:92
-msgid "Taxation"
-msgstr "Fiscalité"
+#: templates/base.html:96
+msgid "Add an asset"
+msgstr "Ajouter un actif"
 
-#: templates/base.html:93
-msgid "LMNP Accounting"
-msgstr "Comptabilité LMNP"
+#: templates/base.html:97
+msgid "Add"
+msgstr "Ajouter"
 
-#: templates/base.html:95
-msgid "Favorite properties"
-msgstr "Propriétés favorites"
+#: templates/base.html:100
+msgid "PEA, life insurance, securities account"
+msgstr "PEA, assurance vie, compte-titres"
 
-#: templates/base.html:103 templates/index.html:212
-#: templates/property/index.html:163
-msgid "Add your first property"
-msgstr "Ajouter votre première propriété"
+#: templates/base.html:101
+msgid "Passbook, PEL, CEL"
+msgstr "Livret, PEL, CEL"
 
-#: templates/base.html:113
-msgid "Administration"
-msgstr "Administration"
+#: templates/base.html:102
+msgid "Main residence, rental, LMNP"
+msgstr "Résidence principale, locatif, LMNP"
 
-#: templates/base.html:119
-msgid "My account"
-msgstr "Mon compte"
+#: templates/base.html:103
+msgid "Shares in full or bare ownership"
+msgstr "Parts en pleine ou nue-propriété"
 
-#: templates/base.html:124
-msgid "Logout"
-msgstr "Déconnexion"
+#: templates/base.html:104
+msgid "Vehicle, gold, crypto, collectibles"
+msgstr "Véhicule, or, crypto, objets de collection"
 
-#: templates/base.html:129 templates/registration/login.html:4
-msgid "Login"
-msgstr "Connexion"
+#: templates/base.html:107 templates/base.html:108
+msgid "Bulk update"
+msgstr "Mise à jour groupée"
 
-#: templates/base.html:132 templates/registration/login.html:18
-#: templates/registration/password_reset_form.html:4
-msgid "Password Reset"
-msgstr "Réinitialisation du mot de passe"
+#: templates/base.html:110
+msgid "Collapse or expand the menu"
+msgstr "Replier ou déplier le menu"
 
-#: templates/base.html:173
+#: templates/base.html:111
+msgid "Collapse the menu"
+msgstr "Replier le menu"
+
+#: templates/base.html:120
+msgid "Open the menu"
+msgstr "Ouvrir le menu"
+
+#: templates/base.html:123
+msgid "Breadcrumb"
+msgstr "Fil d'Ariane"
+
+#: templates/base.html:129
+msgid "Search an asset"
+msgstr "Rechercher un actif"
+
+#: templates/base.html:131
+msgid "No result"
+msgstr "Aucun résultat"
+
+#: templates/base.html:133 templates/base.html:195
 msgid "Toggle dark mode"
 msgstr "Basculer en mode sombre"
 
-#: templates/base.html:189
-msgid "Change"
-msgstr "Changer"
+#: templates/base.html:137
+msgid "My account"
+msgstr "Mon compte"
+
+#: templates/base.html:151 templates/base.html:201
+msgid "Language"
+msgstr "Langue"
+
+#: templates/base.html:159
+msgid "Logout"
+msgstr "Déconnexion"
+
+#: templates/dashboard/_overview.html:5
+msgid "Net worth"
+msgstr "Patrimoine net"
+
+#: templates/dashboard/_overview.html:9
+#, python-format
+msgid "%(amount)s over 30 days"
+msgstr "%(amount)s sur 30 jours"
+
+#: templates/dashboard/_overview.html:13
+msgid "Gross assets"
+msgstr "Actifs bruts"
+
+#: templates/dashboard/_overview.html:15
+msgid "Property debts"
+msgstr "Dettes immobilières"
+
+#: templates/dashboard/_overview.html:17
+msgid "Change over 12 months"
+msgstr "Variation sur 12 mois"
+
+#: templates/dashboard/_overview.html:20
+msgid "Debt ratio"
+msgstr "Taux d'endettement"
+
+#: templates/dashboard/_overview.html:27
+msgid "Evolution"
+msgstr "Évolution"
+
+#: templates/dashboard/_overview.html:31
+#: templates/property/detail_panel_balance.html:9
+msgid "Period"
+msgstr "Période"
+
+#: templates/dashboard/_overview.html:38
+msgid "Net worth evolution"
+msgstr "Évolution du patrimoine net"
+
+#: templates/dashboard/_overview.html:47
+msgid "Total net"
+msgstr "Total net"
+
+#: templates/dashboard/_overview.html:49
+msgid "30 days"
+msgstr "30 jours"
+
+#: templates/dashboard/_overview.html:55
+msgid "Stable"
+msgstr "Stable"
+
+#: templates/dashboard/_overview.html:55
+#, python-format
+msgid "%(share)s of net"
+msgstr "%(share)s du net"
+
+#: templates/dashboard/_property.html:5
+msgid "Liabilities"
+msgstr "Passif"
+
+#: templates/dashboard/_property.html:6
+#, python-format
+msgid "Remaining capital · %(monthly)s / month"
+msgstr "Capital restant dû · %(monthly)s / mois"
+
+#: templates/dashboard/_property.html:11
+#, python-format
+msgid "%(monthly)s / month"
+msgstr "%(monthly)s / mois"
+
+#: templates/dashboard/_property.html:11
+#, python-format
+msgid "ends %(end)s"
+msgstr "fin %(end)s"
+
+#: templates/dashboard/_property.html:14
+#, python-format
+msgid "%(repaid)s repaid"
+msgstr "%(repaid)s remboursé"
+
+#: templates/dashboard/_property.html:17
+msgid "Total liabilities"
+msgstr "Total du passif"
+
+#: templates/dashboard/_property.html:23
+msgid "Property flows"
+msgstr "Flux immobiliers"
+
+#: templates/dashboard/_property.html:24
+msgid "Monthly median over 12 months"
+msgstr "Médiane mensuelle sur 12 mois"
+
+#: templates/dashboard/_property.html:28
+msgid "Rents"
+msgstr "Loyers"
+
+#: templates/dashboard/_property.html:28
+msgid "Charges"
+msgstr "Charges"
+
+#: templates/dashboard/_property.html:28
+msgid "Balance"
+msgstr "Solde"
+
+#: templates/dashboard/_recent_operations.html:4
+msgid "Recent operations"
+msgstr "Opérations récentes"
+
+#: templates/dashboard/_recent_operations.html:5
+msgid "See all"
+msgstr "Voir tout"
+
+#: templates/dashboard/_recent_operations.html:14 templates/operations.html:27
+msgid "No operation recorded yet."
+msgstr "Aucune opération enregistrée pour le moment."
+
+#: templates/dashboard/_registry.html:5
+msgid "Asset registry"
+msgstr "Registre des actifs"
+
+#: templates/dashboard/_registry.html:6
+msgid "asset"
+msgstr "actif"
+
+#: templates/dashboard/_registry.html:6
+msgid "assets"
+msgstr "actifs"
+
+#: templates/dashboard/_registry.html:6
+#, python-format
+msgid "%(counter)s asset"
+msgid_plural "%(counter)s assets"
+msgstr[0] "%(counter)s actif"
+msgstr[1] "%(counter)s actifs"
+
+#: templates/dashboard/_registry.html:7
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#: templates/dashboard/_registry.html:10 templates/dashboard/_registry.html:18
+#: templates/finance/_accounts_head.html:1
+msgid "Holder"
+msgstr "Titulaire"
+
+#: templates/dashboard/_registry.html:11 templates/operations.html:15
+#: templates/property/index.html:46
+msgid "All"
+msgstr "Tous"
+
+#: templates/dashboard/_registry.html:18 templates/operations.html:23
+msgid "Asset"
+msgstr "Actif"
+
+#: templates/dashboard/_registry.html:18
+msgid "30 d"
+msgstr "30 j"
+
+#: templates/dashboard/_registry.html:18
+msgid "Weight"
+msgstr "Poids"
+
+#: templates/dashboard/_registry.html:21
+msgid "line"
+msgstr "ligne"
+
+#: templates/dashboard/_registry.html:21
+msgid "lines"
+msgstr "lignes"
+
+#: templates/dashboard/_registry.html:21
+#, python-format
+msgid "%(counter)s line"
+msgid_plural "%(counter)s lines"
+msgstr[0] "%(counter)s ligne"
+msgstr[1] "%(counter)s lignes"
+
+#: templates/dashboard/_registry.html:37
+msgid "No asset matches these filters."
+msgstr "Aucun actif ne correspond à ces filtres."
+
+#: templates/dashboard/_registry.html:37
+msgid "No asset yet: add an account or a property to start."
+msgstr ""
+"Aucun actif pour le moment : ajoutez un compte ou un bien pour commencer."
+
+#: templates/dashboard/_watch.html:4
+msgid "Watch list"
+msgstr "À surveiller"
+
+#: templates/dashboard/_watch.html:11
+#, python-format
+msgid "%(change)s over 30 days"
+msgstr "%(change)s sur 30 jours"
+
+#: templates/dashboard/_watch.html:20
+msgid "Nothing to watch: no drop and no deadline soon."
+msgstr "Rien à surveiller : aucune baisse ni échéance proche."
+
+#: templates/deadlines.html:7
+msgid "Events to anticipate over the next 12 months"
+msgstr "Événements à anticiper sur les 12 prochains mois"
+
+#: templates/deadlines.html:15
+msgid "No deadline in the next 12 months."
+msgstr "Aucune échéance dans les 12 prochains mois."
+
+#: templates/deadlines.html:18
+msgid "Past · last 30 days"
+msgstr "Passées · 30 derniers jours"
 
 #: templates/finance/_account_chart_panel.html:5
 #: templates/finance/holding_detail.html:112
@@ -3608,8 +3977,8 @@ msgstr "Évolution de la valeur"
 #: templates/finance/_account_chart_script.html:231
 #: templates/finance/_account_chart_script.html:280
 #: templates/finance/_account_chart_script.html:341
-#: templates/finance/_account_chart_script.html:357 templates/index.html:73
-#: templates/property/scpi_list.html:182
+#: templates/finance/_account_chart_script.html:357
+#: templates/property/scpi_list.html:46
 msgid "Invested"
 msgstr "Investi"
 
@@ -3622,10 +3991,6 @@ msgstr "Investi"
 #: templates/property/scpi_fund_detail.html:153
 msgid "Capital gain"
 msgstr "Plus-value"
-
-#: templates/finance/_account_chart_script.html:498
-msgid "Could not load chart data."
-msgstr "Impossible de charger les données du graphique."
 
 #: templates/finance/_account_detail_common_info.html:7
 #: templates/finance/other_asset_detail.html:46 templates/owners_manage.html:4
@@ -3678,24 +4043,24 @@ msgid "30-day progression"
 msgstr "Progression sur 30 jours"
 
 #: templates/finance/_account_table_header.html:6
-#: templates/finance/index.html:126 templates/finance/index.html:217
 msgid "Net progression"
 msgstr "Progression nette"
-
-#: templates/finance/_account_table_header.html:6
-#: templates/finance/index.html:126 templates/finance/index.html:217
-#: templates/index.html:63 templates/property/index.html:127
-msgid "Gross"
-msgstr "Brut"
 
 #: templates/finance/_account_update_row.html:23
 #: templates/finance/_holding_update_row.html:34
 msgid "Currently:"
 msgstr "Actuellement :"
 
-#: templates/finance/_deposits_panel.html:4
-msgid "Deposits"
-msgstr "Dépôts"
+#: templates/finance/_accounts_head.html:1
+msgid "Account"
+msgstr "Compte"
+
+#: templates/finance/_accounts_head.html:1 templates/finance/index.html:46
+#, python-format
+msgid "%(counter)s day"
+msgid_plural "%(counter)s days"
+msgstr[0] "%(counter)s jour"
+msgstr[1] "%(counter)s jours"
 
 #: templates/finance/_deposits_panel.html:6
 msgid "Add deposit"
@@ -3797,10 +4162,6 @@ msgstr "Nom du compte"
 msgid "Comments"
 msgstr "Commentaires"
 
-#: templates/finance/_edit_deposit_card.html:9
-msgid "Deposit"
-msgstr "Dépôt"
-
 #: templates/finance/_envelope_card.html:6
 msgid "Envelope"
 msgstr "Enveloppe"
@@ -3865,6 +4226,14 @@ msgstr "Fonds euros (capital garanti)"
 msgid "Units of account"
 msgstr "Unités de compte"
 
+#: templates/finance/_favorite_button.html:3
+msgid "Remove from favorites"
+msgstr "Retirer des favoris"
+
+#: templates/finance/_favorite_button.html:3
+msgid "Add to favorites"
+msgstr "Ajouter aux favoris"
+
 #: templates/finance/_holding_update_row.html:26
 msgid "Fetch"
 msgstr "Actualiser"
@@ -3909,6 +4278,11 @@ msgstr ""
 "suivante (le 1er ou le 16), les retraits cessent de rapporter dès le début "
 "de leur quinzaine. Calcul basé sur le solde au 1er janvier et les versements "
 "enregistrés cette année, au taux actuel, sans autre mouvement."
+
+#: templates/finance/_kpi.html:4
+#, python-format
+msgid "%(amount)s over the period"
+msgstr "%(amount)s sur la période"
 
 #: templates/finance/_performance_card.html:5
 msgid "Annualized performance"
@@ -4162,7 +4536,7 @@ msgid "Edit investment account"
 msgstr "Modifier le compte d'investissement"
 
 #: templates/finance/edit_investment.html:5
-#: templates/finance/edit_investment.html:12 templates/finance/index.html:20
+#: templates/finance/edit_investment.html:12 templates/finance/index.html:11
 msgid "New investment account"
 msgstr "Nouveau compte d'investissement"
 
@@ -4295,7 +4669,7 @@ msgid "Edit saving account"
 msgstr "Modifier le compte d'épargne"
 
 #: templates/finance/edit_saving.html:5 templates/finance/edit_saving.html:12
-#: templates/finance/index.html:23
+#: templates/finance/index.html:10
 msgid "New saving account"
 msgstr "Nouveau compte d'épargne"
 
@@ -4440,69 +4814,70 @@ msgstr "Devise de cotation"
 msgid "differs from the account currency"
 msgstr "diffère de la devise du compte"
 
-#: templates/finance/index.html:29
+#: templates/finance/index.html:7
+msgid "Investment and saving accounts"
+msgstr "Comptes d'investissement et d'épargne"
+
+#: templates/finance/index.html:9
 msgid "Batch update"
 msgstr "Mise à jour groupée"
 
-#: templates/finance/index.html:40
-msgid "Total investments"
-msgstr "Total investissements"
+#: templates/finance/index.html:25
+msgid "Total finance"
+msgstr "Total finance"
 
-#: templates/finance/index.html:52
-msgid "Total savings"
-msgstr "Total épargnes"
+#: templates/finance/index.html:27 templates/finance/index.html:100
+#, python-format
+msgid "%(counter)s account"
+msgid_plural "%(counter)s accounts"
+msgstr[0] "%(counter)s compte"
+msgstr[1] "%(counter)s comptes"
 
-#: templates/finance/index.html:76 templates/property/index.html:62
+#: templates/finance/index.html:34 templates/property/index.html:44
 msgid "Value Evolution"
 msgstr "Évolution valeur"
 
-#: templates/finance/index.html:77
+#: templates/finance/index.html:35
 msgid "Chart range"
 msgstr "Période du graphique"
 
-#: templates/finance/index.html:79
+#: templates/finance/index.html:36
 msgid "Max"
 msgstr "Max"
 
-#: templates/finance/index.html:97
+#: templates/finance/index.html:44
 msgid "Progression over"
 msgstr "Progression sur"
 
-#: templates/finance/index.html:100
-msgid "days"
-msgstr "jours"
+#: templates/finance/index.html:50
+msgid "Show closed accounts"
+msgstr "Afficher les comptes clos"
 
-#: templates/finance/index.html:107
-msgid "Active only"
-msgstr "Actifs seulement"
+#: templates/finance/index.html:50
+msgid "Hide closed accounts"
+msgstr "Masquer les comptes clos"
 
-#: templates/finance/index.html:117 templates/finance/update.html:59
+#: templates/finance/index.html:56 templates/finance/update.html:59
 msgid "Investment accounts"
 msgstr "Comptes d'investissement"
 
-#: templates/finance/index.html:140 templates/finance/index.html:230
-#: templates/property/index.html:150
-msgid "Remove from favorites"
-msgstr "Retirer des favoris"
+#: templates/finance/index.html:57
+msgid "Click an account to show its holdings"
+msgstr "Cliquez sur un compte pour afficher ses lignes"
 
-#: templates/finance/index.html:140 templates/finance/index.html:230
-#: templates/property/index.html:150
-msgid "Add to favorites"
-msgstr "Ajouter aux favoris"
-
-#: templates/finance/index.html:187
+#: templates/finance/index.html:86
 msgid "No holdings found for this account."
 msgstr "Aucun titre trouvé pour ce compte."
 
-#: templates/finance/index.html:195
+#: templates/finance/index.html:91
 msgid "No investment accounts found."
 msgstr "Aucun compte d'investissement trouvé."
 
-#: templates/finance/index.html:208 templates/finance/update.html:49
+#: templates/finance/index.html:99 templates/finance/update.html:49
 msgid "Saving accounts"
 msgstr "Comptes d'épargne"
 
-#: templates/finance/index.html:244
+#: templates/finance/index.html:117
 msgid "No saving accounts found."
 msgstr "Aucun compte d'épargne trouvé."
 
@@ -4570,7 +4945,7 @@ msgstr ""
 msgid "Update from market price"
 msgstr "Mettre à jour depuis le cours"
 
-#: templates/finance/other_asset_detail.html:56 templates/index.html:64
+#: templates/finance/other_asset_detail.html:56
 msgid "Acquisition"
 msgstr "Acquisition"
 
@@ -4632,128 +5007,12 @@ msgstr "Valider"
 msgid "Could not fetch a live value for this holding."
 msgstr "Impossible de récupérer une valeur en direct pour ce titre."
 
-#: templates/index.html:4
-msgid "Dashboard"
-msgstr "Tableau de bord"
+#: templates/index.html:7
+#, python-format
+msgid "Situation on %(today)s"
+msgstr "Situation au %(today)s"
 
-#: templates/index.html:47
-msgid "Could not load data."
-msgstr "Echec du chargement des données."
-
-#: templates/index.html:49 templates/property/detail.html:425
-#: templates/property/detail_panel_balance.html:68
-#: templates/property/detail_panel_cashflow.html:148
-#: templates/property/detail_panel_cashflow.html:305
-msgid "Expenses"
-msgstr "Dépenses"
-
-#: templates/index.html:50 templates/property/report.html:104
-msgid "Net"
-msgstr "Net"
-
-#: templates/index.html:51 templates/property/all_loans.html:92
-#: templates/property/detail.html:245
-#: templates/property/detail_panel_loans.html:22
-#: templates/property/index.html:120
-msgid "Loans"
-msgstr "Prêts"
-
-#: templates/index.html:52 templates/index.html:151
-#: templates/property/scpi_fund_detail.html:136
-msgid "Investments"
-msgstr "Investissements"
-
-#: templates/index.html:53 templates/index.html:164
-msgid "Savings"
-msgstr "Épargnes"
-
-#: templates/index.html:57
-msgid "Occupancy"
-msgstr "Occupation"
-
-#: templates/index.html:58
-msgid "rooms"
-msgstr "pièces"
-
-#: templates/index.html:59
-msgid "repaid"
-msgstr "remboursé"
-
-#: templates/index.html:60 templates/property/all_loans.html:103
-#: templates/property/detail_panel_loans.html:32
-msgid "End"
-msgstr "Fin"
-
-#: templates/index.html:61 templates/property/edit_lease.html:30
-msgid "Tenant"
-msgstr "Locataire"
-
-#: templates/index.html:62 templates/property/index.html:111
-msgid "equity"
-msgstr "net"
-
-#: templates/index.html:65
-msgid "30 days"
-msgstr "30 jours"
-
-#: templates/index.html:66
-msgid "No recent operations."
-msgstr "Aucune opération récente."
-
-#: templates/index.html:67 templates/index.html:104
-msgid "Patrimony Evolution"
-msgstr "Évolution du patrimoine"
-
-#: templates/index.html:68 templates/index.html:134
-msgid "Breakdown"
-msgstr "Répartition"
-
-#: templates/index.html:69
-msgid "No accounts yet."
-msgstr "Aucun compte actuellement."
-
-#: templates/index.html:74 templates/property/scpi_detail.html:165
-#: templates/property/scpi_fund_detail.html:219
-#: templates/property/scpi_fund_detail.html:330
-#: templates/property/scpi_fund_detail.html:360
-#: templates/property/scpi_fund_detail.html:362
-#: templates/property/scpi_list.html:185
-msgid "Dividends"
-msgstr "Dividendes"
-
-#: templates/index.html:75
-msgid "Yield"
-msgstr "Rendement"
-
-#: templates/index.html:76
-msgid "est."
-msgstr "est."
-
-#: templates/index.html:77 templates/property/scpi_fund_detail.html:69
-msgid "Resale"
-msgstr "Revente"
-
-#: templates/index.html:106
-msgid "1Y"
-msgstr "1A"
-
-#: templates/index.html:107
-msgid "2Y"
-msgstr "2A"
-
-#: templates/index.html:108
-msgid "5Y"
-msgstr "5A"
-
-#: templates/index.html:109
-msgid "10Y"
-msgstr "10A"
-
-#: templates/index.html:127 templates/index.html:187 templates/index.html:224
-msgid "View all"
-msgstr "Voir tout"
-
-#: templates/index.html:194
+#: templates/index.html:19
 #, python-format
 msgid "%(counter)s recurring entry to check (oldest: %(days)s days)."
 msgid_plural "%(counter)s recurring entries to check (oldest: %(days)s days)."
@@ -4764,21 +5023,13 @@ msgstr[1] ""
 "%(counter)s écritures récurrentes à pointer (la plus ancienne : %(days)s "
 "jours)."
 
-#: templates/index.html:196 templates/property/detail_panel_cashflow.html:21
+#: templates/index.html:21 templates/property/detail_panel_cashflow.html:21
 msgid "Check entries"
 msgstr "Pointer les écritures"
 
-#: templates/index.html:210
-msgid "No properties yet."
-msgstr "Aucune propriété actuellement."
-
-#: templates/index.html:240
-msgid "Recent Operations"
-msgstr "Opérations récentes"
-
-#: templates/index.html:242
-msgid "See all"
-msgstr "Voir tout"
+#: templates/index.html:25 templates/index.html:41
+msgid "Could not load this section."
+msgstr "Impossible de charger cette section."
 
 #: templates/logout.html:5
 msgid "Logout?"
@@ -4798,6 +5049,31 @@ msgstr "Oui"
 #: templates/property/csv_import.html:84
 msgid "No"
 msgstr "Non"
+
+#: templates/operations.html:7
+msgid "History of the movements and value updates"
+msgstr "Historique des mouvements et mises à jour de valeur"
+
+#: templates/operations.html:9
+msgid "Import a CSV"
+msgstr "Importer un CSV"
+
+#: templates/operations.html:14
+msgid "Filter the operations"
+msgstr "Filtrer les opérations"
+
+#: templates/operations.html:23
+msgid "Operation"
+msgstr "Opération"
+
+#: templates/operations.html:33
+msgid "Pages"
+msgstr "Pages"
+
+#: templates/operations.html:36
+#, python-format
+msgid "Page %(number)s of %(total)s"
+msgstr "Page %(number)s sur %(total)s"
 
 #: templates/owners.html:25
 msgid ""
@@ -5065,10 +5341,20 @@ msgstr "Restant à payer"
 msgid "Amortization schedule"
 msgstr "Tableau d'amortissement"
 
+#: templates/property/all_loans.html:92 templates/property/detail.html:245
+#: templates/property/detail_panel_loans.html:22
+msgid "Loans"
+msgstr "Prêts"
+
 #: templates/property/all_loans.html:102
 #: templates/property/detail_panel_loans.html:31
 msgid "Start"
 msgstr "Début"
+
+#: templates/property/all_loans.html:103
+#: templates/property/detail_panel_loans.html:32
+msgid "End"
+msgstr "Fin"
 
 #: templates/property/all_loans.html:104
 #: templates/property/detail_panel_loans.html:33
@@ -5095,6 +5381,7 @@ msgstr "Assurance payée"
 #: templates/property/detail_panel_amortization.html:111
 #: templates/property/detail_panel_loans.html:38
 #: templates/property/detail_panel_loans.html:299
+#: templates/property/index.html:68
 msgid "Remaining"
 msgstr "Restant"
 
@@ -5120,7 +5407,7 @@ msgid "Total interest"
 msgstr "Intérêts total"
 
 #: templates/property/create.html:5 templates/property/create.html:12
-#: templates/property/index.html:19
+#: templates/property/index.html:9
 msgid "Add property"
 msgstr "Ajouter une propriété"
 
@@ -5276,7 +5563,7 @@ msgstr "L'intégralité de l'écriture récurrente sera définitivement supprim�
 msgid "Confirm delete"
 msgstr "Confirmer la suppression"
 
-#: templates/property/detail.html:39 templates/property/index.html:99
+#: templates/property/detail.html:39 templates/property/index.html:72
 msgid "Inactive"
 msgstr "Inactive"
 
@@ -5314,7 +5601,7 @@ msgstr ""
 msgid "Add valuation"
 msgstr "Ajouter une évaluation"
 
-#: templates/property/detail.html:116
+#: templates/property/detail.html:116 templates/property/index.html:68
 msgid "Net value"
 msgstr "Valeur nette"
 
@@ -5338,7 +5625,7 @@ msgstr ""
 msgid "Info"
 msgstr "Infos"
 
-#: templates/property/detail.html:169
+#: templates/property/detail.html:169 templates/property/index.html:68
 msgid "Cash flow"
 msgstr "Flux de trésorerie"
 
@@ -5379,6 +5666,13 @@ msgstr "Ajouter un revenu / une dépense"
 #: templates/property/detail_panel_cashflow.html:142
 msgid "Select a category"
 msgstr "Sélectionner une catégorie"
+
+#: templates/property/detail.html:425
+#: templates/property/detail_panel_balance.html:68
+#: templates/property/detail_panel_cashflow.html:148
+#: templates/property/detail_panel_cashflow.html:305
+msgid "Expenses"
+msgstr "Dépenses"
 
 #: templates/property/detail.html:439
 msgid "Select a lease"
@@ -5634,10 +5928,6 @@ msgstr "Progression"
 msgid "No data"
 msgstr "Pas de données"
 
-#: templates/property/detail_panel_balance.html:9
-msgid "Period"
-msgstr "Période"
-
 #: templates/property/detail_panel_balance.html:15
 #: templates/property/detail_panel_balance.html:41
 #: templates/property/report.html:45
@@ -5840,7 +6130,6 @@ msgid "Total surface"
 msgstr "Surface totale"
 
 #: templates/property/detail_panel_info.html:49
-#: templates/property/index.html:138
 msgid "Rooms"
 msgstr "Pièces"
 
@@ -6277,6 +6566,10 @@ msgstr "Nouveau bail"
 msgid "Do not forget to declare the new tenant on impots.gouv.fr."
 msgstr "Ne pas oublier de déclarer le nouveau locataire sur impots.gouv.fr."
 
+#: templates/property/edit_lease.html:30
+msgid "Tenant"
+msgstr "Locataire"
+
 #: templates/property/edit_lease.html:71
 msgid "Lease information"
 msgstr "Informations sur le bail"
@@ -6338,46 +6631,107 @@ msgstr "Nouveau locataire"
 msgid "Identity"
 msgstr "Identité"
 
-#: templates/property/index.html:29
+#: templates/property/index.html:7
+msgid "Properties held directly"
+msgstr "Biens détenus en direct"
+
+#: templates/property/index.html:21
 msgid "Active properties"
 msgstr "Propriétés actives"
 
-#: templates/property/index.html:41
+#: templates/property/index.html:23
+#, python-format
+msgid "%(area)s m² in total"
+msgstr "%(area)s m² au total"
+
+#: templates/property/index.html:26
 msgid "Total gross value"
 msgstr "Valeur brute totale"
 
-#: templates/property/index.html:51
+#: templates/property/index.html:28
+msgid "Current estimate"
+msgstr "Estimation actuelle"
+
+#: templates/property/index.html:31
+msgid "Remaining capital"
+msgstr "Capital restant dû"
+
+#: templates/property/index.html:33 templates/property/index.html:85
+#, python-format
+msgid "%(counter)s loan"
+msgid_plural "%(counter)s loans"
+msgstr[0] "%(counter)s prêt"
+msgstr[1] "%(counter)s prêts"
+
+#: templates/property/index.html:36
 msgid "Total net value"
 msgstr "Valeur net totale"
 
-#: templates/property/index.html:66
-msgid "All"
-msgstr "Tous"
+#: templates/property/index.html:38
+msgid "cash flow / month"
+msgstr "cash-flow / mois"
 
-#: templates/property/index.html:77
+#: templates/property/index.html:46
+msgid "20Y"
+msgstr "20A"
+
+#: templates/property/index.html:56
 #: templates/property/occurrence_checks.html:18
 msgid "All properties"
 msgstr "Toutes les propriétés"
 
-#: templates/property/index.html:81 templates/property/index.html:251
+#: templates/property/index.html:57
+msgid "Cash flow: monthly median over 12 months"
+msgstr "Cash-flow : médiane mensuelle sur 12 mois"
+
+#: templates/property/index.html:62 templates/property/index.html:191
 msgid "Show inactive"
 msgstr "Afficher les inactives"
 
-#: templates/property/index.html:161
+#: templates/property/index.html:68
+msgid "Occupancy"
+msgstr "Occupation"
+
+#: templates/property/index.html:68
+msgid "Area"
+msgstr "Surface"
+
+#: templates/property/index.html:68
+msgid "Gross value"
+msgstr "Valeur brute"
+
+#: templates/property/index.html:77
+#, python-format
+msgid "Rented · %(tenant)s"
+msgstr "Loué · %(tenant)s"
+
+#: templates/property/index.html:80
+msgid "Not rented"
+msgstr "Non loué"
+
+#: templates/property/index.html:103
 msgid "No properties found."
 msgstr "Aucune propriété trouvée"
 
-#: templates/property/index.html:194 templates/property/index.html:226
+#: templates/property/index.html:104
+msgid "Add your first property"
+msgstr "Ajouter votre première propriété"
+
+#: templates/property/index.html:134 templates/property/index.html:166
 msgid "Gross Value"
 msgstr "Valeur brute"
 
-#: templates/property/index.html:197 templates/property/index.html:227
+#: templates/property/index.html:137 templates/property/index.html:167
 msgid "Net Value"
 msgstr "Valeur nette"
 
-#: templates/property/index.html:252
+#: templates/property/index.html:192
 msgid "Hide inactive"
 msgstr "Masquer les inactives"
+
+#: templates/property/occurrence_checks.html:11
+msgid "Estate"
+msgstr "Immobilier"
 
 #: templates/property/occurrence_checks.html:32
 msgid "Check everything scheduled up to"
@@ -6583,7 +6937,7 @@ msgstr "frais"
 #: templates/property/scpi_detail.html:30
 #: templates/property/scpi_fund_detail.html:60
 #: templates/property/scpi_fund_detail.html:150
-#: templates/property/scpi_list.html:32 templates/property/scpi_list.html:98
+#: templates/property/scpi_list.html:18
 msgid "Total invested"
 msgstr "Total investi"
 
@@ -6604,7 +6958,7 @@ msgstr "Plus-value (latente)"
 
 #: templates/property/scpi_detail.html:57
 #: templates/property/scpi_fund_detail.html:152
-#: templates/property/scpi_list.html:42 templates/property/scpi_list.html:102
+#: templates/property/scpi_list.html:23 templates/property/scpi_list.html:46
 msgid "Estimated resale"
 msgstr "Valeur de cession estimée"
 
@@ -6698,7 +7052,7 @@ msgid "Enter dividends for all SCPI"
 msgstr "Saisir les dividendes pour toutes les SCPI"
 
 #: templates/property/scpi_dividend_batch.html:64
-#: templates/property/scpi_list.html:148
+#: templates/property/scpi_list.html:57
 msgid "No SCPI funds yet."
 msgstr "Aucun fonds SCPI pour l'instant."
 
@@ -6732,8 +7086,12 @@ msgstr "Prix de la part"
 msgid "Est. value"
 msgstr "Valeur est."
 
+#: templates/property/scpi_fund_detail.html:69
+msgid "Resale"
+msgstr "Revente"
+
 #: templates/property/scpi_fund_detail.html:84
-#: templates/property/scpi_list.html:57 templates/property/scpi_list.html:112
+#: templates/property/scpi_list.html:28
 msgid "Total dividends"
 msgstr "Total des dividendes"
 
@@ -6744,12 +7102,12 @@ msgid "Last 12 mo"
 msgstr "Derniers 12 mois"
 
 #: templates/property/scpi_fund_detail.html:96
-#: templates/property/scpi_list.html:121
+#: templates/property/scpi_list.html:46
 msgid "Growth / year"
 msgstr "Croissance / an"
 
 #: templates/property/scpi_fund_detail.html:113
-#: templates/property/scpi_list.html:116
+#: templates/property/scpi_list.html:46
 msgid "Net yield"
 msgstr "Rendement net"
 
@@ -6861,50 +7219,51 @@ msgstr ""
 msgid "SCPI Investments"
 msgstr "Investissements SCPI"
 
-#: templates/property/scpi_list.html:18
+#: templates/property/scpi_list.html:7
+msgid "Shares of real estate investment companies"
+msgstr "Parts de sociétés civiles de placement immobilier"
+
+#: templates/property/scpi_list.html:9
 msgid "Batch dividends"
 msgstr "Dividendes en lot"
 
-#: templates/property/scpi_list.html:21
+#: templates/property/scpi_list.html:10
 msgid "Add SCPI"
 msgstr "Ajouter une SCPI"
 
-#: templates/property/scpi_list.html:67
+#: templates/property/scpi_list.html:20
+#, python-format
+msgid "%(counter)s SCPI"
+msgid_plural "%(counter)s SCPI"
+msgstr[0] "%(counter)s SCPI"
+msgstr[1] "%(counter)s SCPI"
+
+#: templates/property/scpi_list.html:25 templates/property/scpi_list.html:51
+#, python-format
+msgid "%(gain)s vs invested"
+msgstr "%(gain)s vs investi"
+
+#: templates/property/scpi_list.html:30
+msgid "Since subscription"
+msgstr "Depuis la souscription"
+
+#: templates/property/scpi_list.html:33
 msgid "Avg. net yield"
 msgstr "Rendement net moy."
 
-#: templates/property/scpi_list.html:70
+#: templates/property/scpi_list.html:35
 msgid "Last 12 months / invested"
 msgstr "Derniers 12 mois / investi"
 
-#: templates/property/scpi_list.html:89
-msgid "View"
-msgstr "Voir"
+#: templates/property/scpi_list.html:41
+msgid "Positions"
+msgstr "Positions"
 
-#: templates/property/scpi_list.html:107
-msgid "vs invested"
-msgstr "vs investi"
+#: templates/property/scpi_list.html:42
+msgid "Net yield over the last 12 months"
+msgstr "Rendement net sur les 12 derniers mois"
 
-#: templates/property/scpi_list.html:118
-msgid "Last 12 months"
-msgstr "Derniers 12 mois"
-
-#: templates/property/scpi_list.html:125
-msgid "Annualized"
-msgstr "Annualisé"
-
-#: templates/property/scpi_list.html:142
-msgid "Delete SCPI fund"
-msgstr "Supprimer la SCPI"
-
-#: templates/property/scpi_list.html:142
-msgid ""
-"Are you sure? This will also delete all related investments and dividends."
-msgstr ""
-"Êtes-vous sûr ? Tous les investissements et dividendes associés seront "
-"également supprimés."
-
-#: templates/property/scpi_list.html:149
+#: templates/property/scpi_list.html:57
 msgid "Add your first SCPI fund."
 msgstr "Ajoutez votre premier fonds SCPI."
 
@@ -6942,9 +7301,18 @@ msgstr "Valeurs théoriques existantes"
 msgid "Delete this theoretical value?"
 msgstr "Supprimer cette valeur théorique ?"
 
+#: templates/registration/login.html:4
+msgid "Login"
+msgstr "Connexion"
+
 #: templates/registration/login.html:5 templates/registration/login.html:12
 msgid "Log In"
 msgstr "Connexion"
+
+#: templates/registration/login.html:18
+#: templates/registration/password_reset_form.html:4
+msgid "Password Reset"
+msgstr "Réinitialisation du mot de passe"
 
 #: templates/registration/login.html:147
 msgid "Passkey login failed:"
