@@ -14,7 +14,7 @@ from base.services.ownership import HolderResolver
 from finance.forms import IndexForm
 from finance.models.investment_account import InvestmentAccount
 from finance.models.saving_account import SavingAccount
-from finance.services.history import investment_values_at, saving_values_at
+from finance.services.history import InvestmentValues, SavingValues
 
 #: Periods offered for the progression column, in days.
 DAY_CHOICES = (7, 30, 90, 365)
@@ -37,6 +37,14 @@ def _month_end(d: datetime.date) -> datetime.date:
     if d.month == 12:
         return d.replace(day=31)
     return d.replace(month=d.month + 1, day=1) - datetime.timedelta(days=1)
+
+
+def _chart_series(accounts, value_at, dates: list[datetime.date]) -> list[dict]:
+    """One chart series per account, with its value at each of *dates*."""
+    return [
+        {"name": str(account), "data": [float(value_at(account, d)) for d in dates]}
+        for account in accounts
+    ]
 
 
 def _kpi(entries: list[dict], total: Money | None) -> dict | None:
@@ -160,18 +168,11 @@ def index(request):
         month_ends = [_month_end(m) for m in months]
         # Bulk-load the histories: get_value() per month would cost several
         # queries per account and per month.
-        series_by_account = [
-            (saving_list, saving_values_at(saving_list, month_ends)),
-            (investment_list, investment_values_at(investment_list, month_ends)),
-        ]
-        for accounts, values in series_by_account:
-            for account in accounts:
-                chart_series.append(
-                    {
-                        "name": str(account),
-                        "data": [float(v) for v in values[account.pk]],
-                    }
-                )
+        chart_series = _chart_series(
+            saving_list, SavingValues(saving_list).at, month_ends
+        ) + _chart_series(
+            investment_list, InvestmentValues(investment_list).at, month_ends
+        )
 
     kpi_inv = float(total_investment_value.amount) if total_investment_value else None
     kpi_sav = float(total_saving_value.amount) if total_saving_value else None

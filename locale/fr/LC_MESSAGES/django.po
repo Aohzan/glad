@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 22:59+0200\n"
+"POT-Creation-Date: 2026-10-03 23:17+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -485,7 +485,7 @@ msgid "Not classified"
 msgstr "Non classé"
 
 #: base/services/allocation.py:140 finance/views/chart_views.py:128
-#: finance/views/index_views.py:118
+#: finance/views/index_views.py:126
 #: templates/finance/_account_chart_script.html:83
 #: templates/finance/_euro_fund_split.html:15 templates/finance/update.html:80
 msgid "Cash"
