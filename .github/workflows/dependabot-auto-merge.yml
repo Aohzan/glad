@@ -59,15 +59,15 @@ jobs:
           fi
           gh run watch "$run_id" --exit-status --interval 30
 
+      # The bot app is dedicated to these merges, so its installation permissions are
+      # the scope. Merging an Actions update also needs the workflows permission.
       - name: Generate token
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0 # zizmor: ignore[github-app]
         with:
           app-id: ${{ secrets.BOT_APP_ID }}
           private-key: ${{ secrets.BOT_PRIVATE_KEY }}
           repositories: ${{ github.event.repository.name }}
-          permission-contents: write
-          permission-pull-requests: write
 
       # The app token, unlike GITHUB_TOKEN, lets the merge trigger the release workflow.
       - name: Merge
