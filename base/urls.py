@@ -44,6 +44,8 @@ urlpatterns = [
     ),
     path("health", views.healthcheck),
     path("favicon.ico", views.favicon),
+    path("apple-touch-icon.png", views.apple_touch_icon),
+    path("apple-touch-icon-precomposed.png", views.apple_touch_icon),
     path("api/net-worth/", api_views.NetWorthApiView.as_view(), name="api_net_worth"),
     path(
         "api/patrimony-chart/",

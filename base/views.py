@@ -158,6 +158,18 @@ def favicon(request):
 
 
 @login_not_required
+def apple_touch_icon(request):
+    """Redirect the root /apple-touch-icon*.png lookups to the static file.
+
+    iOS requests them when a page is added to the home screen, sometimes before
+    reading the ``<link rel="apple-touch-icon">`` of the page.
+    """
+    return redirect(
+        staticfiles_storage.url("icons/apple-touch-icon.png"), permanent=True
+    )
+
+
+@login_not_required
 def healthcheck(request):
     """Handle GET requests for health check (no authentication required)."""
     return JsonResponse({"status": "OK"}, status=200)
