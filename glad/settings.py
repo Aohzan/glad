@@ -202,6 +202,8 @@ else:
         }
     }
 
+AUTHENTICATION_BACKENDS = ["accounts.backends.HouseholdModelBackend"]
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",

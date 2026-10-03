@@ -1,6 +1,7 @@
 """Models for the accounts app."""
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import UserManager
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -40,6 +41,11 @@ class UserProfile(models.Model):
         verbose_name=_("Birth date"),
         help_text=_("Used to value a life usufruct (article 669 CGI)."),
     )
+    is_child = models.BooleanField(
+        default=False,
+        verbose_name=_("Child"),
+        help_text=_("A child is a household member who cannot log in."),
+    )
     monthly_expenses = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -60,10 +66,36 @@ class UserProfile(models.Model):
 
 
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    """Automatically create a UserProfile when a new User is created."""
-    if created:
+def create_user_profile(sender, instance, created, raw=False, **kwargs):
+    """Automatically create a UserProfile when a new User is created.
+
+    Fixtures (*raw* saves) carry their own profile rows.
+    """
+    if created and not raw:
         UserProfile.objects.get_or_create(user=instance)
+
+
+def is_child(user) -> bool:
+    """True when *user* is a child of the household (who cannot log in)."""
+    return bool(getattr(getattr(user, "profile", None), "is_child", False))
+
+
+class ChildManager(UserManager):
+    """Users flagged as children."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(profile__is_child=True)
+
+
+class Child(User):  # ty: ignore[unsupported-base]
+    """A child of the household: an owner of assets who cannot log in."""
+
+    objects = ChildManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = _("Child")
+        verbose_name_plural = _("Children")
 
 
 class PasskeyCredential(models.Model):
