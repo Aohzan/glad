@@ -2,18 +2,24 @@
 
 import datetime
 import json
+from decimal import Decimal
+from typing import Any
 
 from django.db.models import QuerySet
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
+from base.services.ownership import HolderResolver
 from finance.forms import IndexForm
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountHolding,
 )
 from finance.models.saving_account import SavingAccount
+
+#: Periods offered for the progression column, in days.
+DAY_CHOICES = (7, 30, 90, 365)
 
 
 def _iter_month_starts(start: datetime.date, end: datetime.date):
@@ -33,6 +39,26 @@ def _month_end(d: datetime.date) -> datetime.date:
     if d.month == 12:
         return d.replace(day=31)
     return d.replace(month=d.month + 1, day=1) - datetime.timedelta(days=1)
+
+
+def _kpi(entries: list[dict], total: Money | None) -> dict | None:
+    """Total of *entries* with its change over the period, in its currency."""
+    if total is None:
+        return None
+    change = sum(
+        (
+            e["progression"].gross_difference.amount
+            for e in entries
+            if str(e["progression"].gross_difference.currency) == str(total.currency)
+        ),
+        Decimal(0),
+    )
+    old = total.amount - change
+    return {
+        "value": total,
+        "change": Money(change, total.currency),
+        "change_pct": change / abs(old) * 100 if old else None,
+    }
 
 
 def index(request):
@@ -65,6 +91,7 @@ def index(request):
     total_saving_value: Money | None = None
     total_investment_value: Money | None = None
 
+    holders = HolderResolver()
     savings_accounts = []
     for account in saving_accounts_qs:
         val = account.current_value
@@ -73,7 +100,11 @@ def index(request):
         elif str(val.currency) == str(total_saving_value.currency):
             total_saving_value += val
         savings_accounts.append(
-            {"model": account, "progression": account.get_progression(days)}
+            {
+                "model": account,
+                "progression": account.get_progression(days),
+                "holder": holders.label(account, legacy=account.owner),
+            }
         )
 
     investment_accounts = []
@@ -86,7 +117,7 @@ def index(request):
             total_investment_value = val
         elif str(val.currency) == str(total_investment_value.currency):
             total_investment_value += val
-        subentries = [
+        subentries: list[dict[str, Any]] = [
             {
                 "id": "cash",
                 "name": _("Cash"),
@@ -103,11 +134,17 @@ def index(request):
                     "progression": holding.get_progression(days),
                 }
             )
+        for entry in subentries:
+            entry["weight"] = (
+                entry["value"].amount / val.amount * 100 if val.amount else None
+            )
         investment_accounts.append(
             {
                 "model": account,
+                "value": val,
                 "progression": account.get_progression(days),
                 "subentries": subentries,
+                "holder": holders.label(account, legacy=account.owner),
             }
         )
 
@@ -148,6 +185,13 @@ def index(request):
         else (str(total_saving_value.currency) if total_saving_value else "EUR")
     )
 
+    totals = [t for t in (total_investment_value, total_saving_value) if t is not None]
+    total_finance = (
+        sum(totals[1:], totals[0])
+        if totals and len({str(t.currency) for t in totals}) == 1
+        else None
+    )
+
     context = {
         "form": form,
         "days": days,
@@ -161,5 +205,11 @@ def index(request):
         "chart_months_json": json.dumps(chart_months),
         "chart_series_json": json.dumps(chart_series),
         "has_chart_data": bool(chart_months),
+        "kpi_investments": _kpi(investment_accounts, total_investment_value),
+        "kpi_savings": _kpi(savings_accounts, total_saving_value),
+        "total_finance": total_finance,
+        "account_count": len(investment_accounts) + len(savings_accounts),
+        "day_choices": DAY_CHOICES,
+        "active_only": active_only,
     }
     return render(request, "finance/index.html", context)

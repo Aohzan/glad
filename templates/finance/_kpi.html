@@ -1,0 +1,5 @@
+{% load glad_format i18n %}<div class="g-kpi">
+  <span class="g-kpi__label">{{ label }}</span>
+  <span class="g-kpi__value">{% if kpi %}{{ kpi.value|money0 }}{% else %}—{% endif %}</span>
+  {% if kpi %}<span class="g-kpi__sub"><span class="g-strong {{ kpi.change|tone }}">{{ kpi.change_pct|pct }}</span><span>{% blocktranslate with amount=kpi.change|signed_money0 %}{{ amount }} over the period{% endblocktranslate %}</span></span>{% endif %}
+</div>

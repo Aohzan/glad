@@ -17,13 +17,13 @@
     <small class="text-body-secondary">{% translate "30-day progression" %}</small>
     <div class="{{ progression.css_class }}">
       {% if progression.css_class == "up" %}
-        <span class="text-success"><i class="bi bi-arrow-up"></i> {{ progression.net_progression }}%</span>
+        <span class="text-success">{% icon "arrow-up" %} {{ progression.net_progression }}%</span>
         <small class="text-body-secondary">({{ progression.net_difference|format_money }})</small>
       {% elif progression.css_class == "down" %}
-        <span class="text-danger"><i class="bi bi-arrow-down"></i> {{ progression.net_progression }}%</span>
+        <span class="text-danger">{% icon "arrow-down" %} {{ progression.net_progression }}%</span>
         <small class="text-body-secondary">({{ progression.net_difference|format_money }})</small>
       {% else %}
-        <span class="text-secondary"><i class="bi bi-dash"></i> {{ progression.net_progression }}%</span>
+        <span class="text-secondary">{% icon "minus" %} {{ progression.net_progression }}%</span>
       {% endif %}
     </div>
   </div>

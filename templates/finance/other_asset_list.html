@@ -6,9 +6,9 @@
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0 h3"><i class="bi bi-gem me-2 text-primary"></i>{% translate "Other assets" %}</h1>
+    <h1 class="mb-0 h3">{% icon "gem" "me-2 text-primary" %}{% translate "Other assets" %}</h1>
     <a href="{% url 'finance:new_other_asset' %}" class="btn btn-outline-primary btn-sm">
-      <i class="bi bi-plus-lg me-1"></i>{% translate "New asset" %}
+      {% icon "plus" "me-1" %}{% translate "New asset" %}
     </a>
   </div>
 
@@ -30,7 +30,7 @@
           <tr class="{% if not row.asset.is_active %}text-body-secondary{% endif %}">
             <td>
               <a href="{% url 'finance:other_asset_detail' row.asset.pk %}" class="text-decoration-none">
-                <i class="bi {{ row.asset.icon }} me-2"></i>{{ row.asset }}
+                {% icon row.asset.icon "me-2" %}{{ row.asset }}
               </a>
               {% if not row.asset.is_active %}<span class="badge bg-secondary ms-1">{% translate "Sold" %}</span>{% endif %}
             </td>
@@ -54,10 +54,10 @@
   </div>
   {% else %}
   <div class="card rounded-4 text-center p-5 border-0 shadow-sm">
-    <i class="bi bi-gem display-4 text-muted mb-3"></i>
+    {% icon "gem" "display-4 text-muted mb-3" %}
     <p class="mb-3 text-muted">{% translate "Track vehicles, precious metals, crypto-assets, unlisted shares or collectibles here." %}</p>
     <a href="{% url 'finance:new_other_asset' %}" class="btn btn-primary mx-auto" style="width:fit-content">
-      <i class="bi bi-plus-lg me-1"></i>{% translate "New asset" %}
+      {% icon "plus" "me-1" %}{% translate "New asset" %}
     </a>
   </div>
   {% endif %}

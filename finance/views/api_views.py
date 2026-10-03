@@ -69,7 +69,7 @@ class AccountsSummaryApiView(View):
                         if prog.gross_progression < 0
                         else "secondary"
                     ),
-                    "icon": "bi-piggy-bank",
+                    "icon": "piggy-bank",
                     "type": "savings",
                     "owner": account.owner or "",
                     "is_favorite": account.is_favorite,
@@ -97,7 +97,7 @@ class AccountsSummaryApiView(View):
                         if prog.gross_progression < 0
                         else "secondary"
                     ),
-                    "icon": "bi-bar-chart-line",
+                    "icon": "chart-line",
                     "type": "investment",
                     "owner": account.owner or "",
                     "is_favorite": account.is_favorite,
