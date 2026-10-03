@@ -7,449 +7,214 @@
     <meta charset="utf-8">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="transparent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="transparent">
+    <meta name="theme-color" content="#f6f6f4" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#11131e" media="(prefers-color-scheme: dark)">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="glad-icon-sprite" content="{% static 'vendors/lucide/sprite.svg' %}">
     <title>{% block title %}{% endblock %} - Glad</title>
-    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/svg+xml">
-    <link rel="stylesheet" href="{% static 'vendors/bootstrap/bootstrap.min.css' %}" >
-    <link rel="stylesheet" href="{% static 'vendors/bootstrap-icons/font/bootstrap-icons.css' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="icon" href="{% static 'glad-mark.svg' %}" type="image/svg+xml">
+    <link rel="alternate icon" href="{% static 'favicon.ico' %}">
+    <!-- Applied before first paint so neither the theme nor the sidebar flashes -->
+    <script nonce="{{ csp_nonce }}">
+        (function () {
+            var root = document.documentElement, theme = null, sidebar = null;
+            try { theme = localStorage.getItem('theme'); sidebar = localStorage.getItem('glad.sidebar'); } catch (e) {}
+            if (!theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            root.setAttribute('data-bs-theme', theme);
+            if (!sidebar) sidebar = window.innerWidth < 1100 ? 'collapsed' : 'expanded';
+            root.setAttribute('data-sidebar', sidebar);
+        })();
+    </script>
+    <link rel="stylesheet" href="{% static 'vendors/figtree/figtree.css' %}">
+    <link rel="stylesheet" href="{% static 'vendors/bootstrap/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/glad-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/glad.css' %}">
     <link rel="stylesheet" href="{% static 'site.css' %}">
     {% block extra_head %}
     {% endblock %}
 </head>
 
-<body>
+<body class="g-app">
     <div id="loading-bar" aria-hidden="true"><div id="loading-bar-inner"></div></div>
-    <header>
-        <nav class="navbar navbar-expand-lg mb-4">
-            <div class="container">
-                <a class="navbar-brand" href="{% url 'index' %}"><i class="bi bi-piggy-bank me-2"></i>Glad</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'index' %}"><i class="bi bi-house me-2"></i>{% translate "Home" %}</a>
-                        </li>
-                        {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="financeDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-wallet2 me-2"></i>{% translate "Finance" %}
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="financeDropdown">
-                                <li><h6 class="dropdown-header">{% translate "Accounts" %}</h6></li>
-                                <li><a class="dropdown-item" href="{% url 'finance:index' %}"><i class="bi bi-bar-chart-line me-2"></i>{% translate "Overview" %}</a></li>
-                                <li><a class="dropdown-item" href="{% url 'finance:update' %}"><i class="bi bi-arrow-repeat me-2"></i>{% translate "Update all accounts" %}</a></li>
-                                <li><a class="dropdown-item" href="{% url 'finance:other_asset_list' %}"><i class="bi bi-gem me-2"></i>{% translate "Other assets" %}</a></li>
-                                <li><a class="dropdown-item" href="{% url 'allocation' %}"><i class="bi bi-pie-chart me-2"></i>{% translate "Allocation" %}</a></li>
-                                <li><a class="dropdown-item" href="{% url 'owners' %}"><i class="bi bi-people me-2"></i>{% translate "Net worth by owner" %}</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">{% translate "Data" %}</h6></li>
-                                <li><a class="dropdown-item" href="{% url 'finance:csv_import' %}"><i class="bi bi-file-earmark-arrow-up me-2"></i>{% translate "CSV Import" %}</a></li>
-                                <li><a class="dropdown-item" href="{% url 'finance:csv_export' %}"><i class="bi bi-file-earmark-arrow-down me-2"></i>{% translate "CSV Export" %}</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">{% translate "Favorite accounts" %}</h6></li>
-                                {% if nav_accounts_saving %}
-                                {% for account in nav_accounts_saving %}
-                                <li><a class="dropdown-item" href="{% url 'finance:saving_detail' account.pk %}"><i class="bi bi-piggy-bank me-2"></i>{{ account }}</a></li>
-                                {% endfor %}
-                                {% endif %}
-                                {% if nav_accounts_investment %}
-                                {% for account in nav_accounts_investment %}
-                                <li><a class="dropdown-item" href="{% url 'finance:investment_detail' account.pk %}"><i class="bi bi-graph-up me-2"></i>{{ account }}</a></li>
-                                {% endfor %}
-                                {% endif %}
-                                {% if not nav_accounts_saving and not nav_accounts_investment %}
-                                {% if nav_accounts_any %}
-                                <li><span class="dropdown-item-text text-body-secondary small fst-italic">{% translate "Add favorites to show them here" %}</span></li>
-                                {% else %}
-                                <li><a class="dropdown-item" href="{% url 'finance:new_saving' %}"><i class="bi bi-plus-circle me-2"></i>{% translate "Add your first account" %}</a></li>
-                                {% endif %}
-                                {% endif %}
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="propertyDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-buildings me-2"></i>{% translate "Properties" %}
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="propertyDropdown">
-                                <li><h6 class="dropdown-header">{% translate "Portfolio" %}</h6></li>
-                                <li><a class="dropdown-item" href="{% url 'property:index' %}"><i class="bi bi-building me-2"></i>{% translate "Estate" %}</a></li>
-                                <li><a class="dropdown-item" href="{% url 'property:scpi_list' %}"><i class="bi bi-file-earmark-text me-2"></i>{% translate "SCPI" %}</a></li>
-                                <li><a class="dropdown-item" href="{% url 'property:all_loans' %}"><i class="bi bi-bank me-2"></i>{% translate "All Loans" %}</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">{% translate "Tracking" %}</h6></li>
-                                <li><a class="dropdown-item" href="{% url 'property:checks' %}"><i class="bi bi-check2-square me-2"></i>{% translate "Entries to check" %}</a></li>
-                                <li><a class="dropdown-item" href="{% url 'property:report' %}"><i class="bi bi-file-earmark-bar-graph me-2"></i>{% translate "Income & Expenses Report" %}</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">{% translate "Taxation" %}</h6></li>
-                                <li><a class="dropdown-item" href="{% url 'property:lmnp_accounting' %}"><i class="bi bi-calculator me-2"></i>{% translate "LMNP Accounting" %}</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header">{% translate "Favorite properties" %}</h6></li>
-                                {% if nav_properties %}
-                                {% for prop in nav_properties %}
-                                <li><a class="dropdown-item" href="{% url 'property:detail' prop.pk %}"><i class="bi bi-{{ prop.icon | default:"building" }} me-2"></i>{{ prop.name }}</a></li>
-                                {% endfor %}
-                                {% elif nav_properties_any %}
-                                <li><span class="dropdown-item-text text-body-secondary small fst-italic">{% translate "Add favorites to show them here" %}</span></li>
-                                {% else %}
-                                <li><a class="dropdown-item" href="{% url 'property:create' %}"><i class="bi bi-plus-circle me-2"></i>{% translate "Add your first property" %}</a></li>
-                                {% endif %}
-                            </ul>
-                        </li>
-                        {% endif %}
-                    </ul>
-                    <ul class="navbar-nav">
-                        {% if user.is_authenticated %}
-                        {% if user.is_superuser %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-shield-lock me-2"></i>{% translate "Administration" %}</a>
-                        </li>
-                        {% endif %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle me-2"></i>{% translate "My account" %}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{% url 'accounts:settings' %}"><i class="bi bi-gear me-2"></i>{% translate "Settings" %}</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:logout_confirm' %}"><i class="bi bi-box-arrow-right me-2"></i>{% translate "Logout" %}</a></li>
-                            </ul>
-                        </li>
-                        {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">{% translate "Login" %}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'password_reset' %}">{% translate "Password Reset" %}</a>
-                        </li>
-                        {% endif %}
-                    </ul>
+    {% if user.is_authenticated %}
+    <div class="g-shell">
+        <aside class="g-sidebar" id="g-sidebar" aria-label="{% translate 'Main menu' %}">
+            <a class="g-brand" href="{% url 'index' %}" aria-label="{% translate 'Glad, dashboard' %}">
+                <img class="g-brand__mark" src="{% static 'glad-mark.svg' %}" alt="">
+                <span class="g-brand__name">glad</span>
+            </a>
+            <nav class="g-nav" aria-label="{% translate 'Main navigation' %}">
+                <div class="g-nav__group">
+                    <span class="g-nav__label">{% translate "Wealth" %}</span>
+                    {% translate "Dashboard" as label %}{% include "_nav_item.html" with url_name="index" section="dashboard" icon="layout-dashboard" %}
+                    {% translate "Finance" as label %}{% include "_nav_item.html" with url_name="finance:index" section="finance" icon="wallet" %}
+                    {% translate "Properties" as label %}{% include "_nav_item.html" with url_name="property:index" section="property" icon="house" %}
+                    {% translate "SCPI" as label %}{% include "_nav_item.html" with url_name="property:scpi_list" section="scpi" icon="building" %}
+                    {% translate "Other assets" as label %}{% include "_nav_item.html" with url_name="finance:other_asset_list" section="other_assets" icon="gem" %}
                 </div>
-            </div>
-        </nav>
-    </header>
-    <main>
-        <div class="container">
-            {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}" role="alert">
-                {% if message.tags == 'error' or message.tags == 'danger' %}
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                {% elif message.tags == 'warning' %}
-                    <i class="bi bi-exclamation-circle me-2"></i>
-                {% elif message.tags == 'success' %}
-                    <i class="bi bi-check-circle me-2"></i>
-                {% elif message.tags == 'info' %}
-                    <i class="bi bi-info-circle me-2"></i>
-                {% else %}
-                    <i class="bi bi-chat-dots me-2"></i>
+                <div class="g-nav__group">
+                    <span class="g-nav__label">{% translate "Analysis" %}</span>
+                    {% translate "Allocation" as label %}{% include "_nav_item.html" with url_name="allocation" section="allocation" icon="chart-pie" %}
+                    {% translate "Net worth by owner" as label %}{% include "_nav_item.html" with url_name="owners" section="owners" icon="users" %}
+                    {% translate "Income & Expenses Report" as label %}{% include "_nav_item.html" with url_name="property:report" section="report" icon="file-chart-column" %}
+                </div>
+                <div class="g-nav__group">
+                    <span class="g-nav__label">{% translate "Tracking" %}</span>
+                    {% translate "Deadlines" as label %}{% include "_nav_item.html" with url_name="deadlines" section="deadlines" icon="calendar-clock" badge=deadlines_soon_count %}
+                    {% translate "Operations" as label %}{% include "_nav_item.html" with url_name="operations" section="operations" icon="arrow-left-right" %}
+                    {% translate "Entries to check" as label %}{% include "_nav_item.html" with url_name="property:checks" section="checks" icon="list-checks" %}
+                    {% translate "All Loans" as label %}{% include "_nav_item.html" with url_name="property:all_loans" section="loans" icon="landmark" %}
+                </div>
+                <div class="g-nav__group">
+                    <span class="g-nav__label">{% translate "Tools" %}</span>
+                    {% translate "LMNP Accounting" as label %}{% include "_nav_item.html" with url_name="property:lmnp_accounting" section="lmnp" icon="calculator" %}
+                    {% translate "CSV import / export" as label %}{% include "_nav_item.html" with url_name="finance:csv_import" section="csv" icon="file-up" %}
+                    {% if user.is_superuser %}
+                    {% translate "Administration" as label %}{% include "_nav_item.html" with url_name="admin:index" section="admin" icon="shield" %}
+                    {% endif %}
+                </div>
+                {% if nav_accounts or nav_properties %}
+                <div class="g-nav__group">
+                    <span class="g-nav__label">{% translate "Favorites" %}</span>
+                    {% for account in nav_accounts_investment %}
+                    <a class="g-nav__item" href="{% url 'finance:investment_detail' account.pk %}" title="{{ account }}">{% icon "chart-line" %}<span class="g-nav__text">{{ account }}</span></a>
+                    {% endfor %}
+                    {% for account in nav_accounts_saving %}
+                    <a class="g-nav__item" href="{% url 'finance:saving_detail' account.pk %}" title="{{ account }}">{% icon "piggy-bank" %}<span class="g-nav__text">{{ account }}</span></a>
+                    {% endfor %}
+                    {% for prop in nav_properties %}
+                    <a class="g-nav__item" href="{% url 'property:detail' prop.pk %}" title="{{ prop.name }}">{% icon prop.icon %}<span class="g-nav__text">{{ prop.name }}</span></a>
+                    {% endfor %}
+                </div>
                 {% endif %}
-                {{ message }}
-                </div>
-            {% endfor %}
-            {% endif %}
-
-            {% block content %}
-            {% endblock %}
-        </div>
-    </main>
-
-    <footer class="mt-5 py-3">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="mb-0">© {% now "Y" %} Glad</p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <button id="theme-toggle" class="btn btn-sm btn-outline-secondary me-2" aria-label="{% translate 'Toggle dark mode' %}">
-                        <i class="bi bi-sun-fill" id="theme-icon"></i>
+            </nav>
+            <div class="g-sidebar__foot">
+                <div class="dropup">
+                    <button type="button" class="btn btn-primary g-sidebar__btn" data-bs-toggle="dropdown" aria-expanded="false" title="{% translate 'Add an asset' %}" aria-label="{% translate 'Add an asset' %}">
+                        {% icon "plus" %}<span class="g-sidebar__label">{% translate "Add" %}</span>
                     </button>
-                    <form action="{% url 'set_language' %}" method="post" class="d-inline-flex">
-                        {% csrf_token %}
-                        <input name="next" type="hidden" value="{{ request.path }}">
-                        <div class="input-group input-group-sm">
-                            <select name="language" class="form-select form-select-sm">
-                                {% get_current_language as CURRENT_LANGUAGE %}
+                    <ul class="dropdown-menu g-add-menu">
+                        {% translate "Investment account" as label %}{% translate "PEA, life insurance, securities account" as sub %}{% include "_add_menu_item.html" with url_name="finance:new_investment" icon="chart-line" %}
+                        {% translate "Saving account" as label %}{% translate "Passbook, PEL, CEL" as sub %}{% include "_add_menu_item.html" with url_name="finance:new_saving" icon="piggy-bank" %}
+                        {% translate "Property" as label %}{% translate "Main residence, rental, LMNP" as sub %}{% include "_add_menu_item.html" with url_name="property:create" icon="house-plus" %}
+                        {% translate "SCPI" as label %}{% translate "Shares in full or bare ownership" as sub %}{% include "_add_menu_item.html" with url_name="property:scpi_new" icon="building" %}
+                        {% translate "Other asset" as label %}{% translate "Vehicle, gold, crypto, collectibles" as sub %}{% include "_add_menu_item.html" with url_name="finance:new_other_asset" icon="gem" %}
+                    </ul>
+                </div>
+                <a class="btn btn-outline-secondary g-sidebar__btn" href="{% url 'finance:update' %}" title="{% translate 'Bulk update' %}" aria-label="{% translate 'Bulk update' %}">
+                    {% icon "refresh-cw" %}<span class="g-sidebar__label">{% translate "Bulk update" %}</span>
+                </a>
+                <button type="button" class="g-sidebar__toggle" id="g-sidebar-toggle" aria-controls="g-sidebar" title="{% translate 'Collapse or expand the menu' %}">
+                    {% icon "chevrons-left" "g-icon--collapse" %}{% icon "chevrons-right" "g-icon--expand" %}<span class="g-sidebar__label">{% translate "Collapse the menu" %}</span>
+                </button>
+            </div>
+        </aside>
+        <div class="g-backdrop" data-g-drawer-close></div>
+
+        <div class="g-main">
+            <header class="g-topbar">
+                <div class="g-topbar__mobile">
+                    <button type="button" class="g-round-btn" id="g-drawer-open" aria-label="{% translate 'Open the menu' %}" aria-controls="g-sidebar">{% icon "menu" %}</button>
+                    <img class="g-topbar__mark" src="{% static 'glad-mark.svg' %}" alt="Glad">
+                </div>
+                <nav class="g-breadcrumb" aria-label="{% translate 'Breadcrumb' %}">
+                    <a href="{% url 'index' %}">Glad</a><span class="g-breadcrumb__sep">/</span><span class="g-breadcrumb__current">{% block breadcrumb %}{{ nav_section_label }}{% endblock %}</span>
+                </nav>
+                <div class="g-topbar__spacer"></div>
+                <div class="g-search" id="g-search" data-url="{% url 'api_search' %}">
+                    <span class="g-search__icon">{% icon "search" %}</span>
+                    <input class="g-search__input" id="g-search-input" type="search" autocomplete="off" placeholder="{% translate 'Search an asset' %}" aria-label="{% translate 'Search an asset' %}" aria-controls="g-search-results" aria-expanded="false" data-skip-form-class>
+                    <span class="g-search__kbd" aria-hidden="true">⌘K</span>
+                    <div class="g-search__results" id="g-search-results" role="listbox" hidden data-empty="{% translate 'No result' %}"></div>
+                </div>
+                <button type="button" class="g-round-btn" id="theme-toggle" aria-label="{% translate 'Toggle dark mode' %}" title="{% translate 'Toggle dark mode' %}">
+                    {% icon "moon" "g-theme-icon--light" %}{% icon "sun" "g-theme-icon--dark" %}
+                </button>
+                <div class="dropdown">
+                    <button type="button" class="g-avatar" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% translate 'My account' %}">{{ user_initials }}</button>
+                    <div class="dropdown-menu dropdown-menu-end g-user-menu">
+                        <div class="g-user-menu__head">
+                            <span class="fw-semibold">{{ user.get_full_name|default:user.username }}</span>
+                            {% if user.email %}<span class="g-meta">{{ user.email }}</span>{% endif %}
+                        </div>
+                        <a class="dropdown-item" href="{% url 'accounts:settings' %}">{% icon "settings" %}{% translate "Settings" %}</a>
+                        {% if user.is_superuser %}
+                        <a class="dropdown-item" href="{% url 'admin:index' %}">{% icon "shield" %}{% translate "Administration" %}</a>
+                        {% endif %}
+                        <form action="{% url 'set_language' %}" method="post" class="dropdown-item-text d-flex align-items-center gap-2">
+                            {% csrf_token %}
+                            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                            {% icon "languages" "g-muted" %}
+                            <select name="language" class="form-select form-select-sm" data-submit-on-change aria-label="{% translate 'Language' %}">
                                 {% get_available_languages as LANGUAGES %}
                                 {% for lang_code, lang_name in LANGUAGES %}
-                                <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANGUAGE %}selected{% endif %}>
-                                    {{ lang_name }}
-                                </option>
+                                <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANGUAGE %}selected{% endif %}>{{ lang_name }}</option>
                                 {% endfor %}
                             </select>
-                            <button type="submit" class="btn btn-outline-secondary btn-sm">{% translate "Change" %}</button>
-                        </div>
-                    </form>
+                        </form>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'accounts:logout_confirm' %}">{% icon "log-out" %}{% translate "Logout" %}</a>
+                    </div>
                 </div>
-            </div>
+            </header>
+
+            <main class="g-content" id="main">
+                <div class="g-container">
+                    {% include "_messages.html" %}
+                    <div class="g-page-head">
+                        <div class="g-page-head__text">
+                            <span class="g-kicker">{% block page_kicker %}{% endblock %}</span>
+                            <h1 class="g-page-title">{% block page_title %}{% endblock %}</h1>
+                            <p class="g-page-desc">{% block page_description %}{% endblock %}</p>
+                        </div>
+                        <div class="g-page-actions">{% block page_actions %}{% endblock %}</div>
+                    </div>
+    {% else %}
+    <main class="g-auth">
+        <a class="g-auth__brand" href="{% url 'index' %}">
+            <img class="g-brand__mark" src="{% static 'glad-mark.svg' %}" alt="">
+            <span class="g-brand__name">glad</span>
+        </a>
+        <div class="g-auth__card">
+            {% include "_messages.html" %}
+    {% endif %}
+                    {% block content %}
+                    {% endblock %}
+    {% if user.is_authenticated %}
+                </div>
+            </main>
+            <footer class="g-footer">© {% now "Y" %} Glad</footer>
         </div>
-    </footer>
+    </div>
+    {% else %}
+        </div>
+        <div class="g-auth__foot">
+            <button type="button" class="g-round-btn" id="theme-toggle" aria-label="{% translate 'Toggle dark mode' %}">
+                {% icon "moon" "g-theme-icon--light" %}{% icon "sun" "g-theme-icon--dark" %}
+            </button>
+            <form action="{% url 'set_language' %}" method="post">
+                {% csrf_token %}
+                <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                <select name="language" class="form-select form-select-sm" data-submit-on-change aria-label="{% translate 'Language' %}">
+                    {% get_available_languages as LANGUAGES %}
+                    {% for lang_code, lang_name in LANGUAGES %}
+                    <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANGUAGE %}selected{% endif %}>{{ lang_name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </main>
+    {% endif %}
 
     <script src="{% static 'vendors/bootstrap/bootstrap.bundle.min.js' %}"></script>
-
-    <!-- Declarative handlers (CSP forbids inline on* attributes) -->
-    <script nonce="{{ csp_nonce }}">
-        // <form data-confirm="..."> asks for confirmation before submitting.
-        document.addEventListener('submit', function (event) {
-            var form = event.target.closest('form[data-confirm]');
-            if (form && !window.confirm(form.dataset.confirm)) {
-                event.preventDefault();
-            }
-        });
-        // <button data-confirm="..."> asks before acting; with data-submit-form="<id>"
-        // it submits that form instead of its own.
-        document.addEventListener('click', function (event) {
-            var button = event.target.closest('button[data-confirm]');
-            if (!button) return;
-            if (!window.confirm(button.dataset.confirm)) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                return;
-            }
-            if (button.dataset.submitForm) {
-                event.preventDefault();
-                var target = document.getElementById(button.dataset.submitForm);
-                if (target) target.submit();
-            }
-        });
-        // <select data-submit-on-change> submits its form on change.
-        document.addEventListener('change', function (event) {
-            if (event.target.matches('[data-submit-on-change]') && event.target.form) {
-                event.target.form.submit();
-            }
-        });
-    </script>
-
-    <!-- Global ApexCharts defaults — hero palette -->
-    <script nonce="{{ csp_nonce }}">
-        // Hero-palette color set (blue-400, emerald-400, violet-400, orange-400, pink-400, yellow-400)
-        var APEX_HERO_COLORS = ['#60a5fa', '#34d399', '#a78bfa', '#fb923c', '#f472b6', '#facc15'];
-
-        function applyApexGlobalDefaults(themeName) {
-            var isDark = themeName === 'dark';
-            window.Apex = {
-                colors: APEX_HERO_COLORS,
-                chart: {
-                    background: 'transparent',
-                    foreColor: isDark ? 'rgba(255,255,255,.6)' : 'rgba(15,23,42,.6)',
-                    fontFamily: 'inherit',
-                    animations: { easing: 'easeOutSine', dynamicAnimation: { easing: 'easeOutSine' } },
-                },
-                theme: { mode: isDark ? 'dark' : 'light' },
-                tooltip: { theme: isDark ? 'dark' : 'light' },
-                grid: { borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
-                xaxis: {
-                    axisBorder: { color: isDark ? 'rgba(255,255,255,.1)' : 'rgba(15,23,42,.1)' },
-                    axisTicks: { color: isDark ? 'rgba(255,255,255,.1)' : 'rgba(15,23,42,.1)' },
-                    labels: { style: { colors: isDark ? 'rgba(255,255,255,.5)' : 'rgba(15,23,42,.5)' } },
-                },
-                yaxis: {
-                    labels: { style: { colors: isDark ? 'rgba(255,255,255,.5)' : 'rgba(15,23,42,.5)' } },
-                },
-                legend: {
-                    labels: { colors: isDark ? 'rgba(255,255,255,.7)' : 'rgba(15,23,42,.7)' },
-                },
-            };
-        }
-    </script>
-
-    <!-- Dark mode toggle script -->
-    <script nonce="{{ csp_nonce }}">
-        // Function to set the theme
-        function setTheme(themeName, savePreference = true) {
-            document.documentElement.setAttribute('data-bs-theme', themeName);
-            applyApexGlobalDefaults(themeName);
-
-            // Only save to localStorage if this is a manual user preference
-            if (savePreference) {
-                localStorage.setItem('theme', themeName);
-            }
-
-            // Update the icon based on the current theme
-            const themeIcon = document.getElementById('theme-icon');
-            if (themeName === 'dark') {
-                themeIcon.classList.remove('bi-sun-fill');
-                themeIcon.classList.add('bi-moon-fill');
-            } else {
-                themeIcon.classList.remove('bi-moon-fill');
-                themeIcon.classList.add('bi-sun-fill');
-            }
-
-            // Update ApexCharts theme if charts exist
-            if (typeof updateChartsTheme === 'function') {
-                updateChartsTheme(themeName);
-            }
-        }
-
-        // Function to toggle the theme (manual user preference)
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
-            if (currentTheme === 'light') {
-                setTheme('dark', true);
-            } else {
-                setTheme('light', true);
-            }
-        }
-
-        // Function to apply system preference
-        function applySystemTheme() {
-            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            setTheme(isDarkMode ? 'dark' : 'light', false);
-        }
-
-        // Initialize theme on page load
-        (function() {
-            // Check if user has a stored preference
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                // User has manually set a preference, use it
-                setTheme(savedTheme, true);
-            } else {
-                // No user preference, use system preference
-                applySystemTheme();
-            }
-
-            // Listen for system preference changes
-            const colorSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-            // Modern browsers
-            if (colorSchemeQuery.addEventListener) {
-                colorSchemeQuery.addEventListener('change', (e) => {
-                    // Only apply system theme if user hasn't set a manual preference
-                    if (!localStorage.getItem('theme')) {
-                        setTheme(e.matches ? 'dark' : 'light', false);
-                    }
-                });
-            }
-            // Older browsers (Safari < 14)
-            else if (colorSchemeQuery.addListener) {
-                colorSchemeQuery.addListener((e) => {
-                    if (!localStorage.getItem('theme')) {
-                        setTheme(e.matches ? 'dark' : 'light', false);
-                    }
-                });
-            }
-
-            // Add event listener to the toggle button
-            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-        })();
-
-        // Add is-invalid class to form controls with errors and ensure Bootstrap classes
-        document.addEventListener('DOMContentLoaded', function() {
-            // Show loading bar and disable submit buttons on form submission
-            document.querySelectorAll('form').forEach(function(form) {
-                form.addEventListener('submit', function() {
-                    document.getElementById('loading-bar').classList.add('visible');
-                    form.querySelectorAll('[type="submit"]').forEach(function(btn) {
-                        btn.disabled = true;
-                    });
-                });
-            });
-
-            // Add Bootstrap classes to all form controls that don't have them
-            const allInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="datetime-local"], input[type="file"], textarea, select');
-
-            allInputs.forEach(function(input) {
-                // Add form-control class if not already present and not a checkbox/radio
-                if (!input.classList.contains('form-control') &&
-                    !input.classList.contains('form-select') &&
-                    !input.classList.contains('form-check-input') &&
-                    input.type !== 'checkbox' &&
-                    input.type !== 'radio' &&
-                    input.type !== 'hidden') {
-
-                    if (input.tagName.toLowerCase() === 'select') {
-                        input.classList.add('form-select');
-                    } else {
-                        input.classList.add('form-control');
-                    }
-                }
-            });
-
-            // Add form-check-input to checkboxes and radios
-            const checkboxRadio = document.querySelectorAll('input[type="checkbox"], input[type="radio"]');
-            checkboxRadio.forEach(function(input) {
-                if (!input.classList.contains('form-check-input')) {
-                    input.classList.add('form-check-input');
-                }
-            });
-
-            // Find all form controls that have error messages nearby and add proper validation classes
-            const errorMessages = document.querySelectorAll('.invalid-feedback');
-
-            errorMessages.forEach(function(errorMsg) {
-                // Generate a unique ID for the error message if it doesn't have one
-                if (!errorMsg.id) {
-                    errorMsg.id = 'error_' + Math.random().toString(36).substr(2, 9);
-                }
-
-                // Find the form control that precedes this error message
-                let formControl = errorMsg.previousElementSibling;
-
-                // Search backwards to find the form control
-                while (formControl && !formControl.classList.contains('form-control') &&
-                       !formControl.classList.contains('form-select') &&
-                       !formControl.classList.contains('form-check-input')) {
-                    formControl = formControl.previousElementSibling;
-                }
-
-                // If we found a form control, add the is-invalid class and aria-describedby
-                if (formControl) {
-                    formControl.classList.add('is-invalid');
-
-                    // Add aria-describedby for accessibility
-                    const existingAriaDescribedBy = formControl.getAttribute('aria-describedby');
-                    if (existingAriaDescribedBy) {
-                        formControl.setAttribute('aria-describedby', existingAriaDescribedBy + ' ' + errorMsg.id);
-                    } else {
-                        formControl.setAttribute('aria-describedby', errorMsg.id);
-                    }
-                }
-            });
-
-            // Also look for form controls inside divs that contain error messages
-            document.querySelectorAll('.invalid-feedback').forEach(function(errorMsg) {
-                const parentDiv = errorMsg.closest('.mb-3, .col-12, .form-group');
-                if (parentDiv) {
-                    const formControl = parentDiv.querySelector('.form-control, .form-select, .form-check-input');
-                    if (formControl && !formControl.classList.contains('is-invalid')) {
-                        formControl.classList.add('is-invalid');
-
-                        // Add aria-describedby for accessibility
-                        if (!errorMsg.id) {
-                            errorMsg.id = 'error_' + Math.random().toString(36).substr(2, 9);
-                        }
-
-                        const existingAriaDescribedBy = formControl.getAttribute('aria-describedby');
-                        if (existingAriaDescribedBy) {
-                            formControl.setAttribute('aria-describedby', existingAriaDescribedBy + ' ' + errorMsg.id);
-                        } else {
-                            formControl.setAttribute('aria-describedby', errorMsg.id);
-                        }
-                    }
-                }
-            });
-        });
-    </script>
-
-    <!-- Service Worker Registration -->
+    <script src="{% static 'js/glad.js' %}"></script>
     <script nonce="{{ csp_nonce }}">
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('{% static "service-worker.js" %}').then(function(registration) {
-                    // Registration was successful
-                }, function(err) {
-                    // registration failed
-                });
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('{% static "service-worker.js" %}').catch(function () {});
             });
         }
     </script>
