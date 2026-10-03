@@ -94,9 +94,10 @@ def _loan_deadlines(today: datetime.date):
     for loan in PropertyLoan.objects.filter(property__is_active=True).select_related(
         "property"
     ):
+        label = loan.name or loan.lender
         yield Deadline(
             date=loan.end_date,
-            title=f"{loan.property} — {loan.name}",
+            title=f"{loan.property} — {label}" if label else str(loan.property),
             detail=_("End of the loan"),
             url=reverse("property:detail", kwargs={"pk": loan.property.pk}),
             icon="landmark",

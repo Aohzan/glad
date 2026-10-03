@@ -52,6 +52,15 @@ def data(db):
         interest_rate=Decimal("1.5"),
         insurance_rate=Decimal("0.1"),
     )
+    for lender in ("Bridge bank", None):
+        PropertyLoan.objects.create(
+            property=prop,
+            lender=lender,
+            start_date=datetime.date(2020, 1, 1),
+            end_date=_in(100),
+            original_amount=Money(10000, "EUR"),
+            interest_rate=Decimal("1.5"),
+        )
     Lease.objects.create(
         property=prop,
         last_name="Tenant",
@@ -107,6 +116,9 @@ class TestUpcomingDeadlines:
         details = {(d.title, str(d.detail)) for d in deadlines}
         assert any(t.startswith("AV Deadline AV") for t, _ in details)
         assert ("Deadline flat — Deadline loan", "End of the loan") in details
+        # Unnamed loans are named after their lender, else their property.
+        assert ("Deadline flat — Bridge bank", "End of the loan") in details
+        assert ("Deadline flat", "End of the loan") in details
         assert ("Deadline flat — Tenant", "End of the lease") in details
         assert ("Deadline flat — Tenant", "Rent revision (IRL)") in details
         assert ("Deadline SCPI", "End of the dismemberment") in details
