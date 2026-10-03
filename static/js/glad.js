@@ -279,7 +279,9 @@
 
   // A link or form inside a collapse toggle (a clickable table row) keeps its
   // own action instead of toggling the row: Bootstrap would cancel the link.
-  document.addEventListener('click', function (event) {
+  // Bootstrap listens in the capture phase on the document, so the guard sits
+  // on the window, which the capture phase reaches first.
+  window.addEventListener('click', function (event) {
     if (event.target.closest('[data-bs-toggle="collapse"] a, [data-bs-toggle="collapse"] form')) {
       event.stopPropagation();
     }
