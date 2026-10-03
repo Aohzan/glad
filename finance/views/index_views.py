@@ -12,11 +12,9 @@ from moneyed import Money
 
 from base.services.ownership import HolderResolver
 from finance.forms import IndexForm
-from finance.models.investment_account import (
-    InvestmentAccount,
-    InvestmentAccountHolding,
-)
+from finance.models.investment_account import InvestmentAccount
 from finance.models.saving_account import SavingAccount
+from finance.services.history import investment_values_at, saving_values_at
 
 #: Periods offered for the progression column, in days.
 DAY_CHOICES = (7, 30, 90, 365)
@@ -72,20 +70,18 @@ def index(request):
         active_only = form.cleaned_data["active_only"]
 
     # Get accounts
+    saving_accounts_qs: QuerySet[SavingAccount] = SavingAccount.objects.select_related(
+        "account_type"
+    )
+    investment_accounts_qs: QuerySet[InvestmentAccount] = (
+        InvestmentAccount.objects.select_related("account_type")
+    )
     if active_only:
-        saving_accounts_qs: QuerySet[SavingAccount] = SavingAccount.objects.filter(
-            is_active=True
-        )
-        investment_accounts_qs: QuerySet[InvestmentAccount] = (
-            InvestmentAccount.objects.filter(is_active=True)
-        )
+        saving_accounts_qs = saving_accounts_qs.filter(is_active=True)
+        investment_accounts_qs = investment_accounts_qs.filter(is_active=True)
     else:
-        saving_accounts_qs: QuerySet[SavingAccount] = (
-            SavingAccount.objects.all().order_by("-is_active")
-        )
-        investment_accounts_qs: QuerySet[InvestmentAccount] = (
-            InvestmentAccount.objects.all().order_by("-is_active")
-        )
+        saving_accounts_qs = saving_accounts_qs.order_by("-is_active")
+        investment_accounts_qs = investment_accounts_qs.order_by("-is_active")
 
     # Build account data with KPI totals
     total_saving_value: Money | None = None
@@ -109,9 +105,8 @@ def index(request):
 
     investment_accounts = []
     for account in investment_accounts_qs:
-        holdings = InvestmentAccountHolding.objects.filter(
-            account=account, is_active=True
-        )
+        # The related manager sets holding.account without querying it again.
+        holdings = account.investmentaccountholding_set.filter(is_active=True)  # ty: ignore[unresolved-attribute]
         val = account.current_value
         if total_investment_value is None:
             total_investment_value = val
@@ -152,30 +147,31 @@ def index(request):
     chart_months: list[str] = []
     chart_series: list[dict] = []
 
-    all_accounts_for_chart: list[SavingAccount | InvestmentAccount] = list(
-        saving_accounts_qs
-    ) + list(investment_accounts_qs)
-    if all_accounts_for_chart:
-        opening_dates = [
-            acc.opening_date
-            for acc in all_accounts_for_chart
-            if acc.opening_date is not None
+    saving_list = list(saving_accounts_qs)
+    investment_list = list(investment_accounts_qs)
+    opening_dates = [
+        acc.opening_date
+        for acc in [*saving_list, *investment_list]
+        if acc.opening_date is not None
+    ]
+    if opening_dates:
+        months = list(_iter_month_starts(min(opening_dates), datetime.date.today()))
+        chart_months = [m.strftime("%b %Y") for m in months]
+        month_ends = [_month_end(m) for m in months]
+        # Bulk-load the histories: get_value() per month would cost several
+        # queries per account and per month.
+        series_by_account = [
+            (saving_list, saving_values_at(saving_list, month_ends)),
+            (investment_list, investment_values_at(investment_list, month_ends)),
         ]
-        if opening_dates:
-            earliest = min(opening_dates)
-            today = datetime.date.today()
-            months = list(_iter_month_starts(earliest, today))
-            chart_months = [m.strftime("%b %Y") for m in months]
-            for account in all_accounts_for_chart:
-                series_data: list[float | None] = []
-                for m in months:
-                    me = _month_end(m)
-                    try:
-                        v = account.get_value(max_date=me)
-                        series_data.append(float(v.amount))
-                    except Exception:
-                        series_data.append(None)
-                chart_series.append({"name": str(account), "data": series_data})
+        for accounts, values in series_by_account:
+            for account in accounts:
+                chart_series.append(
+                    {
+                        "name": str(account),
+                        "data": [float(v) for v in values[account.pk]],
+                    }
+                )
 
     kpi_inv = float(total_investment_value.amount) if total_investment_value else None
     kpi_sav = float(total_saving_value.amount) if total_saving_value else None
