@@ -9,12 +9,23 @@ always show relevant recent data on each database reset.
 import calendar
 import datetime
 import os
+import sys
+from decimal import Decimal
 
 TODAY = datetime.date.today()
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 FIXTURES_DIR = os.path.join(PROJECT_DIR, "tests", "fixtures")
 
+# The loan schedules come from the app's engine, so the fixtures stay consistent
+# with what the app computes (it does not need Django).
+sys.path.insert(0, PROJECT_DIR)
+from property.utils.loan_utils import (
+    Schedule,
+    build_schedule,
+    calculate_monthly_payment,
+    due_date,
+)
 
 # === Date helpers ===
 
@@ -109,21 +120,66 @@ M72 = months_ago(72)
 M84 = months_ago(84)
 M96 = months_ago(96)
 
-# Property loan first payment dates (≈ 1 month after disbursement)
-LOAN1_FIRST_PAYMENT = months_ago(95)
-LOAN2_FIRST_PAYMENT = months_ago(47)
+# Property loans: (capital, annual rate %, installments, disbursement, first payment).
+# Without a first payment date, the first installment falls one month after the
+# disbursement; loans 2A and 2B are debited on the 5th (a broken first period).
+LOAN2_FIRST_PAYMENT = months_ago(47).replace(day=5)
+LOAN1 = (Decimal(256000), Decimal("1.85"), 240, M96, None)
+LOAN2A = (Decimal(80000), Decimal("2.95"), 120, M48, LOAN2_FIRST_PAYMENT)
+LOAN2B = (Decimal(105000), Decimal("3.10"), 240, M48, LOAN2_FIRST_PAYMENT)
+LOAN3 = (Decimal(72000), Decimal("2.40"), 96, M48, months_ago(47))
+LOAN5 = (Decimal(30000), Decimal("3.90"), 180, M2, None)  # above the parking value
+LOAN6 = (Decimal(90000), Decimal("1.50"), 240, M84, None)  # repaid with the sale
 
-# Property loan end dates
-LOAN1_END = years_ahead(20, M96)  # Property 1 — 20-year loan started 8 years ago
-LOAN2A_END = years_ahead(
-    10, M48
-)  # Property 2 — smoothed 10-year loan started 4 years ago
-LOAN2B_END = years_ahead(
-    20, M48
-)  # Property 2 — smoothed 20-year loan started 4 years ago
-LOAN3_END = years_ahead(
-    8, M48
-)  # Property 3 — 8-year loan started 4 years ago (ends in ~4y)
+
+def loan_end(loan: tuple) -> datetime.date:
+    """Date of the last installment, the end date the loan form saves."""
+    _capital, _rate, count, start, first_payment = loan
+    return due_date(start, first_payment, count - 1)
+
+
+def loan_payment(loan: tuple) -> Decimal:
+    """Monthly annuity (principal and interest) the loan form saves."""
+    capital, rate, count, _start, _first_payment = loan
+    return calculate_monthly_payment(
+        original_amount=capital,
+        annual_interest_rate=rate,
+        annual_insurance_rate=None,
+        duration_months=count,
+    )[0]
+
+
+def loan_schedule(loan: tuple) -> Schedule:
+    capital, rate, count, start, first_payment = loan
+    return build_schedule(
+        capital=capital,
+        annual_rate=rate,
+        count=count,
+        disbursement_date=start,
+        first_payment_date=first_payment,
+    )
+
+
+def amortization_entries(first_pk: int, loan_pk: int, schedule: Schedule) -> str:
+    """YAML rows of a bank amortization table holding every installment."""
+    return "".join(
+        f"""- model: property.propertyloanamortizationentry
+  pk: {pk}
+  fields:
+    created_at: {dt(schedule.disbursement_date)}
+    updated_at: {dt(schedule.disbursement_date)}
+    loan: {loan_pk}
+    date: {ds(installment.date)}
+    capital: {installment.principal}
+    capital_currency: EUR
+    interest: {installment.interest}
+    interest_currency: EUR
+    remaining_balance_amount: {installment.balance}
+    remaining_balance_amount_currency: EUR
+"""
+        for pk, installment in enumerate(schedule, start=first_pk)
+    )
+
 
 # SCPI dismemberment end date
 SCPI3_RECO = years_ahead(10, M24)  # SCPI 3 bare ownership reconstitution in 10 years
@@ -2535,12 +2591,18 @@ def generate_property() -> str:
     """Generate property.yaml with dynamic dates.
 
     Properties:
-      1 - Résidence principale (HO): 1 standard 20-year loan, typical owner expenses
-      2 - Appartement locatif Nice (AP): 2 smoothed loans (prêt lisseur, 10y + 20y),
-          active lease, full rental transactions, LMNP réel tax regime with amortization
+      1 - Résidence principale (HO): 1 standard 20-year loan without first payment
+          date, typical owner expenses
+      2 - Appartement locatif Nice (AP): a 10-year loan with the bank's full
+          amortization table and a 20-year loan computed from its parameters, both
+          with a broken first period, active lease, full rental transactions, LMNP
+          réel tax regime with amortization
       3 - Studio meublé Lyon (AP): 1 short loan ending in ~4 years, active lease,
           rental transactions with tenant and lease, LMNP réel tax regime with amortization
       4 - Maison de campagne (HO): no loan, no lease, expenses + punctual Airbnb income
+      5 - Parking Bordeaux (OT): bought 2 months ago with a loan above its value
+          (negative equity)
+      6 - Studio vendu Toulouse (AP): sold a year ago, its loan repaid with the sale
     """
     irl_rows = generate_irl_rows()
     return f"""# generated with scripts/generate_fixtures.py
@@ -2618,7 +2680,7 @@ def generate_property() -> str:
     value: 375000.00
     valuation_date: {ds(RECENT)}
     source: dvf_estimate
-# Loan 1 — standard 20-year mortgage at 1.85 %
+# Loan 1 — standard 20-year mortgage at 1.85 %, no first payment date
 - model: property.propertyloan
   pk: 1
   fields:
@@ -2632,13 +2694,13 @@ def generate_property() -> str:
     interest_rate: "1.85"
     insurance_rate: "0.18"
     start_date: {ds(M96)}
-    end_date: {ds(LOAN1_END)}
-    monthly_payment: 1285.00
+    end_date: {ds(loan_end(LOAN1))}
+    monthly_payment: {loan_payment(LOAN1)}
     monthly_payment_currency: EUR
     insurance: 38.40
     insurance_currency: EUR
     bank_reference: "CA-2024-001234"
-    first_payment_date: {ds(LOAN1_FIRST_PAYMENT)}
+    first_payment_date: null
 # Transactions — Property 1
 - model: property.propertyledgerentry
   pk: 1
@@ -2712,7 +2774,8 @@ def generate_property() -> str:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PROPERTY 2 — Appartement locatif Nice (Apartment, bought 4 years ago)
-#   Loans: 2 smoothed loans (prêt lisseur) — 10-year + 20-year
+#   Loans: a 10-year loan with the bank's amortization table and a 20-year loan
+#   computed from its parameters, both debited on the 5th (broken first period)
 #   Lease: active furnished lease with tenant
 # ─────────────────────────────────────────────────────────────────────────────
 - model: property.property
@@ -2783,162 +2846,48 @@ def generate_property() -> str:
     value: 195000.00
     valuation_date: {ds(RECENT)}
     source: dvf_estimate
-# Loan 2A — smoothed 10-year
-#   Schedule total: 1×834.00 + 59×667.00 + 60×666.67 = 834.00 + 39353.00 + 40000.20 ≈ 80000
-#   Tranches: first month higher (setup fee), then two equal halves
-#   sum = 1×834 + 59×667 + 60×666.67 = 834 + 39353 + 40000.20 = 80187.20 → adjust last tranche
-#   Simpler: 1×800 + 119×666.39 + 1×600.59 = 800 + 79300.41 + 600.59 = 80701 → too high
-#   Use: 1×800.00 + 118×666.00 + 1×666.52 = 800 + 78588 + 666.52 = 80054.52 → close
-#   Exact: 1×800.00 + 118×666.00 + 1×612.00 = 800 + 78588 + 612 = 80000
+# Loan 2A — 10-year loan with the full amortization table printed by the bank
 - model: property.propertyloan
   pk: 2
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    name: Prêt lissé
+    name: Prêt amortissable
     lender: Crédit Mutuel
     original_amount: 80000
     original_amount_currency: EUR
     interest_rate: "2.95"
     insurance_rate: "0.00"
     start_date: {ds(M48)}
-    end_date: {ds(LOAN2A_END)}
-    monthly_payment: null
+    end_date: {ds(loan_end(LOAN2A))}
+    monthly_payment: {loan_payment(LOAN2A)}
     monthly_payment_currency: EUR
     insurance: null
     insurance_currency: EUR
     bank_reference: "CM-2024-005678"
     first_payment_date: {ds(LOAN2_FIRST_PAYMENT)}
-# Amortization entries — Loan 2A (80 000 EUR, 2.95 %, 120 months)
-- model: property.propertyloanamortizationentry
-  pk: 1
-  fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
-    loan: 2
-    date: {ds(M48)}
-    capital: 574.46
-    capital_currency: EUR
-    interest: 196.67
-    interest_currency: EUR
-    remaining_balance_amount: 79425.54
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 2
-  fields:
-    created_at: {dt(M47)}
-    updated_at: {dt(M47)}
-    loan: 2
-    date: {ds(M47)}
-    capital: 575.87
-    capital_currency: EUR
-    interest: 195.26
-    interest_currency: EUR
-    remaining_balance_amount: 78849.67
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 3
-  fields:
-    created_at: {dt(M12)}
-    updated_at: {dt(M12)}
-    loan: 2
-    date: {ds(M12)}
-    capital: 626.86
-    capital_currency: EUR
-    interest: 144.27
-    interest_currency: EUR
-    remaining_balance_amount: 58065.14
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 4
-  fields:
-    created_at: {dt(M1)}
-    updated_at: {dt(M1)}
-    loan: 2
-    date: {ds(M1)}
-    capital: 643.03
-    capital_currency: EUR
-    interest: 128.10
-    interest_currency: EUR
-    remaining_balance_amount: 51473.11
-    remaining_balance_amount_currency: EUR
-# Loan 2B — smoothed 20-year
-#   Schedule total: 1×1050.00 + 238×437.00 + 1×437.40 = 1050 + 103906 + 437.40 = 105393.40 → adjust
-#   Exact: 1×1050.00 + 238×437.00 + 1×44.00 = 1050 + 103906 + 44 = 105000
+{amortization_entries(1, 2, loan_schedule(LOAN2A))}# Loan 2B — 20-year loan computed from its parameters
 - model: property.propertyloan
   pk: 3
   fields:
     created_at: {dt(M48)}
     updated_at: {dt(M48)}
     property: 2
-    name: Prêt
+    name: Prêt complémentaire
     lender: Crédit Mutuel
     original_amount: 105000
     original_amount_currency: EUR
     interest_rate: "3.10"
     insurance_rate: "0.00"
     start_date: {ds(M48)}
-    end_date: {ds(LOAN2B_END)}
-    monthly_payment: null
+    end_date: {ds(loan_end(LOAN2B))}
+    monthly_payment: {loan_payment(LOAN2B)}
     monthly_payment_currency: EUR
     insurance: null
     insurance_currency: EUR
     bank_reference: "CM-2024-005679"
     first_payment_date: {ds(LOAN2_FIRST_PAYMENT)}
-# Amortization entries — Loan 2B (105 000 EUR, 3.10 %, 240 months)
-- model: property.propertyloanamortizationentry
-  pk: 5
-  fields:
-    created_at: {dt(M48)}
-    updated_at: {dt(M48)}
-    loan: 3
-    date: {ds(M48)}
-    capital: 316.42
-    capital_currency: EUR
-    interest: 271.25
-    interest_currency: EUR
-    remaining_balance_amount: 104683.58
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 6
-  fields:
-    created_at: {dt(M47)}
-    updated_at: {dt(M47)}
-    loan: 3
-    date: {ds(M47)}
-    capital: 317.24
-    capital_currency: EUR
-    interest: 270.43
-    interest_currency: EUR
-    remaining_balance_amount: 104366.34
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 7
-  fields:
-    created_at: {dt(M12)}
-    updated_at: {dt(M12)}
-    loan: 3
-    date: {ds(M12)}
-    capital: 347.05
-    capital_currency: EUR
-    interest: 240.62
-    interest_currency: EUR
-    remaining_balance_amount: 92806.95
-    remaining_balance_amount_currency: EUR
-- model: property.propertyloanamortizationentry
-  pk: 8
-  fields:
-    created_at: {dt(M1)}
-    updated_at: {dt(M1)}
-    loan: 3
-    date: {ds(M1)}
-    capital: 356.07
-    capital_currency: EUR
-    interest: 231.60
-    interest_currency: EUR
-    remaining_balance_amount: 89277.93
-    remaining_balance_amount_currency: EUR
 # Lease 1 — Nice apartment (active furnished)
 - model: property.lease
   pk: 1
@@ -3202,13 +3151,13 @@ def generate_property() -> str:
     interest_rate: "2.40"
     insurance_rate: "0.22"
     start_date: {ds(M48)}
-    end_date: {ds(LOAN3_END)}
-    monthly_payment: 870.00
+    end_date: {ds(loan_end(LOAN3))}
+    monthly_payment: {loan_payment(LOAN3)}
     monthly_payment_currency: EUR
     insurance: 13.20
     insurance_currency: EUR
     bank_reference: "BNP-2024-009012"
-    first_payment_date: {ds(LOAN2_FIRST_PAYMENT)}
+    first_payment_date: {ds(LOAN3[4])}
 # Lease 2 — Lyon studio (active furnished)
 - model: property.lease
   pk: 2
@@ -3953,6 +3902,112 @@ def generate_property() -> str:
     amount_override_currency: EUR
     description_override: null
     notes_override: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 5 — Parking Bordeaux (bought 2 months ago, financed at 110 %)
+#   Loan: above the value of the parking, a negative equity
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.property
+  pk: 5
+  fields:
+    created_at: {dt(M2)}
+    updated_at: {dt(RECENT)}
+    property_type: OT
+    name: Parking Bordeaux
+    street_name: cours de l'Intendance
+    postal_code: "33000"
+    city: Bordeaux
+    country: France
+    is_active: true
+    buying_value: 25000.00
+    buying_value_currency: EUR
+    notary_fees: 2500.00
+    notary_fees_currency: EUR
+    buying_date: {ds(M2)}
+    selling_value_currency: EUR
+    tax_regime: none
+- model: property.propertyvalue
+  pk: 12
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    property: 5
+    value: 24000.00
+    valuation_date: {ds(RECENT)}
+    source: manual
+- model: property.propertyloan
+  pk: 5
+  fields:
+    created_at: {dt(M2)}
+    updated_at: {dt(M2)}
+    property: 5
+    name: Prêt parking
+    lender: Boursorama
+    original_amount: 30000
+    original_amount_currency: EUR
+    interest_rate: "3.90"
+    insurance_rate: "0.30"
+    start_date: {ds(M2)}
+    end_date: {ds(loan_end(LOAN5))}
+    monthly_payment: {loan_payment(LOAN5)}
+    monthly_payment_currency: EUR
+    insurance: 7.50
+    insurance_currency: EUR
+    first_payment_date: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 6 — Studio vendu Toulouse (bought 7 years ago, sold a year ago)
+#   Loan: repaid with the sale, no installment after the selling date
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.property
+  pk: 6
+  fields:
+    created_at: {dt(M84)}
+    updated_at: {dt(M12)}
+    property_type: AP
+    name: Studio vendu Toulouse
+    street_name: rue du Taur
+    postal_code: "31000"
+    city: Toulouse
+    country: France
+    is_active: false
+    buying_value: 110000.00
+    buying_value_currency: EUR
+    notary_fees: 8500.00
+    notary_fees_currency: EUR
+    buying_date: {ds(M84)}
+    selling_date: {ds(M12)}
+    selling_value: 128000.00
+    selling_value_currency: EUR
+    tax_regime: none
+- model: property.propertyvalue
+  pk: 13
+  fields:
+    created_at: {dt(M84)}
+    updated_at: {dt(M84)}
+    property: 6
+    value: 110000.00
+    valuation_date: {ds(M84)}
+    source: manual
+- model: property.propertyloan
+  pk: 6
+  fields:
+    created_at: {dt(M84)}
+    updated_at: {dt(M84)}
+    property: 6
+    name: Prêt studio
+    lender: LCL
+    original_amount: 90000
+    original_amount_currency: EUR
+    interest_rate: "1.50"
+    insurance_rate: "0.00"
+    start_date: {ds(M84)}
+    end_date: {ds(loan_end(LOAN6))}
+    monthly_payment: {loan_payment(LOAN6)}
+    monthly_payment_currency: EUR
+    insurance: null
+    insurance_currency: EUR
+    first_payment_date: null
 """
 
 
