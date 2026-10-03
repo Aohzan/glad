@@ -1,271 +1,184 @@
 """Tests for the context returned by the finance index view."""
 
 import datetime
-from decimal import Decimal
-from unittest.mock import MagicMock, patch
+import json
+from unittest.mock import patch
 
 import pytest
-from django.test import RequestFactory
 from django.urls import reverse
 from moneyed import Money
 
+from finance.models.investment_account import (
+    InvestmentAccount,
+    InvestmentAccountHolding,
+    InvestmentAccountHoldingHistory,
+)
+from finance.models.saving_account import SavingAccount, SavingAccountValue
 from finance.utils import AccountProgression
-from finance.views import index
+
+INDEX_URL = reverse("finance:index")
 
 
 @pytest.mark.django_db
 def test_index_view_unauthenticated(client):
     """Test that unauthenticated users are redirected to login page."""
-    path = reverse("finance:index")
-    response = client.get(path)
+    response = client.get(INDEX_URL)
     assert response.status_code == 302
     assert "/accounts/login/" in response.url
 
 
 @pytest.mark.django_db
-@patch("finance.views.index_views.SavingAccount.objects.filter")
-@patch("finance.views.index_views.InvestmentAccount.objects.filter")
-@patch("finance.views.index_views.render")
-def test_index_view_context_keys(
-    mock_render, mock_investment_filter, mock_saving_filter, user
-):
+def test_index_view_context_keys(client, user):
     """Test that the index view returns the expected context keys."""
-    # Setup mocks
-    mock_saving_filter.return_value = []
-    mock_investment_filter.return_value = []
-    mock_render.return_value = MagicMock()
+    client.force_login(user)
 
-    # Create request
-    request = RequestFactory().get("/")
-    request.user = user
+    context = client.get(INDEX_URL).context
 
-    # Call view directly
-    view = index
-    view(request)
-
-    # Verify context keys
-    context = mock_render.call_args[0][2]
-    assert "form" in context
-    assert "days" in context
-    assert "savings_accounts" in context
-    assert "investment_accounts" in context
+    assert context["form"] is not None
+    assert context["savings_accounts"] == []
+    assert context["investment_accounts"] == []
     assert context["days"] == 30  # Default value
+    assert context["has_chart_data"] is False
 
 
 @pytest.mark.django_db
-@patch("finance.views.index_views.SavingAccount.objects.filter")
-@patch("finance.views.index_views.InvestmentAccount.objects.filter")
-@patch("finance.views.index_views.render")
-def test_index_view_custom_days(
-    mock_render, mock_investment_filter, mock_saving_filter, user
-):
+def test_index_view_custom_days(client, user):
     """Test that the index view uses the days parameter from the request."""
-    # Setup mocks
-    mock_saving_filter.return_value = []
-    mock_investment_filter.return_value = []
-    mock_render.return_value = MagicMock()
+    client.force_login(user)
 
-    # Create request with custom days
-    request = RequestFactory().get("/", {"days": "15"})
-    request.user = user
+    context = client.get(INDEX_URL, {"days": "15"}).context
 
-    # Call view directly
-    view = index
-    view(request)
-
-    # Verify days value
-    context = mock_render.call_args[0][2]
     assert context["days"] == 15
 
 
 @pytest.mark.django_db
-@patch("finance.views.index_views.SavingAccount.objects.filter")
-@patch("finance.views.index_views.InvestmentAccount.objects.filter")
-@patch("finance.views.index_views.render")
 def test_index_view_active_accounts_only(
-    mock_render, mock_investment_filter, mock_saving_filter, user
+    client,
+    user,
+    active_saving_account,
+    inactive_saving_account,
+    active_investment_account,
+    inactive_investment_account,
 ):
-    """Test that the index view only includes active accounts in the context."""
-    # Setup mocks
-    mock_saving_filter.return_value = []
-    mock_investment_filter.return_value = []
-    mock_render.return_value = MagicMock()
+    """Closed accounts are listed only when asked for."""
+    client.force_login(user)
 
-    # Create request
-    request = RequestFactory().get("/")
-    request.user = user
+    context = client.get(INDEX_URL).context
+    assert [e["model"] for e in context["savings_accounts"]] == [active_saving_account]
+    assert [e["model"] for e in context["investment_accounts"]] == [
+        active_investment_account
+    ]
 
-    # Call view directly
-    view = index
-    view(request)
-
-    # Verify filter calls
-    mock_saving_filter.assert_called_once_with(is_active=True)
-    mock_investment_filter.assert_called_once_with(is_active=True)
+    context = client.get(INDEX_URL, {"days": "30"}).context
+    assert [e["model"] for e in context["savings_accounts"]] == [
+        active_saving_account,
+        inactive_saving_account,
+    ]
+    assert [e["model"] for e in context["investment_accounts"]] == [
+        active_investment_account,
+        inactive_investment_account,
+    ]
 
 
 @pytest.mark.django_db
-@patch("finance.views.index_views.SavingAccount.objects.filter")
-@patch("finance.views.index_views.InvestmentAccount.objects.filter")
-@patch("finance.views.index_views.render")
 def test_index_view_savings_accounts_structure(
-    mock_render, mock_investment_filter, mock_saving_filter, user
+    client, user, active_saving_account, saving_account_value
 ):
     """Test the structure of savings_accounts in the context."""
-    # Create mock saving account
-    mock_saving = MagicMock()
-    mock_saving.name = "Test Saving Account"
-    mock_saving.current_value = Money(Decimal("1000.00"), "EUR")
-    mock_saving.opening_date = datetime.date(2024, 1, 1)
-    mock_saving.get_value.return_value = Money(Decimal("1000.00"), "EUR")
+    client.force_login(user)
 
-    # Create mock progression
-    mock_progression = MagicMock(spec=AccountProgression)
-    mock_progression.net_progression = Decimal("10.00")
-    mock_progression.net_difference = Money(Decimal("100.0"), "EUR")
-    mock_progression.gross_difference = Money(Decimal("100.0"), "EUR")
-    mock_progression.css_class = "positive"
+    context = client.get(INDEX_URL).context
 
-    # Setup mock saving account to return mock progression
-    mock_saving.get_progression.return_value = mock_progression
-
-    # Setup mock filter to return list with mock saving account
-    mock_saving_filter.return_value = [mock_saving]
-    mock_investment_filter.return_value = []
-    mock_render.return_value = MagicMock()
-
-    # Create request
-    request = RequestFactory().get("/")
-    request.user = user
-
-    # Call view directly
-    view = index
-    view(request)
-
-    # Verify savings_accounts structure
-    context = mock_render.call_args[0][2]
-    savings_accounts = context["savings_accounts"]
-    assert len(savings_accounts) == 1
-
-    saving_account_item = savings_accounts[0]
-    assert "model" in saving_account_item
-    assert "progression" in saving_account_item
-
-    assert saving_account_item["model"] == mock_saving
-    assert saving_account_item["progression"] == mock_progression
-
-    # Verify get_progression was called with the correct days value
-    mock_saving.get_progression.assert_called_once_with(30)
+    (entry,) = context["savings_accounts"]
+    assert entry["model"] == active_saving_account
+    assert isinstance(entry["progression"], AccountProgression)
+    assert context["total_saving_value"] == Money(1100, "EUR")
+    (series,) = json.loads(context["chart_series_json"])
+    assert series["name"] == str(active_saving_account)
+    assert series["data"][-1] == 1100.0
+    assert len(series["data"]) == len(json.loads(context["chart_months_json"]))
 
 
 @pytest.mark.django_db
-@patch("finance.views.index_views.SavingAccount.objects.filter")
-@patch("finance.views.index_views.InvestmentAccount.objects.filter")
-@patch("finance.views.index_views.InvestmentAccountHolding.objects.filter")
-@patch("finance.views.index_views.render")
 def test_index_view_investment_accounts_structure(
-    mock_render, mock_holding_filter, mock_investment_filter, mock_saving_filter, user
+    client, user, active_investment_account, investment_account_cash
 ):
     """Test the structure of investment_accounts in the context."""
-    # Create mock investment account
-    mock_investment = MagicMock()
-    mock_investment.name = "Test Investment Account"
-    mock_investment.current_value = Money(Decimal("2000.00"), "EUR")
-    mock_investment.opening_date = datetime.date(2024, 1, 1)
-    mock_investment.get_value.return_value = Money(Decimal("2000.00"), "EUR")
+    holding = InvestmentAccountHolding.objects.create(
+        account=active_investment_account,
+        name="Fund",
+        initial_value=Money(100, "EUR"),
+        initial_valuation_date=datetime.date.today() - datetime.timedelta(days=50),
+    )
+    InvestmentAccountHoldingHistory.objects.create(
+        holding=holding,
+        value=Money(300, "EUR"),
+        valuation_date=datetime.datetime.now() - datetime.timedelta(days=5),
+    )
+    client.force_login(user)
 
-    # Create mock progression
-    mock_progression = MagicMock(spec=AccountProgression)
-    mock_progression.net_progression = Decimal("5.00")
-    mock_progression.net_difference = Money(Decimal("100.0"), "EUR")
-    mock_progression.gross_difference = Money(Decimal("100.0"), "EUR")
-    mock_progression.css_class = "positive"
+    context = client.get(INDEX_URL).context
 
-    # Setup mock investment account to return mock progression
-    mock_investment.get_progression.return_value = mock_progression
-
-    # Setup mock filter to return list with mock investment account
-    mock_saving_filter.return_value = []
-    mock_investment_filter.return_value = [mock_investment]
-    mock_holding_filter.return_value = []  # No holdings for this test
-    mock_render.return_value = MagicMock()
-
-    # Create request
-    request = RequestFactory().get("/")
-    request.user = user
-
-    # Call view directly
-    view = index
-    view(request)
-
-    # Verify investment_accounts structure
-    context = mock_render.call_args[0][2]
-    investment_accounts = context["investment_accounts"]
-    assert len(investment_accounts) == 1
-
-    investment_account_item = investment_accounts[0]
-    assert "model" in investment_account_item
-    assert "progression" in investment_account_item
-
-    assert investment_account_item["model"] == mock_investment
-    assert investment_account_item["progression"] == mock_progression
-
-    # Verify get_progression was called with the correct days value
-    mock_investment.get_progression.assert_called_once_with(30)
+    (entry,) = context["investment_accounts"]
+    assert entry["model"] == active_investment_account
+    assert entry["value"] == Money(2500, "EUR")
+    assert isinstance(entry["progression"], AccountProgression)
+    cash, fund = entry["subentries"]
+    assert cash["id"] == "cash"
+    assert cash["value"] == Money(2200, "EUR")
+    assert fund["id"] == holding.id
+    assert fund["value"] == Money(300, "EUR")
+    assert fund["weight"] == 12
+    (series,) = json.loads(context["chart_series_json"])
+    assert series["data"][-1] == 2500.0
 
 
 @pytest.mark.django_db
-@patch("finance.views.index_views.SavingAccount.objects.filter")
-@patch("finance.views.index_views.InvestmentAccount.objects.filter")
-@patch("finance.views.index_views.InvestmentAccountHolding.objects.filter")
-@patch("finance.views.index_views.render")
 def test_index_view_custom_days_progression(
-    mock_render, mock_holding_filter, mock_investment_filter, mock_saving_filter, user
+    client, user, active_saving_account, active_investment_account
 ):
     """Test that the progression is calculated with the custom days value."""
-    # Create mock accounts
-    mock_saving = MagicMock()
-    mock_saving.current_value = Money(Decimal("1000.00"), "EUR")
-    mock_saving.opening_date = datetime.date(2024, 1, 1)
-    mock_saving.get_value.return_value = Money(Decimal("1000.00"), "EUR")
-    mock_saving.get_progression.return_value = MagicMock(
-        spec=AccountProgression,
-        progression=Money(Decimal("10.00"), "EUR"),
-        difference=Money(Decimal("100.0"), "EUR"),
-        gross_difference=Money(Decimal("100.0"), "EUR"),
-        css_class="positive",
-    )
+    client.force_login(user)
+    with (
+        patch.object(
+            SavingAccount,
+            "get_progression",
+            autospec=True,
+            side_effect=SavingAccount.get_progression,
+        ) as saving_progression,
+        patch.object(
+            InvestmentAccount,
+            "get_progression",
+            autospec=True,
+            side_effect=InvestmentAccount.get_progression,
+        ) as investment_progression,
+    ):
+        client.get(INDEX_URL, {"days": "15", "active_only": "on"})
 
-    mock_investment = MagicMock()
-    mock_investment.current_value = Money(Decimal("2000.00"), "EUR")
-    mock_investment.opening_date = datetime.date(2024, 1, 1)
-    mock_investment.get_value.return_value = Money(Decimal("2000.00"), "EUR")
-    mock_investment.get_progression.return_value = MagicMock(
-        spec=AccountProgression,
-        progression=Money(Decimal("5.00"), "EUR"),
-        difference=Money(Decimal("100.0"), "EUR"),
-        gross_difference=Money(Decimal("100.0"), "EUR"),
-        css_class="positive",
-    )
+    saving_progression.assert_called_once_with(active_saving_account, 15)
+    investment_progression.assert_called_once_with(active_investment_account, 15)
 
-    # Setup mock filters
-    mock_saving_filter.return_value = [mock_saving]
-    mock_investment_filter.return_value = [mock_investment]
-    mock_holding_filter.return_value = []  # No holdings for this test
-    mock_render.return_value = MagicMock()
 
-    # Create request with custom days
-    custom_days = 15
-    request = RequestFactory().get(
-        "/",
-        {"days": str(custom_days), "active_only": "on"},
-    )
-    request.user = user
+@pytest.mark.django_db
+def test_index_view_queries_do_not_grow_with_history(
+    client, user, saving_account_type, django_assert_max_num_queries
+):
+    """The monthly chart is built without querying each account month by month."""
+    for index in range(3):
+        account = SavingAccount.objects.create(
+            account_type=saving_account_type,
+            name=f"Old {index}",
+            opening_value=Money(100, "EUR"),
+            opening_date=datetime.date.today() - datetime.timedelta(days=3650),
+        )
+        SavingAccountValue.objects.create(
+            account=account,
+            value=Money(200, "EUR"),
+            value_date=datetime.datetime.now() - datetime.timedelta(days=1800),
+        )
+    client.force_login(user)
 
-    # Call view directly
-    view = index
-    view(request)
+    with django_assert_max_num_queries(40):
+        context = client.get(INDEX_URL).context
 
-    # Verify get_progression was called with the custom days value
-    mock_saving.get_progression.assert_called_once_with(custom_days)
-    mock_investment.get_progression.assert_called_once_with(custom_days)
+    assert len(json.loads(context["chart_months_json"])) > 100
