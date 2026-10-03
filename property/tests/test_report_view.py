@@ -331,7 +331,7 @@ class TestReportView:
     def test_get_no_filters_returns_200(self, user_client):
         response = user_client.get(reverse("property:report"))
         assert response.status_code == 200
-        assert b"Income" in response.content or b"Rapport" in response.content
+        assert b"Property cash flow" in response.content
 
     def test_get_with_filters_shows_report(self, user_client):
         prop = _make_property()

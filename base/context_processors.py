@@ -45,7 +45,7 @@ SECTION_LABELS = {
     "scpi": _("SCPI"),
     "loans": _("All Loans"),
     "checks": _("Entries to check"),
-    "report": _("Income & Expenses Report"),
+    "report": _("Property cash flow"),
     "lmnp": _("LMNP Accounting"),
     "account": _("Settings"),
     "admin": _("Administration"),

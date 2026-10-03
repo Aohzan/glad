@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n format_money static %}
 
-{% block title %}{% translate "Income & Expenses Report" %}{% endblock %}
+{% block title %}{% translate "Property cash flow" %}{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'vendors/multi-select-dropdown-js/MultiSelect.min.css' %}">
@@ -13,7 +13,7 @@
   {# ── Header ───────────────────────────────────────────────────────────── #}
   <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
     <h1 class="h4 mb-0">
-      {% icon "file-chart-column" "me-2" %}{% translate "Income & Expenses Report" %}
+      {% icon "file-chart-column" "me-2" %}{% translate "Property cash flow" %}
     </h1>
   </div>
 
