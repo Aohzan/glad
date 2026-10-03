@@ -18,13 +18,13 @@
   <h6 class="mb-0">{% translate "Transactions" %}</h6>
   <div class="d-flex gap-2">
     <a href="{% url 'property:checks' %}?property={{ property.pk }}" class="btn btn-sm btn-outline-success">
-      <i class="bi bi-check2-square me-1"></i>{% translate "Check entries" %}
+      {% icon "square-check" "me-1" %}{% translate "Check entries" %}
     </a>
     <a href="{% url 'property:csv_import' property.pk %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-upload me-1"></i>{% translate "Import CSV" %}
+      {% icon "upload" "me-1" %}{% translate "Import CSV" %}
     </a>
     <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#entryModal">
-      <i class="bi bi-plus-circle me-1"></i>{% translate "Add entry" %}
+      {% icon "circle-plus" "me-1" %}{% translate "Add entry" %}
     </button>
   </div>
 </div>
@@ -57,9 +57,9 @@
         <div class="modal-header">
           <h5 class="modal-title">
             {% if item.obj.flow_type == "expense" %}
-              <i class="bi bi-arrow-up-circle me-2 text-danger"></i>{% translate "Edit expense" %}
+              {% icon "circle-arrow-up" "me-2 text-danger" %}{% translate "Edit expense" %}
             {% else %}
-              <i class="bi bi-arrow-down-circle me-2 text-success"></i>{% translate "Edit income" %}
+              {% icon "circle-arrow-down" "me-2 text-success" %}{% translate "Edit income" %}
             {% endif %}
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -67,12 +67,12 @@
         <div class="modal-body">
           {% if item.obj.recurrence_type != 'none' %}
             <div class="alert alert-info py-2">
-              <i class="bi bi-info-circle me-1"></i> {% translate "This is a recurring entry. Changes will apply to all occurrences." %}
+              {% icon "info" "me-1" %} {% translate "This is a recurring entry. Changes will apply to all occurrences." %}
             </div>
           {% endif %}
           <div class="mb-4">
             <label class="form-label fw-semibold">
-              <i class="bi bi-arrow-left-right me-1 text-secondary"></i>{% translate "Type" %}
+              {% icon "arrow-left-right" "me-1 text-secondary" %}{% translate "Type" %}
             </label>
             <div class="d-flex gap-2">
               <input type="radio" class="btn-check"
@@ -99,14 +99,14 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="{{ item.edit_form.amount.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-currency-euro me-1 text-secondary"></i>{% translate "Amount" %}
+                {% icon "euro" "me-1 text-secondary" %}{% translate "Amount" %}
               </label>
               {{ item.edit_form.amount }}
               {% if item.edit_form.amount.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.amount.errors }}</div>{% endif %}
             </div>
             <div class="col-md-6">
               <label for="{{ item.edit_form.entry_date.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-calendar3 me-1 text-secondary"></i>{% translate "Date" %}
+                {% icon "calendar" "me-1 text-secondary" %}{% translate "Date" %}
               </label>
               {{ item.edit_form.entry_date }}
               {% if item.edit_form.entry_date.errors %}<div class="invalid-feedback d-block">{{ item.edit_form.entry_date.errors }}</div>{% endif %}
@@ -115,7 +115,7 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="{{ item.edit_form.reference_period.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-calendar-range me-1 text-secondary"></i>{% translate "Reference period" %}
+                {% icon "calendar-range" "me-1 text-secondary" %}{% translate "Reference period" %}
                 <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
               </label>
               {{ item.edit_form.reference_period }}
@@ -123,7 +123,7 @@
             </div>
             <div class="col-md-6">
               <label for="{{ item.edit_form.lease.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-file-text me-1 text-secondary"></i>{% translate "Lease" %}
+                {% icon "file-text" "me-1 text-secondary" %}{% translate "Lease" %}
                 <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
               </label>
               {{ item.edit_form.lease }}
@@ -133,7 +133,7 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="edit_mgmt_cat_{{ item.obj.pk }}" class="form-label fw-semibold">
-                <i class="bi bi-tag me-1 text-secondary"></i>{% translate "Category" %}
+                {% icon "tag" "me-1 text-secondary" %}{% translate "Category" %}
               </label>
               <select name="{{ item.edit_form.management_category.html_name }}"
                       id="edit_mgmt_cat_{{ item.obj.pk }}"
@@ -155,7 +155,7 @@
             </div>
             <div class="col-md-6">
               <label for="{{ item.edit_form.third_party.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-person me-1 text-secondary"></i>{% translate "Third party" %}
+                {% icon "user" "me-1 text-secondary" %}{% translate "Third party" %}
                 <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
               </label>
               {{ item.edit_form.third_party }}
@@ -164,21 +164,21 @@
           </div>
           <div class="mb-3">
             <label for="{{ item.edit_form.description.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-chat-left-text me-1 text-secondary"></i>{% translate "Description" %}
+              {% icon "message-square-text" "me-1 text-secondary" %}{% translate "Description" %}
               <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
             </label>
             {{ item.edit_form.description }}
           </div>
           <div class="mb-3">
             <label for="{{ item.edit_form.notes.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-sticky me-1 text-secondary"></i>{% translate "Notes" %}
+              {% icon "sticky-note" "me-1 text-secondary" %}{% translate "Notes" %}
               <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
             </label>
             {{ item.edit_form.notes }}
           </div>
           <div class="border rounded p-3 bg-body-tertiary">
             <p class="small fw-semibold text-body-secondary mb-2">
-              <i class="bi bi-arrow-repeat me-1"></i>{% translate "Recurrence" %}
+              {% icon "refresh-cw" "me-1" %}{% translate "Recurrence" %}
             </p>
             <div class="row g-3">
               <div class="col-md-6">
@@ -200,7 +200,7 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg me-1"></i>{% translate "Save changes" %}
+            {% icon "check" "me-1" %}{% translate "Save changes" %}
           </button>
         </div>
       </form>
@@ -222,7 +222,7 @@
         <div class="modal-body">
           {% if item.obj.recurrence_type != 'none' %}
             <div class="alert alert-warning">
-              <i class="bi bi-exclamation-triangle"></i> {% translate "This is a recurring entry. All occurrences will be deleted." %}
+              {% icon "triangle-alert" %} {% translate "This is a recurring entry. All occurrences will be deleted." %}
             </div>
           {% endif %}
           <p>{% blocktranslate with amount=item.obj.amount|format_money date=item.obj.entry_date %}Are you sure you want to delete the entry of {{ amount }} dated {{ date }}?{% endblocktranslate %}</p>
@@ -230,7 +230,7 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
           <button type="submit" class="btn btn-danger">
-            <i class="bi bi-trash me-1"></i>{% translate "Delete" %}
+            {% icon "trash" "me-1" %}{% translate "Delete" %}
           </button>
         </div>
       </form>
@@ -247,7 +247,7 @@
         {% csrf_token %}
         <div class="modal-header">
           <h5 class="modal-title" id="checkOccurrenceModalTitle">
-            <i class="bi bi-check2-circle me-2 text-success"></i>{% translate "Check entry" %}
+            {% icon "circle-check" "me-2 text-success" %}{% translate "Check entry" %}
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% translate 'Close' %}"></button>
         </div>
@@ -266,7 +266,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
-          <button type="submit" class="btn btn-success"><i class="bi bi-check2-circle me-1"></i>{% translate "Check" %}</button>
+          <button type="submit" class="btn btn-success">{% icon "circle-check" "me-1" %}{% translate "Check" %}</button>
         </div>
       </form>
     </div>
@@ -318,11 +318,11 @@
 
   function buildCheckButton(row, occurrenceUrl) {
     if (row.is_checked) {
-      return '<button type="button" class="btn btn-success" data-uncheck-url="' + occurrenceUrl + 'uncheck/" title="' + _cfI18n.uncheck + '"><i class="bi bi-check-circle-fill"></i></button>';
+      return '<button type="button" class="btn btn-success" data-uncheck-url="' + occurrenceUrl + 'uncheck/" title="' + _cfI18n.uncheck + '">' + gIcon('circle-check') + '</button>';
     }
     return '<button type="button" class="btn btn-outline-success" data-check-url="' + occurrenceUrl + 'check/"' +
       ' data-check-date="' + row.date + '" data-check-amount="' + row.amount.toFixed(2) + '"' +
-      ' title="' + _cfI18n.check + '"><i class="bi bi-check2-circle"></i></button>';
+      ' title="' + _cfI18n.check + '">' + gIcon('circle-check') + '</button>';
   }
 
   function buildActionButtons(row) {
@@ -332,23 +332,23 @@
       var delUrl  = occurrenceUrl + 'delete/';
       return '<div class="btn-group btn-group-sm" role="group">' +
         buildCheckButton(row, occurrenceUrl) +
-        '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _cfI18n.edit + '"><i class="bi bi-pencil"></i></a>' +
-        '<a href="' + delUrl  + '" class="btn btn-outline-danger" title="' + _cfI18n.delete + '"><i class="bi bi-trash"></i></a>' +
+        '<a href="' + editUrl + '" class="btn btn-outline-secondary" title="' + _cfI18n.edit + '">' + gIcon('pencil') + '</a>' +
+        '<a href="' + delUrl  + '" class="btn btn-outline-danger" title="' + _cfI18n.delete + '">' + gIcon('trash') + '</a>' +
         '</div>';
     }
     var editTarget = '#editEntryModal' + row.parent_id;
     var delTarget  = '#deleteEntryModal' + row.parent_id;
     return '<div class="btn-group btn-group-sm" role="group">' +
-      '<button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="' + editTarget + '" title="' + _cfI18n.edit + '"><i class="bi bi-pencil"></i></button>' +
-      '<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="' + delTarget + '" title="' + _cfI18n.delete + '"><i class="bi bi-trash"></i></button>' +
+      '<button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="' + editTarget + '" title="' + _cfI18n.edit + '">' + gIcon('pencil') + '</button>' +
+      '<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="' + delTarget + '" title="' + _cfI18n.delete + '">' + gIcon('trash') + '</button>' +
       '</div>';
   }
 
   function buildKindBadge(kind) {
     if (kind === 'expense') {
-      return '<span class="badge text-bg-danger-subtle text-danger-emphasis"><i class="bi bi-arrow-up-circle me-1"></i>' + _cfI18n.expense + '</span>';
+      return '<span class="badge text-bg-danger-subtle text-danger-emphasis">' + gIcon('circle-arrow-up', 'me-1') + '' + _cfI18n.expense + '</span>';
     }
-    return '<span class="badge text-bg-success-subtle text-success-emphasis"><i class="bi bi-arrow-down-circle me-1"></i>' + _cfI18n.income + '</span>';
+    return '<span class="badge text-bg-success-subtle text-success-emphasis">' + gIcon('circle-arrow-down', 'me-1') + '' + _cfI18n.income + '</span>';
   }
 
   // ── DataTable ──────────────────────────────────────────────────────────────
@@ -396,9 +396,9 @@
         select: 5, type: 'string', sortable: false, searchable: false,
         render: function(value) {
           var d = JSON.parse(value);
-          var recurIcon = d.is_recurring ? ' <i class="bi bi-arrow-repeat text-primary ms-1" title="' + _cfI18n.recurring + '"></i>' : '';
-          var capitalizedIcon = d.is_capitalized ? ' <i class="bi bi-box-seam text-warning ms-1" title="' + _cfI18n.capitalized + '"></i>' : '';
-          var movedIcon = d.is_moved ? ' <i class="bi bi-calendar-event text-body-secondary ms-1" title="' + _cfI18n.plannedOn + ' ' + d.occurrence_date + '"></i>' : '';
+          var recurIcon = d.is_recurring ? ' <span class="text-primary ms-1" title="' + _cfI18n.recurring + '">' + gIcon('refresh-cw') + '</span>' : '';
+          var capitalizedIcon = d.is_capitalized ? ' <span class="text-warning ms-1" title="' + _cfI18n.capitalized + '">' + gIcon('package') + '</span>' : '';
+          var movedIcon = d.is_moved ? ' <span class="text-body-secondary ms-1" title="' + _cfI18n.plannedOn + ' ' + d.occurrence_date + '">' + gIcon('calendar-days') + '</span>' : '';
           return buildActionButtons(d) + recurIcon + movedIcon + capitalizedIcon;
         }
       }
@@ -488,7 +488,7 @@
   var cashflowNegatedLoanPrincipalSeries = cashflowLoanPrincipalSeries.map(function(p) { return { x: p.x, y: -p.y }; });
   var cashflowNegatedLoanInsuranceSeries = cashflowLoanInsuranceSeries.map(function(p) { return { x: p.x, y: -p.y }; });
 
-  var expenseTypeColorPalette = ['#ffc107', '#e74c3c', '#9b59b6', '#3498db', '#1abc9c', '#e91e63'];
+  var expenseTypeColorPalette = gChartColors();
   var cashflowBreakdownExpenseSeries = cashflowExpenseByTypeSeries.map(function(s) {
     return { name: s.label, data: s.data.map(function(p) { return { x: p.x, y: -p.y }; }) };
   });
@@ -520,7 +520,7 @@
     stroke: { width: [0, 0, 2], curve: 'smooth' },
     xaxis: sharedXaxis,
     yaxis: { labels: { formatter: sharedYaxisFormatter } },
-    colors: ['#34d399', '#f87171', '#60a5fa'],
+    colors: [gToken('pos'), gToken('neg'), gToken('accent')],
     tooltip: sharedTooltip,
     theme: { mode: getCurrentTheme() }
   });
@@ -541,7 +541,7 @@
     dataLabels: { enabled: false },
     xaxis: sharedXaxis,
     yaxis: { labels: { formatter: sharedYaxisFormatter } },
-    colors: cashflowBreakdownExpenseColors.concat(['#fd7e14', '#0dcaf0', '#20c997']),
+    colors: cashflowBreakdownExpenseColors.concat([gToken('warn'), gToken('info'), gToken('c3')]),
     tooltip: Object.assign({}, sharedTooltip, { shared: true, intersect: false }),
     theme: { mode: getCurrentTheme() }
   });

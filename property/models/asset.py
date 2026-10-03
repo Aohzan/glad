@@ -611,13 +611,13 @@ class Property(BaseModel):
 
     @property
     def icon(self) -> str:
-        """Return the icon name corresponding to the property type."""
+        """Lucide icon name corresponding to the property type."""
         return {
             self.HOUSE: "house",
             self.APARTMENT: "building",
             self.CONDO: "building",
-            self.LAND: "tree",
-            self.OTHER: "question-circle",
+            self.LAND: "trees",
+            self.OTHER: "circle-question-mark",
         }.get(self.property_type, "building")
 
     def get_value(self, max_date: datetime.datetime | None = None) -> Money:

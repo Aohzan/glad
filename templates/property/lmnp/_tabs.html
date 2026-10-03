@@ -19,7 +19,7 @@
       {% elif checklist.overall_status == "warning" %}
         <span class="badge bg-warning text-dark rounded-pill">{{ checklist.total_issues }}</span>
       {% else %}
-        <i class="bi bi-check-circle-fill text-success ms-1" style="font-size:.85rem;"></i>
+        <span class="d-inline-flex" style="font-size:.85rem;">{% icon "circle-check" "text-success ms-1" %}</span>
       {% endif %}
     </button>
   </li>

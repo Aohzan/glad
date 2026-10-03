@@ -8,7 +8,7 @@
 
   {% url 'property:index' as back_url %}
   {% translate "Entries to check" as page_title %}
-  {% include "property/_edit_page_header.html" with page_title=page_title title_icon_class="bi-check2-square" back_url=back_url back_label=_("Estate") %}
+  {% include "property/_edit_page_header.html" with page_title=page_title title_icon="square-check" back_url=back_url back_label=_("Estate") %}
 
   <div class="d-flex flex-wrap gap-3 align-items-end mb-3">
     <form method="get" action="{% url 'property:checks' %}" class="d-flex gap-2 align-items-end">
@@ -33,7 +33,7 @@
         <input type="date" id="check-all-up-to" name="up_to" class="form-control form-control-sm" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" required>
       </div>
       <button type="submit" class="btn btn-sm btn-outline-success" data-confirm="{% translate 'Mark all these entries as checked with their planned date and amount?' %}">
-        <i class="bi bi-check2-all me-1"></i>{% translate "Check all" %}
+        {% icon "check-check" "me-1" %}{% translate "Check all" %}
       </button>
     </form>
     {% endif %}
@@ -47,7 +47,7 @@
     <div class="card mb-3">
       <div class="card-header py-2 d-flex justify-content-between align-items-center">
         <h3 class="card-title h6 mb-0">
-          <i class="bi bi-list-check me-1"></i>{% blocktranslate count counter=total_count %}{{ counter }} entry to check{% plural %}{{ counter }} entries to check{% endblocktranslate %}
+          {% icon "list-checks" "me-1" %}{% blocktranslate count counter=total_count %}{{ counter }} entry to check{% plural %}{{ counter }} entries to check{% endblocktranslate %}
         </h3>
         {% if hidden_count %}
         <span class="small text-body-secondary">{% blocktranslate with shown=rows|length %}Showing the {{ shown }} oldest, {{ hidden_count }} more after saving.{% endblocktranslate %}</span>
@@ -80,9 +80,9 @@
               <td><a href="{% url 'property:detail' pk=entry.property.pk %}#cashflow-panel" class="text-decoration-none">{{ entry.property.name }}</a></td>
               <td>
                 {% if entry.flow_type == "income" %}
-                <span class="badge text-bg-success-subtle text-success-emphasis"><i class="bi bi-arrow-down-circle me-1"></i>{% translate "Income" %}</span>
+                <span class="badge text-bg-success-subtle text-success-emphasis">{% icon "circle-arrow-down" "me-1" %}{% translate "Income" %}</span>
                 {% else %}
-                <span class="badge text-bg-danger-subtle text-danger-emphasis"><i class="bi bi-arrow-up-circle me-1"></i>{% translate "Expense" %}</span>
+                <span class="badge text-bg-danger-subtle text-danger-emphasis">{% icon "circle-arrow-up" "me-1" %}{% translate "Expense" %}</span>
                 {% endif %}
               </td>
               <td>
@@ -109,7 +109,7 @@
             {% empty %}
             <tr>
               <td colspan="9" class="text-center text-body-secondary py-4">
-                <i class="bi bi-check-circle text-success me-1"></i>{% translate "All recurring entries are checked." %}
+                {% icon "circle-check" "text-success me-1" %}{% translate "All recurring entries are checked." %}
               </td>
             </tr>
             {% endfor %}
@@ -121,7 +121,7 @@
     {% if rows %}
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-primary">
-        <i class="bi bi-check-circle me-1"></i>{% translate "Save" %}
+        {% icon "circle-check" "me-1" %}{% translate "Save" %}
       </button>
     </div>
     {% endif %}
