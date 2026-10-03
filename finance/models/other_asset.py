@@ -74,9 +74,6 @@ class OtherAsset(BaseModel):
         default=Category.OTHER,
         verbose_name=_("Category"),
     )
-    owner = models.CharField(
-        max_length=255, blank=True, default="", verbose_name=_("Owner")
-    )
     acquisition_date = models.DateField(
         default=datetime.date.today, verbose_name=_("Acquisition date")
     )

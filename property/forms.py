@@ -7,7 +7,12 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
-from base.forms import MoneyInputGroupMixin, date_field, recurrence_end_field
+from base.forms import (
+    MoneyInputGroupMixin,
+    OwnersFormMixin,
+    date_field,
+    recurrence_end_field,
+)
 from property.models import (
     SCPI,
     AmortizationAsset,
@@ -127,7 +132,7 @@ class PropertyLedgerEntryOccurrenceForm(MoneyInputGroupMixin, forms.ModelForm):
 # ─── Property ─────────────────────────────────────────────────────────────────
 
 
-class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
+class PropertyEditForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
     """Form for editing property details."""
 
     class Meta:
@@ -591,7 +596,7 @@ class SCPISharePriceForm(MoneyInputGroupMixin, forms.ModelForm):
         self.fields["withdrawal_value"].required = False
 
 
-class SCPIInvestmentForm(MoneyInputGroupMixin, forms.ModelForm):
+class SCPIInvestmentForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
     """Form for creating and editing a SCPI investment line.
 
     Dismemberment fields are conditionally required when ownership_type is BARE or USUFRUCT.

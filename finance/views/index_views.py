@@ -103,7 +103,7 @@ def index(request):
             {
                 "model": account,
                 "progression": account.get_progression(days),
-                "holder": holders.label(account, legacy=account.owner),
+                "holder": holders.label(account),
             }
         )
 
@@ -144,7 +144,7 @@ def index(request):
                 "value": val,
                 "progression": account.get_progression(days),
                 "subentries": subentries,
-                "holder": holders.label(account, legacy=account.owner),
+                "holder": holders.label(account),
             }
         )
 

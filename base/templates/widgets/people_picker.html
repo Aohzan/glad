@@ -1,0 +1,4 @@
+<div class="people-picker d-flex flex-wrap gap-2">{% for group, options, index in widget.optgroups %}{% for option in options %}
+  <input type="checkbox" class="btn-check" name="{{ option.name }}" value="{{ option.value|stringformat:'s' }}" id="{{ option.attrs.id }}" autocomplete="off"{% if option.selected %} checked{% endif %}>
+  <label class="btn btn-sm btn-outline-primary rounded-pill" for="{{ option.attrs.id }}">{{ option.label }}</label>{% endfor %}{% endfor %}
+</div>

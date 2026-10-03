@@ -1,5 +1,6 @@
 """Custom widgets for the base app."""
 
+from django import forms
 from django.utils.html import format_html
 from djmoney.forms.widgets import MoneyWidget
 
@@ -32,3 +33,9 @@ class BootstrapMoneyWidget(MoneyWidget):
             '<div class="input-group flex-wrap">{}</div>',
             rendered,
         )
+
+
+class PeoplePicker(forms.CheckboxSelectMultiple):
+    """Checkboxes rendered as a row of toggle buttons, one per person."""
+
+    template_name = "widgets/people_picker.html"

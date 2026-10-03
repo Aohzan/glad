@@ -12,19 +12,21 @@ The value of a dismembered right follows article 669 CGI:
 
 import datetime
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import ROUND_DOWN, Decimal
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 from django.db.models import Model
 from django.urls import reverse
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
-from base.models import Ownership, display_name
+from accounts.models import is_child
+from base.models import Ownership, display_name, household_members
 from finance.models.investment_account import InvestmentAccount
 from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount
@@ -141,6 +143,81 @@ def ownerships_of(obj) -> list[Ownership]:
     )
 
 
+#: Smallest share an owner can hold (the validator of ``Ownership.share``).
+MIN_SHARE = Decimal("0.01")
+
+
+def split_equally(total: Decimal, count: int) -> list[Decimal]:
+    """*total* split in *count* shares of two decimals, the last one taking the rest."""
+    part = (total / count).quantize(MIN_SHARE, rounding=ROUND_DOWN)
+    return [part] * (count - 1) + [total - part * (count - 1)]
+
+
+class NoShareLeftError(ValueError):
+    """The other rights of the asset leave no share to the new full owners."""
+
+
+@dataclass
+class OwnersPlan:
+    """Ownership rows to delete and to save for a new selection of owners."""
+
+    delete: list[Ownership] = field(default_factory=list)
+    save: list[Ownership] = field(default_factory=list)
+
+
+def plan_owners(rows: list[Ownership], users: Iterable) -> OwnersPlan:
+    """Changes making *users* the exact owners of an asset held through *rows*.
+
+    Unselected owners are removed and the others keep their right. When the
+    full owners change (one added or one holding the full ownership removed),
+    the part held in full ownership is split equally between the remaining and
+    the new full owners, so the part held outside the household is kept. A
+    finer split or a dismembered right is set on the owners page.
+
+    Raises NoShareLeftError when the dismembered rights leave no share to the
+    new owners.
+    """
+    users = list(users)
+    selected = {user.pk for user in users}
+    current = {row.user_id for row in rows}  # ty: ignore[unresolved-attribute]
+    removed = [row for row in rows if row.user_id not in selected]  # ty: ignore[unresolved-attribute]
+    new_users = [user for user in users if user.pk not in current]
+    full = Ownership.Right.FULL
+    if not new_users and all(row.right != full for row in removed):
+        return OwnersPlan(delete=removed)
+    kept = [row for row in rows if row.user_id in selected]  # ty: ignore[unresolved-attribute]
+    if any(row.right == full for row in rows):
+        pool = sum((row.share for row in rows if row.right == full), Decimal(0))
+    else:
+        pool = Decimal(100) - max(
+            sum((row.share for row in kept if row.right == right), Decimal(0))
+            for right in (Ownership.Right.BARE, Ownership.Right.USUFRUCT)
+        )
+    holders = [row for row in kept if row.right == full] + [
+        Ownership(user=user, right=full) for user in new_users
+    ]
+    if not holders:
+        return OwnersPlan(delete=removed)
+    shares = split_equally(pool, len(holders))
+    if min(shares) < MIN_SHARE:
+        raise NoShareLeftError
+    for row, share in zip(holders, shares, strict=True):
+        row.share = share
+    return OwnersPlan(delete=removed, save=holders)
+
+
+@transaction.atomic
+def apply_owners(asset, plan: OwnersPlan) -> None:
+    """Delete and save the ownership rows of *plan* for *asset*."""
+    if plan.delete:
+        Ownership.objects.filter(pk__in=[row.pk for row in plan.delete]).delete()
+    content_type = ContentType.objects.get_for_model(asset)
+    for row in plan.save:
+        row.content_type = content_type
+        row.object_id = asset.pk
+        row.save()
+
+
 @dataclass
 class PersonWorth:
     """Net worth of one person (or of the unassigned and outside parts)."""
@@ -148,6 +225,7 @@ class PersonWorth:
     label: str
     by_kind: dict[str, Decimal] = field(default_factory=dict)
     unvalued: list[str] = field(default_factory=list)
+    is_child: bool = False
 
     @property
     def total(self) -> Decimal:
@@ -180,17 +258,20 @@ def _assets():
 def net_worth_by_person(
     currency: str | None = None, today: datetime.date | None = None
 ) -> tuple[list[PersonWorth], PersonWorth, PersonWorth]:
-    """Net worth of each user, of the unassigned assets and of outside owners.
+    """Net worth of each household member, of the unassigned assets and of outside owners.
 
     Returns ``(people, unassigned, outside)``: *unassigned* sums the assets
     without ownership row, *outside* the part of the assets held by people
-    who are not users (shares below 100 %, the other side of a dismembered
-    right). Assets in another currency than *currency* are left out.
+    who are not household members (shares below 100 %, the other side of a
+    dismembered right, former users). Assets in another currency than
+    *currency* are left out.
     """
     currency = currency or settings.DEFAULT_CURRENCY
     today = today or datetime.date.today()
-    users = list(get_user_model().objects.filter(is_active=True).order_by("pk"))
-    people = {u.pk: PersonWorth(label=display_name(u)) for u in users}
+    people = {
+        u.pk: PersonWorth(label=display_name(u), is_child=is_child(u))
+        for u in household_members()
+    }
     unassigned = PersonWorth(label=str(_("Not assigned")))
     outside = PersonWorth(label=str(_("Outside the household")))
 
@@ -212,24 +293,52 @@ def net_worth_by_person(
             continue
         held = Decimal(0)
         for owner in owners:
-            ratio = right_ratio(owner, today)
             person = people.get(owner.user_id)  # ty: ignore[unresolved-attribute]
+            if person is None:
+                continue
+            ratio = right_ratio(owner, today)
             if ratio is None:
                 # A dismembered right without date cannot be valued: its full
                 # share stays unassigned.
                 part = value * owner.share / 100
                 held += part
                 unassigned.add(kind, part)
-                if person is not None:
-                    person.unvalued.append(str(obj))
+                person.unvalued.append(str(obj))
                 continue
             part = value * owner.share / 100 * ratio
             held += part
-            if person is not None:
-                person.add(kind, part)
+            person.add(kind, part)
         if value - held > 0:
             outside.add(kind, value - held)
     return list(people.values()), unassigned, outside
+
+
+def held_ratio(
+    rows: list[Ownership],
+    people: set[int],
+    today: datetime.date,
+    *,
+    household: bool = False,
+) -> Decimal:
+    """Part of the value of an asset held by the users *people*.
+
+    With *household*, *people* are all the household members, who also hold
+    the assets without owner and the dismembered rights that cannot be valued,
+    as in :func:`net_worth_by_person`.
+    """
+    if not rows:
+        return Decimal(1) if household else Decimal(0)
+    ratio = Decimal(0)
+    for row in rows:
+        if row.user_id not in people:  # ty: ignore[unresolved-attribute]
+            continue
+        right = right_ratio(row, today)
+        if right is None:
+            if household:
+                ratio += row.share / 100
+            continue
+        ratio += row.share / 100 * right
+    return ratio
 
 
 def ownership_index() -> dict[tuple[int, int], list[Ownership]]:
@@ -240,15 +349,15 @@ def ownership_index() -> dict[tuple[int, int], list[Ownership]]:
     return index
 
 
-def holder_label(rows: list[Ownership], legacy_owner: str | None = "") -> str:
+def holder_label(rows: list[Ownership]) -> str:
     """Short name of who holds an asset, for lists and filters.
 
     A single owner is named (with the dismembered right when there is one),
-    several owners hold it jointly; without any ownership row the free-text
-    *legacy_owner* is used, else the whole household.
+    several owners hold it jointly; without any ownership row the whole
+    household holds it.
     """
     if not rows:
-        return legacy_owner or str(_("Household"))
+        return str(_("Household"))
     if len(rows) > 1:
         return str(_("Joint"))
     row = rows[0]
@@ -276,10 +385,10 @@ class HolderResolver:
             return []
         return self.index.get((content_type.pk, obj.pk), [])
 
-    def label(self, *objs, legacy: str | None = "") -> str:
+    def label(self, *objs) -> str:
         """Holder of *objs* taken together (e.g. the investments of one fund)."""
         rows: dict[int, Ownership] = {}
         for obj in objs:
             for row in self.rows(obj):
                 rows.setdefault(row.user_id, row)  # ty: ignore[unresolved-attribute]
-        return holder_label(list(rows.values()), legacy)
+        return holder_label(list(rows.values()))

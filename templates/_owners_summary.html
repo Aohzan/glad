@@ -2,10 +2,10 @@
 <span class="owners-summary">
   {% for row in rows %}
     <span class="badge bg-primary-subtle text-primary-emphasis me-1">
-      {% icon "user" "me-1" %}{{ row.user.get_full_name|default:row.user.get_username }} {{ row.share|floatformat:"-2" }}%{% if row.right != "full" %} · {{ row.get_right_display }}{% endif %}
+      {% if row.user.profile.is_child %}{% icon "baby" "me-1" %}{% else %}{% icon "user" "me-1" %}{% endif %}{{ row.user.get_full_name|default:row.user.get_username }} {{ row.share|floatformat:"-2" }}%{% if row.right != "full" %} · {{ row.get_right_display }}{% endif %}
     </span>
   {% empty %}
-    {% if legacy_owner %}<span class="me-1">{{ legacy_owner }}</span>{% else %}<span class="text-body-secondary me-1">{% translate "Household" %}</span>{% endif %}
+    <span class="badge bg-warning-subtle text-warning-emphasis me-1" title="{% translate 'Choose the owners when editing the asset.' %}">{% icon "triangle-alert" "me-1" %}{% translate "No owner" %}</span>
   {% endfor %}
   <a href="{{ manage_url }}" class="small text-decoration-none" title="{% translate 'Manage owners' %}">{% icon "square-pen" %}</a>
 </span>

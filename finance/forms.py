@@ -5,7 +5,7 @@ from datetime import datetime
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from base.forms import MoneyInputGroupMixin
+from base.forms import MoneyInputGroupMixin, OwnersFormMixin
 from finance.models.investment_account import (
     EuroFundRate,
     InvestmentAccount,
@@ -203,7 +203,6 @@ DATETIME_WIDGET = forms.DateTimeInput(
 _COMMON_ACCOUNT_WIDGETS = {
     "name": forms.TextInput(attrs={"class": "form-control"}),
     "account_type": forms.Select(attrs={"class": "form-select"}),
-    "owner": forms.TextInput(attrs={"class": "form-control"}),
     "institution": forms.TextInput(attrs={"class": "form-control"}),
     "commentaire": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
     "opening_date": DATE_WIDGET,
@@ -212,7 +211,7 @@ _COMMON_ACCOUNT_WIDGETS = {
 }
 
 
-class SavingAccountForm(MoneyInputGroupMixin, forms.ModelForm):
+class SavingAccountForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
     """Form for creating/editing a saving account."""
 
     class Meta:
@@ -220,7 +219,6 @@ class SavingAccountForm(MoneyInputGroupMixin, forms.ModelForm):
         fields = [
             "name",
             "account_type",
-            "owner",
             "institution",
             "commentaire",
             "opening_date",
@@ -263,7 +261,7 @@ class SavingAccountDepositForm(MoneyInputGroupMixin, forms.ModelForm):
         }
 
 
-class InvestmentAccountForm(MoneyInputGroupMixin, forms.ModelForm):
+class InvestmentAccountForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
     """Form for creating/editing an investment account."""
 
     class Meta:
@@ -271,7 +269,6 @@ class InvestmentAccountForm(MoneyInputGroupMixin, forms.ModelForm):
         fields = [
             "name",
             "account_type",
-            "owner",
             "institution",
             "commentaire",
             "opening_date",
@@ -404,15 +401,16 @@ class BackfillHoldingHistoryForm(forms.Form):
         return cleaned_data
 
 
-class OtherAssetForm(MoneyInputGroupMixin, forms.ModelForm):
+class OtherAssetForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
     """Form for creating/editing an other asset."""
+
+    owners_after = "category"
 
     class Meta:
         model = OtherAsset
         fields = [
             "name",
             "category",
-            "owner",
             "acquisition_date",
             "acquisition_value",
             "quantity",
@@ -425,7 +423,6 @@ class OtherAssetForm(MoneyInputGroupMixin, forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "category": forms.Select(attrs={"class": "form-select"}),
-            "owner": forms.TextInput(attrs={"class": "form-control"}),
             "acquisition_date": DATE_WIDGET,
             "quantity": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.00000001"}

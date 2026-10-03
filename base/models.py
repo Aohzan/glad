@@ -3,6 +3,7 @@
 from decimal import Decimal
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -114,8 +115,18 @@ def display_name(user) -> str:
     return user.get_full_name() or user.get_username()
 
 
+def household_members():
+    """Users who can own assets: the active users, adults first then children."""
+    return (
+        get_user_model()
+        .objects.filter(is_active=True)
+        .select_related("profile")
+        .order_by("profile__is_child", "pk")
+    )
+
+
 class Ownership(BaseModel):
-    """Share of an asset held by a household member (a Django user).
+    """Share of an asset held by a household member (a Django user, adult or child).
 
     Any asset model can be owned (saving and investment accounts, properties,
     SCPI investments, other assets) through a generic relation. An asset

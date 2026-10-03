@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 
+from base.services.ownership import HolderResolver
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountHolding,
@@ -47,6 +48,7 @@ class AccountsSummaryApiView(View):
         breakdown_values = [total_investments, total_savings]
 
         # Per-account progress bars
+        holders = HolderResolver()
         accounts = []
         for account in saving_accounts:
             prog = account.get_progression(days)
@@ -71,7 +73,7 @@ class AccountsSummaryApiView(View):
                     ),
                     "icon": "piggy-bank",
                     "type": "savings",
-                    "owner": account.owner or "",
+                    "owner": holders.label(account),
                     "is_favorite": account.is_favorite,
                 }
             )
@@ -99,7 +101,7 @@ class AccountsSummaryApiView(View):
                     ),
                     "icon": "chart-line",
                     "type": "investment",
-                    "owner": account.owner or "",
+                    "owner": holders.label(account),
                     "is_favorite": account.is_favorite,
                 }
             )

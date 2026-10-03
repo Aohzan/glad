@@ -61,23 +61,16 @@ class AbstractAccount(BaseModel):
 
     class Meta:
         abstract = True
-        ordering = ["account_type", "name", "owner", "institution"]
+        ordering = ["account_type", "name", "institution"]
         indexes = [
-            models.Index(fields=["account_type", "name", "owner", "institution"]),
+            models.Index(fields=["account_type", "name", "institution"]),
         ]
-        unique_together = ("account_type", "name", "owner", "institution")
 
     name = models.CharField(
         max_length=255,
         null=True,
         blank=True,
         help_text=_("Name of the account (optional)"),
-    )
-    owner = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text=_("Owner of the account (optional)"),
     )
     institution = models.CharField(
         max_length=255,
@@ -115,10 +108,8 @@ class AbstractAccount(BaseModel):
         return account_name + self._account_name_suffix()
 
     def _account_name_suffix(self) -> str:
-        """Return the owner / institution / closed suffix shared by all account __str__."""
+        """Return the institution / closed suffix shared by all account __str__."""
         suffix = ""
-        if self.owner:
-            suffix += f" {self.owner}"
         if self.institution:
             suffix += f" {_('at')} {self.institution}"
         if not self.is_active:

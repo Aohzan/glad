@@ -179,7 +179,7 @@ def _account_rows(model, kind, url_name, currency, holders, then):
             sub=" · ".join(
                 p for p in (account.account_type.name, account.institution) if p
             ),
-            holder=holders.label(account, legacy=account.owner),
+            holder=holders.label(account),
             value=account.get_value().amount,
             old_value=account.get_value(max_date=then).amount,
             url=reverse(url_name, kwargs={"pk": account.pk}),
@@ -235,7 +235,7 @@ def _other_rows(currency, holders, today, then):
             kind="other",
             name=asset.name,
             sub=asset.get_category_display(),  # ty: ignore[unresolved-attribute]
-            holder=holders.label(asset, legacy=asset.owner),
+            holder=holders.label(asset),
             value=asset.get_value(today).amount,
             old_value=asset.get_value(then.date()).amount,
             url=reverse("finance:other_asset_detail", kwargs={"pk": asset.pk}),
