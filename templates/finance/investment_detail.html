@@ -12,7 +12,7 @@
 
   {# ── Header ──────────────────────────────────────────────────────────────── #}
   {% url 'finance:edit_investment' account.pk as account_edit_url %}
-  {% include "finance/_account_detail_header.html" with account_icon="bi-cash-coin" account_edit_url=account_edit_url %}
+  {% include "finance/_account_detail_header.html" with account_icon="coins" account_edit_url=account_edit_url %}
 
   {# ── Info card ───────────────────────────────────────────────────────────── #}
   <div class="card mb-4">
@@ -58,13 +58,13 @@
   {# ── Holdings ────────────────────────────────────────────────────────────── #}
   <div class="card mb-4" id="holdings-panel">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>{% translate "Holdings" %}</h5>
+      <h5 class="mb-0">{% icon "chart-line" "me-2" %}{% translate "Holdings" %}</h5>
       <div class="btn-group btn-group-sm" role="group">
         <button type="button" id="toggleClosedHoldings" class="btn btn-outline-secondary" title="{% translate 'Show/hide closed holdings' %}" data-collapsed="true">
-          <i class="bi bi-archive"></i>
+          {% icon "archive" %}
         </button>
         <a href="{% url 'finance:new_holding' account.pk %}" class="btn btn-outline-primary">
-          <i class="bi bi-plus-lg me-1"></i>{% translate "Add holding" %}
+          {% icon "plus" "me-1" %}{% translate "Add holding" %}
         </a>
       </div>
     </div>
@@ -101,16 +101,16 @@
               <td class="text-end">
                 <div class="btn-group btn-group-sm">
                   <a href="{% url 'finance:new_holding_history' account.pk h.pk %}" class="btn btn-outline-primary" title="{% translate 'Add history' %}">
-                    <i class="bi bi-plus-lg"></i>
+                    {% icon "plus" %}
                   </a>
                   <a href="{% url 'finance:holding_detail' account.pk h.pk %}" class="btn btn-outline-secondary" title="{% translate 'View details' %}">
-                    <i class="bi bi-eye"></i>
+                    {% icon "eye" %}
                   </a>
                   <a href="{% url 'finance:edit_holding' account.pk h.pk %}" class="btn btn-outline-secondary" title="{% translate 'Edit' %}">
-                    <i class="bi bi-pencil"></i>
+                    {% icon "pencil" %}
                   </a>
                   <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteHolding{{ h.pk }}" title="{% translate 'Delete' %}">
-                    <i class="bi bi-trash"></i>
+                    {% icon "trash" %}
                   </button>
                 </div>
                 {% url 'finance:delete_holding' account.pk h.pk as delete_url %}
@@ -135,9 +135,9 @@
   {# ── Cash history ────────────────────────────────────────────────────────── #}
   <div class="card mb-4" id="cash-panel">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0"><i class="bi bi-cash me-2"></i>{% translate "Cash history" %}</h5>
+      <h5 class="mb-0">{% icon "banknote" "me-2" %}{% translate "Cash history" %}</h5>
       <a href="{% url 'finance:new_investment_cash' account.pk %}" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-plus-lg me-1"></i>{% translate "Add cash entry" %}
+        {% icon "plus" "me-1" %}{% translate "Add cash entry" %}
       </a>
     </div>
     <div class="card-body">
@@ -197,7 +197,7 @@
     closedRows.forEach(function (row) {
       row.style.display = collapsed ? 'none' : '';
     });
-    btn.querySelector('i').className = collapsed ? 'bi bi-archive' : 'bi bi-archive-fill';
+    btn.querySelector('svg').classList.toggle('g-icon--fill', !collapsed);
   }
   btn.addEventListener('click', function () {
     btn.dataset.collapsed = btn.dataset.collapsed === 'true' ? 'false' : 'true';

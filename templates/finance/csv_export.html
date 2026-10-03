@@ -19,7 +19,7 @@
       <p>{% translate 'Export a summary of all active saving and investment accounts with their current value.' %}</p>
       <p class="text-muted">{% translate 'Columns: Type, Owner, Institution, Value at date.' %}</p>
       <a href="{% url 'finance:csv_export_synthesis' %}" class="btn btn-primary">
-        <i class="bi bi-download me-1"></i>{% translate 'Export synthesis' %}
+        {% icon "download" "me-1" %}{% translate 'Export synthesis' %}
       </a>
     </div>
   </div>
@@ -56,10 +56,10 @@
 
         <div class="mt-4">
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-download me-1"></i>{% translate 'Export' %}
+            {% icon "download" "me-1" %}{% translate 'Export' %}
           </button>
           <a href="{% url 'finance:index' %}" class="btn btn-secondary ms-2">
-            <i class="bi bi-arrow-left me-1"></i>{% translate 'Back' %}
+            {% icon "arrow-left" "me-1" %}{% translate 'Back' %}
           </a>
         </div>
       </form>

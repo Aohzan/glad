@@ -2,9 +2,9 @@
 {# Value history table. Expects: values, parent_pk, new_value_url, edit_value_url_name, delete_value_url_name #}
 <div class="card mb-4" id="values-panel">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>{% translate "Value history" %}</h5>
+    <h5 class="mb-0">{% icon "rotate-ccw-clock" "me-2" %}{% translate "Value history" %}</h5>
     <a href="{{ new_value_url }}" class="btn btn-sm btn-outline-primary">
-      <i class="bi bi-plus-lg me-1"></i>{% translate "Add value" %}
+      {% icon "plus" "me-1" %}{% translate "Add value" %}
     </a>
   </div>
   <div class="card-body">

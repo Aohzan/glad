@@ -12,21 +12,21 @@
 
   <div class="d-flex align-items-center gap-2 mb-4">
     <a href="{% url 'finance:other_asset_list' %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>{% translate "Other assets" %}
+      {% icon "arrow-left" "me-1" %}{% translate "Other assets" %}
     </a>
-    <h1 class="h4 mb-0 ms-1"><i class="bi {{ asset.icon }} me-1"></i>{{ asset }}</h1>
+    <h1 class="h4 mb-0 ms-1">{% icon asset.icon "me-1" %}{{ asset }}</h1>
     <div class="ms-auto d-flex gap-1">
       {% if asset.has_market_price and live_data_enabled %}
       <form method="post" action="{% url 'finance:update_other_asset_price' asset.pk %}">
         {% csrf_token %}
-        <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-broadcast me-1"></i>{% translate "Update from market price" %}</button>
+        <button type="submit" class="btn btn-sm btn-outline-primary">{% icon "radio" "me-1" %}{% translate "Update from market price" %}</button>
       </form>
       {% endif %}
       <a href="{% url 'finance:edit_other_asset' asset.pk %}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+        {% icon "pencil" "me-1" %}{% translate "Edit" %}
       </a>
       <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAssetModal">
-        <i class="bi bi-trash me-1"></i>{% translate "Delete" %}
+        {% icon "trash" "me-1" %}{% translate "Delete" %}
       </button>
     </div>
   </div>

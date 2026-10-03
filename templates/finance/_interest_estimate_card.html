@@ -1,7 +1,7 @@
 {% load i18n format_money %}
 <div class="card mb-4" id="interest-panel">
   <div class="card-header">
-    <h5 class="mb-0"><i class="bi bi-percent me-2"></i>{% blocktranslate with year=estimate.year %}Interest {{ year }}{% endblocktranslate %}</h5>
+    <h5 class="mb-0">{% icon "percent" "me-2" %}{% blocktranslate with year=estimate.year %}Interest {{ year }}{% endblocktranslate %}</h5>
   </div>
   <div class="card-body">
     <div class="row">

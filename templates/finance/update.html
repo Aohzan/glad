@@ -15,7 +15,7 @@
         {% csrf_token %}
         {% if form.non_field_errors %}
           <div class="alert alert-danger" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>
+            {% icon "triangle-alert" "me-2" %}
             {{ form.non_field_errors }}
           </div>
         {% endif %}
@@ -39,14 +39,14 @@
         {{ saving_accounts_formset.management_form }}
         {% if saving_accounts_formset.non_form_errors %}
           <div class="alert alert-danger" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>
+            {% icon "triangle-alert" "me-2" %}
             {{ saving_accounts_formset.non_form_errors }}
           </div>
         {% endif %}
 
         <div class="mb-4">
           <div class="bg-secondary text-white px-3 py-2 rounded mb-2 fw-bold">
-            <i class="bi bi-piggy-bank me-1"></i>{% translate 'Saving accounts' %}
+            {% icon "piggy-bank" "me-1" %}{% translate 'Saving accounts' %}
           </div>
           {% for form in saving_accounts_formset %}
             {% include "finance/_account_update_row.html" with account_name_suffix=form.initial.account_name %}
@@ -56,15 +56,15 @@
         <!-- Investment accounts -->
         <div class="mb-3">
           <div class="bg-secondary text-white px-3 py-2 rounded mb-2 fw-bold">
-            <i class="bi bi-graph-up me-1"></i>{% translate 'Investment accounts' %}
+            {% icon "chart-line" "me-1" %}{% translate 'Investment accounts' %}
           </div>
           {% for account_name, formsets_by_type in investment_accounts_formsets.items %}
             <div class="mb-3" data-account-block>
               <div class="bg-body-secondary px-3 py-2 rounded mb-2 fw-semibold d-flex align-items-center gap-2">
-                <span><i class="bi bi-bank me-1"></i>{{ account_name }}</span>
+                <span>{% icon "landmark" "me-1" %}{{ account_name }}</span>
                 {% if live_data_enabled %}
                 <button type="button" class="btn btn-sm btn-outline-secondary fetch-all-live-values-btn py-0 px-2 ms-auto d-none">
-                  <i class="bi bi-broadcast me-1"></i>{% translate "Fetch all" %}
+                  {% icon "radio" "me-1" %}{% translate "Fetch all" %}
                 </button>
                 {% endif %}
               </div>
@@ -74,7 +74,7 @@
                 {{ formset.management_form }}
                 {% if formset.non_form_errors %}
                   <div class="alert alert-danger" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i>{{ formset.non_form_errors }}
+                    {% icon "triangle-alert" "me-2" %}{{ formset.non_form_errors }}
                   </div>
                 {% endif %}
                 {% translate 'Cash' as cash_label %}
@@ -88,7 +88,7 @@
                 {{ formset.management_form }}
                 {% if formset.non_form_errors %}
                   <div class="alert alert-danger" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i>{{ formset.non_form_errors }}
+                    {% icon "triangle-alert" "me-2" %}{{ formset.non_form_errors }}
                   </div>
                 {% endif %}
                 {% for form in formset %}
@@ -101,7 +101,7 @@
 
         <div class="mt-4">
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-circle me-1"></i>{% translate 'Valider' %}
+            {% icon "circle-check" "me-1" %}{% translate 'Valider' %}
           </button>
         </div>
       </form>

@@ -54,12 +54,12 @@ class OtherAsset(BaseModel):
         Category.OTHER: AssetClass.OTHER,
     }
     CATEGORY_ICONS = {
-        Category.VEHICLE: "bi-car-front",
-        Category.PRECIOUS_METALS: "bi-coin",
-        Category.CRYPTO: "bi-currency-bitcoin",
-        Category.COMPANY_SHARES: "bi-briefcase",
-        Category.COLLECTIBLES: "bi-palette",
-        Category.OTHER: "bi-box-seam",
+        Category.VEHICLE: "car-front",
+        Category.PRECIOUS_METALS: "coins",
+        Category.CRYPTO: "bitcoin",
+        Category.COMPANY_SHARES: "briefcase",
+        Category.COLLECTIBLES: "palette",
+        Category.OTHER: "package",
     }
 
     class Meta:
@@ -128,8 +128,8 @@ class OtherAsset(BaseModel):
 
     @property
     def icon(self) -> str:
-        """Bootstrap icon of the category."""
-        return self.CATEGORY_ICONS.get(self.category, "bi-box-seam")
+        """Lucide icon of the category."""
+        return self.CATEGORY_ICONS.get(self.category, "package")
 
     @property
     def effective_liquidity(self) -> str:
