@@ -220,7 +220,7 @@ class TestOwnershipForm:
         assert "right" not in form.fields
         user_field = form.fields["user"]
         assert isinstance(user_field, ModelChoiceField)
-        assert user_field.label_from_instance(alice) == "Alice Martin"
+        assert user_field.label_from_instance(alice) == "Alice"
 
 
 @pytest.mark.django_db

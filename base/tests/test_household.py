@@ -27,7 +27,9 @@ from finance.models.investment_account import (
 )
 from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount, SavingAccountType
+from property.forms import SCPIForm
 from property.models import Property
+from property.models.scpi import SCPI, SCPIInvestment
 
 D = datetime.date
 TODAY = D(2026, 10, 1)
@@ -223,6 +225,81 @@ class TestOwnersForm:
         assert not form.is_valid()
         assert "no share" in str(form.errors["owners"])
 
+    def test_typed_shares(self):
+        alice, bob = _user("alice"), _user("bob")
+        asset = _asset()
+        _own(asset, alice, 50)
+        _own(asset, bob, 50)
+        form = OtherAssetForm(instance=asset)
+        widget = form.fields["owners"].widget
+        assert widget.with_shares
+        assert widget.shares == {str(alice.pk): "50", str(bob.pk): "50"}
+        assert f'name="owners_share_{alice.pk}" value="50"' in str(form["owners"])
+        form = OtherAssetForm(
+            _form_data(
+                owners=[alice.pk, bob.pk],
+                **{
+                    f"owners_share_{alice.pk}": "60,5",
+                    f"owners_share_{bob.pk}": "39.5",
+                },
+            ),
+            instance=asset,
+        )
+        assert form.is_valid(), form.errors
+        form.save()
+        assert _shares(asset) == {
+            ("alice", FULL): Decimal("60.5"),
+            ("bob", FULL): Decimal("39.5"),
+        }
+        # Unchanged shares are not saved again.
+        form = OtherAssetForm(
+            _form_data(owners=[alice.pk], **{f"owners_share_{alice.pk}": "60.5"}),
+            instance=asset,
+        )
+        assert form.is_valid(), form.errors
+        assert [plan.save for _asset, plan in form.owners_plans] == [[]]
+        form.save()
+        assert _shares(asset) == {("alice", FULL): Decimal("60.5")}
+
+    @pytest.mark.parametrize(
+        ("alice_share", "bob_share", "error"),
+        [
+            ("70", "40", "exceed 100"),
+            ("70", "", "Enter the share of every owner"),
+            ("abc", "10", "Enter the share of every owner"),
+            ("0", "10", "Enter the share of every owner"),
+        ],
+    )
+    def test_invalid_shares(self, alice_share, bob_share, error):
+        alice, bob = _user("alice"), _user("bob")
+        form = OtherAssetForm(
+            _form_data(
+                owners=[alice.pk, bob.pk],
+                **{
+                    f"owners_share_{alice.pk}": alice_share,
+                    f"owners_share_{bob.pk}": bob_share,
+                },
+            )
+        )
+        assert not form.is_valid()
+        assert error in str(form.errors["owners"])
+        # The typed shares are shown again.
+        assert form.fields["owners"].widget.shares[str(alice.pk)] == alice_share
+
+    def test_no_typed_share_for_a_dismembered_asset(self):
+        alice = _user("alice")
+        asset = _asset()
+        _own(asset, alice, right=USUFRUCT, usufruct_end_date=D(2040, 1, 1))
+        form = OtherAssetForm(
+            _form_data(owners=[alice.pk], **{f"owners_share_{alice.pk}": "10"}),
+            instance=asset,
+        )
+        assert not form.fields["owners"].widget.with_shares
+        assert form.is_valid(), form.errors
+        form.save()
+        assert _shares(asset) == {("alice", USUFRUCT): Decimal(100)}
+        assert "owners_share_" not in str(OtherAssetForm(instance=asset)["owners"])
+
     def test_children_can_own(self, user_client, user):
         child = _user("child-lea", first_name="Léa")
         child.profile.is_child = True
@@ -244,6 +321,45 @@ class TestOwnersForm:
             reverse("finance:other_asset_detail", args=[asset.pk])
         )
         assert "No owner" in response.content.decode()
+
+    def test_scpi_fund_sets_the_owners_of_its_investments(self):
+        alice, bob = _user("alice"), _user("bob")
+        scpi = SCPI.objects.create(name="Owned fund")
+        investments = [
+            SCPIInvestment.objects.create(
+                scpi=scpi,
+                subscription_date=D(2020, 1, 1),
+                shares_count=Decimal(1),
+                unit_purchase_price=Money(100, CURRENCY),
+            )
+            for _index in range(2)
+        ]
+        _own(investments[0], alice)
+        form = SCPIForm(instance=scpi)
+        # The investments split their shares differently: none is shown.
+        assert form.fields["owners"].widget.shares == {}
+        form = SCPIForm(
+            {
+                "name": "Owned fund",
+                "dividend_recurrence": scpi.dividend_recurrence,
+                "owners": [alice.pk, bob.pk],
+                f"owners_share_{alice.pk}": "70",
+                f"owners_share_{bob.pk}": "30",
+            },
+            instance=scpi,
+        )
+        assert form.is_valid(), form.errors
+        form.save()
+        for investment in investments:
+            assert _shares(investment) == {
+                ("alice", FULL): Decimal(70),
+                ("bob", FULL): Decimal(30),
+            }
+        assert SCPIForm(instance=scpi).fields["owners"].widget.shares == {
+            str(alice.pk): "70",
+            str(bob.pk): "30",
+        }
+        assert "owners" not in SCPIForm().fields
 
     def test_form_pages_show_the_picker(self, user_client, user):
         for url_name in (

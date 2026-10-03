@@ -9,7 +9,7 @@ import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.core.cache import cache
-from django.template import Context, Template
+from django.template import Context, Template, TemplateSyntaxError
 from django.test import RequestFactory
 from django.urls import reverse
 from moneyed import Money
@@ -76,10 +76,12 @@ def test_shell_authenticated(admin_user):
     request = RequestFactory().get("/")
     request.user = admin_user
     request.resolver_match = SimpleNamespace(  # ty: ignore[invalid-assignment]
-        namespace="", url_name="operations"
+        namespace="", url_name="operations", view_name="operations"
     )
     context = shell(request)
     assert context["nav_section"] == "operations"
+    assert context["nav_section_url"] == reverse("operations")
+    assert context["nav_is_section_index"]
     assert context["nav_group"] == "tracking"
     assert str(context["nav_section_label"]) == "Operations"
     assert context["user_initials"] == "AD"
@@ -282,3 +284,47 @@ def test_patrimony_chart_range(admin_client, value, months):
         g == pytest.approx(n + d)
         for n, g, d in zip(data["net"], data["gross"], data["debt"], strict=True)
     )
+
+
+def _crumbs(response) -> list[str]:
+    """Breadcrumb items, links in brackets."""
+    nav = re.search(
+        r'<nav class="g-breadcrumb".*?</nav>', response.content.decode(), re.DOTALL
+    )
+    assert nav is not None
+    items = re.findall(
+        r'<a href="[^"]*">([^<]*)</a>|<span class="g-breadcrumb__current"[^>]*>([^<]*)</span>',
+        nav.group(0),
+    )
+    return [f"[{link.strip()}]" if link else current.strip() for link, current in items]
+
+
+@pytest.mark.django_db
+def test_breadcrumb_links_every_level_but_the_current_page(admin_client):
+    account = OtherAsset.objects.create(
+        name="Camper", acquisition_value=Money(1000, "EUR")
+    )
+    response = admin_client.get(reverse("finance:other_asset_list"))
+    assert _crumbs(response) == ["[Glad]", "Other assets"]
+    response = admin_client.get(
+        reverse("finance:other_asset_detail", args=[account.pk])
+    )
+    assert _crumbs(response) == ["[Glad]", "[Other assets]", "Camper"]
+    response = admin_client.get(reverse("finance:edit_other_asset", args=[account.pk]))
+    assert _crumbs(response) == ["[Glad]", "[Other assets]", "[Camper]", "Edit"]
+    assert "<title>Edit asset - Glad</title>" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_breadcrumb_outside_any_section(admin_client):
+    response = admin_client.get("/missing-page/")
+    assert _crumbs(response) == ["[Glad]", "404 - Not Found"]
+
+
+def test_capture_tag():
+    rendered = Template(
+        "{% load capture %}{% capture name %} a  <b>\n b {% endcapture %}[{{ name }}]"
+    ).render(Context())
+    assert rendered == "[a <b> b]"
+    with pytest.raises(TemplateSyntaxError):
+        Template("{% load capture %}{% capture %}{% endcapture %}")
