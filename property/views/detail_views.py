@@ -2,7 +2,6 @@
 
 import datetime
 import json
-import statistics
 from decimal import Decimal
 
 from django.contrib import messages
@@ -24,14 +23,17 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
-    PropertyLoanAmortizationEntry,
     PropertyValue,
 )
 from property.services.cashflow import build_balance_sheet
+from property.services.monthly_flows import (
+    loan_costs_by_month,
+    monthly_flows,
+    occurrences_by_month,
+)
 from property.services.rent_revision import get_rent_revision
 from property.utils import (
     add_years_safe,
-    build_loan_maps_from_loan_obj,
     build_loan_monthly_maps,
     iter_month_starts,
     month_end,
@@ -270,124 +272,6 @@ class PropertyDetailView(DetailView):
 
         return month_start(start_date), month_start(datetime.date.today())
 
-    def _occurrences_by_month(
-        self, entries, end_month: datetime.date
-    ) -> dict[tuple[int, int], Decimal]:
-        """Aggregate recurring and one-shot entries to month buckets."""
-        by_month: dict[tuple[int, int], Decimal] = {}
-        end_of_month = month_end(end_month)
-        for entry in entries:
-            for occurrence in entry.generate_occurrences(end_date=end_of_month):
-                key = (occurrence["date"].year, occurrence["date"].month)
-                by_month[key] = (
-                    by_month.get(key, Decimal(0)) + occurrence["amount"].amount
-                )
-        return by_month
-
-    def _loan_costs_by_month(
-        self,
-        loans_qs,
-    ) -> tuple[
-        dict[tuple[int, int], Decimal],
-        dict[tuple[int, int], Decimal],
-        dict[tuple[int, int], Decimal],
-    ]:
-        loan_interest_by_month: dict[tuple[int, int], Decimal] = {}
-        loan_principal_by_month: dict[tuple[int, int], Decimal] = {}
-        loan_insurance_by_month: dict[tuple[int, int], Decimal] = {}
-
-        for loan in loans_qs:
-            insurance_amount = (
-                loan.insurance.amount if loan.insurance is not None else Decimal(0)
-            )
-
-            # When amortization entries exist, use them for interest and principal.
-            amort_entries = list(
-                PropertyLoanAmortizationEntry.objects.filter(loan=loan).order_by("date")
-            )
-            if amort_entries:
-                for entry in amort_entries:
-                    key = (entry.date.year, entry.date.month)
-                    loan_interest_by_month[key] = (
-                        loan_interest_by_month.get(key, Decimal(0))
-                        + entry.interest.amount
-                    )
-                    loan_principal_by_month[key] = (
-                        loan_principal_by_month.get(key, Decimal(0))
-                        + entry.capital.amount
-                    )
-                # Insurance is not in amortization entries; derive from loan params.
-                if insurance_amount > Decimal(0) and loan.start_date and loan.end_date:
-                    _, _, insurance_map = build_loan_maps_from_loan_obj(
-                        loan, insurance_amount
-                    )
-                    for key, value in insurance_map.items():
-                        loan_insurance_by_month[key] = (
-                            loan_insurance_by_month.get(key, Decimal(0)) + value
-                        )
-                continue
-
-            # Fallback: compute from loan parameters when no amortization entries.
-            if loan.monthly_payment is None:
-                continue
-
-            interest_map, principal_map, insurance_map = build_loan_maps_from_loan_obj(
-                loan, insurance_amount
-            )
-
-            for key, value in interest_map.items():
-                loan_interest_by_month[key] = (
-                    loan_interest_by_month.get(key, Decimal(0)) + value
-                )
-            for key, value in principal_map.items():
-                loan_principal_by_month[key] = (
-                    loan_principal_by_month.get(key, Decimal(0)) + value
-                )
-            for key, value in insurance_map.items():
-                loan_insurance_by_month[key] = (
-                    loan_insurance_by_month.get(key, Decimal(0)) + value
-                )
-
-        return loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month
-
-    def _estimated_monthly_cashflow(self, property_obj: Property) -> Decimal:
-        """Estimate monthly cashflow as the median of the last 12 months."""
-        today = datetime.date.today()
-        end_month = month_start(today)
-        start_month = month_start(datetime.date(today.year - 1, today.month, 1))
-
-        entries_qs = PropertyLedgerEntry.objects.filter(
-            property=property_obj
-        ).prefetch_related("exceptions")
-        revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
-        expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
-        loans_qs = PropertyLoan.objects.filter(property=property_obj)
-
-        revenue_by_month = self._occurrences_by_month(revenues_qs, end_month)
-        expense_by_month = self._occurrences_by_month(expenses_qs, end_month)
-        loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month = (
-            self._loan_costs_by_month(loans_qs)
-        )
-
-        months = iter_month_starts(start_month, end_month)
-        monthly_cashflows = []
-        for m in months:
-            key = (m.year, m.month)
-            rev = revenue_by_month.get(key, Decimal(0))
-            exp = expense_by_month.get(key, Decimal(0))
-            interest = loan_interest_by_month.get(key, Decimal(0))
-            principal = loan_principal_by_month.get(key, Decimal(0))
-            insurance = loan_insurance_by_month.get(key, Decimal(0))
-            # Skip months with no financial activity at all (no data)
-            if not (rev or exp or interest or principal or insurance):
-                continue
-            monthly_cashflows.append(rev - exp - interest - principal - insurance)
-
-        if not monthly_cashflows:
-            return Decimal(0)
-
-        return Decimal(str(statistics.median(monthly_cashflows)))
-
     def _build_cashflow_series(
         self,
         property_obj: Property,
@@ -411,10 +295,10 @@ class PropertyDetailView(DetailView):
             property_obj, entries_qs, loans_qs
         )
 
-        revenue_by_month = self._occurrences_by_month(revenues_qs, end_month)
-        expense_by_month = self._occurrences_by_month(expenses_qs, end_month)
+        revenue_by_month = occurrences_by_month(revenues_qs, end_month)
+        expense_by_month = occurrences_by_month(expenses_qs, end_month)
         loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month = (
-            self._loan_costs_by_month(loans_qs)
+            loan_costs_by_month(loans_qs)
         )
 
         # Breakdown of expenses by management_category
@@ -756,7 +640,7 @@ class PropertyDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         property_obj = self.object
 
-        monthly_cashflow_amount = self._estimated_monthly_cashflow(property_obj)
+        monthly_cashflow_amount = monthly_flows(property_obj).cashflow
 
         property_leases = Lease.objects.filter(property=property_obj).order_by(
             "-start_date"
