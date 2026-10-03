@@ -146,6 +146,7 @@ TEMPLATES = [
                 "property.context_processors.nav_properties",
                 "finance.context_processors.nav_accounts",
             ],
+            "builtins": ["base.templatetags.icons"],
         },
     },
 ]
