@@ -78,7 +78,7 @@ class TestOtherAssetModel:
     def test_liquidity_and_icon(self):
         crypto = _asset(category=OtherAsset.Category.CRYPTO)
         assert crypto.effective_liquidity == Liquidity.IMMEDIATE
-        assert crypto.icon == "bi-currency-bitcoin"
+        assert crypto.icon == "bitcoin"
         crypto.liquidity = Liquidity.LOCKED
         assert crypto.get_effective_liquidity_display() == "Locked until a term"
         assert crypto.has_market_price is False

@@ -123,6 +123,7 @@ def test_index_view_savings_accounts_structure(
     mock_progression = MagicMock(spec=AccountProgression)
     mock_progression.net_progression = Decimal("10.00")
     mock_progression.net_difference = Money(Decimal("100.0"), "EUR")
+    mock_progression.gross_difference = Money(Decimal("100.0"), "EUR")
     mock_progression.css_class = "positive"
 
     # Setup mock saving account to return mock progression
@@ -177,6 +178,7 @@ def test_index_view_investment_accounts_structure(
     mock_progression = MagicMock(spec=AccountProgression)
     mock_progression.net_progression = Decimal("5.00")
     mock_progression.net_difference = Money(Decimal("100.0"), "EUR")
+    mock_progression.gross_difference = Money(Decimal("100.0"), "EUR")
     mock_progression.css_class = "positive"
 
     # Setup mock investment account to return mock progression
@@ -230,6 +232,7 @@ def test_index_view_custom_days_progression(
         spec=AccountProgression,
         progression=Money(Decimal("10.00"), "EUR"),
         difference=Money(Decimal("100.0"), "EUR"),
+        gross_difference=Money(Decimal("100.0"), "EUR"),
         css_class="positive",
     )
 
@@ -241,6 +244,7 @@ def test_index_view_custom_days_progression(
         spec=AccountProgression,
         progression=Money(Decimal("5.00"), "EUR"),
         difference=Money(Decimal("100.0"), "EUR"),
+        gross_difference=Money(Decimal("100.0"), "EUR"),
         css_class="positive",
     )
 

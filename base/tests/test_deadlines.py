@@ -141,7 +141,23 @@ class TestUpcomingDeadlines:
         assert deadline(90).days_left == 90
 
     def test_dashboard_shows_deadlines(self, admin_client, data):
-        response = admin_client.get(reverse("index"))
+        response = admin_client.get(reverse("dashboard_panel_overview"))
         content = response.content.decode()
         assert 'id="deadlines"' in content
-        assert "Upcoming deadlines" in content
+        assert "Watch list" in content
+
+    def test_deadlines_page(self, admin_client, data):
+        response = admin_client.get(reverse("deadlines"))
+        assert response.status_code == 200
+        upcoming = response.context["upcoming"]
+        assert all(d.days_left >= 0 for d in upcoming)
+        assert all(d.days_left < 0 for d in response.context["past"])
+        if upcoming:
+            assert str(upcoming[0].detail) in response.content.decode()
+
+    def test_helpers(self):
+        deadline = Deadline(_in(45), "t", "d", "/", "x", TODAY)
+        assert deadline.months_left == 1
+        assert not deadline.is_soon
+        assert deadline.month == deadline.date.replace(day=1)
+        assert Deadline(_in(3), "t", "d", "/", "x", TODAY).is_soon

@@ -175,7 +175,7 @@ class TestEnvelopeCard:
         content = response.content.decode()
         assert 'id="envelope-panel"' in content
         assert "Room left" in content
-        assert "bi-check-circle-fill" in content
+        assert "#circle-check" in content
 
     def test_card_hidden_without_rules(self, user_client):
         account = _investment("CTO")
