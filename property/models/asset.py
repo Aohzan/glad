@@ -616,14 +616,14 @@ class Property(BaseModel):
         return self.net_value_at_date()
 
     def net_value_at_date(self, as_of_date: datetime.date | None = None) -> Money:
+        """Value minus the loans still owed, negative for an underwater property."""
         gross = self.get_value(
             max_date=datetime.datetime.combine(as_of_date, datetime.time())
             if as_of_date
             else None
         )
         remaining = self.total_remaining_loans_at_date(as_of_date)
-        net_amount = max(Decimal(0), gross.amount - remaining.amount)
-        return Money(net_amount, str(self.currency))
+        return Money(gross.amount - remaining.amount, str(self.currency))
 
     @property
     def buying_value_gross(self) -> Money:

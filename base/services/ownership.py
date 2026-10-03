@@ -327,7 +327,7 @@ def net_worth_by_person(
             part = value * owner.share / 100 * ratio
             held += part
             person.add(kind, part)
-        if value - held > 0:
+        if value - held:
             outside.add(kind, value - held)
     return list(people.values()), unassigned, outside
 

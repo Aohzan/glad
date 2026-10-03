@@ -26,7 +26,7 @@ from base.services.ownership import (
 )
 from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount, SavingAccountType
-from property.models import Property
+from property.models import Property, PropertyLoan
 from property.models.scpi import SCPI, SCPIInvestment
 
 D = datetime.date
@@ -174,6 +174,34 @@ class TestNetWorthByPerson:
         assert by_label["bob"].unvalued == ["Owned painting"]
         assert unassigned.by_kind == {"other": Decimal(4000)}
         assert outside.by_kind == {"property": Decimal(120000)}
+
+
+@pytest.mark.django_db
+def test_outside_share_of_an_underwater_property():
+    """The share held outside the household keeps a negative equity."""
+    User.objects.exclude(username="alice").update(is_active=False)
+    alice = _user("alice", first_name="Alice")
+    prop = Property.objects.create(
+        name="Underwater flat",
+        property_type=Property.APARTMENT,
+        buying_value=Money(100000, CURRENCY),
+        buying_date=D(2020, 1, 1),
+    )
+    # The net value is taken on the actual day.
+    disbursed = datetime.date.today() - datetime.timedelta(days=5)
+    PropertyLoan.objects.create(
+        property=prop,
+        start_date=disbursed,
+        end_date=disbursed + datetime.timedelta(days=7300),
+        original_amount=Money(140000, CURRENCY),
+        interest_rate=Decimal("2.0"),
+    )
+    _own(prop, alice, 50)
+    people, _unassigned, outside = net_worth_by_person(CURRENCY, today=TODAY)
+    net = prop.net_value.amount
+    assert net < 0
+    assert {p.label: p.total for p in people}["Alice"] == net / 2
+    assert outside.by_kind == {"property": net / 2}
 
 
 @pytest.mark.django_db

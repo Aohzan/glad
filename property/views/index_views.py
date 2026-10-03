@@ -44,10 +44,7 @@ def index(request: HttpRequest) -> HttpResponse:
     for prop in properties:
         gross_value = prop.gross_value
         remaining = prop.total_remaining_loans
-        net_value = Money(
-            max(Decimal(0), gross_value.amount - remaining.amount),
-            gross_value.currency,
-        )
+        net_value = Money(gross_value.amount - remaining.amount, gross_value.currency)
         cashflow = monthly_flows(prop, today).cashflow if prop.is_active else None
 
         if prop.is_active:

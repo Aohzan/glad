@@ -21,7 +21,7 @@ from finance.models.investment_account import (
 )
 from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount, SavingAccountType
-from property.models import Property
+from property.models import Property, PropertyLoan
 from property.models.scpi import SCPI, SCPIInvestment, SCPISharePrice
 
 CURRENCY = "XAU"  # isolates the test data from any other fixture
@@ -140,6 +140,21 @@ class TestComputeAllocation:
         assert by_liquidity[Liquidity.IMMEDIATE] == Decimal(12000)
         assert by_liquidity[Liquidity.CONDITIONAL] == Decimal(6500)
         assert by_liquidity[Liquidity.ILLIQUID] == Decimal(102000)
+
+    def test_underwater_property_counts_zero(self, assets):
+        """A pie chart cannot show the negative equity of a property."""
+        prop = Property.objects.get(name="Alloc flat")
+        PropertyLoan.objects.create(
+            property=prop,
+            start_date=datetime.date(2020, 1, 1),
+            end_date=datetime.date(2045, 1, 1),
+            original_amount=Money(500000, CURRENCY),
+            interest_rate=Decimal("2.0"),
+        )
+        allocation = compute_allocation(CURRENCY)
+        by_class = {r.key: r.amount for r in allocation.by_asset_class()}
+        # Only the SCPI is left in real estate.
+        assert by_class[AssetClass.REAL_ESTATE] == Decimal(2000)
 
     def test_other_currency_is_ignored(self, assets):
         assert compute_allocation("JPY").items == []

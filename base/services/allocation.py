@@ -178,7 +178,9 @@ def compute_allocation(currency: str, people: set[int] | None = None) -> Allocat
             items.append(
                 AllocationItem(
                     label=str(prop),
-                    amount=prop.net_value.amount * ratio,
+                    # A pie chart cannot show the negative equity of an
+                    # underwater property.
+                    amount=max(Decimal(0), prop.net_value.amount) * ratio,
                     asset_class=AssetClass.REAL_ESTATE,
                     liquidity=Liquidity.ILLIQUID,
                 )

@@ -197,7 +197,7 @@ def _property_rows(currency, holders, then):
             name=prop.name,
             sub=prop.city or prop.get_property_type_display(),  # ty: ignore[unresolved-attribute]
             holder=holders.label(prop),
-            value=max(Decimal(0), gross - remaining),
+            value=gross - remaining,
             old_value=prop.net_value_at_date(then.date()).amount,
             url=reverse("property:detail", kwargs={"pk": prop.pk}),
             gross=gross,

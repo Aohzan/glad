@@ -30,7 +30,7 @@
         <span class="g-muted text-truncate">{{ r.holder }}</span>
         <span class="g-cell-end g-strong">{{ r.value|money0:currency }}</span>
         <span class="g-cell-end {{ r.change_pct|tone }}">{{ r.change_pct|pct }}</span>
-        <span class="g-weight"><span class="g-bar g-bar--thin"><span style="width:{{ r.value|percent_of:max_value|css_pct:3 }}"></span></span><span class="g-weight__pct">{{ r.value|percent_of:hero.net|share }}</span></span>
+        <span class="g-weight"><span class="g-bar g-bar--thin"><span style="width:{% if r.value > 0 %}{{ r.value|percent_of:max_value|css_pct:3 }}{% else %}0%{% endif %}"></span></span><span class="g-weight__pct">{{ r.value|percent_of:hero.net|share }}</span></span>
       </a>
       {% endfor %}
       {% endfor %}

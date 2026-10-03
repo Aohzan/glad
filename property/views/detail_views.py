@@ -214,9 +214,7 @@ class PropertyDetailView(DetailView):
                     max_date=datetime.datetime.combine(chart_date, datetime.time.max),
                 )
             historical_debt = property_obj.total_remaining_loans_at_date(chart_date)
-            net_amount = max(
-                Decimal(0), historical_value.amount - historical_debt.amount
-            )
+            net_amount = historical_value.amount - historical_debt.amount
             value_history_series.append(
                 {"x": chart_date.isoformat(), "y": float(historical_value.amount)}
             )
@@ -227,7 +225,7 @@ class PropertyDetailView(DetailView):
                 {"x": chart_date.isoformat(), "y": float(net_amount)}
             )
 
-        current_net = max(Decimal(0), current_value.amount - current_debt.amount)
+        current_net = current_value.amount - current_debt.amount
         value_projection_series = [
             {"x": today.isoformat(), "y": float(current_value.amount)}
         ]

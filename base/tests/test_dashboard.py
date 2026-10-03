@@ -122,6 +122,28 @@ class TestRegistry:
         assert hero.debt > 0
         assert 0 < hero.debt_ratio < 100
 
+    def test_underwater_property_shows_its_negative_equity(self, assets):
+        """The net value and the debts keep a loan above the property value."""
+        prop = assets["property"]
+        PropertyLoan.objects.create(
+            property=prop,
+            name="Works",
+            start_date=TODAY - datetime.timedelta(days=10),
+            end_date=TODAY + datetime.timedelta(days=3650),
+            original_amount=_money(100000),
+            monthly_payment=_money(900),
+            interest_rate=Decimal("1.0"),
+        )
+        groups = dashboard.registry(CURRENCY, TODAY)
+        row = next(g for g in groups if g.kind == "property").rows[0]
+        owed = prop.total_remaining_loans_at_date(TODAY).amount
+        assert row.gross is not None
+        assert owed > row.gross
+        assert row.value == row.gross - owed
+        hero = dashboard.hero_summary(groups, CURRENCY, TODAY)
+        assert hero.debt == owed
+        assert hero.gross == hero.net + owed
+
     def test_empty_currency(self, db):
         groups = dashboard.registry("XPT", TODAY)
         assert groups == []

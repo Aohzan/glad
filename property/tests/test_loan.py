@@ -390,7 +390,7 @@ class PropertyWithLoansTestCase(TestCase):
         )
 
         # Large loan
-        PropertyLoan.objects.create(
+        loan = PropertyLoan.objects.create(
             property=property_underwater,
             name="Large Loan",
             start_date=datetime.date.today() - datetime.timedelta(days=30),
@@ -399,5 +399,7 @@ class PropertyWithLoansTestCase(TestCase):
             monthly_payment=Money(1000, "EUR"),
         )
 
-        # Net value should not go below zero
-        self.assertEqual(property_underwater.net_value.amount, Decimal(0))
+        # The equity is negative: the loan owes more than the property is worth.
+        owed = loan.remaining_balance().amount
+        self.assertGreater(owed, Decimal(250000))
+        self.assertEqual(property_underwater.net_value.amount, Decimal(250000) - owed)
