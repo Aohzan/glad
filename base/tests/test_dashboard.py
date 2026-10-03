@@ -122,6 +122,25 @@ class TestRegistry:
         assert hero.debt > 0
         assert 0 < hero.debt_ratio < 100
 
+    def test_chart_ends_on_the_hero_figures(self, assets, admin_client):
+        """The last point of the evolution chart is today's net worth."""
+        SavingAccountValue.objects.create(
+            account=assets["saving"],
+            value=_money(950),
+            value_date=datetime.datetime.now(),
+        )
+        OtherAsset.objects.create(
+            name="Lost coin",
+            acquisition_date=TODAY - datetime.timedelta(days=100),
+            acquisition_value=_money(700),
+            is_active=False,
+        )
+        groups = dashboard.registry(CURRENCY, TODAY)
+        hero = dashboard.hero_summary(groups, CURRENCY, TODAY)
+        today = dashboard.net_worth_history([TODAY], CURRENCY, TODAY)[0]
+        assert dashboard._history_net(today) == hero.net
+        assert today["properties_gross"] - today["properties_net"] == hero.debt
+
     def test_underwater_property_shows_its_negative_equity(self, assets):
         """The net value and the debts keep a loan above the property value."""
         prop = assets["property"]

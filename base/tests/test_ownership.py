@@ -288,15 +288,49 @@ class TestViews:
         response = user_client.post(reverse("delete_ownership", args=[ownership.pk]))
         assert response.url == reverse("owners")
 
-    def test_overview_and_birth_date(self, user_client, user):
+    def test_overview_without_missing_birth_date(self, user_client):
         response = user_client.get(reverse("owners"))
         assert response.status_code == 200
-        response = user_client.post(reverse("owners"), {"birth_date": "1980-05-01"})
-        assert response.status_code == 302
-        user.profile.refresh_from_db()
-        assert user.profile.birth_date == D(1980, 5, 1)
-        response = user_client.post(reverse("owners"), {"birth_date": "bad"})
-        assert response.status_code == 200
+        assert response.context["missing_birth_dates"] == []
+        assert 'name="birth_date"' not in response.content.decode()
+
+    def test_overview_asks_for_missing_birth_dates(self, admin_client, client):
+        """Only the holders of a life usufruct without birth date are listed."""
+        adult = _user("adult", first_name="Adult")
+        child = _user("kid", first_name="Kid")
+        child.profile.is_child = True
+        child.profile.save()
+        dated = _user("dated", first_name="Dated")
+        dated.profile.birth_date = D(1950, 1, 1)
+        dated.profile.save()
+        temporary = _user("temporary", first_name="Temporary")
+        bare = _user("bare", first_name="Bare")
+        account = _saving()
+        for holder in (adult, child, dated):
+            _own(account, holder, 20, Ownership.Right.USUFRUCT)
+        _own(
+            account,
+            temporary,
+            20,
+            Ownership.Right.USUFRUCT,
+            usufruct_end_date=D(2040, 1, 1),
+        )
+        _own(account, bare, 20, Ownership.Right.BARE)
+
+        response = admin_client.get(reverse("owners"))
+        listed = response.context["missing_birth_dates"]
+        assert [p["name"] for p in listed] == ["Adult", "Kid"]
+        content = response.content.decode()
+        adult_url = reverse(
+            "admin:accounts_userprofile_change", args=[adult.profile.pk]
+        )
+        assert adult_url in content
+        assert reverse("admin:accounts_child_change", args=[child.pk]) in content
+
+        client.force_login(adult)
+        content = client.get(reverse("owners")).content.decode()
+        assert "Adult" in content
+        assert adult_url not in content
 
     def test_summary_on_detail_page(self, user_client, user):
         account = _saving()

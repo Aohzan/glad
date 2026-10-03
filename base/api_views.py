@@ -256,8 +256,10 @@ class PatrimonyChartApiView(View):
             years = self.DEFAULT_RANGE
         if years not in self.RANGES:
             years = self.DEFAULT_RANGE
-        months = month_starts(years * 12)
-        history = net_worth_history(months, dc)
+        # The last point is today, so that it matches the hero card figures.
+        today = datetime.date.today()
+        months = [*month_starts(years * 12, today)[:-1], today]
+        history = net_worth_history(months, dc, today)
 
         def series(name: str) -> list[float]:
             return [float(values[name]) for values in history]

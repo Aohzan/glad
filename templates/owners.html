@@ -5,17 +5,17 @@
 
 {% block content %}
 <div class="container py-4">
-  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
-    <h1 class="mb-0 h3">{% icon "users" "me-2 text-primary" %}{% translate "Net worth by owner" %}</h1>
-    <form method="post" class="d-flex gap-2 align-items-end">
-      {% csrf_token %}
-      <div>
-        <label for="{{ birth_form.birth_date.id_for_label }}" class="form-label small mb-1">{{ birth_form.birth_date.label }}</label>
-        {{ birth_form.birth_date }}
-      </div>
-      <button type="submit" class="btn btn-outline-primary">{% translate "Save" %}</button>
-    </form>
+  <h1 class="mb-4 h3">{% icon "users" "me-2 text-primary" %}{% translate "Net worth by owner" %}</h1>
+  {% if missing_birth_dates %}
+  <div class="alert alert-warning" role="alert">
+    {% icon "triangle-alert" "me-2" %}
+    {% translate "A life usufruct is valued according to the age of its holder (scale of article 669 of the French tax code). Until the birth date is entered, the share of the asset is counted as not assigned." %}
+    <div class="mt-2">
+      {% translate "Enter the birth date in the administration for:" %}
+      {% for person in missing_birth_dates %}{% if user.is_staff %}<a href="{{ person.admin_url }}" class="alert-link">{{ person.name }}</a>{% else %}{{ person.name }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
   </div>
+  {% endif %}
   <div class="row g-3">
     {% for person in people %}{% if person.is_child %}{% include "_person_worth_card.html" with icon="baby" %}{% else %}{% include "_person_worth_card.html" with icon="user" %}{% endif %}{% endfor %}
     {% if unassigned.total %}{% include "_person_worth_card.html" with person=unassigned icon="house-heart" %}{% endif %}

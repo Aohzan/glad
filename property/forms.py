@@ -13,6 +13,8 @@ from base.forms import (
     date_field,
     recurrence_end_field,
 )
+from base.widgets import SuggestionsTextInput
+from finance.forms import INSTITUTION_SOURCES
 from property.models import (
     SCPI,
     AmortizationAsset,
@@ -85,7 +87,9 @@ class PropertyLedgerEntryBaseForm(MoneyInputGroupMixin, forms.ModelForm):
             "management_category": forms.Select(attrs={"class": "form-select"}),
             "recurrence_type": forms.Select(attrs={"class": "form-select"}),
             "description": forms.TextInput(attrs={"class": "form-control"}),
-            "third_party": forms.TextInput(attrs={"class": "form-control"}),
+            "third_party": SuggestionsTextInput(
+                [(PropertyLedgerEntry, "third_party")], attrs={"class": "form-control"}
+            ),
             "lease": forms.Select(attrs={"class": "form-select"}),
             "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
@@ -228,7 +232,9 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
         ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "lender": forms.TextInput(attrs={"class": "form-control"}),
+            "lender": SuggestionsTextInput(
+                INSTITUTION_SOURCES, attrs={"class": "form-control"}
+            ),
             "bank_reference": forms.TextInput(attrs={"class": "form-control"}),
             "start_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
@@ -411,6 +417,7 @@ class ManagementMandateForm(MoneyInputGroupMixin, forms.ModelForm):
             "notes",
         ]
         widgets = {
+            "manager_name": SuggestionsTextInput([(ManagementMandate, "manager_name")]),
             "manager_address": forms.Textarea(attrs={"rows": 2}),
             "start_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "end_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
@@ -581,7 +588,9 @@ class SCPIForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
         ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "management_company": forms.TextInput(attrs={"class": "form-control"}),
+            "management_company": SuggestionsTextInput(
+                [(SCPI, "management_company")], attrs={"class": "form-control"}
+            ),
             "entry_fee_rate": forms.NumberInput(
                 attrs={
                     "class": "form-control",

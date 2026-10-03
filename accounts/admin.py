@@ -13,7 +13,13 @@ from .models import Child, UserProfile
 class UserProfileAdmin(admin.ModelAdmin):
     """Admin for UserProfile."""
 
-    list_display = ("user", "is_child", "notify_on_login", "live_data_enabled")
+    list_display = (
+        "user",
+        "is_child",
+        "birth_date",
+        "notify_on_login",
+        "live_data_enabled",
+    )
     list_filter = ("is_child",)
     search_fields = ("user__username", "user__first_name")
 

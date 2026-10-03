@@ -56,7 +56,10 @@
 
   function monthLabel(iso, long) {
     var date = new Date(iso + 'T00:00:00');
-    return new Intl.DateTimeFormat(lang, long ? { month: 'long', year: 'numeric' } : { month: 'short', year: '2-digit' }).format(date);
+    var options = long ? { month: 'long', year: 'numeric' } : { month: 'short', year: '2-digit' };
+    // The last point is today: its tooltip shows the day.
+    if (long && date.getDate() !== 1) options.day = 'numeric';
+    return new Intl.DateTimeFormat(lang, options).format(date);
   }
 
   function chartOptions(data) {

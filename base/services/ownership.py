@@ -80,6 +80,18 @@ def usufruct_percent(ownership: Ownership, as_of: datetime.date) -> int | None:
     return life_usufruct_percent(birth_date, as_of)
 
 
+def missing_birth_dates() -> list:
+    """Holders of a life usufruct that cannot be valued without their birth date."""
+    holders = Ownership.objects.filter(
+        right=Ownership.Right.USUFRUCT,
+        usufruct_end_date__isnull=True,
+        usufructuary_birth_date__isnull=True,
+        user__profile__isnull=False,
+        user__profile__birth_date__isnull=True,
+    ).values("user")
+    return list(household_members().filter(pk__in=holders))
+
+
 def right_ratio(ownership: Ownership, as_of: datetime.date) -> Decimal | None:
     """Part of the full value the right is worth (1 for full ownership)."""
     if ownership.right == Ownership.Right.FULL:

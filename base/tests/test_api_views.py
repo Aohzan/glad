@@ -367,6 +367,8 @@ def test_patrimony_chart_structure(admin_client):
     assert "properties_loans" in data
     assert "scpi" in data
     assert len(data["months"]) == 25
+    assert data["dates"][-1] == datetime.date.today().isoformat()
+    assert data["dates"][-2].endswith("-01")
 
 
 @pytest.mark.django_db

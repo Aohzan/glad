@@ -78,13 +78,43 @@ class TestHistory:
         monkeypatch.setattr(
             snapshots,
             "compute_month",
-            lambda assets, month: calls.append(month) or original(assets, month),
+            lambda assets, month, at=None: (
+                calls.append(month) or original(assets, month, at)
+            ),
         )
         history = net_worth_history(
             [D(2024, 1, 1), D(2024, 2, 1)], CURRENCY, today=D(2024, 4, 1)
         )
         assert history[0]["other"] == Decimal(42)
         assert calls == [D(2024, 2, 1)]
+
+    def test_today_reads_the_values_of_the_whole_day(self, saving_account_type):
+        """The live point counts a value saved later today; a month start does not."""
+        account = SavingAccount.objects.create(
+            name="Snapshot passbook",
+            account_type=saving_account_type,
+            opening_value=Money(100, CURRENCY),
+            opening_date=D(2024, 1, 1),
+        )
+        SavingAccountValue.objects.create(
+            account=account,
+            value=Money(300, CURRENCY),
+            value_date=datetime.datetime(2024, 4, 1, 18, 30),
+        )
+        history = net_worth_history([D(2024, 4, 1)], CURRENCY, today=D(2024, 4, 1))
+        assert history[0]["savings"] == Decimal(300)
+        history = net_worth_history([D(2024, 4, 1)], CURRENCY, today=D(2024, 4, 20))
+        assert history[0]["savings"] == Decimal(100)
+
+    def test_inactive_asset_without_sale_is_left_out(self, asset):
+        asset.is_active = False
+        asset.save()
+        history = net_worth_history([D(2024, 5, 1)], CURRENCY, today=D(2024, 4, 1))
+        assert history[0]["other"] == Decimal(0)
+        asset.sold_date = D(2024, 6, 1)
+        asset.save()
+        history = net_worth_history([D(2024, 5, 1)], CURRENCY, today=D(2024, 4, 1))
+        assert history[0]["other"] == Decimal(1500)
 
     def test_unvaluable_asset_counts_as_zero(self, asset, monkeypatch):
         def _fail(self, max_date=None):

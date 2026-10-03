@@ -1,11 +1,14 @@
 """Forms for the finance app."""
 
 from datetime import datetime
+from typing import cast
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from moneyed import Money
 
 from base.forms import MoneyInputGroupMixin, OwnersFormMixin
+from base.widgets import SuggestionsTextInput
 from finance.models.investment_account import (
     EuroFundRate,
     InvestmentAccount,
@@ -19,6 +22,18 @@ from finance.models.saving_account import (
     SavingAccount,
     SavingAccountDeposit,
     SavingAccountValue,
+)
+from property.models import PropertyLoan
+
+# Fields holding a bank name: suggest the same spellings on accounts and loans.
+INSTITUTION_SOURCES = (
+    (SavingAccount, "institution"),
+    (InvestmentAccount, "institution"),
+    (PropertyLoan, "lender"),
+)
+DEPOSIT_SOURCE_SOURCES = (
+    (SavingAccountDeposit, "source"),
+    (InvestmentAccountDeposit, "source"),
 )
 
 # CSV Import/Export choices
@@ -203,12 +218,77 @@ DATETIME_WIDGET = forms.DateTimeInput(
 _COMMON_ACCOUNT_WIDGETS = {
     "name": forms.TextInput(attrs={"class": "form-control"}),
     "account_type": forms.Select(attrs={"class": "form-select"}),
-    "institution": forms.TextInput(attrs={"class": "form-control"}),
+    "institution": SuggestionsTextInput(
+        INSTITUTION_SOURCES, attrs={"class": "form-control"}
+    ),
     "commentaire": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
     "opening_date": DATE_WIDGET,
     "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
     "closing_date": DATE_WIDGET,
 }
+
+
+class AddToPreviousValueMixin:
+    """Let a new value entry be typed as an amount added to the previous value.
+
+    On creation, the form gains an optional ``amount_to_add`` field. When it is
+    filled instead of ``value``, the saved value is the parent's value at the
+    entry date plus that amount. Apply it before ``forms.ModelForm``.
+    """
+
+    parent_field = "account"
+    date_field = "value_date"
+    # Method of the parent returning its value at a given date.
+    value_at = "get_value"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        form = cast(forms.ModelForm, self)
+        instance = form.instance
+        if (
+            instance.pk is not None
+            or getattr(instance, f"{self.parent_field}_id") is None
+        ):
+            return
+        form.fields["value"].required = False
+        form.fields["amount_to_add"] = forms.DecimalField(
+            label=_("Or amount to add"),
+            required=False,
+            max_digits=12,
+            decimal_places=2,
+            localize=True,
+            help_text=_(
+                "Added to the previous value at the chosen date. "
+                "Use a negative amount to subtract."
+            ),
+            widget=forms.TextInput(
+                attrs={"class": "form-control", "inputmode": "decimal"}
+            ),
+        )
+
+    def clean(self):
+        form = cast(forms.ModelForm, self)
+        cleaned_data = super().clean() or {}  # ty: ignore[unresolved-attribute]
+        if "amount_to_add" not in form.fields:
+            return cleaned_data
+        amount = cleaned_data.get("amount_to_add")
+        has_value = cleaned_data.get("value") is not None
+        if amount is None:
+            if not has_value and "value" not in form.errors:
+                form.add_error("value", form.fields["value"].error_messages["required"])
+            return cleaned_data
+        if has_value:
+            form.add_error(
+                "amount_to_add",
+                _("Fill in either the new value or the amount to add, not both."),
+            )
+            return cleaned_data
+        when = cleaned_data.get(self.date_field)
+        if when is not None:
+            parent = getattr(form.instance, self.parent_field)
+            previous: Money = getattr(parent, self.value_at)(when)
+            cleaned_data["value"] = previous + Money(amount, previous.currency)
+        return cleaned_data
 
 
 class SavingAccountForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
@@ -235,7 +315,9 @@ class SavingAccountForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
         }
 
 
-class SavingAccountValueForm(MoneyInputGroupMixin, forms.ModelForm):
+class SavingAccountValueForm(
+    AddToPreviousValueMixin, MoneyInputGroupMixin, forms.ModelForm
+):
     """Form for creating/editing a saving account value entry."""
 
     class Meta:
@@ -254,7 +336,9 @@ class SavingAccountDepositForm(MoneyInputGroupMixin, forms.ModelForm):
         fields = ["amount", "deposit_date", "source", "update_account_value"]
         widgets = {
             "deposit_date": DATETIME_WIDGET,
-            "source": forms.TextInput(attrs={"class": "form-control"}),
+            "source": SuggestionsTextInput(
+                DEPOSIT_SOURCE_SOURCES, attrs={"class": "form-control"}
+            ),
             "update_account_value": forms.CheckboxInput(
                 attrs={"class": "form-check-input"}
             ),
@@ -315,7 +399,9 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
                 }
             ),
             "fees": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
-            "issuer": forms.TextInput(attrs={"class": "form-control"}),
+            "issuer": SuggestionsTextInput(
+                [(InvestmentAccountHolding, "issuer")], attrs={"class": "form-control"}
+            ),
             "asset_class": forms.Select(attrs={"class": "form-select"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "initial_quantity": forms.NumberInput(
@@ -325,8 +411,12 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
         }
 
 
-class InvestmentAccountCashForm(MoneyInputGroupMixin, forms.ModelForm):
+class InvestmentAccountCashForm(
+    AddToPreviousValueMixin, MoneyInputGroupMixin, forms.ModelForm
+):
     """Form for creating/editing an investment account cash entry."""
+
+    value_at = "get_cash_value"
 
     class Meta:
         model = InvestmentAccountCash
@@ -344,7 +434,9 @@ class InvestmentAccountDepositForm(MoneyInputGroupMixin, forms.ModelForm):
         fields = ["amount", "deposit_date", "source", "update_account_cash"]
         widgets = {
             "deposit_date": DATE_WIDGET,
-            "source": forms.TextInput(attrs={"class": "form-control"}),
+            "source": SuggestionsTextInput(
+                DEPOSIT_SOURCE_SOURCES, attrs={"class": "form-control"}
+            ),
             "update_account_cash": forms.CheckboxInput(
                 attrs={"class": "form-check-input"}
             ),
@@ -445,8 +537,12 @@ class OtherAssetForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
         return cleaned
 
 
-class OtherAssetValueForm(MoneyInputGroupMixin, forms.ModelForm):
+class OtherAssetValueForm(
+    AddToPreviousValueMixin, MoneyInputGroupMixin, forms.ModelForm
+):
     """Form for creating/editing an other asset value entry."""
+
+    parent_field = "asset"
 
     class Meta:
         model = OtherAssetValue

@@ -2,9 +2,10 @@
 
 Computing the value of every asset at every month start is slow, and the past
 rarely changes: past months are stored in ``NetWorthSnapshot`` the first time
-they are needed, the current month is always computed live. Any change to a
-value, an account or an asset deletes the snapshots it may affect (see
-``base.signals``), so the history stays exact.
+they are needed, the current month is always computed live. The chart ends on
+today rather than on the current month start, so its last point matches the
+figures of the dashboard. Any change to a value, an account or an asset deletes
+the snapshots it may affect (see ``base.signals``), so the history stays exact.
 """
 
 import datetime
@@ -93,13 +94,15 @@ def _account_value(account, at: datetime.datetime):
         return account.get_value(max_date=at.date())
 
 
-def compute_month(assets: _Assets, month: datetime.date) -> dict[str, Decimal]:
-    """Value of every series at the start of *month*.
+def compute_month(
+    assets: _Assets, month: datetime.date, at: datetime.datetime | None = None
+) -> dict[str, Decimal]:
+    """Value of every series on *month*, reading the dated values up to *at*.
 
-    An asset that cannot be valued counts as zero rather than breaking the
-    whole history.
+    *at* defaults to the start of *month*. An asset that cannot be valued counts
+    as zero rather than breaking the whole history.
     """
-    at = datetime.datetime.combine(month, datetime.time())
+    at = at or datetime.datetime.combine(month, datetime.time())
     values = dict.fromkeys(SERIES, Decimal(0))
     for account in assets.saving_accounts:
         if _is_held(account, month):
@@ -118,7 +121,9 @@ def compute_month(assets: _Assets, month: datetime.date) -> dict[str, Decimal]:
     for investment in assets.scpi_investments:
         values["scpi"] += _amount(investment, lambda i: i.get_estimated_value(month))
     for asset in assets.other_assets:
-        values["other"] += _amount(asset, lambda a: a.get_value(month))
+        # An inactive asset without a sale date is left out, as on the dashboard.
+        if asset.is_active or asset.sold_date:
+            values["other"] += _amount(asset, lambda a: a.get_value(month))
     return values
 
 
@@ -136,9 +141,11 @@ def net_worth_history(
     """Series values for each of *months*, from the snapshots when available.
 
     Missing past months are computed and stored; the current month (and any
-    later one) is computed without being stored.
+    later one) is computed without being stored. A day from *today* on reads
+    every value dated up to the end of that day, like the dashboard figures.
     """
-    current = (today or datetime.date.today()).replace(day=1)
+    today = today or datetime.date.today()
+    current = today.replace(day=1)
     stored = {
         s.month: s
         for s in NetWorthSnapshot.objects.filter(currency=currency, month__in=months)
@@ -152,7 +159,12 @@ def net_worth_history(
             continue
         if assets is None:
             assets = _load_assets(currency)
-        values = compute_month(assets, month)
+        at = (
+            datetime.datetime.combine(month, datetime.time.max)
+            if month >= today
+            else None
+        )
+        values = compute_month(assets, month, at)
         if month < current:
             NetWorthSnapshot.objects.update_or_create(
                 month=month, currency=currency, defaults=values

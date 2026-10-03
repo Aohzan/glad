@@ -7,14 +7,17 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from base.forms import BirthDateForm, OwnershipForm
-from base.models import Ownership
+from accounts.models import is_child
+from base.forms import OwnershipForm
+from base.models import Ownership, display_name
 from base.services.ownership import (
     ASSET_KINDS,
     kind_of,
+    missing_birth_dates,
     net_worth_by_person,
     ownerships_of,
     right_ratio,
@@ -74,17 +77,7 @@ def delete_ownership(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 def owners_overview(request: HttpRequest) -> HttpResponse:
-    """Net worth of each household member, and the birth date of the user."""
-    profile = request.user.profile  # ty: ignore[unresolved-attribute]
-    if request.method == "POST":
-        birth_form = BirthDateForm(request.POST)
-        if birth_form.is_valid():
-            profile.birth_date = birth_form.cleaned_data["birth_date"]
-            profile.save(update_fields=["birth_date"])
-            messages.success(request, _("Birth date saved."))
-            return redirect("owners")
-    else:
-        birth_form = BirthDateForm(initial={"birth_date": profile.birth_date})
+    """Net worth of each household member."""
     people, unassigned, outside = net_worth_by_person()
     return render(
         request,
@@ -95,6 +88,16 @@ def owners_overview(request: HttpRequest) -> HttpResponse:
             "outside": outside,
             "kinds": ASSET_KINDS,
             "currency": settings.DEFAULT_CURRENCY,
-            "birth_form": birth_form,
+            "missing_birth_dates": [
+                {"name": display_name(user), "admin_url": _profile_admin_url(user)}
+                for user in missing_birth_dates()
+            ],
         },
     )
+
+
+def _profile_admin_url(user) -> str:
+    """Admin page where the birth date of a household member is entered."""
+    if is_child(user):
+        return reverse("admin:accounts_child_change", args=[user.pk])
+    return reverse("admin:accounts_userprofile_change", args=[user.profile.pk])

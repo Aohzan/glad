@@ -321,15 +321,3 @@ class PeopleFilterForm(forms.Form):
         chosen = {user.pk for user in self.cleaned_data["people"]}
         members = {user.pk for user in self.fields["people"].queryset}  # ty: ignore[unresolved-attribute]
         return chosen if chosen and chosen != members else None
-
-
-class BirthDateForm(forms.Form):
-    """Birth date of the current user, used to value a life usufruct."""
-
-    birth_date = forms.DateField(
-        label=_("My birth date"),
-        required=False,
-        widget=forms.DateInput(
-            attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
-        ),
-    )
