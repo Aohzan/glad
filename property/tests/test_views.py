@@ -169,17 +169,43 @@ def test_property_index_handles_property_calculation_exception(
         is_active=True,
     )
 
-    original_get_value = Property.get_value
+    original_remaining = Property.total_remaining_loans_at_date
 
-    def _patched_get_value(self, max_date=None):
-        if max_date is not None:
+    def _patched_remaining(self, as_of_date=None):
+        if as_of_date is not None:
             raise RuntimeError("boom")
-        return original_get_value(self, max_date=max_date)
+        return original_remaining(self, as_of_date)
 
-    monkeypatch.setattr(Property, "get_value", _patched_get_value)
+    monkeypatch.setattr(Property, "total_remaining_loans_at_date", _patched_remaining)
 
     response = user_client.get(reverse("property:index"))
     assert response.status_code == 200
+    assert set(response.context["properties_net_evolution"]) == {0.0}
+
+
+@pytest.mark.django_db
+def test_property_index_chart_queries_do_not_grow_with_history(
+    user_client, django_assert_max_num_queries
+):
+    """The monthly chart reads the valuations once, not per property and month."""
+    for index in range(3):
+        prop = Property.objects.create(
+            name=f"Old flat {index}",
+            property_type=Property.APARTMENT,
+            buying_value=Money(100000, "EUR"),
+            buying_date=datetime.date.today() - datetime.timedelta(days=3650),
+        )
+        PropertyValue.objects.create(
+            property=prop,
+            value=Money(120000, "EUR"),
+            valuation_date=datetime.date.today() - datetime.timedelta(days=1800),
+        )
+
+    with django_assert_max_num_queries(60):
+        response = user_client.get(reverse("property:index"))
+
+    assert len(response.context["properties_months"]) > 100
+    assert response.context["properties_gross_evolution"][-1] == 360000.0
 
 
 @pytest.mark.django_db

@@ -12,13 +12,19 @@ from moneyed import Money
 from base.models import NetWorthSnapshot
 from base.services import snapshots
 from base.services.snapshots import invalidate_from, month_starts, net_worth_history
+from finance.models.investment_account import (
+    InvestmentAccount,
+    InvestmentAccountCash,
+    InvestmentAccountHolding,
+    InvestmentAccountHoldingHistory,
+)
 from finance.models.other_asset import OtherAsset, OtherAssetValue
 from finance.models.saving_account import (
     SavingAccount,
     SavingAccountType,
     SavingAccountValue,
 )
-from property.models import Property, PropertyLoan
+from property.models import Property, PropertyLoan, PropertyValue
 
 CURRENCY = "XAU"  # isolates the test data from any other fixture
 D = datetime.date
@@ -40,6 +46,59 @@ def asset():
         asset=asset, value=Money(1500, CURRENCY), value_date=D(2024, 3, 10)
     )
     return asset
+
+
+@pytest.fixture
+def valued_assets(saving_account_type, investment_account_type):
+    """A saving account, an investment account and a property with a loan."""
+    saving = SavingAccount.objects.create(
+        account_type=saving_account_type,
+        opening_value=Money(100, CURRENCY),
+        opening_date=D(2023, 1, 1),
+    )
+    SavingAccountValue.objects.create(
+        account=saving,
+        value=Money(150, CURRENCY),
+        value_date=datetime.datetime(2024, 2, 1, 9, 0),
+    )
+    investment = InvestmentAccount.objects.create(
+        account_type=investment_account_type,
+        opening_cash_value=Money(200, CURRENCY),
+        opening_date=D(2023, 1, 1),
+    )
+    InvestmentAccountCash.objects.create(
+        account=investment, value=Money(250, CURRENCY), value_date=D(2024, 2, 1)
+    )
+    holding = InvestmentAccountHolding.objects.create(
+        account=investment,
+        name="Snapshot fund",
+        initial_value=Money(300, CURRENCY),
+        initial_valuation_date=D(2023, 6, 1),
+    )
+    InvestmentAccountHoldingHistory.objects.create(
+        holding=holding,
+        value=Money(400, CURRENCY),
+        valuation_date=datetime.datetime(2024, 3, 15, 10, 0),
+    )
+    prop = Property.objects.create(
+        name="Snapshot house",
+        property_type=Property.HOUSE,
+        buying_value=Money(100000, CURRENCY),
+        buying_date=D(2023, 1, 1),
+    )
+    PropertyValue.objects.create(
+        property=prop, value=Money(110000, CURRENCY), valuation_date=D(2024, 2, 1)
+    )
+    PropertyLoan.objects.create(
+        property=prop,
+        name="Snapshot loan",
+        start_date=D(2023, 1, 1),
+        end_date=D(2043, 1, 1),
+        original_amount=Money(80000, CURRENCY),
+        monthly_payment=Money(Decimal("386.03"), CURRENCY),
+        interest_rate=Decimal("1.5"),
+    )
+    return saving, investment, prop
 
 
 def _snapshot(month, other="1"):
@@ -115,6 +174,43 @@ class TestHistory:
         asset.save()
         history = net_worth_history([D(2024, 5, 1)], CURRENCY, today=D(2024, 4, 1))
         assert history[0]["other"] == Decimal(1500)
+
+    def test_values_match_the_models(self, valued_assets):
+        """Past months read the values up to their start, today up to its end."""
+        saving, investment, prop = valued_assets
+        months = [D(2024, 1, 1), D(2024, 2, 1), D(2024, 3, 1), D(2024, 3, 15)]
+        history = net_worth_history(months, CURRENCY, today=D(2024, 3, 15))
+        moments = [
+            *(datetime.datetime.combine(m, datetime.time()) for m in months[:3]),
+            datetime.datetime.combine(months[3], datetime.time.max),
+        ]
+        assert [h["savings"] for h in history] == [
+            saving.get_value(max_date=m).amount for m in moments
+        ]
+        assert [h["investments"] for h in history] == [
+            investment.get_value(max_date=m).amount for m in moments
+        ]
+        assert [h["properties_gross"] for h in history] == [
+            prop.get_value(max_date=m).amount for m in moments
+        ]
+        assert [h["properties_net"] for h in history] == [
+            prop.net_value_at_date(m).amount for m in months
+        ]
+        assert [h["investments"] for h in history] == [
+            Decimal(500),  # opening cash 200 + initial value 300
+            Decimal(550),  # cash 250 from February 1st
+            Decimal(550),
+            Decimal(650),  # valuation of 400 at 10:00 today
+        ]
+
+    def test_months_are_computed_without_queries(
+        self, valued_assets, django_assert_num_queries
+    ):
+        """The account and property histories are read once for all the months."""
+        assets = snapshots._load_assets(CURRENCY)
+        with django_assert_num_queries(0):
+            for month in month_starts(24, today=D(2024, 3, 15)):
+                snapshots.compute_month(assets, month)
 
     def test_unvaluable_asset_counts_as_zero(self, asset, monkeypatch):
         def _fail(self, max_date=None):
