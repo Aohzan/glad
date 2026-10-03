@@ -90,58 +90,8 @@ class PropertyLoanTestCase(TestCase):
         loan = PropertyLoan()
         self.assertEqual(loan.get_duration_months(), 0)
 
-    def test_compute_monthly_payment(self):
-        """Test compute_monthly_payment sets monthly_payment and insurance."""
-        loan = PropertyLoan(
-            start_date=datetime.date(2024, 1, 1),
-            end_date=datetime.date(2044, 1, 1),  # 240 months
-            original_amount=Money(200000, "EUR"),
-            interest_rate=Decimal("3.5"),
-            insurance_rate=Decimal("0.36"),
-        )
-        loan.compute_monthly_payment()
-        # Standard French amortization: ~1159.97 for 200k at 3.5% over 240 months
-        self.assertIsNotNone(loan.monthly_payment)
-        self.assertAlmostEqual(float(loan.monthly_payment.amount), 1159.97, delta=1.0)
-        # Insurance: 200000 * 0.36% / 12 = 60
-        self.assertIsNotNone(loan.insurance)
-        self.assertAlmostEqual(float(loan.insurance.amount), 60.0, delta=0.5)
-
-    def test_compute_monthly_payment_zero_rate(self):
-        """Test compute_monthly_payment with zero interest rate."""
-        loan = PropertyLoan(
-            start_date=datetime.date(2024, 1, 1),
-            end_date=datetime.date(2026, 1, 1),  # 24 months
-            original_amount=Money(24000, "EUR"),
-            interest_rate=Decimal(0),
-        )
-        loan.compute_monthly_payment()
-        self.assertIsNotNone(loan.monthly_payment)
-        self.assertAlmostEqual(float(loan.monthly_payment.amount), 1000.0, delta=0.01)
-
-    def test_compute_monthly_payment_no_insurance_rate(self):
-        """Test compute_monthly_payment without insurance rate."""
-        loan = PropertyLoan(
-            start_date=datetime.date(2024, 1, 1),
-            end_date=datetime.date(2044, 1, 1),
-            original_amount=Money(100000, "EUR"),
-            interest_rate=Decimal("2.0"),
-        )
-        loan.compute_monthly_payment()
-        self.assertIsNotNone(loan.monthly_payment)
-        self.assertIsNone(loan.insurance)
-
-    def test_compute_monthly_payment_missing_data(self):
-        """Test compute_monthly_payment does nothing when data is missing."""
-        loan = PropertyLoan(
-            start_date=datetime.date(2024, 1, 1),
-            end_date=datetime.date(2044, 1, 1),
-        )
-        loan.compute_monthly_payment()
-        self.assertIsNone(loan.monthly_payment)
-
     def test_remaining_balance_future_loan(self):
-        """Test remaining balance for a loan that hasn't started yet."""
+        """Nothing is owed on a loan that has not been disbursed yet."""
         future_loan = PropertyLoan.objects.create(
             property=self.property,
             name="Future Loan",
@@ -151,7 +101,12 @@ class PropertyLoanTestCase(TestCase):
             monthly_payment=Money(200, "EUR"),
         )
 
-        self.assertEqual(future_loan.remaining_balance().amount, Decimal(20000))
+        self.assertEqual(future_loan.remaining_balance().amount, Decimal(0))
+        self.assertEqual(future_loan.amount_paid().amount, Decimal(0))
+        disbursement = future_loan.start_date
+        self.assertEqual(
+            future_loan.remaining_balance(disbursement).amount, Decimal(20000)
+        )
 
     def test_remaining_balance_completed_loan(self):
         """Test remaining balance for a completed loan."""
@@ -306,8 +261,8 @@ class PropertyLoanTestCase(TestCase):
         )
         self.assertEqual(future_loan.insurance_paid_to_date().amount, Decimal(0))
 
-    def test_insurance_paid_to_date_caps_at_duration(self):
-        """Insurance paid never exceeds monthly insurance x total loan duration."""
+    def test_insurance_paid_to_date_stops_with_the_last_installment(self):
+        """Insurance is paid with each installment, up to the one repaying the loan."""
         loan = PropertyLoan.objects.create(
             property=self.property,
             name="Old Completed Loan",
@@ -317,9 +272,10 @@ class PropertyLoanTestCase(TestCase):
             monthly_payment=Money(250, "EUR"),
             insurance=Money(10, "EUR"),
         )
-        duration = loan.get_duration_months()
-        paid = loan.insurance_paid_to_date().amount
-        self.assertEqual(paid, Decimal(10) * duration)
+        # 250 a month at 0 % repays 5 000 in 20 of the 21 months of the loan.
+        self.assertEqual(loan.get_duration_months(), 21)
+        self.assertEqual(len(loan.schedule()), 20)
+        self.assertEqual(loan.insurance_paid_to_date().amount, Decimal(200))
 
 
 class PropertyWithLoansTestCase(TestCase):

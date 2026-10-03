@@ -255,50 +255,26 @@ def import_loan_amortization(
 def generate_loan_amortization(
     request: HttpRequest, pk: int, loan_pk: int
 ) -> HttpResponse:
-    """Auto-generate amortization entries from loan parameters."""
-    from property.utils import build_loan_monthly_maps
-
+    """Write the schedule computed from the loan parameters as its table."""
     loan = get_object_or_404(PropertyLoan, pk=loan_pk, property__pk=pk)
     redirect_url = reverse("property:detail", kwargs={"pk": pk}) + _LOANS_ANCHOR
 
-    if loan.monthly_payment is None:
-        # Try to compute it on-the-fly from the loan's stored parameters
-        loan.compute_monthly_payment()
-    if loan.monthly_payment is None:
-        messages.error(request, _("Cannot generate: loan has no monthly payment."))
+    schedule = loan.computed_schedule()
+    if not schedule:
+        messages.error(request, _("Cannot generate: the loan has no installment."))
         return redirect(redirect_url)
 
-    insurance_amount = (
-        loan.insurance.amount if loan.insurance is not None else Decimal(0)
-    )
-    interest_map, principal_map, _insurance_map = build_loan_monthly_maps(
-        start_date=loan.start_date,
-        end_date=loan.end_date,
-        original_amount=loan.original_amount.amount,
-        monthly_payment=loan.monthly_payment.amount,
-        interest_rate=loan.interest_rate,
-        insurance_amount=insurance_amount,
-        disbursement_date=loan.start_date,
-        first_payment_date=loan.first_payment_date,
-    )
-
-    currency = str(loan.original_amount.currency)
-    entries = []
-    balance = loan.original_amount.amount
-    for key in sorted(interest_map.keys()):
-        year, month = key
-        capital = principal_map.get(key, Decimal(0))
-        interest = interest_map.get(key, Decimal(0))
-        balance = max(Decimal(0), balance - capital)
-        entries.append(
-            PropertyLoanAmortizationEntry(
-                loan=loan,
-                date=datetime.date(year, month, 1),
-                capital=Money(capital, currency),
-                interest=Money(interest, currency),
-                remaining_balance_amount=Money(balance, currency),
-            )
+    currency = loan.currency
+    entries = [
+        PropertyLoanAmortizationEntry(
+            loan=loan,
+            date=installment.date,
+            capital=Money(installment.principal, currency),
+            interest=Money(installment.interest, currency),
+            remaining_balance_amount=Money(installment.balance, currency),
         )
+        for installment in schedule
+    ]
 
     with transaction.atomic():
         PropertyLoanAmortizationEntry.objects.filter(loan=loan).delete()

@@ -29,7 +29,7 @@ from property.models import (
     SCPIInvestment,
     SCPISharePrice,
 )
-from property.utils import add_months_safe, calculate_monthly_payment
+from property.utils import calculate_monthly_payment, due_date
 
 # ─── Property value ──────────────────────────────────────────────────────────
 
@@ -298,8 +298,10 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             )
 
         if start_date and duration_months:
-            # Compute end_date from start_date + duration_months
-            cleaned_data["end_date"] = add_months_safe(start_date, duration_months)
+            # The end date is the date of the last installment.
+            cleaned_data["end_date"] = due_date(
+                start_date, first_payment_date, duration_months - 1
+            )
 
         if original_amount and interest_rate is not None and duration_months:
             monthly_pi, monthly_ins, _total = calculate_monthly_payment(

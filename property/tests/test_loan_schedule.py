@@ -114,9 +114,9 @@ class RemainingBalanceWithAmortizationTableTest(TestCase):
         balance = self.loan.remaining_balance(datetime.date(2020, 3, 31))
         self.assertAlmostEqual(float(balance.amount), 198265.03, places=1)
 
-    def test_before_first_entry_returns_original(self):
+    def test_nothing_owed_before_the_disbursement(self):
         balance = self.loan.remaining_balance(datetime.date(2019, 12, 31))
-        self.assertEqual(balance.amount, Decimal(200000))
+        self.assertEqual(balance.amount, Decimal(0))
 
     def test_currency_preserved(self):
         balance = self.loan.remaining_balance(datetime.date(2020, 2, 1))
@@ -138,6 +138,9 @@ class RemainingBalanceFallbackTest(TestCase):
 
     def test_before_start(self):
         balance = self.loan.remaining_balance(datetime.date(2019, 12, 31))
+        self.assertEqual(balance.amount, Decimal(0))
+        # The whole capital is owed from the disbursement to the first payment.
+        balance = self.loan.remaining_balance(datetime.date(2020, 1, 31))
         self.assertEqual(balance.amount, Decimal(200000))
 
     def test_after_end(self):
@@ -416,7 +419,14 @@ class PartialFirstPeriodTest(TestCase):
             interest_rate=Decimal("3.25"),
             first_payment_date=datetime.date(2025, 11, 10),
         )
-        balance_with = loan.remaining_balance(datetime.date(2025, 11, 30))
+        with_date = loan.schedule().installments[0]
         loan.first_payment_date = None
-        balance_without = loan.remaining_balance(datetime.date(2025, 11, 30))
-        self.assertNotEqual(float(balance_with.amount), float(balance_without.amount))
+        without_date = loan.schedule().installments[0]
+        # Debited on 10 November instead of 13: the first installment pays
+        # 3 days of interest less (40 000 × 3.25 % × 3 / 365 = 10.68), and
+        # repays the same capital.
+        self.assertEqual(with_date.date, datetime.date(2025, 11, 10))
+        self.assertEqual(without_date.date, datetime.date(2025, 11, 13))
+        self.assertEqual(without_date.interest, Decimal("108.33"))
+        self.assertEqual(with_date.interest, Decimal("97.65"))
+        self.assertEqual(with_date.principal, without_date.principal)
