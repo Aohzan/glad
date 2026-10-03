@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 14:31+0200\n"
+"POT-Creation-Date: 2026-10-03 17:14+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -62,7 +62,7 @@ msgstr "Enfant"
 msgid "A child is a household member who cannot log in."
 msgstr "Un enfant est un membre du foyer qui ne peut pas se connecter."
 
-#: accounts/models.py:54 base/forms.py:83
+#: accounts/models.py:54 base/forms.py:80
 msgid "Monthly expenses"
 msgstr "Dépenses mensuelles"
 
@@ -164,24 +164,24 @@ msgstr "Biens tangibles"
 #: property/models/asset.py:357 property/models/lease.py:29
 #: templates/finance/_account_chart_script.html:108
 #: templates/finance/_account_chart_script.html:123
-#: templates/finance/_account_chart_script.html:403
+#: templates/finance/_account_chart_script.html:401
 #: templates/property/detail_panel_info.html:124
 msgid "Other"
 msgstr "Autre"
 
-#: base/context_processors.py:40 base/search_views.py:73 templates/base.html:53
+#: base/context_processors.py:40 base/search_views.py:73 templates/base.html:55
 #: templates/index.html:4 templates/index.html:6
 msgid "Dashboard"
 msgstr "Tableau de bord"
 
-#: base/context_processors.py:41 base/search_views.py:74 templates/base.html:54
+#: base/context_processors.py:41 base/search_views.py:74 templates/base.html:56
 #: templates/finance/_account_detail_header.html:4
 #: templates/finance/index.html:4 templates/finance/index.html:6
 msgid "Finance"
 msgstr "Finance"
 
 #: base/context_processors.py:42 base/search_views.py:77
-#: base/services/dashboard.py:50 templates/base.html:57
+#: base/services/dashboard.py:50 templates/base.html:59
 #: templates/finance/edit_other_asset.html:14
 #: templates/finance/other_asset_detail.html:15
 #: templates/finance/other_asset_list.html:4
@@ -189,13 +189,13 @@ msgstr "Finance"
 msgid "Other assets"
 msgstr "Autres actifs"
 
-#: base/context_processors.py:43 templates/base.html:81
+#: base/context_processors.py:43 templates/base.html:83
 msgid "CSV import / export"
 msgstr "Import / export CSV"
 
 #: base/context_processors.py:44 base/search_views.py:75
 #: base/services/dashboard.py:46 property/forms.py:767
-#: property/models/fiscal.py:34 templates/base.html:55
+#: property/models/fiscal.py:34 templates/base.html:57
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:6
 msgid "Properties"
@@ -205,7 +205,7 @@ msgstr "Immobilier"
 #: base/services/dashboard.py:49 base/services/ownership.py:122
 #: property/models/scpi.py:38 property/models/scpi.py:39
 #: property/models/scpi.py:159 property/models/scpi.py:208
-#: property/models/scpi.py:622 templates/base.html:56 templates/base.html:113
+#: property/models/scpi.py:622 templates/base.html:58 templates/base.html:115
 #: templates/property/scpi_detail.html:12
 #: templates/property/scpi_detail.html:136
 #: templates/property/scpi_dividend_batch.html:10
@@ -218,54 +218,54 @@ msgstr "Immobilier"
 msgid "SCPI"
 msgstr "SCPI"
 
-#: base/context_processors.py:46 base/search_views.py:82 templates/base.html:74
+#: base/context_processors.py:46 base/search_views.py:82 templates/base.html:76
 #: templates/property/all_loans.html:4 templates/property/all_loans.html:16
 msgid "All Loans"
 msgstr "Tous les prêts"
 
-#: base/context_processors.py:47 templates/base.html:73
+#: base/context_processors.py:47 templates/base.html:75
 #: templates/property/occurrence_checks.html:4
 #: templates/property/occurrence_checks.html:10
 msgid "Entries to check"
 msgstr "Écritures à pointer"
 
-#: base/context_processors.py:48 templates/base.html:65
+#: base/context_processors.py:48 templates/base.html:67
 #: templates/property/report.html:4 templates/property/report.html:16
 msgid "Income & Expenses Report"
 msgstr "Rapport revenus & charges"
 
-#: base/context_processors.py:49 templates/base.html:80
+#: base/context_processors.py:49 templates/base.html:82
 msgid "LMNP Accounting"
 msgstr "Comptabilité LMNP"
 
 #: base/context_processors.py:50 base/search_views.py:83
 #: templates/accounts/settings.html:4 templates/accounts/settings.html:9
-#: templates/base.html:153
+#: templates/base.html:155
 msgid "Settings"
 msgstr "Paramètres"
 
-#: base/context_processors.py:51 templates/base.html:83 templates/base.html:155
+#: base/context_processors.py:51 templates/base.html:85 templates/base.html:157
 msgid "Administration"
 msgstr "Administration"
 
 #: base/context_processors.py:52 base/search_views.py:78
 #: templates/allocation.html:4 templates/allocation.html:13
-#: templates/base.html:63
+#: templates/base.html:65
 msgid "Allocation"
 msgstr "Répartition"
 
-#: base/context_processors.py:53 base/search_views.py:79 templates/base.html:64
+#: base/context_processors.py:53 base/search_views.py:79 templates/base.html:66
 #: templates/owners.html:4 templates/owners.html:9
 msgid "Net worth by owner"
 msgstr "Patrimoine par propriétaire"
 
-#: base/context_processors.py:54 base/search_views.py:80 templates/base.html:71
+#: base/context_processors.py:54 base/search_views.py:80 templates/base.html:73
 #: templates/dashboard/_watch.html:5 templates/deadlines.html:4
 #: templates/deadlines.html:6
 msgid "Deadlines"
 msgstr "Échéances"
 
-#: base/context_processors.py:55 base/search_views.py:81 templates/base.html:72
+#: base/context_processors.py:55 base/search_views.py:81 templates/base.html:74
 #: templates/operations.html:4 templates/operations.html:6
 msgid "Operations"
 msgstr "Opérations"
@@ -286,11 +286,11 @@ msgstr "Brut"
 msgid "Debts"
 msgstr "Dettes"
 
-#: base/dashboard_views.py:29 templates/finance/_account_chart_script.html:498
+#: base/dashboard_views.py:29 templates/finance/_account_chart_script.html:496
 msgid "Could not load chart data."
 msgstr "Impossible de charger les données du graphique."
 
-#: base/forms.py:62 finance/models/other_asset.py:195
+#: base/forms.py:59 finance/models/other_asset.py:195
 #: property/models/ledger.py:309 property/models/scpi.py:161
 #: property/models/scpi.py:590
 #: templates/accounts/emails/login_notification.html:16
@@ -312,18 +312,18 @@ msgstr "Impossible de charger les données du graphique."
 msgid "Date"
 msgstr "Date"
 
-#: base/forms.py:75
+#: base/forms.py:72
 msgid "Recurrence End Date"
 msgstr "Date de fin de récurrence"
 
-#: base/forms.py:127 base/forms.py:236
+#: base/forms.py:124 base/forms.py:233
 #: templates/finance/_account_detail_common_info.html:7
 #: templates/finance/other_asset_detail.html:46 templates/owners_manage.html:4
 #: templates/owners_manage.html:10 templates/property/detail_panel_info.html:72
 msgid "Owners"
 msgstr "Propriétaires"
 
-#: base/forms.py:130
+#: base/forms.py:127
 msgid ""
 "Several owners share the asset equally; set other shares or a dismembered "
 "right on the owners page."
@@ -331,11 +331,11 @@ msgstr ""
 "Plusieurs propriétaires se partagent l'actif à parts égales ; définissez "
 "d'autres quotes-parts ou un démembrement sur la page des propriétaires."
 
-#: base/forms.py:133
+#: base/forms.py:130
 msgid "Choose at least one owner."
 msgstr "Choisissez au moins un propriétaire."
 
-#: base/forms.py:152
+#: base/forms.py:149
 msgid ""
 "The other rights leave no share to the new owners: set the shares on the "
 "owners page."
@@ -343,12 +343,12 @@ msgstr ""
 "Les autres droits ne laissent aucune part aux nouveaux propriétaires : "
 "définissez les quotes-parts sur la page des propriétaires."
 
-#: base/forms.py:168 base/models.py:160 finance/views/csv_views.py:543
+#: base/forms.py:165 base/models.py:160 finance/views/csv_views.py:543
 #: templates/owners_manage.html:19
 msgid "Owner"
 msgstr "Propriétaire"
 
-#: base/forms.py:216
+#: base/forms.py:213
 msgid ""
 "A dismembered right needs the usufruct end date or the birth date of the "
 "usufructuary."
@@ -356,11 +356,11 @@ msgstr ""
 "Un droit démembré nécessite la date de fin de l'usufruit ou la date de "
 "naissance de l'usufruitier."
 
-#: base/forms.py:229
+#: base/forms.py:226
 msgid "The shares of the owners exceed 100 %."
 msgstr "Les quotes-parts des propriétaires dépassent 100 %."
 
-#: base/forms.py:251
+#: base/forms.py:248
 msgid "My birth date"
 msgstr "Ma date de naissance"
 
@@ -546,18 +546,18 @@ msgstr "Évaluation de bien"
 msgid "Dividend"
 msgstr "Dividende"
 
-#: base/services/ownership.py:115 templates/base.html:111
+#: base/services/ownership.py:115 templates/base.html:113
 msgid "Saving account"
 msgstr "Compte d'épargne"
 
-#: base/services/ownership.py:117 templates/base.html:110
+#: base/services/ownership.py:117 templates/base.html:112
 msgid "Investment account"
 msgstr "Compte d'investissement"
 
 #: base/services/ownership.py:120 property/models/asset.py:832
 #: property/models/asset.py:929 property/models/lease.py:44
 #: property/models/ledger.py:287 property/models/management.py:38
-#: templates/base.html:112 templates/dashboard/_property.html:28
+#: templates/base.html:114 templates/dashboard/_property.html:28
 #: templates/property/all_loans.html:99 templates/property/index.html:4
 #: templates/property/index.html:68
 #: templates/property/occurrence_checks.html:16
@@ -565,7 +565,7 @@ msgstr "Compte d'investissement"
 msgid "Property"
 msgstr "Propriété"
 
-#: base/services/ownership.py:124 templates/base.html:114
+#: base/services/ownership.py:124 templates/base.html:116
 msgid "Other asset"
 msgstr "Autre actif"
 
@@ -1184,6 +1184,21 @@ msgstr ""
 msgid "No historical data available for ISIN {isin}"
 msgstr "Aucune donnée historique disponible pour l'ISIN {isin}"
 
+#: finance/views/api_views.py:173 templates/finance/holding_detail.html:281
+#: templates/finance/holding_detail.html:322
+msgid "Could not load live data."
+msgstr "Impossible de charger les données en direct."
+
+#: finance/views/api_views.py:232
+#: templates/finance/edit_investment_holding.html:160
+#: templates/finance/edit_investment_holding.html:173
+msgid "Could not fetch data for this ISIN."
+msgstr "Impossible de récupérer les données pour cet ISIN."
+
+#: finance/views/api_views.py:322
+msgid "Could not compute the performance of the benchmark."
+msgstr "Impossible de calculer la performance de l'indice de référence."
+
 #: finance/views/chart_views.py:40
 msgid "Invalid data type"
 msgstr "Données de type invalide"
@@ -1284,11 +1299,11 @@ msgstr "Valeur au %(date)s"
 
 #: finance/views/csv_views.py:586 templates/dashboard/_property.html:39
 #: templates/dashboard/_registry.html:39
-#: templates/finance/_account_chart_script.html:248
-#: templates/finance/_account_chart_script.html:274
-#: templates/finance/_account_chart_script.html:340
-#: templates/finance/_account_chart_script.html:349
-#: templates/finance/_account_chart_script.html:426
+#: templates/finance/_account_chart_script.html:247
+#: templates/finance/_account_chart_script.html:273
+#: templates/finance/_account_chart_script.html:338
+#: templates/finance/_account_chart_script.html:347
+#: templates/finance/_account_chart_script.html:424
 #: templates/finance/index.html:193 templates/finance/other_asset_list.html:47
 #: templates/property/_balance_section_card.html:30
 #: templates/property/_report_category_table.html:27
@@ -3728,109 +3743,109 @@ msgstr ""
 "devise de référence sont inclus. Renseignez la classe d'actifs de chaque "
 "titre pour affiner la répartition."
 
-#: templates/base.html:44
+#: templates/base.html:46
 msgid "Main menu"
 msgstr "Menu principal"
 
-#: templates/base.html:45
+#: templates/base.html:47
 msgid "Glad, dashboard"
 msgstr "Glad, tableau de bord"
 
-#: templates/base.html:49
+#: templates/base.html:51
 msgid "Main navigation"
 msgstr "Navigation principale"
 
-#: templates/base.html:51 templates/finance/index.html:5 templates/index.html:5
+#: templates/base.html:53 templates/finance/index.html:5 templates/index.html:5
 #: templates/property/index.html:5 templates/property/scpi_list.html:5
 msgid "Wealth"
 msgstr "Patrimoine"
 
-#: templates/base.html:61
+#: templates/base.html:63
 msgid "Analysis"
 msgstr "Analyse"
 
-#: templates/base.html:69 templates/deadlines.html:5
+#: templates/base.html:71 templates/deadlines.html:5
 #: templates/operations.html:5
 msgid "Tracking"
 msgstr "Suivi"
 
-#: templates/base.html:78
+#: templates/base.html:80
 msgid "Tools"
 msgstr "Outils"
 
-#: templates/base.html:89
+#: templates/base.html:91
 msgid "Favorites"
 msgstr "Favoris"
 
-#: templates/base.html:106
+#: templates/base.html:108
 msgid "Add an asset"
 msgstr "Ajouter un actif"
 
-#: templates/base.html:107
+#: templates/base.html:109
 msgid "Add"
 msgstr "Ajouter"
 
-#: templates/base.html:110
+#: templates/base.html:112
 msgid "PEA, life insurance, securities account"
 msgstr "PEA, assurance vie, compte-titres"
 
-#: templates/base.html:111
+#: templates/base.html:113
 msgid "Passbook, PEL, CEL"
 msgstr "Livret, PEL, CEL"
 
-#: templates/base.html:112
+#: templates/base.html:114
 msgid "Main residence, rental, LMNP"
 msgstr "Résidence principale, locatif, LMNP"
 
-#: templates/base.html:113
+#: templates/base.html:115
 msgid "Shares in full or bare ownership"
 msgstr "Parts en pleine ou nue-propriété"
 
-#: templates/base.html:114
+#: templates/base.html:116
 msgid "Vehicle, gold, crypto, collectibles"
 msgstr "Véhicule, or, crypto, objets de collection"
 
-#: templates/base.html:117 templates/base.html:118
+#: templates/base.html:119 templates/base.html:120
 msgid "Bulk update"
 msgstr "Mise à jour groupée"
 
-#: templates/base.html:120
+#: templates/base.html:122
 msgid "Collapse or expand the menu"
 msgstr "Replier ou déplier le menu"
 
-#: templates/base.html:121
+#: templates/base.html:123
 msgid "Collapse the menu"
 msgstr "Replier le menu"
 
-#: templates/base.html:130
+#: templates/base.html:132
 msgid "Open the menu"
 msgstr "Ouvrir le menu"
 
-#: templates/base.html:133
+#: templates/base.html:135
 msgid "Breadcrumb"
 msgstr "Fil d'Ariane"
 
-#: templates/base.html:139
+#: templates/base.html:141
 msgid "Search an asset"
 msgstr "Rechercher un actif"
 
-#: templates/base.html:141
+#: templates/base.html:143
 msgid "No result"
 msgstr "Aucun résultat"
 
-#: templates/base.html:143 templates/base.html:205
+#: templates/base.html:145 templates/base.html:207
 msgid "Toggle dark mode"
 msgstr "Basculer en mode sombre"
 
-#: templates/base.html:147
+#: templates/base.html:149
 msgid "My account"
 msgstr "Mon compte"
 
-#: templates/base.html:161 templates/base.html:211
+#: templates/base.html:163 templates/base.html:213
 msgid "Language"
 msgstr "Langue"
 
-#: templates/base.html:169
+#: templates/base.html:171
 msgid "Logout"
 msgstr "Déconnexion"
 
@@ -4048,16 +4063,16 @@ msgstr "Passées · 30 derniers jours"
 msgid "Value evolution"
 msgstr "Évolution de la valeur"
 
-#: templates/finance/_account_chart_script.html:231
-#: templates/finance/_account_chart_script.html:280
-#: templates/finance/_account_chart_script.html:341
-#: templates/finance/_account_chart_script.html:357
+#: templates/finance/_account_chart_script.html:230
+#: templates/finance/_account_chart_script.html:279
+#: templates/finance/_account_chart_script.html:339
+#: templates/finance/_account_chart_script.html:355
 #: templates/property/scpi_list.html:46
 msgid "Invested"
 msgstr "Investi"
 
-#: templates/finance/_account_chart_script.html:236
-#: templates/finance/_account_chart_script.html:367
+#: templates/finance/_account_chart_script.html:235
+#: templates/finance/_account_chart_script.html:365
 #: templates/finance/_account_stats.html:8
 #: templates/finance/other_asset_detail.html:64
 #: templates/property/resale_simulation.html:39
@@ -4700,11 +4715,6 @@ msgstr "Date d'évaluation initiale"
 msgid "Please enter an ISIN first."
 msgstr "Veuillez d'abord saisir un ISIN."
 
-#: templates/finance/edit_investment_holding.html:160
-#: templates/finance/edit_investment_holding.html:173
-msgid "Could not fetch data for this ISIN."
-msgstr "Impossible de récupérer les données pour cet ISIN."
-
 #: templates/finance/edit_other_asset.html:5
 #: templates/finance/edit_other_asset.html:11
 msgid "Edit asset"
@@ -4867,11 +4877,6 @@ msgstr "Êtes-vous sûr de vouloir supprimer ce titre et tout son historique ?"
 #: templates/finance/holding_detail.html:210
 msgid "Live value"
 msgstr "Valeur en direct"
-
-#: templates/finance/holding_detail.html:281
-#: templates/finance/holding_detail.html:322
-msgid "Could not load live data."
-msgstr "Impossible de charger les données en direct."
 
 #: templates/finance/holding_detail.html:300
 msgid "Quote currency"
