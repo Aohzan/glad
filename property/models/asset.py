@@ -128,27 +128,6 @@ class PropertyLoan(BaseModel):
         if self.insurance_rate:
             self.insurance = Money(monthly_ins, currency)
 
-    def taeg_rate(self) -> Decimal:
-        """Calculate the TAEG of the loan."""
-        if (
-            self.start_date is None
-            or self.end_date is None
-            or self.monthly_payment is None
-            or self.end_date.year == self.start_date.year
-        ):
-            return Decimal("0.0")
-        total_interest = (
-            self.monthly_payment.amount
-            * 12
-            * (self.end_date.year - self.start_date.year)
-        )
-        taeg = (
-            (total_interest / self.original_amount.amount)
-            * 100
-            / (self.end_date.year - self.start_date.year)
-        )
-        return Decimal(str(taeg))
-
     def remaining_balance(self, as_of_date: datetime.date | None = None) -> Money:
         """Calculate the remaining balance on the loan as of a specific date.
 

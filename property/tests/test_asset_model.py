@@ -89,35 +89,6 @@ class TestPropertyLoanComputeMonthlyPayment:
 
 
 @pytest.mark.django_db
-class TestPropertyLoanTaegRate:
-    def test_taeg_rate_standard_loan(self, loan):
-        taeg = loan.taeg_rate()
-        assert taeg > Decimal(0)
-
-    def test_taeg_rate_no_monthly_payment_returns_zero(self, property_obj):
-        loan = PropertyLoan.objects.create(
-            property=property_obj,
-            start_date=datetime.date(2020, 1, 1),
-            end_date=datetime.date(2040, 1, 1),
-            original_amount=Money(100000, "EUR"),
-            monthly_payment=None,
-            interest_rate=Decimal("1.0"),
-        )
-        assert loan.taeg_rate() == Decimal("0.0")
-
-    def test_taeg_rate_same_year_returns_zero(self, property_obj):
-        loan = PropertyLoan.objects.create(
-            property=property_obj,
-            start_date=datetime.date(2020, 1, 1),
-            end_date=datetime.date(2020, 12, 31),
-            original_amount=Money(100000, "EUR"),
-            monthly_payment=Money(500, "EUR"),
-            interest_rate=Decimal("1.0"),
-        )
-        assert loan.taeg_rate() == Decimal("0.0")
-
-
-@pytest.mark.django_db
 class TestPropertyLoanRemainingBalance:
     def test_remaining_balance_before_start(self, loan):
         balance = loan.remaining_balance(datetime.date(2019, 1, 1))

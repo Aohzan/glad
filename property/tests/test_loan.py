@@ -140,15 +140,6 @@ class PropertyLoanTestCase(TestCase):
         loan.compute_monthly_payment()
         self.assertIsNone(loan.monthly_payment)
 
-    def test_taeg_rate_with_null_monthly_payment(self):
-        """Test taeg_rate returns 0 when monthly_payment is None."""
-        loan = PropertyLoan(
-            start_date=datetime.date(2024, 1, 1),
-            end_date=datetime.date(2044, 1, 1),
-            original_amount=Money(100000, "EUR"),
-        )
-        self.assertEqual(loan.taeg_rate(), Decimal("0.0"))
-
     def test_remaining_balance_future_loan(self):
         """Test remaining balance for a loan that hasn't started yet."""
         future_loan = PropertyLoan.objects.create(
