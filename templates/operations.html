@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{% translate "Operations" %}{% endblock %}
+{% block page_kicker %}{% translate "Tracking" %}{% endblock %}
+{% block page_title %}{% translate "Operations" %}{% endblock %}
+{% block page_description %}{% translate "History of the movements and value updates" %}{% endblock %}
+{% block page_actions %}
+<a class="btn btn-outline-secondary" href="{% url 'finance:csv_import' %}">{% icon "upload" %}{% translate "Import a CSV" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="g-stack">
+  <nav class="g-seg align-self-start" aria-label="{% translate 'Filter the operations' %}">
+    <a class="g-seg__item{% if not kind %} is-active{% endif %}" href="{% url 'operations' %}">{% translate "All" %}</a>
+    {% for key, label in filters %}
+    <a class="g-seg__item{% if kind == key %} is-active{% endif %}" href="?kind={{ key }}">{{ label }}</a>
+    {% endfor %}
+  </nav>
+  <section class="g-card">
+    <div class="g-table-wrap">
+      <div class="g-table" style="--g-cols: 120px minmax(170px, 1.2fr) minmax(200px, 1.6fr) 140px; --g-table-min: 720px">
+        <div class="g-table__head"><span>{% translate "Date" %}</span><span>{% translate "Operation" %}</span><span>{% translate "Asset" %}</span><span class="g-cell-end">{% translate "Amount" %}</span></div>
+        {% for op in operations %}
+        {% include "_operation_row.html" %}
+        {% empty %}
+        <div class="g-table__empty">{% translate "No operation recorded yet." %}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% if page.has_other_pages %}
+  <nav aria-label="{% translate 'Pages' %}">
+    <ul class="pagination justify-content-center">
+      {% if page.has_previous %}<li class="page-item"><a class="page-link" href="?{% if kind %}kind={{ kind }}&amp;{% endif %}page={{ page.previous_page_number }}">{% icon "chevron-left" %}</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Page {{ number }} of {{ total }}{% endblocktranslate %}</span></li>
+      {% if page.has_next %}<li class="page-item"><a class="page-link" href="?{% if kind %}kind={{ kind }}&amp;{% endif %}page={{ page.next_page_number }}">{% icon "chevron-right" %}</a></li>{% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

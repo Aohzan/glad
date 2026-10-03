@@ -49,6 +49,21 @@ class Deadline:
         return max(0, -self.days_left)
 
     @property
+    def months_left(self) -> int:
+        """Rounded number of months until the deadline."""
+        return round(self.days_left / 30.4)
+
+    @property
+    def is_soon(self) -> bool:
+        """Due within SOON_DAYS and not passed yet."""
+        return 0 <= self.days_left <= SOON_DAYS
+
+    @property
+    def month(self) -> datetime.date:
+        """First day of the month of the deadline, for grouping."""
+        return self.date.replace(day=1)
+
+    @property
     def level(self) -> str:
         """``secondary`` when passed, ``warning`` when soon, else ``info``."""
         if self.days_left < 0:
@@ -60,8 +75,8 @@ class Deadline:
 
 def _account_deadlines(today: datetime.date):
     for model, url_name, icon in (
-        (SavingAccount, "finance:saving_detail", "bi-piggy-bank"),
-        (InvestmentAccount, "finance:investment_detail", "bi-bar-chart-line"),
+        (SavingAccount, "finance:saving_detail", "piggy-bank"),
+        (InvestmentAccount, "finance:investment_detail", "chart-line"),
     ):
         for account in model.objects.active().select_related("account_type"):
             for milestone in account.milestones:
@@ -84,7 +99,7 @@ def _loan_deadlines(today: datetime.date):
             title=f"{loan.property} — {loan.name}",
             detail=_("End of the loan"),
             url=reverse("property:detail", kwargs={"pk": loan.property.pk}),
-            icon="bi-bank",
+            icon="landmark",
             today=today,
         )
 
@@ -104,7 +119,7 @@ def _lease_deadlines(today: datetime.date):
                 title=title,
                 detail=_("Rent revision (IRL)"),
                 url=url,
-                icon="bi-arrow-repeat",
+                icon="percent",
                 today=today,
             )
         if lease.end_date:
@@ -113,7 +128,7 @@ def _lease_deadlines(today: datetime.date):
                 title=title,
                 detail=_("End of the lease"),
                 url=url,
-                icon="bi-door-closed",
+                icon="key-round",
                 today=today,
             )
 
@@ -140,7 +155,7 @@ def _dpe_deadlines(today: datetime.date):
                 detail=_("Rental ban for DPE %(rating)s housing")
                 % {"rating": status.rating},
                 url=url,
-                icon="bi-thermometer-sun",
+                icon="thermometer-sun",
                 today=today,
             )
         if status.expires_on:
@@ -149,7 +164,7 @@ def _dpe_deadlines(today: datetime.date):
                 title=str(prop),
                 detail=_("DPE expiry"),
                 url=url,
-                icon="bi-thermometer-sun",
+                icon="thermometer-sun",
                 today=today,
             )
 
@@ -167,7 +182,7 @@ def _scpi_deadlines(today: datetime.date):
             url=reverse(
                 "property:scpi_fund_detail", kwargs={"scpi_pk": investment.scpi.pk}
             ),
-            icon="bi-building",
+            icon="building",
             today=today,
         )
 

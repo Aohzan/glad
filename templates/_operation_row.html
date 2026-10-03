@@ -1,0 +1,6 @@
+{% load format_money %}<a class="g-table__row" href="{{ op.url }}">
+  <span class="g-muted">{{ op.date|date:"d/m/Y" }}</span>
+  <span class="d-flex align-items-center gap-2"><span class="g-dim d-flex">{% icon op.icon %}</span>{{ op.label }}</span>
+  <span class="g-cell-title">{{ op.target }}</span>
+  <span class="g-cell-end g-strong{% if op.flow == 'in' %} g-pos{% endif %}">{% if op.flow == 'in' %}+{% endif %}{{ op.amount|format_money }}</span>
+</a>
