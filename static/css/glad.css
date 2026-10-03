@@ -67,21 +67,41 @@ body.g-app {
 .g-nav {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 6px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
 }
 
-.g-nav__group { display: flex; flex-direction: column; gap: 2px; }
+.g-nav__group,
+.g-nav__items { display: flex; flex-direction: column; gap: 2px; }
+.g-nav__items { padding-bottom: 8px; }
+.g-nav__items[data-folded] { display: none; }
 
+/* Group header: folds and unfolds its items */
 .g-nav__label {
-  padding: 0 10px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  color: var(--g-dim);
+  font: inherit;
   font-size: 11px;
   font-weight: 600;
-  color: var(--g-dim);
+  text-align: left;
+  cursor: pointer;
 }
+.g-nav__label:hover { color: var(--g-text); background: var(--g-surface); }
+.g-nav__label-text { flex: 1; }
+.g-nav__chevron { width: 14px; height: 14px; transition: transform .15s ease; }
+.g-nav__label[aria-expanded="false"] .g-nav__chevron { transform: rotate(-90deg); }
+.g-nav__label[aria-expanded="true"] .g-nav__badge { display: none; }
 
 .g-nav__item {
   display: flex;
@@ -170,9 +190,19 @@ body.g-app {
 [data-sidebar="collapsed"] .g-sidebar { --g-sidebar-w: 64px; align-items: center; }
 [data-sidebar="collapsed"] .g-brand__name,
 [data-sidebar="collapsed"] .g-nav__label,
+[data-sidebar="collapsed"] .g-nav__badge { display: none; }
+/* Labels stay readable by assistive technologies; the tooltip shows them */
 [data-sidebar="collapsed"] .g-nav__text,
-[data-sidebar="collapsed"] .g-nav__badge,
-[data-sidebar="collapsed"] .g-sidebar__label { display: none; }
+[data-sidebar="collapsed"] .g-sidebar__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+/* Icons only: every group is shown, separated by a rule */
+[data-sidebar="collapsed"] .g-nav__items[data-folded] { display: flex; }
+[data-sidebar="collapsed"] .g-nav__group + .g-nav__group { padding-top: 6px; border-top: 1px solid var(--g-line); }
 [data-sidebar="collapsed"] .g-nav__item,
 [data-sidebar="collapsed"] .g-sidebar__toggle { justify-content: center; }
 [data-sidebar="collapsed"] .g-nav__item { position: relative; }
@@ -190,6 +220,23 @@ body.g-app {
 [data-sidebar="collapsed"] .g-sidebar__btn { width: 40px; }
 [data-sidebar="collapsed"] .g-sidebar__toggle .g-icon--collapse { display: none; }
 [data-sidebar="collapsed"] .g-sidebar__toggle .g-icon--expand { display: inline; }
+
+/* Instant tooltip of the sidebar entries (see glad.js) */
+.g-nav-tip {
+  position: fixed;
+  z-index: 1080;
+  padding: 5px 9px;
+  border-radius: var(--g-radius-sm);
+  background: var(--g-text);
+  color: var(--g-bg);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+  box-shadow: var(--g-shadow);
+}
+.g-nav-tip[hidden] { display: none; }
 
 .g-backdrop {
   position: fixed;
@@ -376,11 +423,14 @@ body.g-app {
   }
 
   [data-sidebar] .g-sidebar { --g-sidebar-w: 236px; align-items: stretch; }
-  [data-sidebar] .g-brand__name,
-  [data-sidebar] .g-nav__label,
+  [data-sidebar] .g-brand__name { display: initial; }
+  [data-sidebar] .g-nav__label { display: flex; }
   [data-sidebar] .g-nav__text,
-  [data-sidebar] .g-sidebar__label { display: initial; }
+  [data-sidebar] .g-sidebar__label { position: static; width: auto; height: auto; clip-path: none; }
+  [data-sidebar] .g-nav__items[data-folded] { display: none; }
+  [data-sidebar] .g-nav__group + .g-nav__group { padding-top: 0; border-top: 0; }
   [data-sidebar] .g-nav__badge { display: inline-flex; }
+  [data-sidebar] .g-nav__label[aria-expanded="true"] .g-nav__badge { display: none; }
   [data-sidebar] .g-nav__item { justify-content: flex-start; }
   [data-sidebar] .g-nav__item::after { display: none; }
   [data-sidebar] .g-sidebar__foot { align-items: stretch; }

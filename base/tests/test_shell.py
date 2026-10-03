@@ -80,6 +80,7 @@ def test_shell_authenticated(admin_user):
     )
     context = shell(request)
     assert context["nav_section"] == "operations"
+    assert context["nav_group"] == "tracking"
     assert str(context["nav_section_label"]) == "Operations"
     assert context["user_initials"] == "AD"
     assert isinstance(context["deadlines_soon_count"], int)
@@ -98,6 +99,21 @@ def test_sidebar_marks_the_active_section(admin_client):
     content = admin_client.get(reverse("operations")).content.decode()
     assert 'aria-current="page"' in content
     assert reverse("api_search") in content
+
+
+@pytest.mark.django_db
+def test_sidebar_unfolds_only_the_current_group(admin_client):
+    content = admin_client.get(reverse("operations")).content.decode()
+    assert re.search(r'aria-controls="g-nav-tracking" aria-expanded="true"', content)
+    assert re.search(r'aria-controls="g-nav-wealth" aria-expanded="false"', content)
+    assert 'id="g-nav-tracking">' in content
+    assert 'id="g-nav-wealth" data-folded>' in content
+
+
+@pytest.mark.django_db
+def test_sidebar_folds_every_group_outside_the_menu(admin_client):
+    content = admin_client.get(reverse("accounts:settings")).content.decode()
+    assert 'aria-expanded="true"' not in content.split('class="g-sidebar__foot"')[0]
 
 
 @pytest.mark.django_db

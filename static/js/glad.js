@@ -104,6 +104,62 @@
     if (opener) opener.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
+  // Group headers fold their items; only the current page's group starts open.
+  function toggleNavGroup(head) {
+    var open = head.getAttribute('aria-expanded') !== 'true';
+    head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    var items = document.getElementById(head.getAttribute('aria-controls'));
+    if (items) items.toggleAttribute('data-folded', !open);
+  }
+
+  // Sidebar entries show their name at once on hover: always when the
+  // sidebar is reduced to icons, otherwise only when the name is truncated.
+  var navTip = null;
+  var TIP_TARGETS = '.g-nav__item, .g-sidebar__btn, .g-sidebar__toggle';
+
+  function navTipText(el) {
+    var text = el.querySelector('.g-nav__text, .g-sidebar__label');
+    if (root.getAttribute('data-sidebar') === 'collapsed' && window.innerWidth >= 720) {
+      return el.getAttribute('aria-label') || (text ? text.textContent : '');
+    }
+    return text && text.scrollWidth > text.clientWidth ? text.textContent : '';
+  }
+
+  function showNavTip(el) {
+    var text = navTipText(el).trim();
+    if (!text) return hideNavTip();
+    if (!navTip) {
+      navTip = document.createElement('div');
+      navTip.className = 'g-nav-tip';
+      navTip.setAttribute('role', 'tooltip');
+      document.body.appendChild(navTip);
+    }
+    var rect = el.getBoundingClientRect();
+    navTip.textContent = text;
+    navTip.style.left = Math.round(rect.right + 8) + 'px';
+    navTip.style.top = Math.round(rect.top + rect.height / 2) + 'px';
+    navTip.hidden = false;
+  }
+
+  function hideNavTip() {
+    if (navTip) navTip.hidden = true;
+  }
+
+  var sidebar = document.getElementById('g-sidebar');
+  if (sidebar) {
+    ['mouseover', 'focusin'].forEach(function (type) {
+      sidebar.addEventListener(type, function (event) {
+        var el = event.target.closest(TIP_TARGETS);
+        if (el) showNavTip(el); else hideNavTip();
+      });
+    });
+    ['mouseleave', 'focusout', 'click'].forEach(function (type) {
+      sidebar.addEventListener(type, hideNavTip);
+    });
+    var nav = sidebar.querySelector('.g-nav');
+    if (nav) nav.addEventListener('scroll', hideNavTip, { passive: true });
+  }
+
   /* ── Header search (⌘K) ────────────────────────────────────────────── */
 
   var search = {
@@ -247,6 +303,8 @@
     var target = event.target;
     if (target.closest('#theme-toggle')) toggleTheme();
     if (target.closest('#g-sidebar-toggle')) toggleSidebar();
+    var navGroup = target.closest('[data-g-nav-group]');
+    if (navGroup) toggleNavGroup(navGroup);
     if (target.closest('#g-drawer-open')) setDrawer(true);
     if (target.closest('[data-g-drawer-close]')) setDrawer(false);
     if (search.box && !target.closest('#g-search')) closeSearch();
