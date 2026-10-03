@@ -10,14 +10,14 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from moneyed import Money
 
+from base.services.dashboard import default_currency
+from base.services.operations import recent_operations
 from base.services.snapshots import month_starts, net_worth_history
 from finance.models.investment_account import (
     InvestmentAccount,
-    InvestmentAccountCash,
-    InvestmentAccountHoldingHistory,
 )
 from finance.models.other_asset import OtherAsset
-from finance.models.saving_account import SavingAccount, SavingAccountValue
+from finance.models.saving_account import SavingAccount
 from glad.settings import DEFAULT_CURRENCY
 from property.models import Property
 from property.models.scpi import SCPIInvestment
@@ -244,24 +244,48 @@ class NetWorthApiView(View):
 class PatrimonyChartApiView(View):
     """Return patrimony evolution series for the evolution chart."""
 
+    #: Accepted ``range`` values, in years.
+    RANGES = (1, 2, 5, 10)
+    DEFAULT_RANGE = 2
+
     def get(self, request):
-        dc = _get_currency_totals()["default_currency"]
-        months = month_starts(int(request.GET.get("range", 2)) * 12)
+        dc = default_currency()
+        try:
+            years = int(request.GET.get("range", self.DEFAULT_RANGE))
+        except ValueError:
+            years = self.DEFAULT_RANGE
+        if years not in self.RANGES:
+            years = self.DEFAULT_RANGE
+        months = month_starts(years * 12)
         history = net_worth_history(months, dc)
 
         def series(name: str) -> list[float]:
             return [float(values[name]) for values in history]
 
+        net = [
+            float(
+                v["savings"]
+                + v["investments"]
+                + v["properties_net"]
+                + v["scpi"]
+                + v["other"]
+            )
+            for v in history
+        ]
+        # loans = gross - net (the part of the properties still owed)
+        loans = [float(v["properties_gross"] - v["properties_net"]) for v in history]
         return JsonResponse(
             {
+                "currency": dc,
+                "dates": [m.isoformat() for m in months],
                 "months": [m.strftime("%b %Y") for m in months],
+                "net": net,
+                "gross": [n + debt for n, debt in zip(net, loans, strict=True)],
+                "debt": loans,
                 "investments": series("investments"),
                 "savings": series("savings"),
                 "properties_net": series("properties_net"),
-                # loans = gross - net (negative equity portion)
-                "properties_loans": [
-                    float(v["properties_gross"] - v["properties_net"]) for v in history
-                ],
+                "properties_loans": loans,
                 "scpi": series("scpi"),
                 "other": series("other"),
             }
@@ -270,51 +294,31 @@ class PatrimonyChartApiView(View):
 
 @method_decorator(login_required, name="dispatch")
 class RecentOperationsApiView(View):
-    """Return the 5 most recent finance operations."""
+    """Return the 5 most recent operations."""
+
+    #: Bootstrap contextual class of each kind of operation.
+    TYPE_CSS = {
+        "saving_value": "success",
+        "investment_cash": "primary",
+        "holding_value": "info",
+    }
 
     def get(self, request):
-        operations = []
-
-        for value in SavingAccountValue.objects.order_by("-value_date")[:5]:
-            operations.append(
-                {
-                    "label": f"Value update: {value.account}",
-                    "amount": float(value.value.amount),
-                    "currency": str(value.value.currency),
-                    "date": value.value_date.isoformat(),
-                    "icon": "bi-piggy-bank",
-                    "type_css": "success",
-                }
-            )
-
-        for cash in InvestmentAccountCash.objects.order_by("-value_date")[:5]:
-            operations.append(
-                {
-                    "label": f"Cash update: {cash.account}",
-                    "amount": float(cash.value.amount),
-                    "currency": str(cash.value.currency),
-                    "date": cash.value_date.isoformat(),
-                    "icon": "bi-cash-coin",
-                    "type_css": "primary",
-                }
-            )
-
-        for holding in InvestmentAccountHoldingHistory.objects.order_by(
-            "-valuation_date"
-        )[:5]:
-            operations.append(
-                {
-                    "label": f"Holding update: {holding.holding}",
-                    "amount": float(holding.value.amount),
-                    "currency": str(holding.value.currency),
-                    "date": holding.valuation_date.isoformat(),
-                    "icon": "bi-graph-up",
-                    "type_css": "info",
-                }
-            )
-
-        operations.sort(key=lambda x: x["date"], reverse=True)
-        return JsonResponse({"operations": operations[:5]})
+        return JsonResponse(
+            {
+                "operations": [
+                    {
+                        "label": f"{op.label}: {op.target}",
+                        "amount": float(op.amount.amount),
+                        "currency": str(op.amount.currency),
+                        "date": op.date.isoformat(),
+                        "icon": op.icon,
+                        "type_css": self.TYPE_CSS.get(op.kind, "secondary"),
+                    }
+                    for op in recent_operations(5)
+                ]
+            }
+        )
 
 
 @method_decorator(login_required, name="dispatch")

@@ -194,9 +194,7 @@ def net_worth_by_person(
     unassigned = PersonWorth(label=str(_("Not assigned")))
     outside = PersonWorth(label=str(_("Outside the household")))
 
-    rows: dict[tuple[int, int], list[Ownership]] = {}
-    for row in Ownership.objects.select_related("user", "user__profile"):
-        rows.setdefault((row.content_type_id, row.object_id), []).append(row)  # ty: ignore[unresolved-attribute]
+    rows = ownership_index()
     content_types = ContentType.objects.get_for_models(
         *(k.model for k in ASSET_KINDS.values())
     )
@@ -232,3 +230,56 @@ def net_worth_by_person(
         if value - held > 0:
             outside.add(kind, value - held)
     return list(people.values()), unassigned, outside
+
+
+def ownership_index() -> dict[tuple[int, int], list[Ownership]]:
+    """Every ownership row keyed by ``(content_type_id, object_id)``, in one query."""
+    index: dict[tuple[int, int], list[Ownership]] = {}
+    for row in Ownership.objects.select_related("user", "user__profile"):
+        index.setdefault((row.content_type_id, row.object_id), []).append(row)  # ty: ignore[unresolved-attribute]
+    return index
+
+
+def holder_label(rows: list[Ownership], legacy_owner: str | None = "") -> str:
+    """Short name of who holds an asset, for lists and filters.
+
+    A single owner is named (with the dismembered right when there is one),
+    several owners hold it jointly; without any ownership row the free-text
+    *legacy_owner* is used, else the whole household.
+    """
+    if not rows:
+        return legacy_owner or str(_("Household"))
+    if len(rows) > 1:
+        return str(_("Joint"))
+    row = rows[0]
+    name = display_name(row.user)
+    if row.right == Ownership.Right.BARE:
+        return str(_("%(name)s (bare)") % {"name": name})
+    if row.right == Ownership.Right.USUFRUCT:
+        return str(_("%(name)s (usufruct)") % {"name": name})
+    return name
+
+
+class HolderResolver:
+    """Holder labels of many assets, from a single ownership query."""
+
+    def __init__(self):
+        self.index = ownership_index()
+        self.content_types = ContentType.objects.get_for_models(
+            *(kind.model for kind in ASSET_KINDS.values())
+        )
+
+    def rows(self, obj) -> list[Ownership]:
+        """Ownership rows of *obj*."""
+        content_type = self.content_types.get(type(obj))
+        if content_type is None:
+            return []
+        return self.index.get((content_type.pk, obj.pk), [])
+
+    def label(self, *objs, legacy: str | None = "") -> str:
+        """Holder of *objs* taken together (e.g. the investments of one fund)."""
+        rows: dict[int, Ownership] = {}
+        for obj in objs:
+            for row in self.rows(obj):
+                rows.setdefault(row.user_id, row)  # ty: ignore[unresolved-attribute]
+        return holder_label(list(rows.values()), legacy)

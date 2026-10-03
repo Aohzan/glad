@@ -1,0 +1,16 @@
+{% load i18n glad_format %}
+<section class="g-card g-card--list" id="recent-operations">
+  <div class="g-section-head">
+    <h2 class="g-h2">{% translate "Recent operations" %}</h2>
+    <a class="g-link" href="{% url 'operations' %}">{% translate "See all" %}{% icon "arrow-right" %}</a>
+  </div>
+  {% for op in operations %}
+  <a class="g-list-item g-list-item--compact" href="{{ op.url }}">
+    <span class="g-icon-circle g-icon-circle--sm">{% icon op.icon %}</span>
+    <span class="g-cell-main"><span class="g-cell-title">{{ op.target }}</span><span class="g-cell-sub">{{ op.label }} · {{ op.date|date:"d/m/Y" }}</span></span>
+    <span class="g-strong g-num{% if op.flow == 'in' %} g-pos{% endif %}">{% if op.flow == 'in' %}{{ op.amount|signed_money0 }}{% else %}{{ op.amount|money0 }}{% endif %}</span>
+  </a>
+  {% empty %}
+  <p class="g-muted py-3 mb-0">{% translate "No operation recorded yet." %}</p>
+  {% endfor %}
+</section>

@@ -14,7 +14,6 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
-from django.views.generic import TemplateView
 
 from base.forms import MonthlyExpensesForm
 from base.models import EconomicIndex
@@ -23,11 +22,7 @@ from base.services.allocation import (
     compute_allocation,
     emergency_fund,
 )
-from base.services.deadlines import upcoming_deadlines
 from base.services.insee import InseeError, refresh_index
-from property.models import Property
-from property.models.scpi import SCPI
-from property.services.checks import pending_checks_summary
 
 
 def get_object_or_redirect(
@@ -70,33 +65,6 @@ def safe_date_compare(date_obj, datetime_obj):
         return date_obj <= datetime_obj.date()
     else:
         return date_obj <= datetime_obj
-
-
-DASHBOARD_DEADLINES = 8
-
-
-class IndexView(TemplateView):
-    """View for the index page — shells out to async API endpoints."""
-
-    template_name = "index.html"
-
-    def get(self, request, *args, **kwargs):
-        property_pks = list(
-            Property.objects.filter(is_active=True)
-            .order_by("-is_favorite", "name")
-            .values_list("pk", flat=True)
-        )
-        scpi_pks = list(SCPI.objects.order_by("name").values_list("pk", flat=True))
-        return render(
-            request,
-            self.template_name,
-            {
-                "property_pks": property_pks,
-                "scpi_pks": scpi_pks,
-                "property_checks": pending_checks_summary() if property_pks else None,
-                "deadlines": upcoming_deadlines(limit=DASHBOARD_DEADLINES),
-            },
-        )
 
 
 def allocation(request: HttpRequest) -> HttpResponse:

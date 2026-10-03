@@ -6,10 +6,27 @@ from typing import cast
 from django.http import HttpResponseBase
 from django.urls import path
 
-from base import api_views, ownership_views, search_views, tracking_views, views
+from base import (
+    api_views,
+    dashboard_views,
+    ownership_views,
+    search_views,
+    tracking_views,
+    views,
+)
 
 urlpatterns = [
-    path("", views.IndexView.as_view(), name="index"),
+    path("", dashboard_views.index, name="index"),
+    path(
+        "dashboard/panel/overview/",
+        dashboard_views.panel_overview,
+        name="dashboard_panel_overview",
+    ),
+    path(
+        "dashboard/panel/property/",
+        dashboard_views.panel_property,
+        name="dashboard_panel_property",
+    ),
     path("allocation/", views.allocation, name="allocation"),
     path("owners/", ownership_views.owners_overview, name="owners"),
     path("deadlines/", tracking_views.deadlines, name="deadlines"),
