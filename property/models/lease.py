@@ -87,6 +87,27 @@ class Lease(BaseModel):
         default=Periodicity.MONTHLY,
         verbose_name=_("Periodicity"),
     )
+    irl_reference_quarter = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        choices=[(1, _("Q1")), (2, _("Q2")), (3, _("Q3")), (4, _("Q4"))],
+        verbose_name=_("IRL reference quarter"),
+        help_text=_(
+            "Quarter of the rent reference index named in the lease, usually the "
+            "last one published when it was signed."
+        ),
+    )
+    irl_reference_value = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_("IRL reference value"),
+        help_text=_("IRL value of the current rent (at signing or last revision)."),
+    )
+    last_rent_revision_date = models.DateField(
+        null=True, blank=True, verbose_name=_("Last rent revision")
+    )
     notes = models.TextField(blank=True)
 
     @builtins.property

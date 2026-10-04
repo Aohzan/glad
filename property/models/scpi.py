@@ -4,6 +4,7 @@ import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -90,7 +91,7 @@ class SCPI(BaseModel):
         """
         if as_of_date is None:
             as_of_date = datetime.date.today()
-        return self.share_prices.filter(date__lte=as_of_date).order_by("-date").first()
+        return self.latest_related("share_prices", "date", as_of_date)
 
     @property
     def current_subscription_value(self) -> Money | None:
@@ -272,6 +273,7 @@ class SCPIInvestment(BaseModel):
         ),
     )
     notes = models.TextField(blank=True, default="")
+    ownerships = GenericRelation("base.Ownership")
 
     def __str__(self) -> str:
         return f"{self.scpi} — {self.shares_count} shares ({self.subscription_date})"
@@ -410,10 +412,8 @@ class SCPIInvestment(BaseModel):
         ):
             # Check for a manually recorded theoretical value first (only if saved)
             if self.pk is not None:
-                theoretical = (
-                    self.theoretical_values.filter(date__lte=as_of_date)
-                    .order_by("-date")
-                    .first()
+                theoretical = self.latest_related(
+                    "theoretical_values", "date", as_of_date
                 )
                 if theoretical is not None:
                     return Money(theoretical.value.amount, self.currency)
@@ -494,10 +494,8 @@ class SCPIInvestment(BaseModel):
         ):
             # Check for a manually recorded theoretical value first (only if saved)
             if self.pk is not None:
-                theoretical = (
-                    self.theoretical_values.filter(date__lte=as_of_date)
-                    .order_by("-date")
-                    .first()
+                theoretical = self.latest_related(
+                    "theoretical_values", "date", as_of_date
                 )
                 if theoretical is not None:
                     # Theoretical value already represents the ownership-adjusted amount;

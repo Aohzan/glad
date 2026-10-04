@@ -1,0 +1,43 @@
+{% load i18n format_money %}
+{# Value history table. Expects: values, parent_pk, new_value_url, edit_value_url_name, delete_value_url_name #}
+<div class="card mb-4" id="values-panel">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">{% icon "rotate-ccw-clock" "me-2" %}{% translate "Value history" %}</h5>
+    <a href="{{ new_value_url }}" class="btn btn-sm btn-outline-primary">
+      {% icon "plus" "me-1" %}{% translate "Add value" %}
+    </a>
+  </div>
+  <div class="card-body">
+    {% if values %}
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>{% translate "Date" %}</th>
+            <th>{% translate "Value" %}</th>
+            <th class="text-end">{% translate "Actions" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in values %}
+          <tr>
+            <td>{{ v.value_date }}</td>
+            <td>{{ v.value|format_money }}</td>
+            <td class="text-end">
+              {% url edit_value_url_name parent_pk v.pk as edit_url %}
+              {% url delete_value_url_name parent_pk v.pk as delete_url %}
+              {% include "finance/_item_actions.html" with edit_url=edit_url modal_prefix="deleteValue" item_pk=v.pk %}
+              {% translate "Delete value entry" as modal_title %}
+              {% translate "Are you sure you want to delete this value entry?" as confirm_text %}
+              {% include "finance/_delete_modal.html" with modal_prefix="deleteValue" item_pk=v.pk delete_url=delete_url modal_title=modal_title confirm_text=confirm_text %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-body-secondary mb-0"><em>{% translate "No value entries yet." %}</em></p>
+    {% endif %}
+  </div>
+</div>

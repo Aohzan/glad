@@ -4,3 +4,11 @@
   {{ form.value }}
   {% if form.value.errors %}<div class="invalid-feedback d-block">{{ form.value.errors }}</div>{% endif %}
 </div>
+{% if form.amount_to_add %}
+<div class="col-md-6">
+  <label for="{{ form.amount_to_add.id_for_label }}" class="form-label fw-semibold">{{ form.amount_to_add.label }}</label>
+  {{ form.amount_to_add }}
+  <div class="form-text">{{ form.amount_to_add.help_text }}</div>
+  {% if form.amount_to_add.errors %}<div class="invalid-feedback d-block">{{ form.amount_to_add.errors }}</div>{% endif %}
+</div>
+{% endif %}

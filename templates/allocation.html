@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load i18n static format_money %}
+
+{% block title %}{% translate "Allocation" %}{% endblock %}
+
+{% block extra_head %}
+<script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="mb-0 h3">{% icon "chart-pie" "me-2 text-primary" %}{% translate "Allocation" %}</h1>
+    <span class="text-body-secondary" id="allocation-total">
+      {% if is_household %}
+        {% translate "Household total" %} <strong>{{ allocation.total|format_money_amount:allocation.currency }}</strong>
+      {% else %}
+        {% translate "Selection" %} <strong>{{ allocation.total|format_money_amount:allocation.currency }}</strong>
+        <span class="small">/ {% translate "household" %} {{ household_total|format_money_amount:allocation.currency }}</span>
+      {% endif %}
+    </span>
+  </div>
+
+  <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-4" id="people-filter">
+    <span class="small text-body-secondary">{% icon "users" "me-1" %}{{ people_form.people.label }}</span>
+    {{ people_form.people }}
+    {% if not is_household %}<a href="{% url 'allocation' %}" class="btn btn-sm btn-link">{% translate "Whole household" %}</a>{% endif %}
+    <noscript><button type="submit" class="btn btn-sm btn-outline-primary">{% translate "Apply" %}</button></noscript>
+  </form>
+
+  {# ── Emergency fund ── #}
+  <div class="card shadow-sm rounded-4 mb-4" id="emergency-fund">
+    <div class="card-header border-0 pb-0">
+      <h2 class="section-title mb-0">{% icon "life-buoy" "me-2 text-primary" %}{% translate "Emergency fund" %}</h2>
+    </div>
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <small class="text-body-secondary">{% translate "Available immediately" %}</small>
+          <div class="fs-5 fw-semibold">{{ fund.available|format_money_amount:allocation.currency }}</div>
+        </div>
+        <div class="col-md-4">
+          {% if fund.months is not None %}
+          <small class="text-body-secondary">{% translate "Months of expenses covered" %}</small>
+          <div class="fs-5 fw-semibold text-{{ fund.level }}">{{ fund.months|floatformat:1 }}</div>
+          <small class="text-body-secondary">
+            {% blocktranslate with low=fund_months.0 high=fund_months.1 %}Target: {{ low }} to {{ high }} months{% endblocktranslate %}
+            ({{ fund.target_range.0|format_money_amount:allocation.currency }} – {{ fund.target_range.1|format_money_amount:allocation.currency }})
+          </small>
+          {% else %}
+          <small class="text-body-secondary">{% translate "Enter your monthly expenses to size your emergency fund." %}</small>
+          {% endif %}
+        </div>
+        <div class="col-md-4">
+          <form method="post" class="d-flex gap-2 align-items-end">
+            {% csrf_token %}
+            <div class="flex-grow-1">
+              <label for="{{ form.monthly_expenses.id_for_label }}" class="form-label small mb-1">{{ form.monthly_expenses.label }}</label>
+              {{ form.monthly_expenses }}
+            </div>
+            <button type="submit" class="btn btn-outline-primary">{% translate "Save" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      {% translate "By asset class" as class_title %}
+      {% include "_allocation_block.html" with title=class_title rows=by_class chart_id="chart-classes" icon="network" %}
+    </div>
+    <div class="col-lg-6">
+      {% translate "By liquidity" as liquidity_title %}
+      {% include "_allocation_block.html" with title=liquidity_title rows=by_liquidity chart_id="chart-liquidity" icon="droplet" %}
+    </div>
+  </div>
+  <p class="small text-body-secondary mt-3 mb-0">
+    {% translate "Each asset counts for the share held by the chosen owners; with every member chosen, the total is the household's part of the assets. The emergency fund always covers the whole household." %}
+    {% translate "Real estate is counted net of the remaining loans. Only assets in the reference currency are included. Set the asset class of each holding to refine the breakdown." %}
+  </p>
+</div>
+{{ chart_data|json_script:"allocation-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  const filter = document.getElementById('people-filter');
+  filter.addEventListener('change', () => filter.submit());
+  const data = JSON.parse(document.getElementById('allocation-data').textContent);
+  const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+  const currency = "{{ allocation.currency|escapejs }}";
+  const fmt = v => new Intl.NumberFormat(document.documentElement.lang || navigator.language, {
+    style: 'currency', currency, maximumFractionDigits: 0,
+  }).format(v);
+  [['chart-classes', data.classes], ['chart-liquidity', data.liquidity]].forEach(([id, series]) => {
+    const el = document.getElementById(id);
+    if (!el || !series.values.length) return;
+    new ApexCharts(el, {
+      chart: { type: 'donut', height: 260, background: 'transparent' },
+      theme: { mode: isDark ? 'dark' : 'light' },
+      series: series.values,
+      labels: series.labels,
+      legend: { position: 'bottom', fontSize: '11px' },
+      dataLabels: { enabled: false },
+      stroke: { width: 0 },
+      tooltip: { y: { formatter: fmt } },
+      plotOptions: { pie: { donut: { size: '58%' } } },
+    }).render();
+  });
+})();
+</script>
+{% endblock %}

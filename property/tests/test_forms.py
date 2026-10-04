@@ -46,9 +46,8 @@ def test_loan_form_valid_computes_end_date_and_monthly_payment(prop):
     cd = form.cleaned_data
     # end_date = start_date + 240 months = 2044-01-01
     assert cd["end_date"] == datetime.date(2044, 1, 1)
-    # monthly_payment should be ~1159.97
-    assert cd["monthly_payment"] is not None
-    assert abs(float(cd["monthly_payment"].amount) - 1159.97) < 1.0
+    # 200 000 at 3.5 % over 240 months: the annuity is 1159.92
+    assert cd["monthly_payment"] == Money(Decimal("1159.92"), "EUR")
     # No insurance rate → insurance is None
     assert cd["insurance"] is None
 
@@ -79,8 +78,7 @@ def test_loan_form_save_sets_end_date_and_monthly_payment(prop):
 
     loan = PropertyLoan.objects.get(pk=instance.pk)
     assert loan.end_date == datetime.date(2044, 1, 1)
-    assert loan.monthly_payment is not None
-    assert abs(float(loan.monthly_payment.amount) - 1159.97) < 1.0
+    assert loan.monthly_payment == Money(Decimal("1159.92"), "EUR")
     assert loan.insurance is not None
     assert abs(float(loan.insurance.amount) - 60.0) < 0.5
 
@@ -163,3 +161,98 @@ def test_loan_form_save_with_commit_true(prop):
     assert instance.pk is not None
     assert instance.end_date == datetime.date(2044, 1, 1)
     assert instance.monthly_payment is not None
+
+
+@pytest.mark.django_db
+def test_loan_form_empty_interest_rate_saves_zero(prop):
+    """An empty interest rate is saved as 0 instead of failing on NOT NULL."""
+    form = PropertyLoanForm(
+        data=_base_data(
+            interest_rate="", duration_months="24", original_amount_0="24000"
+        )
+    )
+    assert form.is_valid(), form.errors
+
+    form.instance.property = prop
+    loan = form.save()
+
+    loan.refresh_from_db()
+    assert loan.interest_rate == Decimal(0)
+    assert loan.insurance_rate == Decimal(0)
+    assert loan.monthly_payment == Money(Decimal("1000.00"), "EUR")
+
+
+@pytest.mark.django_db
+def test_loan_form_rejects_first_payment_before_start(prop):
+    """The first payment must come after the disbursement."""
+    for first_payment_date in ("2023-12-01", "2024-01-01"):
+        form = PropertyLoanForm(data=_base_data(first_payment_date=first_payment_date))
+        assert not form.is_valid()
+        assert "first_payment_date" in form.errors
+
+
+def _existing_loan(prop, **overrides) -> PropertyLoan:
+    """A saved loan whose amounts were set by hand, not by the form."""
+    fields = {
+        "property": prop,
+        "name": "Main Loan",
+        "lender": "BNP",
+        "start_date": datetime.date(2024, 1, 1),
+        "end_date": datetime.date(2044, 1, 1),
+        "original_amount": Money(200000, "EUR"),
+        "interest_rate": Decimal("3.50"),
+        "insurance_rate": Decimal("0.36"),
+        "monthly_payment": Money(Decimal("1170.00"), "EUR"),
+        "insurance": Money(Decimal("55.00"), "EUR"),
+    }
+    fields.update(overrides)
+    return PropertyLoan.objects.create(**fields)
+
+
+@pytest.mark.django_db
+def test_loan_form_rename_keeps_stored_amounts(prop):
+    """Editing a field that does not drive the amounts keeps them as stored."""
+    loan = _existing_loan(prop)
+    form = PropertyLoanForm(
+        data=_base_data(name="Renamed", insurance_rate="0.36"), instance=loan
+    )
+    assert form.is_valid(), form.errors
+    form.save()
+
+    loan.refresh_from_db()
+    assert loan.name == "Renamed"
+    assert loan.monthly_payment == Money(Decimal("1170.00"), "EUR")
+    assert loan.insurance == Money(Decimal("55.00"), "EUR")
+
+
+@pytest.mark.django_db
+def test_loan_form_recomputes_the_amounts_whose_inputs_changed(prop):
+    """A new rate recomputes the payment; a cleared insurance rate drops it."""
+    loan = _existing_loan(prop)
+    form = PropertyLoanForm(
+        data=_base_data(interest_rate="3.00", insurance_rate="0.36"), instance=loan
+    )
+    assert form.is_valid(), form.errors
+    form.save()
+    loan.refresh_from_db()
+    assert loan.monthly_payment == Money(Decimal("1109.20"), "EUR")
+    assert loan.insurance == Money(Decimal("55.00"), "EUR")
+
+    form = PropertyLoanForm(data=_base_data(interest_rate="3.00"), instance=loan)
+    assert form.is_valid(), form.errors
+    form.save()
+    loan.refresh_from_db()
+    assert loan.monthly_payment == Money(Decimal("1109.20"), "EUR")
+    assert loan.insurance is None
+
+
+@pytest.mark.django_db
+def test_loan_form_computes_a_missing_payment(prop):
+    """A loan saved without a payment gets one even if nothing changed."""
+    loan = _existing_loan(prop, monthly_payment=None)
+    form = PropertyLoanForm(data=_base_data(insurance_rate="0.36"), instance=loan)
+    assert form.is_valid(), form.errors
+    form.save()
+
+    loan.refresh_from_db()
+    assert loan.monthly_payment == Money(Decimal("1159.92"), "EUR")

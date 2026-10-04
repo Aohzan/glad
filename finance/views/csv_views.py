@@ -15,6 +15,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
+from base.services.ownership import HolderResolver
 from finance.forms import CSVAccountMappingForm, CSVExportForm, CSVImportForm
 from finance.models.investment_account import (
     InvestmentAccount,
@@ -550,30 +551,31 @@ def csv_export_synthesis(request):
     writer.writerow(header)
 
     total = 0
+    holders = HolderResolver()
 
     for account in SavingAccount.objects.filter(is_active=True).order_by(
-        "account_type", "name", "owner", "institution"
+        "account_type", "name", "institution"
     ):
         value = account.get_value(max_date=now)
         total += value.amount
         writer.writerow(
             [
                 str(account.account_type),
-                account.owner or "",
+                holders.label(account),
                 account.institution or "",
                 str(value.amount),
             ]
         )
 
     for account in InvestmentAccount.objects.filter(is_active=True).order_by(
-        "account_type", "name", "owner", "institution"
+        "account_type", "name", "institution"
     ):
         value = account.get_value(max_date=now)
         total += value.amount
         writer.writerow(
             [
                 str(account.account_type),
-                account.owner or "",
+                holders.label(account),
                 account.institution or "",
                 str(value.amount),
             ]

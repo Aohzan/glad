@@ -7,7 +7,7 @@
   {% if loans_with_totals %}
   <div class="card mb-3">
     <div class="card-header py-2">
-      <h6 class="mb-0"><i class="bi bi-bar-chart-line me-1"></i>{% translate "Amortization schedule" %}</h6>
+      <h6 class="mb-0">{% icon "chart-column" "me-1" %}{% translate "Amortization schedule" %}</h6>
     </div>
     <div class="card-body p-2">
       <div id="loan-amortization-chart" style="height: 300px;"></div>
@@ -19,7 +19,7 @@
   {% if loans_with_totals %}
   <div class="card mb-3">
     <div class="card-header py-2 d-flex justify-content-between align-items-center">
-      <h6 class="mb-0"><i class="bi bi-bank me-1"></i>{% translate "Loans" %}</h6>
+      <h6 class="mb-0">{% icon "landmark" "me-1" %}{% translate "Loans" %}</h6>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -44,8 +44,8 @@
             <tr>
               <td>
                 {{ item.loan.name|default:"—" }}
-                {% if item.loan.amortization_entries.exists %}
-                  <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;"><i class="bi bi-table"></i></span>
+                {% if item.has_table %}
+                  <span class="badge bg-success-subtle text-success ms-1" style="font-size:.65rem;">{% icon "table" %}</span>
                 {% endif %}
               </td>
               <td>{{ item.loan.lender|default:"—" }}
@@ -57,10 +57,10 @@
               <td>{{ item.loan.end_date }}</td>
               <td class="text-end">{{ item.loan.original_amount|format_money }}</td>
               <td class="text-end">
-                {% if item.loan.monthly_payment %}
-                  {{ item.loan.monthly_payment|format_money }}
-                  {% if item.loan.insurance %}
-                    <span class="text-body-secondary small d-block">+ {{ item.loan.insurance|format_money }} {% translate "ins." %}</span>
+                {% if item.monthly_payment %}
+                  {{ item.monthly_payment|format_money }}
+                  {% if item.monthly_insurance %}
+                    <span class="text-body-secondary small d-block">+ {{ item.monthly_insurance|format_money }} {% translate "ins." %}</span>
                   {% endif %}
                 {% else %}
                   —
@@ -76,22 +76,17 @@
                 {% else %}—{% endif %}
               </td>
               <td class="text-end fw-semibold">
-                {% if item.total_cost is not None %}
-                  {% if item.total_repaid is not None %}
-                    <span class="text-body-secondary small d-block">{{ item.total_repaid|format_money }}</span>
-                  {% endif %}
-                {% else %}—{% endif %}
+                {{ item.total_cost|format_money }}
+                <span class="text-body-secondary small fw-normal d-block">{% translate "Total repaid" %} {{ item.total_repaid|format_money }}</span>
               </td>
               <td class="text-end fw-semibold">
-                {% if item.remaining_balance is not None %}
-                  {% if item.remaining_balance.amount == 0 %}
-                    <span class="text-success">{{ item.remaining_balance|format_money }}</span>
-                  {% elif item.loan.start_date > today %}
-                    <span class="text-danger">{{ item.remaining_balance|format_money }}</span>
-                  {% else %}
-                    <span class="text-warning">{{ item.remaining_balance|format_money }}</span>
-                  {% endif %}
-                {% else %}—{% endif %}
+                {% if item.loan.start_date > today %}
+                  <span class="text-body-secondary fw-normal">{% translate "Not disbursed yet" %}</span>
+                {% elif item.remaining_balance.amount == 0 %}
+                  <span class="text-success">{{ item.remaining_balance|format_money }}</span>
+                {% else %}
+                  <span class="text-warning">{{ item.remaining_balance|format_money }}</span>
+                {% endif %}
               </td>
               <td class="text-end">
                 <div class="d-flex gap-1 justify-content-end">
@@ -100,7 +95,7 @@
                           data-bs-target="#loan-form-collapse-{{ item.loan.pk }}"
                           aria-expanded="false"
                           title="{% translate "Edit loan" %}">
-                    <i class="bi bi-pencil"></i>
+                    {% icon "pencil" %}
                   </button>
                 </div>
               </td>
@@ -156,7 +151,7 @@
               <div class="form-check">
                 {{ form.DELETE }}
                 <label class="form-check-label text-danger" for="{{ form.DELETE.id_for_label }}">
-                  <i class="bi bi-trash"></i> {% translate "Delete" %}
+                  {% icon "trash" %} {% translate "Delete" %}
                 </label>
               </div>
             {% endif %}
@@ -240,7 +235,7 @@
               <div class="loan-preview alert alert-info py-2 mb-0 d-none">
                 <small>
                   <span class="loan-preview-monthly">
-                    <i class="bi bi-calculator"></i>
+                    {% icon "calculator" %}
                     {% translate "Estimated monthly payment" %}: <strong class="loan-preview-total">—</strong>
                     <span class="loan-preview-detail text-body-secondary ms-2"></span>
                     <span class="ms-3 text-body-secondary">|</span>
@@ -256,8 +251,8 @@
           <div class="mt-3 border-top pt-3">
             <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
               <h6 class="mb-0 text-body-secondary">{% translate "Amortization table" %}</h6>
-              {% if form.instance.amortization_entries.exists %}
-                <span class="badge bg-success-subtle text-success">{{ form.instance.amortization_entries.count }} {% translate "entries" %}</span>
+              {% if loan_entry.row.has_table %}
+                <span class="badge bg-success-subtle text-success">{{ loan_entry.row.entries|length }} {% translate "entries" %}</span>
               {% else %}
                 <span class="badge bg-secondary-subtle text-secondary">{% translate "Auto-calculated" %}</span>
               {% endif %}
@@ -268,27 +263,27 @@
                        class="d-none js-amort-csv-input" id="csv-input-{{ form.instance.pk }}"
                        data-import-url="{% url 'property:loan_amortization_import' pk=property.pk loan_pk=form.instance.pk %}">
                 <label for="csv-input-{{ form.instance.pk }}" class="btn btn-sm btn-outline-primary" role="button">
-                  <i class="bi bi-upload me-1"></i>{% translate "Import CSV" %} <i class="bi bi-info" tooltip="true" title="{% translate "CSV format:" %} date,capital,interest,other,remaining"></i>
+                  {% icon "upload" "me-1" %}{% translate "Import CSV" %} <span class="d-inline-flex" tooltip="true" title="{% translate "CSV format:" %} date,capital,interest,other,remaining">{% icon "info" %}</span>
                 </label>
               </span>
 
               {# Generate auto — fetch POST to avoid nested-form issue #}
               <button type="button" class="btn btn-sm btn-outline-secondary js-amort-generate"
                       data-url="{% url 'property:loan_amortization_generate' pk=property.pk loan_pk=form.instance.pk %}">
-                <i class="bi bi-calculator me-1"></i>{% translate "Generate auto" %}
+                {% icon "calculator" "me-1" %}{% translate "Generate auto" %}
               </button>
 
-              {% if form.instance.amortization_entries.exists %}
+              {% if loan_entry.row.has_table %}
               {# Clear — fetch POST to avoid nested-form issue #}
               <button type="button" class="btn btn-sm btn-outline-danger js-amort-clear"
                       data-url="{% url 'property:loan_amortization_clear' pk=property.pk loan_pk=form.instance.pk %}"
                       data-confirm="{% translate "Clear the amortization table?" %}">
-                <i class="bi bi-trash me-1"></i>{% translate "Clear" %}
+                {% icon "trash" "me-1" %}{% translate "Clear" %}
               </button>
               {% endif %}
             </div>
 
-            {% if form.instance.amortization_entries.exists %}
+            {% if loan_entry.row.has_table %}
             <div style="max-height:300px;overflow-y:auto;">
               <table class="table table-sm table-striped table-bordered mb-0" style="font-size:.8rem;">
                 <thead class="table-light sticky-top">
@@ -300,7 +295,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for entry in form.instance.amortization_entries.all %}
+                  {% for entry in loan_entry.row.entries %}
                   <tr>
                     <td>{{ entry.date|date:"d/m/Y" }}</td>
                     <td class="text-end">{{ entry.capital.amount|floatformat:2 }}</td>
@@ -327,7 +322,7 @@
             data-bs-toggle="collapse"
             data-bs-target="#new-loan-collapse"
             aria-expanded="false">
-      <i class="bi bi-plus-circle me-1"></i>{% translate "Add a loan" %}
+      {% icon "circle-plus" "me-1" %}{% translate "Add a loan" %}
     </button>
     <div class="collapse mt-3" id="new-loan-collapse">
       {# The "extra=1" new-loan form body is rendered here by JS below #}
@@ -337,7 +332,7 @@
   {# ── Form actions ── #}
   <div class="d-flex gap-2 justify-content-end">
     <button type="submit" class="btn btn-primary">
-      <i class="bi bi-check-lg"></i> {% translate "Save loans" %}
+      {% icon "check" %} {% translate "Save loans" %}
     </button>
   </div>
 
@@ -613,97 +608,5 @@
 </script>
 
 {% if loans_with_totals %}
-<script nonce="{{ csp_nonce }}">
-(function() {
-  var chartData = {{ loan_chart_data_json|safe }};
-  if (!chartData || !chartData.loans || chartData.loans.length === 0) return;
-
-  var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-
-  // Stacked bar series (one per loan)
-  var barSeries = chartData.loans.map(function(loan) {
-    return { name: loan.name, type: 'bar', data: loan.data };
-  });
-
-  // Line series for capital and interest totals
-  var lineSeries = [
-    { name: '{% filter escapejs %}{% translate "Total capital" %}{% endfilter %}', type: 'line', data: chartData.total_capital },
-    { name: '{% filter escapejs %}{% translate "Total interest" %}{% endfilter %}', type: 'line', data: chartData.total_interest },
-  ];
-
-  var allSeries = barSeries.concat(lineSeries);
-
-  // Assign types: bars are 'bar', lines are 'line'
-  var yaxis = [
-    {
-      seriesName: barSeries[0].name,
-      labels: { formatter: function(v) { return new Intl.NumberFormat('fr-FR', {style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v); } },
-    }
-  ];
-  // All bar series share the same y-axis (only first defined explicitly)
-  for (var i = 1; i < barSeries.length; i++) {
-    yaxis.push({ seriesName: barSeries[0].name, show: false });
-  }
-  // Line series share same axis but hidden label
-  yaxis.push({ seriesName: '{% filter escapejs %}{% translate "Total capital" %}{% endfilter %}', show: false });
-  yaxis.push({ seriesName: '{% filter escapejs %}{% translate "Total interest" %}{% endfilter %}', show: false });
-
-  var options = {
-    series: allSeries,
-    chart: {
-      type: 'bar',
-      height: 300,
-      stacked: true,
-      toolbar: { show: false },
-      background: 'transparent',
-      animations: { enabled: false },
-    },
-    theme: { mode: isDark ? 'dark' : 'light' },
-    plotOptions: {
-      bar: { columnWidth: '70%' }
-    },
-    stroke: {
-      width: allSeries.map(function(s) { return s.type === 'line' ? 2 : 0; }),
-      curve: 'smooth',
-    },
-    markers: {
-      size: allSeries.map(function(s) { return s.type === 'line' ? 0 : 0; }),
-    },
-    xaxis: {
-      type: 'datetime',
-      labels: {
-        datetimeUTC: false,
-        format: 'MMM yy',
-      },
-    },
-    yaxis: yaxis,
-    legend: { position: 'top' },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      x: { format: 'MMM yyyy' },
-      y: {
-        formatter: function(v) {
-          return new Intl.NumberFormat('fr-FR', {style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
-        }
-      }
-    },
-    dataLabels: { enabled: false },
-    grid: { strokeDashArray: 4 },
-  };
-
-  var chartEl = document.querySelector('#loan-amortization-chart');
-  if (chartEl) {
-    var chart = new ApexCharts(chartEl, options);
-    chart.render();
-    (window._propertyPanelCharts = window._propertyPanelCharts || []).push(chart);
-
-    // Re-render when tab becomes visible
-    var loansTab = document.getElementById('loans-tab');
-    if (loansTab) {
-      loansTab.addEventListener('shown.bs.tab', function() { chart.render(); });
-    }
-  }
-})();
-</script>
+{% include "property/_loan_chart.html" with chart_height=300 %}
 {% endif %}

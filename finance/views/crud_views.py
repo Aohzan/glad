@@ -30,8 +30,10 @@ def _edit_account_related(
         else None
     )
 
+    # A new entry already knows its parent, so the form can read the account.
+    instance = obj or model(**{parent_field: account})
     if request.method == "POST":
-        form = form_class(request.POST, instance=obj)
+        form = form_class(request.POST, instance=instance)
         if form.is_valid():
             created = form.save(commit=False)
             setattr(created, parent_field, account)
@@ -42,7 +44,7 @@ def _edit_account_related(
             )
         messages.error(request, _("Please correct the errors below."))
     else:
-        form = form_class(instance=obj)
+        form = form_class(instance=instance)
 
     return render(
         request,

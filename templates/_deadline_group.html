@@ -1,0 +1,14 @@
+{% load i18n %}
+<section class="g-deadline-group{% if muted %} is-past{% endif %}">
+  <h2 class="g-deadline-group__title">{% if label %}{{ label }}{% else %}{{ group.grouper|date:"F Y"|capfirst }}{% endif %}</h2>
+  <div class="g-card">
+    {% for d in items %}
+    <a class="g-deadline" href="{{ d.url }}">
+      <span class="g-deadline__date"><span class="g-deadline__day">{{ d.date|date:"d" }}</span><span class="g-date__mon">{{ d.date|date:"M" }}{% if d.date.year != today.year %} {{ d.date|date:"y" }}{% endif %}</span></span>
+      <span class="g-icon-circle g-icon-circle--accent">{% icon d.icon %}</span>
+      <span class="g-cell-main"><span class="g-cell-title">{{ d.detail }}</span><span class="g-cell-sub">{{ d.title }}</span></span>
+      {% include "_days_left_tag.html" %}
+    </a>
+    {% endfor %}
+  </div>
+</section>

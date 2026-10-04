@@ -8,9 +8,11 @@ from moneyed import Money
 
 from property.models import (
     AmortizationSetup,
+    LmnpDeclarationSnapshot,
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
+    PropertyLoanAmortizationEntry,
 )
 from property.services.tax_lmnp import get_lmnp_checklist
 
@@ -206,6 +208,45 @@ class TestChecklistFinancialCharges:
             if c["id"] == "financial_charges"
         )
         assert check["status"] == "ok"
+
+    def _financial_charges(self, prop, year=2024):
+        result = get_lmnp_checklist([prop], year)
+        return next(
+            c
+            for c in result["properties"][0]["checks"]
+            if c["id"] == "financial_charges"
+        )
+
+    def test_warning_when_the_interest_is_estimated(self, lmnp_property):
+        """Without entries, the interest comes from the loan parameters."""
+        _add_loan(lmnp_property, year=2024)
+        check = self._financial_charges(lmnp_property)
+        assert check["status"] == "warning"
+        assert "estimated from the loan parameters" in str(check["detail"])
+
+    def test_ok_when_the_amortization_table_covers_the_year(self, lmnp_property):
+        loan = _add_loan(lmnp_property, year=2024)
+        PropertyLoanAmortizationEntry.objects.create(
+            loan=loan,
+            date=datetime.date(2024, 2, 1),
+            capital=Money(500, "EUR"),
+            interest=Money(187, "EUR"),
+            remaining_balance_amount=Money(149_500, "EUR"),
+        )
+        check = self._financial_charges(lmnp_property)
+        assert check["status"] == "ok"
+        assert "amortization tables" in str(check["detail"])
+
+    def test_frozen_year_keeps_the_former_warning(self, lmnp_property):
+        """A frozen year gets no estimate: the loan parameters are not used."""
+        _add_loan(lmnp_property, year=2024)
+        snapshot = LmnpDeclarationSnapshot.objects.create(
+            fiscal_year=2024, rules_version="2024", data={}
+        )
+        snapshot.properties.add(lmnp_property)
+        check = self._financial_charges(lmnp_property)
+        assert check["status"] == "warning"
+        assert "no financial charge entries" in str(check["detail"])
 
     def test_na_when_loan_ended_before_year(self, lmnp_property):
         """Loan ended before the checked year — not active, so N/A."""

@@ -22,6 +22,7 @@ urlpatterns = [
         name="toggle_favorite",
     ),
     path("<int:pk>/loans/", views.manage_property_loans, name="loans"),
+    path("<int:pk>/resale/", views.resale_simulation, name="resale_simulation"),
     path(
         "<int:pk>/loans/<int:loan_pk>/amortization/import/",
         cast(Callable[..., HttpResponseBase], views.import_loan_amortization),
@@ -85,6 +86,11 @@ urlpatterns = [
         "<int:property_pk>/lease/<int:lease_pk>/delete/",
         views.delete_lease,
         name="delete_lease",
+    ),
+    path(
+        "<int:property_pk>/lease/<int:lease_pk>/rent-revision/",
+        cast(Callable[..., HttpResponseBase], views.apply_lease_rent_revision),
+        name="apply_rent_revision",
     ),
     # Mandates
     path("<int:property_pk>/mandate/new/", views.edit_mandate, name="new_mandate"),

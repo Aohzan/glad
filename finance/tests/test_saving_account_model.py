@@ -44,13 +44,11 @@ def test_saving_account_str_name_matches_type_name():
     account = SavingAccount.objects.create(
         account_type=account_type,
         name="PEL",
-        owner="Alice",
         is_active=True,
         opening_value=Money(Decimal(0), "EUR"),
     )
     # name == account_type.name so account_name = "PEL"
-    # owner is "Alice" → "PEL Alice"
-    assert str(account) == "PEL Alice"
+    assert str(account) == "PEL"
 
 
 @pytest.mark.django_db

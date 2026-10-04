@@ -1,0 +1,22 @@
+{% load i18n glad_format %}
+<section class="g-card g-card--list" id="deadlines">
+  <div class="g-section-head">
+    <h2 class="g-h2">{% translate "Watch list" %}</h2>
+    <a class="g-link" href="{% url 'deadlines' %}">{% translate "Deadlines" %}{% icon "arrow-right" %}</a>
+  </div>
+  {% for w in watch %}
+  <a class="g-list-item" href="{{ w.url }}">
+    {% if w.row %}
+    <span class="g-icon-circle g-icon-circle--neg">{% icon "trending-down" %}</span>
+    <span class="g-cell-main"><span class="g-cell-title">{{ w.title }}</span><span class="g-cell-sub">{% blocktranslate with change=w.row.change_pct|pct %}{{ change }} over 30 days{% endblocktranslate %}</span></span>
+    <span class="g-tag g-tag--neg">{{ w.row.change|signed_money0:currency }}</span>
+    {% else %}
+    <span class="g-date"><span class="g-date__day">{{ w.deadline.date|date:"d" }}</span><span class="g-date__mon">{{ w.deadline.date|date:"M" }}</span></span>
+    <span class="g-cell-main"><span class="g-cell-title">{{ w.title }}</span><span class="g-cell-sub">{{ w.target }}</span></span>
+    {% include "_days_left_tag.html" with d=w.deadline %}
+    {% endif %}
+  </a>
+  {% empty %}
+  <p class="g-muted py-3 mb-0">{% translate "Nothing to watch: no drop and no deadline soon." %}</p>
+  {% endfor %}
+</section>

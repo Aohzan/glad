@@ -24,7 +24,7 @@
         {# Immobilisations corporelles #}
         {% if accounting.form_2033a.per_prop|length > 1 %}
         <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-immo" aria-expanded="false" style="cursor:pointer;">
-          <td>Immobilisations corporelles <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          <td>Immobilisations corporelles <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
           <td class="text-end">{{ accounting.form_2033a.immobilisations_brutes|floatformat:0 }} €</td>
           <td class="text-end text-danger">{{ accounting.form_2033a.amortissements_cumules|floatformat:0 }} €</td>
           <td class="text-end fw-semibold">{{ accounting.form_2033a.valeur_nette_comptable|floatformat:0 }} €</td>
@@ -83,7 +83,7 @@
         {# Capital social ou individuel #}
         {% if accounting.form_2033a.per_prop|length > 1 %}
         <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-capital" aria-expanded="false" style="cursor:pointer;">
-          <td>Capital social ou individuel <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          <td>Capital social ou individuel <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
           <td class="text-end fw-semibold">{{ accounting.form_2033a.capital_individuel|floatformat:0 }} €</td>
         </tr>
         <tr class="collapse" id="a-capital">
@@ -126,7 +126,7 @@
         {# Emprunts et dettes assimilées #}
         {% if accounting.form_2033a.per_prop|length > 1 %}
         <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-emprunts" aria-expanded="false" style="cursor:pointer;">
-          <td>Emprunts et dettes assimilées <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          <td>Emprunts et dettes assimilées <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
           <td class="text-end fw-semibold">{{ accounting.form_2033a.emprunts|floatformat:0 }} €</td>
         </tr>
         <tr class="collapse" id="a-emprunts">
@@ -157,7 +157,7 @@
         {# (5) Coût de revient des immobilisations acquises ou créées au cours de l'exercice #}
         {% if accounting.form_2033a.per_prop|length > 1 %}
         <tr role="button" data-bs-toggle="collapse" data-bs-target="#a-cout-revient" aria-expanded="false" style="cursor:pointer;">
-          <td>(5) Coût de revient des immobilisations acquises ou créées au cours de l'exercice <i class="bi bi-chevron-right text-body-secondary ms-1" style="font-size:.7rem;transition:transform .2s;"></i></td>
+          <td>(5) Coût de revient des immobilisations acquises ou créées au cours de l'exercice <span class="d-inline-flex" style="font-size:.7rem;transition:transform .2s;">{% icon "chevron-right" "text-body-secondary ms-1" %}</span></td>
           <td class="text-end fw-semibold">{{ accounting.form_2033a.cout_revient_acquisitions|floatformat:0 }} €</td>
         </tr>
         <tr class="collapse" id="a-cout-revient">

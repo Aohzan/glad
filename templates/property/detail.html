@@ -5,6 +5,8 @@
   {{ property.name }} {% translate "property" %}
 {% endblock %}
 
+{% block breadcrumb %}{{ property.name }}{% endblock %}
+
 {% block extra_head %}
   <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
   <link
@@ -24,15 +26,15 @@
 
   {# ── Property header banner ─────────────────────────────────────────────── #}
   <div class="card shadow-sm rounded-4 overflow-hidden mb-3">
-    <div class="property-card-header prop-gradient-{{ property.icon }}{% if property.icon == 'question-circle' %} prop-gradient-other{% endif %}">
+    <div class="property-card-header prop-type-{{ property.property_type }}">
       <div class="d-flex justify-content-between align-items-start">
         <div class="d-flex align-items-center gap-3">
-          <div class="account-icon-circle" style="background:rgba(0,0,0,.1);font-size:1.4rem">
-            <i class="bi bi-{{ property.icon }}"></i>
+          <div class="account-icon-circle" style="background:rgba(var(--g-panel-rgb),.55);font-size:1.4rem">
+            {% icon property.icon %}
           </div>
           <div>
             <div class="d-flex align-items-center gap-2 mb-1">
-              <span class="badge property-type-badge" style="background:rgba(0,0,0,.12)">
+              <span class="badge property-type-badge" style="background:rgba(var(--g-panel-rgb),.55)">
                 {{ property.get_property_type_display }}
               </span>
               {% if not property.is_active %}
@@ -42,14 +44,19 @@
             <h1 class="mb-0 h4 fw-bold">{{ property.name }}</h1>
             {% if property.full_address %}
               <p class="small mb-0 mt-1 opacity-75">
-                <i class="bi bi-geo-alt me-1"></i>{{ property.full_address }}
+                {% icon "map-pin" "me-1" %}{{ property.full_address }}
               </p>
             {% endif %}
           </div>
         </div>
-        <a href="{% url 'property:edit' property.pk %}" class="btn btn-sm" style="background:rgba(0,0,0,.1);color:inherit;border:none">
-          <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
-        </a>
+        <div class="d-flex gap-1">
+          <a href="{% url 'property:resale_simulation' property.pk %}" class="btn btn-sm" style="background:rgba(var(--g-panel-rgb),.55);color:inherit;border:none">
+            {% icon "calculator" "me-1" %}{% translate "Resale simulation" %}
+          </a>
+          <a href="{% url 'property:edit' property.pk %}" class="btn btn-sm" style="background:rgba(var(--g-panel-rgb),.55);color:inherit;border:none">
+            {% icon "pencil" "me-1" %}{% translate "Edit" %}
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -61,10 +68,10 @@
         <div class="card-body py-2 px-3">
           <p class="text-uppercase text-primary small fw-semibold mb-1 prop-label">
             {% translate "Monthly cash flow (12m median)" %}
-            <i class="bi bi-info-circle ms-1 text-body-secondary"
+            <span class="d-inline-flex ms-1 text-body-secondary"
                data-bs-toggle="tooltip"
                data-bs-placement="top"
-               title="{% blocktranslate %}Median monthly cashflow over the last 12 months: for each month, revenues minus expenses and all loan repayments (interest + principal + insurance). The median value is used to reduce the impact of exceptional months.{% endblocktranslate %}"></i>
+               title="{% blocktranslate %}Median monthly cashflow over the last 12 months: for each month, revenues minus expenses and all loan repayments (interest + principal + insurance). The median value is used to reduce the impact of exceptional months.{% endblocktranslate %}">{% icon "info" %}</span>
           </p>
           <p class="fs-5 fw-bold mb-0
             {% if estimated_monthly_cashflow.amount >= 0 %}text-success{% else %}text-danger{% endif %}">
@@ -91,13 +98,13 @@
             {% endif %}
             <div class="btn-group btn-group-sm ms-auto">
               <button class="btn btn-outline-secondary btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#valueModal" title="{% translate 'Add valuation' %}">
-                <i class="bi bi-plus" style="font-size:.8rem;"></i>
+                <span class="d-inline-flex" style="font-size:.8rem;">{% icon "plus" %}</span>
               </button>
               <button class="btn btn-outline-secondary btn-sm py-0 px-1" id="btnDvfEstimate" title="{% translate 'DVF estimate' %}">
-                <i class="bi bi-graph-up-arrow" style="font-size:.8rem;"></i>
+                <span class="d-inline-flex" style="font-size:.8rem;">{% icon "trending-up" %}</span>
               </button>
               <button class="btn btn-outline-secondary btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#valueHistoryModal" title="{% translate 'Value history' %}">
-                <i class="bi bi-clock-history" style="font-size:.8rem;"></i>
+                <span class="d-inline-flex" style="font-size:.8rem;">{% icon "rotate-ccw-clock" %}</span>
               </button>
             </div>
           </div>
@@ -109,10 +116,10 @@
         <div class="card-body py-2 px-3">
           <p class="text-uppercase text-success small fw-semibold mb-1 prop-label">
             {% translate "Net value" %}
-            <i class="bi bi-info-circle ms-1 text-body-secondary"
+            <span class="d-inline-flex ms-1 text-body-secondary"
                data-bs-toggle="tooltip"
                data-bs-placement="top"
-               title="{% blocktranslate %}Current estimated value minus the total remaining balance on all active loans.{% endblocktranslate %}"></i>
+               title="{% blocktranslate %}Current estimated value minus the total remaining balance on all active loans.{% endblocktranslate %}">{% icon "info" %}</span>
           </p>
           <p class="fs-5 fw-bold mb-0">{{ current_net_value|format_money }}</p>
         </div>
@@ -123,10 +130,10 @@
         <div class="card-body py-2 px-3">
           <p class="text-uppercase text-info small fw-semibold mb-1 prop-label">
             {% translate "Capital repaid" %}
-            <i class="bi bi-info-circle ms-1 text-body-secondary"
+            <span class="d-inline-flex ms-1 text-body-secondary"
                data-bs-toggle="tooltip"
                data-bs-placement="top"
-               title="{% blocktranslate %}Total principal already repaid across all loans since the start of the investment.{% endblocktranslate %}"></i>
+               title="{% blocktranslate %}Total principal already repaid across all loans since the start of the investment.{% endblocktranslate %}">{% icon "info" %}</span>
           </p>
           <p class="fs-5 fw-bold mb-0">{{ capital_repaid|format_money }}</p>
         </div>
@@ -147,7 +154,7 @@
         aria-controls="info-panel"
         aria-selected="false"
       >
-        <i class="bi bi-info-circle me-1"></i>{% translate "Info" %}
+        {% icon "info" "me-1" %}{% translate "Info" %}
       </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -161,7 +168,7 @@
         aria-controls="cashflow-panel"
         aria-selected="true"
       >
-        <i class="bi bi-cash-stack me-1"></i>{% translate "Cash flow" %}
+        {% icon "banknote" "me-1" %}{% translate "Cash flow" %}
       </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -175,7 +182,7 @@
         aria-controls="balance-panel"
         aria-selected="false"
       >
-        <i class="bi bi-journal-text me-1"></i>{% translate "Balance sheet" %}
+        {% icon "notebook-text" "me-1" %}{% translate "Balance sheet" %}
       </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -189,7 +196,7 @@
         aria-controls="leases-panel"
         aria-selected="false"
       >
-        <i class="bi bi-house-door me-1"></i>{% translate "Leases" %}
+        {% icon "house" "me-1" %}{% translate "Leases" %}
         {% if property_leases %}
           <span class="badge rounded-pill bg-secondary ms-1">{{ property_leases|length }}</span>
         {% endif %}
@@ -206,7 +213,7 @@
         aria-controls="mandate-panel"
         aria-selected="false"
       >
-        <i class="bi bi-person-badge me-1"></i>{% translate "Mandate" %}
+        {% icon "id-card" "me-1" %}{% translate "Mandate" %}
         {% if property_mandates %}
           <span class="badge rounded-pill bg-secondary ms-1">{{ property_mandates|length }}</span>
         {% endif %}
@@ -223,7 +230,7 @@
         aria-controls="projection-panel"
         aria-selected="false"
       >
-        <i class="bi bi-graph-up-arrow me-1"></i>{% translate "Value & Projection" %}
+        {% icon "trending-up" "me-1" %}{% translate "Value & Projection" %}
       </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -237,7 +244,7 @@
         aria-controls="loans-panel"
         aria-selected="false"
       >
-        <i class="bi bi-bank me-1"></i>{% translate "Loans" %}
+        {% icon "landmark" "me-1" %}{% translate "Loans" %}
         {% if loans_count %}
           <span class="badge rounded-pill bg-secondary ms-1">{{ loans_count }}</span>
         {% endif %}
@@ -255,7 +262,7 @@
         aria-controls="amortization-panel"
         aria-selected="false"
       >
-        <i class="bi bi-calculator me-1"></i>{% translate "Amortissement" %}
+        {% icon "calculator" "me-1" %}{% translate "Amortissement" %}
       </button>
     </li>
     {% endif %}
@@ -263,7 +270,7 @@
       <div class="dropdown">
         <button class="nav-link dropdown-toggle" type="button" id="tabsMoreBtn"
                 data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="bi bi-three-dots me-1"></i>{% translate "More" %}
+          {% icon "ellipsis" "me-1" %}{% translate "More" %}
         </button>
         <ul class="dropdown-menu dropdown-menu-end" id="tabsMoreMenu" aria-labelledby="tabsMoreBtn"></ul>
       </div>
@@ -374,7 +381,7 @@
         <input type="hidden" name="form_type" value="ledger_entry">
         <div class="modal-header">
           <h5 class="modal-title" id="entryModalTitle">
-            <i class="bi bi-plus-circle me-2 text-primary"></i>{% translate "Add income / expense" %}
+            {% icon "circle-plus" "me-2 text-primary" %}{% translate "Add income / expense" %}
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -383,16 +390,16 @@
           {# ── Row 1: Flow type selector (full width, prominent) ── #}
           <div class="mb-4">
             <label class="form-label fw-semibold">
-              <i class="bi bi-arrow-left-right me-1 text-secondary"></i>{% translate "Type" %}
+              {% icon "arrow-left-right" "me-1 text-secondary" %}{% translate "Type" %}
             </label>
             <div class="d-flex gap-2" id="flowTypeToggle">
               <input type="radio" class="btn-check" name="{{ entry_form.flow_type.html_name }}" id="flowTypeIncome" value="income" autocomplete="off">
               <label class="btn btn-outline-success flex-fill" for="flowTypeIncome">
-                <i class="bi bi-arrow-down-circle me-1"></i>{% translate "Income" %}
+                {% icon "circle-arrow-down" "me-1" %}{% translate "Income" %}
               </label>
               <input type="radio" class="btn-check" name="{{ entry_form.flow_type.html_name }}" id="flowTypeExpense" value="expense" autocomplete="off">
               <label class="btn btn-outline-danger flex-fill" for="flowTypeExpense">
-                <i class="bi bi-arrow-up-circle me-1"></i>{% translate "Expense" %}
+                {% icon "circle-arrow-up" "me-1" %}{% translate "Expense" %}
               </label>
             </div>
           </div>
@@ -404,7 +411,7 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="{{ entry_form.management_category.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-tag me-1 text-secondary"></i>{% translate "Category" %}
+                {% icon "tag" "me-1 text-secondary" %}{% translate "Category" %}
               </label>
               <select name="{{ entry_form.management_category.html_name }}"
                       id="id_management_category"
@@ -427,7 +434,7 @@
             </div>
             <div class="col-md-6">
               <label for="{{ entry_form.lease.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-file-text me-1 text-secondary"></i>{% translate "Lease" %}
+                {% icon "file-text" "me-1 text-secondary" %}{% translate "Lease" %}
                 <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
               </label>
               <select name="{{ entry_form.lease.html_name }}" id="{{ entry_form.lease.id_for_label }}" class="form-select">
@@ -448,14 +455,14 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="{{ entry_form.amount.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-currency-euro me-1 text-secondary"></i>{% translate "Amount" %}
+                {% icon "euro" "me-1 text-secondary" %}{% translate "Amount" %}
               </label>
               {{ entry_form.amount.subwidgets.0 }}
               {% if entry_form.amount.errors %}<div class="invalid-feedback d-block">{{ entry_form.amount.errors }}</div>{% endif %}
             </div>
             <div class="col-md-6">
               <label for="{{ entry_form.entry_date.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-calendar3 me-1 text-secondary"></i>{% translate "Date" %}
+                {% icon "calendar" "me-1 text-secondary" %}{% translate "Date" %}
               </label>
               {{ entry_form.entry_date }}
               {% if entry_form.entry_date.errors %}<div class="invalid-feedback d-block">{{ entry_form.entry_date.errors }}</div>{% endif %}
@@ -466,7 +473,7 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="{{ entry_form.reference_period.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-calendar-range me-1 text-secondary"></i>{% translate "Reference period" %}
+                {% icon "calendar-range" "me-1 text-secondary" %}{% translate "Reference period" %}
                 <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
               </label>
               {{ entry_form.reference_period }}
@@ -478,14 +485,14 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label for="{{ entry_form.description.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-chat-left-text me-1 text-secondary"></i>{% translate "Description" %}
+                {% icon "message-square-text" "me-1 text-secondary" %}{% translate "Description" %}
                 <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
               </label>
               {{ entry_form.description }}
             </div>
             <div class="col-md-6">
               <label for="{{ entry_form.third_party.id_for_label }}" class="form-label fw-semibold">
-                <i class="bi bi-person me-1 text-secondary"></i>{% translate "Third party" %}
+                {% icon "user" "me-1 text-secondary" %}{% translate "Third party" %}
                 <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
               </label>
               {{ entry_form.third_party }}
@@ -496,7 +503,7 @@
           {# ── Row 4b: Notes ── #}
           <div class="mb-3">
             <label for="{{ entry_form.notes.id_for_label }}" class="form-label fw-semibold">
-              <i class="bi bi-sticky me-1 text-secondary"></i>{% translate "Notes" %}
+              {% icon "sticky-note" "me-1 text-secondary" %}{% translate "Notes" %}
               <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
             </label>
             {{ entry_form.notes }}
@@ -506,7 +513,7 @@
           {# ── Row 5: Recurrence ── #}
           <div class="border rounded p-3 bg-body-tertiary">
             <p class="small fw-semibold text-body-secondary mb-2">
-              <i class="bi bi-arrow-repeat me-1"></i>{% translate "Recurrence" %}
+              {% icon "refresh-cw" "me-1" %}{% translate "Recurrence" %}
             </p>
             <div class="row g-3">
               <div class="col-md-6">
@@ -531,7 +538,7 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
           <button type="submit" class="btn btn-primary" id="entrySubmitBtn">
-            <i class="bi bi-check-lg me-1"></i>{% translate "Save" %}
+            {% icon "check" "me-1" %}{% translate "Save" %}
           </button>
         </div>
       </form>
@@ -567,7 +574,7 @@
                       <form method="post" action="{% url 'property:delete_valuation' property.pk pv.pk %}" class="d-inline" data-confirm="{{ delete_confirmation }}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-outline-danger" title="{% translate 'Delete' %}">
-                          <i class="bi bi-trash"></i>
+                          {% icon "trash" %}
                         </button>
                       </form>
                     </td>
@@ -593,7 +600,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="bi bi-graph-up-arrow me-2 text-primary"></i>{% translate "DVF price estimation" %}
+          {% icon "trending-up" "me-2 text-primary" %}{% translate "DVF price estimation" %}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -624,7 +631,7 @@
               </div>
             </div>
             <p class="text-body-secondary small mb-0">
-              <i class="bi bi-info-circle me-1"></i>
+              {% icon "info" "me-1" %}
               {% blocktranslate %}This estimation is based on the French DVF (Demandes de Valeurs Foncières) public dataset. It is indicative and should not replace a professional appraisal.{% endblocktranslate %}
             </p>
           </div>
@@ -633,7 +640,7 @@
       <div class="modal-footer" id="dvfFooter">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Close" %}</button>
         <button type="button" class="btn btn-primary" id="dvfSaveBtn" style="display:none">
-          <i class="bi bi-check-lg me-1"></i>{% translate "Save as valuation" %}
+          {% icon "check" "me-1" %}{% translate "Save as valuation" %}
         </button>
       </div>
     </div>
@@ -647,7 +654,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="bi bi-arrow-repeat me-2 text-primary"></i>{% translate "Price estimation update" %}
+          {% icon "refresh-cw" "me-2 text-primary" %}{% translate "Price estimation update" %}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -657,7 +664,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% translate "Later" %}</button>
         <button type="button" class="btn btn-primary" id="dvfStaleRefreshBtn">
-          <i class="bi bi-graph-up-arrow me-1"></i>{% translate "Update estimation" %}
+          {% icon "trending-up" "me-1" %}{% translate "Update estimation" %}
         </button>
       </div>
     </div>
@@ -724,7 +731,9 @@ function loadPanel(panelId) {
   loadedPanels.add(panelId);
   const container = document.getElementById(panelId + '-panel');
   if (!container) return;
-  fetch(PANEL_URLS[panelId])
+  // The panel forms (growth rate, balance sheet period) reload the page with
+  // their parameters: hand them over to the panels.
+  fetch(PANEL_URLS[panelId] + window.location.search)
     .then(function(r) { return r.ok ? r.text() : Promise.reject(r.status); })
     .then(function(html) { injectHTML(container, html); })
     .catch(function() {
@@ -794,9 +803,9 @@ function updateChartsTheme(themeName) {
     if (!flowType) return;
     if (modalTitle) {
       if (flowType === 'income') {
-        modalTitle.innerHTML = '<i class="bi bi-arrow-down-circle me-2 text-success"></i>{% filter escapejs %}{% translate "Add income" %}{% endfilter %}';
+        modalTitle.innerHTML = '' + gIcon('circle-arrow-down', 'me-2 text-success') + '{% filter escapejs %}{% translate "Add income" %}{% endfilter %}';
       } else {
-        modalTitle.innerHTML = '<i class="bi bi-arrow-up-circle me-2 text-danger"></i>{% filter escapejs %}{% translate "Add expense" %}{% endfilter %}';
+        modalTitle.innerHTML = '' + gIcon('circle-arrow-up', 'me-2 text-danger') + '{% filter escapejs %}{% translate "Add expense" %}{% endfilter %}';
       }
     }
     applyMgmtFilter(mgmtSelect, flowType);
@@ -837,7 +846,7 @@ function updateChartsTheme(themeName) {
     entryModal.addEventListener('show.bs.modal', function() {
       entryModal.querySelectorAll('input[name="flow_type"]').forEach(function(r) { r.checked = false; });
       if (modalTitle) {
-        modalTitle.innerHTML = '<i class="bi bi-plus-circle me-2 text-primary"></i>{% filter escapejs %}{% translate "Add income / expense" %}{% endfilter %}';
+        modalTitle.innerHTML = '' + gIcon('circle-plus', 'me-2 text-primary') + '{% filter escapejs %}{% translate "Add income / expense" %}{% endfilter %}';
       }
       if (mgmtSelect) {
         const ig = mgmtSelect.querySelector('.mgmt-income-group');

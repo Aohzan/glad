@@ -6,17 +6,21 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from base.models import BaseModel
+from property.services.energy import DpeStatus, get_dpe_status
 from property.services.lmnp_rules import DEFAULT_COMPONENTS
 from property.utils import (
     PropertyProgression,
-    add_months_safe,  # noqa: F401
-    calculate_monthly_payment,
+    Schedule,
+    build_schedule,
+    count_installments,
+    schedule_from_table,
 )
 from property.utils.date_utils import days360
 
@@ -30,6 +34,8 @@ class PropertyLoan(BaseModel):
     """Model representing a property loan."""
 
     amortization_entries: RelatedManager[PropertyLoanAmortizationEntry]
+    #: Last schedule built by schedule(), with the inputs it was built from.
+    _schedule_memo: tuple[tuple, Schedule] | None = None
 
     class Meta:
         verbose_name = _("property loan")
@@ -90,10 +96,9 @@ class PropertyLoan(BaseModel):
         blank=True,
         verbose_name=_("First payment date"),
         help_text=_(
-            "Date of the first bank debit. When set, the first month's interest is"
-            " calculated proportionally based on the actual number of days between"
-            " the disbursement date and the first payment, matching the bank's"
-            " amortization table."
+            "Date of the first bank debit, one month after the start date when"
+            " empty. When it falls on another day, the interest of the first"
+            " installment covers the actual number of days, as banks do."
         ),
     )
 
@@ -103,192 +108,129 @@ class PropertyLoan(BaseModel):
         return f"{self.property.name} - {self.original_amount}"
 
     def get_duration_months(self) -> int:
-        """Return the loan duration in months."""
+        """Return the number of monthly installments of the loan."""
         if self.start_date is None or self.end_date is None:
             return 0
-        return (self.end_date.year - self.start_date.year) * 12 + (
-            self.end_date.month - self.start_date.month
+        return max(
+            0,
+            count_installments(self.start_date, self.first_payment_date, self.end_date),
         )
 
-    def compute_monthly_payment(self) -> None:
-        """Compute and store monthly_payment and insurance from rates and duration."""
-        duration = self.get_duration_months()
-        if self.original_amount is None or self.interest_rate is None or duration <= 0:
-            return
-        currency = str(self.original_amount.currency)
-        monthly_pi, monthly_ins, _ = calculate_monthly_payment(
-            original_amount=self.original_amount.amount,
-            annual_interest_rate=self.interest_rate,
-            annual_insurance_rate=self.insurance_rate,
-            duration_months=duration,
-        )
-        self.monthly_payment = Money(monthly_pi, currency)
-        if self.insurance_rate:
-            self.insurance = Money(monthly_ins, currency)
+    # The ``property`` foreign key shadows the builtin in this class body.
+    @builtins.property
+    def currency(self) -> str:
+        return str(self.original_amount.currency)
 
-    def taeg_rate(self) -> Decimal:
-        """Calculate the TAEG of the loan."""
-        if (
-            self.start_date is None
-            or self.end_date is None
-            or self.monthly_payment is None
-            or self.end_date.year == self.start_date.year
-        ):
-            return Decimal("0.0")
-        total_interest = (
-            self.monthly_payment.amount
-            * 12
-            * (self.end_date.year - self.start_date.year)
-        )
-        taeg = (
-            (total_interest / self.original_amount.amount)
-            * 100
-            / (self.end_date.year - self.start_date.year)
-        )
-        return Decimal(str(taeg))
+    def _monthly_insurance(self) -> Decimal:
+        return self.insurance.amount if self.insurance is not None else Decimal(0)
 
-    def remaining_balance(self, as_of_date: datetime.date | None = None) -> Money:
-        """Calculate the remaining balance on the loan as of a specific date.
+    def _closed_on(self) -> datetime.date | None:
+        """The date the loan was repaid with the sale of the property, if sold."""
+        if self.property_id is None:  # ty: ignore[unresolved-attribute]
+            return None
+        return self.property.selling_date
 
-        If an amortization table has been imported, it takes priority.
-        Otherwise falls back to auto-calculation from loan parameters.
-        """
-        from property.utils import build_loan_amortization_balance
-
-        if as_of_date is None:
-            as_of_date = datetime.date.today()
-
-        currency = str(self.original_amount.currency)
-
-        # Imported/generated amortization table takes priority
-        if self.pk and PropertyLoanAmortizationEntry.objects.filter(loan=self).exists():
-            entry = (
-                PropertyLoanAmortizationEntry.objects.filter(
-                    loan=self, date__lte=as_of_date
-                )
-                .order_by("-date")
-                .first()
+    def _table_rows(
+        self,
+    ) -> tuple[tuple[datetime.date, Decimal, Decimal, Decimal], ...]:
+        """Rows of the amortization table (prefetched when available)."""
+        if self.pk is None:
+            return ()
+        return tuple(
+            (
+                entry.date,
+                entry.capital.amount,
+                entry.interest.amount,
+                entry.remaining_balance_amount.amount,
             )
-            if entry is None:
-                return Money(self.original_amount.amount, currency)
-            return Money(
-                max(Decimal(0), entry.remaining_balance_amount.amount), currency
-            )
+            for entry in self.amortization_entries.all()
+        )
 
-        # Fallback: auto-calculate from loan parameters
+    def computed_schedule(self, closed_on: datetime.date | None = None) -> Schedule:
+        """Schedule computed from the loan parameters, ignoring any table."""
         if self.start_date is None:
-            return Money(self.original_amount.amount, currency)
-        if as_of_date < self.start_date:
-            return Money(self.original_amount.amount, currency)
-        if self.end_date is not None and as_of_date >= self.end_date:
-            return Money(Decimal(0), currency)
-
-        duration = self.get_duration_months()
-        if not duration or self.monthly_payment is None:
-            if self.end_date is None:
-                return Money(self.original_amount.amount, currency)
-            # Linear approximation when no payment schedule available
-            months_passed = min(
-                (as_of_date.year - self.start_date.year) * 12
-                + (as_of_date.month - self.start_date.month),
-                duration or 1,
+            return Schedule(
+                capital=self.original_amount.amount,
+                disbursement_date=datetime.date.min,
+                installments=(),
             )
-            remaining_pct = 1 - months_passed / (duration or 1)
-            return Money(
-                Decimal(str(float(self.original_amount.amount) * remaining_pct)),
-                currency,
-            )
-
-        months_elapsed = min(
-            (as_of_date.year - self.start_date.year) * 12
-            + (as_of_date.month - self.start_date.month),
-            duration,
-        )
-        balance = build_loan_amortization_balance(
-            original_amount=self.original_amount.amount,
-            interest_rate=self.interest_rate,
-            payment_sequence=[self.monthly_payment.amount] * duration,
-            months_elapsed=months_elapsed,
+        return build_schedule(
+            capital=self.original_amount.amount,
+            annual_rate=self.interest_rate or Decimal(0),
+            count=self.get_duration_months(),
             disbursement_date=self.start_date,
             first_payment_date=self.first_payment_date,
+            monthly_payment=(
+                self.monthly_payment.amount
+                if self.monthly_payment is not None
+                else None
+            ),
+            monthly_insurance=self._monthly_insurance(),
+            closed_on=closed_on,
         )
-        return Money(max(Decimal(0), balance), currency)
 
-    def amount_paid(self) -> Money:
-        """Calculate the amount paid on the loan as of today."""
-        paid = self.original_amount.amount - self.remaining_balance().amount
-        return Money(paid, str(self.original_amount.currency))
+    def schedule(self) -> Schedule:
+        """The installments of the loan, which every loan figure derives from.
+
+        The amortization table (imported from the bank or generated) is used
+        when there is one, the loan parameters otherwise. Installments after
+        the sale of the property are dropped: the loan is repaid then. The
+        schedule is kept on the instance until one of its inputs changes.
+        """
+        rows = self._table_rows()
+        closed_on = self._closed_on()
+        key = (
+            self.start_date,
+            self.end_date,
+            self.first_payment_date,
+            self.original_amount.amount,
+            self.interest_rate,
+            self.monthly_payment.amount if self.monthly_payment is not None else None,
+            self._monthly_insurance(),
+            closed_on,
+            rows,
+        )
+        if self._schedule_memo is not None and self._schedule_memo[0] == key:
+            return self._schedule_memo[1]
+        if rows:
+            schedule = schedule_from_table(
+                capital=self.original_amount.amount,
+                disbursement_date=self.start_date or datetime.date.min,
+                rows=rows,
+                monthly_insurance=self._monthly_insurance(),
+                closed_on=closed_on,
+            )
+        else:
+            schedule = self.computed_schedule(closed_on)
+        self._schedule_memo = (key, schedule)
+        return schedule
+
+    def remaining_balance(self, as_of_date: datetime.date | None = None) -> Money:
+        """Capital owed at the end of *as_of_date* (today by default).
+
+        Nothing is owed before the disbursement, nor after the sale of the
+        property.
+        """
+        as_of_date = as_of_date or datetime.date.today()
+        return Money(self.schedule().balance_at(as_of_date), self.currency)
+
+    def amount_paid(self, as_of_date: datetime.date | None = None) -> Money:
+        """Capital repaid at the end of *as_of_date* (today by default)."""
+        as_of_date = as_of_date or datetime.date.today()
+        if self.start_date is None or as_of_date < self.start_date:
+            return Money(Decimal(0), self.currency)
+        balance = self.schedule().balance_at(as_of_date)
+        return Money(self.original_amount.amount - balance, self.currency)
 
     def interest_paid_to_date(self, as_of_date: datetime.date | None = None) -> Money:
-        """Calculate the cumulative interest paid on the loan as of a given date.
-
-        If an amortization table has been imported, it takes priority.
-        Otherwise falls back to auto-calculation from loan parameters.
-        """
-        from property.utils import build_loan_maps_from_loan_obj
-
-        if as_of_date is None:
-            as_of_date = datetime.date.today()
-
-        currency = str(self.original_amount.currency)
-
-        if self.pk and PropertyLoanAmortizationEntry.objects.filter(loan=self).exists():
-            result = PropertyLoanAmortizationEntry.objects.filter(
-                loan=self, date__lte=as_of_date
-            ).aggregate(total=models.Sum("interest"))
-            return Money(result["total"] or Decimal(0), currency)
-
-        if (
-            self.monthly_payment is None
-            or self.start_date is None
-            or self.end_date is None
-        ):
-            return Money(Decimal(0), currency)
-
-        interest_map, _principal_map, _insurance_map = build_loan_maps_from_loan_obj(
-            self, Decimal(0)
-        )
-        as_of_key = (as_of_date.year, as_of_date.month)
-        total = sum(
-            (value for key, value in interest_map.items() if key <= as_of_key),
-            Decimal(0),
-        )
-        return Money(total, currency)
+        """Interest of the installments due up to *as_of_date* (today by default)."""
+        as_of_date = as_of_date or datetime.date.today()
+        return Money(self.schedule().paid_to(as_of_date).interest, self.currency)
 
     def insurance_paid_to_date(self, as_of_date: datetime.date | None = None) -> Money:
-        """Calculate the cumulative insurance premiums paid as of a given date.
-
-        Insurance is a fixed monthly amount independent of the amortization
-        table (imported amortization entries don't carry an insurance column),
-        so this simply counts elapsed months since the first payment.
-        """
-        if as_of_date is None:
-            as_of_date = datetime.date.today()
-
-        currency = str(self.original_amount.currency)
-
-        if (
-            self.insurance is None
-            or self.insurance.amount <= Decimal(0)
-            or self.start_date is None
-        ):
-            return Money(Decimal(0), currency)
-
-        loop_start = self.first_payment_date or self.start_date
-        if as_of_date < loop_start:
-            return Money(Decimal(0), currency)
-
-        months_elapsed = (
-            (as_of_date.year - loop_start.year) * 12
-            + (as_of_date.month - loop_start.month)
-            + 1
-        )
-        duration = self.get_duration_months()
-        if duration:
-            months_elapsed = min(months_elapsed, duration)
-
-        total = self.insurance.amount * max(0, months_elapsed)
-        return Money(total, currency)
+        """Insurance of the installments due up to *as_of_date* (today by default)."""
+        as_of_date = as_of_date or datetime.date.today()
+        return Money(self.schedule().paid_to(as_of_date).insurance, self.currency)
 
 
 class PropertyLoanAmortizationEntry(BaseModel):
@@ -516,6 +458,29 @@ class Property(BaseModel):
         verbose_name=_("Number of rooms"),
     )
 
+    class EnergyRating(models.TextChoices):
+        A = "A", "A"
+        B = "B", "B"
+        C = "C", "C"
+        D = "D", "D"
+        E = "E", "E"
+        F = "F", "F"
+        G = "G", "G"
+
+    dpe_rating = models.CharField(
+        max_length=1,
+        choices=EnergyRating.choices,
+        blank=True,
+        default="",
+        verbose_name=_("Energy rating (DPE)"),
+    )
+    dpe_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("DPE date"),
+        help_text=_("Date the energy performance diagnosis was carried out."),
+    )
+
     class TaxRegime(models.TextChoices):
         NONE = "none", _("None")
         LMNP_REEL = "lmnp_reel", _("LMNP réel")
@@ -527,6 +492,7 @@ class Property(BaseModel):
         verbose_name=_("Tax regime"),
         help_text=_("Tax regime applicable to this property (e.g. LMNP réel)."),
     )
+    ownerships = GenericRelation("base.Ownership")
     lmnp_start_date = models.DateField(
         null=True,
         blank=True,
@@ -581,13 +547,13 @@ class Property(BaseModel):
 
     @property
     def icon(self) -> str:
-        """Return the icon name corresponding to the property type."""
+        """Lucide icon name corresponding to the property type."""
         return {
             self.HOUSE: "house",
             self.APARTMENT: "building",
             self.CONDO: "building",
-            self.LAND: "tree",
-            self.OTHER: "question-circle",
+            self.LAND: "trees",
+            self.OTHER: "circle-question-mark",
         }.get(self.property_type, "building")
 
     def get_value(self, max_date: datetime.datetime | None = None) -> Money:
@@ -628,22 +594,17 @@ class Property(BaseModel):
     ) -> Money:
         if as_of_date is None:
             as_of_date = datetime.date.today()
-
-        loans = PropertyLoan.objects.filter(property=self)
-        if not loans.exists():
-            return Money(0, str(self.currency))
-
-        total = Decimal(0)
-        for loan in loans:
-            total += loan.remaining_balance(as_of_date).amount
+        total = sum(
+            (loan.remaining_balance(as_of_date).amount for loan in self.loans.all()),
+            Decimal(0),
+        )
         return Money(total, str(self.currency))
 
     @property
     def total_paid_loans(self) -> Money:
-        loans = PropertyLoan.objects.filter(property=self)
-        if not loans.exists():
-            return Money(0, str(self.currency))
-        total = sum((loan.amount_paid().amount for loan in loans), Decimal(0))
+        total = sum(
+            (loan.amount_paid().amount for loan in self.loans.all()), Decimal(0)
+        )
         return Money(total, str(self.currency))
 
     @property
@@ -655,14 +616,14 @@ class Property(BaseModel):
         return self.net_value_at_date()
 
     def net_value_at_date(self, as_of_date: datetime.date | None = None) -> Money:
+        """Value minus the loans still owed, negative for an underwater property."""
         gross = self.get_value(
             max_date=datetime.datetime.combine(as_of_date, datetime.time())
             if as_of_date
             else None
         )
         remaining = self.total_remaining_loans_at_date(as_of_date)
-        net_amount = max(Decimal(0), gross.amount - remaining.amount)
-        return Money(net_amount, str(self.currency))
+        return Money(gross.amount - remaining.amount, str(self.currency))
 
     @property
     def buying_value_gross(self) -> Money:
@@ -691,7 +652,7 @@ class Property(BaseModel):
     def cash_deposit(self) -> Money:
         """Cash contribution at purchase time: gross cost minus all loan amounts."""
         currency = str(self.currency)
-        loans = PropertyLoan.objects.filter(property=self)
+        loans = self.loans.all()
         total_loans = sum(
             (
                 loan.original_amount.amount
@@ -725,8 +686,8 @@ class Property(BaseModel):
     @property
     def loan_progress_percent(self) -> float:
         """Return the percentage of total loan capital repaid (0–100)."""
-        loans = PropertyLoan.objects.filter(property=self)
-        if not loans.exists():
+        loans = self.loans.all()
+        if not loans:
             return 100.0
         total_original = sum(
             (loan.original_amount.amount for loan in loans), Decimal(0)
@@ -734,6 +695,11 @@ class Property(BaseModel):
         if not total_original:
             return 0.0
         return float((self.total_paid_loans.amount / total_original) * 100)
+
+    @property
+    def dpe_status(self) -> DpeStatus | None:
+        """Rental ban and validity status of the energy rating, None without DPE."""
+        return get_dpe_status(self.dpe_rating, self.dpe_date)
 
     @property
     def active_lease(self):

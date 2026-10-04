@@ -7,7 +7,7 @@ from djmoney.forms.widgets import MoneyWidget
 from moneyed import EUR, Money
 
 from base.forms import MoneyInputGroupMixin
-from base.widgets import BootstrapMoneyWidget
+from base.widgets import BootstrapMoneyWidget, SuggestionsTextInput
 
 # ─── BootstrapMoneyWidget ─────────────────────────────────────────────────────
 
@@ -186,3 +186,48 @@ class TestMoneyInputGroupMixin:
                 form.fields[field_name].widget,
                 BootstrapMoneyWidget,
             ), f"{class_name}.{field_name} widget is not BootstrapMoneyWidget"
+
+
+# ─── SuggestionsTextInput ─────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestSuggestionsTextInput:
+    @pytest.fixture
+    def widget(self):
+        from finance.models.saving_account import SavingAccount
+        from property.models import PropertyLoan
+
+        return SuggestionsTextInput(
+            [(SavingAccount, "institution"), (PropertyLoan, "lender")],
+            attrs={"class": "form-control"},
+        )
+
+    @pytest.fixture
+    def stored_names(self):
+        from finance.models.saving_account import SavingAccount, SavingAccountType
+
+        account_type = SavingAccountType.objects.create(name="Livret", code="LV")
+        for institution in ("zeBank", " TopBanque ", "TopBanque", "", None):
+            SavingAccount.objects.create(
+                account_type=account_type, institution=institution
+            )
+
+    def test_suggestions_are_distinct_trimmed_and_sorted(self, widget, stored_names):
+        suggestions = widget.suggestions()
+        assert "TopBanque" in suggestions
+        assert " TopBanque " not in suggestions
+        assert "" not in suggestions
+        assert suggestions == sorted(set(suggestions), key=str.casefold)
+
+    def test_render_links_the_input_to_its_datalist(self, widget, stored_names):
+        html = widget.render("institution", "", attrs={"id": "id_institution"})
+        assert 'list="id_institution_suggestions"' in html
+        assert 'autocomplete="off"' in html
+        assert 'class="form-control"' in html
+        assert '<datalist id="id_institution_suggestions">' in html
+        assert '<option value="TopBanque">' in html
+
+    def test_render_without_id_uses_the_name(self, widget):
+        html = widget.render("institution", "")
+        assert 'list="institution_suggestions"' in html

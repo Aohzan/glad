@@ -1,0 +1,6 @@
+{% load i18n %}<form method="post" action="{{ favorite_url }}" class="d-inline-flex">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent {% if model.is_favorite %}text-warning{% else %}g-dim{% endif %}" title="{% if model.is_favorite %}{% translate 'Remove from favorites' %}{% else %}{% translate 'Add to favorites' %}{% endif %}">
+    {% if model.is_favorite %}{% icon "star" "g-icon--fill" %}{% else %}{% icon "star" %}{% endif %}
+  </button>
+</form>

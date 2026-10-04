@@ -5,9 +5,11 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from moneyed import Money
 
+from base.models import Ownership
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountCash,
@@ -126,7 +128,9 @@ def test_accounts_summary_investment_type(admin_client, investment_account_type,
         account_type=investment_account_type,
         opening_cash_value=Money(0, "EUR"),
         is_active=True,
-        owner=str(user),
+    )
+    Ownership.objects.create(
+        content_type=ContentType.objects.get_for_model(inv), object_id=inv.pk, user=user
     )
     InvestmentAccountCash.objects.create(
         account=inv, value=Money(5000, "EUR"), value_date=datetime.date.today()
@@ -135,6 +139,9 @@ def test_accounts_summary_investment_type(admin_client, investment_account_type,
     data = response.json()
     investment_accounts = [a for a in data["accounts"] if a["type"] == "investment"]
     assert any("PEA" in a["name"] for a in investment_accounts)
+    assert {a["owner"] for a in investment_accounts if "PEA" in a["name"]} == {
+        user.username
+    }
 
 
 # ─── HoldingLiveInfoApiView ─────────────────────────────────────────────────
@@ -305,7 +312,7 @@ def test_holding_live_info_market_data_error(
             _live_info_url(investment_account_for_live_info, holding_with_isin),
         )
     assert response.status_code == 502
-    assert response.json()["error"] == "boom"
+    assert response.json()["error"] == "Could not load live data."
 
 
 @pytest.mark.django_db
@@ -379,7 +386,7 @@ def test_holding_autofill_market_data_error(admin_client):
             reverse("finance:api_holding_autofill") + "?isin=LU1681043599",
         )
     assert response.status_code == 502
-    assert response.json()["error"] == "boom"
+    assert response.json()["error"] == "Could not fetch data for this ISIN."
 
 
 @pytest.mark.django_db

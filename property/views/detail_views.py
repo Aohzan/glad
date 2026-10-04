@@ -1,8 +1,7 @@
 """Property detail dashboard view."""
 
+import bisect
 import datetime
-import json
-import statistics
 from decimal import Decimal
 
 from django.contrib import messages
@@ -24,14 +23,21 @@ from property.models import (
     Property,
     PropertyLedgerEntry,
     PropertyLoan,
-    PropertyLoanAmortizationEntry,
     PropertyValue,
 )
 from property.services.cashflow import build_balance_sheet
+from property.services.loans import (
+    LoanRow,
+    loan_costs_by_month,
+    loan_rows,
+    loans_chart_data,
+    without_loan_entries,
+)
+from property.services.monthly_flows import monthly_flows, occurrences_by_month
+from property.services.rent_revision import get_rent_revision
 from property.utils import (
+    LoanCosts,
     add_years_safe,
-    build_loan_maps_from_loan_obj,
-    build_loan_monthly_maps,
     iter_month_starts,
     month_end,
     month_start,
@@ -149,10 +155,16 @@ class PropertyDetailView(DetailView):
         except Exception:
             return default_rate
 
+    @staticmethod
+    def _debt_at(loans: list[PropertyLoan], day: datetime.date) -> Decimal:
+        return sum((loan.remaining_balance(day).amount for loan in loans), Decimal(0))
+
     def _build_projection_data(self, property_obj: Property) -> list[dict]:
         projection_years = list(range(1, 21))
         growth_rate = self._get_growth_rate()
         current_value = property_obj.get_value()
+        currency = str(current_value.currency)
+        loans = self._loans(property_obj)
         today = datetime.date.today()
 
         projections = []
@@ -161,8 +173,8 @@ class PropertyDetailView(DetailView):
             projected_amount = current_value.amount * (
                 (Decimal(1) + growth_rate) ** years
             )
-            projected_value = Money(projected_amount, str(current_value.currency))
-            projected_debt = property_obj.total_remaining_loans_at_date(as_of_date)
+            projected_value = Money(projected_amount, currency)
+            projected_debt = Money(self._debt_at(loans, as_of_date), currency)
             projected_net = projected_value - projected_debt
 
             projections.append(
@@ -186,49 +198,65 @@ class PropertyDetailView(DetailView):
     ) -> tuple[
         list[dict], list[dict], list[dict], list[dict], list[dict], list[dict], str
     ]:
+        """Value, debt and net value, monthly up to today then yearly.
+
+        The history is sampled at every month start (plus the purchase, the
+        valuations and today) so the debt follows its amortization curve
+        instead of straight lines between the valuations.
+        """
         today = datetime.date.today()
         current_value = property_obj.get_value()
-        current_debt = property_obj.total_remaining_loans_at_date(today)
+        loans = self._loans(property_obj)
+        current_debt = self._debt_at(loans, today)
 
-        valuation_dates = list(
+        valuations = list(
             PropertyValue.objects.filter(
-                property=property_obj,
-                valuation_date__lte=today,
-            ).values_list("valuation_date", flat=True)
+                property=property_obj, valuation_date__lte=today
+            )
+            .order_by("valuation_date")
+            .values_list("valuation_date", "value")
         )
-        historical_dates = sorted({property_obj.buying_date, today, *valuation_dates})
+        valuation_dates = [day for day, _value in valuations]
+        buying_date = property_obj.buying_date
+        historical_dates = sorted(
+            {
+                buying_date,
+                today,
+                *valuation_dates,
+                *(m for m in iter_month_starts(buying_date, today) if m > buying_date),
+            }
+        )
 
         value_history_series = []
         debt_history_series = []
         net_history_series = []
         for chart_date in historical_dates:
-            if chart_date == property_obj.buying_date:
-                historical_value = property_obj.buying_value_gross
+            if chart_date == buying_date:
+                historical_value = property_obj.buying_value_gross.amount
             else:
-                historical_value = property_obj.get_value(
-                    max_date=datetime.datetime.combine(chart_date, datetime.time.max),
+                count = bisect.bisect_right(valuation_dates, chart_date)
+                historical_value = (
+                    valuations[count - 1][1]
+                    if count
+                    else property_obj.get_value(
+                        max_date=datetime.datetime.combine(
+                            chart_date, datetime.time.max
+                        )
+                    ).amount
                 )
-            historical_debt = property_obj.total_remaining_loans_at_date(chart_date)
-            net_amount = max(
-                Decimal(0), historical_value.amount - historical_debt.amount
-            )
-            value_history_series.append(
-                {"x": chart_date.isoformat(), "y": float(historical_value.amount)}
-            )
-            debt_history_series.append(
-                {"x": chart_date.isoformat(), "y": float(historical_debt.amount)}
-            )
+            historical_debt = self._debt_at(loans, chart_date)
+            x = chart_date.isoformat()
+            value_history_series.append({"x": x, "y": float(historical_value)})
+            debt_history_series.append({"x": x, "y": float(historical_debt)})
             net_history_series.append(
-                {"x": chart_date.isoformat(), "y": float(net_amount)}
+                {"x": x, "y": float(historical_value - historical_debt)}
             )
 
-        current_net = max(Decimal(0), current_value.amount - current_debt.amount)
+        current_net = current_value.amount - current_debt
         value_projection_series = [
             {"x": today.isoformat(), "y": float(current_value.amount)}
         ]
-        debt_projection_series = [
-            {"x": today.isoformat(), "y": float(current_debt.amount)}
-        ]
+        debt_projection_series = [{"x": today.isoformat(), "y": float(current_debt)}]
         net_projection_series = [{"x": today.isoformat(), "y": float(current_net)}]
         for projection in projections:
             value_projection_series.append(
@@ -269,124 +297,6 @@ class PropertyDetailView(DetailView):
 
         return month_start(start_date), month_start(datetime.date.today())
 
-    def _occurrences_by_month(
-        self, entries, end_month: datetime.date
-    ) -> dict[tuple[int, int], Decimal]:
-        """Aggregate recurring and one-shot entries to month buckets."""
-        by_month: dict[tuple[int, int], Decimal] = {}
-        end_of_month = month_end(end_month)
-        for entry in entries:
-            for occurrence in entry.generate_occurrences(end_date=end_of_month):
-                key = (occurrence["date"].year, occurrence["date"].month)
-                by_month[key] = (
-                    by_month.get(key, Decimal(0)) + occurrence["amount"].amount
-                )
-        return by_month
-
-    def _loan_costs_by_month(
-        self,
-        loans_qs,
-    ) -> tuple[
-        dict[tuple[int, int], Decimal],
-        dict[tuple[int, int], Decimal],
-        dict[tuple[int, int], Decimal],
-    ]:
-        loan_interest_by_month: dict[tuple[int, int], Decimal] = {}
-        loan_principal_by_month: dict[tuple[int, int], Decimal] = {}
-        loan_insurance_by_month: dict[tuple[int, int], Decimal] = {}
-
-        for loan in loans_qs:
-            insurance_amount = (
-                loan.insurance.amount if loan.insurance is not None else Decimal(0)
-            )
-
-            # When amortization entries exist, use them for interest and principal.
-            amort_entries = list(
-                PropertyLoanAmortizationEntry.objects.filter(loan=loan).order_by("date")
-            )
-            if amort_entries:
-                for entry in amort_entries:
-                    key = (entry.date.year, entry.date.month)
-                    loan_interest_by_month[key] = (
-                        loan_interest_by_month.get(key, Decimal(0))
-                        + entry.interest.amount
-                    )
-                    loan_principal_by_month[key] = (
-                        loan_principal_by_month.get(key, Decimal(0))
-                        + entry.capital.amount
-                    )
-                # Insurance is not in amortization entries; derive from loan params.
-                if insurance_amount > Decimal(0) and loan.start_date and loan.end_date:
-                    _, _, insurance_map = build_loan_maps_from_loan_obj(
-                        loan, insurance_amount
-                    )
-                    for key, value in insurance_map.items():
-                        loan_insurance_by_month[key] = (
-                            loan_insurance_by_month.get(key, Decimal(0)) + value
-                        )
-                continue
-
-            # Fallback: compute from loan parameters when no amortization entries.
-            if loan.monthly_payment is None:
-                continue
-
-            interest_map, principal_map, insurance_map = build_loan_maps_from_loan_obj(
-                loan, insurance_amount
-            )
-
-            for key, value in interest_map.items():
-                loan_interest_by_month[key] = (
-                    loan_interest_by_month.get(key, Decimal(0)) + value
-                )
-            for key, value in principal_map.items():
-                loan_principal_by_month[key] = (
-                    loan_principal_by_month.get(key, Decimal(0)) + value
-                )
-            for key, value in insurance_map.items():
-                loan_insurance_by_month[key] = (
-                    loan_insurance_by_month.get(key, Decimal(0)) + value
-                )
-
-        return loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month
-
-    def _estimated_monthly_cashflow(self, property_obj: Property) -> Decimal:
-        """Estimate monthly cashflow as the median of the last 12 months."""
-        today = datetime.date.today()
-        end_month = month_start(today)
-        start_month = month_start(datetime.date(today.year - 1, today.month, 1))
-
-        entries_qs = PropertyLedgerEntry.objects.filter(
-            property=property_obj
-        ).prefetch_related("exceptions")
-        revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
-        expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
-        loans_qs = PropertyLoan.objects.filter(property=property_obj)
-
-        revenue_by_month = self._occurrences_by_month(revenues_qs, end_month)
-        expense_by_month = self._occurrences_by_month(expenses_qs, end_month)
-        loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month = (
-            self._loan_costs_by_month(loans_qs)
-        )
-
-        months = iter_month_starts(start_month, end_month)
-        monthly_cashflows = []
-        for m in months:
-            key = (m.year, m.month)
-            rev = revenue_by_month.get(key, Decimal(0))
-            exp = expense_by_month.get(key, Decimal(0))
-            interest = loan_interest_by_month.get(key, Decimal(0))
-            principal = loan_principal_by_month.get(key, Decimal(0))
-            insurance = loan_insurance_by_month.get(key, Decimal(0))
-            # Skip months with no financial activity at all (no data)
-            if not (rev or exp or interest or principal or insurance):
-                continue
-            monthly_cashflows.append(rev - exp - interest - principal - insurance)
-
-        if not monthly_cashflows:
-            return Decimal(0)
-
-        return Decimal(str(statistics.median(monthly_cashflows)))
-
     def _build_cashflow_series(
         self,
         property_obj: Property,
@@ -400,8 +310,8 @@ class PropertyDetailView(DetailView):
         list[dict],
     ]:
         """Build monthly cashflow series from ledger entries and loans."""
-        entries_qs = PropertyLedgerEntry.objects.filter(
-            property=property_obj
+        entries_qs = without_loan_entries(
+            PropertyLedgerEntry.objects.filter(property=property_obj), property_obj
         ).prefetch_related("exceptions")
         revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
         expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
@@ -410,11 +320,9 @@ class PropertyDetailView(DetailView):
             property_obj, entries_qs, loans_qs
         )
 
-        revenue_by_month = self._occurrences_by_month(revenues_qs, end_month)
-        expense_by_month = self._occurrences_by_month(expenses_qs, end_month)
-        loan_interest_by_month, loan_principal_by_month, loan_insurance_by_month = (
-            self._loan_costs_by_month(loans_qs)
-        )
+        revenue_by_month = occurrences_by_month(revenues_qs, end_month)
+        expense_by_month = occurrences_by_month(expenses_qs, end_month)
+        loan_by_month = loan_costs_by_month(property_obj.loans.all())
 
         # Breakdown of expenses by management_category
         expense_by_mgmt_cat: dict[str, dict] = {}
@@ -445,9 +353,10 @@ class PropertyDetailView(DetailView):
             month_key = (current.year, current.month)
 
             expense_value = float(expense_by_month.get(month_key, 0))
-            loan_interest_value = float(loan_interest_by_month.get(month_key, 0))
-            loan_principal_value = float(loan_principal_by_month.get(month_key, 0))
-            loan_insurance_value = float(loan_insurance_by_month.get(month_key, 0))
+            loan_costs = loan_by_month.get(month_key, LoanCosts())
+            loan_interest_value = float(loan_costs.interest)
+            loan_principal_value = float(loan_costs.principal)
+            loan_insurance_value = float(loan_costs.insurance)
             total_expenses_value = (
                 expense_value
                 + loan_interest_value
@@ -482,16 +391,9 @@ class PropertyDetailView(DetailView):
                     }
                 )
 
-        # Exclude loan_interest and loan_insurance: those are already shown as
-        # dedicated computed series in the breakdown chart (from _loan_costs_by_month).
-        _LOAN_COST_CATS = {
-            PropertyLedgerEntry.ManagementCategory.LOAN_INTEREST,
-            PropertyLedgerEntry.ManagementCategory.LOAN_INSURANCE,
-        }
         expense_by_type_series = [
             {"label": expense_by_mgmt_cat[k]["label"], "data": type_month_series[k]}
             for k in expense_by_mgmt_cat
-            if k not in _LOAN_COST_CATS
         ]
 
         return (
@@ -543,141 +445,18 @@ class PropertyDetailView(DetailView):
         rows.sort(key=lambda r: r["date"], reverse=True)
         return rows
 
-    def _build_loan_chart_data(self, property_obj: Property) -> dict:
-        """Build per-loan monthly chart data for the loans panel chart.
-
-        Returns a dict with:
-        - loans: list of {name, data: [{x, y}]} — total payment per month per loan
-        - total_capital: [{x, y}] — total capital repaid per month across all loans
-        - total_interest: [{x, y}] — total interest paid per month across all loans
-        """
-        loans = (
+    def _loans(self, property_obj: Property) -> list[PropertyLoan]:
+        """The loans of the property, read with their amortization tables."""
+        return list(
             PropertyLoan.objects.filter(property=property_obj)
+            .select_related("property")
             .prefetch_related("amortization_entries")
             .order_by("start_date")
         )
 
-        # Collect per-loan monthly maps: {(year, month): total_payment}
-        loan_series: list[dict] = []
-        all_capital: dict[tuple[int, int], Decimal] = {}
-        all_interest: dict[tuple[int, int], Decimal] = {}
-
-        for loan in loans:
-            if loan.start_date is None or loan.end_date is None:
-                continue
-
-            capital_map: dict[tuple[int, int], Decimal] = {}
-            interest_map: dict[tuple[int, int], Decimal] = {}
-            insurance_map: dict[tuple[int, int], Decimal] = {}
-
-            if loan.amortization_entries.exists():
-                # Use imported/generated amortization table
-                for entry in loan.amortization_entries.all():
-                    key = (entry.date.year, entry.date.month)
-                    capital_map[key] = (
-                        capital_map.get(key, Decimal(0)) + entry.capital.amount
-                    )
-                    interest_map[key] = (
-                        interest_map.get(key, Decimal(0)) + entry.interest.amount
-                    )
-            elif loan.monthly_payment is not None and loan.interest_rate is not None:
-                insurance_amount = (
-                    loan.insurance.amount if loan.insurance else Decimal(0)
-                )
-                interest_map, capital_map, insurance_map = build_loan_monthly_maps(
-                    start_date=loan.start_date,
-                    end_date=loan.end_date,
-                    original_amount=loan.original_amount.amount,
-                    monthly_payment=loan.monthly_payment.amount,
-                    interest_rate=loan.interest_rate,
-                    insurance_amount=insurance_amount,
-                    disbursement_date=loan.start_date,
-                    first_payment_date=loan.first_payment_date,
-                )
-            else:
-                continue
-
-            # Build total payment per month for this loan (capital + interest + insurance)
-            all_months = set(capital_map) | set(interest_map) | set(insurance_map)
-            total_map: dict[tuple[int, int], Decimal] = {}
-            for key in all_months:
-                total = (
-                    capital_map.get(key, Decimal(0))
-                    + interest_map.get(key, Decimal(0))
-                    + insurance_map.get(key, Decimal(0))
-                )
-                total_map[key] = total
-                all_capital[key] = all_capital.get(key, Decimal(0)) + capital_map.get(
-                    key, Decimal(0)
-                )
-                all_interest[key] = all_interest.get(
-                    key, Decimal(0)
-                ) + interest_map.get(key, Decimal(0))
-
-            sorted_months = sorted(total_map.keys())
-            loan_series.append(
-                {
-                    "name": loan.name or loan.lender or f"#{loan.pk}",
-                    "data": [
-                        {"x": f"{y}-{m:02d}-01", "y": float(total_map[(y, m)])}
-                        for y, m in sorted_months
-                    ],
-                }
-            )
-
-        # Build aggregate lines
-        all_months_sorted = sorted(set(all_capital) | set(all_interest))
-        total_capital_series = [
-            {"x": f"{y}-{m:02d}-01", "y": float(all_capital.get((y, m), Decimal(0)))}
-            for y, m in all_months_sorted
-        ]
-        total_interest_series = [
-            {"x": f"{y}-{m:02d}-01", "y": float(all_interest.get((y, m), Decimal(0)))}
-            for y, m in all_months_sorted
-        ]
-
-        return {
-            "loans": loan_series,
-            "total_capital": total_capital_series,
-            "total_interest": total_interest_series,
-        }
-
-    def _build_loans_context(self, property_obj: Property) -> list[dict]:
-        """Build loan details with computed total cost for the Info tab."""
-        loans = PropertyLoan.objects.filter(property=property_obj).order_by(
-            "start_date"
-        )
-        result = []
-        for loan in loans:
-            duration = loan.get_duration_months()
-            avg_monthly_payment = None
-            if loan.monthly_payment is not None and duration > 0:
-                monthly = loan.monthly_payment.amount
-                insurance = loan.insurance.amount if loan.insurance is not None else 0
-                total_repaid = Money(
-                    (monthly + insurance) * duration, loan.original_amount.currency
-                )
-            else:
-                total_repaid = None
-
-            total_cost = (
-                total_repaid.amount - loan.original_amount.amount
-                if total_repaid is not None
-                else None
-            )
-
-            remaining = loan.remaining_balance()
-            result.append(
-                {
-                    "loan": loan,
-                    "duration_months": duration,
-                    "total_repaid": total_repaid,
-                    "total_cost": total_cost,
-                    "avg_monthly_payment": avg_monthly_payment,
-                    "remaining_balance": remaining,
-                }
-            )
-        return result
+    def _build_loans_context(self, property_obj: Property) -> list[LoanRow]:
+        """Build the loan rows of the Loans tab."""
+        return loan_rows(self._loans(property_obj), datetime.date.today())
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """Handle quick create forms from dashboard modals."""
@@ -744,18 +523,22 @@ class PropertyDetailView(DetailView):
         self._loan_formset_cache = loan_formset
         return loan_formset
 
-    def _build_loan_forms_ctx(self) -> list[dict]:
-        """Return each loan form as a simple dict (no schedule formsets)."""
+    def _build_loan_forms_ctx(self, rows: list[LoanRow] | None = None) -> list[dict]:
+        """Return each loan form with the table row of its loan (none if new)."""
         loan_formset = getattr(self, "_loan_formset_cache", None)
         if loan_formset is None:
             return []
-        return [{"form": form} for form in loan_formset.forms]
+        rows_by_pk = {row.loan.pk: row for row in rows or []}
+        return [
+            {"form": form, "row": rows_by_pk.get(form.instance.pk)}
+            for form in loan_formset.forms
+        ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         property_obj = self.object
 
-        monthly_cashflow_amount = self._estimated_monthly_cashflow(property_obj)
+        monthly_cashflow_amount = monthly_flows(property_obj).cashflow
 
         property_leases = Lease.objects.filter(property=property_obj).order_by(
             "-start_date"
@@ -875,6 +658,7 @@ def property_panel_cashflow(request: HttpRequest, pk: int) -> HttpResponse:
         "cashflow_loan_principal_series": loan_principal_series,
         "cashflow_loan_insurance_series": loan_insurance_series,
         "cashflow_total_expenses_series": total_expenses_series,
+        "cashflow_has_loans": prop.loans.exists(),
         "entries_with_forms": entries_with_forms,
         "ledger_income_categories": [
             (c.value, c.label)
@@ -944,14 +728,14 @@ def property_panel_loans(request: HttpRequest, pk: int) -> HttpResponse:
     """Return the Loans panel HTML fragment."""
     prop = get_object_or_404(Property, pk=pk)
     view = _make_panel_view(prop, request)
-    loans_with_totals = view._build_loans_context(prop)
-    loan_chart_data = view._build_loan_chart_data(prop)
+    loans = view._loans(prop)
+    loans_with_totals = loan_rows(loans, datetime.date.today())
     loan_formset = view._build_loan_formset(prop)
-    loan_forms_ctx = view._build_loan_forms_ctx()
+    loan_forms_ctx = view._build_loan_forms_ctx(loans_with_totals)
     context = {
         "property": prop,
         "loans_with_totals": loans_with_totals,
-        "loan_chart_data_json": json.dumps(loan_chart_data),
+        "loan_chart_data": loans_chart_data(loans, prop.currency),
         "today": datetime.date.today(),
         "loan_formset": loan_formset,
         "loan_forms_with_schedules": loan_forms_ctx,
@@ -962,7 +746,13 @@ def property_panel_loans(request: HttpRequest, pk: int) -> HttpResponse:
 def property_panel_leases(request: HttpRequest, pk: int) -> HttpResponse:
     """Return the Leases panel HTML fragment."""
     prop = get_object_or_404(Property, pk=pk)
-    property_leases = Lease.objects.filter(property=prop).order_by("-start_date")
+    property_leases = list(
+        Lease.objects.filter(property=prop)
+        .select_related("property")
+        .order_by("-start_date")
+    )
+    for lease in property_leases:
+        lease.rent_revision = get_rent_revision(lease)  # ty: ignore[unresolved-attribute]
     context = {
         "property": prop,
         "property_leases": property_leases,

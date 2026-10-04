@@ -1,0 +1,1 @@
+<a class="g-nav__item{% if nav_section == section %} is-active{% endif %}" href="{% url url_name %}"{% if nav_section == section %} aria-current="page"{% endif %}>{% icon icon %}<span class="g-nav__text">{{ label }}</span>{% if badge %}<span class="g-nav__badge">{{ badge }}</span>{% endif %}</a>

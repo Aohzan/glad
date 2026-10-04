@@ -1,10 +1,14 @@
 """Tests for base view helper functions."""
 
 import datetime
+import json
+from pathlib import Path
 
 import pytest
+from django.contrib.staticfiles import finders
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.test import RequestFactory
+from django.urls import reverse
 
 from base.views import healthcheck, safe_date_compare
 
@@ -51,3 +55,35 @@ def test_favicon_redirects_to_the_static_file_without_login(client):
     response = client.get("/favicon.ico")
     assert response.status_code == 301
     assert response["Location"] == staticfiles_storage.url("favicon.ico")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "path", ["/apple-touch-icon.png", "/apple-touch-icon-precomposed.png"]
+)
+def test_apple_touch_icon_redirects_to_the_static_file_without_login(client, path):
+    """iOS looks the home screen icon up at the root: point it to the static file."""
+    response = client.get(path)
+    assert response.status_code == 301
+    assert response["Location"] == staticfiles_storage.url("icons/apple-touch-icon.png")
+
+
+@pytest.mark.django_db
+def test_pages_link_the_apple_touch_icon(client):
+    """Pages reachable before login link the home screen icon for iOS."""
+    response = client.get(reverse("login"))
+    assert (
+        f'<link rel="apple-touch-icon" href="{staticfiles_storage.url("icons/apple-touch-icon.png")}">'
+        in response.content.decode()
+    )
+
+
+def test_manifest_icons_exist_and_cover_any_and_maskable():
+    """Every icon of the web app manifest is a static file, both purposes provided."""
+    manifest_path = finders.find("manifest.json")
+    assert isinstance(manifest_path, str)
+    manifest = json.loads(Path(manifest_path).read_text())
+    purposes = {icon["purpose"] for icon in manifest["icons"]}
+    assert purposes == {"any", "maskable"}
+    for icon in manifest["icons"]:
+        assert finders.find(icon["src"]), icon["src"]

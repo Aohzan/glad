@@ -15,6 +15,7 @@ from finance.models.investment_account import (
     InvestmentAccountHolding,
     InvestmentAccountHoldingHistory,
 )
+from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import (
     SavingAccount,
     SavingAccountDeposit,
@@ -32,6 +33,8 @@ def chart_data(request, data_type, object_id):
             return _get_saving_account_chart_data(request, object_id)
         elif data_type == "holding":
             return _get_holding_chart_data(request, object_id)
+        elif data_type == "other_asset":
+            return _get_other_asset_chart_data(object_id)
         else:
             return JsonResponse(
                 {"success": False, "error": _("Invalid data type")}, status=400
@@ -293,5 +296,32 @@ def _get_holding_chart_data(request, holding_id):
             "name": str(holding),
             "values": history_data,
             "quantities": quantity_data,
+        }
+    )
+
+
+def _get_other_asset_chart_data(asset_id):
+    """Get chart data for an other asset: value history and acquisition value."""
+    asset = get_object_or_404(OtherAsset, id=asset_id)
+    history_data = [
+        {"date": entry.value_date.isoformat(), "value": float(entry.value.amount)}
+        for entry in asset.values.order_by("value_date")
+    ]
+    invested_data = _build_invested_data(
+        [
+            (
+                asset.acquisition_date.isoformat(),
+                float(asset.acquisition_value.amount),
+            )
+        ],
+        {str(item["date"]) for item in history_data},
+    )
+    return JsonResponse(
+        {
+            "success": True,
+            "name": str(asset),
+            "values": history_data,
+            "deposits": [],
+            "invested": invested_data,
         }
     )

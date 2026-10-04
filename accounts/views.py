@@ -36,6 +36,7 @@ from webauthn.helpers.structs import (
     UserVerificationRequirement,
 )
 
+from .backends import HouseholdModelBackend
 from .models import PasskeyCredential, UserProfile
 
 _LOGGER = logging.getLogger(__name__)
@@ -213,11 +214,11 @@ def passkey_auth_complete(request):
         credential = parse_authentication_credential_json(json.dumps(payload))
 
         stored = (
-            PasskeyCredential.objects.select_related("user")
+            PasskeyCredential.objects.select_related("user__profile")
             .filter(credential_id=credential.id)
             .first()
         )
-        if not stored:
+        if not stored or not HouseholdModelBackend().user_can_authenticate(stored.user):
             return JsonResponse(
                 {"success": False, "error": "invalid_request"}, status=400
             )

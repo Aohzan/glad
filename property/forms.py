@@ -7,7 +7,14 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
-from base.forms import MoneyInputGroupMixin, date_field, recurrence_end_field
+from base.forms import (
+    MoneyInputGroupMixin,
+    OwnersFormMixin,
+    date_field,
+    recurrence_end_field,
+)
+from base.widgets import SuggestionsTextInput
+from finance.forms import INSTITUTION_SOURCES
 from property.models import (
     SCPI,
     AmortizationAsset,
@@ -24,7 +31,7 @@ from property.models import (
     SCPIInvestment,
     SCPISharePrice,
 )
-from property.utils import add_months_safe, calculate_monthly_payment
+from property.utils import calculate_monthly_payment, due_date
 
 # ─── Property value ──────────────────────────────────────────────────────────
 
@@ -80,7 +87,9 @@ class PropertyLedgerEntryBaseForm(MoneyInputGroupMixin, forms.ModelForm):
             "management_category": forms.Select(attrs={"class": "form-select"}),
             "recurrence_type": forms.Select(attrs={"class": "form-select"}),
             "description": forms.TextInput(attrs={"class": "form-control"}),
-            "third_party": forms.TextInput(attrs={"class": "form-control"}),
+            "third_party": SuggestionsTextInput(
+                [(PropertyLedgerEntry, "third_party")], attrs={"class": "form-control"}
+            ),
             "lease": forms.Select(attrs={"class": "form-select"}),
             "notes": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
         }
@@ -127,7 +136,7 @@ class PropertyLedgerEntryOccurrenceForm(MoneyInputGroupMixin, forms.ModelForm):
 # ─── Property ─────────────────────────────────────────────────────────────────
 
 
-class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
+class PropertyEditForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
     """Form for editing property details."""
 
     class Meta:
@@ -152,6 +161,8 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "floor_area",
             "total_surface",
             "number_of_rooms",
+            "dpe_rating",
+            "dpe_date",
             "buying_value",
             "notary_fees",
             "agency_fees",
@@ -168,6 +179,8 @@ class PropertyEditForm(MoneyInputGroupMixin, forms.ModelForm):
             "lmnp_start_date": forms.DateInput(
                 attrs={"type": "date"}, format="%Y-%m-%d"
             ),
+            "dpe_rating": forms.Select(attrs={"class": "form-select"}),
+            "dpe_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "street_number": forms.TextInput(attrs={"class": "form-control"}),
             "street_name": forms.TextInput(attrs={"class": "form-control"}),
             "additional_address": forms.TextInput(attrs={"class": "form-control"}),
@@ -219,7 +232,9 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
         ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "lender": forms.TextInput(attrs={"class": "form-control"}),
+            "lender": SuggestionsTextInput(
+                INSTITUTION_SOURCES, attrs={"class": "form-control"}
+            ),
             "bank_reference": forms.TextInput(attrs={"class": "form-control"}),
             "start_date": forms.DateInput(
                 attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
@@ -253,32 +268,64 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             if duration:
                 self.fields["duration_months"].initial = duration
 
+    #: Fields the monthly payment is computed from.
+    PAYMENT_FIELDS = ("original_amount", "interest_rate", "duration_months")
+    #: Fields the monthly insurance is computed from.
+    INSURANCE_FIELDS = ("original_amount", "insurance_rate")
+
+    def _computed_from_changed(self, fields: tuple[str, ...]) -> bool:
+        """Whether a new loan is created or one of *fields* was edited.
+
+        An unchanged loan keeps its stored amounts, which may have been set
+        by hand (e.g. in the admin) to match the bank's offer.
+        """
+        return self.instance.pk is None or any(
+            name in self.changed_data for name in fields
+        )
+
     def clean(self):
         cleaned_data = super().clean() or {}
+        # An empty rate means no interest or no insurance (both columns are
+        # NOT NULL, so None cannot be saved).
+        for rate in ("interest_rate", "insurance_rate"):
+            if rate in cleaned_data and cleaned_data[rate] is None:
+                cleaned_data[rate] = Decimal(0)
         start_date = cleaned_data.get("start_date")
+        first_payment_date = cleaned_data.get("first_payment_date")
         duration_months = cleaned_data.get("duration_months")
         original_amount = cleaned_data.get("original_amount")
         interest_rate = cleaned_data.get("interest_rate")
         insurance_rate = cleaned_data.get("insurance_rate")
 
-        if start_date and duration_months:
-            # Compute end_date from start_date + duration_months
-            cleaned_data["end_date"] = add_months_safe(start_date, duration_months)
+        if start_date and first_payment_date and first_payment_date <= start_date:
+            self.add_error(
+                "first_payment_date",
+                _("The first payment date must be after the start date."),
+            )
 
-        # Only auto-compute monthly_payment for standard (non-smoothed) loans
-        # i.e. when interest_rate is provided and no schedule exists yet
+        if start_date and duration_months:
+            # The end date is the date of the last installment.
+            cleaned_data["end_date"] = due_date(
+                start_date, first_payment_date, duration_months - 1
+            )
+
         if original_amount and interest_rate is not None and duration_months:
-            monthly_pi, monthly_ins, _ = calculate_monthly_payment(
+            monthly_pi, monthly_ins, _total = calculate_monthly_payment(
                 original_amount=original_amount.amount,
                 annual_interest_rate=interest_rate,
                 annual_insurance_rate=insurance_rate or Decimal(0),
                 duration_months=duration_months,
             )
             currency = str(original_amount.currency)
-            cleaned_data["monthly_payment"] = Money(monthly_pi, currency)
-            cleaned_data["insurance"] = (
-                Money(monthly_ins, currency) if insurance_rate else None
-            )
+            if (
+                self._computed_from_changed(self.PAYMENT_FIELDS)
+                or self.instance.monthly_payment is None
+            ):
+                cleaned_data["monthly_payment"] = Money(monthly_pi, currency)
+            if self._computed_from_changed(self.INSURANCE_FIELDS):
+                cleaned_data["insurance"] = (
+                    Money(monthly_ins, currency) if insurance_rate else None
+                )
 
         return cleaned_data
 
@@ -291,9 +338,6 @@ class PropertyLoanForm(MoneyInputGroupMixin, forms.ModelForm):
             instance.monthly_payment = self.cleaned_data["monthly_payment"]
         if "insurance" in self.cleaned_data:
             instance.insurance = self.cleaned_data["insurance"]
-        # insurance_rate defaults to 0 if not provided
-        if instance.insurance_rate is None:
-            instance.insurance_rate = Decimal(0)
         if commit:
             instance.save()
         return instance
@@ -331,6 +375,9 @@ class LeaseForm(MoneyInputGroupMixin, forms.ModelForm):
             "charges_amount",
             "deposit_amount",
             "periodicity",
+            "irl_reference_quarter",
+            "irl_reference_value",
+            "last_rent_revision_date",
             "notes",
         ]
         widgets = {
@@ -340,6 +387,11 @@ class LeaseForm(MoneyInputGroupMixin, forms.ModelForm):
             "lease_type": forms.Select(attrs={"class": "form-select"}),
             "status": forms.Select(attrs={"class": "form-select"}),
             "periodicity": forms.Select(attrs={"class": "form-select"}),
+            "irl_reference_quarter": forms.Select(attrs={"class": "form-select"}),
+            "irl_reference_value": forms.NumberInput(attrs={"step": "0.01"}),
+            "last_rent_revision_date": forms.DateInput(
+                attrs={"type": "date"}, format="%Y-%m-%d"
+            ),
             "notes": forms.Textarea(attrs={"rows": 2}),
         }
 
@@ -365,6 +417,7 @@ class ManagementMandateForm(MoneyInputGroupMixin, forms.ModelForm):
             "notes",
         ]
         widgets = {
+            "manager_name": SuggestionsTextInput([(ManagementMandate, "manager_name")]),
             "manager_address": forms.Textarea(attrs={"rows": 2}),
             "start_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "end_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
@@ -508,8 +561,19 @@ class AmortizationInitForm(forms.Form):
 # ─── SCPI ────────────────────────────────────────────────────────────────────────────────
 
 
-class SCPIForm(MoneyInputGroupMixin, forms.ModelForm):
-    """Form for creating and editing a SCPI fund."""
+class SCPIForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
+    """Form for creating and editing a SCPI fund.
+
+    Once the fund has investments, its owners are set on all of them at once.
+    """
+
+    owners_after = "name"
+
+    def owned_assets(self) -> list:
+        """The investments of the fund (none while it is created)."""
+        if self.instance.pk is None:
+            return []
+        return list(self.instance.investments.all())
 
     class Meta:
         model = SCPI
@@ -524,7 +588,9 @@ class SCPIForm(MoneyInputGroupMixin, forms.ModelForm):
         ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "management_company": forms.TextInput(attrs={"class": "form-control"}),
+            "management_company": SuggestionsTextInput(
+                [(SCPI, "management_company")], attrs={"class": "form-control"}
+            ),
             "entry_fee_rate": forms.NumberInput(
                 attrs={
                     "class": "form-control",
@@ -579,7 +645,7 @@ class SCPISharePriceForm(MoneyInputGroupMixin, forms.ModelForm):
         self.fields["withdrawal_value"].required = False
 
 
-class SCPIInvestmentForm(MoneyInputGroupMixin, forms.ModelForm):
+class SCPIInvestmentForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
     """Form for creating and editing a SCPI investment line.
 
     Dismemberment fields are conditionally required when ownership_type is BARE or USUFRUCT.
@@ -738,7 +804,7 @@ class SCPIDividendBatchForm(forms.Form):
     )
 
 
-# ─── Income & Expenses Report ────────────────────────────────────────────────
+# ─── Property cash flow report ───────────────────────────────────────────────
 
 
 class PropertyReportFilterForm(forms.Form):
@@ -786,4 +852,56 @@ class PropertyCSVImportForm(forms.Form):
             "Please upload a CSV file with columns: date, amount, category, description"
         ),
         widget=forms.FileInput(attrs={"class": "form-control", "accept": ".csv"}),
+    )
+
+
+# ─── Resale simulation ────────────────────────────────────────────────────────
+
+
+class ResaleSimulationForm(forms.Form):
+    """Hypotheses of a simulated property sale."""
+
+    sale_price = forms.DecimalField(
+        label=_("Sale price"),
+        min_value=0,
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "1000"}),
+    )
+    sale_date = forms.DateField(
+        label=_("Sale date"),
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "form-control"}, format="%Y-%m-%d"
+        ),
+    )
+    seller_fees = forms.DecimalField(
+        label=_("Fees paid by the seller"),
+        help_text=_("Agency fees paid by the seller, diagnostics…"),
+        required=False,
+        min_value=0,
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "100"}),
+    )
+    actual_works = forms.DecimalField(
+        label=_("Works not already deducted"),
+        help_text=_(
+            "Construction, extension or improvement works with invoices, not "
+            "deducted from rental income nor amortized."
+        ),
+        required=False,
+        min_value=0,
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={"class": "form-control", "step": "100"}),
+    )
+    main_residence = forms.BooleanField(
+        label=_("Main residence at the time of the sale (exempt)"),
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+    service_residence = forms.BooleanField(
+        label=_("Student, senior or care residence (no LMNP reintegration)"),
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
     )

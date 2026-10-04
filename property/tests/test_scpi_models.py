@@ -701,3 +701,45 @@ class TestSCPIBareOwnershipTheoreticalValue:
                 date=datetime.date(2023, 1, 1),
                 value=Money(Decimal("15000.00"), "EUR"),
             )
+
+
+# ── Prefetched valuation ──────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+class TestPrefetchedValuation:
+    """The valuations read the prefetched prices, as the net worth history does."""
+
+    DAYS = [
+        datetime.date(2023, 12, 1),
+        datetime.date(2024, 1, 1),
+        datetime.date(2024, 6, 1),
+        datetime.date(2025, 6, 1),
+    ]
+
+    @staticmethod
+    def _values(investments, days):
+        return [
+            (i.get_estimated_value(d), i.get_estimated_resale_value(d))
+            for i in investments
+            for d in days
+        ]
+
+    def test_same_values_without_queries(
+        self, investment_full, investment_bare, django_assert_num_queries
+    ):
+        SCPIBareOwnershipTheoreticalValue.objects.create(
+            investment=investment_bare,
+            date=datetime.date(2024, 6, 1),
+            value=Money(Decimal("15000.00"), "EUR"),
+        )
+        prefetched = list(
+            SCPIInvestment.objects.select_related("scpi")
+            .prefetch_related("scpi__share_prices", "theoretical_values")
+            .order_by("pk")
+        )
+
+        with django_assert_num_queries(0):
+            found = self._values(prefetched, self.DAYS)
+
+        assert found == self._values([investment_full, investment_bare], self.DAYS)

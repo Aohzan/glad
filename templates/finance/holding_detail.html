@@ -3,6 +3,8 @@
 
 {% block title %}{{ holding.short_name }}{% endblock %}
 
+{% block breadcrumb_parents %}{% url 'finance:investment_detail' account.pk as url %}{% include "_crumb.html" with label=account %}{% endblock %}
+
 {% block extra_head %}
 <script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>
 {% endblock %}
@@ -13,17 +15,17 @@
   {# ── Header ──────────────────────────────────────────────────────────────── #}
   <div class="d-flex align-items-center gap-2 mb-4">
     <a href="{% url 'finance:investment_detail' account.pk %}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>{{ account }}
+      {% icon "arrow-left" "me-1" %}{{ account }}
     </a>
     <h1 class="h4 mb-0 ms-1">
-      <i class="bi bi-graph-up me-1"></i>{{ holding.short_name }}
+      {% icon "chart-line" "me-1" %}{{ holding.short_name }}
     </h1>
     <div class="ms-auto">
       <a href="{% url 'finance:edit_holding' account.pk holding.pk %}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-pencil me-1"></i>{% translate "Edit" %}
+        {% icon "pencil" "me-1" %}{% translate "Edit" %}
       </a>
       <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteHoldingModal">
-        <i class="bi bi-trash me-1"></i>{% translate "Delete" %}
+        {% icon "trash" "me-1" %}{% translate "Delete" %}
       </button>
     </div>
   </div>
@@ -31,14 +33,14 @@
   {# ── Live market data ────────────────────────────────────────────────────── #}
   <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0"><i class="bi bi-broadcast me-2"></i>{% translate "Live market data" %}</h5>
+      <h5 class="mb-0">{% icon "radio" "me-2" %}{% translate "Live market data" %}</h5>
       {% if live_data_enabled %}
       <div>
         <a href="#" id="useAsValuationBtn" class="btn btn-sm btn-outline-primary d-none">
-          <i class="bi bi-clock-history me-1"></i>{% translate "Use as new valuation" %}
+          {% icon "rotate-ccw-clock" "me-1" %}{% translate "Use as new valuation" %}
         </a>
         <button type="button" id="refreshLiveInfoBtn" class="btn btn-sm btn-outline-secondary" title="{% translate 'Refresh' %}">
-          <i class="bi bi-arrow-clockwise"></i>
+          {% icon "rotate-cw" %}
         </button>
       </div>
       {% endif %}
@@ -95,7 +97,7 @@
           </div>
         </div>
         <div id="liveCurrencyMismatch" class="alert alert-warning mt-3 mb-0 py-2 d-none">
-          <i class="bi bi-exclamation-triangle me-1"></i>
+          {% icon "triangle-alert" "me-1" %}
           <span id="liveCurrencyMismatchText"></span>
         </div>
         <p class="text-body-secondary small mt-3 mb-0">
@@ -109,25 +111,27 @@
   {# ── Chart ────────────────────────────────────────────────────────────────── #}
   <div class="card mb-4">
     <div class="card-header">
-      <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>{% translate "Value evolution" %}</h5>
+      <h5 class="mb-0">{% icon "chart-column" "me-2" %}{% translate "Value evolution" %}</h5>
     </div>
     <div class="card-body">
       <div id="holdingChart" style="height: 300px;"></div>
     </div>
   </div>
 
+  {% if holding.is_euro_fund %}{% include "finance/_euro_fund_rates_panel.html" %}{% endif %}
+
   {# ── History ──────────────────────────────────────────────────────────────── #}
   <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>{% translate "History" %}</h5>
+      <h5 class="mb-0">{% icon "rotate-ccw-clock" "me-2" %}{% translate "History" %}</h5>
       <div>
         {% if holding.isin and live_data_enabled %}
         <a href="{% url 'finance:backfill_holding_history' account.pk holding.pk %}" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-magic me-1"></i>{% translate "Fill history gaps" %}
+          {% icon "wand-sparkles" "me-1" %}{% translate "Fill history gaps" %}
         </a>
         {% endif %}
         <a href="{% url 'finance:new_holding_history' account.pk holding.pk %}" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-plus-lg me-1"></i>{% translate "Add history" %}
+          {% icon "plus" "me-1" %}{% translate "Add history" %}
         </a>
       </div>
     </div>

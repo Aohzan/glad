@@ -8,7 +8,7 @@ from django.contrib.messages import get_messages
 from django.urls import reverse
 from moneyed import Money
 
-from property.models import Property, PropertyLoan
+from property.models import Property, PropertyLoan, PropertyLoanAmortizationEntry
 
 
 @pytest.fixture
@@ -29,9 +29,10 @@ class TestEditProperty:
         assert response.status_code == 200
         assert "property_form" in response.context
 
-    def test_post_edit_property_valid(self, user_client, property_obj):
+    def test_post_edit_property_valid(self, user, user_client, property_obj):
         url = reverse("property:edit", kwargs={"pk": property_obj.pk})
         data = {
+            "owners": [user.pk],
             "name": "Updated Property Name",
             "property_type": Property.APARTMENT,
             "buying_value_0": "200000",
@@ -77,9 +78,10 @@ class TestCreateProperty:
         assert response.status_code == 200
         assert "property_form" in response.context
 
-    def test_post_create_property_valid(self, user_client):
+    def test_post_create_property_valid(self, user, user_client):
         url = reverse("property:create")
         data = {
+            "owners": [user.pk],
             "name": "New Property",
             "property_type": Property.HOUSE,
             "buying_value_0": "300000",
@@ -196,8 +198,6 @@ class TestGenerateLoanAmortization:
         )
         response = user_client.post(url)
         assert response.status_code == 302
-        from property.models import PropertyLoanAmortizationEntry
-
         assert PropertyLoanAmortizationEntry.objects.filter(loan=loan).exists()
         messages = list(get_messages(response.wsgi_request))
         assert any(
@@ -225,16 +225,49 @@ class TestGenerateLoanAmortization:
         )
         response = user_client.post(url)
         assert response.status_code == 302
-        from property.models import PropertyLoanAmortizationEntry
-
         assert PropertyLoanAmortizationEntry.objects.filter(
             loan=loan_no_payment
         ).exists()
 
-    def test_generate_without_monthly_payment_and_no_rate_shows_error(
+    def test_generated_table_matches_the_computed_schedule(
         self, user_client, property_obj
     ):
-        """Generate should show error when monthly_payment cannot be computed (zero duration)."""
+        """The table is written on the due dates and keeps every balance."""
+        loan = PropertyLoan.objects.create(
+            property=property_obj,
+            name="Broken period",
+            start_date=datetime.date(2025, 1, 15),
+            end_date=datetime.date(2045, 1, 5),
+            first_payment_date=datetime.date(2025, 2, 5),
+            original_amount=Money(100000, "EUR"),
+            interest_rate=Decimal("3.65"),
+        )
+        expected = loan.computed_schedule()
+        url = reverse(
+            "property:loan_amortization_generate",
+            kwargs={"pk": property_obj.pk, "loan_pk": loan.pk},
+        )
+        user_client.post(url)
+
+        rows = list(
+            PropertyLoanAmortizationEntry.objects.filter(loan=loan)
+            .order_by("date")
+            .values_list("date", "capital", "interest", "remaining_balance_amount")
+        )
+        assert rows == [
+            (i.date, i.principal, i.interest, i.balance) for i in expected.installments
+        ]
+        loan = PropertyLoan.objects.get(pk=loan.pk)
+        day = datetime.date(2025, 1, 10)
+        while day < datetime.date(2046, 1, 1):
+            assert loan.remaining_balance(day).amount == expected.balance_at(day)
+            assert loan.interest_paid_to_date(day).amount == (
+                expected.paid_to(day).interest
+            )
+            day += datetime.timedelta(days=151)
+
+    def test_generate_without_installment_shows_error(self, user_client, property_obj):
+        """Generate shows an error for a loan without any installment (zero duration)."""
         loan_no_rate = PropertyLoan.objects.create(
             property=property_obj,
             name="Loan No Rate",
@@ -252,4 +285,7 @@ class TestGenerateLoanAmortization:
         response = user_client.post(url)
         assert response.status_code == 302
         messages = list(get_messages(response.wsgi_request))
-        assert any("monthly payment" in str(m).lower() for m in messages)
+        assert any("no installment" in str(m).lower() for m in messages)
+        assert not PropertyLoanAmortizationEntry.objects.filter(
+            loan=loan_no_rate
+        ).exists()

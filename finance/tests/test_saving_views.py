@@ -28,7 +28,6 @@ def saving_account(saving_type):
     return SavingAccount.objects.create(
         account_type=saving_type,
         name="My Livret A",
-        owner="Test Owner",
         institution="Test Bank",
         is_active=True,
         opening_value=Money(Decimal("1000.00"), "EUR"),
@@ -105,13 +104,13 @@ class TestCreateSaving:
         assert "form" in response.context
         assert response.context.get("account") is None
 
-    def test_post_create_valid(self, user_client, saving_type):
+    def test_post_create_valid(self, user, user_client, saving_type):
         """POST with valid data creates an account and redirects."""
         url = reverse("finance:new_saving")
         data = {
+            "owners": [user.pk],
             "account_type": saving_type.pk,
             "name": "New Account",
-            "owner": "Owner",
             "institution": "Bank",
             "opening_date": "2025-01-01",
             "interest_rate": "2.50",
@@ -147,10 +146,11 @@ class TestEditSaving:
         assert response.status_code == 200
         assert response.context["account"] == saving_account
 
-    def test_post_edit_valid(self, user_client, saving_account, saving_type):
+    def test_post_edit_valid(self, user, user_client, saving_account, saving_type):
         """POST with valid data updates the account."""
         url = reverse("finance:edit_saving", kwargs={"pk": saving_account.pk})
         data = {
+            "owners": [user.pk],
             "account_type": saving_type.pk,
             "name": "Updated Name",
             "opening_date": "2025-01-01",

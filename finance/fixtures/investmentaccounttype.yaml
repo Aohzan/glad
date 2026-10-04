@@ -41,3 +41,17 @@
     updated_at: 2025-01-01 00:00:00.000000
     name: Plan d'épargne interentreprises
     code: PEI
+- model: finance.investmentaccounttype
+  pk: 7
+  fields:
+    created_at: 2026-10-01 00:00:00.000000
+    updated_at: 2026-10-01 00:00:00.000000
+    name: Plan d'épargne entreprise
+    code: PEE
+- model: finance.investmentaccounttype
+  pk: 8
+  fields:
+    created_at: 2026-10-01 00:00:00.000000
+    updated_at: 2026-10-01 00:00:00.000000
+    name: Plan d'épargne retraite collectif
+    code: PERCOL

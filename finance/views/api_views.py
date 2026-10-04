@@ -1,5 +1,6 @@
 """API views for the finance app — JSON endpoints for the dashboard."""
 
+import logging
 import re
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -8,8 +9,10 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext as _
 from django.views import View
 
+from base.services.ownership import HolderResolver
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountHolding,
@@ -20,8 +23,20 @@ from finance.services.market_data import (
     fetch_holding_autofill,
     get_live_quote,
 )
+from finance.services.performance import account_cash_flows, benchmark_xirr
 
 _ISIN_RE = re.compile(r"^[A-Z0-9]{12}$")
+_LOGGER = logging.getLogger(__name__)
+
+
+def _market_data_error(exc: MarketDataError, message: str) -> JsonResponse:
+    """Log a failed market data lookup and answer with *message*.
+
+    The exception message can carry the raw error of the data provider, which
+    stays in the logs instead of reaching the browser.
+    """
+    _LOGGER.warning("Market data lookup failed: %s", exc)
+    return JsonResponse({"error": message}, status=502)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -46,6 +61,7 @@ class AccountsSummaryApiView(View):
         breakdown_values = [total_investments, total_savings]
 
         # Per-account progress bars
+        holders = HolderResolver()
         accounts = []
         for account in saving_accounts:
             prog = account.get_progression(days)
@@ -68,9 +84,9 @@ class AccountsSummaryApiView(View):
                         if prog.gross_progression < 0
                         else "secondary"
                     ),
-                    "icon": "bi-piggy-bank",
+                    "icon": "piggy-bank",
                     "type": "savings",
-                    "owner": account.owner or "",
+                    "owner": holders.label(account),
                     "is_favorite": account.is_favorite,
                 }
             )
@@ -96,9 +112,9 @@ class AccountsSummaryApiView(View):
                         if prog.gross_progression < 0
                         else "secondary"
                     ),
-                    "icon": "bi-bar-chart-line",
+                    "icon": "chart-line",
                     "type": "investment",
-                    "owner": account.owner or "",
+                    "owner": holders.label(account),
                     "is_favorite": account.is_favorite,
                 }
             )
@@ -154,7 +170,7 @@ class HoldingLiveInfoApiView(View):
         try:
             quote = get_live_quote(holding.isin, force_refresh=force)
         except MarketDataError as exc:
-            return JsonResponse({"error": str(exc)}, status=502)
+            return _market_data_error(exc, _("Could not load live data."))
 
         quantity = holding.quantity
         total_value = (
@@ -213,7 +229,7 @@ class HoldingAutofillApiView(View):
         try:
             autofill = fetch_holding_autofill(isin)
         except MarketDataError as exc:
-            return JsonResponse({"error": str(exc)}, status=502)
+            return _market_data_error(exc, _("Could not fetch data for this ISIN."))
 
         return JsonResponse(
             {
@@ -282,4 +298,32 @@ class InvestmentLiveChangeApiView(View):
 
         return JsonResponse(
             {"enabled": True, "accounts": accounts_data, "alerts": alerts}
+        )
+
+
+@method_decorator(login_required, name="dispatch")
+class AccountBenchmarkApiView(View):
+    """Return the XIRR the account deposits would have earned in its benchmark."""
+
+    def get(self, request, pk):
+        if not getattr(request.user.profile, "live_data_enabled", True):
+            return JsonResponse({"error": "live_data_disabled"}, status=403)
+        account = get_object_or_404(InvestmentAccount, pk=pk)
+        if not account.benchmark_symbol:
+            return JsonResponse({"error": "no_benchmark"}, status=400)
+        try:
+            rate = benchmark_xirr(
+                account_cash_flows(account),
+                account.benchmark_symbol,
+                account.currency,
+            )
+        except MarketDataError as exc:
+            return _market_data_error(
+                exc, _("Could not compute the performance of the benchmark.")
+            )
+        return JsonResponse(
+            {
+                "symbol": account.benchmark_symbol,
+                "xirr_percent": None if rate is None else round(rate * 100, 2),
+            }
         )

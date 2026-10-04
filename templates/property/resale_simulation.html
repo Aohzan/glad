@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{% translate "Resale simulation" %} — {{ property.name }}{% endblock %}
+
+{% block breadcrumb_parents %}{% url 'property:detail' property.pk as url %}{% include "_crumb.html" with label=property.name %}{% endblock %}
+{% block breadcrumb %}{% translate "Resale simulation" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 1000px;">
+  <div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{% url 'property:detail' property.pk %}" class="btn btn-sm btn-outline-secondary">{% icon "arrow-left" "me-1" %}{{ property.name }}</a>
+    <h1 class="h4 mb-0 ms-1">{% icon "calculator" "me-1" %}{% translate "Resale simulation" %}</h1>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <form method="get" class="card shadow-sm rounded-4">
+        <div class="card-body">
+          {% for field in form %}
+            {% if field.field.widget.input_type == "checkbox" %}
+            <div class="form-check mb-3">
+              {{ field }}
+              <label for="{{ field.id_for_label }}" class="form-check-label small">{{ field.label }}</label>
+            </div>
+            {% else %}
+            {% include "_form_field.html" %}
+            {% endif %}
+          {% endfor %}
+          <button type="submit" class="btn btn-primary w-100">{% icon "refresh-cw" "me-1" %}{% translate "Simulate" %}</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-lg-8">
+      {% if estimate %}
+      {% with cur=property.currency %}
+      <div class="card shadow-sm rounded-4 mb-3" id="resale-result">
+        <div class="card-body">
+          <div class="row g-3 text-center">
+            <div class="col-4">
+              <div class="small text-body-secondary">{% translate "Capital gain" %}</div>
+              <div class="fs-5 fw-bold">{{ estimate.gross_gain|format_money_amount:cur }}</div>
+            </div>
+            <div class="col-4">
+              <div class="small text-body-secondary">{% translate "Taxes" %}</div>
+              <div class="fs-5 fw-bold text-danger">{{ estimate.total_tax|format_money_amount:cur }}</div>
+            </div>
+            <div class="col-4">
+              <div class="small text-body-secondary">{% translate "Net proceeds" %}</div>
+              <div class="fs-5 fw-bold text-success">{{ estimate.net_proceeds|format_money_amount:cur }}</div>
+              <div class="small text-body-secondary">{% translate "after taxes and loan repayment" %}</div>
+            </div>
+          </div>
+          {% if estimate.is_exempt %}
+          <div class="alert alert-success small mt-3 mb-0">{% icon "circle-check" "me-1" %}{% translate "The sale of the main residence is exempt from capital gain tax." %}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card shadow-sm rounded-4">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <tbody>
+              <tr><td>{% translate "Sale price" %}</td><td class="text-end">{{ estimate.inputs.sale_price|format_money_amount:cur }}</td></tr>
+              <tr><td>− {% translate "Fees paid by the seller" %}</td><td class="text-end">{{ estimate.inputs.seller_fees|format_money_amount:cur }}</td></tr>
+              <tr class="fw-semibold"><td>{% translate "Net sale price" %}</td><td class="text-end">{{ estimate.net_sale_price|format_money_amount:cur }}</td></tr>
+              <tr><td>{% translate "Purchase price" %}</td><td class="text-end">{{ estimate.purchase_price|format_money_amount:cur }}</td></tr>
+              <tr>
+                <td>+ {% translate "Acquisition fees" %}
+                  <small class="text-body-secondary">({% if estimate.flat_fees_used %}{% translate "flat 7.5 %" %}{% else %}{% translate "actual" %}{% endif %})</small></td>
+                <td class="text-end">{{ estimate.acquisition_fees|format_money_amount:cur }}</td>
+              </tr>
+              <tr>
+                <td>+ {% translate "Works" %}
+                  <small class="text-body-secondary">({% if estimate.flat_works_used %}{% translate "flat 15 % after 5 years" %}{% else %}{% translate "actual" %}{% endif %})</small></td>
+                <td class="text-end">{{ estimate.works|format_money_amount:cur }}</td>
+              </tr>
+              {% if estimate.lmnp_reintegration %}
+              <tr>
+                <td>− {% translate "LMNP amortization deducted (finance act 2025)" %}</td>
+                <td class="text-end text-danger">{{ estimate.lmnp_reintegration|format_money_amount:cur }}</td>
+              </tr>
+              {% endif %}
+              <tr class="fw-semibold"><td>{% translate "Adjusted purchase price" %}</td><td class="text-end">{{ estimate.adjusted_cost|format_money_amount:cur }}</td></tr>
+              <tr class="fw-semibold"><td>{% translate "Capital gain" %}</td><td class="text-end">{{ estimate.gross_gain|format_money_amount:cur }}</td></tr>
+              <tr><td colspan="2" class="text-body-secondary small">{% blocktranslate count years=estimate.holding_years %}Held {{ years }} full year{% plural %}Held {{ years }} full years{% endblocktranslate %}</td></tr>
+              {% if not estimate.is_exempt and estimate.gross_gain > 0 %}
+              <tr>
+                <td>{% translate "Income tax (19 %)" %} <small class="text-body-secondary">— {% blocktranslate with pct=estimate.income_tax_allowance|floatformat:"-2" %}allowance {{ pct }} %{% endblocktranslate %}, {% translate "base" %} {{ estimate.taxable_income_tax|format_money_amount:cur }}</small></td>
+                <td class="text-end">{{ estimate.income_tax|format_money_amount:cur }}</td>
+              </tr>
+              <tr>
+                <td>{% translate "Social charges (17.2 %)" %} <small class="text-body-secondary">— {% blocktranslate with pct=estimate.social_charges_allowance|floatformat:"-2" %}allowance {{ pct }} %{% endblocktranslate %}, {% translate "base" %} {{ estimate.taxable_social_charges|format_money_amount:cur }}</small></td>
+                <td class="text-end">{{ estimate.social_charges|format_money_amount:cur }}</td>
+              </tr>
+              <tr>
+                <td>{% translate "Surtax on gains above 50,000 €" %}{% if estimate.surtax_by_seller|length > 1 %} <small class="text-body-secondary">({% translate "per seller" %})</small>{% endif %}</td>
+                <td class="text-end">{{ estimate.surtax|format_money_amount:cur }}</td>
+              </tr>
+              {% endif %}
+              <tr class="fw-semibold"><td>{% translate "Total taxes" %}</td><td class="text-end">{{ estimate.total_tax|format_money_amount:cur }}</td></tr>
+              <tr><td>− {% translate "Remaining loans at the sale date" %}</td><td class="text-end">{{ estimate.remaining_loans|format_money_amount:cur }}</td></tr>
+              <tr class="fw-bold"><td>{% translate "Net proceeds" %}</td><td class="text-end">{{ estimate.net_proceeds|format_money_amount:cur }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endwith %}
+      {% endif %}
+      <p class="small text-body-secondary mt-3 mb-0">
+        {% translate "Indicative estimate of the capital gain of individuals (art. 150 U CGI). The LMNP amortization added back is the one deducted in the fiscal years computed from the ledger, up to the year before the sale, for this property alone. Early repayment penalties and the notary's fees are not included." %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

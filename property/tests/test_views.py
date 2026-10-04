@@ -169,17 +169,43 @@ def test_property_index_handles_property_calculation_exception(
         is_active=True,
     )
 
-    original_get_value = Property.get_value
+    original_remaining = Property.total_remaining_loans_at_date
 
-    def _patched_get_value(self, max_date=None):
-        if max_date is not None:
+    def _patched_remaining(self, as_of_date=None):
+        if as_of_date is not None:
             raise RuntimeError("boom")
-        return original_get_value(self, max_date=max_date)
+        return original_remaining(self, as_of_date)
 
-    monkeypatch.setattr(Property, "get_value", _patched_get_value)
+    monkeypatch.setattr(Property, "total_remaining_loans_at_date", _patched_remaining)
 
     response = user_client.get(reverse("property:index"))
     assert response.status_code == 200
+    assert set(response.context["properties_net_evolution"]) == {0.0}
+
+
+@pytest.mark.django_db
+def test_property_index_chart_queries_do_not_grow_with_history(
+    user_client, django_assert_max_num_queries
+):
+    """The monthly chart reads the valuations once, not per property and month."""
+    for index in range(3):
+        prop = Property.objects.create(
+            name=f"Old flat {index}",
+            property_type=Property.APARTMENT,
+            buying_value=Money(100000, "EUR"),
+            buying_date=datetime.date.today() - datetime.timedelta(days=3650),
+        )
+        PropertyValue.objects.create(
+            property=prop,
+            value=Money(120000, "EUR"),
+            valuation_date=datetime.date.today() - datetime.timedelta(days=1800),
+        )
+
+    with django_assert_max_num_queries(60):
+        response = user_client.get(reverse("property:index"))
+
+    assert len(response.context["properties_months"]) > 100
+    assert response.context["properties_gross_evolution"][-1] == 360000.0
 
 
 @pytest.mark.django_db
@@ -257,6 +283,58 @@ def test_property_detail_view_projection_context(user_client):
 
 
 @pytest.mark.django_db
+def test_projection_history_follows_the_debt_month_by_month(user_client):
+    """The debt history is sampled monthly, not drawn between the valuations."""
+    property_obj = Property.objects.create(
+        name="Monthly history",
+        property_type=Property.APARTMENT,
+        buying_value=Money(200000, "EUR"),
+        buying_date=datetime.date(2020, 1, 15),
+        is_active=True,
+    )
+    PropertyValue.objects.create(
+        property=property_obj,
+        value=Money(230000, "EUR"),
+        valuation_date=datetime.date(2022, 6, 10),
+    )
+    loan = PropertyLoan.objects.create(
+        property=property_obj,
+        name="Main Loan",
+        start_date=datetime.date(2020, 1, 15),
+        end_date=datetime.date(2040, 1, 15),
+        original_amount=Money(200000, "EUR"),
+        monthly_payment=Money(Decimal("1159.92"), "EUR"),
+        interest_rate=Decimal("3.5"),
+    )
+
+    response = user_client.get(
+        reverse("property:panel_projection", args=[property_obj.pk])
+    )
+
+    debt = {p["x"]: p["y"] for p in response.context["debt_history_series"]}
+    value = {p["x"]: p["y"] for p in response.context["value_history_series"]}
+    net = {p["x"]: p["y"] for p in response.context["net_history_series"]}
+    # Every month start from the purchase to today, plus the valuation.
+    assert {"2020-02-01", "2021-07-01", "2022-06-10"} <= set(debt)
+    for day in ("2020-02-01", "2021-07-01", "2024-03-01"):
+        expected = loan.remaining_balance(datetime.date.fromisoformat(day))
+        assert debt[day] == float(expected.amount)
+        assert net[day] == pytest.approx(value[day] - debt[day])
+    # The value steps on the valuation date.
+    assert value["2022-06-01"] == 200000.0
+    assert value["2022-06-10"] == 230000.0
+    assert value["2022-07-01"] == 230000.0
+
+
+def test_panels_receive_the_page_parameters():
+    """The panel forms reload the page: the panels must get its query string."""
+    with open("templates/property/detail.html", encoding="utf-8") as template:
+        assert "fetch(PANEL_URLS[panelId] + window.location.search)" in (
+            template.read()
+        )
+
+
+@pytest.mark.django_db
 def test_property_detail_growth_rate_query_param(user_client):
     property_obj = Property.objects.create(
         name="Lake House",
@@ -292,7 +370,7 @@ def test_property_detail_capital_repaid_for_standard_loan(user_client):
         start_date=datetime.date(2020, 1, 1),
         end_date=datetime.date(2040, 1, 1),
         original_amount=Money(200000, "EUR"),
-        monthly_payment=Money(Decimal("1159.97"), "EUR"),
+        monthly_payment=Money(Decimal("1159.92"), "EUR"),
         interest_rate=Decimal("3.5"),
     )
 
@@ -593,7 +671,7 @@ def _make_standard_loan(prop):
         start_date=datetime.date(2020, 1, 1),
         end_date=datetime.date(2040, 1, 1),
         original_amount=Money(200_000, "EUR"),
-        monthly_payment=Money(Decimal("1159.97"), "EUR"),
+        monthly_payment=Money(Decimal("1159.92"), "EUR"),
         interest_rate=Decimal("3.5"),
     )
 
@@ -632,12 +710,13 @@ def test_edit_property_loan_forms_with_schedules_context(user_client):
 
 
 @pytest.mark.django_db
-def test_edit_property_post_saves_property(user_client):
+def test_edit_property_post_saves_property(user, user_client):
     """POST with valid data updates the property."""
     prop = _make_property()
     response = user_client.post(
         reverse("property:edit", args=[prop.pk]),
         {
+            "owners": [user.pk],
             "name": "Updated Name",
             "property_type": Property.HOUSE,
             "buying_value_0": "210000",
@@ -667,9 +746,12 @@ def test_edit_property_context_has_loans_with_totals_standard(user_client):
     loans_with_totals = response.context["loans_with_totals"]
     assert len(loans_with_totals) == 1
     item = loans_with_totals[0]
-    assert item["duration_months"] > 0
-    assert item["total_repaid"] is not None
-    assert item["total_cost"] is not None
+    total = item.loan.schedule().total
+    assert item.duration_months > 0
+    assert item.total_cost.amount == total.interest + total.insurance
+    assert item.total_repaid.amount == item.loan.original_amount.amount + (
+        total.interest + total.insurance
+    )
 
 
 @pytest.mark.django_db
@@ -681,7 +763,7 @@ def test_edit_property_context_has_loans_with_totals_second_loan(user_client):
     assert response.status_code == 200
     loans_with_totals = response.context["loans_with_totals"]
     assert len(loans_with_totals) == 1
-    assert loans_with_totals[0]["duration_months"] > 0
+    assert loans_with_totals[0].duration_months > 0
 
 
 @pytest.mark.django_db
@@ -706,12 +788,13 @@ def test_create_property_get_renders_form(user_client):
 
 
 @pytest.mark.django_db
-def test_create_property_post_valid_creates_and_redirects(user_client):
+def test_create_property_post_valid_creates_and_redirects(user, user_client):
     """POST with valid data creates a property and redirects to the edit view."""
     assert Property.objects.count() == 0
     response = user_client.post(
         reverse("property:create"),
         {
+            "owners": [user.pk],
             "name": "New Flat",
             "property_type": Property.APARTMENT,
             "buying_value_0": "180000",

@@ -11,7 +11,7 @@ For each modification to the project, perform the following checks and adjustmen
 ### 1. Test Implementation (Coverage)
 
 - Write unit tests to cover the modified code
-- Use `uv run pytest --cov` to verify coverage
+- Run only the tests related to the change (e.g. `ENV_FILE=.env.dev uv run pytest path/to/test_file.py --no-cov`); do not run the full test suite unless explicitly asked, the CI pipeline runs it
 - CI fails under 90% total coverage (`--cov-fail-under=90`); aim for full coverage of the code you change
 - Use the VS Code "Code Coverage" task to generate detailed reports
 - Update the generate_fixtures.py script if necessary to include new test data to cover multiple scenarios and edge cases
@@ -59,6 +59,10 @@ For each modification to the project, perform the following checks and adjustmen
 5. Update the generate_fixtures.py script if necessary
 6. Update translations
 7. Run pre-commit and fix issues until all checks pass
+
+## Pushing
+
+- After a push, offer to watch the CI pipeline (`gh run watch`) and fix any failure it reports
 
 ## Available Tasks
 

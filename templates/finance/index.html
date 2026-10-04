@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
-{% load i18n format_money static %}
+{% load i18n format_money glad_format static %}
 
-{% block title %}
-  {% translate 'Finance' %}
+{% block title %}{% translate 'Finance' %}{% endblock %}
+{% block page_kicker %}{% translate "Wealth" %}{% endblock %}
+{% block page_title %}{% translate "Finance" %}{% endblock %}
+{% block page_description %}{% translate "Investment and saving accounts" %}{% endblock %}
+{% block page_actions %}
+<a href="{% url 'finance:update' %}" class="btn btn-outline-secondary">{% icon "refresh-cw" %}{% translate 'Batch update' %}</a>
+<a href="{% url 'finance:new_saving' %}" class="btn btn-outline-secondary">{% icon "plus" %}{% translate 'New saving account' %}</a>
+<a href="{% url 'finance:new_investment' %}" class="btn btn-primary">{% icon "plus" %}{% translate 'New investment account' %}</a>
 {% endblock %}
 
 {% block extra_head %}
@@ -10,243 +16,109 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="g-stack">
 
-  {# ── Page header ──────────────────────────────────────────────────────────── #}
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0 h3"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>{% translate 'Finance' %}</h1>
-    <div class="d-flex gap-2">
-      <a href="{% url 'finance:new_investment' %}" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-plus-lg me-1"></i>{% translate 'New investment account' %}
-      </a>
-      <a href="{% url 'finance:new_saving' %}" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-plus-lg me-1"></i>{% translate 'New saving account' %}
-      </a>
-      <a href="{% url 'finance:update' %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-clockwise me-1"></i>{% translate 'Batch update' %}
-      </a>
+  <section class="g-card g-kpis">
+    {% include "finance/_kpi.html" with kpi=kpi_investments label=_("Investments") %}
+    {% include "finance/_kpi.html" with kpi=kpi_savings label=_("Savings") %}
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Total finance" %}</span>
+      <span class="g-kpi__value">{% if total_finance %}{{ total_finance|money0 }}{% else %}—{% endif %}</span>
+      <span class="g-kpi__sub">{% blocktranslate count counter=account_count %}{{ counter }} account{% plural %}{{ counter }} accounts{% endblocktranslate %}</span>
     </div>
-  </div>
+  </section>
 
-  {# ── KPI strip ─────────────────────────────────────────────────────────────── #}
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-md-4">
-      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
-        <div class="card-body py-3 px-4">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-cash-coin me-1"></i>{% translate "Total investments" %}
-          </p>
-          <p class="fs-4 fw-bold mb-0">
-            {% if total_investment_value %}{{ total_investment_value|format_money }}{% else %}&mdash;{% endif %}
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-md-4">
-      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
-        <div class="card-body py-3 px-4">
-          <p class="text-uppercase text-body-secondary small fw-semibold mb-1">
-            <i class="bi bi-piggy-bank me-1"></i>{% translate "Total savings" %}
-          </p>
-          <p class="fs-4 fw-bold mb-0">
-            {% if total_saving_value %}{{ total_saving_value|format_money }}{% else %}&mdash;{% endif %}
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-4">
-      <div class="card shadow-sm rounded-4 h-100 border-0 bg-body-secondary">
-        <div class="card-body py-3 px-4">
-          <p class="text-uppercase text-success small fw-semibold mb-1">
-            <i class="bi bi-wallet2 me-1"></i>{% translate "Total" %}
-          </p>
-          <p class="fs-4 fw-bold mb-0" id="kpi-total">&mdash;</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {# ── Evolution chart ──────────────────────────────────────────────────────── #}
   {% if has_chart_data %}
-  <div class="card shadow-sm rounded-4 mb-4">
-    <div class="card-header border-0 d-flex justify-content-between align-items-center">
-      <h2 class="h5 mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>{% translate 'Value Evolution' %}</h2>
-      <div class="btn-group btn-group-sm" role="group" aria-label="{% translate 'Chart range' %}">
-        {% include "_chart_range_buttons.html" %}
-        <button type="button" class="btn btn-outline-secondary" data-months="">{% translate 'Max' %}</button>
+  <section class="g-card">
+    <div class="g-section-head">
+      <h2 class="g-h2">{% translate 'Value Evolution' %}</h2>
+      <div class="g-seg" role="group" aria-label="{% translate 'Chart range' %}" id="finance-chart-range">
+        {% include "_chart_range_buttons.html" %}<button type="button" class="g-seg__item" data-months="">{% translate 'Max' %}</button>
       </div>
     </div>
-    <div class="card-body pt-0">
-      <div id="chart-finance-evolution" style="height: 280px;"></div>
-    </div>
-  </div>
+    <div class="px-3 pb-3"><div id="chart-finance-evolution" style="height: 280px;"></div></div>
+  </section>
   {% endif %}
 
-  {# ── Filter row ───────────────────────────────────────────────────────────── #}
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <h2 class="h5 mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>{% translate 'Accounts' %}</h2>
-    <form method="get" action="">
-      <div class="border rounded-3 px-3 py-2 d-flex flex-wrap align-items-center gap-3">
-        {% if form.non_field_errors %}
-          <span class="text-danger small">{{ form.non_field_errors }}</span>
-        {% endif %}
-        <div class="d-flex align-items-center gap-2 flex-nowrap">
-          <label for="{{ form.days.id_for_label }}" class="mb-0 text-body-secondary small text-nowrap">{% translate 'Progression over' %}</label>
-          <div class="input-group input-group-sm flex-nowrap" style="width: 120px;">
-            {{ form.days }}
-            <span class="input-group-text">{% translate "days" %}</span>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <nav class="g-seg" aria-label="{% translate 'Progression over' %}">
+      {% for choice in day_choices %}
+      <a class="g-seg__item{% if days == choice %} is-active{% endif %}" href="?days={{ choice }}{% if active_only %}&amp;active_only=on{% endif %}">{% blocktranslate count counter=choice %}{{ counter }} day{% plural %}{{ counter }} days{% endblocktranslate %}</a>
+      {% endfor %}
+    </nav>
+    <a class="g-link" href="?days={{ days }}{% if not active_only %}&amp;active_only=on{% endif %}">
+      {% if active_only %}{% icon "eye" %}{% translate "Show closed accounts" %}{% else %}{% icon "eye-off" %}{% translate "Hide closed accounts" %}{% endif %}
+    </a>
+  </div>
+
+  <section class="g-card" id="investment-accounts">
+    <div class="g-section-head">
+      <h2 class="g-h2">{% translate 'Investment accounts' %}</h2>
+      <span class="g-meta">{% translate "Click an account to show its holdings" %}</span>
+    </div>
+    <div class="g-table-wrap">
+      <div class="g-table" style="--g-cols: minmax(220px, 2.4fr) 110px 140px 130px 120px; --g-table-min: 720px">
+        {% include "finance/_accounts_head.html" %}
+        {% for account in investment_accounts %}
+        <div class="g-table__row g-table__row--link{% if not account.model.is_active %} opacity-50{% endif %}" role="button" tabindex="0" data-bs-toggle="collapse" data-bs-target="#holdings-{{ account.model.pk }}" aria-expanded="false" aria-controls="holdings-{{ account.model.pk }}">
+          <span class="d-flex align-items-center gap-2 min-w-0" data-account-name="{{ account.model }}">
+            <span class="g-chevron">{% icon "chevron-right" %}</span>
+            <a href="{% url 'finance:investment_detail' account.model.id %}" class="g-cell-title text-reset text-decoration-none">{{ account.model }}</a>
+            {% url 'finance:toggle_investment_favorite' account.model.pk as favorite_url %}{% include "finance/_favorite_button.html" with model=account.model %}
+          </span>
+          <span class="g-muted text-truncate">{{ account.holder }}</span>
+          <span class="g-muted text-truncate">{{ account.model.institution|default:"—" }}</span>
+          <span class="g-cell-end g-strong">{{ account.value|format_money }}</span>
+          {% include "finance/_account_progression_cell.html" %}
+        </div>
+        <div class="collapse" id="holdings-{{ account.model.pk }}">
+          <div class="g-table__sub-rows">
+            {% for entry in account.subentries %}
+            <div class="g-table__row">
+              <span class="g-cell-title">
+                {% if entry.id == 'cash' %}{{ entry.name }}{% else %}<a href="{% url 'finance:holding_detail' account.model.id entry.id %}" class="text-reset text-decoration-none">{{ entry.name }}</a>{% endif %}
+              </span>
+              <span class="d-flex align-items-center gap-2" style="grid-column: span 2"><span class="g-bar g-bar--thin" style="width:72px"><span style="width:{{ entry.weight|css_pct }}"></span></span><span class="g-muted">{{ entry.weight|share }}</span></span>
+              <span class="g-cell-end">{{ entry.value|format_money }}</span>
+              <span class="g-cell-end {% if entry.progression.css_class == 'up' %}g-pos{% elif entry.progression.css_class == 'down' %}g-neg{% endif %}" title="{% translate 'Gross' %} {{ entry.progression.gross_progression|pct }}">{{ entry.progression.net_progression|pct }}</span>
+            </div>
+            {% empty %}
+            <div class="g-table__row"><span class="g-muted">{% translate 'No holdings found for this account.' %}</span></div>
+            {% endfor %}
           </div>
         </div>
-        <div>|</div>
-        <div class="form-check mb-0">
-          {{ form.active_only }}
-          <label class="form-check-label small" for="{{ form.active_only.id_for_label }}">
-            {% translate 'Active only' %}
-          </label>
+        {% empty %}
+        <div class="g-table__empty">{% translate 'No investment accounts found.' %}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="g-card" id="saving-accounts">
+    <div class="g-section-head">
+      <h2 class="g-h2">{% translate 'Saving accounts' %}</h2>
+      <span class="g-meta">{% blocktranslate count counter=savings_accounts|length %}{{ counter }} account{% plural %}{{ counter }} accounts{% endblocktranslate %}</span>
+    </div>
+    <div class="g-table-wrap">
+      <div class="g-table" style="--g-cols: minmax(220px, 2.4fr) 110px 140px 130px 120px; --g-table-min: 720px">
+        {% include "finance/_accounts_head.html" %}
+        {% for account in savings_accounts %}
+        <div class="g-table__row{% if not account.model.is_active %} opacity-50{% endif %}">
+          <span class="d-flex align-items-center gap-2 min-w-0" data-account-name="{{ account.model }}">
+            <a href="{% url 'finance:saving_detail' account.model.id %}" class="g-cell-title text-reset text-decoration-none">{{ account.model }}</a>
+            {% url 'finance:toggle_saving_favorite' account.model.pk as favorite_url %}{% include "finance/_favorite_button.html" with model=account.model %}
+          </span>
+          <span class="g-muted text-truncate">{{ account.holder }}</span>
+          <span class="g-muted text-truncate">{{ account.model.institution|default:"—" }}</span>
+          <span class="g-cell-end g-strong">{{ account.model.current_value|format_money }}</span>
+          {% include "finance/_account_progression_cell.html" %}
         </div>
-      </div>
-    </form>
-  </div>
-
-  {# ── Investment accounts ───────────────────────────────────────────────────── #}
-  <div class="card shadow-sm rounded-4 mb-4">
-    <div class="card-header border-0">
-      <h3 class="h5 mb-0"><i class="bi bi-cash-coin me-2 text-primary"></i>{% translate 'Investment accounts' %}</h3>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-finance table-striped mb-0">
-          <thead>
-            <tr>
-              <th>{% translate 'Name' %}</th>
-              <th>{% translate 'Value' %}</th>
-              <th>{% translate 'Net progression' %} <small class="text-muted fw-normal">({% translate 'Gross' %})</small></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for account in investment_accounts %}
-              {# Account row #}
-              <tr class="fw-semibold">
-                <td data-account-name="{{ account.model }}">
-                  <a href="{% url 'finance:investment_detail' account.model.id %}" class="text-decoration-none">
-                    {{ account.model }}
-                  </a>
-                  <form method="post" action="{% url 'finance:toggle_investment_favorite' account.model.pk %}" class="d-inline ms-2">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent {% if account.model.is_favorite %}text-warning{% else %}text-body-tertiary{% endif %}"
-                            title="{% if account.model.is_favorite %}{% translate 'Remove from favorites' %}{% else %}{% translate 'Add to favorites' %}{% endif %}">
-                      <i class="bi bi-star{% if account.model.is_favorite %}-fill{% endif %}"></i>
-                    </button>
-                  </form>
-                </td>
-                <td><strong>{{ account.model.current_value | format_money }}</strong></td>
-                <td>
-                  {% include "finance/_account_progression_cell.html" %}
-                </td>
-              </tr>
-              {# Holdings rows – always visible #}
-              {% for entry in account.subentries %}
-              <tr>
-                <td class="ps-4 text-body-secondary fw-normal">
-                  <i class="bi {% if entry.id == 'cash' %}bi-cash{% else %}bi-graph-up{% endif %} me-2 opacity-50"></i>
-                  {% if entry.id == 'cash' %}
-                    {{ entry.name }}
-                  {% else %}
-                    <a href="{% url 'finance:holding_detail' account.model.id entry.id %}" class="text-decoration-none">{{ entry.name }}</a>
-                  {% endif %}
-                </td>
-                <td class="text-body-secondary fw-normal">{{ entry.value | format_money }}</td>
-                <td>
-                  {% if entry.progression.css_class == "up" %}
-                    <span class="text-success small">
-                      <i class="bi bi-arrow-up"></i>
-                      <strong>{{ entry.progression.net_progression }}%</strong>
-                      <em class="text-muted">({{ entry.progression.gross_progression }}%)</em>
-                    </span>
-                  {% elif entry.progression.css_class == "down" %}
-                    <span class="text-danger small">
-                      <i class="bi bi-arrow-down"></i>
-                      <strong>{{ entry.progression.net_progression }}%</strong>
-                      <em class="text-muted">({{ entry.progression.gross_progression }}%)</em>
-                    </span>
-                  {% else %}
-                    <span class="text-secondary small">
-                      <i class="bi bi-dash"></i>
-                      <strong>{{ entry.progression.net_progression }}%</strong>
-                      <em class="text-muted">({{ entry.progression.gross_progression }}%)</em>
-                    </span>
-                  {% endif %}
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="3" class="ps-4 text-center text-muted small py-2">
-                  <em>{% translate 'No holdings found for this account.' %}</em>
-                </td>
-              </tr>
-              {% endfor %}
-            {% empty %}
-            <tr>
-              <td colspan="3" class="text-center text-muted py-5">
-                <i class="bi bi-cash-coin display-6 d-block mb-2 opacity-25"></i>
-                {% translate 'No investment accounts found.' %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        {% empty %}
+        <div class="g-table__empty">{% translate 'No saving accounts found.' %}</div>
+        {% endfor %}
       </div>
     </div>
-  </div>
-
-  {# ── Saving accounts ───────────────────────────────────────────────────────── #}
-  <div class="card shadow-sm rounded-4 mb-4">
-    <div class="card-header border-0">
-      <h3 class="h5 mb-0"><i class="bi bi-piggy-bank me-2 text-primary"></i>{% translate 'Saving accounts' %}</h3>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-finance table-striped table-hover mb-0">
-          <thead>
-            <tr>
-              <th>{% translate 'Name' %}</th>
-              <th>{% translate 'Value' %}</th>
-              <th>{% translate 'Net progression' %} <small class="text-muted fw-normal">({% translate 'Gross' %})</small></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for account in savings_accounts %}
-            <tr>
-              <td data-account-name="{{ account.model }}">
-                <a href="{% url 'finance:saving_detail' account.model.id %}" class="text-decoration-none">
-                  {{ account.model }}
-                </a>
-                <form method="post" action="{% url 'finance:toggle_saving_favorite' account.model.pk %}" class="d-inline ms-2">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent {% if account.model.is_favorite %}text-warning{% else %}text-body-tertiary{% endif %}"
-                          title="{% if account.model.is_favorite %}{% translate 'Remove from favorites' %}{% else %}{% translate 'Add to favorites' %}{% endif %}">
-                    <i class="bi bi-star{% if account.model.is_favorite %}-fill{% endif %}"></i>
-                  </button>
-                </form>
-              </td>
-              <td><strong>{{ account.model.current_value | format_money }}</strong></td>
-              <td>
-                {% include "finance/_account_progression_cell.html" %}
-              </td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="3" class="text-center text-muted py-5">
-                <i class="bi bi-piggy-bank display-6 d-block mb-2 opacity-25"></i>
-                {% translate 'No saving accounts found.' %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  </section>
 
 </div>
 {% endblock %}
@@ -257,32 +129,6 @@
 function getCurrentTheme() {
   return document.documentElement.getAttribute('data-bs-theme') || 'light';
 }
-
-/* ── KPI: compute total ─────────────────────────────────────────────────── */
-(function() {
-  var invest = {{ kpi_inv_json|safe }};
-  var saving = {{ kpi_sav_json|safe }};
-  var currency = {{ kpi_currency_json|safe }};
-  var total = (invest || 0) + (saving || 0);
-  if (total > 0) {
-    document.getElementById('kpi-total').textContent = new Intl.NumberFormat(
-      document.documentElement.lang || navigator.language, { style: 'currency', currency: currency }
-    ).format(total);
-  }
-})();
-
-/* ── Auto-submit filter form ────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', function() {
-  var daysInput = document.getElementById('{{ form.days.id_for_label }}');
-  var activeOnlyInput = document.getElementById('{{ form.active_only.id_for_label }}');
-
-  if (daysInput) {
-    daysInput.addEventListener('change', function() { this.form.submit(); });
-  }
-  if (activeOnlyInput) {
-    activeOnlyInput.addEventListener('change', function() { this.form.submit(); });
-  }
-});
 
 {% if has_chart_data %}
 /* ── Evolution chart ────────────────────────────────────────────────────── */
@@ -322,10 +168,8 @@ var optionsFinanceEvolution = {
     shared: true,
     intersect: false,
     custom: function({ series, seriesIndex, dataPointIndex, w }) {
-      var isDark = getCurrentTheme() === 'dark';
-      var bg = isDark ? '#0f172a' : '#fff';
-      var border = isDark ? 'rgba(255,255,255,.12)' : '#dee2e6';
-      var textMuted = isDark ? '#adb5bd' : '#6c757d';
+      var border = gToken('line');
+      var textMuted = gToken('muted');
       var total = 0;
       series.forEach(function(s) { total += (s[dataPointIndex] || 0); });
       var label = w.globals.categoryLabels[dataPointIndex] || w.globals.labels[dataPointIndex] || '';
@@ -343,7 +187,7 @@ var optionsFinanceEvolution = {
           '<span style="font-weight:600;font-size:12px;">' + Math.round(val).toLocaleString() + '</span>' +
         '</div>';
       }
-      return '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:10px 14px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.15);">' +
+      return '<div style="padding:10px 14px;min-width:200px;">' +
         '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' + label + '</div>' +
         '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 6px;border-bottom:1px solid ' + border + ';margin-bottom:6px;">' +
           '<span style="font-size:13px;font-weight:600;">{% filter escapejs %}{% translate "Total" %}{% endfilter %}</span>' +
@@ -353,7 +197,7 @@ var optionsFinanceEvolution = {
       '</div>';
     }
   },
-  grid: { borderColor: getCurrentTheme() === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
+  grid: { borderColor: gToken('line') },
   legend: { show: false },
 };
 
@@ -387,12 +231,12 @@ function updateFinanceChartRange(monthsToShow) {
   });
 }
 
-document.querySelectorAll('.btn-group [data-months]').forEach(function(btn) {
+document.querySelectorAll('#finance-chart-range [data-months]').forEach(function(btn) {
   btn.addEventListener('click', function() {
-    document.querySelectorAll('.btn-group [data-months]').forEach(function(b) {
-      b.classList.remove('active');
+    document.querySelectorAll('#finance-chart-range [data-months]').forEach(function(b) {
+      b.classList.remove('is-active');
     });
-    btn.classList.add('active');
+    btn.classList.add('is-active');
     updateFinanceChartRange(btn.dataset.months ? parseInt(btn.dataset.months) : null);
   });
 });
@@ -409,7 +253,8 @@ function updateChartsTheme(themeName) {
     chartFinanceEvolution.updateOptions({
       theme: { mode: isDark ? 'dark' : 'light' },
       chart: { background: 'transparent' },
-      grid: { borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(15,23,42,.08)' },
+      grid: { borderColor: gToken('line') },
+      colors: gChartColors(),
     });
   }
 }

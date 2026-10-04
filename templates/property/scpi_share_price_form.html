@@ -8,7 +8,7 @@
 
   {% url 'property:scpi_list' as back_url %}
   {% translate "Add share price" as page_title %}
-  {% include "property/_edit_page_header.html" with back_url=back_url back_label=scpi.name page_title=page_title title_icon_class="bi-graph-up" %}
+  {% include "property/_edit_page_header.html" with back_url=back_url back_label=scpi.name page_title=page_title title_icon="chart-line" %}
 
   {% include "property/_form_error_alert.html" %}
 
@@ -16,7 +16,7 @@
     {% csrf_token %}
     <div class="card mb-3">
       <div class="card-header py-2">
-        <h6 class="mb-0"><i class="bi bi-building me-1"></i>{{ scpi }}</h6>
+        <h6 class="mb-0">{% icon "building" "me-1" %}{{ scpi }}</h6>
       </div>
       <div class="card-body">
         <div class="row g-3">
@@ -57,7 +57,7 @@
               <form method="post" action="{% url 'property:scpi_share_price_delete' scpi_pk=scpi.pk price_pk=price.pk %}" class="d-inline">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="{% translate 'Delete this share price?' %}">
-                  <i class="bi bi-trash"></i>
+                  {% icon "trash" %}
                 </button>
               </form>
             </td>

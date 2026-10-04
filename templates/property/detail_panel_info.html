@@ -1,17 +1,17 @@
-{% load i18n format_money %}
+{% load i18n format_money ownership %}
 
 {# ── Property information card ─────────────────────────────────────────── #}
 <div class="card shadow-sm rounded-4 mb-3">
   <div class="card-header border-0 pb-0">
-    <h6 class="section-title mb-0"><i class="bi bi-house me-2 text-primary"></i>{% translate "Property information" %}</h6>
+    <h6 class="section-title mb-0">{% icon "house" "me-2 text-primary" %}{% translate "Property information" %}</h6>
   </div>
   <div class="card-body">
 
     {# ── Key stats row with icon circles ── #}
     <div class="d-flex gap-3 flex-wrap mb-3">
       <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:140px">
-        <div class="account-icon-circle" style="background:rgba(13,110,253,.1)">
-          <i class="bi bi-building text-primary"></i>
+        <div class="account-icon-circle g-icon-circle--accent">
+          {% icon "building" "text-primary" %}
         </div>
         <div>
           <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Type" %}</div>
@@ -20,8 +20,8 @@
       </div>
       {% if property.floor_area %}
       <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:120px">
-        <div class="account-icon-circle" style="background:rgba(25,135,84,.1)">
-          <i class="bi bi-rulers text-success"></i>
+        <div class="account-icon-circle g-icon-circle--pos">
+          {% icon "ruler" "text-success" %}
         </div>
         <div>
           <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Floor area" %}</div>
@@ -31,8 +31,8 @@
       {% endif %}
       {% if property.total_surface %}
       <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:120px">
-        <div class="account-icon-circle" style="background:rgba(25,135,84,.1)">
-          <i class="bi bi-bounding-box text-success"></i>
+        <div class="account-icon-circle g-icon-circle--pos">
+          {% icon "square-dashed" "text-success" %}
         </div>
         <div>
           <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Total surface" %}</div>
@@ -42,8 +42,8 @@
       {% endif %}
       {% if property.number_of_rooms %}
       <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:120px">
-        <div class="account-icon-circle" style="background:rgba(111,66,193,.1)">
-          <i class="bi bi-door-open text-purple" style="color:#6f42c1"></i>
+        <div class="account-icon-circle g-icon-circle--accent">
+          <span class="d-inline-flex">{% icon "door-open" %}</span>
         </div>
         <div>
           <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Rooms" %}</div>
@@ -52,8 +52,8 @@
       </div>
       {% endif %}
       <div class="account-card d-flex align-items-center gap-2 flex-fill" style="min-width:140px">
-        <div class="account-icon-circle" style="background:rgba(255,193,7,.15)">
-          <i class="bi bi-calculator text-warning"></i>
+        <div class="account-icon-circle g-icon-circle--warn">
+          {% icon "calculator" "text-warning" %}
         </div>
         <div>
           <div class="text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">{% translate "Tax regime" %}</div>
@@ -68,11 +68,18 @@
       </div>
     </div>
 
+    <div class="mb-3">
+      <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Owners" %}</p>
+      {% owners_summary property %}
+    </div>
+
+    {% include "property/_dpe_status.html" %}
+
     {# ── Address ── #}
     {% if property.full_address %}
     <div class="mb-3">
       <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Address" %}</p>
-      <p class="mb-0"><i class="bi bi-geo-alt me-1 text-muted"></i>{{ property.full_address }}</p>
+      <p class="mb-0">{% icon "map-pin" "me-1 text-muted" %}{{ property.full_address }}</p>
     </div>
     {% endif %}
 
@@ -139,13 +146,13 @@
 {# ── Map ──────────────────────────────────────────────────────────────── #}
 <div class="card shadow-sm rounded-4">
   <div class="card-header border-0 pb-0">
-    <h6 class="section-title mb-0"><i class="bi bi-map me-2 text-primary"></i>{% translate "Location" %}</h6>
+    <h6 class="section-title mb-0">{% icon "map" "me-2 text-primary" %}{% translate "Location" %}</h6>
   </div>
   <div class="card-body p-0">
     <div id="property-map" class="rounded-bottom-4" style="height: 320px;"></div>
     {% if property.latitude is None or property.longitude is None %}
     <div class="text-center py-4 text-body-secondary">
-      <i class="bi bi-geo-alt fs-3"></i>
+      {% icon "map-pin" "fs-3" %}
       <p class="small mb-0">{% translate "No location set. Fill the address in the property edit form to display the map." %}</p>
     </div>
     {% endif %}

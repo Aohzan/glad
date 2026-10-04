@@ -13,7 +13,9 @@ def test_all_fixture_rows_are_readable():
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("url_name", ["index", "property:checks"])
+@pytest.mark.parametrize(
+    "url_name", ["index", "property:checks", "allocation", "finance:other_asset_list"]
+)
 def test_pages_render_with_fixtures(admin_client, url_name):
     """Pages that aggregate every property render on the full fixture data set."""
     response = admin_client.get(reverse(url_name))

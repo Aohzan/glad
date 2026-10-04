@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{% translate "Net worth by owner" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4 h3">{% icon "users" "me-2 text-primary" %}{% translate "Net worth by owner" %}</h1>
+  {% if missing_birth_dates %}
+  <div class="alert alert-warning" role="alert">
+    {% icon "triangle-alert" "me-2" %}
+    {% translate "A life usufruct is valued according to the age of its holder (scale of article 669 of the French tax code). Until the birth date is entered, the share of the asset is counted as not assigned." %}
+    <div class="mt-2">
+      {% translate "Enter the birth date in the administration for:" %}
+      {% for person in missing_birth_dates %}{% if user.is_staff %}<a href="{{ person.admin_url }}" class="alert-link">{{ person.name }}</a>{% else %}{{ person.name }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <div class="row g-3">
+    {% for person in people %}{% if person.is_child %}{% include "_person_worth_card.html" with icon="baby" %}{% else %}{% include "_person_worth_card.html" with icon="user" %}{% endif %}{% endfor %}
+    {% if unassigned.total %}{% include "_person_worth_card.html" with person=unassigned icon="house-heart" %}{% endif %}
+    {% if outside.total %}{% include "_person_worth_card.html" with person=outside icon="external-link" %}{% endif %}
+  </div>
+  <p class="small text-body-secondary mt-3 mb-0">
+    {% translate "Each asset counts for the share and the value of the right held by each owner. Assets without owner are shown as not assigned; the part held by people who are not household members is shown as outside the household. Children are added in the administration. Real estate is counted net of the remaining loans." %}
+  </p>
+</div>
+{% endblock %}

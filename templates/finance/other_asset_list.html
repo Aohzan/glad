@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{% translate "Other assets" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0 h3">{% icon "gem" "me-2 text-primary" %}{% translate "Other assets" %}</h1>
+    <a href="{% url 'finance:new_other_asset' %}" class="btn btn-outline-primary btn-sm">
+      {% icon "plus" "me-1" %}{% translate "New asset" %}
+    </a>
+  </div>
+
+  {% if rows %}
+  <div class="card shadow-sm rounded-4">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>{% translate "Name" %}</th>
+            <th>{% translate "Category" %}</th>
+            <th>{% translate "Liquidity" %}</th>
+            <th class="text-end">{% translate "Acquisition value" %}</th>
+            <th class="text-end">{% translate "Current value" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr class="{% if not row.asset.is_active %}text-body-secondary{% endif %}">
+            <td>
+              <a href="{% url 'finance:other_asset_detail' row.asset.pk %}" class="text-decoration-none">
+                {% icon row.asset.icon "me-2" %}{{ row.asset }}
+              </a>
+              {% if not row.asset.is_active %}<span class="badge bg-secondary ms-1">{% translate "Sold" %}</span>{% endif %}
+            </td>
+            <td>{{ row.asset.get_category_display }}</td>
+            <td>{{ row.asset.get_effective_liquidity_display }}</td>
+            <td class="text-end">{{ row.asset.acquisition_value|format_money }}</td>
+            <td class="text-end fw-semibold">{{ row.value|format_money }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          {% for currency, total in totals.items %}
+          <tr>
+            <th colspan="4">{% translate "Total" %} {{ currency }}</th>
+            <th class="text-end">{{ total|format_money }}</th>
+          </tr>
+          {% endfor %}
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card rounded-4 text-center p-5 border-0 shadow-sm">
+    {% icon "gem" "display-4 text-muted mb-3" %}
+    <p class="mb-3 text-muted">{% translate "Track vehicles, precious metals, crypto-assets, unlisted shares or collectibles here." %}</p>
+    <a href="{% url 'finance:new_other_asset' %}" class="btn btn-primary mx-auto" style="width:fit-content">
+      {% icon "plus" "me-1" %}{% translate "New asset" %}
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

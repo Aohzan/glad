@@ -1,17 +1,19 @@
-{% load i18n %}
+{% load i18n ownership %}
 <div class="col-md-3">
   <small class="text-body-secondary">{% translate "Type" %}</small>
   <div>{{ account.account_type }}</div>
 </div>
-{% if account.owner %}
 <div class="col-md-3">
-  <small class="text-body-secondary">{% translate "Owner" %}</small>
-  <div>{{ account.owner }}</div>
+  <small class="text-body-secondary">{% translate "Owners" %}</small>
+  <div>{% owners_summary account %}</div>
 </div>
-{% endif %}
 {% if account.institution %}
 <div class="col-md-3">
   <small class="text-body-secondary">{% translate "Institution" %}</small>
   <div>{{ account.institution }}</div>
 </div>
 {% endif %}
+<div class="col-md-3">
+  <small class="text-body-secondary">{% translate "Liquidity" %}</small>
+  <div>{{ account.get_liquidity_display }}</div>
+</div>

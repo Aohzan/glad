@@ -4,6 +4,7 @@ import csv
 import datetime
 import io
 import unicodedata
+from collections import Counter
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
@@ -12,10 +13,13 @@ from django.forms import inlineformset_factory
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.formats import date_format, number_format
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 from moneyed import Money
 
+from base.services.snapshots import invalidate_from
 from property.forms import PropertyEditForm, PropertyLoanForm
 from property.models import Property, PropertyLoan, PropertyLoanAmortizationEntry
 
@@ -240,66 +244,112 @@ def import_loan_amortization(
         messages.error(request, _("No valid rows found in the file."))
         return redirect(redirect_url)
 
+    dates = Counter(e.date for e in entries)
+    duplicates = sorted(day for day, count in dates.items() if count > 1)
+    if duplicates:
+        messages.error(
+            request,
+            _("Several rows are dated %(dates)s: each installment needs its own date.")
+            % {"dates": ", ".join(date_format(day) for day in duplicates)},
+        )
+        return redirect(redirect_url)
+
     with transaction.atomic():
         PropertyLoanAmortizationEntry.objects.filter(loan=loan).delete()
         PropertyLoanAmortizationEntry.objects.bulk_create(entries)
+        # bulk_create sends no signal: drop the net worth history it changes.
+        invalidate_from(min(e.date for e in entries))
 
     messages.success(request, _("%(n)d entries imported.") % {"n": len(entries)})
+    for warning in _table_warnings(loan, entries):
+        messages.warning(request, warning)
     return redirect(redirect_url)
+
+
+#: Gap tolerated between an imported table and the loan amount (bank rounding).
+_TABLE_TOLERANCE = Decimal(1)
+
+
+def _table_warnings(
+    loan: PropertyLoan, entries: list[PropertyLoanAmortizationEntry]
+) -> list[str]:
+    """Signs that an imported table does not cover the whole loan.
+
+    The table replaces the loan parameters everywhere, so a partial one (the
+    remaining installments only, as some banks print them) makes the loan
+    look unpaid before its first row, and leaves out the earlier interest.
+    """
+    rows = sorted(entries, key=lambda entry: entry.date)
+    first, last = rows[0], rows[-1]
+    amount = loan.original_amount.amount
+    warnings = []
+    start = first.capital.amount + first.remaining_balance_amount.amount
+    if abs(start - amount) > _TABLE_TOLERANCE:
+        warnings.append(
+            _(
+                "The first row starts from %(start)s instead of the loan amount"
+                " %(amount)s: the table may miss its first installments."
+            )
+            % {
+                "start": number_format(start, 2, force_grouping=True),
+                "amount": number_format(amount, 2, force_grouping=True),
+            }
+        )
+    if last.remaining_balance_amount.amount > _TABLE_TOLERANCE:
+        warnings.append(
+            _(
+                "The last row still owes %(balance)s: the table may miss its last"
+                " installments."
+            )
+            % {
+                "balance": number_format(
+                    last.remaining_balance_amount.amount, 2, force_grouping=True
+                )
+            }
+        )
+    early = sum(1 for entry in rows if entry.date < loan.start_date)
+    if early:
+        warnings.append(
+            ngettext(
+                "%(count)d row is dated before the start date of the loan.",
+                "%(count)d rows are dated before the start date of the loan.",
+                early,
+            )
+            % {"count": early}
+        )
+    return warnings
 
 
 @require_POST  # type: ignore
 def generate_loan_amortization(
     request: HttpRequest, pk: int, loan_pk: int
 ) -> HttpResponse:
-    """Auto-generate amortization entries from loan parameters."""
-    from property.utils import build_loan_monthly_maps
-
+    """Write the schedule computed from the loan parameters as its table."""
     loan = get_object_or_404(PropertyLoan, pk=loan_pk, property__pk=pk)
     redirect_url = reverse("property:detail", kwargs={"pk": pk}) + _LOANS_ANCHOR
 
-    if loan.monthly_payment is None:
-        # Try to compute it on-the-fly from the loan's stored parameters
-        loan.compute_monthly_payment()
-    if loan.monthly_payment is None:
-        messages.error(request, _("Cannot generate: loan has no monthly payment."))
+    schedule = loan.computed_schedule()
+    if not schedule:
+        messages.error(request, _("Cannot generate: the loan has no installment."))
         return redirect(redirect_url)
 
-    insurance_amount = (
-        loan.insurance.amount if loan.insurance is not None else Decimal(0)
-    )
-    interest_map, principal_map, _insurance_map = build_loan_monthly_maps(
-        start_date=loan.start_date,
-        end_date=loan.end_date,
-        original_amount=loan.original_amount.amount,
-        monthly_payment=loan.monthly_payment.amount,
-        interest_rate=loan.interest_rate,
-        insurance_amount=insurance_amount,
-        disbursement_date=loan.start_date,
-        first_payment_date=loan.first_payment_date,
-    )
-
-    currency = str(loan.original_amount.currency)
-    entries = []
-    balance = loan.original_amount.amount
-    for key in sorted(interest_map.keys()):
-        year, month = key
-        capital = principal_map.get(key, Decimal(0))
-        interest = interest_map.get(key, Decimal(0))
-        balance = max(Decimal(0), balance - capital)
-        entries.append(
-            PropertyLoanAmortizationEntry(
-                loan=loan,
-                date=datetime.date(year, month, 1),
-                capital=Money(capital, currency),
-                interest=Money(interest, currency),
-                remaining_balance_amount=Money(balance, currency),
-            )
+    currency = loan.currency
+    entries = [
+        PropertyLoanAmortizationEntry(
+            loan=loan,
+            date=installment.date,
+            capital=Money(installment.principal, currency),
+            interest=Money(installment.interest, currency),
+            remaining_balance_amount=Money(installment.balance, currency),
         )
+        for installment in schedule
+    ]
 
     with transaction.atomic():
         PropertyLoanAmortizationEntry.objects.filter(loan=loan).delete()
         PropertyLoanAmortizationEntry.objects.bulk_create(entries)
+        # bulk_create sends no signal: drop the net worth history it changes.
+        invalidate_from(min(e.date for e in entries))
 
     messages.success(request, _("%(n)d entries generated.") % {"n": len(entries)})
     return redirect(redirect_url)

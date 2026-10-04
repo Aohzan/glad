@@ -1,0 +1,7 @@
+{% load i18n %}
+<div class="mb-3">
+  <div class="form-label fw-semibold" id="{{ field.auto_id }}_label">{% icon "users" "me-1" %}{{ field.label }} <span class="text-danger">*</span></div>
+  <div role="group" aria-labelledby="{{ field.auto_id }}_label">{{ field }}</div>
+  {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+  {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+</div>

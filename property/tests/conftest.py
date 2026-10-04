@@ -46,9 +46,11 @@ def loan(property_obj):
         start_date=datetime.date(2020, 1, 1),
         end_date=datetime.date(2040, 1, 1),
         original_amount=Money(200000, "EUR"),
-        monthly_payment=Money(900, "EUR"),
+        # The annuity and insurance the loan form computes from the rates.
+        monthly_payment=Money(Decimal("965.09"), "EUR"),
         interest_rate=Decimal("1.5"),
         insurance_rate=Decimal("0.2"),
+        insurance=Money(Decimal("33.33"), "EUR"),
     )
 
 
