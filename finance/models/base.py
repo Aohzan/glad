@@ -120,6 +120,16 @@ class AbstractAccount(BaseModel):
         ),
     )
     closing_date = models.DateField(null=True, blank=True)
+    opening_origin = models.CharField(
+        max_length=12,
+        choices=DepositOrigin.choices,
+        default=DepositOrigin.UNKNOWN,
+        verbose_name=_("Origin of the opening value"),
+        help_text=_(
+            "Where the money of the opening value comes from. The budget of the "
+            "opening year counts it as a deposit and guesses an unknown origin."
+        ),
+    )
     ownerships = GenericRelation("base.Ownership")
 
     @property

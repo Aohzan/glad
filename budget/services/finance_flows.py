@@ -6,7 +6,8 @@ household as resources, the transfers between accounts are left out, and the
 exceptional deposits (sale, inheritance, gift) are shown as exceptional
 resources. An unknown origin is guessed: a movement matching a movement of
 the opposite sign and the same amount on another account, a few days apart,
-is a transfer; any other is income.
+is a transfer; any other is income. The opening value of an account opened
+during the year is a movement too, with the origin set on the account.
 """
 
 import datetime
@@ -55,6 +56,8 @@ class Movement:
     origin: str
     #: Origin guessed for an unknown one.
     guessed: str | None = None
+    #: True for the opening value of an account opened during the year.
+    opening: bool = False
 
     @property
     def effective_origin(self) -> str:
@@ -63,7 +66,10 @@ class Movement:
 
     @property
     def url(self) -> str:
-        """Deposits of the account, where the origin is set."""
+        """Where the origin is set: the deposits, or the account for its opening value."""
+        if self.opening:
+            kind = "saving" if isinstance(self.account, SavingAccount) else "investment"
+            return reverse(f"finance:edit_{kind}", kwargs={"pk": self.account.pk})
         return account_url(self.account) + "#deposits-panel"
 
 
@@ -174,7 +180,8 @@ def _movements(
                         account=account,
                         day=account.opening_date,
                         amount=account.opening_amount.amount,
-                        origin=DepositOrigin.UNKNOWN,
+                        origin=account.opening_origin,
+                        opening=True,
                     )
                 )
             for deposit in account.deposits.all():
@@ -204,7 +211,8 @@ def account_year_flows(
     """Money put into each account in *year*, for the part of the perspective.
 
     The opening value of an account opened during the year counts as a
-    deposit of unknown origin, as in the performance of the accounts.
+    deposit, as in the performance of the accounts, with the origin set on
+    the account.
     Transfers between accounts and exceptional withdrawals (spent outside the
     budget, e.g. on a property purchase) are left out. Accounts in another
     currency than *currency* are left out.

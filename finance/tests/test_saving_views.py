@@ -117,11 +117,15 @@ class TestCreateSaving:
             "interest_rate": "2.50",
             "opening_value_0": "500.00",
             "opening_value_1": "EUR",
+            "opening_origin": "income",
             "is_active": True,
         }
         response = user_client.post(url, data)
         assert response.status_code == 302
-        assert SavingAccount.objects.filter(name="New Account").exists()
+        assert (
+            SavingAccount.objects.get(name="New Account").opening_origin
+            == DepositOrigin.INCOME
+        )
         messages = list(get_messages(response.wsgi_request))
         assert any("created" in str(m).lower() for m in messages)
 
@@ -158,6 +162,7 @@ class TestEditSaving:
             "interest_rate": "3.50",
             "opening_value_0": "1000.00",
             "opening_value_1": "EUR",
+            "opening_origin": "transfer",
             "is_active": True,
         }
         response = user_client.post(url, data)
