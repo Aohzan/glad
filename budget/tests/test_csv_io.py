@@ -40,6 +40,20 @@ class TestExport:
 
 
 @pytest.mark.django_db
+class TestFormulas:
+    def test_exported_cells_cannot_run_as_formulas(self, categories, budget_year):
+        line = add_line(budget_year, categories["energy"], 10, "=1+2")
+        line.notes = "+cmd"
+        line.save()
+        text = export_lines(budget_year)
+        assert ";'=1+2;" in text
+        assert ";'+cmd" in text
+        preview = parse_lines(text)
+        assert preview.rows[0].label == "=1+2"
+        assert preview.rows[0].notes == "+cmd"
+
+
+@pytest.mark.django_db
 class TestParse:
     def test_french_file(self, categories, alice):
         text = (
@@ -63,6 +77,15 @@ class TestParse:
         assert car.kind == BudgetKind.EXPENSE
         assert car.label == "Car loan"
         assert car.person_id is None
+
+    def test_amounts_are_checked(self, categories):
+        text = (
+            "category;amount\nSalaries;12,345\nSalaries;NaN\nSalaries;1000000000000\n"
+        )
+        rows = parse_lines(text).rows
+        assert rows[0].amount == Decimal("12.35")
+        assert rows[1].errors == ["Invalid amount: NaN"]
+        assert rows[2].errors == ["The amount is too large."]
 
     def test_comma_separated(self, categories):
         preview = parse_lines('category,amount\nSalaries,"1,234.56"\n')
@@ -113,6 +136,7 @@ class TestParse:
             "income;Leisure > Sport;Twice;1\n"
             "income;Leisure > Ski;Same parent;1\n"
             "expense;A > B > C > D;Too deep;1\n"
+            f"expense;Leisure > {'x' * 101};Long name;1\n"
         )
         assert parse_lines(text).missing_categories == []
         preview = parse_lines(text, create_missing=True)
@@ -124,6 +148,7 @@ class TestParse:
         assert errors[5] == ["The category Leisure > Sport is used with several kinds."]
         assert errors[6] == ["The category Leisure > Ski is used with several kinds."]
         assert errors[7] == ["Categories are limited to 3 levels."]
+        assert errors[8] == ["The category name is too long."]
 
         budget_year = BudgetYear.objects.create(year=YEAR)
         assert import_lines(budget_year, preview, "EUR") == 3

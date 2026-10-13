@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 
 #: Longest label of a budget line.
 LABEL_MAX_LENGTH = 200
+#: Longest name of a budget category.
+CATEGORY_NAME_MAX_LENGTH = 100
 
 
 class BudgetKind(models.TextChoices):
@@ -64,7 +66,7 @@ class BudgetCategory(BaseModel):
             ),
         ]
 
-    name = models.CharField(max_length=100, verbose_name=_("Name"))
+    name = models.CharField(max_length=CATEGORY_NAME_MAX_LENGTH, verbose_name=_("Name"))
     kind = models.CharField(
         max_length=10,
         choices=BudgetKind.choices,

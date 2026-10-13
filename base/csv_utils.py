@@ -16,6 +16,9 @@ _DAY_FIRST_FORMATS = (
     "%d.%m.%Y",
 )
 
+#: First characters of a cell a spreadsheet reads as a formula.
+_FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
+
 #: Characters removed from an amount: spaces used as thousands separator and
 #: currency symbols.
 _AMOUNT_NOISE = (" ", "\xa0", "\u202f", "€", "EUR")
@@ -61,9 +64,29 @@ def parse_amount(raw: str) -> Decimal:
         if cleaned.count(separator) > 1:
             cleaned = cleaned.replace(separator, "")
     try:
-        return Decimal(cleaned.replace(",", "."))
+        amount = Decimal(cleaned.replace(",", "."))
     except InvalidOperation:
         raise ValueError(f"Invalid amount: {raw!r}") from None
+    if not amount.is_finite():
+        raise ValueError(f"Invalid amount: {raw!r}")
+    return amount
+
+
+def spreadsheet_safe(text: str) -> str:
+    """*text* prefixed with ``'`` when a spreadsheet would read it as a formula.
+
+    Cells starting with ``=``, ``+``, ``-``, ``@``, a tab or a carriage return
+    run as formulas once the file is opened in Excel or LibreOffice (CSV
+    injection); the quote makes them plain text.
+    """
+    return f"'{text}" if text.startswith(_FORMULA_STARTS) else text
+
+
+def strip_spreadsheet_guard(text: str) -> str:
+    """*text* without the ``'`` :func:`spreadsheet_safe` adds."""
+    if text.startswith("'") and text[1:].startswith(_FORMULA_STARTS):
+        return text[1:]
+    return text
 
 
 def parse_datetime(raw: str) -> datetime.datetime | None:
