@@ -4159,6 +4159,108 @@ def generate_household() -> str:
     return out
 
 
+# === Budget: the category tree and the budgets of last year and this year ===
+
+#: (pk, kind, name, parent pk, counts as debt) of the budget categories.
+BUDGET_CATEGORIES = [
+    (1, "income", "Salaires", None, False),
+    (2, "income", "Primes", None, False),
+    (3, "income", "Allocations", None, False),
+    (4, "expense", "Logement", None, False),
+    (5, "expense", "Énergie", 4, False),
+    (6, "expense", "Assurance habitation", 4, False),
+    (7, "expense", "Alimentation", None, False),
+    (8, "expense", "Courses", 7, False),
+    (9, "expense", "Restaurants", 7, False),
+    (10, "expense", "Transport", None, False),
+    (11, "expense", "Carburant", 10, False),
+    (12, "expense", "Assurance auto", 10, False),
+    (13, "expense", "Crédits", None, True),
+    (14, "expense", "Crédit auto", 13, True),
+    (15, "expense", "Impôts", None, False),
+    (16, "expense", "Impôt sur le revenu", 15, False),
+    (17, "expense", "Loisirs et vacances", None, False),
+    (18, "expense", "Enfants", None, False),
+    (19, "saving", "Épargne salariale", None, False),
+]
+
+#: (category pk, label, yearly amount of last year, person pk or None).
+BUDGET_LINES = [
+    (1, "Salaire Mister", 42000, MISTER),
+    (1, "Salaire Madame", 38000, MADAME),
+    (2, "Prime annuelle", 3000, MISTER),
+    (3, "Allocations familiales", 1200, None),
+    (5, "Électricité et gaz", 1800, None),
+    (6, "Assurance habitation", 420, None),
+    (8, "Courses", 7800, None),
+    (9, "Restaurants", 1500, None),
+    (11, "Carburant", 2100, None),
+    (12, "Assurance auto", 780, None),
+    (14, "Crédit voiture", 3600, None),
+    (16, "Prélèvement à la source", 5200, None),
+    (17, "Vacances d'été", 3500, None),
+    (18, "Cantine et garde", 2400, None),
+    (18, "Activités de Léa", 600, CHILD),
+    (19, "Plan d'épargne entreprise", 1200, MISTER),
+]
+
+
+def generate_budget() -> str:
+    """Budget categories and the budgets of last year and this year.
+
+    This year's lines are last year's raised by 2 %, the restaurants line is
+    dropped and a new line is added, so the comparison has every case. They
+    live in household.yaml, which holds the users they refer to.
+    """
+    out = ""
+    for pk, kind, name, parent, debt in BUDGET_CATEGORIES:
+        out += f"""- model: budget.budgetcategory
+  pk: {pk}
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    name: {name}
+    kind: {kind}
+    parent: {parent if parent else "null"}
+    position: {pk}
+    counts_as_debt: {str(debt).lower()}
+"""
+    pk = 0
+    for year_pk, year in ((1, TODAY.year - 1), (2, TODAY.year)):
+        out += f"""- model: budget.budgetyear
+  pk: {year_pk}
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    year: {year}
+    notes: ""
+    include_properties: true
+    include_finance: true
+"""
+        lines = list(BUDGET_LINES)
+        if year_pk == 2:
+            lines = [line for line in lines if line[1] != "Restaurants"]
+            lines.append((17, "Week-end ski", 900, None))
+        for category, label, amount, person in lines:
+            pk += 1
+            if year_pk == 2:
+                amount = (Decimal(amount) * Decimal("1.02")).quantize(Decimal("0.01"))
+            out += f"""- model: budget.budgetline
+  pk: {pk}
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    budget_year: {year_pk}
+    category: {category}
+    label: "{label}"
+    amount: "{amount}"
+    amount_currency: EUR
+    person: {person if person else "null"}
+    notes: ""
+"""
+    return out
+
+
 def main() -> None:
     """Generate all test fixture files."""
     print("Generating dynamic test fixtures...")
@@ -4168,7 +4270,7 @@ def main() -> None:
     write_fixture("otherasset.yaml", generate_otherasset())
     write_fixture("scpi.yaml", generate_scpi())
     write_fixture("property.yaml", generate_property())
-    write_fixture("household.yaml", generate_household())
+    write_fixture("household.yaml", generate_household() + generate_budget())
     print("Done.")
 
 
