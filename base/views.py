@@ -23,6 +23,7 @@ from base.services.allocation import (
     emergency_fund,
 )
 from base.services.insee import InseeError, refresh_index
+from budget.services.summary import budget_monthly_expenses
 
 
 def get_object_or_redirect(
@@ -72,7 +73,9 @@ def allocation(request: HttpRequest) -> HttpResponse:
 
     The breakdown covers the part of the assets held by the household members
     chosen in the ``people`` parameter (all of them by default); the emergency
-    fund always covers the whole household, whose expenses it is sized on.
+    fund always covers the whole household, whose expenses it is sized on:
+    the expenses of the budget of the year (or of the latest earlier one),
+    otherwise the monthly expenses typed on the page.
     """
     profile = request.user.profile  # ty: ignore[unresolved-attribute]
     if request.method == "POST":
@@ -92,6 +95,9 @@ def allocation(request: HttpRequest) -> HttpResponse:
         people_form = PeopleFilterForm(
             initial={"people": list(people_form.fields["people"].queryset)}  # ty: ignore[unresolved-attribute]
         )
+    budget = budget_monthly_expenses(
+        datetime.date.today().year, settings.DEFAULT_CURRENCY
+    )
     household = compute_allocation(settings.DEFAULT_CURRENCY)
     result = (
         household
@@ -107,7 +113,10 @@ def allocation(request: HttpRequest) -> HttpResponse:
             "allocation": result,
             "by_class": by_class,
             "by_liquidity": by_liquidity,
-            "fund": emergency_fund(household, profile.monthly_expenses),
+            "fund": emergency_fund(
+                household, budget[1] if budget else profile.monthly_expenses
+            ),
+            "budget_year": budget[0] if budget else None,
             "household_total": household.total,
             "people_form": people_form,
             "is_household": people is None,

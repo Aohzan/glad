@@ -14,6 +14,7 @@ from base.services.allocation import (
     compute_allocation,
     emergency_fund,
 )
+from budget.models import BudgetCategory, BudgetKind, BudgetLine, BudgetYear
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountHolding,
@@ -176,6 +177,26 @@ class TestAllocationView:
         response = user_client.get(reverse("allocation"))
         assert response.context["fund"].monthly_expenses == Decimal(2500)
         assert "Months of expenses covered" in response.content.decode()
+
+    def test_expenses_from_the_budget(self, user_client):
+        category = BudgetCategory.objects.create(name="Rent", kind=BudgetKind.EXPENSE)
+        budget_year = BudgetYear.objects.create(
+            year=datetime.date.today().year,
+            include_properties=False,
+            include_finance=False,
+        )
+        BudgetLine.objects.create(
+            budget_year=budget_year,
+            category=category,
+            label="Rent",
+            amount=Money(12000, "EUR"),
+        )
+        response = user_client.get(reverse("allocation"))
+        assert response.context["fund"].monthly_expenses == Decimal(1000)
+        assert response.context["budget_year"] == budget_year
+        assert (
+            reverse("budget:year", args=[budget_year.year]) in response.content.decode()
+        )
 
     def test_invalid_expenses(self, user_client):
         response = user_client.post(reverse("allocation"), {"monthly_expenses": "-1"})

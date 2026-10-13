@@ -52,6 +52,14 @@
           {% endif %}
         </div>
         <div class="col-md-4">
+          {% if budget_year %}
+          <small class="text-body-secondary">{% translate "Monthly expenses" %}</small>
+          <div class="fs-5 fw-semibold">{{ fund.monthly_expenses|format_money_amount:allocation.currency }}</div>
+          <small class="text-body-secondary">
+            {% url 'budget:year' budget_year.year as budget_url %}
+            {% blocktranslate with year=budget_year.year %}From the <a href="{{ budget_url }}">budget {{ year }}</a>{% endblocktranslate %}
+          </small>
+          {% else %}
           <form method="post" class="d-flex gap-2 align-items-end">
             {% csrf_token %}
             <div class="flex-grow-1">
@@ -60,6 +68,8 @@
             </div>
             <button type="submit" class="btn btn-outline-primary">{% translate "Save" %}</button>
           </form>
+          <small class="text-body-secondary">{% url 'budget:index' as budget_url %}{% blocktranslate %}Or describe your expenses in a <a href="{{ budget_url }}">budget</a>.{% endblocktranslate %}</small>
+          {% endif %}
         </div>
       </div>
     </div>
