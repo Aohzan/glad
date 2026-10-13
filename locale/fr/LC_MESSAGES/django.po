@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 20:08+0200\n"
+"POT-Creation-Date: 2026-10-13 21:17+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -140,8 +140,8 @@ msgstr "Actions"
 msgid "Diversified funds"
 msgstr "Fonds diversifiés"
 
-#: base/choices.py:25 budget/services/summary.py:257
-#: budget/services/summary.py:263
+#: base/choices.py:25 budget/services/summary.py:283
+#: budget/services/summary.py:289
 msgid "Real estate"
 msgstr "Immobilier"
 
@@ -302,6 +302,7 @@ msgstr "Impossible de charger les données du graphique."
 #: property/models/ledger.py:309 property/models/scpi.py:161
 #: property/models/scpi.py:586
 #: templates/accounts/emails/login_notification.html:16
+#: templates/budget/year_detail.html:58
 #: templates/finance/_deposits_panel.html:15
 #: templates/finance/_edit_deposit_fields.html:8
 #: templates/finance/_value_history_panel.html:16
@@ -592,7 +593,7 @@ msgid "Outside the household"
 msgstr "Hors du foyer"
 
 #: base/services/ownership.py:414 budget/services/csv_io.py:240
-#: budget/services/summary.py:230
+#: budget/services/summary.py:256
 msgid "Household"
 msgstr "Foyer"
 
@@ -658,7 +659,7 @@ msgstr "Catégorie"
 
 #: budget/forms.py:81 budget/models.py:262
 #: templates/budget/import_preview.html:35
-#: templates/budget/year_detail.html:102
+#: templates/budget/year_detail.html:132
 msgid "Person"
 msgstr "Personne"
 
@@ -682,8 +683,8 @@ msgid "None (top level)"
 msgstr "Aucune (premier niveau)"
 
 #: budget/forms.py:116 budget/models.py:197 budget/models.py:240
-#: finance/models/investment_account.py:490 templates/budget/index.html:36
-#: templates/budget/year_detail.html:10 templates/budget/year_detail.html:103
+#: finance/models/investment_account.py:495 templates/budget/index.html:36
+#: templates/budget/year_detail.html:10 templates/budget/year_detail.html:133
 #: templates/finance/_euro_fund_rates_panel.html:33
 #: templates/property/detail_panel_amortization.html:225
 msgid "Year"
@@ -720,7 +721,7 @@ msgid "View"
 msgstr "Vue"
 
 #: budget/models.py:35 templates/budget/index.html:37
-#: templates/budget/year_detail.html:49
+#: templates/budget/year_detail.html:79
 msgctxt "budget"
 msgid "Income"
 msgstr "Revenus"
@@ -806,10 +807,10 @@ msgid "budget years"
 msgstr "années de budget"
 
 #: budget/models.py:199 budget/models.py:265
-#: finance/models/investment_account.py:497 finance/models/other_asset.py:115
+#: finance/models/investment_account.py:502 finance/models/other_asset.py:115
 #: property/models/asset.py:915 property/models/fiscal.py:42
 #: property/models/scpi.py:73 property/models/scpi.py:596
-#: templates/budget/year_detail.html:142
+#: templates/budget/year_detail.html:172
 #: templates/finance/_euro_fund_rates_panel.html:35
 #: templates/finance/other_asset_detail.html:77
 #: templates/property/_dividend_table_header.html:8
@@ -865,7 +866,7 @@ msgstr "lignes de budget"
 
 #: budget/models.py:248 property/models/asset.py:864
 #: templates/budget/import_preview.html:34
-#: templates/budget/year_detail.html:101
+#: templates/budget/year_detail.html:131
 #: templates/property/_valid_categories_table.html:6
 #: templates/property/detail_panel_amortization.html:131
 msgid "Label"
@@ -1207,44 +1208,48 @@ msgstr ""
 msgid "Categories:"
 msgstr "Catégories :"
 
-#: budget/services/summary.py:288
+#: budget/services/summary.py:314
 #: templates/property/detail_panel_cashflow.html:539
 msgid "Loan principal"
 msgstr "Capital du prêt"
 
-#: budget/services/summary.py:289 property/models/ledger.py:176
+#: budget/services/summary.py:315 property/models/ledger.py:176
 #: property/services/cashflow.py:179
 #: templates/property/detail_panel_cashflow.html:538
 msgid "Loan interest"
 msgstr "Intérêts du prêt"
 
-#: budget/services/summary.py:290 property/models/ledger.py:183
+#: budget/services/summary.py:316 property/models/ledger.py:183
 #: property/services/cashflow.py:183
 #: templates/property/detail_panel_cashflow.html:540
 msgid "Loan insurance"
 msgstr "Assurance de prêt"
 
-#: budget/services/summary.py:328 property/models/scpi.py:611
+#: budget/services/summary.py:354 property/models/scpi.py:611
 msgid "SCPI dividends"
 msgstr "Dividendes SCPI"
 
-#: budget/services/summary.py:334
+#: budget/services/summary.py:360
 msgid "SCPI subscriptions"
 msgstr "Souscriptions SCPI"
 
-#: budget/services/summary.py:367
+#: budget/services/summary.py:395
 msgid "Account deposits"
 msgstr "Versements sur les comptes"
 
-#: budget/services/summary.py:373
+#: budget/services/summary.py:401
 msgid "Withdrawals from savings"
 msgstr "Retraits d'épargne"
 
-#: budget/services/summary.py:495
+#: budget/services/summary.py:407
+msgid "Exceptional deposits"
+msgstr "Apports exceptionnels"
+
+#: budget/services/summary.py:536
 msgid "Not allocated"
 msgstr "Non affecté"
 
-#: budget/services/summary.py:503
+#: budget/services/summary.py:544
 msgid "Deficit"
 msgstr "Déficit"
 
@@ -1253,7 +1258,7 @@ msgid "Resources"
 msgstr "Ressources"
 
 #: budget/views.py:79 templates/budget/index.html:38
-#: templates/budget/year_detail.html:54 templates/property/detail.html:427
+#: templates/budget/year_detail.html:84 templates/property/detail.html:427
 #: templates/property/detail_panel_balance.html:68
 #: templates/property/detail_panel_cashflow.html:148
 #: templates/property/detail_panel_cashflow.html:305
@@ -1331,19 +1336,19 @@ msgstr[1] "%(count)d lignes en erreur ont été ignorées."
 msgid "Successfully updated %(field)s for %(count)d items."
 msgstr "%(field)s mis à jour avec succès pour %(count)d éléments."
 
-#: finance/admin.py:219 finance/admin.py:227
+#: finance/admin.py:245 finance/admin.py:253
 msgid "Bulk update valuation date"
 msgstr "Mise à jour groupée de la date d'évaluation"
 
-#: finance/admin.py:228
+#: finance/admin.py:254
 msgid "New valuation date"
 msgstr "Nouvelle date d'évaluation"
 
-#: finance/admin.py:246 finance/admin.py:254
+#: finance/admin.py:272 finance/admin.py:280
 msgid "Bulk update value date"
 msgstr "Mise à jour groupée de la date de valeur"
 
-#: finance/admin.py:255
+#: finance/admin.py:281
 msgid "New value date"
 msgstr "Nouvelle valeur"
 
@@ -1512,54 +1517,82 @@ msgstr "La plage de dates ne peut pas dépasser {years} ans."
 msgid "Set the sale date of an inactive asset."
 msgstr "Renseignez la date de vente d'un actif inactif."
 
-#: finance/models/base.py:73
+#: finance/models/base.py:35 templates/owners_manage.html:38
+msgid "Unknown"
+msgstr "Inconnue"
+
+#: finance/models/base.py:36 templates/budget/year_detail.html:65
+msgid "Household income or expenses"
+msgstr "Revenus ou dépenses du foyer"
+
+#: finance/models/base.py:37 templates/budget/year_detail.html:65
+msgid "Transfer between accounts"
+msgstr "Virement entre comptes"
+
+#: finance/models/base.py:38
+msgid "Exceptional (sale, inheritance, gift…)"
+msgstr "Exceptionnelle (vente, héritage, donation…)"
+
+#: finance/models/base.py:47 templates/finance/_deposits_panel.html:17
+msgid "Origin"
+msgstr "Origine"
+
+#: finance/models/base.py:49
+msgid ""
+"Where the money comes from, or goes to for a withdrawal. The budget leaves "
+"the transfers between accounts out and guesses an unknown origin."
+msgstr ""
+"D'où vient l'argent, ou où il va pour un retrait. Le budget ignore les "
+"virements entre comptes et devine une origine inconnue."
+
+#: finance/models/base.py:104
 msgid "Name of the account (optional)"
 msgstr "Nom du compte (optionnel)"
 
-#: finance/models/base.py:79
+#: finance/models/base.py:110
 msgid "Institution where the account is held (optional)"
 msgstr "Institution où le compte est détenu (optionnel)"
 
-#: finance/models/base.py:86 property/models/asset.py:366
+#: finance/models/base.py:117 property/models/asset.py:366
 msgid "Favorite"
 msgstr "Favori"
 
-#: finance/models/base.py:88
+#: finance/models/base.py:119
 msgid ""
 "Mark this account as a favorite for quick access in the navigation menu."
 msgstr ""
 "Marquer ce compte comme favori pour un accès rapide dans le menu de "
 "navigation."
 
-#: finance/models/base.py:114
+#: finance/models/base.py:145
 msgid "at"
 msgstr "chez"
 
-#: finance/models/base.py:116 finance/models/investment_account.py:331
+#: finance/models/base.py:147 finance/models/investment_account.py:336
 msgid "(closed)"
 msgstr "(clôturé)"
 
-#: finance/models/investment_account.py:26
+#: finance/models/investment_account.py:30
 msgid "investment account type"
 msgstr "Type de compte d'investissement"
 
-#: finance/models/investment_account.py:27
+#: finance/models/investment_account.py:31
 msgid "investment account types"
 msgstr "Types de comptes d'investissement"
 
-#: finance/models/investment_account.py:71
+#: finance/models/investment_account.py:75
 msgid "investment account"
 msgstr "compte d'investissement"
 
-#: finance/models/investment_account.py:72
+#: finance/models/investment_account.py:76
 msgid "investment accounts"
 msgstr "comptes d'investissement"
 
-#: finance/models/investment_account.py:87
+#: finance/models/investment_account.py:91
 msgid "Benchmark"
 msgstr "Indice de référence"
 
-#: finance/models/investment_account.py:89
+#: finance/models/investment_account.py:93
 msgid ""
 "Yahoo Finance symbol or ISIN of an index fund quoted in the account currency "
 "(e.g. CW8.PA for MSCI World), to compare the performance."
@@ -1567,77 +1600,77 @@ msgstr ""
 "Symbole Yahoo Finance ou ISIN d'un fonds indiciel coté dans la devise du "
 "compte (ex. CW8.PA pour le MSCI World), pour comparer la performance."
 
-#: finance/models/investment_account.py:216
+#: finance/models/investment_account.py:220
 msgid "cash value of investment account"
 msgstr "valeur d'espèces du compte d'investissement"
 
-#: finance/models/investment_account.py:217
+#: finance/models/investment_account.py:221
 msgid "cash values of investment accounts"
 msgstr "valeurs d'espèces des comptes d'investissement"
 
-#: finance/models/investment_account.py:243
+#: finance/models/investment_account.py:247
 msgid "deposit on investment account"
 msgstr "dépôt sur compte d'investissement"
 
-#: finance/models/investment_account.py:244
+#: finance/models/investment_account.py:248
 msgid "deposits on investment accounts"
 msgstr "dépôts sur comptes d'investissement"
 
-#: finance/models/investment_account.py:260
-#: finance/models/saving_account.py:157
+#: finance/models/investment_account.py:264
+#: finance/models/saving_account.py:161
 msgid "Use a negative value to record a withdrawal"
 msgstr "Saisir une valeur négative pour enregistrer un retrait"
 
-#: finance/models/investment_account.py:266
+#: finance/models/investment_account.py:271
 msgid "Add this deposit amount to the account cash value"
 msgstr "Ajouter le montant de ce dépôt au compte espèce"
 
-#: finance/models/investment_account.py:276
+#: finance/models/investment_account.py:281
 msgid "holding of investment account"
 msgstr "titre de compte d'investissement"
 
-#: finance/models/investment_account.py:277
+#: finance/models/investment_account.py:282
 msgid "holdings of investment accounts"
 msgstr "titres de comptes d'investissement"
 
-#: finance/models/investment_account.py:291
+#: finance/models/investment_account.py:296
 msgid "Fees associated with the holding, in percentage"
 msgstr "Frais associés à la part, en pourcentage"
 
-#: finance/models/investment_account.py:297
+#: finance/models/investment_account.py:302
 msgid "Issuer of the holding"
 msgstr "Émetteur du titre"
 
-#: finance/models/investment_account.py:304
+#: finance/models/investment_account.py:309
 msgid "Asset class"
 msgstr "Classe d'actifs"
 
-#: finance/models/investment_account.py:305
+#: finance/models/investment_account.py:310
 msgid "Main exposure of the holding, used for the allocation."
 msgstr "Exposition principale du titre, utilisée pour la répartition."
 
-#: finance/models/investment_account.py:329
+#: finance/models/investment_account.py:334
 #, python-brace-format
 msgid "{} in {}."
 msgstr "{} dans {}."
 
-#: finance/models/investment_account.py:415
+#: finance/models/investment_account.py:420
 msgid "history of holding"
 msgstr "Historique du titre"
 
-#: finance/models/investment_account.py:416
+#: finance/models/investment_account.py:421
 msgid "history of holdings"
 msgstr "Historique des titres"
 
-#: finance/models/investment_account.py:440
+#: finance/models/investment_account.py:445
 msgid "Value of the holding share at the moment of valuation"
 msgstr "Valeur de la part du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:451
+#: finance/models/investment_account.py:456
 msgid "Quantity of the holding at the moment of valuation"
 msgstr "Quantité du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:459
+#: finance/models/investment_account.py:464
 msgid ""
 "Amount of cash used for this transaction (will be subtracted from account "
 "cash)"
@@ -1645,19 +1678,19 @@ msgstr ""
 "Montant de liquidités utilisé pour cette transaction (sera déduit du compte "
 "en espèces)"
 
-#: finance/models/investment_account.py:476
+#: finance/models/investment_account.py:481
 msgid "euro fund rate"
 msgstr "taux de fonds euros"
 
-#: finance/models/investment_account.py:477
+#: finance/models/investment_account.py:482
 msgid "euro fund rates"
 msgstr "taux de fonds euros"
 
-#: finance/models/investment_account.py:494
+#: finance/models/investment_account.py:499
 msgid "Credited rate (%)"
 msgstr "Taux servi (%)"
 
-#: finance/models/investment_account.py:495
+#: finance/models/investment_account.py:500
 msgid "Rate net of management fees, before social charges."
 msgstr "Taux net de frais de gestion, avant prélèvements sociaux."
 
@@ -1779,47 +1812,47 @@ msgstr "valeurs d'autres actifs"
 msgid "Value"
 msgstr "Valeur"
 
-#: finance/models/saving_account.py:23
+#: finance/models/saving_account.py:27
 msgid "saving account type"
 msgstr "type de compte d'épargne"
 
-#: finance/models/saving_account.py:24
+#: finance/models/saving_account.py:28
 msgid "saving account types"
 msgstr "Types de comptes d'épargne"
 
-#: finance/models/saving_account.py:40
+#: finance/models/saving_account.py:44
 msgid "saving account"
 msgstr "compte d'épargne"
 
-#: finance/models/saving_account.py:41
+#: finance/models/saving_account.py:45
 msgid "saving accounts"
 msgstr "comptes d'épargne"
 
-#: finance/models/saving_account.py:50
+#: finance/models/saving_account.py:54
 msgid "Interest rate in percentage"
 msgstr "Taux d'intérêt en pourcentage"
 
-#: finance/models/saving_account.py:109
+#: finance/models/saving_account.py:113
 msgid "saving account value"
 msgstr "valeur du compte d'épargne"
 
-#: finance/models/saving_account.py:110
+#: finance/models/saving_account.py:114
 msgid "History of saving accounts"
 msgstr "Historique des comptes d'épargne"
 
-#: finance/models/saving_account.py:130
+#: finance/models/saving_account.py:134
 msgid "on"
 msgstr "le"
 
-#: finance/models/saving_account.py:137
+#: finance/models/saving_account.py:141
 msgid "deposit on saving account"
 msgstr "dépôt sur compte d'épargne"
 
-#: finance/models/saving_account.py:138
+#: finance/models/saving_account.py:142
 msgid "deposits on saving accounts"
 msgstr "dépôts sur comptes d'épargne"
 
-#: finance/models/saving_account.py:163
+#: finance/models/saving_account.py:168
 msgid "Add this deposit amount to the account value"
 msgstr "Ajouter le montant de ce dépôt au compte"
 
@@ -2605,8 +2638,8 @@ msgstr "Manuel"
 msgid "DVF estimate"
 msgstr "Estimation DVF"
 
-#: property/models/asset.py:733 templates/finance/_deposits_panel.html:17
-#: templates/finance/_edit_deposit_fields.html:14
+#: property/models/asset.py:733 templates/finance/_deposits_panel.html:18
+#: templates/finance/_edit_deposit_fields.html:20
 msgid "Source"
 msgstr "Source"
 
@@ -2784,7 +2817,7 @@ msgid "Commercial"
 msgstr "Commercial"
 
 #: property/models/lease.py:32 property/models/ledger.py:260
-#: property/models/scpi.py:33 templates/budget/year_detail.html:83
+#: property/models/scpi.py:33 templates/budget/year_detail.html:113
 msgid "Monthly"
 msgstr "Mensuel"
 
@@ -2997,7 +3030,7 @@ msgstr "Dépense"
 msgid "Biannual"
 msgstr "Biannuel"
 
-#: property/models/ledger.py:263 templates/budget/year_detail.html:83
+#: property/models/ledger.py:263 templates/budget/year_detail.html:113
 msgid "Yearly"
 msgstr "Annuel"
 
@@ -3019,6 +3052,7 @@ msgid "Flow type"
 msgstr "Type de flux"
 
 #: property/models/ledger.py:305 templates/budget/import_preview.html:36
+#: templates/budget/year_detail.html:58
 #: templates/finance/_deposits_panel.html:16
 #: templates/finance/_edit_deposit_fields.html:3 templates/operations.html:23
 #: templates/property/_report_category_table.html:12
@@ -4573,7 +4607,7 @@ msgid "Edit"
 msgstr "Modifier"
 
 #: templates/budget/_node_rows.html:21 templates/budget/year_detail.html:17
-#: templates/budget/year_detail.html:112
+#: templates/budget/year_detail.html:142
 msgid "Add a line"
 msgstr "Ajouter une ligne"
 
@@ -4804,7 +4838,7 @@ msgstr "prénom ou identifiant d'un membre, vide pour tout le foyer"
 #: templates/finance/_edit_account_dates_card.html:17
 #: templates/finance/_edit_account_info_card.html:17
 #: templates/finance/_edit_account_info_card.html:25
-#: templates/finance/_edit_deposit_fields.html:15
+#: templates/finance/_edit_deposit_fields.html:21
 #: templates/finance/edit_holding_history.html:36
 #: templates/finance/edit_holding_history.html:44
 #: templates/finance/edit_investment_holding.html:33
@@ -4906,11 +4940,11 @@ msgstr "Créer les catégories par défaut"
 msgid "Create my own categories"
 msgstr "Créer mes propres catégories"
 
-#: templates/budget/index.html:40 templates/budget/year_detail.html:59
+#: templates/budget/index.html:40 templates/budget/year_detail.html:89
 msgid "Savings rate"
 msgstr "Taux d'épargne"
 
-#: templates/budget/index.html:41 templates/budget/year_detail.html:64
+#: templates/budget/index.html:41 templates/budget/year_detail.html:94
 #: templates/dashboard/_overview.html:20
 msgid "Debt ratio"
 msgstr "Taux d'endettement"
@@ -4964,24 +4998,61 @@ msgstr "Supprimer le budget %(year)s et toutes ses lignes ?"
 msgid "Delete the budget"
 msgstr "Supprimer le budget"
 
-#: templates/budget/year_detail.html:51 templates/budget/year_detail.html:56
-#: templates/budget/year_detail.html:124
+#: templates/budget/year_detail.html:52
+#, python-format
+msgid "%(counter)s account movement of unknown origin: its origin was guessed."
+msgid_plural ""
+"%(counter)s account movements of unknown origin: their origin was guessed."
+msgstr[0] ""
+"%(counter)s mouvement de compte d'origine inconnue : son origine a été "
+"devinée."
+msgstr[1] ""
+"%(counter)s mouvements de compte d'origine inconnue : leur origine a été "
+"devinée."
+
+#: templates/budget/year_detail.html:53
+#, python-format
+msgid ""
+"Transfers between accounts (a movement of the same amount on another account "
+"a few days apart): %(transfers)s; savings from the income or withdrawals for "
+"the household: %(income)s. Set their origin on the accounts for an exact "
+"budget."
+msgstr ""
+"Virements entre comptes (un mouvement du même montant sur un autre compte à "
+"quelques jours d'écart) : %(transfers)s ; épargne des revenus ou retraits "
+"pour le foyer : %(income)s. Précisez leur origine sur les comptes pour un "
+"budget exact."
+
+#: templates/budget/year_detail.html:55
+msgid "See the movements"
+msgstr "Voir les mouvements"
+
+#: templates/budget/year_detail.html:58 templates/finance/_accounts_head.html:1
+msgid "Account"
+msgstr "Compte"
+
+#: templates/budget/year_detail.html:58
+msgid "Guessed origin"
+msgstr "Origine devinée"
+
+#: templates/budget/year_detail.html:81 templates/budget/year_detail.html:86
+#: templates/budget/year_detail.html:154
 msgid "/ month"
 msgstr "/ mois"
 
-#: templates/budget/year_detail.html:61
+#: templates/budget/year_detail.html:91
 msgid ""
 "Savings rate counting the loan principal repaid, which also builds wealth"
 msgstr ""
 "Taux d'épargne en comptant le capital remboursé des crédits, qui constitue "
 "aussi un patrimoine"
 
-#: templates/budget/year_detail.html:61
+#: templates/budget/year_detail.html:91
 #, python-format
 msgid "%(rate)s with the loan principal"
 msgstr "%(rate)s avec le capital remboursé"
 
-#: templates/budget/year_detail.html:66
+#: templates/budget/year_detail.html:96
 #, python-format
 msgid ""
 "Loan installments, insurance included, divided by the income with 70 %% of "
@@ -4990,83 +5061,84 @@ msgstr ""
 "Mensualités de crédit, assurance comprise, divisées par les revenus en "
 "comptant 70 %% des loyers, comme le font les banques (HCSF)"
 
-#: templates/budget/year_detail.html:66
+#: templates/budget/year_detail.html:96
 #, python-format
 msgid "HCSF limit: %(limit)s %%"
 msgstr "Limite HCSF : %(limit)s %%"
 
-#: templates/budget/year_detail.html:69
+#: templates/budget/year_detail.html:99
 msgid "Left to live"
 msgstr "Reste à vivre"
 
-#: templates/budget/year_detail.html:71
+#: templates/budget/year_detail.html:101
 msgid "per month, after the loans"
 msgstr "par mois, après les crédits"
 
-#: templates/budget/year_detail.html:79
+#: templates/budget/year_detail.html:109
 msgid "Where the money goes"
 msgstr "Où va l'argent"
 
-#: templates/budget/year_detail.html:80
+#: templates/budget/year_detail.html:110
 msgid "Click a group to fold or unfold it"
 msgstr "Cliquez sur un groupe pour le replier ou le déplier"
 
-#: templates/budget/year_detail.html:82 templates/dashboard/_overview.html:31
+#: templates/budget/year_detail.html:112 templates/dashboard/_overview.html:31
 #: templates/property/detail_panel_balance.html:9
 msgid "Period"
 msgstr "Période"
 
-#: templates/budget/year_detail.html:104
+#: templates/budget/year_detail.html:134
 msgid "Month"
 msgstr "Mois"
 
-#: templates/budget/year_detail.html:107
+#: templates/budget/year_detail.html:137
 msgid "Change"
 msgstr "Évolution"
 
-#: templates/budget/year_detail.html:112
+#: templates/budget/year_detail.html:142
 msgid "Nothing yet."
 msgstr "Rien pour l'instant."
 
-#: templates/budget/year_detail.html:121
+#: templates/budget/year_detail.html:151
 msgid "Money left once the expenses and savings are paid"
 msgstr "Argent restant une fois les dépenses et l'épargne réglées"
 
-#: templates/budget/year_detail.html:122
+#: templates/budget/year_detail.html:152
 msgid "Deficit: the expenses and savings exceed the resources"
 msgstr "Déficit : les dépenses et l'épargne dépassent les ressources"
 
-#: templates/budget/year_detail.html:132
+#: templates/budget/year_detail.html:162
 #, python-format
 msgid "%(previous)s compared with %(year)s"
 msgstr "%(previous)s comparé à %(year)s"
 
-#: templates/budget/year_detail.html:133
+#: templates/budget/year_detail.html:163
 #, python-format
 msgid "Inflation of the year: %(rate)s"
 msgstr "Inflation de l'année : %(rate)s"
 
-#: templates/budget/year_detail.html:148
+#: templates/budget/year_detail.html:178
 msgid ""
 "Automatic lines come from the property ledgers and loan schedules, the SCPI "
 "dividends and subscriptions, and the deposits on the accounts of the year; "
-"they change with them. Every amount is yearly, the month column divides it "
-"by 12."
+"they change with them. Transfers between accounts are left out. Every amount "
+"is yearly, the month column divides it by 12."
 msgstr ""
 "Les lignes automatiques viennent des écritures et des échéanciers de crédit "
 "des biens, des dividendes et souscriptions SCPI et des versements sur les "
-"comptes de l'année ; elles évoluent avec eux. Tous les montants sont "
-"annuels, la colonne mois les divise par 12."
+"comptes de l'année ; elles évoluent avec eux. Les virements entre comptes "
+"sont ignorés. Tous les montants sont annuels, la colonne mois les divise par "
+"12."
 
-#: templates/budget/year_detail.html:164
+#: templates/budget/year_detail.html:194
 msgid "Flow diagram of the budget"
 msgstr "Diagramme des flux du budget"
 
-#: templates/budget/year_detail.html:165
+#: templates/budget/year_detail.html:195
 msgid "Click to fold"
 msgstr "Cliquer pour replier"
 
-#: templates/budget/year_detail.html:166
+#: templates/budget/year_detail.html:196
 msgid "Click to unfold"
 msgstr "Cliquer pour déplier"
 
@@ -5310,10 +5382,6 @@ msgstr "Progression nette"
 msgid "Currently:"
 msgstr "Actuellement :"
 
-#: templates/finance/_accounts_head.html:1
-msgid "Account"
-msgstr "Compte"
-
 #: templates/finance/_accounts_head.html:1 templates/finance/index.html:46
 #, python-format
 msgid "%(counter)s day"
@@ -5325,7 +5393,7 @@ msgstr[1] "%(counter)s jours"
 msgid "Add deposit"
 msgstr "Ajouter un dépôt"
 
-#: templates/finance/_deposits_panel.html:18
+#: templates/finance/_deposits_panel.html:19
 #: templates/finance/_euro_fund_rates_panel.html:36
 #: templates/finance/_value_history_panel.html:18
 #: templates/finance/holding_detail.html:148
@@ -5337,15 +5405,15 @@ msgstr "Ajouter un dépôt"
 msgid "Actions"
 msgstr "Actions"
 
-#: templates/finance/_deposits_panel.html:31
+#: templates/finance/_deposits_panel.html:33
 msgid "Delete deposit"
 msgstr "Supprimer le dépôt"
 
-#: templates/finance/_deposits_panel.html:32
+#: templates/finance/_deposits_panel.html:34
 msgid "Are you sure you want to delete this deposit?"
 msgstr "Êtes-vous sûr de vouloir supprimer ce dépôt ?"
 
-#: templates/finance/_deposits_panel.html:41
+#: templates/finance/_deposits_panel.html:43
 msgid "No deposits yet."
 msgstr "Aucun dépôt actuellement."
 
@@ -6326,10 +6394,6 @@ msgstr "Valeur du droit"
 #, python-format
 msgid "Until %(date)s"
 msgstr "Jusqu'au %(date)s"
-
-#: templates/owners_manage.html:38
-msgid "Unknown"
-msgstr "Inconnue"
 
 #: templates/owners_manage.html:42
 msgid "Remove"
