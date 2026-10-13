@@ -37,10 +37,18 @@
 - **DPE** — energy rating with the rental bans (G 2025, F 2028, E 2034), the rent freeze of F/G housing and the diagnosis validity
 - **Resale simulation** — capital gain tax with allowances, surtax and the add-back of the LMNP amortization (finance act 2025)
 
+### Household budget
+
+- **Yearly budget** — income per person or for the whole household, expenses and savings in a shared category tree (up to three levels), entered as yearly amounts
+- Rents, charges and loan installments of the properties, SCPI dividends and subscriptions, and account deposits added automatically for the year
+- Sankey diagram of where the money goes, for the whole household or one member (shared lines split between the adults)
+- Savings rate, HCSF debt ratio and money left to live, comparison with the previous year (in real terms with the INSEE CPI), copy of a year with a revaluation
+- CSV import and export, with a prompt to build the file from a bank export with an AI (see [docs/budget.md](docs/budget.md))
+
 ### Net worth
 
 - Dashboard with the upcoming deadlines of every asset and a monthly net worth history stored as snapshots
-- Allocation by asset class and by liquidity, and emergency fund sized in months of expenses
+- Allocation by asset class and by liquidity, and emergency fund sized in months of expenses (from the budget when there is one)
 - Owners among the application users, with shares and dismembered rights valued with article 669 CGI, and the net worth of each owner
 
 ### Web application
