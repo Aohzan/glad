@@ -49,6 +49,13 @@ For each modification to the project, perform the following checks and adjustmen
 - Re-run until all hooks pass successfully
 - Once fixed, run with `--all-files` to ensure no issues remain
 
+### 6. README Screenshots
+
+- After a notable visual change, or when a new view is worth showing, update the screenshots of `docs/images/` and the screenshot table of `README.md` (add a cell for a new view)
+- Take them from the demo data, never from `data/glad.db`: a scratch settings module (`from glad.settings import *`, a scratch SQLite path, `LANGUAGE_CODE = "fr"`, a middleware logging in the first superuser), then `migrate`, `scripts/generate_fixtures.py` and `loaddata finance/fixtures/*.yaml tests/fixtures/*.yaml`; make `mister` the superuser and check the pending ledger occurrences so the dashboard shows no banner
+- Keep the same look for every image: headless Chromium in dark theme and French (`--force-dark-mode --blink-settings=preferredColorScheme=0 --lang=fr-FR --accept-lang=fr-FR --force-prefers-reduced-motion --hide-scrollbars --virtual-time-budget=20000`), 1656 px wide, as high as the page content (at least 900 px so the sidebar stays whole)
+- Look at each image before committing (cut card, empty state, filters needed to show figures) and commit them in a `docs:` commit
+
 ## Recommended Execution Order
 
 1. Develop the modification
@@ -59,6 +66,7 @@ For each modification to the project, perform the following checks and adjustmen
 5. Update the generate_fixtures.py script if necessary
 6. Update translations
 7. Run pre-commit and fix issues until all checks pass
+8. Update the README screenshots after a notable visual change or a new view worth showing
 
 ## Pushing
 
