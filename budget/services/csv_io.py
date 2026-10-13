@@ -10,15 +10,22 @@ household) and ``notes``. The separator (``;`` or ``,``), the encoding
 import csv
 import io
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import transaction
 from django.utils.translation import gettext as _
 from moneyed import Money
 
-from base.csv_utils import detect_delimiter, normalize_column, parse_amount
+from base.csv_utils import (
+    detect_delimiter,
+    normalize_column,
+    parse_amount,
+    spreadsheet_safe,
+    strip_spreadsheet_guard,
+)
 from base.models import display_name, household_members
 from budget.models import (
+    CATEGORY_NAME_MAX_LENGTH,
     LABEL_MAX_LENGTH,
     BudgetCategory,
     BudgetKind,
@@ -30,6 +37,9 @@ from budget.services.categories import CategoryNode, category_tree
 COLUMNS = ("kind", "category", "label", "amount", "person", "notes")
 #: Most lines read from one file.
 MAX_ROWS = 2000
+CENT = Decimal("0.01")
+#: Smallest amount a budget line cannot hold (14 digits, 2 of them decimals).
+MAX_AMOUNT = Decimal(10) ** 12
 #: Separator of the levels of a category path.
 PATH_SEPARATOR = ">"
 
@@ -96,11 +106,11 @@ def export_lines(budget_year: BudgetYear) -> str:
         writer.writerow(
             [
                 line.category.kind,
-                paths.get(line.category_id, line.category.name),  # ty: ignore[unresolved-attribute]
-                line.label,
+                spreadsheet_safe(paths.get(line.category_id, line.category.name)),  # ty: ignore[unresolved-attribute]
+                spreadsheet_safe(line.label),
                 f"{line.amount.amount:.2f}",
-                line.person.get_username() if line.person else "",
-                line.notes,
+                spreadsheet_safe(line.person.get_username() if line.person else ""),
+                spreadsheet_safe(line.notes),
             ]
         )
     return buffer.getvalue()
@@ -213,11 +223,9 @@ def parse_lines(text: str, *, create_missing: bool = False) -> ImportPreview:
 
         def value(column: str, values=values) -> str:
             index = columns.get(column)
-            return (
-                values[index].strip()
-                if index is not None and index < len(values)
-                else ""
-            )
+            if index is None or index >= len(values):
+                return ""
+            return strip_spreadsheet_guard(values[index].strip())
 
         path = PATH_SEPARATOR.join(
             " ".join(part.split()) for part in value("category").split(PATH_SEPARATOR)
@@ -234,11 +242,16 @@ def parse_lines(text: str, *, create_missing: bool = False) -> ImportPreview:
         )
         preview.rows.append(row)
         try:
-            row.amount = abs(parse_amount(value("amount")))
+            row.amount = abs(parse_amount(value("amount"))).quantize(
+                CENT, rounding=ROUND_HALF_UP
+            )
         except ValueError:
             row.errors.append(
                 _("Invalid amount: %(value)s") % {"value": value("amount")}
             )
+        else:
+            if row.amount >= MAX_AMOUNT:
+                row.errors.append(_("The amount is too large."))
 
         raw_kind = value("kind")
         kind = _kind(raw_kind) if raw_kind else None
@@ -263,6 +276,11 @@ def parse_lines(text: str, *, create_missing: bool = False) -> ImportPreview:
                 _("The kind is needed to create the category %(path)s.")
                 % {"path": path}
             )
+        elif any(
+            len(part.strip()) > CATEGORY_NAME_MAX_LENGTH
+            for part in path.split(PATH_SEPARATOR)
+        ):
+            row.errors.append(_("The category name is too long."))
         elif path.count(PATH_SEPARATOR) >= BudgetCategory.MAX_DEPTH:
             row.errors.append(
                 _("Categories are limited to %(depth)d levels.")

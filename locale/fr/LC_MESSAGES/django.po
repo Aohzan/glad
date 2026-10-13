@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 20:05+0200\n"
+"POT-Creation-Date: 2026-10-13 20:08+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -591,7 +591,7 @@ msgstr "Non attribué"
 msgid "Outside the household"
 msgstr "Hors du foyer"
 
-#: base/services/ownership.py:414 budget/services/csv_io.py:232
+#: base/services/ownership.py:414 budget/services/csv_io.py:240
 #: budget/services/summary.py:230
 msgid "Household"
 msgstr "Foyer"
@@ -644,7 +644,7 @@ msgstr "Impossible de télécharger les indices INSEE."
 msgid "INSEE indices updated."
 msgstr "Indices INSEE mis à jour."
 
-#: budget/forms.py:76 budget/models.py:244 finance/models/other_asset.py:75
+#: budget/forms.py:76 budget/models.py:246 finance/models/other_asset.py:75
 #: property/models/ledger.py:323 templates/budget/import_preview.html:33
 #: templates/finance/other_asset_detail.html:38
 #: templates/finance/other_asset_list.html:22
@@ -656,7 +656,7 @@ msgstr "Indices INSEE mis à jour."
 msgid "Category"
 msgstr "Catégorie"
 
-#: budget/forms.py:81 budget/models.py:260
+#: budget/forms.py:81 budget/models.py:262
 #: templates/budget/import_preview.html:35
 #: templates/budget/year_detail.html:102
 msgid "Person"
@@ -673,7 +673,7 @@ msgstr ""
 "Dans la vue d'une personne, les lignes du foyer sont réparties entre les "
 "adultes."
 
-#: budget/forms.py:105 budget/models.py:81
+#: budget/forms.py:105 budget/models.py:83
 msgid "Parent category"
 msgstr "Catégorie parente"
 
@@ -681,7 +681,7 @@ msgstr "Catégorie parente"
 msgid "None (top level)"
 msgstr "Aucune (premier niveau)"
 
-#: budget/forms.py:116 budget/models.py:195 budget/models.py:238
+#: budget/forms.py:116 budget/models.py:197 budget/models.py:240
 #: finance/models/investment_account.py:490 templates/budget/index.html:36
 #: templates/budget/year_detail.html:10 templates/budget/year_detail.html:103
 #: templates/finance/_euro_fund_rates_panel.html:33
@@ -719,31 +719,31 @@ msgstr "Le fichier ne doit pas dépasser 1 Mo."
 msgid "View"
 msgstr "Vue"
 
-#: budget/models.py:33 templates/budget/index.html:37
+#: budget/models.py:35 templates/budget/index.html:37
 #: templates/budget/year_detail.html:49
 msgctxt "budget"
 msgid "Income"
 msgstr "Revenus"
 
-#: budget/models.py:34
+#: budget/models.py:36
 msgctxt "budget"
 msgid "Expenses"
 msgstr "Dépenses"
 
-#: budget/models.py:35 templates/budget/index.html:39
+#: budget/models.py:37 templates/budget/index.html:39
 msgctxt "budget"
 msgid "Savings"
 msgstr "Épargne"
 
-#: budget/models.py:53
+#: budget/models.py:55
 msgid "budget category"
 msgstr "catégorie de budget"
 
-#: budget/models.py:54
+#: budget/models.py:56
 msgid "budget categories"
 msgstr "catégories de budget"
 
-#: budget/models.py:67 finance/models/other_asset.py:70
+#: budget/models.py:69 finance/models/other_asset.py:70
 #: property/models/asset.py:51 property/models/asset.py:302
 #: property/models/scpi.py:42 templates/finance/_account_table_header.html:4
 #: templates/finance/edit_investment_holding.html:48
@@ -757,30 +757,30 @@ msgstr "catégories de budget"
 msgid "Name"
 msgstr "Nom"
 
-#: budget/models.py:72 templates/budget/import_preview.html:32
+#: budget/models.py:74 templates/budget/import_preview.html:32
 #: templates/property/detail_panel_cashflow.html:37
 #: templates/property/detail_panel_cashflow.html:307
 #: templates/property/occurrence_checks.html:61
 msgid "Kind"
 msgstr "Type"
 
-#: budget/models.py:73
+#: budget/models.py:75
 msgid "A sub-category takes the kind of its parent."
 msgstr "Une sous-catégorie prend le type de sa catégorie parente."
 
-#: budget/models.py:85
+#: budget/models.py:87
 msgid "Position"
 msgstr "Position"
 
-#: budget/models.py:86
+#: budget/models.py:88
 msgid "Order among the categories of the same level."
 msgstr "Ordre parmi les catégories du même niveau."
 
-#: budget/models.py:90 templates/budget/categories.html:27
+#: budget/models.py:92 templates/budget/categories.html:27
 msgid "Loan repayments"
 msgstr "Remboursements de crédit"
 
-#: budget/models.py:92
+#: budget/models.py:94
 msgid ""
 "Lines of this category are loan installments (car, consumer credit) counted "
 "in the debt ratio."
@@ -788,24 +788,24 @@ msgstr ""
 "Les lignes de cette catégorie sont des mensualités de crédit (auto, "
 "consommation) comptées dans le taux d'endettement."
 
-#: budget/models.py:160
+#: budget/models.py:162
 msgid "A category cannot be placed under itself."
 msgstr "Une catégorie ne peut pas être placée sous elle-même."
 
-#: budget/models.py:166 budget/services/csv_io.py:268
+#: budget/models.py:168 budget/services/csv_io.py:286
 #, python-format
 msgid "Categories are limited to %(depth)d levels."
 msgstr "Les catégories sont limitées à %(depth)d niveaux."
 
-#: budget/models.py:188
+#: budget/models.py:190
 msgid "budget year"
 msgstr "année de budget"
 
-#: budget/models.py:189
+#: budget/models.py:191
 msgid "budget years"
 msgstr "années de budget"
 
-#: budget/models.py:197 budget/models.py:263
+#: budget/models.py:199 budget/models.py:265
 #: finance/models/investment_account.py:497 finance/models/other_asset.py:115
 #: property/models/asset.py:915 property/models/fiscal.py:42
 #: property/models/scpi.py:73 property/models/scpi.py:596
@@ -823,11 +823,11 @@ msgstr "années de budget"
 msgid "Notes"
 msgstr "Notes"
 
-#: budget/models.py:200
+#: budget/models.py:202
 msgid "Include the properties"
 msgstr "Inclure les biens immobiliers"
 
-#: budget/models.py:202
+#: budget/models.py:204
 msgid ""
 "Add the rents, charges and loan installments of the properties, and the SCPI "
 "dividends and subscriptions of the year."
@@ -835,11 +835,11 @@ msgstr ""
 "Ajoute les loyers, les charges et les échéances de crédit des biens, ainsi "
 "que les dividendes et souscriptions SCPI de l'année."
 
-#: budget/models.py:208
+#: budget/models.py:210
 msgid "Include the account deposits"
 msgstr "Inclure les versements sur les comptes"
 
-#: budget/models.py:210
+#: budget/models.py:212
 msgid ""
 "Add the deposits and withdrawals of the saving and investment accounts as "
 "savings."
@@ -847,23 +847,23 @@ msgstr ""
 "Ajoute en épargne les versements et retraits des comptes d'épargne et "
 "d'investissement."
 
-#: budget/models.py:218
+#: budget/models.py:220
 msgid "Excluded properties"
 msgstr "Biens exclus"
 
-#: budget/models.py:219
+#: budget/models.py:221
 msgid "Properties whose flows are left out of this budget."
 msgstr "Biens dont les flux ne sont pas comptés dans ce budget."
 
-#: budget/models.py:230
+#: budget/models.py:232
 msgid "budget line"
 msgstr "ligne de budget"
 
-#: budget/models.py:231
+#: budget/models.py:233
 msgid "budget lines"
 msgstr "lignes de budget"
 
-#: budget/models.py:246 property/models/asset.py:864
+#: budget/models.py:248 property/models/asset.py:864
 #: templates/budget/import_preview.html:34
 #: templates/budget/year_detail.html:101
 #: templates/property/_valid_categories_table.html:6
@@ -871,19 +871,19 @@ msgstr "lignes de budget"
 msgid "Label"
 msgstr "Libellé"
 
-#: budget/models.py:251
+#: budget/models.py:253
 msgid "Yearly amount"
 msgstr "Montant annuel"
 
-#: budget/models.py:252
+#: budget/models.py:254
 msgid "Total for the whole year."
 msgstr "Total pour l'année entière."
 
-#: budget/models.py:261
+#: budget/models.py:263
 msgid "Leave empty for the whole household."
 msgstr "Laisser vide pour tout le foyer."
 
-#: budget/models.py:281
+#: budget/models.py:283
 msgid "The amount cannot be negative."
 msgstr "Le montant ne peut pas être négatif."
 
@@ -1058,68 +1058,76 @@ msgstr "Épargne hors application"
 msgid "Employee savings"
 msgstr "Épargne salariale"
 
-#: budget/services/csv_io.py:191
+#: budget/services/csv_io.py:201
 msgid "The file is empty."
 msgstr "Le fichier est vide."
 
-#: budget/services/csv_io.py:200
+#: budget/services/csv_io.py:210
 #, python-format
 msgid "Missing columns: %(columns)s"
 msgstr "Colonnes manquantes : %(columns)s"
 
-#: budget/services/csv_io.py:205
+#: budget/services/csv_io.py:215
 #, python-format
 msgid "The file has more than %(count)d lines."
 msgstr "Le fichier contient plus de %(count)d lignes."
 
-#: budget/services/csv_io.py:240
+#: budget/services/csv_io.py:250
 #, python-format
 msgid "Invalid amount: %(value)s"
 msgstr "Montant invalide : %(value)s"
 
-#: budget/services/csv_io.py:246
+#: budget/services/csv_io.py:254
+msgid "The amount is too large."
+msgstr "Le montant est trop élevé."
+
+#: budget/services/csv_io.py:259
 #, python-format
 msgid "Unknown kind: %(value)s"
 msgstr "Type inconnu : %(value)s"
 
-#: budget/services/csv_io.py:250
+#: budget/services/csv_io.py:263
 msgid "The category is missing."
 msgstr "La catégorie est manquante."
 
-#: budget/services/csv_io.py:255 budget/services/csv_io.py:275
+#: budget/services/csv_io.py:268 budget/services/csv_io.py:293
 #, python-format
 msgid "The category %(category)s is not of kind %(kind)s."
 msgstr "La catégorie %(category)s n'est pas de type %(kind)s."
 
-#: budget/services/csv_io.py:260
+#: budget/services/csv_io.py:273
 #, python-format
 msgid "Unknown category: %(path)s"
 msgstr "Catégorie inconnue : %(path)s"
 
-#: budget/services/csv_io.py:263
+#: budget/services/csv_io.py:276
 #, python-format
 msgid "The kind is needed to create the category %(path)s."
 msgstr "Le type est nécessaire pour créer la catégorie %(path)s."
 
 #: budget/services/csv_io.py:283
+msgid "The category name is too long."
+msgstr "Le nom de la catégorie est trop long."
+
+#: budget/services/csv_io.py:301
 #, python-format
 msgid "The category %(path)s is used with several kinds."
 msgstr "La catégorie %(path)s est utilisée avec plusieurs types."
 
-#: budget/services/csv_io.py:296
+#: budget/services/csv_io.py:314
 #, python-format
 msgid "Unknown person: %(value)s"
 msgstr "Personne inconnue : %(value)s"
 
-#: budget/services/csv_io.py:300
+#: budget/services/csv_io.py:318
 msgid "The label is too long."
 msgstr "Le libellé est trop long."
 
-#: budget/services/csv_io.py:302
+#: budget/services/csv_io.py:320
 msgid "The file has no line."
 msgstr "Le fichier ne contient aucune ligne."
 
-#: budget/services/csv_io.py:375
+#: budget/services/csv_io.py:393
 #, python-format
 msgid ""
 "I am preparing the budget of my household for %(year)d. Attached is the "
@@ -1132,11 +1140,11 @@ msgstr ""
 "lignes de budget annuelles et réponds uniquement par un fichier CSV, avec ; "
 "comme séparateur, et ces colonnes :"
 
-#: budget/services/csv_io.py:384
+#: budget/services/csv_io.py:402
 msgid "- kind: income, expense or saving"
 msgstr "- kind : income (revenu), expense (dépense) ou saving (épargne)"
 
-#: budget/services/csv_io.py:386
+#: budget/services/csv_io.py:404
 msgid ""
 "- category: one of the categories below, written exactly as listed (levels "
 "separated by >)"
@@ -1144,32 +1152,32 @@ msgstr ""
 "- category : une des catégories ci-dessous, écrite exactement comme dans la "
 "liste (niveaux séparés par >)"
 
-#: budget/services/csv_io.py:390
+#: budget/services/csv_io.py:408
 msgid "- label: short description, such as the merchant or the kind of expense"
 msgstr ""
 "- label : description courte, comme le commerçant ou le type de dépense"
 
-#: budget/services/csv_io.py:393
+#: budget/services/csv_io.py:411
 msgid ""
 "- amount: total for the whole year, positive, with a dot as decimal separator"
 msgstr ""
 "- amount : total pour l'année entière, positif, avec un point comme "
 "séparateur décimal"
 
-#: budget/services/csv_io.py:395
+#: budget/services/csv_io.py:413
 #, python-format
 msgid "- person: one of %(names)s, or empty for the whole household"
 msgstr "- person : une personne parmi %(names)s, ou vide pour tout le foyer"
 
-#: budget/services/csv_io.py:397
+#: budget/services/csv_io.py:415
 msgid "- notes: optional"
 msgstr "- notes : facultatif"
 
-#: budget/services/csv_io.py:399
+#: budget/services/csv_io.py:417
 msgid "Rules:"
 msgstr "Règles :"
 
-#: budget/services/csv_io.py:401
+#: budget/services/csv_io.py:419
 msgid ""
 "- Add up the transactions of a same category and label over the year, with "
 "at most one line per category, label and person."
@@ -1177,7 +1185,7 @@ msgstr ""
 "- Additionne les opérations d'une même catégorie et d'un même libellé sur "
 "l'année, avec au plus une ligne par catégorie, libellé et personne."
 
-#: budget/services/csv_io.py:405
+#: budget/services/csv_io.py:423
 msgid ""
 "- Leave out the transfers between my own accounts and the flows already "
 "tracked elsewhere: the installments of my property loans, the rents and "
@@ -1187,7 +1195,7 @@ msgstr ""
 "ailleurs : les échéances de mes crédits immobiliers, les loyers et charges "
 "de mes biens, les versements sur mes comptes d'épargne et d'investissement."
 
-#: budget/services/csv_io.py:411
+#: budget/services/csv_io.py:429
 msgid ""
 "- If the export covers less than 12 months, extrapolate the amounts to a "
 "full year and say so in the notes column."
@@ -1195,7 +1203,7 @@ msgstr ""
 "- Si l'export couvre moins de 12 mois, extrapole les montants sur une année "
 "entière et indique-le dans la colonne notes."
 
-#: budget/services/csv_io.py:415
+#: budget/services/csv_io.py:433
 msgid "Categories:"
 msgstr "Catégories :"
 

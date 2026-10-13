@@ -12,6 +12,8 @@ from base.csv_utils import (
     parse_amount,
     parse_date,
     parse_datetime,
+    spreadsheet_safe,
+    strip_spreadsheet_guard,
 )
 
 
@@ -47,9 +49,27 @@ def test_parse_amount(raw, amount):
     assert parse_amount(raw) == amount
 
 
-def test_parse_amount_rejects_text():
+@pytest.mark.parametrize("raw", ["abc", "NaN", "-Infinity"])
+def test_parse_amount_rejects_text(raw):
     with pytest.raises(ValueError, match="Invalid amount"):
-        parse_amount("abc")
+        parse_amount(raw)
+
+
+@pytest.mark.parametrize(
+    ("text", "safe"),
+    [
+        ("=SUM(A1:A9)", "'=SUM(A1:A9)"),
+        ("+33 6", "'+33 6"),
+        ("-1", "'-1"),
+        ("@cmd", "'@cmd"),
+        ("Rent", "Rent"),
+        ("'quoted", "'quoted"),
+        ("", ""),
+    ],
+)
+def test_spreadsheet_guard_round_trip(text, safe):
+    assert spreadsheet_safe(text) == safe
+    assert strip_spreadsheet_guard(safe) == text
 
 
 @pytest.mark.parametrize(
