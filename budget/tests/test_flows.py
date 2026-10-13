@@ -395,6 +395,7 @@ class TestGuessOrigins:
         assert far.guessed == DepositOrigin.INCOME
         assert same_account.guessed == DepositOrigin.INCOME
         assert lonely.guessed == DepositOrigin.INCOME
+        assert near.url.endswith("/investment/1/#deposits-panel")
 
     def test_pairs_with_an_explicit_transfer_only(self):
         booklet, broker = SavingAccount(pk=1), InvestmentAccount(pk=1)

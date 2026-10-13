@@ -37,6 +37,9 @@ from property.models.ledger import ManagementCategory
 RENT_WEIGHT = Decimal("0.7")
 #: Highest debt ratio recommended by the HCSF, in percent.
 DEBT_RATIO_LIMIT = Decimal(35)
+#: Keys of the groups of the account deposits and withdrawals.
+ACCOUNT_DEPOSITS = "auto:accounts:deposits"
+ACCOUNT_WITHDRAWALS = "auto:accounts:withdrawals"
 
 
 @dataclass
@@ -389,15 +392,20 @@ def _scpi_nodes(flows: list[SCPIFlows]) -> tuple[BudgetNode, BudgetNode]:
 def _account_nodes(
     flows: list[AccountFlows],
 ) -> tuple[BudgetNode, BudgetNode, BudgetNode]:
-    """Deposits (savings), withdrawals and exceptional deposits (resources)."""
+    """Deposits (savings), withdrawals and exceptional deposits (resources).
+
+    Each account counts for its net flow of the year, exceptional deposits
+    included: an account filled with an exceptional deposit and partly
+    emptied later shows one net deposit, not a deposit and a withdrawal.
+    """
     deposits = BudgetNode(
-        key="auto:accounts:deposits",
+        key=ACCOUNT_DEPOSITS,
         label=_("Account deposits"),
         kind=BudgetKind.SAVING,
         source="auto",
     )
     withdrawals = BudgetNode(
-        key="auto:accounts:withdrawals",
+        key=ACCOUNT_WITHDRAWALS,
         label=_("Withdrawals from savings"),
         kind=BudgetKind.INCOME,
         source="auto",
@@ -409,9 +417,10 @@ def _account_nodes(
         source="auto",
     )
     for item in flows:
+        net = item.amount + item.exceptional
         parts = (
-            (deposits, item.key, max(item.amount, Decimal(0)) + item.exceptional),
-            (withdrawals, item.key, max(-item.amount, Decimal(0))),
+            (deposits, item.key, max(net, Decimal(0))),
+            (withdrawals, item.key, max(-net, Decimal(0))),
             (exceptional, f"{item.key}:exceptional", item.exceptional),
         )
         for group, key, amount in parts:

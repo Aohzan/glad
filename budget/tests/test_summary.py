@@ -21,6 +21,8 @@ from budget.services.copy import copy_year
 from budget.services.perspective import Perspective
 from budget.services.sankey import sankey_payload
 from budget.services.summary import (
+    ACCOUNT_DEPOSITS,
+    ACCOUNT_WITHDRAWALS,
     BudgetNode,
     budget_monthly_expenses,
     build_budget,
@@ -324,6 +326,68 @@ class TestAccountOrigins:
         assert f"account:saving:{booklet.pk}:exceptional" in keys
         assert summary.guessed_transfers == 2
         assert summary.guessed_income == 1
+
+
+def _savings_account(name):
+    kind, _created = SavingAccountType.objects.get_or_create(name="Booklet", code="BKT")
+    return SavingAccount.objects.create(
+        account_type=kind,
+        name=name,
+        opening_date=datetime.date(2000, 1, 1),
+        opening_value=Money(0, "EUR"),
+    )
+
+
+def _move(account, amount, month, origin=DepositOrigin.INCOME):
+    SavingAccountDeposit.objects.create(
+        account=account,
+        amount=Money(amount, "EUR"),
+        deposit_date=datetime.datetime(YEAR, month, 1),
+        origin=origin,
+    )
+
+
+@pytest.mark.django_db
+class TestNetAccountFlows:
+    @pytest.fixture
+    def finance_year(self, categories):
+        budget_year = BudgetYear.objects.create(year=YEAR, include_properties=False)
+        add_line(budget_year, categories["salaries"], 10000)
+        return budget_year
+
+    def test_one_net_flow_per_account(self, finance_year, household):
+        boost = _savings_account("Boost")
+        _move(boost, 75000, 2, DepositOrigin.EXCEPTIONAL)
+        _move(boost, -40000, 11)
+        summary = build_budget(finance_year, household)
+        keys = {n.key: n.total for n in summary.nodes()}
+        assert keys[ACCOUNT_DEPOSITS] == Decimal(35000)
+        assert ACCOUNT_WITHDRAWALS not in keys
+        assert keys["auto:accounts:exceptional"] == Decimal(75000)
+        assert summary.indicators.balance == Decimal(50000)
+
+    def test_sankey_deducts_the_withdrawals_from_the_deposits(
+        self, finance_year, household
+    ):
+        _move(_savings_account("Old"), -4000, 3)
+        _move(_savings_account("A"), 6000, 4)
+        _move(_savings_account("B"), 2000, 4)
+        payload = sankey_payload(build_budget(finance_year, household))
+        assert ACCOUNT_WITHDRAWALS not in [n["id"] for n in payload["left"]]
+        deposits = next(n for n in payload["right"] if n["id"] == ACCOUNT_DEPOSITS)
+        assert deposits["label"] == "Net account deposits"
+        assert deposits["value"] == 4000
+        assert [c["value"] for c in deposits["children"]] == [3000, 1000]
+        assert payload["total"] == sum(n["value"] for n in payload["right"])
+
+    def test_sankey_keeps_the_net_withdrawals(self, finance_year, household):
+        _move(_savings_account("Old"), -5000, 3)
+        _move(_savings_account("A"), 1000, 4)
+        payload = sankey_payload(build_budget(finance_year, household))
+        assert ACCOUNT_DEPOSITS not in [n["id"] for n in payload["right"]]
+        withdrawals = next(n for n in payload["left"] if n["id"] == ACCOUNT_WITHDRAWALS)
+        assert withdrawals["label"] == "Net withdrawals from savings"
+        assert withdrawals["value"] == 4000
 
 
 @pytest.mark.django_db
