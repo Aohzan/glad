@@ -36,12 +36,30 @@ SCPI, comptes  ─┘
 | Échéanciers des crédits | dépenses, par bien : capital, intérêts, assurance | `Schedule.paid_between(1er janvier, 31 décembre)` ; les écritures de crédit du ledger sont ignorées dès qu'un bien a un crédit, comme dans le cash-flow des biens |
 | Dividendes SCPI | revenus | dividendes nets payés dans l'année |
 | Souscriptions SCPI | épargne | `nombre de parts × prix unitaire` des souscriptions de l'année |
-| Versements sur les comptes | épargne (net positif) ou désépargne (net négatif, côté ressources) | somme des versements de l'année par compte d'épargne ou d'investissement, plus la valeur d'ouverture d'un compte ouvert dans l'année |
+| Versements sur les comptes | épargne (net positif) ou désépargne (net négatif, côté ressources) | versements et retraits de l'année par compte d'épargne ou d'investissement, plus la valeur d'ouverture d'un compte ouvert dans l'année, selon leur origine (voir plus bas) |
 
 Un bien compte s'il est détenu pendant l'année (acheté avant le 31 décembre,
 vendu après le 1er janvier ou pas vendu). Les biens peuvent être exclus un
 par un dans les réglages du budget, et chaque source peut être désactivée.
 Seuls les montants dans la devise de référence sont comptés.
+
+## Origine des versements
+
+Chaque versement ou retrait d'un compte a une **origine**, obligatoire,
+« Inconnue » par défaut :
+
+| Origine | Traitement dans le budget |
+|---|---|
+| Revenus ou dépenses du foyer | un versement est de l'épargne prise sur les revenus, un retrait une ressource (désépargne) |
+| Virement entre comptes | ignoré : l'argent ne fait que changer de compte |
+| Exceptionnelle (vente, héritage, donation…) | un versement apparaît en « Apports exceptionnels » côté ressources et en épargne côté emplois, sans compter dans les revenus ni dans le taux d'épargne ; un retrait exceptionnel (achat d'un bien…) est ignoré |
+| Inconnue | origine **devinée** : c'est un virement entre comptes si un autre compte a un mouvement de signe opposé et de même montant, d'origine inconnue ou « virement », à 7 jours au plus (le plus proche est apparié, y compris de part et d'autre du 1er janvier) ; sinon, revenus ou dépenses du foyer |
+
+La valeur d'ouverture d'un compte ouvert dans l'année compte comme un
+versement d'origine inconnue : ouvrir un PEA avec l'argent d'un livret est
+reconnu comme un virement. La page du budget signale le nombre de mouvements
+dont l'origine a été devinée, avec leur détail et un lien vers chaque compte
+pour la préciser.
 
 ## Vue du foyer ou d'une personne
 
@@ -64,10 +82,10 @@ en usufruit, au prorata du nombre de parts.
 
 | Indicateur | Formule |
 |---|---|
-| Revenus | lignes de revenus + revenus du ledger + dividendes SCPI (hors désépargne) |
+| Revenus | lignes de revenus + revenus du ledger + dividendes SCPI (hors désépargne et apports exceptionnels) |
 | Dépenses | lignes de dépenses + dépenses du ledger + échéances de crédit (capital, intérêts, assurance) |
-| Épargne | lignes d'épargne + versements nets sur les comptes + souscriptions SCPI |
-| Solde | `revenus + désépargne − dépenses − épargne` : « non affecté » s'il est positif, « déficit » s'il est négatif |
+| Épargne | lignes d'épargne + versements nets sur les comptes (apports exceptionnels compris) + souscriptions SCPI |
+| Solde | `revenus + désépargne + apports exceptionnels − dépenses − épargne` : « non affecté » s'il est positif, « déficit » s'il est négatif |
 | Taux d'épargne | `(revenus − dépenses) / revenus` |
 | Taux d'épargne avec le capital | `(revenus − dépenses + capital remboursé) / revenus` : le capital remboursé constitue aussi un patrimoine |
 | Taux d'endettement | `mensualités / (revenus saisis + 70 % des loyers et dividendes SCPI)`, avec mensualités = échéances des crédits immobiliers, assurance comprise, + lignes des catégories marquées « remboursements de crédit » ; signalé au-delà de 35 % (recommandation du HCSF) |

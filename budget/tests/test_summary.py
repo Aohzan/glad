@@ -26,6 +26,7 @@ from budget.services.summary import (
     build_budget,
 )
 from budget.tests.conftest import YEAR, add_line, day
+from finance.models.base import DepositOrigin
 from finance.models.saving_account import (
     SavingAccount,
     SavingAccountDeposit,
@@ -282,6 +283,47 @@ class TestBuildBudget:
         accounts_only = build_budget(budget_year, household)
         assert accounts_only.indicators.income == Decimal(40000)
         assert accounts_only.indicators.savings == Decimal(2000)
+
+
+@pytest.mark.django_db
+class TestAccountOrigins:
+    def test_exceptional_deposit_and_guessed_origins(self, categories, household):
+        budget_year = BudgetYear.objects.create(year=YEAR, include_properties=False)
+        add_line(budget_year, categories["salaries"], 10000)
+        kind = SavingAccountType.objects.create(name="Booklet", code="BKT")
+        booklet, other = (
+            SavingAccount.objects.create(
+                account_type=kind,
+                name=name,
+                opening_date=datetime.date(2000, 1, 1),
+                opening_value=Money(0, "EUR"),
+            )
+            for name in ("Booklet", "Other")
+        )
+
+        def deposit(account, amount, month, origin=DepositOrigin.UNKNOWN):
+            SavingAccountDeposit.objects.create(
+                account=account,
+                amount=Money(amount, "EUR"),
+                deposit_date=datetime.datetime(YEAR, month, 1),
+                origin=origin,
+            )
+
+        deposit(booklet, 20000, 2, DepositOrigin.EXCEPTIONAL)
+        deposit(booklet, -3000, 4)
+        deposit(other, 3000, 4)
+        deposit(other, 1000, 6)
+        summary = build_budget(budget_year, household)
+        indicators = summary.indicators
+        assert indicators.income == Decimal(10000)
+        assert indicators.exceptional == Decimal(20000)
+        assert indicators.savings == Decimal(21000)
+        assert indicators.balance == Decimal(9000)
+        assert indicators.savings_rate == Decimal(100)
+        keys = {n.key for n in summary.nodes()}
+        assert f"account:saving:{booklet.pk}:exceptional" in keys
+        assert summary.guessed_transfers == 2
+        assert summary.guessed_income == 1
 
 
 @pytest.mark.django_db
