@@ -112,6 +112,10 @@ défaut l'inflation des 12 derniers mois publiés), arrondi au centime.
 
 Le diagramme (`static/js/sankey.js`, sans dépendance) relie les ressources, à
 gauche, aux dépenses et à l'épargne, à droite, par un nœud central. Chaque
+compte y compte pour son flux net de l'année (apports exceptionnels compris),
+et les retraits des comptes sont déduits de leurs versements, au prorata de
+chaque compte : un livret vidé sur le compte courant puis replacé sur un PEA
+n'apparaît pas des deux côtés. Les tableaux gardent le détail par compte. Chaque
 côté étant un arbre, chaque profondeur est une colonne, les nœuds sont
 empilés dans l'ordre de l'arbre et centrés sur leur parent. Un clic plie ou
 déplie un groupe. Les couleurs viennent des jetons CSS `--g-*` et suivent le
