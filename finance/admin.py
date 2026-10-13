@@ -187,18 +187,44 @@ class SavingAccountAdmin(admin.ModelAdmin):
 class SavingAccountDepositAdmin(admin.ModelAdmin):
     """Admin interface for SavingAccountDeposit."""
 
-    list_display = ("account", "amount", "deposit_date", "update_account_value")
-    list_filter = ("deposit_date", "update_account_value", "account")
-    fields = ("account", "amount", "deposit_date", "source", "update_account_value")
+    list_display = (
+        "account",
+        "amount",
+        "deposit_date",
+        "origin",
+        "update_account_value",
+    )
+    list_filter = ("deposit_date", "origin", "update_account_value", "account")
+    fields = (
+        "account",
+        "amount",
+        "deposit_date",
+        "origin",
+        "source",
+        "update_account_value",
+    )
 
 
 @admin.register(InvestmentAccountDeposit)
 class InvestmentAccountDepositAdmin(admin.ModelAdmin):
     """Admin interface for InvestmentAccountDeposit."""
 
-    list_display = ("account", "amount", "deposit_date", "update_account_cash")
-    list_filter = ("deposit_date", "update_account_cash", "account")
-    fields = ("account", "amount", "deposit_date", "source", "update_account_cash")
+    list_display = (
+        "account",
+        "amount",
+        "deposit_date",
+        "origin",
+        "update_account_cash",
+    )
+    list_filter = ("deposit_date", "origin", "update_account_cash", "account")
+    fields = (
+        "account",
+        "amount",
+        "deposit_date",
+        "origin",
+        "source",
+        "update_account_cash",
+    )
 
 
 @admin.register(InvestmentAccountHoldingHistory)

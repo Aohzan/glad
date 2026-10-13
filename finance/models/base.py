@@ -22,6 +22,37 @@ from finance.envelopes import (
 from finance.utils import AccountProgression
 
 
+class DepositOrigin(models.TextChoices):
+    """Where the money of a deposit comes from (or goes to, for a withdrawal).
+
+    The household budget counts the deposits from the income as savings and
+    the withdrawals for the household as resources, leaves the transfers
+    between accounts out, and shows the exceptional deposits (sale,
+    inheritance, gift) as exceptional resources. An unknown origin is guessed
+    there: a deposit matching a withdrawal of another account is a transfer.
+    """
+
+    UNKNOWN = "unknown", _("Unknown")
+    INCOME = "income", _("Household income or expenses")
+    TRANSFER = "transfer", _("Transfer between accounts")
+    EXCEPTIONAL = "exceptional", _("Exceptional (sale, inheritance, gift…)")
+
+
+def deposit_origin_field() -> models.CharField:
+    """The origin of a deposit, unknown until the user sets it."""
+    return models.CharField(
+        max_length=12,
+        choices=DepositOrigin.choices,
+        default=DepositOrigin.UNKNOWN,
+        verbose_name=_("Origin"),
+        help_text=_(
+            "Where the money comes from, or goes to for a withdrawal. The budget "
+            "leaves the transfers between accounts out and guesses an unknown "
+            "origin."
+        ),
+    )
+
+
 class ActiveAccountManager(models.Manager):
     """Default manager that provides an ``active()`` shortcut queryset."""
 

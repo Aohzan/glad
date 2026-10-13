@@ -14,6 +14,7 @@
           <tr>
             <th>{% translate "Date" %}</th>
             <th>{% translate "Amount" %}</th>
+            <th>{% translate "Origin" %}</th>
             <th>{% translate "Source" %}</th>
             <th class="text-end">{% translate "Actions" %}</th>
           </tr>
@@ -23,6 +24,7 @@
           <tr>
             <td>{{ d.deposit_date }}</td>
             <td>{{ d.amount|format_money }}</td>
+            <td>{% if d.origin == "unknown" %}<span class="text-body-secondary">{{ d.get_origin_display }}</span>{% else %}{{ d.get_origin_display }}{% endif %}</td>
             <td>{{ d.source|default:"-" }}</td>
             <td class="text-end">
               {% url edit_deposit_url_name account.pk d.pk as edit_url %}

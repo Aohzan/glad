@@ -9,6 +9,7 @@ from django.contrib.messages import get_messages
 from django.urls import reverse
 from djmoney.money import Money
 
+from finance.models.base import DepositOrigin
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountCash,
@@ -397,6 +398,7 @@ class TestInvestmentDepositCRUD:
             "amount_1": "EUR",
             "deposit_date": "2025-06-01",
             "source": "Bonus",
+            "origin": "income",
             "update_account_cash": True,
         }
         response = user_client.post(url, data)
@@ -421,11 +423,13 @@ class TestInvestmentDepositCRUD:
             "amount_1": "EUR",
             "deposit_date": "2025-06-15",
             "source": "Updated",
+            "origin": "transfer",
         }
         response = user_client.post(url, data)
         assert response.status_code == 302
         investment_deposit.refresh_from_db()
         assert investment_deposit.source == "Updated"
+        assert investment_deposit.origin == DepositOrigin.TRANSFER
 
     def test_post_delete_deposit(
         self, user_client, investment_account, investment_deposit

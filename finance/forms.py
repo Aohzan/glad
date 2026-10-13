@@ -333,7 +333,7 @@ class SavingAccountDepositForm(MoneyInputGroupMixin, forms.ModelForm):
 
     class Meta:
         model = SavingAccountDeposit
-        fields = ["amount", "deposit_date", "source", "update_account_value"]
+        fields = ["amount", "deposit_date", "origin", "source", "update_account_value"]
         widgets = {
             "deposit_date": DATETIME_WIDGET,
             "source": SuggestionsTextInput(
@@ -431,7 +431,7 @@ class InvestmentAccountDepositForm(MoneyInputGroupMixin, forms.ModelForm):
 
     class Meta:
         model = InvestmentAccountDeposit
-        fields = ["amount", "deposit_date", "source", "update_account_cash"]
+        fields = ["amount", "deposit_date", "origin", "source", "update_account_cash"]
         widgets = {
             "deposit_date": DATE_WIDGET,
             "source": SuggestionsTextInput(
