@@ -67,8 +67,10 @@
 | Dashboard | Finance home | Finance investments |
 | [![Finance batch update](docs/images/finance_batch_update.png)](docs/images/finance_batch_update.png) | [![Property home](docs/images/property_home.png)](docs/images/property_home.png) | [![Property details](docs/images/property_details.png)](docs/images/property_details.png) |
 | Finance batch update | Property home | Property details |
-| [![Property accounting](docs/images/property_accounting.png)](docs/images/property_accounting.png) | [![Property LMNP](docs/images/property_lmnp.png)](docs/images/property_lmnp.png) | [![SCPI](docs/images/scpi.png)](docs/images/scpi.png) |
-| Property accounting | Property LMNP | SCPI |
+| [![Property cash flow](docs/images/property_accounting.png)](docs/images/property_accounting.png) | [![Property LMNP](docs/images/property_lmnp.png)](docs/images/property_lmnp.png) | [![SCPI](docs/images/scpi.png)](docs/images/scpi.png) |
+| Property cash flow | Property LMNP | SCPI |
+| [![Household budget](docs/images/budget.png)](docs/images/budget.png) | | |
+| Household budget | | |
 
 ## Configuration
 
