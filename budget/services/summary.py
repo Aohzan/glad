@@ -16,7 +16,12 @@ from django.utils.translation import gettext as _
 from base.models import display_name
 from base.services.ownership import HolderResolver
 from budget.models import BudgetCategory, BudgetKind, BudgetLine, BudgetYear
-from budget.services.finance_flows import AccountFlows, account_year_flows
+from budget.services.finance_flows import (
+    AccountFlows,
+    FinanceFlows,
+    Movement,
+    account_year_flows,
+)
 from budget.services.perspective import Perspective
 from budget.services.property_flows import (
     PropertyFlows,
@@ -24,6 +29,7 @@ from budget.services.property_flows import (
     property_year_flows,
     scpi_year_flows,
 )
+from finance.models.base import DepositOrigin
 from property.models.ledger import ManagementCategory
 
 #: Share of the rents and SCPI dividends banks count as income in the debt
@@ -107,6 +113,8 @@ class Indicators:
     principal: Decimal
     debt_payments: Decimal
     debt_income: Decimal
+    #: Exceptional deposits (sale, inheritance, gift), outside the income.
+    exceptional: Decimal = Decimal(0)
 
     @property
     def monthly_income(self) -> Decimal:
@@ -126,7 +134,13 @@ class Indicators:
     @property
     def balance(self) -> Decimal:
         """Money left once the savings are made (negative for a deficit)."""
-        return self.income + self.withdrawals - self.expenses - self.savings
+        return (
+            self.income
+            + self.withdrawals
+            + self.exceptional
+            - self.expenses
+            - self.savings
+        )
 
     @property
     def savings_rate(self) -> Decimal | None:
@@ -173,6 +187,18 @@ class BudgetSummary:
     #: Remaining money (positive) or deficit (negative) node, if any.
     balance: BudgetNode | None = None
     has_previous: bool = False
+    #: Account movements of unknown origin, whose origin was guessed.
+    guesses: list[Movement] = field(default_factory=list)
+
+    @property
+    def guessed_transfers(self) -> int:
+        """Movements of unknown origin taken as transfers between accounts."""
+        return sum(1 for m in self.guesses if m.guessed == DepositOrigin.TRANSFER)
+
+    @property
+    def guessed_income(self) -> int:
+        """Movements of unknown origin taken as savings from the income."""
+        return len(self.guesses) - self.guessed_transfers
 
     def nodes(self):
         """Every node of the three trees."""
@@ -183,7 +209,7 @@ class BudgetSummary:
 
     @property
     def resources_total(self) -> Decimal:
-        """Income plus the withdrawals from savings."""
+        """Income plus the withdrawals from savings and the exceptional deposits."""
         return sum((n.total for n in self.resources), Decimal(0))
 
     @property
@@ -360,8 +386,10 @@ def _scpi_nodes(flows: list[SCPIFlows]) -> tuple[BudgetNode, BudgetNode]:
     return dividends, subscriptions
 
 
-def _account_nodes(flows: list[AccountFlows]) -> tuple[BudgetNode, BudgetNode]:
-    """Deposits (savings) and withdrawals (resources) of the accounts."""
+def _account_nodes(
+    flows: list[AccountFlows],
+) -> tuple[BudgetNode, BudgetNode, BudgetNode]:
+    """Deposits (savings), withdrawals and exceptional deposits (resources)."""
     deposits = BudgetNode(
         key="auto:accounts:deposits",
         label=_("Account deposits"),
@@ -374,19 +402,31 @@ def _account_nodes(flows: list[AccountFlows]) -> tuple[BudgetNode, BudgetNode]:
         kind=BudgetKind.INCOME,
         source="auto",
     )
+    exceptional = BudgetNode(
+        key="auto:accounts:exceptional",
+        label=_("Exceptional deposits"),
+        kind=BudgetKind.INCOME,
+        source="auto",
+    )
     for item in flows:
-        group = deposits if item.amount > 0 else withdrawals
-        group.children.append(
-            BudgetNode(
-                key=item.key,
-                label=str(item.account),
-                kind=group.kind,
-                source="auto",
-                amount=abs(item.amount),
-                url=item.url,
-            )
+        parts = (
+            (deposits, item.key, max(item.amount, Decimal(0)) + item.exceptional),
+            (withdrawals, item.key, max(-item.amount, Decimal(0))),
+            (exceptional, f"{item.key}:exceptional", item.exceptional),
         )
-    return deposits, withdrawals
+        for group, key, amount in parts:
+            if amount:
+                group.children.append(
+                    BudgetNode(
+                        key=key,
+                        label=str(item.account),
+                        kind=group.kind,
+                        source="auto",
+                        amount=amount,
+                        url=item.url,
+                    )
+                )
+    return deposits, withdrawals, exceptional
 
 
 # ─── Summary ──────────────────────────────────────────────────────────────────
@@ -445,7 +485,7 @@ def build_budget(
 
     property_flows: list[PropertyFlows] = []
     scpi_flows: list[SCPIFlows] = []
-    account_flows: list[AccountFlows] = []
+    finance = FinanceFlows()
     if budget_year.include_properties or budget_year.include_finance:
         resolver = HolderResolver()
         if budget_year.include_properties:
@@ -461,14 +501,14 @@ def build_budget(
                 budget_year.year, perspective, currency=currency, resolver=resolver
             )
         if budget_year.include_finance:
-            account_flows = account_year_flows(
+            finance = account_year_flows(
                 budget_year.year, perspective, currency=currency, resolver=resolver
             )
 
     property_income, property_expenses = _property_nodes(property_flows)
     dividends, subscriptions = _scpi_nodes(scpi_flows)
-    deposits, withdrawals = _account_nodes(account_flows)
-    resources += [property_income, dividends, withdrawals]
+    deposits, withdrawals, exceptional = _account_nodes(finance.accounts)
+    resources += [property_income, dividends, withdrawals, exceptional]
     expenses.append(property_expenses)
     savings += [deposits, subscriptions]
     for root in [*resources, *expenses, *savings]:
@@ -484,6 +524,7 @@ def build_budget(
         expenses=sum((n.total for n in expenses), Decimal(0)),
         savings=sum((n.total for n in savings), Decimal(0)),
         withdrawals=withdrawals.total,
+        exceptional=exceptional.total,
         principal=sum((f.loan.principal for f in property_flows), Decimal(0)),
         debt_payments=loan_payments + manual_debt,
         debt_income=manual_income + rents * RENT_WEIGHT,
@@ -514,6 +555,7 @@ def build_budget(
         savings=savings,
         indicators=indicators,
         balance=balance,
+        guesses=finance.guesses,
     )
 
 

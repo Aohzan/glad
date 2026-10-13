@@ -1,5 +1,6 @@
 """Tests of the budget pages."""
 
+import datetime
 from decimal import Decimal
 from unittest import mock
 
@@ -7,10 +8,16 @@ import pytest
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from moneyed import Money
 
 from budget.forms import MAX_IMPORT_SIZE, CategoryChoiceField
 from budget.models import BudgetCategory, BudgetKind, BudgetLine, BudgetYear
 from budget.tests.conftest import YEAR, add_line
+from finance.models.saving_account import (
+    SavingAccount,
+    SavingAccountDeposit,
+    SavingAccountType,
+)
 
 
 def _messages(response) -> list[str]:
@@ -70,6 +77,27 @@ class TestYearDetail:
         assert response.context["deltas"]["income"] == Decimal(2000)
         assert response.context["comparison_chart"]["labels"] == ["Housing"]
         assert f"{YEAR - 1} compared with {YEAR}" in response.content.decode()
+
+    def test_warns_about_guessed_origins(self, user_client, filled_year):
+        filled_year.include_finance = True
+        filled_year.save()
+        kind = SavingAccountType.objects.create(name="Booklet", code="BKT")
+        account = SavingAccount.objects.create(
+            account_type=kind,
+            name="Booklet",
+            opening_date=datetime.date(2000, 1, 1),
+            opening_value=Money(0, "EUR"),
+        )
+        SavingAccountDeposit.objects.create(
+            account=account,
+            amount=Money(500, "EUR"),
+            deposit_date=datetime.datetime(YEAR, 3, 1),
+        )
+        response = user_client.get(reverse("budget:year", args=[YEAR]))
+        content = response.content.decode()
+        assert 'id="budget-guesses"' in content
+        assert "1 account movement of unknown origin" in content
+        assert f"/finance/saving/{account.pk}/#deposits-panel" in content
 
     def test_unknown_person_shows_the_household(self, user_client, filled_year):
         response = user_client.get(

@@ -9,10 +9,11 @@ from moneyed import Money
 
 from base.models import Ownership, household_members
 from base.services.ownership import flow_ratio
-from budget.services.finance_flows import account_year_flows
+from budget.services.finance_flows import Movement, account_year_flows, guess_origins
 from budget.services.perspective import Perspective
 from budget.services.property_flows import property_year_flows, scpi_year_flows
 from budget.tests.conftest import YEAR, day
+from finance.models.base import DepositOrigin
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountDeposit,
@@ -330,70 +331,151 @@ class TestSCPIFlows:
         assert self._of(SCPI.objects.create(name="Silent"), adult) is None
 
 
+def _saving(
+    name="Booklet", opened=datetime.date(2000, 1, 1), opening=0, currency="EUR"
+):
+    kind, _created = SavingAccountType.objects.get_or_create(name="Booklet", code="BKT")
+    return SavingAccount.objects.create(
+        account_type=kind,
+        name=name,
+        opening_date=opened,
+        opening_value=Money(opening, currency),
+    )
+
+
+def _investment(name="Broker", opened=datetime.date(2000, 1, 1), opening=0):
+    kind, _created = InvestmentAccountType.objects.get_or_create(
+        name="Broker", code="BRK"
+    )
+    return InvestmentAccount.objects.create(
+        account_type=kind,
+        name=name,
+        opening_date=opened,
+        opening_cash_value=Money(opening, "EUR"),
+    )
+
+
+def _deposit(account, amount, when, origin=DepositOrigin.UNKNOWN):
+    if isinstance(account, SavingAccount):
+        return SavingAccountDeposit.objects.create(
+            account=account,
+            amount=Money(amount, "EUR"),
+            deposit_date=datetime.datetime.combine(when, datetime.time(9)),
+            origin=origin,
+        )
+    return InvestmentAccountDeposit.objects.create(
+        account=account, amount=Money(amount, "EUR"), deposit_date=when, origin=origin
+    )
+
+
+class TestGuessOrigins:
+    def _movement(self, account, amount, when, origin=DepositOrigin.UNKNOWN):
+        return Movement(
+            account=account, day=when, amount=Decimal(amount), origin=origin
+        )
+
+    def test_matching_movements_are_a_transfer(self):
+        booklet, broker, other = (
+            SavingAccount(pk=1),
+            InvestmentAccount(pk=1),
+            SavingAccount(pk=2),
+        )
+        out = self._movement(booklet, -500, day(3, 1))
+        far = self._movement(broker, 500, day(3, 20))
+        near = self._movement(broker, 500, day(3, 4))
+        same_account = self._movement(booklet, 500, day(3, 2))
+        lonely = self._movement(other, 80, day(5))
+        guess_origins([out, far, near, same_account, lonely])
+        assert out.guessed == near.guessed == DepositOrigin.TRANSFER
+        assert far.guessed == DepositOrigin.INCOME
+        assert same_account.guessed == DepositOrigin.INCOME
+        assert lonely.guessed == DepositOrigin.INCOME
+
+    def test_pairs_with_an_explicit_transfer_only(self):
+        booklet, broker = SavingAccount(pk=1), InvestmentAccount(pk=1)
+        explicit = self._movement(booklet, -300, day(6), DepositOrigin.TRANSFER)
+        unknown = self._movement(broker, 300, day(6, 2))
+        income = self._movement(booklet, -200, day(7), DepositOrigin.INCOME)
+        unmatched = self._movement(broker, 200, day(7, 2))
+        guess_origins([explicit, unknown, income, unmatched])
+        assert unknown.guessed == DepositOrigin.TRANSFER
+        assert explicit.guessed is None
+        assert explicit.effective_origin == DepositOrigin.TRANSFER
+        assert unmatched.guessed == DepositOrigin.INCOME
+        assert income.effective_origin == DepositOrigin.INCOME
+
+
 @pytest.mark.django_db
 class TestAccountFlows:
-    def _of(self, account, perspective):
-        flows = account_year_flows(YEAR, perspective, currency="EUR")
-        return next((f for f in flows if f.account == account), None)
+    def _of(self, account, perspective, year=YEAR):
+        flows = account_year_flows(year, perspective, currency="EUR")
+        return next((f for f in flows.accounts if f.account == account), None), flows
 
-    def test_net_deposits_of_the_year(self, household):
-        kind = SavingAccountType.objects.create(name="Booklet", code="BKT")
-        account = SavingAccount.objects.create(
-            account_type=kind,
-            name="Booklet",
-            opening_date=datetime.date(2000, 1, 1),
-            opening_value=Money(0, "EUR"),
-        )
-        SavingAccountDeposit.objects.create(
-            account=account,
-            amount=Money(300, "EUR"),
-            deposit_date=datetime.datetime(YEAR, 2, 1),
-        )
-        SavingAccountDeposit.objects.create(
-            account=account,
-            amount=Money(-100, "EUR"),
-            deposit_date=datetime.datetime(YEAR, 5, 1),
-        )
-        SavingAccountDeposit.objects.create(
-            account=account,
-            amount=Money(999, "EUR"),
-            deposit_date=datetime.datetime(YEAR - 1, 5, 1),
-        )
-        flows = self._of(account, household)
+    def test_deposits_by_origin(self, household):
+        account = _saving()
+        _deposit(account, 300, day(2), DepositOrigin.INCOME)
+        _deposit(account, -100, day(5), DepositOrigin.INCOME)
+        _deposit(account, 900, day(8), DepositOrigin.TRANSFER)
+        _deposit(account, 5000, day(9), DepositOrigin.EXCEPTIONAL)
+        _deposit(account, -7000, day(10), DepositOrigin.EXCEPTIONAL)
+        _deposit(account, 999, datetime.date(YEAR - 1, 5, 1), DepositOrigin.INCOME)
+        flows, finance = self._of(account, household)
         assert flows.amount == Decimal(200)
+        assert flows.exceptional == Decimal(5000)
         assert flows.key == f"account:saving:{account.pk}"
         assert flows.url.endswith(f"/{account.pk}/")
+        assert finance.guesses == []
 
-    def test_opening_value_and_withdrawals(self, household):
-        kind = InvestmentAccountType.objects.create(name="Broker", code="BRK")
-        account = InvestmentAccount.objects.create(
-            account_type=kind,
-            name="Broker",
-            opening_date=day(4),
-            opening_cash_value=Money(1000, "EUR"),
+    def test_unknown_transfer_between_accounts(self, household):
+        booklet = _saving()
+        broker = _investment()
+        _deposit(booklet, -2000, day(12, 30))
+        _deposit(broker, 2000, datetime.date(YEAR + 1, 1, 2))
+        _deposit(booklet, 150, day(4))
+        flows, finance = self._of(booklet, household)
+        assert flows.amount == Decimal(150)
+        assert [(m.amount, m.guessed) for m in finance.guesses] == [
+            (Decimal(150), DepositOrigin.INCOME),
+            (Decimal(-2000), DepositOrigin.TRANSFER),
+        ]
+        assert finance.guesses[0].url.endswith("#deposits-panel")
+        assert self._of(broker, household)[0] is None
+        assert self._of(broker, household, YEAR + 1)[0] is None
+
+    def test_opening_value_is_an_unknown_deposit(self, household):
+        booklet = _saving()
+        broker = _investment(opened=day(4), opening=1000)
+        assert self._of(broker, household)[0].amount == Decimal(1000)
+        _deposit(booklet, -1000, day(4, 3))
+        flows, finance = self._of(broker, household)
+        assert flows is None
+        assert {m.guessed for m in finance.guesses} == {DepositOrigin.TRANSFER}
+        assert (
+            self._of(broker, household)[1]
+            .guesses[0]
+            .url.endswith(f"/{broker.pk}/#deposits-panel")
         )
-        assert self._of(account, household).amount == Decimal(1000)
-        InvestmentAccountDeposit.objects.create(
-            account=account, amount=Money(-3000, "EUR"), deposit_date=day(9)
+
+    def test_accounts_outside_the_perspective(self, admin_user):
+        account = _saving()
+        _own(account, admin_user)
+        _deposit(account, 300, day(2))
+        other = Perspective(
+            person_id=admin_user.pk + 1000, members=frozenset({admin_user.pk}), adults=1
         )
-        flows = self._of(account, household)
-        assert flows.amount == Decimal(-2000)
-        assert flows.key == f"account:investment:{account.pk}"
-        assert flows.url.endswith(f"/{account.pk}/")
+        flows, finance = self._of(account, other)
+        assert flows is None
+        assert finance.guesses == []
 
     def test_other_currency_and_empty_accounts(self, household):
-        kind = SavingAccountType.objects.create(name="Booklet", code="BKT")
-        dollars = SavingAccount.objects.create(
-            account_type=kind,
-            name="Dollars",
-            opening_date=day(1),
-            opening_value=Money(50, "USD"),
+        dollars = _saving("Dollars", opened=day(1), opening=50, currency="USD")
+        quiet = _saving("Quiet", opening=50)
+        euros = _saving("Euros")
+        SavingAccountDeposit.objects.create(
+            account=euros,
+            amount=Money(40, "USD"),
+            deposit_date=datetime.datetime(YEAR, 3, 1),
         )
-        quiet = SavingAccount.objects.create(
-            account_type=kind,
-            name="Quiet",
-            opening_date=datetime.date(2000, 1, 1),
-            opening_value=Money(50, "EUR"),
-        )
-        assert self._of(dollars, household) is None
-        assert self._of(quiet, household) is None
+        assert self._of(dollars, household)[0] is None
+        assert self._of(quiet, household)[0] is None
+        assert self._of(euros, household)[0] is None

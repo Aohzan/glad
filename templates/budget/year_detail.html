@@ -44,6 +44,36 @@
 {% block content %}
 <div class="g-stack">
 
+  {% if summary.guesses %}
+  <div class="alert alert-warning mb-0" id="budget-guesses">
+    <div class="d-flex gap-2">
+      {% icon "triangle-alert" "flex-shrink-0 mt-1" %}
+      <div>
+        <strong>{% blocktranslate count counter=summary.guesses|length %}{{ counter }} account movement of unknown origin: its origin was guessed.{% plural %}{{ counter }} account movements of unknown origin: their origin was guessed.{% endblocktranslate %}</strong>
+        {% blocktranslate with transfers=summary.guessed_transfers income=summary.guessed_income %}Transfers between accounts (a movement of the same amount on another account a few days apart): {{ transfers }}; savings from the income or withdrawals for the household: {{ income }}. Set their origin on the accounts for an exact budget.{% endblocktranslate %}
+        <details class="mt-2">
+          <summary>{% translate "See the movements" %}</summary>
+          <div class="table-responsive mt-2">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>{% translate "Date" %}</th><th>{% translate "Account" %}</th><th class="text-end">{% translate "Amount" %}</th><th>{% translate "Guessed origin" %}</th></tr></thead>
+              <tbody>
+                {% for movement in summary.guesses %}
+                <tr>
+                  <td>{{ movement.day|date:"SHORT_DATE_FORMAT" }}</td>
+                  <td><a href="{{ movement.url }}">{{ movement.account }}</a></td>
+                  <td class="text-end">{{ movement.amount|signed_money0:currency }}</td>
+                  <td>{% if movement.guessed == "transfer" %}{% translate "Transfer between accounts" %}{% else %}{% translate "Household income or expenses" %}{% endif %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <section class="g-card g-kpis" id="budget-kpis">
     <div class="g-kpi">
       <span class="g-kpi__label">{% icon "arrow-down-to-line" %}{% translate "Income" context "budget" %}</span>
@@ -145,7 +175,7 @@
   {% endif %}
 
   <p class="g-meta mb-0">
-    {% translate "Automatic lines come from the property ledgers and loan schedules, the SCPI dividends and subscriptions, and the deposits on the accounts of the year; they change with them. Every amount is yearly, the month column divides it by 12." %}
+    {% translate "Automatic lines come from the property ledgers and loan schedules, the SCPI dividends and subscriptions, and the deposits on the accounts of the year; they change with them. Transfers between accounts are left out. Every amount is yearly, the month column divides it by 12." %}
   </p>
 </div>
 {{ sankey|json_script:"budget-sankey-data" }}

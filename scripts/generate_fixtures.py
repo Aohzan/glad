@@ -786,6 +786,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M84)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 2
@@ -797,6 +798,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M72)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 3
@@ -808,6 +810,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M60)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 4
@@ -819,6 +822,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M48)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 5
@@ -830,6 +834,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M36)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 6
@@ -841,6 +846,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M24)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 7
@@ -852,6 +858,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M12)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 8
@@ -863,6 +870,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M3)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 # ── Account 2: Assurance Vie ──────────────────────────────────────────────────
 - model: finance.investmentaccount
@@ -1278,6 +1286,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M60)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 10
@@ -1289,6 +1298,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M48)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 11
@@ -1300,6 +1310,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M36)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 12
@@ -1311,6 +1322,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M24)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
 - model: finance.investmentaccountdeposit
   pk: 13
@@ -1322,7 +1334,32 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(M12)}
     source: Virement bancaire
+    origin: income
     update_account_cash: true
+# The other side of the transfer from the Livret A, without origin
+- model: finance.investmentaccountdeposit
+  pk: 14
+  fields:
+    created_at: {dt(days_ago(43))}
+    updated_at: {dt(days_ago(43))}
+    account_id: 1
+    amount: 1500
+    amount_currency: EUR
+    deposit_date: {ds(days_ago(43))}
+    source: Depuis le Livret A
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 15
+  fields:
+    created_at: {dt(days_ago(100))}
+    updated_at: {dt(days_ago(100))}
+    account_id: 2
+    amount: 10000
+    amount_currency: EUR
+    deposit_date: {ds(days_ago(100))}
+    source: Donation
+    origin: exceptional
+    update_account_cash: false
 - model: finance.eurofundrate
   pk: 1
   fields:
@@ -1478,6 +1515,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M36)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 2
@@ -1489,6 +1527,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M30)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 3
@@ -1500,6 +1539,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M24)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 4
@@ -1511,6 +1551,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M18)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 5
@@ -1522,6 +1563,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M15)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 6
@@ -1533,6 +1575,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M12)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 7
@@ -1544,6 +1587,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M9)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 8
@@ -1555,6 +1599,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M6)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 9
@@ -1566,6 +1611,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M3)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 10
@@ -1577,6 +1623,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(RECENT)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 # ── Account 2: LDDS — Mister ──────────────────────────────────────────────────
 - model: finance.savingaccount
@@ -1646,6 +1693,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M18)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 12
@@ -1657,6 +1705,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M12)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 13
@@ -1668,6 +1717,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M9)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 14
@@ -1679,6 +1729,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M6)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 # ── Account 3: Livret A — Madame ─────────────────────────────────────────────
 - model: finance.savingaccount
@@ -1757,6 +1808,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M24)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 16
@@ -1768,6 +1820,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M18)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 17
@@ -1779,6 +1832,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M12)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 18
@@ -1790,6 +1844,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M9)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 19
@@ -1801,6 +1856,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M6)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 # ── Account 4: PEL — Commun ───────────────────────────────────────────────────
 - model: finance.savingaccount
@@ -1870,6 +1926,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M36)}
     source: Virement annuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 21
@@ -1881,6 +1938,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M24)}
     source: Virement annuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 22
@@ -1892,6 +1950,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M18)}
     source: Virement annuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 23
@@ -1903,6 +1962,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M12)}
     source: Virement annuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 24
@@ -1914,6 +1974,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M6)}
     source: Virement annuel
+    origin: income
     update_account_value: true
 # ── Account 5: CEL — Commun ───────────────────────────────────────────────────
 - model: finance.savingaccount
@@ -1983,6 +2044,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M24)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 26
@@ -1994,6 +2056,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M18)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 27
@@ -2005,6 +2068,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M12)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
 - model: finance.savingaccountdeposit
   pk: 28
@@ -2016,7 +2080,20 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(M6)}
     source: Virement mensuel
+    origin: income
     update_account_value: true
+# A transfer to the PEA without origin, which the budget guesses
+- model: finance.savingaccountdeposit
+  pk: 29
+  fields:
+    created_at: {dt(days_ago(45))}
+    updated_at: {dt(days_ago(45))}
+    account_id: 1
+    amount: -1500
+    amount_currency: EUR
+    deposit_date: {dt(days_ago(45))}
+    source: Vers le PEA
+    update_account_value: false
 """
 
 
