@@ -41,6 +41,7 @@ TODAY = datetime.date.today()
         ("property", "scpi_list", "scpi"),
         ("property", "all_loans", "loans"),
         ("property", "detail", "property"),
+        ("budget", "year", "budget"),
         ("", "deadlines", "deadlines"),
         ("", "manage_owners", "owners"),
         ("admin", "index", "admin"),

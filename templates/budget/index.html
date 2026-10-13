@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load i18n glad_format %}
+
+{% block title %}{% translate "Budget" %}{% endblock %}
+{% block page_kicker %}{% translate "Analysis" %}{% endblock %}
+{% block page_title %}{% translate "Household budget" %}{% endblock %}
+{% block page_description %}{% translate "Income, expenses and savings of the household, year by year" %}{% endblock %}
+{% block page_actions %}
+{% if has_categories %}
+<a class="btn btn-outline-secondary" href="{% url 'budget:categories' %}">{% icon "list-tree" %}{% translate "Categories" %}</a>
+<a class="btn btn-primary" href="{% url 'budget:year_new' %}">{% icon "plus" %}{% translate "New budget" %}</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="g-stack">
+  {% if not has_categories %}
+  <section class="g-card g-empty">
+    {% icon "hand-coins" "display-4 g-muted mb-3" %}
+    <p class="mb-2">{% translate "Describe the income and expenses of your household for each year, see where the money goes in a flow diagram and follow your savings rate." %}</p>
+    <p class="g-meta mb-3">{% translate "Start with the default categories (housing, food, transport, taxes…): you can rename, move or delete them afterwards." %}</p>
+    <div class="d-flex flex-wrap justify-content-center gap-2">
+      <form method="post" action="{% url 'budget:category_defaults' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="index">
+        <button type="submit" class="btn btn-primary">{% icon "sparkles" %}{% translate "Create the default categories" %}</button>
+      </form>
+      <a class="btn btn-outline-secondary" href="{% url 'budget:category_new' %}">{% icon "plus" %}{% translate "Create my own categories" %}</a>
+    </div>
+  </section>
+  {% elif rows %}
+  <section class="g-card">
+    <div class="g-table-wrap">
+      <div class="g-table" style="--g-cols: minmax(120px, 1fr) repeat(5, minmax(110px, 1fr)); --g-table-min: 760px">
+        <div class="g-table__head">
+          <span>{% translate "Year" %}</span>
+          <span class="g-cell-end">{% translate "Income" context "budget" %}</span>
+          <span class="g-cell-end">{% translate "Expenses" %}</span>
+          <span class="g-cell-end">{% translate "Savings" context "budget" %}</span>
+          <span class="g-cell-end">{% translate "Savings rate" %}</span>
+          <span class="g-cell-end">{% translate "Debt ratio" %}</span>
+        </div>
+        {% for budget_year, indicators in rows %}
+        <a class="g-table__row" href="{% url 'budget:year' budget_year.year %}">
+          <span class="g-cell-main">
+            <span class="g-cell-title">{{ budget_year.year }}{% if budget_year.year == current_year %} <span class="g-tag">{% translate "Current" %}</span>{% endif %}</span>
+            {% if budget_year.notes %}<span class="g-cell-sub">{{ budget_year.notes|truncatechars:60 }}</span>{% endif %}
+          </span>
+          <span class="g-cell-end">{{ indicators.income|money0:currency }}</span>
+          <span class="g-cell-end">{{ indicators.expenses|money0:currency }}</span>
+          <span class="g-cell-end">{{ indicators.savings|money0:currency }}</span>
+          <span class="g-cell-end g-strong {{ indicators.savings_rate|tone }}">{{ indicators.savings_rate|share }}</span>
+          <span class="g-cell-end{% if indicators.debt_ratio_exceeded %} g-neg{% endif %}">{{ indicators.debt_ratio|share }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% else %}
+  <section class="g-card g-empty">
+    <p class="mb-3">{% translate "No budget yet." %}</p>
+    <a href="{% url 'budget:year_new' %}" class="btn btn-primary">{% icon "plus" %}{% translate "Create the budget of a year" %}</a>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

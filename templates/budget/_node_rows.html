@@ -1,0 +1,26 @@
+{% load i18n glad_format %}{% for node in nodes %}
+<div class="g-table__row g-budget-row g-budget-row--{{ node.source }}{% if depth == 0 %} g-budget-row--group{% endif %}" style="--g-depth: {{ depth }}">
+  <span class="g-cell-main">
+    <span class="g-cell-title">
+      {% if node.url %}<a href="{{ node.url }}" class="text-reset">{{ node.label }}</a>{% else %}{{ node.label }}{% endif %}
+      {% if node.source == "auto" and depth == 0 %}<span class="g-tag g-tag--accent ms-1" title="{% translate 'Computed from the rest of the application' %}">{% translate "Auto" %}</span>{% endif %}
+    </span>
+    {% if node.line.notes %}<span class="g-cell-sub">{{ node.line.notes|truncatechars:80 }}</span>{% endif %}
+  </span>
+  <span class="g-cell-sub">{{ node.person }}</span>
+  <span class="g-cell-end{% if node.children %} g-strong{% endif %}">{{ node.total|money0:currency }}</span>
+  <span class="g-cell-end g-muted">{{ node.monthly|money0:currency }}</span>
+  {% if summary.has_previous %}
+  <span class="g-cell-end g-muted">{{ node.previous|money0:currency }}</span>
+  <span class="g-cell-end {{ node.delta_tone }}">{% if node.delta_percent is not None %}{{ node.delta_percent|pct:0 }}{% elif node.total and not node.previous %}<span class="g-tag">{% translate "New" %}</span>{% endif %}</span>
+  {% endif %}
+  <span class="g-budget-actions">
+    {% if node.line %}
+    <a class="btn btn-sm btn-link" href="{% url 'budget:line_edit' node.line.pk %}" title="{% translate 'Edit' %}" aria-label="{% translate 'Edit' %} {{ node.label }}">{% icon "pencil" %}</a>
+    {% elif node.source == "category" %}
+    <a class="btn btn-sm btn-link" href="{% url 'budget:line_new' budget_year.year %}?category={{ node.key|cut:'category:' }}" title="{% translate 'Add a line' %}" aria-label="{% translate 'Add a line' %} — {{ node.label }}">{% icon "plus" %}</a>
+    {% endif %}
+  </span>
+</div>
+{% if node.children %}{% include "budget/_node_rows.html" with nodes=node.children depth=depth|add:1 %}{% endif %}
+{% endfor %}

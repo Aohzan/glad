@@ -77,7 +77,7 @@ DJANGO_SETTINGS_MODULE = "glad.settings"
 [tool.coverage.run]
 branch = true
 relative_files = true
-source = ["accounts", "base", "finance", "property"]
+source = ["accounts", "base", "budget", "finance", "property"]
 omit = ["*/migrations/*", "*/tests/*", "*/conftest.py"]
 
 [tool.coverage.report]

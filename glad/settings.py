@@ -102,6 +102,7 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "finance.apps.FinanceConfig",
     "property.apps.PropertyConfig",
+    "budget.apps.BudgetConfig",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",

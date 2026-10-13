@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% blocktranslate with year=budget_year.year %}Copy the budget {{ year }}{% endblocktranslate %}{% endblock %}
+{% block breadcrumb_parents %}{% url 'budget:year' budget_year.year as url %}{% include "_crumb.html" with label=budget_year.year %}{% endblock %}
+{% block breadcrumb %}{% translate "Copy" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px;">
+  {% url 'budget:year' budget_year.year as back_url %}
+  {% blocktranslate with year=budget_year.year asvar new_title %}Copy the budget {{ year }}{% endblocktranslate %}
+  {% include "finance/_edit_page_header.html" with new_title=new_title back_url=back_url back_label=budget_year.year %}
+
+  {% include "finance/_form_error_alert.html" %}
+  <p class="text-body-secondary">{% translate "The new budget gets the settings and every line of this one, so you only have to adjust what changed. The automatic lines (properties, accounts) are computed for the new year." %}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="card mb-3">
+      <div class="card-body">
+        {% for field in form %}{% include "_form_field.html" %}{% endfor %}
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">{% icon "copy" "me-1" %}{% translate "Create the budget" %}</button>
+      <a href="{{ back_url }}" class="btn btn-outline-secondary">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

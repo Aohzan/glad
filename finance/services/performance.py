@@ -83,7 +83,7 @@ def account_cash_flows(account, as_of: datetime.date | None = None) -> list[Cash
     return flows
 
 
-def _cpi_at(values: list[EconomicIndexValue], day: datetime.date) -> Decimal | None:
+def cpi_at(values: list[EconomicIndexValue], day: datetime.date) -> Decimal | None:
     """Last CPI published for a month up to *day* (values sorted by period)."""
     found = None
     for value in values:
@@ -100,12 +100,12 @@ def real_cash_flows(flows: list[CashFlow]) -> list[CashFlow] | None:
     )
     if not values:
         return None
-    reference = _cpi_at(values, max(day for day, _amount in flows))
+    reference = cpi_at(values, max(day for day, _amount in flows))
     if reference is None:
         return None
     real = []
     for day, amount in flows:
-        cpi = _cpi_at(values, day)
+        cpi = cpi_at(values, day)
         if cpi is None:
             return None
         real.append((day, amount * reference / cpi))

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% load i18n static glad_format %}
+
+{% block title %}{% blocktranslate with year=budget_year.year %}Budget {{ year }}{% endblocktranslate %}{% endblock %}
+{% block breadcrumb %}{{ budget_year.year }}{% endblock %}
+{% block page_kicker %}{% translate "Budget" %}{% endblock %}
+{% block page_title %}{% blocktranslate with year=budget_year.year %}Budget {{ year }}{% endblocktranslate %}{% endblock %}
+{% block page_description %}{% if person %}{% blocktranslate with name=person.first_name|default:person.username %}Part of {{ name }}: the lines named for them and their share of the household lines{% endblocktranslate %}{% else %}{% translate "Whole household" %}{% endif %}{% endblock %}
+{% block page_actions %}
+<select class="form-select w-auto" id="budget-year-select" aria-label="{% translate 'Year' %}">
+  {% for year in years %}<option value="{% url 'budget:year' year %}{% if person %}?person={{ person.pk }}{% endif %}"{% if year == budget_year.year %} selected{% endif %}>{{ year }}</option>{% endfor %}
+</select>
+<form method="get" class="d-flex align-items-center gap-2">
+  {{ person_form.person }}
+  <noscript><button type="submit" class="btn btn-outline-primary">{% translate "Apply" %}</button></noscript>
+</form>
+<a class="btn btn-primary" href="{% url 'budget:line_new' budget_year.year %}">{% icon "plus" %}{% translate "Add a line" %}</a>
+<div class="dropdown">
+  <button type="button" class="btn btn-outline-secondary" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% translate 'More actions' %}">{% icon "ellipsis" %}</button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><a class="dropdown-item" href="{% url 'budget:year_edit' budget_year.year %}">{% icon "settings" "me-2" %}{% translate "Budget settings" %}</a></li>
+    <li><a class="dropdown-item" href="{% url 'budget:year_copy' budget_year.year %}">{% icon "copy" "me-2" %}{% translate "Copy to another year" %}</a></li>
+    <li><a class="dropdown-item" href="{% url 'budget:categories' %}">{% icon "list-tree" "me-2" %}{% translate "Categories" %}</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="{% url 'budget:import' budget_year.year %}">{% icon "file-up" "me-2" %}{% translate "Import lines (CSV)" %}</a></li>
+    <li><a class="dropdown-item" href="{% url 'budget:ai_prompt' budget_year.year %}">{% icon "sparkles" "me-2" %}{% translate "Prompt for an AI" %}</a></li>
+    <li><a class="dropdown-item" href="{% url 'budget:export' budget_year.year %}">{% icon "file-down" "me-2" %}{% translate "Export lines (CSV)" %}</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li>
+      <form method="post" action="{% url 'budget:year_delete' budget_year.year %}" data-confirm="{% blocktranslate with year=budget_year.year %}Delete the budget {{ year }} and all its lines?{% endblocktranslate %}">
+        {% csrf_token %}
+        <button type="submit" class="dropdown-item text-danger">{% icon "trash" "me-2" %}{% translate "Delete the budget" %}</button>
+      </form>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+{% if comparison_chart %}<script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>{% endif %}
+<script src="{% static 'js/sankey.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="g-stack">
+
+  <section class="g-card g-kpis" id="budget-kpis">
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% icon "arrow-down-to-line" %}{% translate "Income" context "budget" %}</span>
+      <span class="g-kpi__value">{{ indicators.income|money0:currency }}</span>
+      <span class="g-kpi__sub"><span>{{ indicators.monthly_income|money0:currency }} {% translate "/ month" %}</span>{% if deltas %}<span class="{{ deltas.income|tone }}">{{ deltas.income|signed_money0:currency }}</span>{% endif %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% icon "arrow-up-from-line" %}{% translate "Expenses" %}</span>
+      <span class="g-kpi__value">{{ indicators.expenses|money0:currency }}</span>
+      <span class="g-kpi__sub"><span>{{ indicators.monthly_expenses|money0:currency }} {% translate "/ month" %}</span>{% if deltas %}<span class="{% if deltas.expenses > 0 %}g-neg{% elif deltas.expenses < 0 %}g-pos{% endif %}">{{ deltas.expenses|signed_money0:currency }}</span>{% endif %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% icon "piggy-bank" %}{% translate "Savings rate" %}</span>
+      <span class="g-kpi__value {{ indicators.savings_rate|tone }}">{{ indicators.savings_rate|share }}</span>
+      <span class="g-kpi__sub" title="{% translate 'Savings rate counting the loan principal repaid, which also builds wealth' %}">{% blocktranslate with rate=indicators.enrichment_rate|share %}{{ rate }} with the loan principal{% endblocktranslate %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% icon "landmark" %}{% translate "Debt ratio" %}</span>
+      <span class="g-kpi__value{% if indicators.debt_ratio_exceeded %} g-neg{% endif %}">{{ indicators.debt_ratio|share }}</span>
+      <span class="g-kpi__sub" title="{% blocktranslate %}Loan installments, insurance included, divided by the income with 70 % of the rents, as banks count it (HCSF){% endblocktranslate %}">{% blocktranslate with limit=debt_limit|floatformat:0 %}HCSF limit: {{ limit }} %{% endblocktranslate %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% icon "wallet" %}{% translate "Left to live" %}</span>
+      <span class="g-kpi__value">{{ indicators.monthly_left_to_live|money0:currency }}</span>
+      <span class="g-kpi__sub">{% translate "per month, after the loans" %}</span>
+    </div>
+  </section>
+
+  {% if sankey.left or sankey.right %}
+  <section class="g-card">
+    <div class="g-section-head">
+      <div class="g-section-head__title">
+        <h2 class="g-h2">{% translate "Where the money goes" %}</h2>
+        <span class="g-meta">{% translate "Click a group to fold or unfold it" %}</span>
+      </div>
+      <div class="g-seg" role="group" aria-label="{% translate 'Period' %}" id="budget-period">
+        <button type="button" class="g-seg__item" data-monthly="0" aria-pressed="true">{% translate "Yearly" %}</button><button type="button" class="g-seg__item" data-monthly="1" aria-pressed="false">{% translate "Monthly" %}</button>
+      </div>
+    </div>
+    <div class="px-3 pb-3"><div id="budget-sankey"></div></div>
+  </section>
+  {% endif %}
+
+  {% for kind, title, nodes, total in sections %}
+  <section class="g-card" id="budget-{{ kind }}">
+    <div class="g-section-head">
+      <div class="g-section-head__title">
+        <h2 class="g-h2">{{ title }}</h2>
+        <span class="g-meta">{{ total|money0:currency }}</span>
+      </div>
+    </div>
+    <div class="g-table-wrap">
+      <div class="g-table" style="--g-cols: minmax(220px, 2.4fr) minmax(90px, 1fr) 110px 100px{% if summary.has_previous %} 110px 80px{% endif %} 56px; --g-table-min: {% if summary.has_previous %}860px{% else %}660px{% endif %}">
+        <div class="g-table__head">
+          <span>{% translate "Label" %}</span>
+          <span>{% translate "Person" %}</span>
+          <span class="g-cell-end">{% translate "Year" %}</span>
+          <span class="g-cell-end">{% translate "Month" %}</span>
+          {% if summary.has_previous %}
+          <span class="g-cell-end">{{ budget_year.year|add:"-1" }}</span>
+          <span class="g-cell-end">{% translate "Change" %}</span>
+          {% endif %}
+          <span></span>
+        </div>
+        {% include "budget/_node_rows.html" with nodes=nodes depth=0 %}
+        {% if not nodes %}<div class="g-table__empty">{% translate "Nothing yet." %} <a href="{% url 'budget:line_new' budget_year.year %}">{% translate "Add a line" %}</a></div>{% endif %}
+      </div>
+    </div>
+  </section>
+  {% endfor %}
+
+  {% if summary.balance %}
+  <section class="g-card g-card--pad d-flex flex-wrap align-items-center justify-content-between gap-2" id="budget-balance">
+    <span>
+      {% if summary.balance.kind == "saving" %}{% icon "circle-check" "g-pos me-1" %}{% translate "Money left once the expenses and savings are paid" %}
+      {% else %}{% icon "triangle-alert" "g-neg me-1" %}{% translate "Deficit: the expenses and savings exceed the resources" %}{% endif %}
+    </span>
+    <span class="g-strong {% if summary.balance.kind == 'saving' %}g-pos{% else %}g-neg{% endif %}">{{ summary.balance.total|money0:currency }} · {{ summary.balance.monthly|money0:currency }} {% translate "/ month" %}</span>
+  </section>
+  {% endif %}
+
+  {% if comparison_chart %}
+  <section class="g-card">
+    <div class="g-section-head">
+      <div class="g-section-head__title">
+        <h2 class="g-h2">{% blocktranslate with year=budget_year.year previous=budget_year.year|add:"-1" %}{{ previous }} compared with {{ year }}{% endblocktranslate %}</h2>
+        {% if inflation is not None %}<span class="g-meta">{% blocktranslate with rate=inflation|share %}Inflation of the year: {{ rate }}{% endblocktranslate %}</span>{% endif %}
+      </div>
+    </div>
+    <div class="px-3 pb-3"><div id="budget-comparison"></div></div>
+  </section>
+  {% endif %}
+
+  {% if budget_year.notes %}
+  <section class="g-card g-card--pad">
+    <h2 class="g-h2 mb-2">{% translate "Notes" %}</h2>
+    <p class="mb-0">{{ budget_year.notes|linebreaksbr }}</p>
+  </section>
+  {% endif %}
+
+  <p class="g-meta mb-0">
+    {% translate "Automatic lines come from the property ledgers and loan schedules, the SCPI dividends and subscriptions, and the deposits on the accounts of the year; they change with them. Every amount is yearly, the month column divides it by 12." %}
+  </p>
+</div>
+{{ sankey|json_script:"budget-sankey-data" }}
+{% if comparison_chart %}{{ comparison_chart|json_script:"budget-comparison-data" }}{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  const yearSelect = document.getElementById('budget-year-select');
+  yearSelect.addEventListener('change', () => { window.location.href = yearSelect.value; });
+
+  const sankeyEl = document.getElementById('budget-sankey');
+  if (sankeyEl) {
+    const chart = GladSankey.render(sankeyEl, JSON.parse(document.getElementById('budget-sankey-data').textContent), {
+      ariaLabel: "{% filter escapejs %}{% translate 'Flow diagram of the budget' %}{% endfilter %}",
+      foldLabel: "{% filter escapejs %}{% translate 'Click to fold' %}{% endfilter %}",
+      unfoldLabel: "{% filter escapejs %}{% translate 'Click to unfold' %}{% endfilter %}",
+    });
+    document.querySelectorAll('#budget-period [data-monthly]').forEach((button) => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('#budget-period [data-monthly]').forEach((b) => b.setAttribute('aria-pressed', b === button ? 'true' : 'false'));
+        chart.setMonthly(button.dataset.monthly === '1');
+      });
+    });
+  }
+
+  const comparisonEl = document.getElementById('budget-comparison');
+  if (comparisonEl) {
+    const data = JSON.parse(document.getElementById('budget-comparison-data').textContent);
+    const fmt = new Intl.NumberFormat(document.documentElement.lang || navigator.language, {
+      style: 'currency', currency: "{{ currency|escapejs }}", maximumFractionDigits: 0,
+    });
+    const chart = new ApexCharts(comparisonEl, {
+      chart: { type: 'bar', height: Math.max(220, data.labels.length * 44), toolbar: { show: false } },
+      series: [
+        { name: "{{ budget_year.year|add:'-1' }}", data: data.previous },
+        { name: "{{ budget_year.year }}", data: data.current },
+      ],
+      colors: [gToken('dim'), gToken('c1')],
+      plotOptions: { bar: { horizontal: true, barHeight: '70%', borderRadius: 3 } },
+      xaxis: { categories: data.labels, labels: { formatter: (v) => fmt.format(v) } },
+      dataLabels: { enabled: false },
+      // The tooltip title is HTML: category names are user input.
+      tooltip: {
+        x: { formatter: (v) => String(v).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`) },
+        y: { formatter: (v) => fmt.format(v) },
+      },
+      legend: { position: 'top' },
+    });
+    chart.render();
+    window.updateChartsTheme = (theme) => {
+      chart.updateOptions({ theme: { mode: theme }, tooltip: { theme }, colors: [gToken('dim'), gToken('c1')] });
+    };
+  }
+})();
+</script>
+{% endblock %}

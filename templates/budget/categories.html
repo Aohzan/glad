@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Budget categories" %}{% endblock %}
+{% block breadcrumb %}{% translate "Categories" %}{% endblock %}
+{% block page_kicker %}{% translate "Budget" %}{% endblock %}
+{% block page_title %}{% translate "Categories" %}{% endblock %}
+{% block page_description %}{% translate "Shared by every budget year, up to three levels" %}{% endblock %}
+{% block page_actions %}
+<form method="post" action="{% url 'budget:category_defaults' %}">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-outline-secondary" title="{% translate 'Add the default categories that are missing' %}">{% icon "sparkles" %}{% translate "Default categories" %}</button>
+</form>
+<a class="btn btn-primary" href="{% url 'budget:category_new' %}">{% icon "plus" %}{% translate "New category" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="g-stack">
+  {% for kind, label, nodes in groups %}
+  <section class="g-card" id="categories-{{ kind }}">
+    <div class="g-section-head"><h2 class="g-h2">{{ label }}</h2></div>
+    <div class="g-table-wrap">
+      <div class="g-table" style="--g-cols: minmax(220px, 1fr) 140px 96px; --g-table-min: 480px">
+        {% for node in nodes %}
+        <div class="g-table__row g-budget-row{% if node.depth == 1 %} g-budget-row--group{% endif %}" style="--g-depth: {{ node.depth|add:'-1' }}">
+          <span class="g-cell-title">{{ node.category.name }}</span>
+          <span class="g-cell-sub">{% if node.category.counts_as_debt %}<span class="g-tag">{% translate "Loan repayments" %}</span>{% endif %}</span>
+          <span class="g-budget-actions">
+            {% if node.depth < 3 %}<a class="btn btn-sm btn-link" href="{% url 'budget:category_new' %}?parent={{ node.category.pk }}" title="{% translate 'Add a sub-category' %}" aria-label="{% translate 'Add a sub-category' %} — {{ node.category.name }}">{% icon "plus" %}</a>{% endif %}
+            <a class="btn btn-sm btn-link" href="{% url 'budget:category_edit' node.category.pk %}" title="{% translate 'Edit' %}" aria-label="{% translate 'Edit' %} {{ node.category.name }}">{% icon "pencil" %}</a>
+            <form method="post" action="{% url 'budget:category_delete' node.category.pk %}" data-confirm="{% translate 'Delete this category?' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-link text-danger" title="{% translate 'Delete' %}" aria-label="{% translate 'Delete' %} {{ node.category.name }}">{% icon "trash" %}</button>
+            </form>
+          </span>
+        </div>
+        {% empty %}
+        <div class="g-table__empty">{% translate "No category." %}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

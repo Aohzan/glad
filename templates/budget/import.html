@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% blocktranslate with year=budget_year.year %}Import lines into the budget {{ year }}{% endblocktranslate %}{% endblock %}
+{% block breadcrumb_parents %}{% url 'budget:year' budget_year.year as url %}{% include "_crumb.html" with label=budget_year.year %}{% endblock %}
+{% block breadcrumb %}{% translate "Import" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 860px;">
+  {% url 'budget:year' budget_year.year as back_url %}
+  {% blocktranslate with year=budget_year.year asvar new_title %}Import lines into the budget {{ year }}{% endblocktranslate %}
+  {% include "finance/_edit_page_header.html" with new_title=new_title back_url=back_url back_label=budget_year.year %}
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <p>{% translate "The lines of the file are added to the budget after a preview. You can build the file from your bank export with an AI:" %}
+        <a href="{% url 'budget:ai_prompt' budget_year.year %}">{% icon "sparkles" "me-1" %}{% translate "get the prompt" %}</a>.</p>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% include "_form_field.html" with field=form.csv_file %}
+        <div class="form-check mb-3">
+          {{ form.create_missing }}
+          <label for="{{ form.create_missing.id_for_label }}" class="form-check-label">{{ form.create_missing.label }}</label>
+        </div>
+        <button type="submit" class="btn btn-primary">{% icon "arrow-right" "me-1" %}{% translate "Preview" %}</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2 class="h6 mb-0">{% translate "File format" %}</h2></div>
+    <div class="card-body">
+      <p>{% translate "One line per budget line, with a header row. The separator can be ; or , and amounts can use a decimal comma." %}</p>
+      <pre class="bg-body-tertiary p-2 rounded small mb-3">{{ columns|join:";" }}
+expense;Transport > Fuel;Fuel;1 450,00;;
+income;Salaries;Salary;42000;Alice;</pre>
+      <ul class="mb-0 small">
+        <li><code>kind</code> — {% translate "income, expense or saving (French words work too); optional when the category exists" %}</li>
+        <li><code>category</code> — {% translate "category path, levels separated by >" %}</li>
+        <li><code>label</code> — {% translate "description of the line" %}</li>
+        <li><code>amount</code> — {% translate "total for the whole year" %}</li>
+        <li><code>person</code> — {% translate "first name or user name of a member, empty for the whole household" %}</li>
+        <li><code>notes</code> — {% translate "optional" %}</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

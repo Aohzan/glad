@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Prompt for an AI" %}{% endblock %}
+{% block breadcrumb_parents %}{% url 'budget:year' budget_year.year as url %}{% include "_crumb.html" with label=budget_year.year %}{% endblock %}
+{% block breadcrumb %}{% translate "Prompt for an AI" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 860px;">
+  {% url 'budget:year' budget_year.year as back_url %}
+  {% translate "Prompt for an AI" as new_title %}
+  {% include "finance/_edit_page_header.html" with new_title=new_title back_url=back_url back_label=budget_year.year %}
+
+  <p>{% translate "Copy this prompt into the AI assistant of your choice with the export of your bank transactions (CSV, OFX or PDF), save its answer as a .csv file, then import it." %}</p>
+  <div class="alert alert-warning small">
+    {% icon "triangle-alert" "me-1" %}{% translate "Your bank transactions and the names of your household members are then sent to that service. Remove what you do not want to share before sending the export." %}
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="h6 mb-0">{% translate "Prompt" %}</h2>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="copy-prompt" data-copied="{% translate 'Copied' %}">{% icon "clipboard-copy" "me-1" %}<span>{% translate "Copy" %}</span></button>
+    </div>
+    <div class="card-body"><pre class="g-budget-prompt mb-0" id="prompt-text">{{ prompt }}</pre></div>
+  </div>
+  <a class="btn btn-primary" href="{% url 'budget:import' budget_year.year %}">{% icon "file-up" "me-1" %}{% translate "Import the file" %}</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  const button = document.getElementById('copy-prompt');
+  button.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('prompt-text').textContent);
+      button.querySelector('span').textContent = button.dataset.copied;
+    } catch (e) {
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById('prompt-text'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    }
+  });
+})();
+</script>
+{% endblock %}
