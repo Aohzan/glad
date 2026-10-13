@@ -10,7 +10,11 @@ from djmoney.models.fields import MoneyField
 from moneyed import Money
 
 from base.models import BaseModel
-from finance.models.base import AbstractAccount, AbstractAccountType
+from finance.models.base import (
+    AbstractAccount,
+    AbstractAccountType,
+    deposit_origin_field,
+)
 
 if TYPE_CHECKING:
     from django.db.models.fields.related_descriptors import RelatedManager
@@ -158,6 +162,7 @@ class SavingAccountDeposit(BaseModel):
     )
     deposit_date = models.DateTimeField(default=datetime.datetime.now, null=False)
     source = models.TextField(null=True, blank=True)
+    origin = deposit_origin_field()
     update_account_value = models.BooleanField(
         default=True,
         help_text=_("Add this deposit amount to the account value"),

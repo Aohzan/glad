@@ -8,6 +8,7 @@ from django.contrib.messages import get_messages
 from django.urls import reverse
 from djmoney.money import Money
 
+from finance.models.base import DepositOrigin
 from finance.models.saving_account import (
     SavingAccount,
     SavingAccountDeposit,
@@ -295,13 +296,17 @@ class TestSavingDepositCRUD:
             "amount_1": "EUR",
             "deposit_date": "2025-06-01T12:00",
             "source": "Bonus",
+            "origin": "income",
             "update_account_value": True,
         }
         response = user_client.post(url, data)
         assert response.status_code == 302
-        assert SavingAccountDeposit.objects.filter(
-            account=saving_account, source="Bonus"
-        ).exists()
+        assert (
+            SavingAccountDeposit.objects.get(
+                account=saving_account, source="Bonus"
+            ).origin
+            == DepositOrigin.INCOME
+        )
 
     def test_get_edit_deposit(self, user_client, saving_account, saving_deposit):
         """GET returns deposit edit form."""
@@ -324,11 +329,13 @@ class TestSavingDepositCRUD:
             "amount_1": "EUR",
             "deposit_date": "2025-06-10T10:00",
             "source": "Updated",
+            "origin": "transfer",
         }
         response = user_client.post(url, data)
         assert response.status_code == 302
         saving_deposit.refresh_from_db()
         assert saving_deposit.source == "Updated"
+        assert saving_deposit.origin == DepositOrigin.TRANSFER
 
     def test_post_delete_deposit(self, user_client, saving_account, saving_deposit):
         """POST deletes the deposit."""
