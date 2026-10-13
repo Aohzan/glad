@@ -1,6 +1,7 @@
 """Cashflow aggregation service for property financial analysis."""
 
 import datetime
+from dataclasses import dataclass, field
 from decimal import Decimal
 
 from django.db.models import Sum
@@ -37,6 +38,56 @@ def get_annual_cashflow(property_id: int, year: int) -> dict:
     }
 
 
+@dataclass(frozen=True)
+class LedgerTotals:
+    """Ledger occurrences of a property over a period, summed by category."""
+
+    income: dict[str, Decimal] = field(default_factory=dict)
+    expenses: dict[str, Decimal] = field(default_factory=dict)
+    #: ``(year, month)`` of the months with collected rent.
+    rent_months: set[tuple[int, int]] = field(default_factory=set)
+
+
+def ledger_totals_by_category(
+    property_obj,
+    date_from: datetime.date,
+    date_to: datetime.date,
+) -> LedgerTotals:
+    """Ledger income and expenses of *property_obj* from *date_from* to *date_to*.
+
+    Recurring entries are expanded up to *date_to*, future dates included, and
+    the loan entries the loan schedules already count are left out (see
+    :func:`~property.services.loans.without_loan_entries`). Prefetch
+    ``ledger_entries__exceptions`` and ``loans`` to read a list of properties
+    without a query per property.
+    """
+    from property.models import PropertyLedgerEntry
+    from property.services.loans import LOAN_LEDGER_CATEGORIES
+
+    entries = property_obj.ledger_entries.all()
+    if "ledger_entries" not in getattr(property_obj, "_prefetched_objects_cache", {}):
+        entries = entries.prefetch_related("exceptions")
+    if property_obj.loans.all():
+        entries = [
+            entry
+            for entry in entries
+            if entry.management_category not in LOAN_LEDGER_CATEGORIES
+        ]
+    totals = LedgerTotals()
+    for entry in entries:
+        income = entry.flow_type == PropertyLedgerEntry.FlowType.INCOME
+        bucket = totals.income if income else totals.expenses
+        cat = entry.management_category
+        for occ in entry.generate_occurrences(end_date=date_to):
+            occ_date: datetime.date = occ["date"]
+            if occ_date < date_from or occ_date > date_to:
+                continue
+            bucket[cat] = bucket.get(cat, Decimal(0)) + occ["amount"].amount
+            if cat == PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED:
+                totals.rent_months.add((occ_date.year, occ_date.month))
+    return totals
+
+
 def build_balance_sheet(
     property_obj,
     date_from: datetime.date,
@@ -62,43 +113,16 @@ def build_balance_sheet(
     - occupancy_rate: Decimal  (0–100)
     - gross_yield_annual: Decimal | None  (annualised income / property value × 100)
     """
-    from property.models import PropertyLedgerEntry
-    from property.services.loans import loan_costs_between, without_loan_entries
+    from property.models.ledger import ManagementCategory
+    from property.services.loans import loan_costs_between
     from property.utils import iter_month_starts, month_end, month_start
 
     start_month = month_start(date_from)
     end_month = month_start(date_to)
     end_of_range = month_end(date_to)
 
-    # ── Ledger entries in range ───────────────────────────────────────────────
-    entries_qs = without_loan_entries(
-        PropertyLedgerEntry.objects.filter(property=property_obj), property_obj
-    ).prefetch_related("exceptions")
-
-    # Aggregate occurrences by management_category within the date range
-    income_by_cat: dict[str, dict] = {}
-    expense_by_cat: dict[str, dict] = {}
-    months_with_rent: set[tuple[int, int]] = set()
-
-    for entry in entries_qs:
-        for occ in entry.generate_occurrences(end_date=end_of_range):
-            occ_date: datetime.date = occ["date"]
-            if occ_date < date_from or occ_date > end_of_range:
-                continue
-            amount: Decimal = occ["amount"].amount
-            cat = entry.management_category
-            cat_label = entry.get_management_category_display()
-
-            if entry.flow_type == PropertyLedgerEntry.FlowType.INCOME:
-                if cat not in income_by_cat:
-                    income_by_cat[cat] = {"label": cat_label, "amount": Decimal(0)}
-                income_by_cat[cat]["amount"] += amount
-                if cat == PropertyLedgerEntry.ManagementCategory.RENT_COLLECTED:
-                    months_with_rent.add((occ_date.year, occ_date.month))
-            else:
-                if cat not in expense_by_cat:
-                    expense_by_cat[cat] = {"label": cat_label, "amount": Decimal(0)}
-                expense_by_cat[cat]["amount"] += amount
+    ledger = ledger_totals_by_category(property_obj, date_from, end_of_range)
+    months_with_rent = ledger.rent_months
 
     # ── Loan costs in range ───────────────────────────────────────────────────
     loan_costs = loan_costs_between(property_obj.loans.all(), date_from, end_of_range)
@@ -107,8 +131,8 @@ def build_balance_sheet(
     total_loan_insurance = loan_costs.insurance
 
     # ── Totals ────────────────────────────────────────────────────────────────
-    total_income = sum((v["amount"] for v in income_by_cat.values()), Decimal(0))
-    total_expenses = sum((v["amount"] for v in expense_by_cat.values()), Decimal(0))
+    total_income = sum(ledger.income.values(), Decimal(0))
+    total_expenses = sum(ledger.expenses.values(), Decimal(0))
     total_loan_costs = total_loan_interest + total_loan_principal + total_loan_insurance
     net_cashflow = total_income - total_expenses - total_loan_costs
     # Operating result excludes loan principal repayment (non-deductible capital)
@@ -135,8 +159,17 @@ def build_balance_sheet(
         ).quantize(Decimal("0.01"))
 
     # ── Build sorted row lists ────────────────────────────────────────────────
-    income_rows = sorted(income_by_cat.values(), key=lambda r: r["label"])
-    expense_rows = sorted(expense_by_cat.values(), key=lambda r: r["label"])
+    def rows(amounts: dict[str, Decimal]) -> list[dict]:
+        return sorted(
+            (
+                {"label": ManagementCategory(cat).label, "amount": amount}
+                for cat, amount in amounts.items()
+            ),
+            key=lambda r: r["label"],
+        )
+
+    income_rows = rows(ledger.income)
+    expense_rows = rows(ledger.expenses)
 
     from django.utils.translation import gettext_lazy as _
 
