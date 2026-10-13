@@ -1,9 +1,7 @@
 """Property edit views (property, loans, loan amortization table)."""
 
 import csv
-import datetime
 import io
-import unicodedata
 from collections import Counter
 from decimal import Decimal, InvalidOperation
 
@@ -19,6 +17,13 @@ from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 from moneyed import Money
 
+from base.csv_utils import (
+    decode_upload,
+    detect_delimiter,
+    normalize_column,
+    parse_amount,
+    parse_date,
+)
 from base.services.snapshots import invalidate_from
 from property.forms import PropertyEditForm, PropertyLoanForm
 from property.models import Property, PropertyLoan, PropertyLoanAmortizationEntry
@@ -124,34 +129,6 @@ _COL_BALANCE = {
 }
 
 
-def _normalize_col(name: str) -> str:
-    """Lowercase, strip spaces, remove accents."""
-    s = name.strip().lower()
-    return "".join(
-        c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn"
-    ).replace(" ", "_")
-
-
-def _parse_amount(raw: str) -> Decimal:
-    cleaned = raw.strip().replace("\xa0", "").replace(" ", "").replace(",", ".")
-    if cleaned == "":
-        return Decimal(0)
-    try:
-        return Decimal(cleaned)
-    except InvalidOperation:
-        raise ValueError(f"Invalid amount: {raw!r}")
-
-
-def _parse_date(raw: str) -> datetime.date:
-    raw = raw.strip()
-    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y"):
-        try:
-            return datetime.datetime.strptime(raw, fmt).date()
-        except ValueError:
-            continue
-    raise ValueError(f"Unrecognized date format: {raw!r}")
-
-
 @require_POST  # type: ignore
 def import_loan_amortization(
     request: HttpRequest, pk: int, loan_pk: int
@@ -165,30 +142,20 @@ def import_loan_amortization(
         messages.error(request, _("No file provided."))
         return redirect(redirect_url)
 
-    try:
-        text = csv_file.read().decode("utf-8-sig")
-    except UnicodeDecodeError:
-        try:
-            csv_file.seek(0)
-            text = csv_file.read().decode("latin-1")
-        except Exception:
-            messages.error(request, _("Could not decode file — use UTF-8 or Latin-1."))
-            return redirect(redirect_url)
+    text = decode_upload(csv_file.read())
 
     lines = [line for line in text.splitlines() if line.strip()]
     if not lines:
         messages.error(request, _("Empty file."))
         return redirect(redirect_url)
 
-    # Detect separator
-    sample = lines[0]
-    sep = ";" if sample.count(";") >= sample.count(",") else ","
+    sep = detect_delimiter(lines[0])
 
     reader = csv.DictReader(io.StringIO(text), delimiter=sep)
     raw_fields = reader.fieldnames or []
     col_map: dict[str, str] = {}
     for raw in raw_fields:
-        norm = _normalize_col(raw)
+        norm = normalize_column(raw)
         if norm in _COL_DATE:
             col_map["date"] = raw
         elif norm in _COL_CAPITAL:
@@ -215,10 +182,10 @@ def import_loan_amortization(
         if not any(v.strip() for v in row.values()):
             continue
         try:
-            date = _parse_date(row[col_map["date"]])
-            capital = _parse_amount(row[col_map["capital"]])
-            interest = _parse_amount(row[col_map["interest"]])
-            balance = _parse_amount(row[col_map["balance"]])
+            date = parse_date(row[col_map["date"]])
+            capital = parse_amount(row[col_map["capital"]])
+            interest = parse_amount(row[col_map["interest"]])
+            balance = parse_amount(row[col_map["balance"]])
             if capital < 0 or interest < 0 or balance < 0:
                 raise ValueError("Negative amount")
         except (ValueError, InvalidOperation) as exc:
