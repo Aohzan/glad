@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 23:27+0200\n"
+"POT-Creation-Date: 2026-10-13 20:05+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -62,7 +62,7 @@ msgstr "Enfant"
 msgid "A child is a household member who cannot log in."
 msgstr "Un enfant est un membre du foyer qui ne peut pas se connecter."
 
-#: accounts/models.py:54 base/forms.py:82
+#: accounts/models.py:54 base/forms.py:82 templates/allocation.html:56
 msgid "Monthly expenses"
 msgstr "Dépenses mensuelles"
 
@@ -80,7 +80,7 @@ msgstr "Profil utilisateur"
 msgid "User profiles"
 msgstr "Profils utilisateur"
 
-#: accounts/models.py:98
+#: accounts/models.py:98 budget/services/categories.py:54
 msgid "Children"
 msgstr "Enfants"
 
@@ -140,7 +140,8 @@ msgstr "Actions"
 msgid "Diversified funds"
 msgstr "Fonds diversifiés"
 
-#: base/choices.py:25
+#: base/choices.py:25 budget/services/summary.py:257
+#: budget/services/summary.py:263
 msgid "Real estate"
 msgstr "Immobilier"
 
@@ -169,18 +170,18 @@ msgstr "Biens tangibles"
 msgid "Other"
 msgstr "Autre"
 
-#: base/context_processors.py:41 base/search_views.py:73 templates/base.html:56
+#: base/context_processors.py:42 base/search_views.py:73 templates/base.html:56
 #: templates/index.html:4 templates/index.html:6
 msgid "Dashboard"
 msgstr "Tableau de bord"
 
-#: base/context_processors.py:42 base/search_views.py:74 templates/base.html:57
+#: base/context_processors.py:43 base/search_views.py:74 templates/base.html:57
 #: templates/finance/_account_detail_header.html:4
 #: templates/finance/index.html:4 templates/finance/index.html:6
 msgid "Finance"
 msgstr "Finance"
 
-#: base/context_processors.py:43 base/search_views.py:77
+#: base/context_processors.py:44 base/search_views.py:77
 #: base/services/dashboard.py:50 templates/base.html:60
 #: templates/finance/edit_other_asset.html:17
 #: templates/finance/other_asset_detail.html:15
@@ -189,11 +190,11 @@ msgstr "Finance"
 msgid "Other assets"
 msgstr "Autres actifs"
 
-#: base/context_processors.py:44 templates/base.html:84
+#: base/context_processors.py:45 templates/base.html:85
 msgid "CSV import / export"
 msgstr "Import / export CSV"
 
-#: base/context_processors.py:45 base/search_views.py:75
+#: base/context_processors.py:46 base/search_views.py:75
 #: base/services/dashboard.py:46 property/forms.py:816
 #: property/models/fiscal.py:34 templates/base.html:58
 #: templates/property/edit_manager.html:13
@@ -201,11 +202,11 @@ msgstr "Import / export CSV"
 msgid "Properties"
 msgstr "Immobilier"
 
-#: base/context_processors.py:46 base/search_views.py:76
+#: base/context_processors.py:47 base/search_views.py:76
 #: base/services/dashboard.py:49 base/services/ownership.py:134
 #: property/models/scpi.py:38 property/models/scpi.py:39
 #: property/models/scpi.py:159 property/models/scpi.py:208
-#: property/models/scpi.py:618 templates/base.html:59 templates/base.html:116
+#: property/models/scpi.py:618 templates/base.html:59 templates/base.html:117
 #: templates/property/scpi_detail.html:12
 #: templates/property/scpi_detail.html:136
 #: templates/property/scpi_dividend_batch.html:10
@@ -218,54 +219,61 @@ msgstr "Immobilier"
 msgid "SCPI"
 msgstr "SCPI"
 
-#: base/context_processors.py:47 base/search_views.py:82 templates/base.html:77
+#: base/context_processors.py:48 base/search_views.py:82 templates/base.html:78
 #: templates/property/all_loans.html:4 templates/property/all_loans.html:16
 msgid "All Loans"
 msgstr "Tous les prêts"
 
-#: base/context_processors.py:48 templates/base.html:76
+#: base/context_processors.py:49 templates/base.html:77
 #: templates/property/occurrence_checks.html:4
 #: templates/property/occurrence_checks.html:10
 msgid "Entries to check"
 msgstr "Écritures à pointer"
 
-#: base/context_processors.py:49 templates/base.html:68
+#: base/context_processors.py:50 templates/base.html:69
 #: templates/property/report.html:4 templates/property/report.html:16
 msgid "Property cash flow"
 msgstr "Cash flow immo"
 
-#: base/context_processors.py:50 templates/base.html:83
+#: base/context_processors.py:51 templates/base.html:84
 msgid "LMNP Accounting"
 msgstr "Comptabilité LMNP"
 
-#: base/context_processors.py:51 base/search_views.py:83
+#: base/context_processors.py:52 budget/services/sankey.py:35
+#: templates/base.html:66 templates/budget/categories.html:6
+#: templates/budget/edit_year.html:13 templates/budget/index.html:4
+#: templates/budget/year_detail.html:6
+msgid "Budget"
+msgstr "Budget"
+
+#: base/context_processors.py:53 base/search_views.py:83
 #: templates/accounts/settings.html:4 templates/accounts/settings.html:9
-#: templates/base.html:159
+#: templates/base.html:160 templates/budget/edit_year.html:6
 msgid "Settings"
 msgstr "Paramètres"
 
-#: base/context_processors.py:52 templates/base.html:86 templates/base.html:161
+#: base/context_processors.py:54 templates/base.html:87 templates/base.html:162
 msgid "Administration"
 msgstr "Administration"
 
-#: base/context_processors.py:53 base/search_views.py:78
+#: base/context_processors.py:55 base/search_views.py:78
 #: templates/allocation.html:4 templates/allocation.html:13
-#: templates/base.html:66
+#: templates/base.html:67
 msgid "Allocation"
 msgstr "Répartition"
 
-#: base/context_processors.py:54 base/search_views.py:79 templates/base.html:67
+#: base/context_processors.py:56 base/search_views.py:79 templates/base.html:68
 #: templates/owners.html:4 templates/owners.html:8
 msgid "Net worth by owner"
 msgstr "Patrimoine par propriétaire"
 
-#: base/context_processors.py:55 base/search_views.py:80 templates/base.html:74
+#: base/context_processors.py:57 base/search_views.py:80 templates/base.html:75
 #: templates/dashboard/_watch.html:5 templates/deadlines.html:4
 #: templates/deadlines.html:6
 msgid "Deadlines"
 msgstr "Échéances"
 
-#: base/context_processors.py:56 base/search_views.py:81 templates/base.html:75
+#: base/context_processors.py:58 base/search_views.py:81 templates/base.html:76
 #: templates/operations.html:4 templates/operations.html:6
 msgid "Operations"
 msgstr "Opérations"
@@ -455,7 +463,8 @@ msgstr "Pour un usufruit temporaire : 23 % par période de dix ans."
 msgid "Owner saved."
 msgstr "Propriétaire enregistré."
 
-#: base/ownership_views.py:50 finance/views/crud_views.py:45
+#: base/ownership_views.py:50 budget/views.py:125 budget/views.py:212
+#: budget/views.py:269 finance/views/crud_views.py:45
 #: finance/views/csv_views.py:320 finance/views/euro_fund_views.py:35
 #: finance/views/investment_views.py:75 finance/views/investment_views.py:101
 #: finance/views/investment_views.py:309 finance/views/investment_views.py:449
@@ -463,8 +472,8 @@ msgstr "Propriétaire enregistré."
 #: finance/views/saving_views.py:88 finance/views/update_views.py:340
 #: property/views/check_views.py:132 property/views/crud_views.py:126
 #: property/views/crud_views.py:314 property/views/crud_views.py:421
-#: property/views/edit_views.py:48 property/views/edit_views.py:86
-#: property/views/edit_views.py:103 property/views/scpi_views.py:399
+#: property/views/edit_views.py:53 property/views/edit_views.py:91
+#: property/views/edit_views.py:108 property/views/scpi_views.py:399
 #: property/views/scpi_views.py:447 property/views/scpi_views.py:500
 #: property/views/scpi_views.py:591 property/views/scpi_views.py:640
 #: templates/finance/_form_error_alert.html:4
@@ -551,18 +560,18 @@ msgstr "Évaluation de bien"
 msgid "Dividend"
 msgstr "Dividende"
 
-#: base/services/ownership.py:127 templates/base.html:114
+#: base/services/ownership.py:127 templates/base.html:115
 msgid "Saving account"
 msgstr "Compte d'épargne"
 
-#: base/services/ownership.py:129 templates/base.html:113
+#: base/services/ownership.py:129 templates/base.html:114
 msgid "Investment account"
 msgstr "Compte d'investissement"
 
 #: base/services/ownership.py:132 property/models/asset.py:763
 #: property/models/asset.py:860 property/models/lease.py:44
 #: property/models/ledger.py:287 property/models/management.py:38
-#: templates/base.html:115 templates/dashboard/_property.html:28
+#: templates/base.html:116 templates/dashboard/_property.html:28
 #: templates/property/all_loans.html:99 templates/property/index.html:4
 #: templates/property/index.html:68
 #: templates/property/occurrence_checks.html:16
@@ -570,7 +579,7 @@ msgstr "Compte d'investissement"
 msgid "Property"
 msgstr "Propriété"
 
-#: base/services/ownership.py:136 templates/base.html:117
+#: base/services/ownership.py:136 templates/base.html:118
 msgid "Other asset"
 msgstr "Autre actif"
 
@@ -582,20 +591,21 @@ msgstr "Non attribué"
 msgid "Outside the household"
 msgstr "Hors du foyer"
 
-#: base/services/ownership.py:391
+#: base/services/ownership.py:414 budget/services/csv_io.py:232
+#: budget/services/summary.py:230
 msgid "Household"
 msgstr "Foyer"
 
-#: base/services/ownership.py:393
+#: base/services/ownership.py:416
 msgid "Joint"
 msgstr "Commun"
 
-#: base/services/ownership.py:397
+#: base/services/ownership.py:420
 #, python-format
 msgid "%(name)s (bare)"
 msgstr "%(name)s (nue-propriété)"
 
-#: base/services/ownership.py:399
+#: base/services/ownership.py:422
 #, python-format
 msgid "%(name)s (usufruct)"
 msgstr "%(name)s (usufruit)"
@@ -622,17 +632,691 @@ msgstr "Dépôts"
 msgid "Dividends"
 msgstr "Dividendes"
 
-#: base/views.py:83
+#: base/views.py:86
 msgid "Monthly expenses saved."
 msgstr "Dépenses mensuelles enregistrées."
 
-#: base/views.py:137
+#: base/views.py:146
 msgid "Could not download the INSEE indices."
 msgstr "Impossible de télécharger les indices INSEE."
 
-#: base/views.py:139
+#: base/views.py:148
 msgid "INSEE indices updated."
 msgstr "Indices INSEE mis à jour."
+
+#: budget/forms.py:76 budget/models.py:244 finance/models/other_asset.py:75
+#: property/models/ledger.py:323 templates/budget/import_preview.html:33
+#: templates/finance/other_asset_detail.html:38
+#: templates/finance/other_asset_list.html:22
+#: templates/property/_report_category_table.html:11
+#: templates/property/detail.html:414
+#: templates/property/detail_panel_cashflow.html:38
+#: templates/property/detail_panel_cashflow.html:136
+#: templates/property/detail_panel_cashflow.html:308
+msgid "Category"
+msgstr "Catégorie"
+
+#: budget/forms.py:81 budget/models.py:260
+#: templates/budget/import_preview.html:35
+#: templates/budget/year_detail.html:102
+msgid "Person"
+msgstr "Personne"
+
+#: budget/forms.py:82 budget/forms.py:170 templates/allocation.html:27
+#: templates/budget/year_detail.html:8
+msgid "Whole household"
+msgstr "Tout le foyer"
+
+#: budget/forms.py:84
+msgid "Shared lines are split between the adults in a person's view."
+msgstr ""
+"Dans la vue d'une personne, les lignes du foyer sont réparties entre les "
+"adultes."
+
+#: budget/forms.py:105 budget/models.py:81
+msgid "Parent category"
+msgstr "Catégorie parente"
+
+#: budget/forms.py:107
+msgid "None (top level)"
+msgstr "Aucune (premier niveau)"
+
+#: budget/forms.py:116 budget/models.py:195 budget/models.py:238
+#: finance/models/investment_account.py:490 templates/budget/index.html:36
+#: templates/budget/year_detail.html:10 templates/budget/year_detail.html:103
+#: templates/finance/_euro_fund_rates_panel.html:33
+#: templates/property/detail_panel_amortization.html:225
+msgid "Year"
+msgstr "Année"
+
+#: budget/forms.py:118
+msgid "Revaluation (%)"
+msgstr "Revalorisation (%)"
+
+#: budget/forms.py:125
+msgid "Raise every amount by this percentage, e.g. the inflation of the year."
+msgstr ""
+"Augmente chaque montant de ce pourcentage, par exemple l'inflation de "
+"l'année."
+
+#: budget/forms.py:132
+msgid "A budget already exists for this year."
+msgstr "Un budget existe déjà pour cette année."
+
+#: budget/forms.py:140 property/forms.py:350
+msgid "CSV file"
+msgstr "Fichier CSV"
+
+#: budget/forms.py:144
+msgid "Create the missing categories"
+msgstr "Créer les catégories manquantes"
+
+#: budget/forms.py:152
+msgid "The file must not exceed 1 MB."
+msgstr "Le fichier ne doit pas dépasser 1 Mo."
+
+#: budget/forms.py:160
+msgid "View"
+msgstr "Vue"
+
+#: budget/models.py:33 templates/budget/index.html:37
+#: templates/budget/year_detail.html:49
+msgctxt "budget"
+msgid "Income"
+msgstr "Revenus"
+
+#: budget/models.py:34
+msgctxt "budget"
+msgid "Expenses"
+msgstr "Dépenses"
+
+#: budget/models.py:35 templates/budget/index.html:39
+msgctxt "budget"
+msgid "Savings"
+msgstr "Épargne"
+
+#: budget/models.py:53
+msgid "budget category"
+msgstr "catégorie de budget"
+
+#: budget/models.py:54
+msgid "budget categories"
+msgstr "catégories de budget"
+
+#: budget/models.py:67 finance/models/other_asset.py:70
+#: property/models/asset.py:51 property/models/asset.py:302
+#: property/models/scpi.py:42 templates/finance/_account_table_header.html:4
+#: templates/finance/edit_investment_holding.html:48
+#: templates/finance/holding_detail.html:63
+#: templates/finance/investment_detail.html:77
+#: templates/finance/other_asset_list.html:21
+#: templates/property/all_loans.html:100
+#: templates/property/detail_panel_loans.html:29
+#: templates/property/edit_manager.html:31
+#: templates/property/scpi_detail.html:140
+msgid "Name"
+msgstr "Nom"
+
+#: budget/models.py:72 templates/budget/import_preview.html:32
+#: templates/property/detail_panel_cashflow.html:37
+#: templates/property/detail_panel_cashflow.html:307
+#: templates/property/occurrence_checks.html:61
+msgid "Kind"
+msgstr "Type"
+
+#: budget/models.py:73
+msgid "A sub-category takes the kind of its parent."
+msgstr "Une sous-catégorie prend le type de sa catégorie parente."
+
+#: budget/models.py:85
+msgid "Position"
+msgstr "Position"
+
+#: budget/models.py:86
+msgid "Order among the categories of the same level."
+msgstr "Ordre parmi les catégories du même niveau."
+
+#: budget/models.py:90 templates/budget/categories.html:27
+msgid "Loan repayments"
+msgstr "Remboursements de crédit"
+
+#: budget/models.py:92
+msgid ""
+"Lines of this category are loan installments (car, consumer credit) counted "
+"in the debt ratio."
+msgstr ""
+"Les lignes de cette catégorie sont des mensualités de crédit (auto, "
+"consommation) comptées dans le taux d'endettement."
+
+#: budget/models.py:160
+msgid "A category cannot be placed under itself."
+msgstr "Une catégorie ne peut pas être placée sous elle-même."
+
+#: budget/models.py:166 budget/services/csv_io.py:268
+#, python-format
+msgid "Categories are limited to %(depth)d levels."
+msgstr "Les catégories sont limitées à %(depth)d niveaux."
+
+#: budget/models.py:188
+msgid "budget year"
+msgstr "année de budget"
+
+#: budget/models.py:189
+msgid "budget years"
+msgstr "années de budget"
+
+#: budget/models.py:197 budget/models.py:263
+#: finance/models/investment_account.py:497 finance/models/other_asset.py:115
+#: property/models/asset.py:915 property/models/fiscal.py:42
+#: property/models/scpi.py:73 property/models/scpi.py:596
+#: templates/budget/year_detail.html:142
+#: templates/finance/_euro_fund_rates_panel.html:35
+#: templates/finance/other_asset_detail.html:77
+#: templates/property/_dividend_table_header.html:8
+#: templates/property/_notes_card.html:4 templates/property/_notes_card.html:8
+#: templates/property/detail.html:506
+#: templates/property/detail_panel_cashflow.html:174
+#: templates/property/detail_panel_leases.html:77
+#: templates/property/detail_panel_mandate.html:52
+#: templates/property/edit_entry_occurrence.html:60
+#: templates/property/scpi_theoretical_value_form.html:47
+msgid "Notes"
+msgstr "Notes"
+
+#: budget/models.py:200
+msgid "Include the properties"
+msgstr "Inclure les biens immobiliers"
+
+#: budget/models.py:202
+msgid ""
+"Add the rents, charges and loan installments of the properties, and the SCPI "
+"dividends and subscriptions of the year."
+msgstr ""
+"Ajoute les loyers, les charges et les échéances de crédit des biens, ainsi "
+"que les dividendes et souscriptions SCPI de l'année."
+
+#: budget/models.py:208
+msgid "Include the account deposits"
+msgstr "Inclure les versements sur les comptes"
+
+#: budget/models.py:210
+msgid ""
+"Add the deposits and withdrawals of the saving and investment accounts as "
+"savings."
+msgstr ""
+"Ajoute en épargne les versements et retraits des comptes d'épargne et "
+"d'investissement."
+
+#: budget/models.py:218
+msgid "Excluded properties"
+msgstr "Biens exclus"
+
+#: budget/models.py:219
+msgid "Properties whose flows are left out of this budget."
+msgstr "Biens dont les flux ne sont pas comptés dans ce budget."
+
+#: budget/models.py:230
+msgid "budget line"
+msgstr "ligne de budget"
+
+#: budget/models.py:231
+msgid "budget lines"
+msgstr "lignes de budget"
+
+#: budget/models.py:246 property/models/asset.py:864
+#: templates/budget/import_preview.html:34
+#: templates/budget/year_detail.html:101
+#: templates/property/_valid_categories_table.html:6
+#: templates/property/detail_panel_amortization.html:131
+msgid "Label"
+msgstr "Libellé"
+
+#: budget/models.py:251
+msgid "Yearly amount"
+msgstr "Montant annuel"
+
+#: budget/models.py:252
+msgid "Total for the whole year."
+msgstr "Total pour l'année entière."
+
+#: budget/models.py:261
+msgid "Leave empty for the whole household."
+msgstr "Laisser vide pour tout le foyer."
+
+#: budget/models.py:281
+msgid "The amount cannot be negative."
+msgstr "Le montant ne peut pas être négatif."
+
+#: budget/services/categories.py:15
+msgid "Salaries"
+msgstr "Salaires"
+
+#: budget/services/categories.py:16
+msgid "Bonuses and profit-sharing"
+msgstr "Primes et intéressement"
+
+#: budget/services/categories.py:17
+msgid "Self-employed income"
+msgstr "Revenus d'indépendant"
+
+#: budget/services/categories.py:18
+msgid "Benefits and allowances"
+msgstr "Allocations et prestations"
+
+#: budget/services/categories.py:19
+msgid "Pensions"
+msgstr "Pensions et retraites"
+
+#: budget/services/categories.py:20 property/models/ledger.py:86
+msgid "Other income"
+msgstr "Autres revenus"
+
+#: budget/services/categories.py:23
+msgid "Housing"
+msgstr "Logement"
+
+#: budget/services/categories.py:25
+msgid "Rent"
+msgstr "Loyer"
+
+#: budget/services/categories.py:26
+msgid "Energy"
+msgstr "Énergie"
+
+#: budget/services/categories.py:27
+msgid "Water"
+msgstr "Eau"
+
+#: budget/services/categories.py:28
+msgid "Internet and phone"
+msgstr "Internet et téléphone"
+
+#: budget/services/categories.py:29
+msgid "Home insurance"
+msgstr "Assurance habitation"
+
+#: budget/services/categories.py:30
+msgid "Maintenance and works"
+msgstr "Entretien et travaux"
+
+#: budget/services/categories.py:34
+msgid "Food"
+msgstr "Alimentation"
+
+#: budget/services/categories.py:34
+msgid "Groceries"
+msgstr "Courses"
+
+#: budget/services/categories.py:34
+msgid "Restaurants"
+msgstr "Restaurants"
+
+#: budget/services/categories.py:37
+msgid "Transport"
+msgstr "Transport"
+
+#: budget/services/categories.py:39
+msgid "Fuel and charging"
+msgstr "Carburant et recharge"
+
+#: budget/services/categories.py:40
+msgid "Car insurance"
+msgstr "Assurance auto"
+
+#: budget/services/categories.py:41
+msgid "Car maintenance"
+msgstr "Entretien du véhicule"
+
+#: budget/services/categories.py:42
+msgid "Public transport"
+msgstr "Transports en commun"
+
+#: budget/services/categories.py:46 templates/property/all_loans.html:92
+#: templates/property/detail.html:247
+#: templates/property/detail_panel_loans.html:22
+msgid "Loans"
+msgstr "Prêts"
+
+#: budget/services/categories.py:46
+msgid "Car loan"
+msgstr "Crédit auto"
+
+#: budget/services/categories.py:46
+msgid "Consumer credit"
+msgstr "Crédit à la consommation"
+
+#: budget/services/categories.py:49
+#: templates/property/resale_simulation.html:46
+msgid "Taxes"
+msgstr "Impôts"
+
+#: budget/services/categories.py:50
+msgid "Income tax"
+msgstr "Impôt sur le revenu"
+
+#: budget/services/categories.py:50 property/models/ledger.py:161
+msgid "Property tax"
+msgstr "Taxe foncière"
+
+#: budget/services/categories.py:50
+msgid "Housing tax"
+msgstr "Taxe d'habitation"
+
+#: budget/services/categories.py:53
+msgid "Health"
+msgstr "Santé"
+
+#: budget/services/categories.py:53
+msgid "Health insurance"
+msgstr "Mutuelle"
+
+#: budget/services/categories.py:53
+msgid "Medical expenses"
+msgstr "Frais médicaux"
+
+#: budget/services/categories.py:54
+msgid "Childcare"
+msgstr "Garde d'enfants"
+
+#: budget/services/categories.py:54
+msgid "School"
+msgstr "Scolarité"
+
+#: budget/services/categories.py:54
+msgid "Activities"
+msgstr "Activités"
+
+#: budget/services/categories.py:55
+msgid "Leisure and holidays"
+msgstr "Loisirs et vacances"
+
+#: budget/services/categories.py:56
+msgid "Subscriptions"
+msgstr "Abonnements"
+
+#: budget/services/categories.py:57 property/models/ledger.py:158
+msgid "Insurance"
+msgstr "Assurance"
+
+#: budget/services/categories.py:58
+msgid "Clothing"
+msgstr "Habillement"
+
+#: budget/services/categories.py:59
+msgid "Gifts and donations"
+msgstr "Cadeaux et dons"
+
+#: budget/services/categories.py:60
+msgid "Miscellaneous"
+msgstr "Divers"
+
+#: budget/services/categories.py:61
+msgid "Savings outside the application"
+msgstr "Épargne hors application"
+
+#: budget/services/categories.py:62
+msgid "Employee savings"
+msgstr "Épargne salariale"
+
+#: budget/services/csv_io.py:191
+msgid "The file is empty."
+msgstr "Le fichier est vide."
+
+#: budget/services/csv_io.py:200
+#, python-format
+msgid "Missing columns: %(columns)s"
+msgstr "Colonnes manquantes : %(columns)s"
+
+#: budget/services/csv_io.py:205
+#, python-format
+msgid "The file has more than %(count)d lines."
+msgstr "Le fichier contient plus de %(count)d lignes."
+
+#: budget/services/csv_io.py:240
+#, python-format
+msgid "Invalid amount: %(value)s"
+msgstr "Montant invalide : %(value)s"
+
+#: budget/services/csv_io.py:246
+#, python-format
+msgid "Unknown kind: %(value)s"
+msgstr "Type inconnu : %(value)s"
+
+#: budget/services/csv_io.py:250
+msgid "The category is missing."
+msgstr "La catégorie est manquante."
+
+#: budget/services/csv_io.py:255 budget/services/csv_io.py:275
+#, python-format
+msgid "The category %(category)s is not of kind %(kind)s."
+msgstr "La catégorie %(category)s n'est pas de type %(kind)s."
+
+#: budget/services/csv_io.py:260
+#, python-format
+msgid "Unknown category: %(path)s"
+msgstr "Catégorie inconnue : %(path)s"
+
+#: budget/services/csv_io.py:263
+#, python-format
+msgid "The kind is needed to create the category %(path)s."
+msgstr "Le type est nécessaire pour créer la catégorie %(path)s."
+
+#: budget/services/csv_io.py:283
+#, python-format
+msgid "The category %(path)s is used with several kinds."
+msgstr "La catégorie %(path)s est utilisée avec plusieurs types."
+
+#: budget/services/csv_io.py:296
+#, python-format
+msgid "Unknown person: %(value)s"
+msgstr "Personne inconnue : %(value)s"
+
+#: budget/services/csv_io.py:300
+msgid "The label is too long."
+msgstr "Le libellé est trop long."
+
+#: budget/services/csv_io.py:302
+msgid "The file has no line."
+msgstr "Le fichier ne contient aucune ligne."
+
+#: budget/services/csv_io.py:375
+#, python-format
+msgid ""
+"I am preparing the budget of my household for %(year)d. Attached is the "
+"export of the transactions of my bank account(s). Group these transactions "
+"into yearly budget lines and answer only with a CSV file, using ; as "
+"separator, with these columns:"
+msgstr ""
+"Je prépare le budget de mon foyer pour %(year)d. Ci-joint l'export des "
+"opérations de mon ou mes comptes bancaires. Regroupe ces opérations en "
+"lignes de budget annuelles et réponds uniquement par un fichier CSV, avec ; "
+"comme séparateur, et ces colonnes :"
+
+#: budget/services/csv_io.py:384
+msgid "- kind: income, expense or saving"
+msgstr "- kind : income (revenu), expense (dépense) ou saving (épargne)"
+
+#: budget/services/csv_io.py:386
+msgid ""
+"- category: one of the categories below, written exactly as listed (levels "
+"separated by >)"
+msgstr ""
+"- category : une des catégories ci-dessous, écrite exactement comme dans la "
+"liste (niveaux séparés par >)"
+
+#: budget/services/csv_io.py:390
+msgid "- label: short description, such as the merchant or the kind of expense"
+msgstr ""
+"- label : description courte, comme le commerçant ou le type de dépense"
+
+#: budget/services/csv_io.py:393
+msgid ""
+"- amount: total for the whole year, positive, with a dot as decimal separator"
+msgstr ""
+"- amount : total pour l'année entière, positif, avec un point comme "
+"séparateur décimal"
+
+#: budget/services/csv_io.py:395
+#, python-format
+msgid "- person: one of %(names)s, or empty for the whole household"
+msgstr "- person : une personne parmi %(names)s, ou vide pour tout le foyer"
+
+#: budget/services/csv_io.py:397
+msgid "- notes: optional"
+msgstr "- notes : facultatif"
+
+#: budget/services/csv_io.py:399
+msgid "Rules:"
+msgstr "Règles :"
+
+#: budget/services/csv_io.py:401
+msgid ""
+"- Add up the transactions of a same category and label over the year, with "
+"at most one line per category, label and person."
+msgstr ""
+"- Additionne les opérations d'une même catégorie et d'un même libellé sur "
+"l'année, avec au plus une ligne par catégorie, libellé et personne."
+
+#: budget/services/csv_io.py:405
+msgid ""
+"- Leave out the transfers between my own accounts and the flows already "
+"tracked elsewhere: the installments of my property loans, the rents and "
+"charges of my properties, the deposits on my saving and investment accounts."
+msgstr ""
+"- Écarte les virements entre mes propres comptes et les flux déjà suivis "
+"ailleurs : les échéances de mes crédits immobiliers, les loyers et charges "
+"de mes biens, les versements sur mes comptes d'épargne et d'investissement."
+
+#: budget/services/csv_io.py:411
+msgid ""
+"- If the export covers less than 12 months, extrapolate the amounts to a "
+"full year and say so in the notes column."
+msgstr ""
+"- Si l'export couvre moins de 12 mois, extrapole les montants sur une année "
+"entière et indique-le dans la colonne notes."
+
+#: budget/services/csv_io.py:415
+msgid "Categories:"
+msgstr "Catégories :"
+
+#: budget/services/summary.py:288
+#: templates/property/detail_panel_cashflow.html:539
+msgid "Loan principal"
+msgstr "Capital du prêt"
+
+#: budget/services/summary.py:289 property/models/ledger.py:176
+#: property/services/cashflow.py:179
+#: templates/property/detail_panel_cashflow.html:538
+msgid "Loan interest"
+msgstr "Intérêts du prêt"
+
+#: budget/services/summary.py:290 property/models/ledger.py:183
+#: property/services/cashflow.py:183
+#: templates/property/detail_panel_cashflow.html:540
+msgid "Loan insurance"
+msgstr "Assurance de prêt"
+
+#: budget/services/summary.py:328 property/models/scpi.py:611
+msgid "SCPI dividends"
+msgstr "Dividendes SCPI"
+
+#: budget/services/summary.py:334
+msgid "SCPI subscriptions"
+msgstr "Souscriptions SCPI"
+
+#: budget/services/summary.py:367
+msgid "Account deposits"
+msgstr "Versements sur les comptes"
+
+#: budget/services/summary.py:373
+msgid "Withdrawals from savings"
+msgstr "Retraits d'épargne"
+
+#: budget/services/summary.py:495
+msgid "Not allocated"
+msgstr "Non affecté"
+
+#: budget/services/summary.py:503
+msgid "Deficit"
+msgstr "Déficit"
+
+#: budget/views.py:78
+msgid "Resources"
+msgstr "Ressources"
+
+#: budget/views.py:79 templates/budget/index.html:38
+#: templates/budget/year_detail.html:54 templates/property/detail.html:427
+#: templates/property/detail_panel_balance.html:68
+#: templates/property/detail_panel_cashflow.html:148
+#: templates/property/detail_panel_cashflow.html:305
+msgid "Expenses"
+msgstr "Dépenses"
+
+#: budget/views.py:123
+msgid "Budget saved."
+msgstr "Budget enregistré."
+
+#: budget/views.py:161
+msgid "Budget deleted."
+msgstr "Budget supprimé."
+
+#: budget/views.py:176
+#, python-format
+msgid "Budget %(year)d created from %(source)d."
+msgstr "Budget %(year)d créé à partir de %(source)d."
+
+#: budget/views.py:199
+msgid "Create the categories before adding lines."
+msgstr "Créez les catégories avant d'ajouter des lignes."
+
+#: budget/views.py:207
+msgid "Line saved."
+msgstr "Ligne enregistrée."
+
+#: budget/views.py:243
+msgid "Line deleted."
+msgstr "Ligne supprimée."
+
+#: budget/views.py:267
+msgid "Category saved."
+msgstr "Catégorie enregistrée."
+
+#: budget/views.py:303
+msgid ""
+"This category still holds sub-categories or budget lines: move or delete "
+"them first."
+msgstr ""
+"Cette catégorie contient encore des sous-catégories ou des lignes de "
+"budget : déplacez-les ou supprimez-les d'abord."
+
+#: budget/views.py:308
+msgid "Category deleted."
+msgstr "Catégorie supprimée."
+
+#: budget/views.py:319
+#, python-format
+msgid "%(count)d category created."
+msgid_plural "%(count)d categories created."
+msgstr[0] "%(count)d catégorie créée."
+msgstr[1] "%(count)d catégories créées."
+
+#: budget/views.py:382
+msgid "The import session expired, please upload the file again."
+msgstr "La session d'import a expiré, veuillez envoyer le fichier à nouveau."
+
+#: budget/views.py:389
+#, python-format
+msgid "%(count)d line imported."
+msgid_plural "%(count)d lines imported."
+msgstr[0] "%(count)d ligne importée."
+msgstr[1] "%(count)d lignes importées."
+
+#: budget/views.py:397
+#, python-format
+msgid "%(count)d line with errors was skipped."
+msgid_plural "%(count)d lines with errors were skipped."
+msgstr[0] "%(count)d ligne en erreur a été ignorée."
+msgstr[1] "%(count)d lignes en erreur ont été ignorées."
 
 #: finance/admin.py:63
 #, python-format
@@ -961,12 +1645,6 @@ msgstr "taux de fonds euros"
 msgid "euro fund rates"
 msgstr "taux de fonds euros"
 
-#: finance/models/investment_account.py:490
-#: templates/finance/_euro_fund_rates_panel.html:33
-#: templates/property/detail_panel_amortization.html:225
-msgid "Year"
-msgstr "Année"
-
 #: finance/models/investment_account.py:494
 msgid "Credited rate (%)"
 msgstr "Taux servi (%)"
@@ -974,22 +1652,6 @@ msgstr "Taux servi (%)"
 #: finance/models/investment_account.py:495
 msgid "Rate net of management fees, before social charges."
 msgstr "Taux net de frais de gestion, avant prélèvements sociaux."
-
-#: finance/models/investment_account.py:497 finance/models/other_asset.py:115
-#: property/models/asset.py:915 property/models/fiscal.py:42
-#: property/models/scpi.py:73 property/models/scpi.py:596
-#: templates/finance/_euro_fund_rates_panel.html:35
-#: templates/finance/other_asset_detail.html:77
-#: templates/property/_dividend_table_header.html:8
-#: templates/property/_notes_card.html:4 templates/property/_notes_card.html:8
-#: templates/property/detail.html:506
-#: templates/property/detail_panel_cashflow.html:174
-#: templates/property/detail_panel_leases.html:77
-#: templates/property/detail_panel_mandate.html:52
-#: templates/property/edit_entry_occurrence.html:60
-#: templates/property/scpi_theoretical_value_form.html:47
-msgid "Notes"
-msgstr "Notes"
 
 #: finance/models/other_asset.py:32
 msgid "Vehicle"
@@ -1014,31 +1676,6 @@ msgstr "autre actif"
 #: finance/models/other_asset.py:67
 msgid "other assets"
 msgstr "autres actifs"
-
-#: finance/models/other_asset.py:70 property/models/asset.py:51
-#: property/models/asset.py:302 property/models/scpi.py:42
-#: templates/finance/_account_table_header.html:4
-#: templates/finance/edit_investment_holding.html:48
-#: templates/finance/holding_detail.html:63
-#: templates/finance/investment_detail.html:77
-#: templates/finance/other_asset_list.html:21
-#: templates/property/all_loans.html:100
-#: templates/property/detail_panel_loans.html:29
-#: templates/property/edit_manager.html:31
-#: templates/property/scpi_detail.html:140
-msgid "Name"
-msgstr "Nom"
-
-#: finance/models/other_asset.py:75 property/models/ledger.py:323
-#: templates/finance/other_asset_detail.html:38
-#: templates/finance/other_asset_list.html:22
-#: templates/property/_report_category_table.html:11
-#: templates/property/detail.html:414
-#: templates/property/detail_panel_cashflow.html:38
-#: templates/property/detail_panel_cashflow.html:136
-#: templates/property/detail_panel_cashflow.html:308
-msgid "Category"
-msgstr "Catégorie"
 
 #: finance/models/other_asset.py:78
 msgid "Acquisition date"
@@ -1504,11 +2141,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:259
+#: glad/settings.py:260
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:260
+#: glad/settings.py:261
 msgid "French"
 msgstr "Français"
 
@@ -1530,10 +2167,6 @@ msgstr "ex. 240 pour 20 ans"
 msgid "The first payment date must be after the start date."
 msgstr ""
 "La date du premier prélèvement doit être postérieure à la date de début."
-
-#: property/forms.py:350
-msgid "CSV file"
-msgstr "Fichier CSV"
 
 #: property/forms.py:351
 msgid "Columns: date, capital, interets, capital_restant"
@@ -1994,12 +2627,6 @@ msgstr "immobilisation"
 msgid "immobilisations"
 msgstr "immobilisations"
 
-#: property/models/asset.py:864
-#: templates/property/_valid_categories_table.html:6
-#: templates/property/detail_panel_amortization.html:131
-msgid "Label"
-msgstr "Libellé"
-
 #: property/models/asset.py:865
 msgid "Description of the asset, e.g. 'Toiture', 'Cuisine équipée'."
 msgstr "Description de l'immobilisation, ex. 'Toiture', 'Cuisine équipée'."
@@ -2149,7 +2776,7 @@ msgid "Commercial"
 msgstr "Commercial"
 
 #: property/models/lease.py:32 property/models/ledger.py:260
-#: property/models/scpi.py:33
+#: property/models/scpi.py:33 templates/budget/year_detail.html:83
 msgid "Monthly"
 msgstr "Mensuel"
 
@@ -2273,10 +2900,6 @@ msgstr "Loyer encaissé"
 msgid "Charges collected"
 msgstr "Charges encaissées"
 
-#: property/models/ledger.py:86
-msgid "Other income"
-msgstr "Autres revenus"
-
 #: property/models/ledger.py:93
 msgid "Deposit received"
 msgstr "Dépôt reçu"
@@ -2317,14 +2940,6 @@ msgstr "Travaux"
 msgid "Furnitures"
 msgstr "Meublé"
 
-#: property/models/ledger.py:158
-msgid "Insurance"
-msgstr "Assurance"
-
-#: property/models/ledger.py:161
-msgid "Property tax"
-msgstr "Taxe foncière"
-
 #: property/models/ledger.py:166
 msgid "CFE"
 msgstr "CFE"
@@ -2332,16 +2947,6 @@ msgstr "CFE"
 #: property/models/ledger.py:169
 msgid "Miscellaneous deductible"
 msgstr "Charges diverses déductibles"
-
-#: property/models/ledger.py:176 property/services/cashflow.py:146
-#: templates/property/detail_panel_cashflow.html:538
-msgid "Loan interest"
-msgstr "Intérêts du prêt"
-
-#: property/models/ledger.py:183 property/services/cashflow.py:150
-#: templates/property/detail_panel_cashflow.html:540
-msgid "Loan insurance"
-msgstr "Assurance de prêt"
 
 #: property/models/ledger.py:190
 msgid "Rental guarantee"
@@ -2384,7 +2989,7 @@ msgstr "Dépense"
 msgid "Biannual"
 msgstr "Biannuel"
 
-#: property/models/ledger.py:263
+#: property/models/ledger.py:263 templates/budget/year_detail.html:83
 msgid "Yearly"
 msgstr "Annuel"
 
@@ -2405,7 +3010,8 @@ msgstr "Bail"
 msgid "Flow type"
 msgstr "Type de flux"
 
-#: property/models/ledger.py:305 templates/finance/_deposits_panel.html:16
+#: property/models/ledger.py:305 templates/budget/import_preview.html:36
+#: templates/finance/_deposits_panel.html:16
 #: templates/finance/_edit_deposit_fields.html:3 templates/operations.html:23
 #: templates/property/_report_category_table.html:12
 #: templates/property/detail.html:458
@@ -2766,10 +3372,6 @@ msgstr ""
 msgid "SCPI dividend"
 msgstr "Dividende SCPI"
 
-#: property/models/scpi.py:611
-msgid "SCPI dividends"
-msgstr "Dividendes SCPI"
-
 #: property/models/scpi.py:627
 msgid "Gross dividend before any withholding tax."
 msgstr "Dividende brut avant tout prélèvement fiscal."
@@ -2778,7 +3380,7 @@ msgstr "Dividende brut avant tout prélèvement fiscal."
 msgid "Net dividend received after withholding tax."
 msgstr "Dividende net reçu après prélèvements fiscaux."
 
-#: property/services/cashflow.py:155
+#: property/services/cashflow.py:188
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
@@ -3130,58 +3732,53 @@ msgstr "Impossible d'ajouter l'écriture."
 msgid "Unknown form action."
 msgstr "Action de formulaire inconnue."
 
-#: property/views/edit_views.py:45
+#: property/views/edit_views.py:50
 msgid "Property updated successfully."
 msgstr "Propriété mise à jour avec succès."
 
-#: property/views/edit_views.py:71
+#: property/views/edit_views.py:76
 msgid "Loans updated successfully."
 msgstr "Prêts mis à jour avec succès."
 
-#: property/views/edit_views.py:100
+#: property/views/edit_views.py:105
 msgid "Property created successfully."
 msgstr "Propriété créée avec succès."
 
-#: property/views/edit_views.py:165
+#: property/views/edit_views.py:142
 msgid "No file provided."
 msgstr "Aucun fichier fourni."
 
-#: property/views/edit_views.py:175
-msgid "Could not decode file — use UTF-8 or Latin-1."
-msgstr ""
-"Impossible de décoder le fichier — utilisez l'encodage UTF-8 ou Latin-1."
-
-#: property/views/edit_views.py:180
+#: property/views/edit_views.py:149
 msgid "Empty file."
 msgstr "Fichier vide."
 
-#: property/views/edit_views.py:206
+#: property/views/edit_views.py:173
 #, python-format
 msgid "Missing columns: %(cols)s"
 msgstr "Colonnes manquantes : %(cols)s"
 
-#: property/views/edit_views.py:225
+#: property/views/edit_views.py:192
 #, python-format
 msgid "Row %(n)d: %(err)s"
 msgstr "Ligne %(n)d : %(err)s"
 
-#: property/views/edit_views.py:244
+#: property/views/edit_views.py:211
 msgid "No valid rows found in the file."
 msgstr "Aucune ligne valide trouvée dans le fichier."
 
-#: property/views/edit_views.py:252
+#: property/views/edit_views.py:219
 #, python-format
 msgid "Several rows are dated %(dates)s: each installment needs its own date."
 msgstr ""
 "Plusieurs lignes sont datées du %(dates)s : chaque échéance doit avoir sa "
 "propre date."
 
-#: property/views/edit_views.py:263
+#: property/views/edit_views.py:230
 #, python-format
 msgid "%(n)d entries imported."
 msgstr "%(n)d entrée(s) importée(s)."
 
-#: property/views/edit_views.py:290
+#: property/views/edit_views.py:257
 #, python-format
 msgid ""
 "The first row starts from %(start)s instead of the loan amount %(amount)s: "
@@ -3190,7 +3787,7 @@ msgstr ""
 "La première ligne part de %(start)s au lieu du montant emprunté de "
 "%(amount)s : il manque peut-être les premières échéances du tableau."
 
-#: property/views/edit_views.py:301
+#: property/views/edit_views.py:268
 #, python-format
 msgid ""
 "The last row still owes %(balance)s: the table may miss its last "
@@ -3199,23 +3796,23 @@ msgstr ""
 "La dernière ligne laisse encore %(balance)s à rembourser : il manque peut-"
 "être les dernières échéances du tableau."
 
-#: property/views/edit_views.py:314
+#: property/views/edit_views.py:281
 #, python-format
 msgid "%(count)d row is dated before the start date of the loan."
 msgid_plural "%(count)d rows are dated before the start date of the loan."
 msgstr[0] "%(count)d ligne est datée d'avant la date de début du prêt."
 msgstr[1] "%(count)d lignes sont datées d'avant la date de début du prêt."
 
-#: property/views/edit_views.py:333
+#: property/views/edit_views.py:300
 msgid "Cannot generate: the loan has no installment."
 msgstr "Impossible de générer : le prêt n'a aucune échéance."
 
-#: property/views/edit_views.py:354
+#: property/views/edit_views.py:321
 #, python-format
 msgid "%(n)d entries generated."
 msgstr "%(n)d entrée(s) générée(s)."
 
-#: property/views/edit_views.py:365
+#: property/views/edit_views.py:332
 #, python-format
 msgid "%(n)d entries cleared."
 msgstr "%(n)d entrée(s) effacée(s)."
@@ -3526,7 +4123,8 @@ msgid "Enter your email address"
 msgstr "Saisissez votre adresse email"
 
 #: templates/accounts/settings.html:31 templates/accounts/settings.html:150
-#: templates/allocation.html:61 templates/finance/_edit_form_footer.html:4
+#: templates/allocation.html:69 templates/budget/edit_line.html:44
+#: templates/finance/_edit_form_footer.html:4
 #: templates/finance/_euro_fund_rates_panel.html:25
 #: templates/owners_manage.html:66 templates/property/_edit_form_footer.html:6
 #: templates/property/_form_submit_buttons.html:4
@@ -3722,7 +4320,8 @@ msgstr[1] ""
 "Êtes-vous sûr de vouloir mettre à jour la date pour ces %(counter)s "
 "éléments ?"
 
-#: templates/admin/bulk_update_date.html:28
+#: templates/admin/bulk_update_date.html:28 templates/budget/copy_year.html:26
+#: templates/budget/edit_line.html:46 templates/budget/import_preview.html:60
 #: templates/finance/_delete_modal.html:15
 #: templates/finance/_edit_form_footer.html:7
 #: templates/finance/csv_mapping.html:57
@@ -3759,11 +4358,8 @@ msgstr "Sélection"
 msgid "household"
 msgstr "foyer"
 
-#: templates/allocation.html:27
-msgid "Whole household"
-msgstr "Tout le foyer"
-
-#: templates/allocation.html:28 templates/property/detail_panel_balance.html:15
+#: templates/allocation.html:28 templates/budget/year_detail.html:15
+#: templates/property/detail_panel_balance.html:15
 #: templates/property/detail_panel_balance.html:41
 #: templates/property/report.html:45
 msgid "Apply"
@@ -3788,15 +4384,26 @@ msgstr ""
 "Saisissez vos dépenses mensuelles pour dimensionner votre épargne de "
 "précaution."
 
-#: templates/allocation.html:70
+#: templates/allocation.html:60
+#, python-format
+msgid "From the <a href=\"%(budget_url)s\">budget %(year)s</a>"
+msgstr "D'après le <a href=\"%(budget_url)s\">budget %(year)s</a>"
+
+#: templates/allocation.html:71
+#, python-format
+msgid "Or describe your expenses in a <a href=\"%(budget_url)s\">budget</a>."
+msgstr ""
+"Ou décrivez vos dépenses dans un <a href=\"%(budget_url)s\">budget</a>."
+
+#: templates/allocation.html:80
 msgid "By asset class"
 msgstr "Par classe d'actifs"
 
-#: templates/allocation.html:74
+#: templates/allocation.html:84
 msgid "By liquidity"
 msgstr "Par liquidité"
 
-#: templates/allocation.html:79
+#: templates/allocation.html:89
 msgid ""
 "Each asset counts for the share held by the chosen owners; with every member "
 "chosen, the total is the household's part of the assets. The emergency fund "
@@ -3807,7 +4414,7 @@ msgstr ""
 "détenue par le foyer. L'épargne de précaution couvre toujours l'ensemble du "
 "foyer."
 
-#: templates/allocation.html:80
+#: templates/allocation.html:90
 msgid ""
 "Real estate is counted net of the remaining loans. Only assets in the "
 "reference currency are included. Set the asset class of each holding to "
@@ -3834,94 +4441,626 @@ msgstr "Navigation principale"
 msgid "Wealth"
 msgstr "Patrimoine"
 
-#: templates/base.html:64
+#: templates/base.html:64 templates/budget/index.html:5
 msgid "Analysis"
 msgstr "Analyse"
 
-#: templates/base.html:72 templates/deadlines.html:5
+#: templates/base.html:73 templates/deadlines.html:5
 #: templates/operations.html:5
 msgid "Tracking"
 msgstr "Suivi"
 
-#: templates/base.html:81
+#: templates/base.html:82
 msgid "Tools"
 msgstr "Outils"
 
-#: templates/base.html:92
+#: templates/base.html:93
 msgid "Favorites"
 msgstr "Favoris"
 
-#: templates/base.html:109
+#: templates/base.html:110
 msgid "Add an asset"
 msgstr "Ajouter un actif"
 
-#: templates/base.html:110
+#: templates/base.html:111
 msgid "Add"
 msgstr "Ajouter"
 
-#: templates/base.html:113
+#: templates/base.html:114
 msgid "PEA, life insurance, securities account"
 msgstr "PEA, assurance vie, compte-titres"
 
-#: templates/base.html:114
+#: templates/base.html:115
 msgid "Passbook, PEL, CEL"
 msgstr "Livret, PEL, CEL"
 
-#: templates/base.html:115
+#: templates/base.html:116
 msgid "Main residence, rental, LMNP"
 msgstr "Résidence principale, locatif, LMNP"
 
-#: templates/base.html:116
+#: templates/base.html:117
 msgid "Shares in full or bare ownership"
 msgstr "Parts en pleine ou nue-propriété"
 
-#: templates/base.html:117
+#: templates/base.html:118
 msgid "Vehicle, gold, crypto, collectibles"
 msgstr "Véhicule, or, crypto, objets de collection"
 
-#: templates/base.html:120 templates/base.html:121
+#: templates/base.html:121 templates/base.html:122
 msgid "Bulk update"
 msgstr "Mise à jour groupée"
 
-#: templates/base.html:123
+#: templates/base.html:124
 msgid "Collapse or expand the menu"
 msgstr "Replier ou déplier le menu"
 
-#: templates/base.html:124
+#: templates/base.html:125
 msgid "Collapse the menu"
 msgstr "Replier le menu"
 
-#: templates/base.html:133
+#: templates/base.html:134
 msgid "Open the menu"
 msgstr "Ouvrir le menu"
 
-#: templates/base.html:136
+#: templates/base.html:137
 msgid "Breadcrumb"
 msgstr "Fil d'Ariane"
 
-#: templates/base.html:145
+#: templates/base.html:146
 msgid "Search an asset"
 msgstr "Rechercher un actif"
 
-#: templates/base.html:147
+#: templates/base.html:148
 msgid "No result"
 msgstr "Aucun résultat"
 
-#: templates/base.html:149 templates/base.html:211
+#: templates/base.html:150 templates/base.html:212
 msgid "Toggle dark mode"
 msgstr "Basculer en mode sombre"
 
-#: templates/base.html:153
+#: templates/base.html:154
 msgid "My account"
 msgstr "Mon compte"
 
-#: templates/base.html:167 templates/base.html:217
+#: templates/base.html:168 templates/base.html:218
 msgid "Language"
 msgstr "Langue"
 
-#: templates/base.html:175
+#: templates/base.html:176
 msgid "Logout"
 msgstr "Déconnexion"
+
+#: templates/budget/_node_rows.html:6
+msgid "Computed from the rest of the application"
+msgstr "Calculé à partir du reste de l'application"
+
+#: templates/budget/_node_rows.html:6
+msgid "Auto"
+msgstr "Auto"
+
+#: templates/budget/_node_rows.html:15 templates/budget/import_preview.html:45
+msgid "New"
+msgstr "Nouveau"
+
+#: templates/budget/_node_rows.html:19 templates/budget/categories.html:30
+#: templates/finance/_account_detail_header.html:11
+#: templates/finance/_item_actions.html:3
+#: templates/finance/edit_investment.html:9
+#: templates/finance/edit_other_asset.html:9
+#: templates/finance/edit_saving.html:9
+#: templates/finance/holding_detail.html:25
+#: templates/finance/investment_detail.html:109
+#: templates/finance/other_asset_detail.html:26
+#: templates/property/_edit_page_header.html:17
+#: templates/property/detail.html:57
+#: templates/property/detail_panel_cashflow.html:297
+#: templates/property/detail_panel_loans.html:39 templates/property/edit.html:5
+#: templates/property/edit.html:9 templates/property/scpi_detail.html:124
+#: templates/property/scpi_detail.html:184
+#: templates/property/scpi_fund_detail.html:188
+#: templates/property/scpi_fund_detail.html:244
+#: templates/property/scpi_fund_form.html:13
+#: templates/property/scpi_theoretical_value_form.html:59
+msgid "Edit"
+msgstr "Modifier"
+
+#: templates/budget/_node_rows.html:21 templates/budget/year_detail.html:17
+#: templates/budget/year_detail.html:112
+msgid "Add a line"
+msgstr "Ajouter une ligne"
+
+#: templates/budget/ai_prompt.html:4 templates/budget/ai_prompt.html:6
+#: templates/budget/ai_prompt.html:11 templates/budget/year_detail.html:26
+msgid "Prompt for an AI"
+msgstr "Prompt pour une IA"
+
+#: templates/budget/ai_prompt.html:14
+msgid ""
+"Copy this prompt into the AI assistant of your choice with the export of "
+"your bank transactions (CSV, OFX or PDF), save its answer as a .csv file, "
+"then import it."
+msgstr ""
+"Copiez ce prompt dans l'assistant IA de votre choix avec l'export de vos "
+"opérations bancaires (CSV, OFX ou PDF), enregistrez sa réponse dans un "
+"fichier .csv, puis importez-le."
+
+#: templates/budget/ai_prompt.html:16
+msgid ""
+"Your bank transactions and the names of your household members are then sent "
+"to that service. Remove what you do not want to share before sending the "
+"export."
+msgstr ""
+"Vos opérations bancaires et les prénoms des membres du foyer sont alors "
+"envoyés à ce service. Retirez ce que vous ne voulez pas partager avant "
+"d'envoyer l'export."
+
+#: templates/budget/ai_prompt.html:21
+msgid "Prompt"
+msgstr "Prompt"
+
+#: templates/budget/ai_prompt.html:22
+msgid "Copied"
+msgstr "Copié"
+
+#: templates/budget/ai_prompt.html:22 templates/budget/copy_year.html:6
+msgid "Copy"
+msgstr "Copier"
+
+#: templates/budget/ai_prompt.html:26
+msgid "Import the file"
+msgstr "Importer le fichier"
+
+#: templates/budget/categories.html:4
+msgid "Budget categories"
+msgstr "Catégories du budget"
+
+#: templates/budget/categories.html:5 templates/budget/categories.html:7
+#: templates/budget/edit_category.html:5 templates/budget/edit_category.html:12
+#: templates/budget/index.html:10 templates/budget/year_detail.html:23
+msgid "Categories"
+msgstr "Catégories"
+
+#: templates/budget/categories.html:8
+msgid "Shared by every budget year, up to three levels"
+msgstr "Communes à toutes les années, jusqu'à trois niveaux"
+
+#: templates/budget/categories.html:12
+msgid "Add the default categories that are missing"
+msgstr "Ajouter les catégories par défaut manquantes"
+
+#: templates/budget/categories.html:12
+msgid "Default categories"
+msgstr "Catégories par défaut"
+
+#: templates/budget/categories.html:14 templates/budget/edit_category.html:4
+#: templates/budget/edit_category.html:6 templates/budget/edit_category.html:11
+msgid "New category"
+msgstr "Nouvelle catégorie"
+
+#: templates/budget/categories.html:29
+msgid "Add a sub-category"
+msgstr "Ajouter une sous-catégorie"
+
+#: templates/budget/categories.html:31
+msgid "Delete this category?"
+msgstr "Supprimer cette catégorie ?"
+
+#: templates/budget/categories.html:33 templates/budget/edit_line.html:48
+#: templates/finance/_account_detail_header.html:14
+#: templates/finance/_delete_modal.html:16
+#: templates/finance/_euro_fund_rates_panel.html:48
+#: templates/finance/_item_actions.html:6
+#: templates/finance/holding_detail.html:28
+#: templates/finance/investment_detail.html:112
+#: templates/finance/other_asset_detail.html:29
+#: templates/property/detail.html:576
+#: templates/property/detail_panel_cashflow.html:233
+#: templates/property/detail_panel_cashflow.html:302
+#: templates/property/detail_panel_loans.html:154
+#: templates/property/occurrence_checks.html:73
+#: templates/property/scpi_detail.html:127
+#: templates/property/scpi_detail.html:187
+#: templates/property/scpi_fund_detail.html:196
+#: templates/property/scpi_fund_detail.html:245
+msgid "Delete"
+msgstr "Supprimer"
+
+#: templates/budget/categories.html:38
+msgid "No category."
+msgstr "Aucune catégorie."
+
+#: templates/budget/copy_year.html:4 templates/budget/copy_year.html:11
+#, python-format
+msgid "Copy the budget %(year)s"
+msgstr "Copier le budget %(year)s"
+
+#: templates/budget/copy_year.html:15
+msgid ""
+"The new budget gets the settings and every line of this one, so you only "
+"have to adjust what changed. The automatic lines (properties, accounts) are "
+"computed for the new year."
+msgstr ""
+"Le nouveau budget reprend les réglages et toutes les lignes de celui-ci : il "
+"ne reste qu'à ajuster ce qui a changé. Les lignes automatiques (biens, "
+"comptes) sont calculées pour la nouvelle année."
+
+#: templates/budget/copy_year.html:25
+msgid "Create the budget"
+msgstr "Créer le budget"
+
+#: templates/budget/edit_category.html:4 templates/budget/edit_category.html:10
+msgid "Edit category"
+msgstr "Modifier la catégorie"
+
+#: templates/budget/edit_line.html:4 templates/budget/edit_line.html:10
+msgid "Edit line"
+msgstr "Modifier la ligne"
+
+#: templates/budget/edit_line.html:4 templates/budget/edit_line.html:6
+#: templates/budget/edit_line.html:11
+msgid "New line"
+msgstr "Nouvelle ligne"
+
+#: templates/budget/edit_line.html:31
+msgid "Turn the monthly amount typed into a yearly amount"
+msgstr "Convertit le montant mensuel saisi en montant annuel"
+
+#: templates/budget/edit_line.html:31
+msgid "Monthly amount × 12"
+msgstr "Montant mensuel × 12"
+
+#: templates/budget/edit_line.html:45
+msgid "Save and add another"
+msgstr "Enregistrer et ajouter une autre"
+
+#: templates/budget/edit_line.html:53
+msgid "Delete this line?"
+msgstr "Supprimer cette ligne ?"
+
+#: templates/budget/edit_year.html:4
+#, python-format
+msgid "Budget %(year)s settings"
+msgstr "Réglages du budget %(year)s"
+
+#: templates/budget/edit_year.html:4 templates/budget/edit_year.html:6
+#: templates/budget/edit_year.html:11 templates/budget/index.html:11
+msgid "New budget"
+msgstr "Nouveau budget"
+
+#: templates/budget/edit_year.html:10 templates/budget/year_detail.html:21
+msgid "Budget settings"
+msgstr "Réglages du budget"
+
+#: templates/budget/import.html:4 templates/budget/import.html:11
+#, python-format
+msgid "Import lines into the budget %(year)s"
+msgstr "Importer des lignes dans le budget %(year)s"
+
+#: templates/budget/import.html:6 templates/budget/import_preview.html:59
+msgid "Import"
+msgstr "Importer"
+
+#: templates/budget/import.html:16
+msgid ""
+"The lines of the file are added to the budget after a preview. You can build "
+"the file from your bank export with an AI:"
+msgstr ""
+"Les lignes du fichier sont ajoutées au budget après un aperçu. Vous pouvez "
+"construire le fichier à partir de votre export bancaire avec une IA :"
+
+#: templates/budget/import.html:17
+msgid "get the prompt"
+msgstr "obtenir le prompt"
+
+#: templates/budget/import.html:25
+msgid "Preview"
+msgstr "Aperçu"
+
+#: templates/budget/import.html:31
+msgid "File format"
+msgstr "Format du fichier"
+
+#: templates/budget/import.html:33
+msgid ""
+"One line per budget line, with a header row. The separator can be ; or , and "
+"amounts can use a decimal comma."
+msgstr ""
+"Une ligne par ligne de budget, avec une ligne d'en-tête. Le séparateur peut "
+"être ; ou , et les montants peuvent utiliser une virgule décimale."
+
+#: templates/budget/import.html:38
+msgid ""
+"income, expense or saving (French words work too); optional when the "
+"category exists"
+msgstr ""
+"income, expense ou saving (revenu, dépense, épargne fonctionnent aussi) ; "
+"facultatif si la catégorie existe"
+
+#: templates/budget/import.html:39
+msgid "category path, levels separated by >"
+msgstr "chemin de la catégorie, niveaux séparés par >"
+
+#: templates/budget/import.html:40
+msgid "description of the line"
+msgstr "description de la ligne"
+
+#: templates/budget/import.html:41
+msgid "total for the whole year"
+msgstr "total pour l'année entière"
+
+#: templates/budget/import.html:42
+msgid "first name or user name of a member, empty for the whole household"
+msgstr "prénom ou identifiant d'un membre, vide pour tout le foyer"
+
+#: templates/budget/import.html:43
+#: templates/finance/_edit_account_dates_card.html:17
+#: templates/finance/_edit_account_info_card.html:17
+#: templates/finance/_edit_account_info_card.html:25
+#: templates/finance/_edit_deposit_fields.html:15
+#: templates/finance/edit_holding_history.html:36
+#: templates/finance/edit_holding_history.html:44
+#: templates/finance/edit_investment_holding.html:33
+#: templates/finance/edit_investment_holding.html:49
+#: templates/finance/edit_investment_holding.html:57
+#: templates/finance/edit_investment_holding.html:65
+#: templates/finance/edit_investment_holding.html:100
+#: templates/property/_contact_card.html:12
+#: templates/property/_contact_card.html:23
+#: templates/property/_contact_card.html:36
+#: templates/property/_notes_card.html:9 templates/property/detail.html:438
+#: templates/property/detail.html:477 templates/property/detail.html:489
+#: templates/property/detail.html:496 templates/property/detail.html:507
+#: templates/property/detail.html:528
+#: templates/property/detail_panel_cashflow.html:119
+#: templates/property/detail_panel_cashflow.html:127
+#: templates/property/detail_panel_cashflow.html:159
+#: templates/property/detail_panel_cashflow.html:168
+#: templates/property/detail_panel_cashflow.html:175
+#: templates/property/detail_panel_cashflow.html:193
+#: templates/property/edit_entry_occurrence.html:41
+#: templates/property/edit_entry_occurrence.html:51
+#: templates/property/edit_entry_occurrence.html:61
+#: templates/property/edit_lease.html:51 templates/property/edit_lease.html:59
+#: templates/property/edit_lease.html:117
+#: templates/property/edit_lease.html:125
+#: templates/property/edit_manager.html:43
+#: templates/property/edit_mandate.html:38
+#: templates/property/edit_mandate.html:46
+#: templates/property/edit_mandate.html:54
+#: templates/property/edit_mandate.html:69
+#: templates/property/edit_mandate.html:96
+#: templates/property/edit_mandate.html:107
+msgid "optional"
+msgstr "optionnel"
+
+#: templates/budget/import_preview.html:4
+#: templates/budget/import_preview.html:6
+#: templates/budget/import_preview.html:11
+msgid "Import preview"
+msgstr "Aperçu de l'import"
+
+#: templates/budget/import_preview.html:12
+msgid "Choose another file"
+msgstr "Choisir un autre fichier"
+
+#: templates/budget/import_preview.html:16
+#, python-format
+msgid "%(counter)s line will be added."
+msgid_plural "%(counter)s lines will be added."
+msgstr[0] "%(counter)s ligne sera ajoutée."
+msgstr[1] "%(counter)s lignes seront ajoutées."
+
+#: templates/budget/import_preview.html:17
+#, python-format
+msgid "%(counter)s line has errors and will be skipped."
+msgid_plural "%(counter)s lines have errors and will be skipped."
+msgstr[0] "%(counter)s ligne comporte des erreurs et sera ignorée."
+msgstr[1] "%(counter)s lignes comportent des erreurs et seront ignorées."
+
+#: templates/budget/import_preview.html:21
+msgid "These categories will be created:"
+msgstr "Ces catégories seront créées :"
+
+#: templates/budget/import_preview.html:37
+msgid "Errors"
+msgstr "Erreurs"
+
+#: templates/budget/index.html:6
+msgid "Household budget"
+msgstr "Budget du foyer"
+
+#: templates/budget/index.html:7
+msgid "Income, expenses and savings of the household, year by year"
+msgstr "Revenus, dépenses et épargne du foyer, année par année"
+
+#: templates/budget/index.html:20
+msgid ""
+"Describe the income and expenses of your household for each year, see where "
+"the money goes in a flow diagram and follow your savings rate."
+msgstr ""
+"Décrivez les revenus et les dépenses de votre foyer pour chaque année, "
+"visualisez où va l'argent dans un diagramme de flux et suivez votre taux "
+"d'épargne."
+
+#: templates/budget/index.html:21
+msgid ""
+"Start with the default categories (housing, food, transport, taxes…): you "
+"can rename, move or delete them afterwards."
+msgstr ""
+"Commencez avec les catégories par défaut (logement, alimentation, transport, "
+"impôts…) : vous pourrez les renommer, les déplacer ou les supprimer ensuite."
+
+#: templates/budget/index.html:26
+msgid "Create the default categories"
+msgstr "Créer les catégories par défaut"
+
+#: templates/budget/index.html:28
+msgid "Create my own categories"
+msgstr "Créer mes propres catégories"
+
+#: templates/budget/index.html:40 templates/budget/year_detail.html:59
+msgid "Savings rate"
+msgstr "Taux d'épargne"
+
+#: templates/budget/index.html:41 templates/budget/year_detail.html:64
+#: templates/dashboard/_overview.html:20
+msgid "Debt ratio"
+msgstr "Taux d'endettement"
+
+#: templates/budget/index.html:46
+msgid "Current"
+msgstr "En cours"
+
+#: templates/budget/index.html:61
+msgid "No budget yet."
+msgstr "Aucun budget pour l'instant."
+
+#: templates/budget/index.html:62
+msgid "Create the budget of a year"
+msgstr "Créer le budget d'une année"
+
+#: templates/budget/year_detail.html:4 templates/budget/year_detail.html:7
+#, python-format
+msgid "Budget %(year)s"
+msgstr "Budget %(year)s"
+
+#: templates/budget/year_detail.html:8
+#, python-format
+msgid ""
+"Part of %(name)s: the lines named for them and their share of the household "
+"lines"
+msgstr "Part de %(name)s : ses lignes nommées et sa part des lignes du foyer"
+
+#: templates/budget/year_detail.html:19
+msgid "More actions"
+msgstr "Plus d'actions"
+
+#: templates/budget/year_detail.html:22
+msgid "Copy to another year"
+msgstr "Copier vers une autre année"
+
+#: templates/budget/year_detail.html:25
+msgid "Import lines (CSV)"
+msgstr "Importer des lignes (CSV)"
+
+#: templates/budget/year_detail.html:27
+msgid "Export lines (CSV)"
+msgstr "Exporter les lignes (CSV)"
+
+#: templates/budget/year_detail.html:30
+#, python-format
+msgid "Delete the budget %(year)s and all its lines?"
+msgstr "Supprimer le budget %(year)s et toutes ses lignes ?"
+
+#: templates/budget/year_detail.html:32
+msgid "Delete the budget"
+msgstr "Supprimer le budget"
+
+#: templates/budget/year_detail.html:51 templates/budget/year_detail.html:56
+#: templates/budget/year_detail.html:124
+msgid "/ month"
+msgstr "/ mois"
+
+#: templates/budget/year_detail.html:61
+msgid ""
+"Savings rate counting the loan principal repaid, which also builds wealth"
+msgstr ""
+"Taux d'épargne en comptant le capital remboursé des crédits, qui constitue "
+"aussi un patrimoine"
+
+#: templates/budget/year_detail.html:61
+#, python-format
+msgid "%(rate)s with the loan principal"
+msgstr "%(rate)s avec le capital remboursé"
+
+#: templates/budget/year_detail.html:66
+#, python-format
+msgid ""
+"Loan installments, insurance included, divided by the income with 70 %% of "
+"the rents, as banks count it (HCSF)"
+msgstr ""
+"Mensualités de crédit, assurance comprise, divisées par les revenus en "
+"comptant 70 %% des loyers, comme le font les banques (HCSF)"
+
+#: templates/budget/year_detail.html:66
+#, python-format
+msgid "HCSF limit: %(limit)s %%"
+msgstr "Limite HCSF : %(limit)s %%"
+
+#: templates/budget/year_detail.html:69
+msgid "Left to live"
+msgstr "Reste à vivre"
+
+#: templates/budget/year_detail.html:71
+msgid "per month, after the loans"
+msgstr "par mois, après les crédits"
+
+#: templates/budget/year_detail.html:79
+msgid "Where the money goes"
+msgstr "Où va l'argent"
+
+#: templates/budget/year_detail.html:80
+msgid "Click a group to fold or unfold it"
+msgstr "Cliquez sur un groupe pour le replier ou le déplier"
+
+#: templates/budget/year_detail.html:82 templates/dashboard/_overview.html:31
+#: templates/property/detail_panel_balance.html:9
+msgid "Period"
+msgstr "Période"
+
+#: templates/budget/year_detail.html:104
+msgid "Month"
+msgstr "Mois"
+
+#: templates/budget/year_detail.html:107
+msgid "Change"
+msgstr "Évolution"
+
+#: templates/budget/year_detail.html:112
+msgid "Nothing yet."
+msgstr "Rien pour l'instant."
+
+#: templates/budget/year_detail.html:121
+msgid "Money left once the expenses and savings are paid"
+msgstr "Argent restant une fois les dépenses et l'épargne réglées"
+
+#: templates/budget/year_detail.html:122
+msgid "Deficit: the expenses and savings exceed the resources"
+msgstr "Déficit : les dépenses et l'épargne dépassent les ressources"
+
+#: templates/budget/year_detail.html:132
+#, python-format
+msgid "%(previous)s compared with %(year)s"
+msgstr "%(previous)s comparé à %(year)s"
+
+#: templates/budget/year_detail.html:133
+#, python-format
+msgid "Inflation of the year: %(rate)s"
+msgstr "Inflation de l'année : %(rate)s"
+
+#: templates/budget/year_detail.html:148
+msgid ""
+"Automatic lines come from the property ledgers and loan schedules, the SCPI "
+"dividends and subscriptions, and the deposits on the accounts of the year; "
+"they change with them. Every amount is yearly, the month column divides it "
+"by 12."
+msgstr ""
+"Les lignes automatiques viennent des écritures et des échéanciers de crédit "
+"des biens, des dividendes et souscriptions SCPI et des versements sur les "
+"comptes de l'année ; elles évoluent avec eux. Tous les montants sont "
+"annuels, la colonne mois les divise par 12."
+
+#: templates/budget/year_detail.html:164
+msgid "Flow diagram of the budget"
+msgstr "Diagramme des flux du budget"
+
+#: templates/budget/year_detail.html:165
+msgid "Click to fold"
+msgstr "Cliquer pour replier"
+
+#: templates/budget/year_detail.html:166
+msgid "Click to unfold"
+msgstr "Cliquer pour déplier"
 
 #: templates/dashboard/_overview.html:5
 msgid "Net worth"
@@ -3944,18 +5083,9 @@ msgstr "Dettes immobilières"
 msgid "Change over 12 months"
 msgstr "Variation sur 12 mois"
 
-#: templates/dashboard/_overview.html:20
-msgid "Debt ratio"
-msgstr "Taux d'endettement"
-
 #: templates/dashboard/_overview.html:27
 msgid "Evolution"
 msgstr "Évolution"
-
-#: templates/dashboard/_overview.html:31
-#: templates/property/detail_panel_balance.html:9
-msgid "Period"
-msgstr "Période"
 
 #: templates/dashboard/_overview.html:38
 msgid "Net worth evolution"
@@ -4155,46 +5285,6 @@ msgstr "Investi"
 msgid "Capital gain"
 msgstr "Plus-value"
 
-#: templates/finance/_account_detail_header.html:11
-#: templates/finance/_item_actions.html:3
-#: templates/finance/edit_investment.html:9
-#: templates/finance/edit_other_asset.html:9
-#: templates/finance/edit_saving.html:9
-#: templates/finance/holding_detail.html:25
-#: templates/finance/investment_detail.html:109
-#: templates/finance/other_asset_detail.html:26
-#: templates/property/_edit_page_header.html:17
-#: templates/property/detail.html:57
-#: templates/property/detail_panel_cashflow.html:297
-#: templates/property/detail_panel_loans.html:39 templates/property/edit.html:5
-#: templates/property/edit.html:9 templates/property/scpi_detail.html:124
-#: templates/property/scpi_detail.html:184
-#: templates/property/scpi_fund_detail.html:188
-#: templates/property/scpi_fund_detail.html:244
-#: templates/property/scpi_fund_form.html:13
-#: templates/property/scpi_theoretical_value_form.html:59
-msgid "Edit"
-msgstr "Modifier"
-
-#: templates/finance/_account_detail_header.html:14
-#: templates/finance/_delete_modal.html:16
-#: templates/finance/_euro_fund_rates_panel.html:48
-#: templates/finance/_item_actions.html:6
-#: templates/finance/holding_detail.html:28
-#: templates/finance/investment_detail.html:112
-#: templates/finance/other_asset_detail.html:29
-#: templates/property/detail.html:576
-#: templates/property/detail_panel_cashflow.html:233
-#: templates/property/detail_panel_cashflow.html:302
-#: templates/property/detail_panel_loans.html:154
-#: templates/property/occurrence_checks.html:73
-#: templates/property/scpi_detail.html:127
-#: templates/property/scpi_detail.html:187
-#: templates/property/scpi_fund_detail.html:196
-#: templates/property/scpi_fund_detail.html:245
-msgid "Delete"
-msgstr "Supprimer"
-
 #: templates/finance/_account_stats.html:4
 msgid "Total deposits"
 msgstr "Total des dépôts"
@@ -4263,46 +5353,6 @@ msgstr "Date d'ouverture"
 #: templates/finance/_edit_account_dates_card.html:16
 msgid "Closing date"
 msgstr "Date de clôture"
-
-#: templates/finance/_edit_account_dates_card.html:17
-#: templates/finance/_edit_account_info_card.html:17
-#: templates/finance/_edit_account_info_card.html:25
-#: templates/finance/_edit_deposit_fields.html:15
-#: templates/finance/edit_holding_history.html:36
-#: templates/finance/edit_holding_history.html:44
-#: templates/finance/edit_investment_holding.html:33
-#: templates/finance/edit_investment_holding.html:49
-#: templates/finance/edit_investment_holding.html:57
-#: templates/finance/edit_investment_holding.html:65
-#: templates/finance/edit_investment_holding.html:100
-#: templates/property/_contact_card.html:12
-#: templates/property/_contact_card.html:23
-#: templates/property/_contact_card.html:36
-#: templates/property/_notes_card.html:9 templates/property/detail.html:438
-#: templates/property/detail.html:477 templates/property/detail.html:489
-#: templates/property/detail.html:496 templates/property/detail.html:507
-#: templates/property/detail.html:528
-#: templates/property/detail_panel_cashflow.html:119
-#: templates/property/detail_panel_cashflow.html:127
-#: templates/property/detail_panel_cashflow.html:159
-#: templates/property/detail_panel_cashflow.html:168
-#: templates/property/detail_panel_cashflow.html:175
-#: templates/property/detail_panel_cashflow.html:193
-#: templates/property/edit_entry_occurrence.html:41
-#: templates/property/edit_entry_occurrence.html:51
-#: templates/property/edit_entry_occurrence.html:61
-#: templates/property/edit_lease.html:51 templates/property/edit_lease.html:59
-#: templates/property/edit_lease.html:117
-#: templates/property/edit_lease.html:125
-#: templates/property/edit_manager.html:43
-#: templates/property/edit_mandate.html:38
-#: templates/property/edit_mandate.html:46
-#: templates/property/edit_mandate.html:54
-#: templates/property/edit_mandate.html:69
-#: templates/property/edit_mandate.html:96
-#: templates/property/edit_mandate.html:107
-msgid "optional"
-msgstr "optionnel"
 
 #: templates/finance/_edit_account_info_card.html:5
 msgid "Account information"
@@ -5516,11 +6566,6 @@ msgstr "Restant à payer"
 msgid "Amortization schedule"
 msgstr "Tableau d'amortissement"
 
-#: templates/property/all_loans.html:92 templates/property/detail.html:247
-#: templates/property/detail_panel_loans.html:22
-msgid "Loans"
-msgstr "Prêts"
-
 #: templates/property/all_loans.html:102
 #: templates/property/detail_panel_loans.html:31
 msgid "Start"
@@ -5835,13 +6880,6 @@ msgstr "Ajouter un revenu / une dépense"
 #: templates/property/detail_panel_cashflow.html:142
 msgid "Select a category"
 msgstr "Sélectionner une catégorie"
-
-#: templates/property/detail.html:427
-#: templates/property/detail_panel_balance.html:68
-#: templates/property/detail_panel_cashflow.html:148
-#: templates/property/detail_panel_cashflow.html:305
-msgid "Expenses"
-msgstr "Dépenses"
 
 #: templates/property/detail.html:441
 msgid "Select a lease"
@@ -6173,12 +7211,6 @@ msgstr "Transactions"
 msgid "Add entry"
 msgstr "Ajouter une écriture"
 
-#: templates/property/detail_panel_cashflow.html:37
-#: templates/property/detail_panel_cashflow.html:307
-#: templates/property/occurrence_checks.html:61
-msgid "Kind"
-msgstr "Type"
-
 #: templates/property/detail_panel_cashflow.html:60
 msgid "Edit expense"
 msgstr "Modifier la dépense"
@@ -6275,10 +7307,6 @@ msgstr "Dépenses totales"
 #: templates/property/detail_panel_cashflow.html:516
 msgid "Difference"
 msgstr "Différence"
-
-#: templates/property/detail_panel_cashflow.html:539
-msgid "Loan principal"
-msgstr "Capital du prêt"
 
 #: templates/property/detail_panel_info.html:6
 msgid "Property information"
@@ -6979,10 +8007,6 @@ msgstr "Choisir les propriétés"
 #: templates/property/resale_simulation.html:30
 msgid "Simulate"
 msgstr "Simuler"
-
-#: templates/property/resale_simulation.html:46
-msgid "Taxes"
-msgstr "Impôts"
 
 #: templates/property/resale_simulation.html:50
 #: templates/property/resale_simulation.html:104
