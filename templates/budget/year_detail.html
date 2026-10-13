@@ -60,7 +60,7 @@
                 {% for movement in summary.guesses %}
                 <tr>
                   <td>{{ movement.day|date:"SHORT_DATE_FORMAT" }}</td>
-                  <td><a href="{{ movement.url }}">{{ movement.account }}</a></td>
+                  <td><a href="{{ movement.url }}">{{ movement.account }}</a>{% if movement.opening %} <span class="text-body-secondary">({% translate "opening value" %})</span>{% endif %}</td>
                   <td class="text-end">{{ movement.amount|signed_money0:currency }}</td>
                   <td>{% if movement.guessed == "transfer" %}{% translate "Transfer between accounts" %}{% else %}{% translate "Household income or expenses" %}{% endif %}</td>
                 </tr>

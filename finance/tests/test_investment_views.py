@@ -202,11 +202,15 @@ class TestCreateInvestment:
             "opening_date": "2025-01-01",
             "opening_cash_value_0": "2000.00",
             "opening_cash_value_1": "EUR",
+            "opening_origin": "income",
             "is_active": True,
         }
         response = user_client.post(url, data)
         assert response.status_code == 302
-        assert InvestmentAccount.objects.filter(name="New Investment").exists()
+        assert (
+            InvestmentAccount.objects.get(name="New Investment").opening_origin
+            == DepositOrigin.INCOME
+        )
         messages = list(get_messages(response.wsgi_request))
         assert any("created" in str(m).lower() for m in messages)
 
@@ -244,6 +248,7 @@ class TestEditInvestment:
             "opening_date": "2025-01-01",
             "opening_cash_value_0": "5000.00",
             "opening_cash_value_1": "EUR",
+            "opening_origin": "transfer",
             "is_active": True,
         }
         response = user_client.post(url, data)

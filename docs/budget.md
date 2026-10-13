@@ -56,8 +56,9 @@ Chaque versement ou retrait d'un compte a une **origine**, obligatoire,
 | Inconnue | origine **devinée** : c'est un virement entre comptes si un autre compte a un mouvement de signe opposé et de même montant, d'origine inconnue ou « virement », à 7 jours au plus (le plus proche est apparié, y compris de part et d'autre du 1er janvier) ; sinon, revenus ou dépenses du foyer |
 
 La valeur d'ouverture d'un compte ouvert dans l'année compte comme un
-versement d'origine inconnue : ouvrir un PEA avec l'argent d'un livret est
-reconnu comme un virement. La page du budget signale le nombre de mouvements
+versement, avec l'origine choisie sur le compte (« Origine de la valeur
+d'ouverture », inconnue par défaut) : ouvrir un PEA avec l'argent d'un livret
+est reconnu comme un virement. La page du budget signale le nombre de mouvements
 dont l'origine a été devinée, avec leur détail et un lien vers chaque compte
 pour la préciser.
 

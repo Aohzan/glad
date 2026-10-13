@@ -39,6 +39,7 @@
             {{ form.opening_value }}
             {% if form.opening_value.errors %}<div class="invalid-feedback d-block">{{ form.opening_value.errors }}</div>{% endif %}
           </div>
+          <div class="col-md-12">{% include "_form_field.html" with field=form.opening_origin %}</div>
         </div>
       </div>
     </div>

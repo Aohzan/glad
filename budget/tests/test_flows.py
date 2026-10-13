@@ -9,7 +9,12 @@ from moneyed import Money
 
 from base.models import Ownership, household_members
 from base.services.ownership import flow_ratio
-from budget.services.finance_flows import Movement, account_year_flows, guess_origins
+from budget.services.finance_flows import (
+    FinanceFlows,
+    Movement,
+    account_year_flows,
+    guess_origins,
+)
 from budget.services.perspective import Perspective
 from budget.services.property_flows import property_year_flows, scpi_year_flows
 from budget.tests.conftest import YEAR, day
@@ -442,19 +447,31 @@ class TestAccountFlows:
         assert self._of(broker, household)[0] is None
         assert self._of(broker, household, YEAR + 1)[0] is None
 
-    def test_opening_value_is_an_unknown_deposit(self, household):
+    def test_opening_value_is_a_deposit(self, household):
         booklet = _saving()
         broker = _investment(opened=day(4), opening=1000)
-        assert self._of(broker, household)[0].amount == Decimal(1000)
+        flows, finance = self._of(broker, household)
+        assert flows.amount == Decimal(1000)
+        assert finance.guesses[0].opening
+        assert finance.guesses[0].url.endswith(f"/investment/{broker.pk}/edit/")
         _deposit(booklet, -1000, day(4, 3))
         flows, finance = self._of(broker, household)
         assert flows is None
         assert {m.guessed for m in finance.guesses} == {DepositOrigin.TRANSFER}
-        assert (
-            self._of(broker, household)[1]
-            .guesses[0]
-            .url.endswith(f"/{broker.pk}/#deposits-panel")
-        )
+
+    def test_opening_value_with_an_origin(self, household):
+        booklet = _saving(opened=day(5), opening=300)
+        booklet.opening_origin = DepositOrigin.TRANSFER
+        booklet.save()
+        assert self._of(booklet, household) == (None, FinanceFlows())
+        booklet.opening_origin = DepositOrigin.EXCEPTIONAL
+        booklet.save()
+        flows, finance = self._of(booklet, household)
+        assert flows.exceptional == Decimal(300)
+        assert finance.guesses == []
+        assert Movement(
+            account=booklet, day=day(5), amount=Decimal(1), origin="income"
+        ).url.endswith(f"/saving/{booklet.pk}/#deposits-panel")
 
     def test_accounts_outside_the_perspective(self, admin_user):
         account = _saving()

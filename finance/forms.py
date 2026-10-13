@@ -304,6 +304,7 @@ class SavingAccountForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
             "opening_date",
             "interest_rate",
             "opening_value",
+            "opening_origin",
             "is_active",
             "closing_date",
         ]
@@ -357,6 +358,7 @@ class InvestmentAccountForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelFo
             "commentaire",
             "opening_date",
             "opening_cash_value",
+            "opening_origin",
             "benchmark_symbol",
             "is_active",
             "closing_date",
