@@ -6,7 +6,6 @@ import io
 import logging
 from typing import cast
 
-import dateparser
 from django.contrib import messages
 from django.db import IntegrityError, transaction
 from django.forms import ChoiceField, formset_factory
@@ -15,6 +14,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
+from base.csv_utils import parse_datetime
 from base.services.ownership import HolderResolver
 from finance.forms import CSVAccountMappingForm, CSVExportForm, CSVImportForm
 from finance.models.investment_account import (
@@ -361,7 +361,7 @@ def csv_import_confirm(request):
                         )
                         new_value = new_value.replace(",", ".")
                         # get date
-                        new_date = dateparser.parse(data[csv_header.index(date_col)])
+                        new_date = parse_datetime(data[csv_header.index(date_col)])
 
                         if not app_account_id:
                             error_rows.append(
@@ -433,7 +433,7 @@ def csv_import_confirm(request):
                             if c.isdigit() or c in [".", ","]
                         )
                         new_value = new_value.replace(",", ".")
-                        new_date = dateparser.parse(data[csv_header.index("date")])
+                        new_date = parse_datetime(data[csv_header.index("date")])
 
                         # get quantity
                         quantity_str = data[csv_header.index("quantity")]

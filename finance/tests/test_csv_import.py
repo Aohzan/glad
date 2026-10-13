@@ -115,6 +115,35 @@ def test_csv_import_saving_value(user_client, active_saving_account, user):
 
 
 @pytest.mark.django_db
+def test_csv_import_reads_french_dates_day_first(user_client, active_saving_account):
+    """A French date such as 01/02/2024 is the 1st of February."""
+    csv_file = SimpleUploadedFile(
+        "values.csv",
+        f"account,value,date\n{active_saving_account.name},1500.00,01/02/2024\n".encode(),
+        content_type="text/csv",
+    )
+    user_client.post(
+        reverse("finance:csv_import"),
+        {"csv_type": "saving_value", "csv_file": csv_file},
+    )
+    user_client.post(
+        reverse("finance:csv_import_confirm"),
+        {
+            "accounts-TOTAL_FORMS": "1",
+            "accounts-INITIAL_FORMS": "1",
+            "accounts-MIN_NUM_FORMS": "0",
+            "accounts-MAX_NUM_FORMS": "1000",
+            "accounts-0-csv_account_name": active_saving_account.name,
+            "accounts-0-app_account_id": str(active_saving_account.id),
+        },
+    )
+    value = SavingAccountValue.objects.get(
+        account=active_saving_account, value=Money(1500, "EUR")
+    )
+    assert value.value_date == datetime.datetime(2024, 2, 1)
+
+
+@pytest.mark.django_db
 def test_csv_import_investment_cash(user_client, active_investment_account, user):
     """Test importing investment account cash from CSV."""
     # Ensure user is authenticated

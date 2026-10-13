@@ -4,7 +4,6 @@ import csv
 import io
 import logging
 
-import dateparser
 from django.contrib import messages
 from django.db import transaction
 from django.http import Http404
@@ -12,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
+from base.csv_utils import parse_datetime
 from property.forms import PropertyCSVImportForm
 from property.models import Property, PropertyLedgerEntry
 
@@ -154,7 +154,7 @@ def csv_import_confirm(request, property_pk: int):
                 )
 
                 # Parse date
-                parsed_date = dateparser.parse(raw_date)
+                parsed_date = parse_datetime(raw_date)
                 if not parsed_date:
                     error_rows.append(
                         (row_index, str(_("Invalid date: %(val)s") % {"val": raw_date}))
@@ -240,7 +240,7 @@ def csv_import_confirm(request, property_pk: int):
                 # Optional reference_period
                 ref_period = None
                 if raw_ref_period:
-                    parsed_ref = dateparser.parse(raw_ref_period)
+                    parsed_ref = parse_datetime(raw_ref_period)
                     if parsed_ref:
                         ref_period = parsed_ref.date()
 

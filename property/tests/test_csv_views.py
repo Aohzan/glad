@@ -217,6 +217,20 @@ class TestCSVImportConfirm:
         assert entry.description == "March rent"
         assert entry.entry_date == datetime.date(2024, 3, 1)
 
+    def test_confirm_reads_french_dates_day_first(self, user_client, property_obj):
+        self._seed_session(
+            user_client,
+            property_obj,
+            header=["date", "amount", "category", "description", "reference_period"],
+            rows=[
+                ["01/03/2024", "1000.00", "rent_collected", "March rent", "01/02/2024"]
+            ],
+        )
+        user_client.post(self._url(property_obj))
+        entry = PropertyLedgerEntry.objects.get(property=property_obj)
+        assert entry.entry_date == datetime.date(2024, 3, 1)
+        assert entry.reference_period == datetime.date(2024, 2, 1)
+
     def test_confirm_expense_entry_fields(self, user_client, property_obj):
         self._seed_session(
             user_client,

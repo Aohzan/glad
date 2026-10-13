@@ -178,7 +178,7 @@ def test_csv_import_confirm_generic_error_redirects(
     setup_csv_import_session(user_client, active_saving_account)
 
     monkeypatch.setattr(
-        "finance.views.csv_views.dateparser.parse",
+        "finance.views.csv_views.parse_datetime",
         lambda value: (_ for _ in ()).throw(RuntimeError("parse error")),
     )
 
