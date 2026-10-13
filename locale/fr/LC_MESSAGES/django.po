@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 23:20+0200\n"
+"POT-Creation-Date: 2026-10-13 23:35+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -140,8 +140,8 @@ msgstr "Actions"
 msgid "Diversified funds"
 msgstr "Fonds diversifiés"
 
-#: base/choices.py:25 budget/services/summary.py:283
-#: budget/services/summary.py:289
+#: base/choices.py:25 budget/services/summary.py:286
+#: budget/services/summary.py:292
 msgid "Real estate"
 msgstr "Immobilier"
 
@@ -239,7 +239,7 @@ msgstr "Cash flow immo"
 msgid "LMNP Accounting"
 msgstr "Comptabilité LMNP"
 
-#: base/context_processors.py:52 budget/services/sankey.py:35
+#: base/context_processors.py:52 budget/services/sankey.py:75
 #: templates/base.html:66 templates/budget/categories.html:6
 #: templates/budget/edit_year.html:13 templates/budget/index.html:4
 #: templates/budget/year_detail.html:6
@@ -593,7 +593,7 @@ msgid "Outside the household"
 msgstr "Hors du foyer"
 
 #: base/services/ownership.py:414 budget/services/csv_io.py:240
-#: budget/services/summary.py:256
+#: budget/services/summary.py:259
 msgid "Household"
 msgstr "Foyer"
 
@@ -1208,48 +1208,56 @@ msgstr ""
 msgid "Categories:"
 msgstr "Catégories :"
 
-#: budget/services/summary.py:314
+#: budget/services/sankey.py:42
+msgid "Net account deposits"
+msgstr "Versements nets sur les comptes"
+
+#: budget/services/sankey.py:44
+msgid "Net withdrawals from savings"
+msgstr "Retraits nets d'épargne"
+
+#: budget/services/summary.py:317
 #: templates/property/detail_panel_cashflow.html:539
 msgid "Loan principal"
 msgstr "Capital du prêt"
 
-#: budget/services/summary.py:315 property/models/ledger.py:176
+#: budget/services/summary.py:318 property/models/ledger.py:176
 #: property/services/cashflow.py:179
 #: templates/property/detail_panel_cashflow.html:538
 msgid "Loan interest"
 msgstr "Intérêts du prêt"
 
-#: budget/services/summary.py:316 property/models/ledger.py:183
+#: budget/services/summary.py:319 property/models/ledger.py:183
 #: property/services/cashflow.py:183
 #: templates/property/detail_panel_cashflow.html:540
 msgid "Loan insurance"
 msgstr "Assurance de prêt"
 
-#: budget/services/summary.py:354 property/models/scpi.py:611
+#: budget/services/summary.py:357 property/models/scpi.py:611
 msgid "SCPI dividends"
 msgstr "Dividendes SCPI"
 
-#: budget/services/summary.py:360
+#: budget/services/summary.py:363
 msgid "SCPI subscriptions"
 msgstr "Souscriptions SCPI"
 
-#: budget/services/summary.py:395
+#: budget/services/summary.py:403
 msgid "Account deposits"
 msgstr "Versements sur les comptes"
 
-#: budget/services/summary.py:401
+#: budget/services/summary.py:409
 msgid "Withdrawals from savings"
 msgstr "Retraits d'épargne"
 
-#: budget/services/summary.py:407
+#: budget/services/summary.py:415
 msgid "Exceptional deposits"
 msgstr "Apports exceptionnels"
 
-#: budget/services/summary.py:536
+#: budget/services/summary.py:545
 msgid "Not allocated"
 msgstr "Non affecté"
 
-#: budget/services/summary.py:544
+#: budget/services/summary.py:553
 msgid "Deficit"
 msgstr "Déficit"
 
@@ -5120,8 +5128,12 @@ msgid "Money left once the expenses and savings are paid"
 msgstr "Argent restant une fois les dépenses et l'épargne réglées"
 
 #: templates/budget/year_detail.html:152
-msgid "Deficit: the expenses and savings exceed the resources"
-msgstr "Déficit : les dépenses et l'épargne dépassent les ressources"
+msgid ""
+"Deficit: the expenses and savings exceed the resources; the difference comes "
+"from the current accounts or an untracked saving"
+msgstr ""
+"Déficit : les dépenses et l'épargne dépassent les ressources ; la différence "
+"vient des comptes courants ou d'une épargne non suivie"
 
 #: templates/budget/year_detail.html:162
 #, python-format
