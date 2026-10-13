@@ -372,6 +372,29 @@ def held_ratio(
     return ratio
 
 
+def flow_ratio(
+    rows: list[Ownership], people: set[int], *, capital: bool = False
+) -> Decimal:
+    """Part of the money flows of an asset borne by the users *people*.
+
+    Unlike :func:`held_ratio`, which values the rights, the flows of a
+    dismembered asset are split by side: the usufructuary receives the income
+    and pays the running costs, the bare owner pays the *capital* flows (loan
+    installments, purchase). A full ownership counts for its share on both
+    sides. Assets without ownership row are left to the caller (they belong
+    to the whole household).
+    """
+    other_side = Ownership.Right.USUFRUCT if capital else Ownership.Right.BARE
+    return sum(
+        (
+            row.share / 100
+            for row in rows
+            if row.user_id in people and row.right != other_side  # ty: ignore[unresolved-attribute]
+        ),
+        Decimal(0),
+    )
+
+
 def ownership_index() -> dict[tuple[int, int], list[Ownership]]:
     """Every ownership row keyed by ``(content_type_id, object_id)``, in one query."""
     index: dict[tuple[int, int], list[Ownership]] = {}

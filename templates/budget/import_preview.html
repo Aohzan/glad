@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load i18n glad_format %}
+
+{% block title %}{% translate "Import preview" %}{% endblock %}
+{% block breadcrumb_parents %}{% url 'budget:year' budget_year.year as url %}{% include "_crumb.html" with label=budget_year.year %}{% endblock %}
+{% block breadcrumb %}{% translate "Import preview" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  {% url 'budget:import' budget_year.year as back_url %}
+  {% translate "Import preview" as new_title %}
+  {% translate "Choose another file" as back_label %}
+  {% include "finance/_edit_page_header.html" with new_title=new_title back_url=back_url back_label=back_label %}
+
+  <p>
+    {% blocktranslate count counter=preview.valid_rows|length %}{{ counter }} line will be added.{% plural %}{{ counter }} lines will be added.{% endblocktranslate %}
+    {% if preview.invalid_rows %}<span class="g-neg">{% blocktranslate count counter=preview.invalid_rows|length %}{{ counter }} line has errors and will be skipped.{% plural %}{{ counter }} lines have errors and will be skipped.{% endblocktranslate %}</span>{% endif %}
+  </p>
+  {% if preview.missing_categories %}
+  <div class="alert alert-info">
+    {% translate "These categories will be created:" %}
+    <ul class="mb-0">{% for path in preview.missing_categories %}<li>{{ path }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <div class="card mb-3">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>{% translate "Kind" %}</th>
+            <th>{% translate "Category" %}</th>
+            <th>{% translate "Label" %}</th>
+            <th>{% translate "Person" %}</th>
+            <th class="text-end">{% translate "Amount" %}</th>
+            <th>{% translate "Errors" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in preview.rows %}
+          <tr{% if not row.is_valid %} class="table-danger"{% endif %}>
+            <td class="g-muted">{{ row.number }}</td>
+            <td>{{ row.kind }}</td>
+            <td>{{ row.path }}{% if not row.category and row.is_valid %} <span class="g-tag g-tag--accent">{% translate "New" %}</span>{% endif %}</td>
+            <td>{{ row.label }}</td>
+            <td>{{ row.person_label }}</td>
+            <td class="text-end">{{ row.amount|money0 }}</td>
+            <td class="small">{{ row.errors|join:" " }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <form method="post" action="{% url 'budget:import_confirm' budget_year.year %}" class="d-flex gap-2">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary"{% if not preview.valid_rows %} disabled{% endif %}>{% icon "check" "me-1" %}{% translate "Import" %}</button>
+    <a href="{% url 'budget:year' budget_year.year %}" class="btn btn-outline-secondary">{% translate "Cancel" %}</a>
+  </form>
+</div>
+{% endblock %}

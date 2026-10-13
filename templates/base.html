@@ -63,6 +63,7 @@
                 <div class="g-nav__group">
                     {% translate "Analysis" as label %}{% include "_nav_group_head.html" with group="analysis" %}
                     <div class="g-nav__items" id="g-nav-analysis"{% if nav_group != "analysis" %} data-folded{% endif %}>
+                        {% translate "Budget" as label %}{% include "_nav_item.html" with url_name="budget:index" section="budget" icon="hand-coins" %}
                         {% translate "Allocation" as label %}{% include "_nav_item.html" with url_name="allocation" section="allocation" icon="chart-pie" %}
                         {% translate "Net worth by owner" as label %}{% include "_nav_item.html" with url_name="owners" section="owners" icon="users" %}
                         {% translate "Property cash flow" as label %}{% include "_nav_item.html" with url_name="property:report" section="report" icon="file-chart-column" %}
