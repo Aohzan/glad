@@ -52,7 +52,7 @@ PAGES = [
     ("property_lmnp", "/property/lmnp_accounting/", None),
     ("scpi", "/property/scpi/", None),
     # Down to the end of the sankey diagram.
-    ("budget", f"/budget/{YEAR}/", 1248),
+    ("budget", f"/budget/{YEAR}/", 792),
 ]
 
 SETTINGS = """
