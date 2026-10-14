@@ -8,7 +8,7 @@
 {% block page_description %}{% if person %}{% blocktranslate with name=person.first_name|default:person.username %}Part of {{ name }}: the lines named for them and their share of the household lines{% endblocktranslate %}{% else %}{% translate "Whole household" %}{% endif %}{% endblock %}
 {% block page_actions %}
 <select class="form-select w-auto" id="budget-year-select" aria-label="{% translate 'Year' %}">
-  {% for year in years %}<option value="{% url 'budget:year' year %}{% if person %}?person={{ person.pk }}{% endif %}"{% if year == budget_year.year %} selected{% endif %}>{{ year }}</option>{% endfor %}
+  {% for year in years %}<option value="{{ year }}"{% if year == budget_year.year %} selected{% endif %}>{{ year }}</option>{% endfor %}
 </select>
 <form method="get" class="d-flex align-items-center gap-2">
   {{ person_form.person }}
@@ -186,7 +186,11 @@
 <script nonce="{{ csp_nonce }}">
 (function () {
   const yearSelect = document.getElementById('budget-year-select');
-  yearSelect.addEventListener('change', () => { window.location.href = yearSelect.value; });
+  // The URL is built from the year number, never from the option text.
+  yearSelect.addEventListener('change', () => {
+    const year = parseInt(yearSelect.value, 10);
+    window.location.href = `{% url 'budget:index' %}${year}/{% if person %}?person={{ person.pk }}{% endif %}`;
+  });
 
   const sankeyEl = document.getElementById('budget-sankey');
   if (sankeyEl) {
