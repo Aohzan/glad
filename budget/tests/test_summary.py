@@ -6,7 +6,7 @@ from decimal import Decimal
 import pytest
 from moneyed import Money
 
-from base.models import EconomicIndex, EconomicIndexValue
+from base.models import EconomicIndex, EconomicIndexValue, display_name
 from budget.models import BudgetKind, BudgetYear
 from budget.services.comparison import (
     compare,
@@ -392,7 +392,7 @@ class TestNetAccountFlows:
 
 @pytest.mark.django_db
 class TestSankey:
-    def test_payload(self, lines, household):
+    def test_payload(self, lines, household, admin_user, user):
         payload = sankey_payload(build_budget(lines, household))
         assert payload["currency"] == "EUR"
         assert payload["total"] == 50000
@@ -401,7 +401,15 @@ class TestSankey:
         assert right == ["Housing", "Loans", "Employee savings", "Not allocated"]
         housing = payload["right"][0]
         assert housing["value"] == 2400
-        assert housing["children"][0]["children"][0]["source"] == "line"
+        power = housing["children"][0]["children"][0]
+        assert power["source"] == "line"
+        assert power["person"] == ""
+        assert housing["person"] == ""
+        salaries = {c["label"]: c["person"] for c in payload["left"][0]["children"]}
+        assert salaries == {
+            "Salary A": display_name(admin_user),
+            "Salary B": display_name(user),
+        }
 
     def test_balanced_budget(self, categories, budget_year, household):
         add_line(budget_year, categories["salaries"], 1000)

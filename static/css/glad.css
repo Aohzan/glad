@@ -1165,6 +1165,7 @@ button.g-legend__item[aria-pressed="false"] { opacity: .45; }
   pointer-events: none;
 }
 
+.g-sankey__person { fill: var(--g-muted); }
 .g-sankey__value { fill: var(--g-muted); font-variant-numeric: tabular-nums; }
 
 .g-sankey__tip {
@@ -1183,6 +1184,7 @@ button.g-legend__item[aria-pressed="false"] { opacity: .45; }
 }
 
 .g-sankey__tip small { color: var(--g-muted); }
+.g-sankey__tip-person { color: var(--g-muted); font-weight: 400; }
 
 .g-budget-row > :first-child { padding-left: calc(20px + var(--g-depth, 0) * 18px); }
 .g-budget-row--auto .g-cell-title { font-weight: 400; }
