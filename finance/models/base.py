@@ -27,8 +27,10 @@ class DepositOrigin(models.TextChoices):
 
     The household budget counts the deposits from the income as savings and
     the withdrawals for the household as resources, leaves the transfers
-    between accounts out, and shows the exceptional deposits (sale,
-    inheritance, gift) as exceptional resources. An unknown origin is guessed
+    between accounts out, and shows the part of the exceptional deposits
+    (sale, inheritance, gift) spent by the household as exceptional
+    resources. The deposits of the employer (profit-sharing, incentive,
+    matching) are both income and savings. An unknown origin is guessed
     there: a deposit matching a withdrawal of another account is a transfer.
     """
 
@@ -36,6 +38,7 @@ class DepositOrigin(models.TextChoices):
     INCOME = "income", _("Household income or expenses")
     TRANSFER = "transfer", _("Transfer between accounts")
     EXCEPTIONAL = "exceptional", _("Exceptional (sale, inheritance, gift…)")
+    EMPLOYER = "employer", _("Employee savings (profit-sharing, incentive, matching)")
 
 
 def deposit_origin_field() -> models.CharField:
