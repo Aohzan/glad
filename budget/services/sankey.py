@@ -14,9 +14,12 @@ from budget.services.summary import (
 
 
 def _node(node: BudgetNode) -> dict:
+    assigned = node.line is not None and node.line.person_id is not None  # ty: ignore[unresolved-attribute]
     return {
         "id": node.key,
         "label": node.label,
+        # Lines of the whole household keep no name.
+        "person": node.person if assigned else "",
         "value": round(float(node.total), 2),
         "kind": node.kind,
         "source": node.source,

@@ -8,7 +8,8 @@
  *
  * Usage: GladSankey.render(element, payload, {monthly: false}) where payload
  * is {currency, center, left: [node], right: [node]} and a node is
- * {id, label, value, kind, source, children: [node]}. Clicking a node with
+ * {id, label, person, value, kind, source, children: [node]}; a non-empty
+ * person is shown in parentheses after the label. Clicking a node with
  * children folds or unfolds it. Colours come from the --g-* CSS tokens, so
  * the diagram follows the theme without being redrawn.
  */
@@ -42,7 +43,7 @@
       var item = {
         data: node, side: side, depth: depth, parent: parent, color: color,
         value: node.value, children: [],
-        id: node.id, label: node.label, kind: node.kind, source: node.source,
+        id: node.id, label: node.label, person: node.person, kind: node.kind, source: node.source,
         expandable: (node.children || []).length > 0,
         expanded: expanded.has(node.id),
       };
@@ -196,6 +197,12 @@
       tip.textContent = '';
       var title = document.createElement('strong');
       title.textContent = node.label;
+      if (node.person) {
+        var person = document.createElement('span');
+        person.className = 'g-sankey__tip-person';
+        person.textContent = ' (' + node.person + ')';
+        title.appendChild(person);
+      }
       var value = document.createElement('span');
       value.textContent = amount(node.value) + (total ? ' · ' + percent.format(node.value / total) : '');
       tip.appendChild(title);
@@ -280,6 +287,10 @@
         }, group);
         var name = el('tspan', { class: 'g-sankey__name' }, text);
         name.textContent = (node.expandable ? (node.expanded ? '− ' : '+ ') : '') + node.label;
+        if (node.person) {
+          var person = el('tspan', { class: 'g-sankey__person', dx: 4 }, text);
+          person.textContent = '(' + node.person + ')';
+        }
         var value = el('tspan', { class: 'g-sankey__value', dx: 6 }, text);
         value.textContent = amount(node.side === 'center' ? node.shown : node.value);
       });
