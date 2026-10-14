@@ -109,8 +109,19 @@
         <h2 class="g-h2">{% translate "Where the money goes" %}</h2>
         <span class="g-meta">{% translate "Click a group to fold or unfold it" %}</span>
       </div>
-      <div class="g-seg" role="group" aria-label="{% translate 'Period' %}" id="budget-period">
-        <button type="button" class="g-seg__item" data-monthly="0" aria-pressed="true">{% translate "Yearly" %}</button><button type="button" class="g-seg__item" data-monthly="1" aria-pressed="false">{% translate "Monthly" %}</button>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        {% if sankey.regular %}
+        <div class="form-check form-switch mb-0" title="{% translate 'Hide the withdrawals from savings and the exceptional deposits, to see how the income is used' %}">
+          <input class="form-check-input" type="checkbox" role="switch" id="budget-regular">
+          <label class="form-check-label g-meta" for="budget-regular">{% translate "Hide the exceptional flows" %}</label>
+        </div>
+        {% endif %}
+        <div class="g-seg" role="group" aria-label="{% translate 'Groups' %}">
+          <button type="button" class="g-seg__item" id="budget-expand">{% translate "Unfold all" %}</button><button type="button" class="g-seg__item" id="budget-collapse">{% translate "Fold all" %}</button>
+        </div>
+        <div class="g-seg" role="group" aria-label="{% translate 'Period' %}" id="budget-period">
+          <button type="button" class="g-seg__item" data-monthly="0" aria-pressed="true">{% translate "Yearly" %}</button><button type="button" class="g-seg__item" data-monthly="1" aria-pressed="false">{% translate "Monthly" %}</button>
+        </div>
       </div>
     </div>
     <div class="px-3 pb-3"><div id="budget-sankey"></div></div>
@@ -198,6 +209,7 @@
       ariaLabel: "{% filter escapejs %}{% translate 'Flow diagram of the budget' %}{% endfilter %}",
       foldLabel: "{% filter escapejs %}{% translate 'Click to fold' %}{% endfilter %}",
       unfoldLabel: "{% filter escapejs %}{% translate 'Click to unfold' %}{% endfilter %}",
+      moreLabel: "{% filter escapejs %}{% translate 'and {n} more' %}{% endfilter %}",
     });
     document.querySelectorAll('#budget-period [data-monthly]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -205,6 +217,10 @@
         chart.setMonthly(button.dataset.monthly === '1');
       });
     });
+    document.getElementById('budget-expand').addEventListener('click', () => chart.expandAll());
+    document.getElementById('budget-collapse').addEventListener('click', () => chart.collapseAll());
+    const regular = document.getElementById('budget-regular');
+    if (regular) regular.addEventListener('change', () => chart.setRegular(regular.checked));
   }
 
   const comparisonEl = document.getElementById('budget-comparison');
