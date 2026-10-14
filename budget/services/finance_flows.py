@@ -2,9 +2,10 @@
 
 Each movement has an origin (see :class:`finance.models.base.DepositOrigin`):
 the deposits from the income count as savings and the withdrawals for the
-household as resources, the transfers between accounts are left out, and the
-exceptional deposits (sale, inheritance, gift) are shown as exceptional
-resources. An unknown origin is guessed: a movement matching a movement of
+household as resources, the transfers between accounts are left out, the
+exceptional deposits (sale, inheritance, gift) are kept apart, and the
+deposits of the employer (profit-sharing, incentive, matching) are both income
+and savings. An unknown origin is guessed: a movement matching a movement of
 the opposite sign and the same amount on another account, a few days apart,
 is a transfer; any other is income. The opening value of an account opened
 during the year is a movement too, with the origin set on the account.
@@ -33,10 +34,14 @@ TRANSFER_WINDOW_DAYS = 7
 Account = SavingAccount | InvestmentAccount
 
 
+def account_kind(account: Account) -> str:
+    """ "saving" or "investment"."""
+    return "saving" if isinstance(account, SavingAccount) else "investment"
+
+
 def account_key(account: Account) -> str:
     """Identifier of an account, stable from one year to the next."""
-    kind = "saving" if isinstance(account, SavingAccount) else "investment"
-    return f"account:{kind}:{account.pk}"
+    return f"account:{account_kind(account)}:{account.pk}"
 
 
 def account_url(account: Account) -> str:
@@ -68,7 +73,7 @@ class Movement:
     def url(self) -> str:
         """Where the origin is set: the deposits, or the account for its opening value."""
         if self.opening:
-            kind = "saving" if isinstance(self.account, SavingAccount) else "investment"
+            kind = account_kind(self.account)
             return reverse(f"finance:edit_{kind}", kwargs={"pk": self.account.pk})
         return account_url(self.account) + "#deposits-panel"
 
@@ -82,6 +87,13 @@ class AccountFlows:
     amount: Decimal
     #: Deposits of exceptional origin (sale, inheritance, gift).
     exceptional: Decimal = Decimal(0)
+    #: Deposits of the employer (profit-sharing, incentive, matching).
+    employer: Decimal = Decimal(0)
+
+    @property
+    def kind(self) -> str:
+        """ "saving" or "investment"."""
+        return account_kind(self.account)
 
     @property
     def key(self) -> str:
@@ -225,7 +237,9 @@ def account_year_flows(
     movements = _movements(first - window, last + window, currency)
     guess_origins(movements)
 
-    totals: dict[str, list] = {}
+    # Per account: the account, the ratio of the perspective and the sums of
+    # each origin counted.
+    totals: dict[str, tuple[Account, Decimal, dict[str, Decimal]]] = {}
     guesses = []
     for movement in movements:
         if not first <= movement.day <= last:
@@ -233,20 +247,27 @@ def account_year_flows(
         key = account_key(movement.account)
         if key not in totals:
             ratio = perspective.asset_ratio(resolver.rows(movement.account))
-            totals[key] = [movement.account, ratio, Decimal(0), Decimal(0)]
-        _account, ratio, amount, exceptional = totals[key]
+            totals[key] = (movement.account, ratio, {})
+        _account, ratio, sums = totals[key]
         if not ratio:
             continue
         if movement.origin == DepositOrigin.UNKNOWN:
             guesses.append(movement)
         origin = movement.effective_origin
-        if origin == DepositOrigin.INCOME:
-            totals[key][2] = amount + movement.amount * ratio
-        elif origin == DepositOrigin.EXCEPTIONAL and movement.amount > 0:
-            totals[key][3] = exceptional + movement.amount * ratio
+        # Exceptional and employer withdrawals mean nothing: they are left out.
+        if origin == DepositOrigin.INCOME or (
+            origin in (DepositOrigin.EXCEPTIONAL, DepositOrigin.EMPLOYER)
+            and movement.amount > 0
+        ):
+            sums[origin] = sums.get(origin, Decimal(0)) + movement.amount * ratio
     accounts = [
-        AccountFlows(account=account, amount=amount, exceptional=exceptional)
-        for account, _ratio, amount, exceptional in totals.values()
-        if amount or exceptional
+        AccountFlows(
+            account=account,
+            amount=sums.get(DepositOrigin.INCOME, Decimal(0)),
+            exceptional=sums.get(DepositOrigin.EXCEPTIONAL, Decimal(0)),
+            employer=sums.get(DepositOrigin.EMPLOYER, Decimal(0)),
+        )
+        for account, _ratio, sums in totals.values()
+        if any(sums.values())
     ]
     return FinanceFlows(accounts=accounts, guesses=sorted(guesses, key=lambda m: m.day))

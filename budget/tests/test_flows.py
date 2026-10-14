@@ -424,10 +424,14 @@ class TestAccountFlows:
         _deposit(account, 900, day(8), DepositOrigin.TRANSFER)
         _deposit(account, 5000, day(9), DepositOrigin.EXCEPTIONAL)
         _deposit(account, -7000, day(10), DepositOrigin.EXCEPTIONAL)
+        _deposit(account, 1200, day(4), DepositOrigin.EMPLOYER)
+        _deposit(account, -500, day(6), DepositOrigin.EMPLOYER)
         _deposit(account, 999, datetime.date(YEAR - 1, 5, 1), DepositOrigin.INCOME)
         flows, finance = self._of(account, household)
         assert flows.amount == Decimal(200)
         assert flows.exceptional == Decimal(5000)
+        assert flows.employer == Decimal(1200)
+        assert flows.kind == "saving"
         assert flows.key == f"account:saving:{account.pk}"
         assert flows.url.endswith(f"/{account.pk}/")
         assert finance.guesses == []
