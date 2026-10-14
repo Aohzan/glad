@@ -101,15 +101,16 @@ def test_chart_data_investment_account(user_client, active_investment_account):
         )
         assert v["value"] == pytest.approx(series_sum, abs=0.01)
 
-    # invested series: union of history dates + event dates
-    # history: day -10 (initial), day -5 (history); event: day -10 (holding), day -3 (deposit)
-    # union = day -10, day -5, day -3 → 3 points
-    assert len(payload["invested"]) == 3
+    # The chart starts at the opening date with the opening cash
+    assert payload["values"][0]["value"] == pytest.approx(2000.0, abs=0.01)
+
+    # invested series: opening day -60, holding day -10, history day -5,
+    # deposit day -3 → 4 points
+    assert len(payload["invested"]) == 4
     invested_values = [item["value"] for item in payload["invested"]]
-    # day -10: holding 100; day -5: still 100 (deposit at day -3); day -3: 100+250=350
-    assert invested_values[0] == pytest.approx(100.0, abs=1.0)
-    assert invested_values[1] == pytest.approx(100.0, abs=1.0)
-    assert invested_values[2] == pytest.approx(350.0, abs=1.0)
+    # Opening cash 2000, the holding is bought with that cash (not new capital),
+    # then the deposit of 250
+    assert invested_values == pytest.approx([2000.0, 2000.0, 2000.0, 2250.0])
 
 
 @pytest.mark.django_db
@@ -149,13 +150,9 @@ def test_chart_data_investment_account_negative_deposit(
     assert response.status_code == 200
     assert payload["success"] is True
     invested_values = [item["value"] for item in payload["invested"]]
-    # history: day -10 (initial), day -5 (history); event: day -10 (holding), day -3 (withdrawal)
-    # union = day -10, day -5, day -3 → 3 points
-    assert len(invested_values) == 3
-    # First point: only holding (1000); after withdrawal: 1000 - 400 = 600
-    assert invested_values[0] == pytest.approx(1000.0, abs=1.0)
-    assert invested_values[1] == pytest.approx(1000.0, abs=1.0)
-    assert invested_values[2] == pytest.approx(600.0, abs=1.0)
+    # opening day -60, holding day -10, history day -5, withdrawal day -3
+    # Opening cash 2000; after withdrawal: 2000 - 400 = 1600
+    assert invested_values == pytest.approx([2000.0, 2000.0, 2000.0, 1600.0])
 
 
 @pytest.mark.django_db
@@ -263,35 +260,26 @@ def test_chart_data_investment_account_aligned_holdings(
     assert response.status_code == 200
     assert payload["success"] is True
 
-    # All dates: day-20 (A initial), day-15 (B initial), day-12 (cash),
-    # day-10 (A history), day-5 (B history) → 5 dates
+    # All dates: day-60 (opening), day-20 (A initial), day-15 (B initial),
+    # day-12 (cash), day-10 (A history), day-5 (B history) → 6 dates
     all_dates = [v["date"] for v in payload["values"]]
-    assert len(all_dates) == 5
+    assert len(all_dates) == 6
 
-    # Each holdings_series should have data at all dates that are >= its initial date
+    # Every series has a point at every date, zero before the holding purchase
+    series_values = {
+        s["name"]: [p["value"] for p in s["data"]] for s in payload["holdings_series"]
+    }
     for s in payload["holdings_series"]:
-        if "Fund A" in s["name"]:
-            # Starts at day-20, so has all 5 data points
-            assert len(s["data"]) == 5
-            # Forward-fill: day-20=100, day-15=100, day-12=100, day-10=150, day-5=150
-            values = [p["value"] for p in s["data"]]
-            assert values[0] == pytest.approx(100.0, abs=0.01)
-            assert values[2] == pytest.approx(100.0, abs=0.01)
-            assert values[3] == pytest.approx(150.0, abs=0.01)
-            assert values[4] == pytest.approx(150.0, abs=0.01)
-        elif "Fund B" in s["name"]:
-            # Starts at day-15, so has 4 data points (day-20 excluded)
-            assert len(s["data"]) == 4
-            values = [p["value"] for p in s["data"]]
-            assert values[0] == pytest.approx(200.0, abs=0.01)
-            assert values[2] == pytest.approx(200.0, abs=0.01)
-            assert values[3] == pytest.approx(250.0, abs=0.01)
+        assert [p["date"] for p in s["data"]] == all_dates
+    assert series_values["Fund A (FA)"] == pytest.approx(
+        [0.0, 100.0, 100.0, 100.0, 150.0, 150.0]
+    )
+    assert series_values["Fund B (FB)"] == pytest.approx(
+        [0.0, 0.0, 200.0, 200.0, 200.0, 250.0]
+    )
 
     # Total at day-10 = Fund A (150) + Fund B (200, forward-filled) + Cash (1800)
-    # Find the 4th date (day-10) total
-    sorted_values = sorted(payload["values"], key=lambda v: v["date"])
-    day_10_entry = sorted_values[3]  # day-20, day-15, day-12, day-10, day-5
-    assert day_10_entry["value"] == pytest.approx(150.0 + 200.0 + 1800.0, abs=1.0)
+    assert payload["values"][4]["value"] == pytest.approx(150.0 + 200.0 + 1800.0)
 
 
 @pytest.mark.django_db

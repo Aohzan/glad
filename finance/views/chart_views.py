@@ -78,8 +78,9 @@ def _get_investment_account_chart_data(request, account_id):
         )
     )
 
-    # Collect all unique dates from holdings, histories, cash entries and deposits
-    all_dates_set: set[datetime.date] = set()
+    # Collect all unique dates from the opening, holdings, histories, cash entries
+    # and deposits
+    all_dates_set: set[datetime.date] = {account.opening_date}
     for holding in holdings:
         all_dates_set.add(holding.initial_valuation_date)
     for history in holding_histories:
@@ -100,7 +101,10 @@ def _get_investment_account_chart_data(request, account_id):
         hist_idx = 0
         current_value = float(holding.initial_value.amount)
         for d in all_dates:
+            # ApexCharts stacks series by index: a holding bought later is
+            # zero-filled before its purchase to stay aligned with the others.
             if d < holding.initial_valuation_date:
+                holding_data.append({"date": d.isoformat(), "value": 0.0})
                 continue
             while (
                 hist_idx < len(hist_list)
@@ -142,13 +146,11 @@ def _get_investment_account_chart_data(request, account_id):
         for deposit in deposits
     ]
 
-    # Cumulative invested capital: initial holding values + deposits accumulated over time
+    # Cumulative invested capital: opening cash + deposits accumulated over time.
+    # Holdings are bought with the account cash, so their initial values are
+    # not new capital (same basis as ``compute_capital_gain``).
     investment_events = [
-        (
-            holding.initial_valuation_date.isoformat(),
-            float(holding.initial_value.amount),
-        )
-        for holding in holdings
+        (account.opening_date.isoformat(), float(account.opening_cash_value.amount))
     ]
     for deposit in deposits:
         investment_events.append(
