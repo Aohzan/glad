@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.6.1 (2026-10-14)
+
+### Bug Fixes
+
+- **finance**: Count the opening cash and align the holdings in the investment chart
+  ([`ce9ac37`](https://github.com/Aohzan/glad/commit/ce9ac3759b816ce5341e718bb93ed716a54dc649))
+
+### Documentation
+
+- Refresh the investment account screenshot with the fixed invested curve
+  ([`a3e91a3`](https://github.com/Aohzan/glad/commit/a3e91a3e8112544ecfd5b695195e1de27977d89f))
+
+
 ## v1.6.0 (2026-10-14)
 
 ### Bug Fixes
