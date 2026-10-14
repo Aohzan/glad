@@ -8,10 +8,12 @@ node.
 
 from dataclasses import dataclass, field
 from decimal import Decimal
+from typing import NamedTuple
 
 from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import pgettext
 
 from base.models import display_name
 from base.services.ownership import HolderResolver
@@ -37,9 +39,13 @@ from property.models.ledger import ManagementCategory
 RENT_WEIGHT = Decimal("0.7")
 #: Highest debt ratio recommended by the HCSF, in percent.
 DEBT_RATIO_LIMIT = Decimal(35)
-#: Keys of the groups of the account deposits and withdrawals.
+#: Keys of the groups of the account flows: deposits on the saving and on the
+#: investment accounts, withdrawals, exceptional and employer deposits.
 ACCOUNT_DEPOSITS = "auto:accounts:deposits"
+ACCOUNT_INVESTMENTS = "auto:accounts:investments"
 ACCOUNT_WITHDRAWALS = "auto:accounts:withdrawals"
+ACCOUNT_EXCEPTIONAL = "auto:accounts:exceptional"
+ACCOUNT_EMPLOYER = "auto:accounts:employer"
 
 
 @dataclass
@@ -116,7 +122,8 @@ class Indicators:
     principal: Decimal
     debt_payments: Decimal
     debt_income: Decimal
-    #: Exceptional deposits (sale, inheritance, gift), outside the income.
+    #: Exceptional deposits (sale, inheritance, gift) spent by the household,
+    #: outside the income.
     exceptional: Decimal = Decimal(0)
 
     @property
@@ -389,53 +396,72 @@ def _scpi_nodes(flows: list[SCPIFlows]) -> tuple[BudgetNode, BudgetNode]:
     return dividends, subscriptions
 
 
-def _account_nodes(
-    flows: list[AccountFlows],
-) -> tuple[BudgetNode, BudgetNode, BudgetNode]:
-    """Deposits (savings), withdrawals and exceptional deposits (resources).
+class AccountGroups(NamedTuple):
+    """Groups of the account flows, each holding one node per account."""
 
-    Each account counts for its net flow of the year, exceptional deposits
-    included: an account filled with an exceptional deposit and partly
-    emptied later shows one net deposit, not a deposit and a withdrawal.
+    #: Deposits on the saving accounts.
+    savings: BudgetNode
+    #: Deposits on the investment accounts.
+    investments: BudgetNode
+    withdrawals: BudgetNode
+    #: Exceptional deposits spent by the household.
+    exceptional: BudgetNode
+    #: Deposits of the employer, income saved on the account.
+    employer: BudgetNode
+
+
+def _account_nodes(flows: list[AccountFlows]) -> AccountGroups:
+    """Deposits (savings) and withdrawals, exceptional and employer deposits (resources).
+
+    Each account counts for its net flow of the year: the deposits from the
+    income and from the employer minus the withdrawals for the household. An
+    exceptional deposit kept on its account moves wealth without passing
+    through the budget, so only the part the household spent shows, as an
+    exceptional resource, before any withdrawal from the savings.
     """
-    deposits = BudgetNode(
-        key=ACCOUNT_DEPOSITS,
-        label=_("Account deposits"),
-        kind=BudgetKind.SAVING,
-        source="auto",
-    )
-    withdrawals = BudgetNode(
-        key=ACCOUNT_WITHDRAWALS,
-        label=_("Withdrawals from savings"),
-        kind=BudgetKind.INCOME,
-        source="auto",
-    )
-    exceptional = BudgetNode(
-        key="auto:accounts:exceptional",
-        label=_("Exceptional deposits"),
-        kind=BudgetKind.INCOME,
-        source="auto",
+
+    def group(key: str, label: str, kind: str) -> BudgetNode:
+        return BudgetNode(key=key, label=label, kind=kind, source="auto")
+
+    groups = AccountGroups(
+        savings=group(
+            ACCOUNT_DEPOSITS, pgettext("budget", "Savings"), BudgetKind.SAVING
+        ),
+        investments=group(
+            ACCOUNT_INVESTMENTS, _("Financial investments"), BudgetKind.SAVING
+        ),
+        withdrawals=group(
+            ACCOUNT_WITHDRAWALS, _("Withdrawals from savings"), BudgetKind.INCOME
+        ),
+        exceptional=group(
+            ACCOUNT_EXCEPTIONAL, _("Exceptional deposits"), BudgetKind.INCOME
+        ),
+        employer=group(ACCOUNT_EMPLOYER, _("Employee savings"), BudgetKind.INCOME),
     )
     for item in flows:
-        net = item.amount + item.exceptional
+        saved = item.amount + item.employer
+        spent = max(-saved, Decimal(0))
+        exceptional = min(item.exceptional, spent)
+        deposits = groups.savings if item.kind == "saving" else groups.investments
         parts = (
-            (deposits, item.key, max(net, Decimal(0))),
-            (withdrawals, item.key, max(-net, Decimal(0))),
-            (exceptional, f"{item.key}:exceptional", item.exceptional),
+            (deposits, item.key, max(saved, Decimal(0))),
+            (groups.withdrawals, item.key, spent - exceptional),
+            (groups.exceptional, f"{item.key}:exceptional", exceptional),
+            (groups.employer, f"{item.key}:employer", item.employer),
         )
-        for group, key, amount in parts:
+        for parent, key, amount in parts:
             if amount:
-                group.children.append(
+                parent.children.append(
                     BudgetNode(
                         key=key,
                         label=str(item.account),
-                        kind=group.kind,
+                        kind=parent.kind,
                         source="auto",
                         amount=amount,
                         url=item.url,
                     )
                 )
-    return deposits, withdrawals, exceptional
+    return groups
 
 
 # ─── Summary ──────────────────────────────────────────────────────────────────
@@ -516,10 +542,16 @@ def build_budget(
 
     property_income, property_expenses = _property_nodes(property_flows)
     dividends, subscriptions = _scpi_nodes(scpi_flows)
-    deposits, withdrawals, exceptional = _account_nodes(finance.accounts)
-    resources += [property_income, dividends, withdrawals, exceptional]
+    accounts = _account_nodes(finance.accounts)
+    resources += [
+        property_income,
+        dividends,
+        accounts.employer,
+        accounts.withdrawals,
+        accounts.exceptional,
+    ]
     expenses.append(property_expenses)
-    savings += [deposits, subscriptions]
+    savings += [accounts.savings, accounts.investments, subscriptions]
     for root in [*resources, *expenses, *savings]:
         root.prune()
     resources = [n for n in resources if n.total]
@@ -529,32 +561,18 @@ def build_budget(
     rents = sum((f.rent for f in property_flows), Decimal(0)) + dividends.total
     loan_payments = sum((f.loan.total for f in property_flows), Decimal(0))
     indicators = Indicators(
-        income=manual_income + property_income.total + dividends.total,
+        income=manual_income
+        + property_income.total
+        + dividends.total
+        + accounts.employer.total,
         expenses=sum((n.total for n in expenses), Decimal(0)),
         savings=sum((n.total for n in savings), Decimal(0)),
-        withdrawals=withdrawals.total,
-        exceptional=exceptional.total,
+        withdrawals=accounts.withdrawals.total,
+        exceptional=accounts.exceptional.total,
         principal=sum((f.loan.principal for f in property_flows), Decimal(0)),
         debt_payments=loan_payments + manual_debt,
         debt_income=manual_income + rents * RENT_WEIGHT,
     )
-    balance = None
-    if indicators.balance > 0:
-        balance = BudgetNode(
-            key="balance:remaining",
-            label=_("Not allocated"),
-            kind=BudgetKind.SAVING,
-            source="balance",
-            amount=indicators.balance,
-        )
-    elif indicators.balance < 0:
-        balance = BudgetNode(
-            key="balance:deficit",
-            label=_("Deficit"),
-            kind=BudgetKind.INCOME,
-            source="balance",
-            amount=-indicators.balance,
-        )
     return BudgetSummary(
         budget_year=budget_year,
         perspective=perspective,
@@ -563,9 +581,37 @@ def build_budget(
         expenses=expenses,
         savings=savings,
         indicators=indicators,
-        balance=balance,
+        balance=balance_node(indicators.balance),
         guesses=finance.guesses,
     )
+
+
+def balance_node(
+    balance: Decimal, deficit_label: str | None = None
+) -> BudgetNode | None:
+    """Money left (a saving) or missing (a resource) once the budget is paid.
+
+    A deficit is money taken from the current accounts or from accounts the
+    application does not follow: it is named *deficit_label*, "Untracked
+    resources" by default.
+    """
+    if balance > 0:
+        return BudgetNode(
+            key="balance:remaining",
+            label=_("Not allocated"),
+            kind=BudgetKind.SAVING,
+            source="balance",
+            amount=balance,
+        )
+    if balance < 0:
+        return BudgetNode(
+            key="balance:deficit",
+            label=deficit_label or _("Untracked resources"),
+            kind=BudgetKind.INCOME,
+            source="balance",
+            amount=-balance,
+        )
+    return None
 
 
 def budget_monthly_expenses(

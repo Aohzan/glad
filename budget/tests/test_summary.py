@@ -22,13 +22,22 @@ from budget.services.perspective import Perspective
 from budget.services.sankey import sankey_payload
 from budget.services.summary import (
     ACCOUNT_DEPOSITS,
+    ACCOUNT_EMPLOYER,
+    ACCOUNT_EXCEPTIONAL,
+    ACCOUNT_INVESTMENTS,
     ACCOUNT_WITHDRAWALS,
     BudgetNode,
+    balance_node,
     budget_monthly_expenses,
     build_budget,
 )
 from budget.tests.conftest import YEAR, add_line, day
 from finance.models.base import DepositOrigin
+from finance.models.investment_account import (
+    InvestmentAccount,
+    InvestmentAccountDeposit,
+    InvestmentAccountType,
+)
 from finance.models.saving_account import (
     SavingAccount,
     SavingAccountDeposit,
@@ -318,12 +327,13 @@ class TestAccountOrigins:
         summary = build_budget(budget_year, household)
         indicators = summary.indicators
         assert indicators.income == Decimal(10000)
-        assert indicators.exceptional == Decimal(20000)
-        assert indicators.savings == Decimal(21000)
+        # The exceptional deposit stayed on the booklet: outside the budget.
+        assert indicators.exceptional == 0
+        assert indicators.savings == Decimal(1000)
         assert indicators.balance == Decimal(9000)
         assert indicators.savings_rate == Decimal(100)
         keys = {n.key for n in summary.nodes()}
-        assert f"account:saving:{booklet.pk}:exceptional" in keys
+        assert f"account:saving:{booklet.pk}:exceptional" not in keys
         assert summary.guessed_transfers == 2
         assert summary.guessed_income == 1
 
@@ -338,7 +348,27 @@ def _savings_account(name):
     )
 
 
+def _investment_account(name):
+    kind, _created = InvestmentAccountType.objects.get_or_create(
+        name="Plan", code="PLN"
+    )
+    return InvestmentAccount.objects.create(
+        account_type=kind,
+        name=name,
+        opening_date=datetime.date(2000, 1, 1),
+        opening_cash_value=Money(0, "EUR"),
+    )
+
+
 def _move(account, amount, month, origin=DepositOrigin.INCOME):
+    if isinstance(account, InvestmentAccount):
+        InvestmentAccountDeposit.objects.create(
+            account=account,
+            amount=Money(amount, "EUR"),
+            deposit_date=datetime.date(YEAR, month, 1),
+            origin=origin,
+        )
+        return
     SavingAccountDeposit.objects.create(
         account=account,
         amount=Money(amount, "EUR"),
@@ -355,16 +385,63 @@ class TestNetAccountFlows:
         add_line(budget_year, categories["salaries"], 10000)
         return budget_year
 
-    def test_one_net_flow_per_account(self, finance_year, household):
+    def test_only_the_exceptional_money_spent_is_a_resource(
+        self, finance_year, household
+    ):
         boost = _savings_account("Boost")
         _move(boost, 75000, 2, DepositOrigin.EXCEPTIONAL)
         _move(boost, -40000, 11)
         summary = build_budget(finance_year, household)
         keys = {n.key: n.total for n in summary.nodes()}
-        assert keys[ACCOUNT_DEPOSITS] == Decimal(35000)
+        assert ACCOUNT_DEPOSITS not in keys
         assert ACCOUNT_WITHDRAWALS not in keys
-        assert keys["auto:accounts:exceptional"] == Decimal(75000)
+        assert keys[ACCOUNT_EXCEPTIONAL] == Decimal(40000)
+        assert summary.indicators.exceptional == Decimal(40000)
         assert summary.indicators.balance == Decimal(50000)
+
+    def test_withdrawals_beyond_the_exceptional_deposits(self, finance_year, household):
+        boost = _savings_account("Boost")
+        _move(boost, 10000, 2, DepositOrigin.EXCEPTIONAL)
+        _move(boost, -15000, 11)
+        keys = {n.key: n.total for n in build_budget(finance_year, household).nodes()}
+        assert keys[ACCOUNT_EXCEPTIONAL] == Decimal(10000)
+        assert keys[ACCOUNT_WITHDRAWALS] == Decimal(5000)
+
+    def test_exceptional_deposit_kept_on_the_account(self, finance_year, household):
+        pea = _investment_account("PEA")
+        _move(pea, 14000, 4, DepositOrigin.EXCEPTIONAL)
+        _move(pea, 6000, 5)
+        summary = build_budget(finance_year, household)
+        keys = {n.key: n.total for n in summary.nodes()}
+        assert ACCOUNT_EXCEPTIONAL not in keys
+        assert keys[ACCOUNT_INVESTMENTS] == Decimal(6000)
+        assert summary.indicators.savings == Decimal(6000)
+        assert summary.indicators.balance == Decimal(4000)
+
+    def test_saving_and_investment_accounts_apart(self, finance_year, household):
+        _move(_savings_account("Booklet"), 1000, 3)
+        _move(_investment_account("PEA"), 2000, 3)
+        summary = build_budget(finance_year, household)
+        labels = {n.key: (n.label, n.total) for n in summary.savings}
+        assert labels == {
+            ACCOUNT_DEPOSITS: ("Savings", Decimal(1000)),
+            ACCOUNT_INVESTMENTS: ("Financial investments", Decimal(2000)),
+        }
+
+    def test_employer_deposits_are_income_and_savings(self, finance_year, household):
+        pei = _investment_account("PEI")
+        _move(pei, 1500, 5, DepositOrigin.EMPLOYER)
+        _move(pei, 500, 6)
+        summary = build_budget(finance_year, household)
+        keys = {n.key: n.total for n in summary.nodes()}
+        assert keys[ACCOUNT_EMPLOYER] == Decimal(1500)
+        assert keys[f"account:investment:{pei.pk}:employer"] == Decimal(1500)
+        assert keys[ACCOUNT_INVESTMENTS] == Decimal(2000)
+        indicators = summary.indicators
+        assert indicators.income == Decimal(11500)
+        assert indicators.debt_income == Decimal(10000)
+        assert indicators.savings == Decimal(2000)
+        assert indicators.balance == Decimal(9500)
 
     def test_sankey_deducts_the_withdrawals_from_the_deposits(
         self, finance_year, household
@@ -375,10 +452,19 @@ class TestNetAccountFlows:
         payload = sankey_payload(build_budget(finance_year, household))
         assert ACCOUNT_WITHDRAWALS not in [n["id"] for n in payload["left"]]
         deposits = next(n for n in payload["right"] if n["id"] == ACCOUNT_DEPOSITS)
-        assert deposits["label"] == "Net account deposits"
+        assert deposits["label"] == "Savings"
         assert deposits["value"] == 4000
         assert [c["value"] for c in deposits["children"]] == [3000, 1000]
         assert payload["total"] == sum(n["value"] for n in payload["right"])
+
+    def test_sankey_nets_the_investments_too(self, finance_year, household):
+        _move(_savings_account("Old"), -4000, 3)
+        _move(_savings_account("A"), 6000, 4)
+        _move(_investment_account("PEA"), 2000, 4)
+        payload = sankey_payload(build_budget(finance_year, household))
+        values = {n["id"]: n["value"] for n in payload["right"]}
+        assert values[ACCOUNT_DEPOSITS] == 3000
+        assert values[ACCOUNT_INVESTMENTS] == 1000
 
     def test_sankey_keeps_the_net_withdrawals(self, finance_year, household):
         _move(_savings_account("Old"), -5000, 3)
@@ -388,6 +474,29 @@ class TestNetAccountFlows:
         withdrawals = next(n for n in payload["left"] if n["id"] == ACCOUNT_WITHDRAWALS)
         assert withdrawals["label"] == "Net withdrawals from savings"
         assert withdrawals["value"] == 4000
+
+    def test_regular_view_without_the_exceptional_flows(self, finance_year, household):
+        _move(_savings_account("Old"), -5000, 3)
+        _move(_savings_account("A"), 13000, 4)
+        boost = _savings_account("Boost")
+        _move(boost, 2000, 2, DepositOrigin.EXCEPTIONAL)
+        _move(boost, -3000, 8)
+        payload = sankey_payload(build_budget(finance_year, household))
+        assert [n["label"] for n in payload["left"]] == [
+            "Salaries",
+            "Exceptional deposits",
+        ]
+        assert [n["label"] for n in payload["right"]] == ["Savings", "Not allocated"]
+        regular = payload["regular"]
+        assert [n["label"] for n in regular["left"]] == ["Salaries", "Other resources"]
+        assert regular["left"][1]["value"] == 3000
+        assert [n["label"] for n in regular["right"]] == ["Savings"]
+        assert regular["right"][0]["value"] == 13000
+        assert regular["total"] == 13000
+
+    def test_no_regular_view_without_exceptional_flows(self, finance_year, household):
+        _move(_savings_account("A"), 1000, 4)
+        assert sankey_payload(build_budget(finance_year, household))["regular"] is None
 
 
 @pytest.mark.django_db
@@ -424,7 +533,21 @@ class TestSankey:
         add_line(budget_year, categories["salaries"], 1000)
         add_line(budget_year, categories["energy"], 1500)
         payload = sankey_payload(build_budget(budget_year, household))
-        assert [n["label"] for n in payload["left"]] == ["Salaries", "Deficit"]
+        assert [n["label"] for n in payload["left"]] == [
+            "Salaries",
+            "Untracked resources",
+        ]
+        assert payload["left"][1]["value"] == 500
+        assert payload["total"] == 1500
+
+    def test_balance_node(self):
+        assert balance_node(Decimal(0)) is None
+        remaining = balance_node(Decimal(5))
+        assert remaining is not None
+        assert remaining.label == "Not allocated"
+        deficit = balance_node(Decimal(-5), "Other")
+        assert deficit is not None
+        assert (deficit.label, deficit.amount) == ("Other", Decimal(5))
 
 
 def _cpi(period: datetime.date, value: str):

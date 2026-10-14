@@ -149,7 +149,7 @@
   <section class="g-card g-card--pad d-flex flex-wrap align-items-center justify-content-between gap-2" id="budget-balance">
     <span>
       {% if summary.balance.kind == "saving" %}{% icon "circle-check" "g-pos me-1" %}{% translate "Money left once the expenses and savings are paid" %}
-      {% else %}{% icon "triangle-alert" "g-neg me-1" %}{% translate "Deficit: the expenses and savings exceed the resources; the difference comes from the current accounts or an untracked saving" %}{% endif %}
+      {% else %}{% icon "triangle-alert" "g-neg me-1" %}{% translate "Untracked resources: the expenses and savings exceed the resources; the difference comes from the current accounts or an untracked saving" %}{% endif %}
     </span>
     <span class="g-strong {% if summary.balance.kind == 'saving' %}g-pos{% else %}g-neg{% endif %}">{{ summary.balance.total|money0:currency }} · {{ summary.balance.monthly|money0:currency }} {% translate "/ month" %}</span>
   </section>
