@@ -2,6 +2,125 @@
 
 <!-- version list -->
 
+## v1.6.0 (2026-10-14)
+
+### Bug Fixes
+
+- Read the French dates of the CSV imports day first
+  ([`c5e9869`](https://github.com/Aohzan/glad/commit/c5e9869a9f9ca686fc24a4650e8d7638b683fd7d))
+
+- **budget**: Build the year switch URL from the year number
+  ([`ab4d64d`](https://github.com/Aohzan/glad/commit/ab4d64d3b6ef1f889234074362373ea4055b0b27))
+
+- **budget**: Keep the exported cells from running as formulas and check the imported amounts
+  ([`1aaa936`](https://github.com/Aohzan/glad/commit/1aaa936eea8aacae145930a6d2b2053d41fbdf38))
+
+- **budget**: Show the net flows of the accounts, not the movements inside the household
+  ([`7a3b784`](https://github.com/Aohzan/glad/commit/7a3b784046d45913b941a198671a255bcd94f642))
+
+### Build System
+
+- **deps**: Bump actions/setup-node from 7.0.0 to 7.1.0
+  ([`8473fd3`](https://github.com/Aohzan/glad/commit/8473fd348c095a84ac806402123a006df50405ab))
+
+- **deps**: Bump django from 6.1.1 to 6.1.2
+  ([`b7643a3`](https://github.com/Aohzan/glad/commit/b7643a3ff73414b58ffe8d49678ba02e4d356a94))
+
+- **deps**: Bump lucide-static from 1.51.0 to 1.52.0
+  ([`6acef67`](https://github.com/Aohzan/glad/commit/6acef67da53c8d909dd4f50fb426be2f62f214bb))
+
+- **deps**: Bump py-cov-action/python-coverage-comment-action
+  ([`7d1c4d4`](https://github.com/Aohzan/glad/commit/7d1c4d463d0a5d6e759f949d0c6d5bf5fcc6ffd4))
+
+- **deps-dev**: Bump django-stubs from 6.1.1 to 6.1.2
+  ([`ea40690`](https://github.com/Aohzan/glad/commit/ea40690da8490d2d8f833b2a30eb5004e7c346ee))
+
+- **deps-dev**: Bump ty from 0.0.84 to 0.0.85
+  ([`052fba6`](https://github.com/Aohzan/glad/commit/052fba66fec4d22c78cd436eac02c1db9c5d91ba))
+
+### Chores
+
+- **i18n**: Translate the deposit origins to French
+  ([`724777e`](https://github.com/Aohzan/glad/commit/724777ea3e895bcbdd4489abc2aeaf7fd5a90da7))
+
+- **i18n**: Translate the employee savings, the account groups and the sankey controls to French
+  ([`95836d4`](https://github.com/Aohzan/glad/commit/95836d46fbf98e4ee0b62fcf32d2cfb27f6e1386))
+
+- **i18n**: Translate the household budget to French
+  ([`691ccf0`](https://github.com/Aohzan/glad/commit/691ccf011e9a3654401d3425d963d54511bfe7f7))
+
+- **i18n**: Translate the net account flows to French
+  ([`8dca196`](https://github.com/Aohzan/glad/commit/8dca1969e6f0bf81d53063fe1d0823129df552fb))
+
+- **i18n**: Translate the origin of the opening value to French
+  ([`7a1987e`](https://github.com/Aohzan/glad/commit/7a1987ef474f596fc991b8e7425b50b35c2f87a7))
+
+### Documentation
+
+- Add a script taking the README screenshots
+  ([`02eb7d4`](https://github.com/Aohzan/glad/commit/02eb7d4de3780ea97cdb27649324e0165529e322))
+
+- Ask the agents to refresh the README screenshots after visual changes
+  ([`7d2b7ed`](https://github.com/Aohzan/glad/commit/7d2b7eda5fadc3db1ad270a3c7da3321e4c3573e))
+
+- Describe the household budget
+  ([`c3d5fda`](https://github.com/Aohzan/glad/commit/c3d5fda43e7d30bd843032f9c046febff52210d1))
+
+- Refresh the README screenshots and add the budget
+  ([`d3287fd`](https://github.com/Aohzan/glad/commit/d3287fd641a487f89da604410f6dabfe64d394f0))
+
+- Refresh the README screenshots with the deposit origins
+  ([`2b9c12f`](https://github.com/Aohzan/glad/commit/2b9c12f06e0e8db8e443bee84640000a22bd6a02))
+
+- Refresh the README screenshots with the employee savings plan
+  ([`3e4b82f`](https://github.com/Aohzan/glad/commit/3e4b82f82e56171276d2ac1b9719d664ae123b24))
+
+### Features
+
+- Set the origin of the opening value of the accounts
+  ([`c2c6221`](https://github.com/Aohzan/glad/commit/c2c6221f10d1f77e4425faabeb5e1a08a8aa0f17))
+
+- **base**: Size the emergency fund from the expenses of the budget
+  ([`87b472d`](https://github.com/Aohzan/glad/commit/87b472d0072a74280cb05f099f1335207eb961f4))
+
+- **budget**: Chart the income, expenses and savings over the years
+  ([`667ad78`](https://github.com/Aohzan/glad/commit/667ad78c1ac9c63d86908de6b31764294137799d))
+
+- **budget**: Fold the sankey diagram, group its small flows and hide the exceptional ones
+  ([`ff0a104`](https://github.com/Aohzan/glad/commit/ff0a1049bbc3668c8ddc7b44388b52be7bc8aab1))
+
+- **budget**: Leave the transfers between accounts out and guess the unknown origins
+  ([`2cabb7c`](https://github.com/Aohzan/glad/commit/2cabb7cfc4905026cda92c25229e9fe488cbf4b7))
+
+- **budget**: Show the person of the lines in the sankey diagram
+  ([`14f9701`](https://github.com/Aohzan/glad/commit/14f97012feefcca204a3cb38a1fb71e95a86f595))
+
+- **budget**: Split the account flows and count the employee savings as income
+  ([`70b5be9`](https://github.com/Aohzan/glad/commit/70b5be95719fb6fce75f93b044373094cd19cc96))
+
+- **budget**: Yearly household budget with a sankey diagram
+  ([`9d562de`](https://github.com/Aohzan/glad/commit/9d562de4c83757e7631e1382ab1d077fe5ed5069))
+
+- **finance**: Add an employee savings origin to the deposits
+  ([`6a7273c`](https://github.com/Aohzan/glad/commit/6a7273cbdd602c9c38802d7b423603c5ddefc22f))
+
+- **finance**: Set the origin of the account deposits
+  ([`cf7b466`](https://github.com/Aohzan/glad/commit/cf7b466ee472b29daa88651ae5ebdadd550afaa5))
+
+### Refactoring
+
+- **property**: Sum the ledger of a period by category in its own function
+  ([`dacbafb`](https://github.com/Aohzan/glad/commit/dacbafb7fd7f8984ea8318becc8e6c0ce094635e))
+
+### Testing
+
+- **budget**: Add an employee savings plan to the demo and set the origin of every movement
+  ([`f295c7d`](https://github.com/Aohzan/glad/commit/f295c7d49aca3a6a099e401cdda8540f144e1d76))
+
+- **budget**: Cover the budget and generate a demo budget
+  ([`31f9b92`](https://github.com/Aohzan/glad/commit/31f9b926f28b5bede934404f505e79a5d4cbe425))
+
+
 ## v1.5.0 (2026-10-04)
 
 ### Bug Fixes
