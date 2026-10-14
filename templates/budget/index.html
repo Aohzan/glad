@@ -1,10 +1,14 @@
 {% extends "base.html" %}
-{% load i18n glad_format %}
+{% load i18n static glad_format %}
 
 {% block title %}{% translate "Budget" %}{% endblock %}
 {% block page_kicker %}{% translate "Analysis" %}{% endblock %}
 {% block page_title %}{% translate "Household budget" %}{% endblock %}
 {% block page_description %}{% translate "Income, expenses and savings of the household, year by year" %}{% endblock %}
+{% block extra_head %}
+{% if evolution %}<script src="{% static 'vendors/apexcharts/apexcharts.min.js' %}"></script>{% endif %}
+{% endblock %}
+
 {% block page_actions %}
 {% if has_categories %}
 <a class="btn btn-outline-secondary" href="{% url 'budget:categories' %}">{% icon "list-tree" %}{% translate "Categories" %}</a>
@@ -29,6 +33,17 @@
     </div>
   </section>
   {% elif rows %}
+  {% if evolution %}
+  <section class="g-card">
+    <div class="g-section-head">
+      <div class="g-section-head__title">
+        <h2 class="g-h2">{% translate "Over the years" %}</h2>
+      </div>
+    </div>
+    <div class="px-3 pb-3"><div id="budget-evolution"></div></div>
+  </section>
+  {{ evolution|json_script:"budget-evolution-data" }}
+  {% endif %}
   <section class="g-card">
     <div class="g-table-wrap">
       <div class="g-table" style="--g-cols: minmax(120px, 1fr) repeat(5, minmax(110px, 1fr)); --g-table-min: 760px">
@@ -63,4 +78,38 @@
   </section>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if evolution %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  const data = JSON.parse(document.getElementById('budget-evolution-data').textContent);
+  const fmt = new Intl.NumberFormat(document.documentElement.lang || navigator.language, {
+    style: 'currency', currency: "{{ currency|escapejs }}", maximumFractionDigits: 0,
+  });
+  const colors = () => [gToken('pos'), gToken('neg'), gToken('c1')];
+  const chart = new ApexCharts(document.getElementById('budget-evolution'), {
+    chart: { type: 'line', height: 300, toolbar: { show: false }, zoom: { enabled: false } },
+    series: [
+      { name: "{% filter escapejs %}{% translate 'Income' context 'budget' %}{% endfilter %}", data: data.income },
+      { name: "{% filter escapejs %}{% translate 'Expenses' %}{% endfilter %}", data: data.expenses },
+      { name: "{% filter escapejs %}{% translate 'Savings' context 'budget' %}{% endfilter %}", data: data.savings },
+    ],
+    colors: colors(),
+    stroke: { width: 3, curve: 'straight' },
+    markers: { size: 5, strokeWidth: 0, hover: { size: 7 } },
+    xaxis: { categories: data.years },
+    yaxis: { labels: { formatter: (v) => fmt.format(v) } },
+    dataLabels: { enabled: false },
+    tooltip: { y: { formatter: (v) => fmt.format(v) } },
+    legend: { position: 'top' },
+  });
+  chart.render();
+  window.updateChartsTheme = (theme) => {
+    chart.updateOptions({ theme: { mode: theme }, tooltip: { theme }, colors: colors() });
+  };
+})();
+</script>
+{% endif %}
 {% endblock %}

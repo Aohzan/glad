@@ -49,6 +49,22 @@ class TestIndex:
         assert year == filled_year
         assert indicators.income == Decimal(30000)
         assert reverse("budget:year", args=[YEAR]) in response.content.decode()
+        assert response.context["evolution"] is None
+
+    def test_evolution_over_the_years(self, user_client, filled_year, categories):
+        later = BudgetYear.objects.create(
+            year=YEAR + 1, include_properties=False, include_finance=False
+        )
+        add_line(later, categories["salaries"], 32000)
+        add_line(later, categories["savings"], 1000)
+        response = user_client.get(reverse("budget:index"))
+        assert response.context["evolution"] == {
+            "years": [str(YEAR), str(YEAR + 1)],
+            "income": [30000.0, 32000.0],
+            "expenses": [2400.0, 0.0],
+            "savings": [0.0, 1000.0],
+        }
+        assert 'id="budget-evolution-data"' in response.content.decode()
 
 
 @pytest.mark.django_db
