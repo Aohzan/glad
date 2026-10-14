@@ -55,11 +55,25 @@ def index(request: HttpRequest) -> HttpResponse:
     years = list(BudgetYear.objects.all())
     perspective = Perspective.build()
     rows = [(year, build_budget(year, perspective).indicators) for year in years]
+    chronological = sorted(rows, key=lambda row: row[0].year)
     return render(
         request,
         "budget/index.html",
         {
             "rows": rows,
+            # Income, expenses and savings over the years, from two years on.
+            "evolution": {
+                "years": [str(year.year) for year, _indicators in chronological],
+                **{
+                    name: [
+                        round(float(getattr(indicators, name)), 2)
+                        for _year, indicators in chronological
+                    ]
+                    for name in ("income", "expenses", "savings")
+                },
+            }
+            if len(rows) > 1
+            else None,
             "has_categories": BudgetCategory.objects.exists(),
             "currency": settings.DEFAULT_CURRENCY,
             "current_year": datetime.date.today().year,
