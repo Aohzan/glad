@@ -58,6 +58,8 @@ class TestYearDetail:
         assert response.status_code == 200
         content = response.content.decode()
         assert 'id="budget-sankey-data"' in content
+        assert f'<option value="{YEAR}" selected>' in content
+        assert "`/budget/${year}/`" in content
         assert response.context["person"] is None
         assert response.context["previous"] is None
         assert response.context["deltas"] is None
@@ -76,7 +78,9 @@ class TestYearDetail:
         assert response.context["indicators"].income == Decimal(30000)
         assert response.context["deltas"]["income"] == Decimal(2000)
         assert response.context["comparison_chart"]["labels"] == ["Housing"]
-        assert f"{YEAR - 1} compared with {YEAR}" in response.content.decode()
+        content = response.content.decode()
+        assert f"{YEAR - 1} compared with {YEAR}" in content
+        assert f"`/budget/${{year}}/?person={user.pk}`" in content
 
     def test_warns_about_guessed_origins(self, user_client, filled_year):
         filled_year.include_finance = True
