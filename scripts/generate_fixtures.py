@@ -193,6 +193,7 @@ def generate_investmentaccount() -> str:
 
     Account 1: PEA (Plan d'épargne en actions) — ~100k€ total, 6 holdings (4 profit / 2 loss)
     Account 2: Assurance Vie — ~40k€ total, 5 holdings (3 profit / 2 loss)
+    Account 3: PEE (Plan d'épargne entreprise) — ~13k€, profit-sharing and matching
     """
     return f"""# generated with scripts/generate_fixtures.py
 ---
@@ -1336,7 +1337,7 @@ def generate_investmentaccount() -> str:
     source: Virement bancaire
     origin: income
     update_account_cash: true
-# The other side of the transfer from the Livret A, without origin
+# The other side of the transfer from the Livret A
 - model: finance.investmentaccountdeposit
   pk: 14
   fields:
@@ -1347,6 +1348,7 @@ def generate_investmentaccount() -> str:
     amount_currency: EUR
     deposit_date: {ds(days_ago(43))}
     source: Depuis le Livret A
+    origin: transfer
     update_account_cash: false
 - model: finance.investmentaccountdeposit
   pk: 15
@@ -1387,6 +1389,219 @@ def generate_investmentaccount() -> str:
     year: {TODAY.year - 1}
     rate: "2.50"
     notes: ""
+# ── Account 3: PEE ────────────────────────────────────────────────────────────
+# Employee savings plan of Mister: the yearly profit-sharing and the employer's
+# matching are employer deposits (income and savings in the budget), the
+# voluntary payments come from the income.
+- model: finance.investmentaccount
+  pk: 3
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(RECENT)}
+    account_type_id: 7
+    institution: EpargneCorp
+    is_active: true
+    opening_date: {ds(M48)}
+    opening_cash_value: 0
+    opening_cash_value_currency: EUR
+# ── Holding 12: FCPE Actions Monde ────────────────────────────────────────────
+- model: finance.investmentaccountholding
+  pk: 12
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(RECENT)}
+    account_id: 3
+    name: FCPE Actions Monde
+    asset_class: equities
+    code: FCPE
+    is_active: true
+    initial_quantity: 1
+    initial_value: 1600
+    initial_value_currency: EUR
+    initial_valuation_date: {ds(M48)}
+- model: finance.investmentaccountholdinghistory
+  pk: 66
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    holding_id: 12
+    value: 3450
+    value_currency: EUR
+    quantity: 1
+    valuation_date: {ds(M36)}
+- model: finance.investmentaccountholdinghistory
+  pk: 67
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    holding_id: 12
+    value: 5600
+    value_currency: EUR
+    quantity: 1
+    valuation_date: {ds(M24)}
+- model: finance.investmentaccountholdinghistory
+  pk: 68
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    holding_id: 12
+    value: 9100
+    value_currency: EUR
+    quantity: 1
+    valuation_date: {ds(M12)}
+- model: finance.investmentaccountholdinghistory
+  pk: 69
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    holding_id: 12
+    value: 12600
+    value_currency: EUR
+    quantity: 1
+    valuation_date: {ds(M6)}
+- model: finance.investmentaccountholdinghistory
+  pk: 70
+  fields:
+    created_at: {dt(RECENT)}
+    updated_at: {dt(RECENT)}
+    holding_id: 12
+    value: 13400
+    value_currency: EUR
+    quantity: 1
+    valuation_date: {ds(RECENT)}
+# ── Deposits: PEE ─────────────────────────────────────────────────────────────
+- model: finance.investmentaccountdeposit
+  pk: 16
+  fields:
+    created_at: {dt(M48)}
+    updated_at: {dt(M48)}
+    account_id: 3
+    amount: 1600
+    amount_currency: EUR
+    deposit_date: {ds(M48)}
+    source: Intéressement
+    origin: employer
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 17
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    account_id: 3
+    amount: 1750
+    amount_currency: EUR
+    deposit_date: {ds(M36)}
+    source: Intéressement
+    origin: employer
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 18
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    account_id: 3
+    amount: 1900
+    amount_currency: EUR
+    deposit_date: {ds(M24)}
+    source: Intéressement
+    origin: employer
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 19
+  fields:
+    created_at: {dt(M18)}
+    updated_at: {dt(M18)}
+    account_id: 3
+    amount: 900
+    amount_currency: EUR
+    deposit_date: {ds(M18)}
+    source: Participation
+    origin: employer
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 20
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    account_id: 3
+    amount: 2050
+    amount_currency: EUR
+    deposit_date: {ds(M12)}
+    source: Intéressement
+    origin: employer
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 21
+  fields:
+    created_at: {dt(M12)}
+    updated_at: {dt(M12)}
+    account_id: 3
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {ds(M12)}
+    source: Versement volontaire
+    origin: income
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 22
+  fields:
+    created_at: {dt(M9)}
+    updated_at: {dt(M9)}
+    account_id: 3
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {ds(M9)}
+    source: Versement volontaire
+    origin: income
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 23
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    account_id: 3
+    amount: 2200
+    amount_currency: EUR
+    deposit_date: {ds(M6)}
+    source: Intéressement
+    origin: employer
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 24
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    account_id: 3
+    amount: 400
+    amount_currency: EUR
+    deposit_date: {ds(M6)}
+    source: Abondement
+    origin: employer
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 25
+  fields:
+    created_at: {dt(M6)}
+    updated_at: {dt(M6)}
+    account_id: 3
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {ds(M6)}
+    source: Versement volontaire
+    origin: income
+    update_account_cash: false
+- model: finance.investmentaccountdeposit
+  pk: 26
+  fields:
+    created_at: {dt(M3)}
+    updated_at: {dt(M3)}
+    account_id: 3
+    amount: 300
+    amount_currency: EUR
+    deposit_date: {ds(M3)}
+    source: Versement volontaire
+    origin: income
+    update_account_cash: false
 """
 
 
@@ -2082,7 +2297,7 @@ def generate_savingaccount() -> str:
     source: Virement mensuel
     origin: income
     update_account_value: true
-# A transfer to the PEA without origin, which the budget guesses
+# A transfer to the PEA, left out of the budget
 - model: finance.savingaccountdeposit
   pk: 29
   fields:
@@ -2093,6 +2308,7 @@ def generate_savingaccount() -> str:
     amount_currency: EUR
     deposit_date: {dt(days_ago(45))}
     source: Vers le PEA
+    origin: transfer
     update_account_value: false
 """
 
@@ -4179,6 +4395,7 @@ OWNERSHIPS = [
     ("finance", "investmentaccount", 1, MISTER, "50", "full"),
     ("finance", "investmentaccount", 1, MADAME, "50", "full"),
     ("finance", "investmentaccount", 2, MISTER, "100", "full"),
+    ("finance", "investmentaccount", 3, MISTER, "100", "full"),
     ("finance", "otherasset", 1, MISTER, "50", "full"),
     ("finance", "otherasset", 1, MADAME, "50", "full"),
     ("finance", "otherasset", 2, MISTER, "100", "full"),
@@ -4278,7 +4495,6 @@ BUDGET_LINES = [
     (17, "Vacances d'été", 3500, None),
     (18, "Cantine et garde", 2400, None),
     (18, "Activités de Léa", 600, CHILD),
-    (19, "Plan d'épargne entreprise", 1200, MISTER),
 ]
 
 
