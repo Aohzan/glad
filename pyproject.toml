@@ -40,7 +40,7 @@ dev = [
     "pytest-django>=4.11.1",
     "pytest-picked>=0.5.0",
     "ruff>=0.17.0",
-    "ty>=0.0.85",
+    "ty>=0.0.86",
     "types-python-dateutil>=2.9.0",
 ]
 
@@ -109,6 +109,13 @@ reportUnknownMemberType = false
 reportUnknownVariableType = false
 reportUnknownParameterType = false
 reportUnknownArgumentType = false
+
+# A Django model's inner Meta class does not subclass its parent's Meta.
+[[tool.ty.overrides]]
+include = ["**/models.py", "**/models/**"]
+
+[tool.ty.overrides.rules]
+invalid-attribute-override = "ignore"
 
 [tool.ruff]
 extend-exclude = ["*/migrations/*"]
