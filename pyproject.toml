@@ -110,6 +110,13 @@ reportUnknownVariableType = false
 reportUnknownParameterType = false
 reportUnknownArgumentType = false
 
+# A Django model's inner Meta class does not subclass its parent's Meta.
+[[tool.ty.overrides]]
+include = ["**/models.py", "**/models/**"]
+
+[tool.ty.overrides.rules]
+invalid-attribute-override = "ignore"
+
 [tool.ruff]
 extend-exclude = ["*/migrations/*"]
 
