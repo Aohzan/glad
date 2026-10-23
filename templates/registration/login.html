@@ -1,23 +1,44 @@
-{% extends "registration/base_auth_form.html" %}
-{% load i18n %}
+{% extends "base.html" %}
+{% load i18n icons %}
 
-{% block auth_title %}{% translate "Login" %}{% endblock %}
-{% block auth_heading %}{% translate "Log In" %}{% endblock %}
+{% block title %}{% translate "Login" %}{% endblock %}
 
-{% block auth_fields %}
-          {% include "registration/_form_field.html" with field=form.username %}
-          {% include "registration/_form_field.html" with field=form.password %}
-{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body p-4" id="login"
+       data-redirect-url="{{ login_redirect_url }}"{% if last_login_passkey and not form.errors %}
+       data-auto-passkey{% endif %}>
+    <h1 class="h3 text-center mb-4">{% translate "Log In" %}</h1>
 
-{% block auth_submit %}{% translate "Log In" %}{% endblock %}
+    {% include "_form_non_field_errors.html" %}
 
-{% block auth_extra %}
-        <div id="passkey-login-status" class="small mt-2" aria-live="polite"
-             data-redirect-url="{{ login_redirect_url }}"></div>
+    {# Hidden without passkey support. The password form below stays visible  #}
+    {# from the page load: password managers skip the fields hidden at load. #}
+    <div id="login-passkey" class="d-grid gap-3 mb-3">
+      {% if last_login_passkey %}
+      <p class="text-center text-body-secondary small mb-0">{% translate "Welcome back! Log in with your passkey." %}</p>
+      {% endif %}
+      <button type="button" id="passkey-login" class="btn btn-primary">
+        {% icon "key-round" "me-2" %}{% translate "Log in with passkey" %}
+      </button>
+      <div id="passkey-login-status" class="small text-center" aria-live="polite" hidden></div>
+      <div class="g-auth-or">{% translate "or" %}</div>
+    </div>
 
-        <div class="text-center mt-3">
-          <p><a href="{% url 'password_reset' %}">{% translate "Password Reset" %}</a></p>
-        </div>
+    <form method="post">
+      {% csrf_token %}
+      {% include "registration/_form_field.html" with field=form.username %}
+      {% include "registration/_form_field.html" with field=form.password %}
+      <div class="d-grid">
+        <button type="submit" class="btn btn-outline-secondary">{% icon "lock" "me-2" %}{% translate "Log in with password" %}</button>
+      </div>
+    </form>
+
+    <div class="text-center mt-3">
+      <a href="{% url 'password_reset' %}">{% translate "Password Reset" %}</a>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -25,9 +46,14 @@
 (function () {
   'use strict';
 
+  var root = document.getElementById('login');
+  var passkeyButton = document.getElementById('passkey-login');
   var statusEl = document.getElementById('passkey-login-status');
   var optionsUrl = '{% url "accounts:passkey_auth_options" %}';
   var completeUrl = '{% url "accounts:passkey_auth_complete" %}';
+  // Only one WebAuthn request may be pending: the autofill one is aborted
+  // before the passkey button opens its own prompt.
+  var pendingRequest = null;
 
   function getCsrfToken() {
     var metaTag = document.querySelector('meta[name="csrf-token"]');
@@ -38,7 +64,8 @@
 
   function showStatus(msg, isError) {
     statusEl.textContent = msg;
-    statusEl.className = 'small mt-2 ' + (isError ? 'text-danger' : 'text-success');
+    statusEl.className = 'small text-center ' + (isError ? 'text-danger' : 'text-success');
+    statusEl.hidden = false;
   }
 
   function base64urlToUint8Array(value) {
@@ -58,7 +85,14 @@
     return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
   }
 
-  function authenticatePasskey(options) {
+  function abortPendingRequest() {
+    if (pendingRequest) {
+      pendingRequest.abort();
+      pendingRequest = null;
+    }
+  }
+
+  function authenticatePasskey(options, mediation, signal) {
     options.challenge = base64urlToUint8Array(options.challenge);
     if (options.allowCredentials) {
       options.allowCredentials = options.allowCredentials.map(function (cred) {
@@ -69,7 +103,10 @@
       });
     }
 
-    return navigator.credentials.get({ publicKey: options }).then(function (assertion) {
+    var request = { publicKey: options, signal: signal };
+    if (mediation) request.mediation = mediation;
+
+    return navigator.credentials.get(request).then(function (assertion) {
       var payload = {
         id: assertion.id,
         rawId: uint8ArrayToBase64url(new Uint8Array(assertion.rawId)),
@@ -88,12 +125,11 @@
         },
       };
 
-      var csrfToken = getCsrfToken();
       return fetch(completeUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
+          'X-CSRFToken': getCsrfToken(),
         },
         body: JSON.stringify(payload),
       });
@@ -101,49 +137,84 @@
       if (!verifyResponse.ok) {
         return verifyResponse.json().catch(function () { return {}; }).then(function (errorData) {
           console.error('Verification failed:', errorData);
-          throw new Error(errorData.error || 'verify_failed');
+          throw new Error('verify_failed');
         });
       }
-      window.location.href = statusEl.dataset.redirectUrl || '/';
+      window.location.href = root.dataset.redirectUrl || '/';
+      return true;
     });
   }
 
-  if (!window.PublicKeyCredential) {
-    return;
-  }
-
-  PublicKeyCredential.isConditionalMediationAvailable().then(function (available) {
-    if (!available) return;
-
-    var usernameField = document.getElementById('id_username');
-    if (usernameField) {
-      usernameField.setAttribute('autocomplete', 'username webauthn');
+  // Run a passkey login: a modal prompt, or the username autofill when
+  // *mediation* is 'conditional', whose failures stay silent. The autofill
+  // comes back once a modal prompt ends without logging in.
+  function startPasskey(mediation) {
+    abortPendingRequest();
+    var controller = new AbortController();
+    pendingRequest = controller;
+    var conditional = mediation === 'conditional';
+    if (!conditional) {
+      passkeyButton.disabled = true;
+      statusEl.hidden = true;
     }
 
-    var csrfToken = getCsrfToken();
-    if (!csrfToken) return;
-
-    fetch(optionsUrl, {
+    return fetch(optionsUrl, {
       method: 'POST',
-      headers: { 'X-CSRFToken': csrfToken },
+      headers: { 'X-CSRFToken': getCsrfToken() },
     })
     .then(function (response) {
       if (!response.ok) throw new Error('options_failed');
       return response.json();
     })
     .then(function (options) {
-      return authenticatePasskey(options);
+      return authenticatePasskey(options, mediation, controller.signal);
     })
     .catch(function (err) {
-      if (err.name === 'NotAllowedError') return;
+      // Cancelled by the user, superseded by another request, or refused
+      // by the browser for want of a user gesture.
+      if (err.name === 'NotAllowedError' || err.name === 'AbortError') return;
       console.error('Passkey login error:', err);
       if (err.message === 'verify_failed') {
         {% translate "Failed to verify passkey with server." as msg %}showStatus('{{ msg|escapejs }}', true);
-      } else if (err.message !== 'options_failed') {
+      } else if (!conditional) {
         {% translate "Passkey login failed:" as msg %}showStatus('{{ msg|escapejs }}' + ' ' + (err.message || err.name || 'Unknown error'), true);
       }
+    })
+    .then(function (loggedIn) {
+      if (pendingRequest === controller) pendingRequest = null;
+      if (conditional || loggedIn) return;
+      passkeyButton.disabled = false;
+      startConditionalPasskey();
     });
-  });
+  }
+
+  // Offer the passkeys in the username autofill of the password form.
+  function startConditionalPasskey() {
+    if (!PublicKeyCredential.isConditionalMediationAvailable) return;
+    PublicKeyCredential.isConditionalMediationAvailable().then(function (available) {
+      // A modal prompt opened meanwhile keeps the floor.
+      if (!available || pendingRequest) return;
+      var usernameField = document.getElementById('id_username');
+      if (usernameField) {
+        usernameField.setAttribute('autocomplete', 'username webauthn');
+      }
+      startPasskey('conditional');
+    });
+  }
+
+  if (!window.PublicKeyCredential) {
+    // No passkey support: the password form is the only way in.
+    document.getElementById('login-passkey').remove();
+    return;
+  }
+
+  passkeyButton.addEventListener('click', function () { startPasskey(); });
+
+  if ('autoPasskey' in root.dataset) {
+    startPasskey();
+  } else {
+    startConditionalPasskey();
+  }
 })();
 </script>
 {% endblock %}

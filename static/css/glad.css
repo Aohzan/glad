@@ -849,6 +849,18 @@ a.g-list-item:hover { color: var(--g-accent-ink); }
 .g-auth__card { width: 100%; max-width: 420px; }
 .g-auth__foot { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--g-dim); }
 
+.g-auth-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--g-dim);
+  text-transform: uppercase;
+}
+
+.g-auth-or::before,
+.g-auth-or::after { content: ""; flex: 1; height: 1px; background: var(--g-line); }
+
 /* ── Third-party widgets ────────────────────────────────────────────────── */
 
 .apexcharts-tooltip.apexcharts-theme-light,

@@ -42,15 +42,33 @@ from .models import PasskeyCredential, UserProfile
 
 _LOGGER = logging.getLogger(__name__)
 
+# Long-lived cookie remembering that this browser last logged in with a passkey,
+# so the login page offers the passkey right away. The session cookie cannot
+# hold it: it is flushed on logout and dropped when the browser closes.
+LOGIN_METHOD_COOKIE = "glad_login_method"
+LOGIN_METHOD_COOKIE_AGE = 365 * 24 * 60 * 60  # seconds
+
 
 class LoginView(auth_views.LoginView):
-    """Login page, also offering a passkey."""
+    """Login page offering a passkey or a password.
+
+    The passkey prompt opens on load when the browser last logged in with one.
+    """
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["last_login_passkey"] = (
+            self.request.COOKIES.get(LOGIN_METHOD_COOKIE) == "passkey"
+        )
         # Validated target of the passkey login, which redirects in JavaScript.
         context["login_redirect_url"] = self.get_success_url()
         return context
+
+    def form_valid(self, form):
+        # A password login means the passkey is not (or no longer) usable here.
+        response = super().form_valid(form)
+        response.delete_cookie(LOGIN_METHOD_COOKIE, samesite="Lax")
+        return response
 
 
 class LogoutConfirmView(TemplateView):
@@ -248,7 +266,16 @@ def passkey_auth_complete(request):
 
         request.session.pop("passkey_auth_challenge", None)
         login(request, stored.user)
-        return JsonResponse({"success": True})
+        response = JsonResponse({"success": True})
+        response.set_cookie(
+            LOGIN_METHOD_COOKIE,
+            "passkey",
+            max_age=LOGIN_METHOD_COOKIE_AGE,
+            secure=settings.SESSION_COOKIE_SECURE,
+            httponly=True,
+            samesite="Lax",
+        )
+        return response
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
     except Exception as e:
