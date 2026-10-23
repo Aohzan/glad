@@ -12,7 +12,8 @@
 {% block auth_submit %}{% translate "Log In" %}{% endblock %}
 
 {% block auth_extra %}
-        <div id="passkey-login-status" class="small mt-2" aria-live="polite"></div>
+        <div id="passkey-login-status" class="small mt-2" aria-live="polite"
+             data-redirect-url="{{ login_redirect_url }}"></div>
 
         <div class="text-center mt-3">
           <p><a href="{% url 'password_reset' %}">{% translate "Password Reset" %}</a></p>
@@ -55,11 +56,6 @@
     var binary = '';
     bytes.forEach(function (b) { binary += String.fromCharCode(b); });
     return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-  }
-
-  function nextUrl() {
-    var params = new URLSearchParams(window.location.search);
-    return params.get('next') || '/';
   }
 
   function authenticatePasskey(options) {
@@ -108,7 +104,7 @@
           throw new Error(errorData.error || 'verify_failed');
         });
       }
-      window.location.href = nextUrl();
+      window.location.href = statusEl.dataset.redirectUrl || '/';
     });
   }
 
