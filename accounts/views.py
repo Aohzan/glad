@@ -6,6 +6,7 @@ import logging
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, update_session_auth_hash
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_not_required, login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -40,6 +41,16 @@ from .backends import HouseholdModelBackend
 from .models import PasskeyCredential, UserProfile
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class LoginView(auth_views.LoginView):
+    """Login page, also offering a passkey."""
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Validated target of the passkey login, which redirects in JavaScript.
+        context["login_redirect_url"] = self.get_success_url()
+        return context
 
 
 class LogoutConfirmView(TemplateView):

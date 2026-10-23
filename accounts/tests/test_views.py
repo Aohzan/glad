@@ -400,6 +400,17 @@ def test_login_page_has_no_passkey_button(client):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("next_url", "expected"),
+    [("/budget/", "/budget/"), ("https://evil.example/", "/")],
+)
+def test_login_page_passkey_redirect_url_is_validated(client, next_url, expected):
+    response = client.get(reverse("login"), {"next": next_url})
+    assert response.context["login_redirect_url"] == expected
+    assert f'data-redirect-url="{expected}"' in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_login_page_has_passkey_status_element(client):
     response = client.get(reverse("login"))
     assert response.status_code == 200
