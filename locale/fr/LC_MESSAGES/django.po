@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 22:37+0200\n"
+"POT-Creation-Date: 2026-10-23 23:48+0200\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -92,11 +92,11 @@ msgstr "Identification via passkey"
 msgid "Passkey credentials"
 msgstr "Identification via passkey"
 
-#: accounts/views.py:66
+#: accounts/views.py:95
 msgid "Password updated successfully."
 msgstr "Mise à jour du mot de passe réussie"
 
-#: accounts/views.py:268
+#: accounts/views.py:306
 msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
@@ -4354,7 +4354,7 @@ msgstr "L'enregistrement de la passkey a été annulé."
 msgid "Failed to get registration options from server."
 msgstr "Échec de récupération des options d'enregistrement depuis le serveur."
 
-#: templates/accounts/settings.html:410 templates/registration/login.html:145
+#: templates/accounts/settings.html:410 templates/registration/login.html:178
 msgid "Failed to verify passkey with server."
 msgstr "Échec de vérification de la passkey avec le serveur."
 
@@ -8643,16 +8643,32 @@ msgstr "Supprimer cette valeur théorique ?"
 msgid "Login"
 msgstr "Connexion"
 
-#: templates/registration/login.html:5 templates/registration/login.html:12
+#: templates/registration/login.html:11
 msgid "Log In"
 msgstr "Connexion"
 
-#: templates/registration/login.html:18
+#: templates/registration/login.html:19
+msgid "Welcome back! Log in with your passkey."
+msgstr "Bon retour ! Connectez-vous avec votre passkey."
+
+#: templates/registration/login.html:22
+msgid "Log in with passkey"
+msgstr "Se connecter avec une passkey"
+
+#: templates/registration/login.html:25
+msgid "or"
+msgstr "ou"
+
+#: templates/registration/login.html:33
+msgid "Log in with password"
+msgstr "Se connecter avec un mot de passe"
+
+#: templates/registration/login.html:38
 #: templates/registration/password_reset_form.html:4
 msgid "Password Reset"
 msgstr "Réinitialisation du mot de passe"
 
-#: templates/registration/login.html:147
+#: templates/registration/login.html:180
 msgid "Passkey login failed:"
 msgstr "La connexion avec passkey a échoué :"
 
