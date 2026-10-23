@@ -117,7 +117,7 @@
 
     var usernameField = document.getElementById('id_username');
     if (usernameField) {
-      usernameField.setAttribute('autocomplete', 'webauthn');
+      usernameField.setAttribute('autocomplete', 'username webauthn');
     }
 
     var csrfToken = getCsrfToken();
