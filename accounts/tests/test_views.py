@@ -285,6 +285,10 @@ def test_passkey_auth_complete_success(user_client, user, monkeypatch):
     )
     assert response.status_code == 200
     assert response.json()["success"] is True
+    cookie = response.cookies[views.LOGIN_METHOD_COOKIE]
+    assert cookie.value == "passkey"
+    assert cookie["httponly"]
+    assert cookie["max-age"] == views.LOGIN_METHOD_COOKIE_AGE
 
 
 @pytest.mark.django_db
@@ -392,11 +396,37 @@ def test_store_and_load_challenge_helpers(rf):
 
 
 @pytest.mark.django_db
-def test_login_page_has_no_passkey_button(client):
+def test_login_page_offers_passkey_and_password(client):
     response = client.get(reverse("login"))
     assert response.status_code == 200
     content = response.content.decode()
-    assert 'id="passkey-login"' not in content
+    assert 'id="passkey-login"' in content
+    # Visible from the page load, for the password managers to fill it: the
+    # empty passkey status is the only hidden element.
+    login_block = content.split('id="login"')[1].split("</form>")[0]
+    assert 'name="password"' in login_block
+    assert login_block.count(" hidden") == 1
+    assert "data-auto-passkey" not in content
+    assert response.context["last_login_passkey"] is False
+
+
+@pytest.mark.django_db
+def test_login_page_proposes_passkey_after_passkey_login(client):
+    client.cookies[views.LOGIN_METHOD_COOKIE] = "passkey"
+    response = client.get(reverse("login"))
+    assert response.status_code == 200
+    assert response.context["last_login_passkey"] is True
+    assert "data-auto-passkey" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_page_failed_password_does_not_open_passkey(client):
+    client.cookies[views.LOGIN_METHOD_COOKIE] = "passkey"
+    response = client.post(
+        reverse("login"), {"username": "nobody", "password": "wrong"}
+    )
+    assert response.status_code == 200
+    assert "data-auto-passkey" not in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -408,6 +438,18 @@ def test_login_page_passkey_redirect_url_is_validated(client, next_url, expected
     response = client.get(reverse("login"), {"next": next_url})
     assert response.context["login_redirect_url"] == expected
     assert f'data-redirect-url="{expected}"' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_password_login_forgets_passkey_login(client, user):
+    client.cookies[views.LOGIN_METHOD_COOKIE] = "passkey"
+    response = client.post(
+        reverse("login"), {"username": "testuser", "password": "testpassword"}
+    )
+    assert response.status_code == 302
+    cookie = response.cookies[views.LOGIN_METHOD_COOKIE]
+    assert cookie.value == ""
+    assert cookie["max-age"] == 0
 
 
 @pytest.mark.django_db
