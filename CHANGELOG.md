@@ -2,6 +2,68 @@
 
 <!-- version list -->
 
+## v1.7.0 (2026-10-24)
+
+### Bug Fixes
+
+- **accounts**: Keep the username token in the passkey autofill
+  ([`23d0a15`](https://github.com/Aohzan/glad/commit/23d0a15034220d35cd077894c4c6402b6eac7936))
+
+- **accounts**: Validate the redirect of the passkey login
+  ([`d1a183a`](https://github.com/Aohzan/glad/commit/d1a183ac2c781310b3b21e38c1d7851a330644b6))
+
+### Build System
+
+- Ignore the ty Meta override check in the Django models
+  ([`85745b5`](https://github.com/Aohzan/glad/commit/85745b57315add25451bdd229cec5806b629575f))
+
+- **deps**: Bump actions/create-github-app-token from 3.2.0 to 3.3.0
+  ([`f8cba1f`](https://github.com/Aohzan/glad/commit/f8cba1f145b4c83b6664bbfef5a79dafea270e27))
+
+- **deps**: Bump apexcharts from 7.8.0 to 8.1.0
+  ([`dd79849`](https://github.com/Aohzan/glad/commit/dd798497be574aa6ca910375399a3db5e2cb368d))
+
+- **deps**: Bump astral-sh/setup-uv from 10.2.0 to 10.3.0
+  ([`a20ecf7`](https://github.com/Aohzan/glad/commit/a20ecf77ba23d360c09aaab258f810dacdef086c))
+
+- **deps**: Bump filelock from 4.0.9 to 4.2.1
+  ([`0191f52`](https://github.com/Aohzan/glad/commit/0191f529d940f37529e4d12efed8b9ec18ef750b))
+
+- **deps**: Bump gitpython from 3.2.0 to 3.2.1
+  ([`66c5702`](https://github.com/Aohzan/glad/commit/66c5702a9c453f184d855421b7d244e929f6c00f))
+
+- **deps**: Bump lucide-static from 1.52.0 to 1.55.0
+  ([`cf5c87a`](https://github.com/Aohzan/glad/commit/cf5c87a9d8040d9d62ee3a454e5da89b2cc69f7b))
+
+- **deps**: Bump pillow from 12.3.0 to 13.0.0
+  ([`dbce2ba`](https://github.com/Aohzan/glad/commit/dbce2ba18dd4b6b19c433ff81203fa51fd374064))
+
+- **deps**: Bump virtualenv from 21.14.5 to 21.14.13
+  ([`2fa7ce5`](https://github.com/Aohzan/glad/commit/2fa7ce5c3cac7796b2b502f57cc9a403975e1fa9))
+
+- **deps-dev**: Bump jscpd from 5.4.0 to 5.4.1
+  ([`373b2da`](https://github.com/Aohzan/glad/commit/373b2da486c71bee51578bfa3a13ac023fab5b71))
+
+- **deps-dev**: Bump pre-commit from 4.6.2 to 4.7.0
+  ([`592a0c8`](https://github.com/Aohzan/glad/commit/592a0c8200c83b8c92a4f31617493abdc15861b0))
+
+- **deps-dev**: Bump ruff from 0.16.10 to 0.17.0
+  ([`7822d3b`](https://github.com/Aohzan/glad/commit/7822d3bfc0dc1b5f747ff4df65572dfa507c2b0e))
+
+- **deps-dev**: Bump ty from 0.0.85 to 0.0.86
+  ([`9f72fe6`](https://github.com/Aohzan/glad/commit/9f72fe69a3d98c56ae4ca7f13cf217532be1cd2e))
+
+### Chores
+
+- **i18n**: Translate the passkey login choice
+  ([`cda52f1`](https://github.com/Aohzan/glad/commit/cda52f17e92507d03b7cfc5022793413355e3362))
+
+### Features
+
+- **accounts**: Offer a passkey button above the password form
+  ([`9458f0a`](https://github.com/Aohzan/glad/commit/9458f0a9c83c262859c27018f57c6d188fd55935))
+
+
 ## v1.6.1 (2026-10-14)
 
 ### Bug Fixes
