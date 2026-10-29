@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 14:04+0100\n"
+"POT-Creation-Date: 2026-10-29 16:35+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -273,7 +273,7 @@ msgstr "Tous les prêts"
 msgid "Entries to check"
 msgstr "Écritures à pointer"
 
-#: base/context_processors.py:52 notifications/registry.py:25 rental/apps.py:12
+#: base/context_processors.py:52 notifications/registry.py:25 rental/apps.py:14
 #: templates/base.html:75 templates/property/detail_panel_leases.html:40
 #: templates/rental/_lease_layout.html:5 templates/rental/applications.html:5
 #: templates/rental/dashboard.html:4 templates/rental/dashboard.html:6
@@ -1120,7 +1120,7 @@ msgid "budget categories"
 msgstr "catégories de budget"
 
 #: budget/models.py:69 finance/models/other_asset.py:70
-#: notifications/forms.py:14 notifications/models.py:35
+#: notifications/forms.py:13 notifications/models.py:35
 #: property/models/asset.py:51 property/models/asset.py:302
 #: property/models/scpi.py:42 rental/forms.py:167
 #: templates/finance/_account_table_header.html:4
@@ -1729,6 +1729,10 @@ msgstr "Mise à jour groupée de la date de valeur"
 msgid "New value date"
 msgstr "Nouvelle valeur"
 
+#: finance/apps.py:28
+msgid "Refresh the security prices"
+msgstr "Actualiser les cours des titres"
+
 #: finance/envelopes.py:47
 msgid ""
 "Withdrawals no longer close the plan and gains are exempt from income tax"
@@ -1899,10 +1903,6 @@ msgstr "La plage de dates ne peut pas dépasser {years} ans."
 #: finance/forms.py:551
 msgid "Set the sale date of an inactive asset."
 msgstr "Renseignez la date de vente d'un actif inactif."
-
-#: finance/jobs.py:173
-msgid "Refresh the security prices"
-msgstr "Actualiser les cours des titres"
 
 #: finance/models/base.py:37 templates/owners_manage.html:38
 msgid "Unknown"
@@ -2724,15 +2724,15 @@ msgstr[1] "il y a %(days)d jours"
 msgid "On %(date)s (%(relative)s)"
 msgstr "Le %(date)s (%(relative)s)"
 
-#: notifications/forms.py:16 notifications/models.py:22
+#: notifications/forms.py:15 notifications/models.py:22
 msgid "Apprise URL"
 msgstr "URL Apprise"
 
-#: notifications/forms.py:20
+#: notifications/forms.py:19
 msgid "For example ntfy://, gotify://, tgram://, discord:// or mailto://."
 msgstr "Par exemple ntfy://, gotify://, tgram://, discord:// ou mailto://."
 
-#: notifications/forms.py:27
+#: notifications/forms.py:28
 msgid "This is not a valid Apprise URL."
 msgstr "Ce n'est pas une URL Apprise valide."
 
@@ -2825,26 +2825,26 @@ msgstr "Saisissez une date au format MM-JJ."
 msgid "Select a valid choice."
 msgstr "Sélectionnez un choix valide."
 
-#: notifications/services.py:204
+#: notifications/services.py:203
 #, python-format
 msgid "%(count)d new notification"
 msgid_plural "%(count)d new notifications"
 msgstr[0] "%(count)d nouvelle notification"
 msgstr[1] "%(count)d nouvelles notifications"
 
-#: notifications/services.py:221
+#: notifications/services.py:220
 msgid "The account has no email address."
 msgstr "Le compte n'a pas d'adresse email."
 
-#: notifications/services.py:241
+#: notifications/services.py:240
 msgid "The URL cannot be read anymore: enter it again."
 msgstr "L'URL ne peut plus être lue : saisissez-la à nouveau."
 
-#: notifications/services.py:245
+#: notifications/services.py:246
 msgid "The URL is not a valid Apprise URL."
 msgstr "L'URL n'est pas une URL Apprise valide."
 
-#: notifications/services.py:249
+#: notifications/services.py:250
 msgid "The service refused the message."
 msgstr "Le service a refusé le message."
 
@@ -5023,6 +5023,14 @@ msgstr "Candidature mise à jour."
 msgid "Lease created for %(name)s."
 msgstr "Bail créé pour %(name)s."
 
+#: rental/apps.py:24
+msgid "Send the rent calls and receipts"
+msgstr "Envoyer les avis d'échéance et les quittances"
+
+#: rental/apps.py:32
+msgid "Check the electronic signatures"
+msgstr "Vérifier les signatures électroniques"
+
 #: rental/charges_views.py:45
 msgid "Enter a valid period."
 msgstr "Saisissez une période valide."
@@ -5174,14 +5182,6 @@ msgstr "Choisissez une photo."
 #: rental/inventory_views.py:204
 msgid "Photo added."
 msgstr "Photo ajoutée."
-
-#: rental/jobs.py:80
-msgid "Send the rent calls and receipts"
-msgstr "Envoyer les avis d'échéance et les quittances"
-
-#: rental/jobs.py:88
-msgid "Check the electronic signatures"
-msgstr "Vérifier les signatures électroniques"
 
 #: rental/models.py:26
 msgid "rent receipt"

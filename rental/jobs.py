@@ -3,9 +3,7 @@
 import datetime
 
 from dateutil.relativedelta import relativedelta
-from django.utils.translation import gettext_lazy as _
 
-from base.scheduler import Job, register
 from rental import emails
 from rental.models import RentReceipt
 from rental.services.dashboard import current_leases
@@ -70,23 +68,3 @@ def send_rent_emails(today: datetime.date | None = None) -> str:
             else:
                 receipts += 1
     return f"{calls} rent call(s), {receipts} receipt(s) sent"
-
-
-def register_jobs() -> None:
-    register(
-        Job(
-            name="rental_daily",
-            func="rental.jobs.send_rent_emails",
-            label=_("Send the rent calls and receipts"),
-            at=datetime.time(7, 30),
-        )
-    )
-    register(
-        Job(
-            name="poll_signatures",
-            func="rental.services.signature.poll_signatures",
-            label=_("Check the electronic signatures"),
-            every=datetime.timedelta(minutes=15),
-            when="rental.services.signature.has_pending",
-        )
-    )

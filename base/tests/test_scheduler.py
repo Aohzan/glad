@@ -225,6 +225,32 @@ def test_run_scheduler_loop_stops_on_signal(test_jobs, capsys):
     assert "Scheduler stopped" in out
 
 
+@pytest.mark.django_db
+def test_run_scheduler_with_the_worker(test_jobs, capsys):
+    from base.management.commands import run_scheduler
+
+    command = run_scheduler.Command()
+    started = []
+
+    class FakeThread:
+        def __init__(self, target, daemon):
+            assert daemon
+            started.append(target)
+
+        def start(self):
+            command.running = False
+            started[0]()
+
+    with (
+        patch.object(run_scheduler.threading, "Thread", FakeThread),
+        patch.object(run_scheduler, "call_command") as worker,
+        patch.object(run_scheduler, "enqueue_due_jobs", return_value=[]),
+    ):
+        call_command(command, "--with-worker")
+    worker.assert_called_once_with("db_worker", reload=False)
+    assert "Scheduler started" in capsys.readouterr().out
+
+
 def test_base_jobs_are_registered():
     names = {job.name for job in scheduler.jobs()}
     assert {"refresh_economic_indices", "prune_task_results"} <= names

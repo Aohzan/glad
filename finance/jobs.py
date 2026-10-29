@@ -7,10 +7,8 @@ from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
-from base.scheduler import Job, register
 from finance.models.investment_account import (
     InvestmentAccountHolding,
     InvestmentAccountHoldingHistory,
@@ -163,14 +161,3 @@ def refresh_security_prices() -> str:
     if failures:
         summary += f"; failed: {', '.join(failures)}"
     return summary
-
-
-def register_jobs() -> None:
-    register(
-        Job(
-            name="refresh_security_prices",
-            func="finance.jobs.refresh_security_prices",
-            label=_("Refresh the security prices"),
-            at=datetime.time(7, 0),
-        )
-    )
