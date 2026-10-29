@@ -8,6 +8,7 @@ always show relevant recent data on each database reset.
 
 import calendar
 import datetime
+import json
 import os
 import sys
 from decimal import Decimal
@@ -4420,11 +4421,64 @@ OWNERSHIPS = [
     ("property", "property", 2, MADAME, "100", "usufruct"),
     ("property", "property", 2, CHILD, "100", "bare"),
     ("property", "property", 3, MISTER, "50", "full"),
+    ("property", "property", 7, MISTER, "50", "full"),
+    ("property", "property", 7, MADAME, "50", "full"),
+    ("property", "property", 8, MISTER, "100", "full"),
     ("property", "scpiinvestment", 1, MISTER, "100", "full"),
     ("property", "scpiinvestment", 2, CHILD, "100", "full"),
     ("property", "scpiinvestment", 3, MISTER, "50", "full"),
     ("property", "scpiinvestment", 3, MADAME, "50", "full"),
 ]
+
+
+def generate_notifications() -> str:
+    """A few notifications in the inbox of Mister."""
+    rows = [
+        (
+            "rent_late",
+            "rent_late:3:late",
+            "Loyer non reçu : Appartement Rennes — Camille Bernard, Thomas Bernard",
+            "750,00 € restent dus.",
+            "/rental/lease/3/payments/",
+            "warning",
+            None,
+        ),
+        (
+            "compliance_issue",
+            "compliance_issue:3:insurance",
+            "Appartement Rennes : 2 éléments manquants",
+            "Attestation d'assurance, diagnostics.",
+            "/rental/lease/3/",
+            "warning",
+            None,
+        ),
+        (
+            "security_drop",
+            "security_drop:demo",
+            "MSCI World a baissé de 5,2 % en 7 jours",
+            "",
+            "/finance/",
+            "info",
+            RECENT,
+        ),
+    ]
+    out = ""
+    for pk, (type_key, key, title, body, url, level, read) in enumerate(rows, 1):
+        out += f"""- model: notifications.notification
+  pk: {pk}
+  fields:
+    user: {MISTER}
+    type_key: {type_key}
+    dedup_key: "{key}"
+    title: "{title}"
+    body: "{body}"
+    url: {url}
+    level: {level}
+    created_at: {dt(days_ago(pk))}
+    read_at: {dt(read) if read else "null"}
+    delivered_at: {dt(days_ago(pk))}
+"""
+    return out
 
 
 def generate_household() -> str:
@@ -4434,6 +4488,8 @@ def generate_household() -> str:
         (MADAME, "madame", "Madame", "1987-06-20", "false"),
         (CHILD, "child-lea", "Léa", "2018-09-01", "true"),
     ]
+    #: Written as the landlord address on the rental papers.
+    address = '"12 rue de la Liberté\\n75014 Paris"'
     out = ""
     for pk, username, first_name, birth_date, child in members:
         out += f"""- model: auth.user
@@ -4450,6 +4506,7 @@ def generate_household() -> str:
     user: {pk}
     birth_date: {birth_date}
     is_child: {child}
+    postal_address: {address if pk == MISTER else '""'}
 """
     for pk, (app, model, object_id, user, share, right) in enumerate(OWNERSHIPS, 1):
         out += f"""- model: base.ownership
@@ -4567,6 +4624,492 @@ def generate_budget() -> str:
     return out
 
 
+# === Self-managed rental (rental app) ===
+#
+# Property 7 is let without an agency: its lease runs since RENNES_START with
+# a monthly schedule checked month after month (the last month unpaid, the one
+# before partly paid), recoverable co-ownership charges, the charges of the
+# last year reconciled and receipts sent. Property 8 is vacant: its furnished
+# lease ended with the deposit returned, and three candidates applied.
+
+RENNES_START = months_ago(20).replace(day=1)
+RENNES_DUE = RENNES_START.replace(day=5)
+STUDIO_START = months_ago(28).replace(day=1)
+STUDIO_END = months_ago(3).replace(day=1) - datetime.timedelta(days=1)
+#: Rooms of the demo inventories (the app offers more by default).
+DEMO_ROOMS = (
+    ("Entrée", ("Murs", "Sol", "Porte")),
+    ("Séjour", ("Murs", "Sol", "Plafond", "Fenêtres", "Chauffage")),
+    ("Cuisine", ("Murs", "Sol", "Évier", "Plaques de cuisson")),
+    ("Salle de bains", ("Murs", "Sol", "Lavabo", "Douche ou baignoire")),
+)
+
+
+def _rennes_occurrences() -> list[datetime.date]:
+    occurrences = []
+    n = 0
+    while (day := monthly_occurrence(RENNES_DUE, n)) <= TODAY:
+        occurrences.append(day)
+        n += 1
+    return occurrences
+
+
+def _exception(pk: int, entry: int, day: datetime.date, override: str = "null") -> str:
+    return f"""- model: property.propertyledgerentryexception
+  pk: {pk}
+  fields:
+    created_at: {dt(day)}
+    updated_at: {dt(day)}
+    parent_entry: {entry}
+    occurrence_date: {ds(day)}
+    is_deleted: false
+    is_checked: true
+    actual_date: null
+    amount_override: {override}
+    amount_override_currency: EUR
+    description_override: null
+    notes_override: null
+"""
+
+
+def _ledger(
+    pk,
+    prop,
+    lease,
+    flow,
+    category,
+    amount,
+    day,
+    label,
+    recurrence="none",
+    end=None,
+    recoverable=False,
+) -> str:
+    return f"""- model: property.propertyledgerentry
+  pk: {pk}
+  fields:
+    created_at: {dt(day)}
+    updated_at: {dt(day)}
+    property: {prop}
+    lease: {lease if lease else "null"}
+    flow_type: {flow}
+    amount: {amount}
+    amount_currency: EUR
+    entry_date: {ds(day)}
+    management_category: {category}
+    description: "{label}"
+    third_party: ""
+    recurrence_type: {recurrence}
+    recurrence_end_date: {ds(end) if end else "null"}
+    is_recoverable: {"true" if recoverable else "false"}
+"""
+
+
+def _inventory(pk: int, lease: int, kind: str, day: datetime.date, worse: bool) -> str:
+    out = f"""- model: rental.inventory
+  pk: {pk}
+  fields:
+    created_at: {dt(day)}
+    updated_at: {dt(day)}
+    lease: {lease}
+    kind: {kind}
+    date: {ds(day)}
+    status: signed
+    meters: {{"electricity": "{12000 + pk * 850}", "cold_water": "{300 + pk * 41}"}}
+    keys: "2 clés de la porte d'entrée, 1 badge, 1 clé de boîte aux lettres"
+    comment: ""
+"""
+    for room_index, (room, items) in enumerate(DEMO_ROOMS):
+        room_pk = pk * 10 + room_index
+        out += f"""- model: rental.inventoryroom
+  pk: {room_pk}
+  fields:
+    created_at: {dt(day)}
+    updated_at: {dt(day)}
+    inventory: {pk}
+    name: "{room}"
+    position: {room_index}
+"""
+        for item_index, item in enumerate(items):
+            damaged = worse and room == "Séjour" and item == "Murs"
+            out += f"""- model: rental.inventoryitem
+  pk: {room_pk * 10 + item_index}
+  fields:
+    created_at: {dt(day)}
+    updated_at: {dt(day)}
+    room: {room_pk}
+    name: "{item}"
+    condition: {"damaged" if damaged else "good"}
+    comment: "{"Trous de chevilles et traces" if damaged else ""}"
+"""
+    return out
+
+
+def generate_rental() -> str:
+    """The self-managed properties 7 and 8 and the records of the rental app."""
+    occurrences = _rennes_occurrences()
+    last_year = TODAY.year - 1
+    # The reconciliation covers the last year from the start of the lease, so
+    # the tenant pays every recoverable expense of the period (as the app does).
+    year_start = max(datetime.date(last_year, 1, 1), RENNES_START)
+    year_end = datetime.date(last_year, 12, 31)
+    provisions = 60 * sum(1 for day in occurrences if day.year == last_year)
+    first_year = M30.year + 1  # quarters and yearly bills from the first full year
+    expenses = [
+        (datetime.date(last_year, month, 1), "Charges de copropriété", "270.00")
+        for month in (1, 4, 7, 10)
+    ] + [(datetime.date(last_year, 6, 15), "Eau froide", "180.00")]
+    lines = [
+        {"label": label, "date": ds(day), "amount": amount, "share": amount}
+        for day, label, amount in sorted(expenses)
+        if year_start <= day <= year_end
+    ]
+    out = f"""
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 7 — Appartement Rennes, let without an agency (rental app)
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.property
+  pk: 7
+  fields:
+    created_at: {dt(M30)}
+    updated_at: {dt(RECENT)}
+    property_type: AP
+    name: Appartement Rennes
+    street_number: "8"
+    street_name: rue de Saint-Malo
+    postal_code: "35000"
+    city: Rennes
+    country: France
+    is_active: true
+    buying_value: 210000.00
+    buying_value_currency: EUR
+    buying_date: {ds(M30)}
+    floor_area: "54.00"
+    number_of_rooms: 3
+    construction_year: 1985
+    dpe_rating: D
+    dpe_date: {ds(M30)}
+    tax_regime: none
+- model: property.propertyvalue
+  pk: 70
+  fields:
+    created_at: {dt(M30)}
+    updated_at: {dt(M30)}
+    property: 7
+    value: 210000.00
+    valuation_date: {ds(M30)}
+    source: manual
+- model: property.lease
+  pk: 3
+  fields:
+    created_at: {dt(RENNES_START)}
+    updated_at: {dt(RECENT)}
+    property: 7
+    lease_type: empty
+    status: active
+    start_date: {ds(RENNES_START)}
+    signed_date: {ds(RENNES_START - datetime.timedelta(days=12))}
+    payment_day: 5
+    rent_amount: 690.00
+    rent_amount_currency: EUR
+    charges_amount: 60.00
+    charges_amount_currency: EUR
+    charges_mode: provision
+    deposit_amount: 690.00
+    deposit_amount_currency: EUR
+    periodicity: monthly
+    irl_reference_quarter: 1
+    irl_reference_value: "144.50"
+    send_rent_calls: true
+    send_receipts: true
+    notes: "Bail vide de 3 ans, sans agence"
+- model: property.leaseparty
+  pk: 3
+  fields:
+    created_at: {dt(RENNES_START)}
+    updated_at: {dt(RENNES_START)}
+    lease: 3
+    role: tenant
+    first_name: Camille
+    last_name: Bernard
+    email: camille.bernard@example.com
+    phone: "0611223344"
+    birth_date: "1994-05-17"
+    birth_place: Nantes
+- model: property.leaseparty
+  pk: 4
+  fields:
+    created_at: {dt(RENNES_START)}
+    updated_at: {dt(RENNES_START)}
+    lease: 3
+    role: tenant
+    first_name: Thomas
+    last_name: Bernard
+    email: thomas.bernard@example.com
+- model: property.leaseparty
+  pk: 5
+  fields:
+    created_at: {dt(RENNES_START)}
+    updated_at: {dt(RENNES_START)}
+    lease: 3
+    role: guarantor
+    last_name: Action Logement (Visale)
+    guarantee_type: visale
+"""
+    out += _ledger(
+        1001, 7, 3, "income", "rent_collected", "690.00", RENNES_DUE, "Loyer", "monthly"
+    )
+    out += _ledger(
+        1002,
+        7,
+        3,
+        "income",
+        "charges_collected",
+        "60.00",
+        RENNES_DUE,
+        "Provision sur charges",
+        "monthly",
+    )
+    out += _ledger(
+        1003, 7, 3, "income", "deposit_in", "690.00", RENNES_START, "Dépôt de garantie"
+    )
+    first_year = M30.year + 1  # quarters and yearly bills from the first full year
+    out += _ledger(
+        1004,
+        7,
+        None,
+        "expense",
+        "coownership",
+        "270.00",
+        datetime.date(first_year, 1, 1),
+        "Charges de copropriété",
+        "quarterly",
+        recoverable=True,
+    )
+    out += _ledger(
+        1005,
+        7,
+        None,
+        "expense",
+        "maintenance",
+        "180.00",
+        datetime.date(first_year, 6, 15),
+        "Eau froide",
+        "yearly",
+        recoverable=True,
+    )
+    out += _ledger(
+        1006,
+        7,
+        None,
+        "expense",
+        "property_tax",
+        "950.00",
+        M30.replace(day=15),
+        "Taxe foncière",
+        "yearly",
+    )
+    exception_pk = 10001
+    for index, day in enumerate(occurrences):
+        if index == len(occurrences) - 1:
+            continue  # the last month is not paid yet
+        partial = index == len(occurrences) - 2
+        out += _exception(exception_pk, 1001, day, "400.00" if partial else "null")
+        out += _exception(exception_pk + 1, 1002, day)
+        exception_pk += 2
+    for pk, day in enumerate(occurrences[-4:-2], 1):
+        start = day.replace(day=1)
+        end = monthly_occurrence(start, 1) - datetime.timedelta(days=1)
+        out += f"""- model: rental.rentreceipt
+  pk: {pk}
+  fields:
+    created_at: {dt(day)}
+    updated_at: {dt(day)}
+    lease: 3
+    period_start: {ds(start)}
+    period_end: {ds(end)}
+    rent: 690.00
+    rent_currency: EUR
+    charges: 60.00
+    charges_currency: EUR
+    paid_amount: 750.00
+    paid_amount_currency: EUR
+    paid_date: {ds(day)}
+    sent_at: {dt(day + datetime.timedelta(days=1))}
+- model: base.sentemail
+  pk: {pk}
+  fields:
+    created_at: {dt(day + datetime.timedelta(days=1))}
+    updated_at: {dt(day + datetime.timedelta(days=1))}
+    content_type: [property, lease]
+    object_id: 3
+    kind: receipt
+    reference: "{start:%Y-%m}"
+    to: ["camille.bernard@example.com", "thomas.bernard@example.com"]
+    cc: []
+    subject: "Quittance de loyer — {start:%m/%Y}"
+    body: "Bonjour Camille Bernard et Thomas Bernard,\\n\\nVous trouverez ci-joint la quittance du loyer.\\n\\nBien cordialement,\\nMister & Madame\\n"
+    status: sent
+    sent_at: {dt(day + datetime.timedelta(days=1))}
+"""
+    if lines:
+        out += f"""- model: rental.chargesreconciliation
+  pk: 1
+  fields:
+    created_at: {dt(M8)}
+    updated_at: {dt(M8)}
+    lease: 3
+    period_start: {ds(year_start)}
+    period_end: {ds(year_end)}
+    provisions: "{provisions:.2f}"
+    expenses: {json.dumps(lines, ensure_ascii=False)}
+    adjustments: [{{"label": "Taxe d'enlèvement des ordures ménagères", "amount": "95.00"}}]
+    status: sent
+    sent_at: {dt(M8)}
+"""
+    out += _inventory(1, 3, "entry", RENNES_START, worse=False)
+    out += f"""
+# ─────────────────────────────────────────────────────────────────────────────
+# PROPERTY 8 — Studio Rennes, vacant: the furnished lease ended, candidates
+# ─────────────────────────────────────────────────────────────────────────────
+- model: property.property
+  pk: 8
+  fields:
+    created_at: {dt(M30)}
+    updated_at: {dt(RECENT)}
+    property_type: AP
+    name: Studio Rennes
+    street_number: "21"
+    street_name: rue de Brest
+    postal_code: "35000"
+    city: Rennes
+    country: France
+    is_active: true
+    is_tight_zone: false
+    buying_value: 98000.00
+    buying_value_currency: EUR
+    buying_date: {ds(M30)}
+    floor_area: "24.00"
+    number_of_rooms: 1
+    construction_year: 1972
+    dpe_rating: E
+    dpe_date: {ds(M30)}
+    tax_regime: none
+- model: property.propertyvalue
+  pk: 80
+  fields:
+    created_at: {dt(M30)}
+    updated_at: {dt(M30)}
+    property: 8
+    value: 98000.00
+    valuation_date: {ds(M30)}
+    source: manual
+- model: property.lease
+  pk: 4
+  fields:
+    created_at: {dt(STUDIO_START)}
+    updated_at: {dt(STUDIO_END)}
+    property: 8
+    lease_type: furnished
+    status: ended
+    start_date: {ds(STUDIO_START)}
+    end_date: {ds(STUDIO_END)}
+    notice_date: {ds(STUDIO_END - datetime.timedelta(days=31))}
+    notice_by: tenant
+    signed_date: {ds(STUDIO_START)}
+    payment_day: 1
+    rent_amount: 520.00
+    rent_amount_currency: EUR
+    charges_amount: 40.00
+    charges_amount_currency: EUR
+    charges_mode: flat
+    deposit_amount: 1040.00
+    deposit_amount_currency: EUR
+    periodicity: monthly
+- model: property.leaseparty
+  pk: 6
+  fields:
+    created_at: {dt(STUDIO_START)}
+    updated_at: {dt(STUDIO_START)}
+    lease: 4
+    role: tenant
+    first_name: Julie
+    last_name: Moreau
+    email: julie.moreau@example.com
+"""
+    out += _ledger(
+        1011,
+        8,
+        4,
+        "income",
+        "rent_collected",
+        "560.00",
+        STUDIO_START,
+        "Loyer et charges",
+        "monthly",
+        end=STUDIO_END,
+    )
+    out += _ledger(
+        1012, 8, 4, "income", "deposit_in", "1040.00", STUDIO_START, "Dépôt de garantie"
+    )
+    returned = STUDIO_END + datetime.timedelta(days=40)
+    out += _ledger(
+        1013, 8, 4, "expense", "deposit_out", "920.00", returned, "Dépôt restitué"
+    )
+    out += _ledger(
+        1014, 8, 4, "income", "other_income", "120.00", returned, "Retenu sur le dépôt"
+    )
+    out += _inventory(2, 4, "entry", STUDIO_START, worse=False)
+    out += _inventory(3, 4, "exit", STUDIO_END, worse=True)
+    out += f"""- model: rental.depositsettlement
+  pk: 1
+  fields:
+    created_at: {dt(STUDIO_END)}
+    updated_at: {dt(returned)}
+    lease: 4
+    keys_returned_date: {ds(STUDIO_END)}
+    exit_matches_entry: false
+    deductions: [{{"label": "Rebouchage et peinture du séjour", "amount": "120.00"}}]
+    coownership_withholding: "0.00"
+    status: returned
+    returned_date: {ds(returned)}
+    sent_at: {dt(returned)}
+"""
+    candidates = (
+        (1, "Inès", "Garcia", "ines.garcia@example.com", "1850", "", "", "new"),
+        (
+            2,
+            "Hugo",
+            "Lefèvre",
+            "hugo.lefevre@example.com",
+            "1200",
+            "Martine Lefèvre",
+            "joint",
+            "reviewing",
+        ),
+        (3, "Nora", "Haddad", "", "1400", "", "", "rejected"),
+    )
+    for pk, first, last, email, income, guarantor, guarantee, status in candidates:
+        out += f"""- model: rental.rentalapplication
+  pk: {pk}
+  fields:
+    created_at: {dt(days_ago(10 + pk * 3))}
+    updated_at: {dt(days_ago(5 + pk))}
+    property: 8
+    status: {status}
+    first_name: {first}
+    last_name: {last}
+    email: "{email}"
+    monthly_income: "{income}.00"
+    rent_amount: "560.00"
+    guarantor_name: "{guarantor}"
+    guarantee_type: "{guarantee}"
+    guarantor_income: {'"2900.00"' if guarantor else "null"}
+    notes: ""
+"""
+    return out
+
+
 def main() -> None:
     """Generate all test fixture files."""
     print("Generating dynamic test fixtures...")
@@ -4575,8 +5118,11 @@ def main() -> None:
     write_fixture("savingaccount.yaml", generate_savingaccount())
     write_fixture("otherasset.yaml", generate_otherasset())
     write_fixture("scpi.yaml", generate_scpi())
-    write_fixture("property.yaml", generate_property())
-    write_fixture("household.yaml", generate_household() + generate_budget())
+    write_fixture("property.yaml", generate_property() + generate_rental())
+    write_fixture(
+        "household.yaml",
+        generate_household() + generate_budget() + generate_notifications(),
+    )
     print("Done.")
 
 
