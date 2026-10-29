@@ -159,13 +159,11 @@
   </div>
 </div>
 
+{# Unlocalized coordinates: the French decimal comma would break the JavaScript #}
 <script nonce="{{ csp_nonce }}">
 (function () {
-  {# Unlocalized: the French decimal comma would break the JavaScript #}
-  {% localize off %}
-  var lat = {{ property.latitude|default_if_none:"null" }};
-  var lon = {{ property.longitude|default_if_none:"null" }};
-  {% endlocalize %}
+  var lat = {{ property.latitude|default_if_none:"null"|unlocalize }};
+  var lon = {{ property.longitude|default_if_none:"null"|unlocalize }};
   var hasCoords = lat !== null && lon !== null;
   var defaultLat = 46.6034;
   var defaultLon = 1.8883;

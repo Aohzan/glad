@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 16:50+0100\n"
+"POT-Creation-Date: 2026-10-29 17:09+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -3876,7 +3876,7 @@ msgstr "Garantie Loyer Impayée"
 msgid "Loan capital repayment"
 msgstr "Remboursement du capital"
 
-#: property/models/ledger.py:205 rental/services/departure.py:188
+#: property/models/ledger.py:205 rental/services/departure.py:189
 msgid "Deposit returned"
 msgstr "Dépôt restitué"
 
@@ -5794,11 +5794,11 @@ msgstr "Ajoutez l'état des lieux signé."
 msgid "Add the signed guarantee deed or the Visale certificate."
 msgstr "Ajoutez l'acte de cautionnement signé ou le visa Visale."
 
-#: rental/services/departure.py:198
+#: rental/services/departure.py:199
 msgid "Kept from the deposit"
 msgstr "Retenu sur le dépôt"
 
-#: rental/services/departure.py:208
+#: rental/services/departure.py:209
 msgid "Penalty for the late return of the deposit"
 msgstr "Pénalité pour restitution tardive du dépôt"
 

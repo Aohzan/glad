@@ -102,22 +102,23 @@ def compare(lease: Lease) -> list[Comparison]:
     )
     if entry is None or exit_ is None:
         return []
-    before = {
-        (room.name, item.name): item.condition
-        for room in entry.rooms.all()  # ty: ignore[unresolved-attribute]
-        for item in room.items.all()
-    }
-    return [
-        Comparison(
-            room=room.name,
-            item=item.name,
-            entry=before.get((room.name, item.name), ""),
-            exit=item.condition,
-            comment=item.comment,
-        )
-        for room in exit_.rooms.all()  # ty: ignore[unresolved-attribute]
-        for item in room.items.all()
-    ]
+    before = {}
+    for room in entry.rooms.all():  # ty: ignore[unresolved-attribute]
+        for item in room.items.all():
+            before[room.name, item.name] = item.condition
+    rows = []
+    for room in exit_.rooms.all():  # ty: ignore[unresolved-attribute]
+        for item in room.items.all():
+            rows.append(
+                Comparison(
+                    room=room.name,
+                    item=item.name,
+                    entry=before.get((room.name, item.name), ""),
+                    exit=item.condition,
+                    comment=item.comment,
+                )
+            )
+    return rows
 
 
 # ── Deposit ─────────────────────────────────────────────────────────────────
