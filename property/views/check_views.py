@@ -16,6 +16,7 @@ from moneyed import Money
 from property.models import Property
 from property.services.checks import (
     PendingOccurrence,
+    actual_values_error,
     check_all_up_to,
     check_occurrence,
     delete_occurrence,
@@ -53,11 +54,11 @@ def _validate_actual_values(
     actual_date = _parse_date(raw_date)
     if actual_date is None:
         return None, None, str(_("Invalid actual date."))
-    if actual_date > datetime.date.today():
-        return None, None, str(_("The actual date cannot be in the future."))
     amount = _parse_amount(raw_amount)
-    if amount is None or amount <= 0:
+    if amount is None:
         return None, None, str(_("The actual amount must be positive."))
+    if error := actual_values_error(actual_date, amount):
+        return None, None, error
     return actual_date, Money(amount.quantize(Decimal("0.01")), currency), None
 
 
