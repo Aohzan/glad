@@ -316,6 +316,58 @@ body.g-app {
 }
 
 .g-user-menu { width: 240px; }
+
+/* Notifications */
+.g-bell { position: relative; }
+.g-bell__count {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--g-neg);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 17px;
+  text-align: center;
+}
+.g-notif-menu { width: min(360px, calc(100vw - 32px)); padding: 0; }
+.g-notif-menu__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--g-line);
+}
+.g-notif-menu__list { max-height: 60vh; overflow-y: auto; }
+.g-notif-menu__foot { padding: 8px 12px; border-top: 1px solid var(--g-line); text-align: center; }
+.g-notif {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  color: var(--g-text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--g-line);
+}
+.g-notif:last-child { border-bottom: 0; }
+.g-notif:hover { background: var(--g-surface); color: var(--g-text); }
+.g-notif__dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: var(--g-line);
+}
+.g-notif--unread .g-notif__dot { background: var(--g-accent); }
+.g-notif--unread.g-notif--warning .g-notif__dot { background: var(--g-warn); }
+.g-notif--unread.g-notif--danger .g-notif__dot { background: var(--g-neg); }
+.g-notif--unread .g-notif__title { font-weight: 600; }
+.g-notif__text { min-width: 0; flex: 1; }
+.g-notif__body { white-space: pre-line; font-size: .85rem; color: var(--g-muted); overflow-wrap: anywhere; }
 .g-user-menu__head {
   display: flex;
   flex-direction: column;

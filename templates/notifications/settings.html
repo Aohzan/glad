@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Notification settings" %}{% endblock %}
+{% block page_title %}{% translate "Notification settings" %}{% endblock %}
+{% block page_description %}{% translate "Where to be notified, and about what" %}{% endblock %}
+{% block page_actions %}
+<a class="btn btn-outline-secondary btn-sm" href="{% url 'notifications:inbox' %}">{% icon "bell" "me-1" %}{% translate "Notifications" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-9">
+
+<div class="card mb-4" id="channels">
+    <div class="card-header">
+        <h5 class="mb-0">{% icon "send" "me-2" %}{% translate "Channels" %}</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small">
+            {% blocktranslate trimmed %}
+            Notifications always appear under the bell. Add channels to also receive them by email or on your phone:
+            any other service is an <a href="https://appriseit.com/services/" target="_blank" rel="noopener noreferrer">Apprise URL</a>,
+            such as <code>ntfy://ntfy.sh/my-topic</code>, <code>gotify://host/token</code> or <code>tgram://bottoken/chat_id</code>.
+            {% endblocktranslate %}
+        </p>
+        {% if not has_email_channel %}
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3 p-2 border rounded">
+            <span class="small">
+                {% if user.email %}
+                {% blocktranslate with email=user.email %}Receive the notifications at <strong>{{ email }}</strong>, through the email server of the application.{% endblocktranslate %}
+                {% else %}
+                {% url 'accounts:settings' as account_settings_url %}
+                {% blocktranslate %}Enter an email address in <a href="{{ account_settings_url }}">your settings</a> to receive the notifications by email.{% endblocktranslate %}
+                {% endif %}
+            </span>
+            {% if user.email %}
+            <form method="post" action="{% url 'notifications:add_email_channel' %}" class="flex-shrink-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary btn-sm">{% icon "mail" "me-1" %}{% translate "Use my email" %}</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% if channels %}
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <tbody>
+                    {% for channel in channels %}
+                    <tr>
+                        <td>
+                            <span class="fw-semibold">{{ channel.name }}</span>
+                            <span class="g-meta d-block small">{% if channel.kind == "email" %}{% icon "mail" "me-1" %}{{ channel.masked_url }}{% else %}<code>{{ channel.masked_url }}</code>{% endif %}</span>
+                            {% if channel.last_error %}<span class="text-danger small d-block">{{ channel.last_error }}</span>{% endif %}
+                        </td>
+                        <td class="small">
+                            {% if channel.enabled %}<span class="badge text-bg-success">{% translate "Enabled" %}</span>{% else %}<span class="badge text-bg-secondary">{% translate "Disabled" %}</span>{% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <form method="post" action="{% url 'notifications:test_channel' channel.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-primary btn-sm" title="{% translate 'Send a test notification' %}">{% icon "send" %}</button>
+                            </form>
+                            <form method="post" action="{% url 'notifications:toggle_channel' channel.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-secondary btn-sm" title="{% if channel.enabled %}{% translate 'Disable' %}{% else %}{% translate 'Enable' %}{% endif %}">{% if channel.enabled %}{% icon "pause" %}{% else %}{% icon "play" %}{% endif %}</button>
+                            </form>
+                            <form method="post" action="{% url 'notifications:delete_channel' channel.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="{% translate 'Delete' %}">{% icon "trash" %}</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        <form method="post" action="{% url 'notifications:add_channel' %}">
+            {% csrf_token %}
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label" for="{{ channel_form.name.id_for_label }}">{{ channel_form.name.label }}</label>
+                    {{ channel_form.name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ channel_form.url.id_for_label }}">{{ channel_form.url.label }}</label>
+                    {{ channel_form.url }}
+                </div>
+                <div class="col-md-3 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">{% icon "plus" "me-1" %}{% translate "Add the channel" %}</button>
+                </div>
+            </div>
+            <div class="form-text">{{ channel_form.url.help_text }}</div>
+            {% for field in channel_form %}{% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|join:" " }}</div>{% endif %}{% endfor %}
+        </form>
+    </div>
+</div>
+
+<form method="post" action="{% url 'notifications:settings' %}">
+    {% csrf_token %}
+    {% for group in groups %}
+    <div class="card mb-4">
+        <div class="card-header"><h5 class="mb-0">{{ group.label }}</h5></div>
+        <ul class="list-group list-group-flush">
+            {% for row in group.rows %}
+            <li class="list-group-item py-3">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <label class="fw-semibold" for="{{ row.type.key }}-enabled">{{ row.type.label }}</label>
+                        <p class="text-muted small mb-0">{{ row.type.description }}</p>
+                    </div>
+                    <div class="form-check form-switch flex-shrink-0">
+                        <input class="form-check-input" type="checkbox" role="switch" name="{{ row.type.key }}-enabled" id="{{ row.type.key }}-enabled"{% if row.enabled %} checked{% endif %}>
+                    </div>
+                </div>
+                {% if row.params or channels|length > 1 %}
+                <div class="row g-2 mt-1">
+                    {% for item in row.params %}
+                    <div class="col-sm-6 col-md-4">
+                        <label class="form-label small mb-1" for="{{ item.name }}">{{ item.param.label }}</label>
+                        {% if item.param.kind == "choice" %}
+                        <select class="form-select form-select-sm" name="{{ item.name }}" id="{{ item.name }}">
+                            {% for value, label in item.param.choices %}
+                            <option value="{{ value }}"{% if value|stringformat:"s" == item.value|stringformat:"s" %} selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        {% elif item.param.kind == "monthday" %}
+                        <input class="form-control form-control-sm{% if item.name in errors %} is-invalid{% endif %}" type="text" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.value|default:'' }}" pattern="\d{2}-\d{2}" placeholder="MM-DD">
+                        {% else %}
+                        <input class="form-control form-control-sm{% if item.name in errors %} is-invalid{% endif %}" type="number" name="{{ item.name }}" id="{{ item.name }}" value="{{ item.value|default_if_none:'' }}"{% if item.param.min_value is not None %} min="{{ item.param.min_value }}"{% endif %}{% if item.param.max_value is not None %} max="{{ item.param.max_value }}"{% endif %}>
+                        {% endif %}
+                        {% for name, error in errors.items %}{% if name == item.name %}<div class="invalid-feedback d-block">{{ error }}</div>{% endif %}{% endfor %}
+                        {% if item.param.help_text %}<div class="form-text">{{ item.param.help_text }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                    {% if channels|length > 1 %}
+                    <div class="col-12">
+                        <span class="form-label small d-block mb-1">{% translate "Channels (none checked: all of them)" %}</span>
+                        {% for channel in channels %}
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="{{ row.type.key }}-channels" value="{{ channel.pk }}" id="{{ row.type.key }}-channel-{{ channel.pk }}"{% if channel.pk in row.channels %} checked{% endif %}>
+                            <label class="form-check-label small" for="{{ row.type.key }}-channel-{{ channel.pk }}">{{ channel.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+    <div class="d-flex justify-content-end mb-4">
+        <button type="submit" class="btn btn-primary">{% icon "save" "me-2" %}{% translate "Save" %}</button>
+    </div>
+</form>
+
+</div>
+</div>
+{% endblock %}

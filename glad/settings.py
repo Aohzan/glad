@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "finance.apps.FinanceConfig",
     "property.apps.PropertyConfig",
     "budget.apps.BudgetConfig",
+    "notifications.apps.NotificationsConfig",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -148,6 +149,7 @@ TEMPLATES = [
                 "property.context_processors.nav_properties",
                 "finance.context_processors.nav_accounts",
                 "base.context_processors.shell",
+                "notifications.context_processors.unread_notifications",
             ],
             "builtins": ["base.templatetags.icons"],
         },
@@ -315,6 +317,9 @@ TASKS = {
         ),
     }
 }
+
+# Time of the daily notification checks (HH:MM, server time zone).
+NOTIFICATIONS_TIME = os.getenv("NOTIFICATIONS_TIME", "08:00")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
