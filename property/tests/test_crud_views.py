@@ -314,6 +314,46 @@ class TestEditLease:
         (tenant,) = lease.tenants
         assert (tenant.name, tenant.email) == ("Marie Curie", "marie@example.com")
 
+    @pytest.mark.parametrize(
+        ("next_url", "expected"),
+        [
+            ("/rental/lease/{pk}/", "/rental/lease/{pk}/"),
+            ("https://evil.example.com/", "/property/{property_pk}/#leases-panel"),
+        ],
+    )
+    def test_post_edit_lease_goes_back_to_next(
+        self, user_client, property_obj, lease, next_url, expected
+    ):
+        url = reverse(
+            "property:edit_lease",
+            kwargs={"property_pk": property_obj.pk, "lease_pk": lease.pk},
+        )
+        next_url = next_url.format(pk=lease.pk)
+        assert (
+            f'value="{next_url}"'
+            in user_client.get(url, {"next": next_url}).content.decode()
+        )
+        data = {
+            "next": next_url,
+            "lease_type": lease.lease_type,
+            "status": lease.status,
+            "start_date": lease.start_date.isoformat(),
+            "signed_date": "2023-01-02",
+            "rent_amount_0": "900.00",
+            "rent_amount_1": "EUR",
+            "charges_amount_0": "0",
+            "charges_amount_1": "EUR",
+            "deposit_amount_0": "0",
+            "deposit_amount_1": "EUR",
+            "periodicity": Lease.Periodicity.MONTHLY,
+            "payment_day": "1",
+            "charges_mode": Lease.ChargesMode.PROVISION,
+        }
+        response = user_client.post(url, data)
+        assert response.url == expected.format(pk=lease.pk, property_pk=property_obj.pk)
+        lease.refresh_from_db()
+        assert lease.signed_date == datetime.date(2023, 1, 2)
+
     def test_post_create_lease_needs_a_tenant(self, user_client, property_obj):
         url = reverse("property:new_lease", kwargs={"property_pk": property_obj.pk})
         data = {

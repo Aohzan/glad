@@ -94,7 +94,12 @@ def test_signed_lease_without_document(lease):
     check = _check(lease, "signed_lease")
     assert (check.status, check.detail) == (MISSING, "Add the signed lease.")
     lease.signed_date = None
-    assert _check(lease, "signed_lease").detail == "Enter the signature date."
+    check = _check(lease, "signed_lease")
+    assert check.detail == "Enter the signature date in the lease."
+    assert check.url == (
+        f"/property/{lease.property.pk}/lease/{lease.pk}/edit/"
+        f"?next=/rental/lease/{lease.pk}/"
+    )
 
 
 @pytest.mark.django_db

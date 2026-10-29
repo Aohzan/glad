@@ -21,6 +21,9 @@ def test_steps(complete_lease):
         ("Insurance certificate", True),
         ("Rent schedule", False),
     ]
+    complete_lease.signed_date = None
+    steps = move_in_steps(complete_lease, lease_checks(complete_lease))
+    assert "/edit/?next=" in steps[0].url
     complete_lease.deposit_amount = Money(0, "EUR")
     steps = move_in_steps(complete_lease, lease_checks(complete_lease))
     assert "Security deposit received" not in [s.label for s in steps]
