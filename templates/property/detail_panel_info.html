@@ -1,4 +1,4 @@
-{% load i18n format_money ownership %}
+{% load i18n format_money l10n ownership %}
 
 {# ── Property information card ─────────────────────────────────────────── #}
 <div class="card shadow-sm rounded-4 mb-3">
@@ -161,8 +161,11 @@
 
 <script nonce="{{ csp_nonce }}">
 (function () {
+  {# Unlocalized: the French decimal comma would break the JavaScript #}
+  {% localize off %}
   var lat = {{ property.latitude|default_if_none:"null" }};
   var lon = {{ property.longitude|default_if_none:"null" }};
+  {% endlocalize %}
   var hasCoords = lat !== null && lon !== null;
   var defaultLat = 46.6034;
   var defaultLon = 1.8883;

@@ -1002,6 +1002,31 @@ def test_panel_info_returns_200(user_client):
 
 
 @pytest.mark.django_db
+def test_panel_info_map_coordinates_unlocalized(user_client):
+    """The map coordinates keep a decimal point in French, as the JavaScript needs."""
+    prop = _make_property()
+    prop.latitude = Decimal("48.856600")
+    prop.longitude = Decimal("2.352200")
+    prop.save()
+    response = user_client.get(
+        reverse("property:panel_info", args=[prop.pk]), HTTP_ACCEPT_LANGUAGE="fr"
+    )
+    content = response.content.decode()
+    assert "var lat = 48.856600;" in content
+    assert "var lon = 2.352200;" in content
+
+
+@pytest.mark.django_db
+def test_panel_info_map_without_coordinates(user_client):
+    """A property without coordinates renders null coordinates for the map."""
+    prop = _make_property()
+    response = user_client.get(reverse("property:panel_info", args=[prop.pk]))
+    content = response.content.decode()
+    assert "var lat = null;" in content
+    assert "var lon = null;" in content
+
+
+@pytest.mark.django_db
 def test_panel_loans_returns_200(user_client):
     """Loans panel returns 200 with loans_with_totals in context."""
     prop = _make_property()
