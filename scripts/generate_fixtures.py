@@ -4754,7 +4754,6 @@ def generate_rental() -> str:
     year_start = max(datetime.date(last_year, 1, 1), RENNES_START)
     year_end = datetime.date(last_year, 12, 31)
     provisions = 60 * sum(1 for day in occurrences if day.year == last_year)
-    first_year = M30.year + 1  # quarters and yearly bills from the first full year
     expenses = [
         (datetime.date(last_year, month, 1), "Charges de copropriété", "270.00")
         for month in (1, 4, 7, 10)

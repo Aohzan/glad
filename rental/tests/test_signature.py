@@ -18,6 +18,7 @@ class FakeClient(Documenso):
     """Documenso answering from memory."""
 
     def __init__(self, envelope=None, error=None):
+        super().__init__(url="https://sign.example.com", token="test-token")
         self.sent = []
         self.envelope_data = envelope or {}
         self.error = error

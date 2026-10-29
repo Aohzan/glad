@@ -119,7 +119,7 @@ class NotificationType:
                 try:
                     params[param.key] = param.clean(stored[param.key])
                 except ValidationError:
-                    pass
+                    pass  # an invalid stored value falls back to the default
         return params
 
     def base_key(self, event: Event) -> str:
