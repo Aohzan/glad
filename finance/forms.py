@@ -384,6 +384,7 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
             "issuer",
             "asset_class",
             "is_active",
+            "auto_update_price",
             "initial_quantity",
             "initial_value",
             "initial_valuation_date",
@@ -406,11 +407,23 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
             ),
             "asset_class": forms.Select(attrs={"class": "form-select"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "auto_update_price": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
             "initial_quantity": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.000001"}
             ),
             "initial_valuation_date": DATE_WIDGET,
         }
+
+    def clean(self):
+        cleaned = super().clean() or {}
+        if cleaned.get("auto_update_price") and not cleaned.get("isin"):
+            self.add_error(
+                "auto_update_price",
+                _("An ISIN is needed to update the price automatically."),
+            )
+        return cleaned
 
 
 class InvestmentAccountCashForm(

@@ -310,6 +310,11 @@ class InvestmentAccountHolding(BaseModel):
         help_text=_("Main exposure of the holding, used for the allocation."),
     )
     is_active = models.BooleanField(default=True)
+    auto_update_price = models.BooleanField(
+        default=False,
+        verbose_name=_("Update the price automatically"),
+        help_text=_("Every day, value the holding at the market close of its ISIN."),
+    )
     initial_quantity = models.DecimalField(
         max_digits=16, decimal_places=6, null=True, blank=True
     )
@@ -503,3 +508,27 @@ class EuroFundRate(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.holding} {self.year}: {self.rate}%"
+
+
+class QuoteSnapshot(models.Model):
+    """Daily market close of a security, stored by the daily price refresh.
+
+    Shared by every holding of the same ISIN; read by the price drop alerts.
+    """
+
+    class Meta:
+        verbose_name = _("market close")
+        verbose_name_plural = _("market closes")
+        ordering = ["isin", "-date"]
+        constraints = [
+            models.UniqueConstraint(fields=["isin", "date"], name="unique_quote_day")
+        ]
+
+    #: ISIN of the security (or Yahoo symbol of an exchange rate).
+    isin = models.CharField(max_length=12)
+    date = models.DateField()
+    close = models.DecimalField(max_digits=16, decimal_places=6)
+    currency = models.CharField(max_length=3)
+
+    def __str__(self) -> str:
+        return f"{self.isin} {self.date} {self.close} {self.currency}"

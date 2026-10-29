@@ -210,3 +210,29 @@ def fetch_historical_prices(
         points.append(HistoricalPricePoint(date=timestamp.date(), price=price))
 
     return points, currency
+
+
+def fetch_daily_closes(
+    isin: str, days: int = 45
+) -> tuple[list[HistoricalPricePoint], str]:
+    """The daily closing prices of the last *days* days for an ISIN, oldest first."""
+    try:
+        ticker = yfinance.Ticker(isin)
+        history = ticker.history(period=f"{days}d", interval="1d")
+        currency = str(ticker.fast_info["currency"])
+    except Exception as exc:
+        raise MarketDataError(
+            str(_("Could not fetch historical data for ISIN {isin}: {error}")).format(
+                isin=isin, error=exc
+            )
+        ) from exc
+    if history is None or history.empty:
+        raise MarketDataError(
+            str(_("No historical data available for ISIN {isin}")).format(isin=isin)
+        )
+    points = []
+    for timestamp, row in history.iterrows():
+        price = _decimal_or_none(row["Close"])
+        if price is not None and not price.is_nan():
+            points.append(HistoricalPricePoint(date=timestamp.date(), price=price))
+    return points, currency

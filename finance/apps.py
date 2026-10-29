@@ -10,5 +10,8 @@ class FinanceConfig(AppConfig):
     name = "finance"
 
     def ready(self):
-        """Import signals when the app is ready."""
+        """Import the signals and declare the periodic jobs."""
         import finance.signals  # noqa: F401
+        from finance.jobs import register_jobs
+
+        register_jobs()
