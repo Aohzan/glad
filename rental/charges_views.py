@@ -57,7 +57,7 @@ def _reconciliation(pk: int) -> ChargesReconciliation:
 def reconciliation_detail(request: HttpRequest, pk: int) -> HttpResponse:
     """Provisions, expenses and adjustments of a reconciliation, and its balance."""
     reconciliation = _reconciliation(pk)
-    lease = get_lease(reconciliation.lease_id)  # ty: ignore[unresolved-attribute]
+    lease = get_lease(reconciliation.lease_id)
     if (
         request.method == "POST"
         and reconciliation.status == ChargesReconciliation.Status.DRAFT
@@ -132,7 +132,7 @@ def update_provision(request: HttpRequest, pk: int) -> HttpResponse:
 @require_POST  # type: ignore
 def delete_reconciliation(request: HttpRequest, pk: int) -> HttpResponse:
     reconciliation = _reconciliation(pk)
-    lease_pk = reconciliation.lease_id  # ty: ignore[unresolved-attribute]
+    lease_pk = reconciliation.lease_id
     if reconciliation.status == ChargesReconciliation.Status.DRAFT:
         reconciliation.delete()
         messages.success(request, _("Reconciliation deleted."))

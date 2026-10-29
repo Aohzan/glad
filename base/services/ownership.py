@@ -191,13 +191,13 @@ def plan_owners(rows: list[Ownership], users: Iterable) -> OwnersPlan:
     """
     users = list(users)
     selected = {user.pk for user in users}
-    current = {row.user_id for row in rows}  # ty: ignore[unresolved-attribute]
-    removed = [row for row in rows if row.user_id not in selected]  # ty: ignore[unresolved-attribute]
+    current = {row.user_id for row in rows}
+    removed = [row for row in rows if row.user_id not in selected]
     new_users = [user for user in users if user.pk not in current]
     full = Ownership.Right.FULL
     if not new_users and all(row.right != full for row in removed):
         return OwnersPlan(delete=removed)
-    kept = [row for row in rows if row.user_id in selected]  # ty: ignore[unresolved-attribute]
+    kept = [row for row in rows if row.user_id in selected]
     if any(row.right == full for row in rows):
         pool = sum((row.share for row in rows if row.right == full), Decimal(0))
     else:
@@ -224,9 +224,9 @@ def plan_shares(rows: list[Ownership], shares: dict) -> OwnersPlan:
     *shares* maps each user to the percentage of the asset they hold; the
     owners left out are removed.
     """
-    by_user = {row.user_id: row for row in rows}  # ty: ignore[unresolved-attribute]
+    by_user = {row.user_id: row for row in rows}
     plan = OwnersPlan(
-        delete=[row for row in rows if row.user_id not in {u.pk for u in shares}]  # ty: ignore[unresolved-attribute]
+        delete=[row for row in rows if row.user_id not in {u.pk for u in shares}]
     )
     for user, share in shares.items():
         row = by_user.get(user.pk) or Ownership(user=user)
@@ -324,7 +324,7 @@ def net_worth_by_person(
             continue
         held = Decimal(0)
         for owner in owners:
-            person = people.get(owner.user_id)  # ty: ignore[unresolved-attribute]
+            person = people.get(owner.user_id)
             if person is None:
                 continue
             ratio = right_ratio(owner, today)
@@ -361,7 +361,7 @@ def held_ratio(
         return Decimal(1) if household else Decimal(0)
     ratio = Decimal(0)
     for row in rows:
-        if row.user_id not in people:  # ty: ignore[unresolved-attribute]
+        if row.user_id not in people:
             continue
         right = right_ratio(row, today)
         if right is None:
@@ -389,7 +389,7 @@ def flow_ratio(
         (
             row.share / 100
             for row in rows
-            if row.user_id in people and row.right != other_side  # ty: ignore[unresolved-attribute]
+            if row.user_id in people and row.right != other_side
         ),
         Decimal(0),
     )
@@ -399,7 +399,7 @@ def ownership_index() -> dict[tuple[int, int], list[Ownership]]:
     """Every ownership row keyed by ``(content_type_id, object_id)``, in one query."""
     index: dict[tuple[int, int], list[Ownership]] = {}
     for row in Ownership.objects.select_related("user", "user__profile"):
-        index.setdefault((row.content_type_id, row.object_id), []).append(row)  # ty: ignore[unresolved-attribute]
+        index.setdefault((row.content_type_id, row.object_id), []).append(row)
     return index
 
 
@@ -444,5 +444,5 @@ class HolderResolver:
         rows: dict[int, Ownership] = {}
         for obj in objs:
             for row in self.rows(obj):
-                rows.setdefault(row.user_id, row)  # ty: ignore[unresolved-attribute]
+                rows.setdefault(row.user_id, row)
         return holder_label(list(rows.values()))

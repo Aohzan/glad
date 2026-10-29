@@ -208,7 +208,7 @@ def lease_pdf(lease: Lease) -> bytes:
             "cas contraire, déduction faite des sommes restant dues."
         )
     for guarantor in guarantors:
-        guarantee = guarantor.get_guarantee_type_display()  # ty: ignore[unresolved-attribute]
+        guarantee = guarantor.get_guarantee_type_display()
         pdf.paragraph(
             f"Garant : {guarantor.name} ({guarantee}), "
             "selon l'acte annexé au présent contrat."

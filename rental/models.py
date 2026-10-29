@@ -214,7 +214,7 @@ class Inventory(BaseModel):
     comment = models.TextField(blank=True, verbose_name=_("Comment"))
 
     def __str__(self) -> str:
-        return f"{self.get_kind_display()} — {self.lease}"  # ty: ignore[unresolved-attribute]
+        return f"{self.get_kind_display()} — {self.lease}"
 
 
 class InventoryRoom(BaseModel):

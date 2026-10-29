@@ -250,14 +250,14 @@ def _category_nodes(
         for c in categories
     }
     for line in lines:
-        ratio = perspective.line_ratio(line.person_id)  # ty: ignore[unresolved-attribute]
+        ratio = perspective.line_ratio(line.person_id)
         if not ratio:
             continue
-        parent = nodes[line.category_id]  # ty: ignore[unresolved-attribute]
-        person = names.get(line.person_id, "") if line.person_id else ""  # ty: ignore[unresolved-attribute]
+        parent = nodes[line.category_id]
+        person = names.get(line.person_id, "") if line.person_id else ""
         parent.children.append(
             BudgetNode(
-                key=f"line:{line.category_id}:{line.label.strip().lower()}:{line.person_id or ''}",  # ty: ignore[unresolved-attribute]
+                key=f"line:{line.category_id}:{line.label.strip().lower()}:{line.person_id or ''}",
                 label=line.label,
                 kind=parent.kind,
                 source="line",
@@ -498,7 +498,7 @@ def build_budget(
         if str(line.amount.currency) == currency
     ]
     names = {
-        line.person_id: display_name(line.person)  # ty: ignore[unresolved-attribute]
+        line.person.pk: display_name(line.person)
         for line in lines
         if line.person is not None
     }
@@ -510,9 +510,9 @@ def build_budget(
     debt_categories = _debt_categories(categories)
     manual_debt = sum(
         (
-            line.amount.amount * perspective.line_ratio(line.person_id)  # ty: ignore[unresolved-attribute]
+            line.amount.amount * perspective.line_ratio(line.person_id)
             for line in lines
-            if line.category_id in debt_categories  # ty: ignore[unresolved-attribute]
+            if line.category_id in debt_categories
         ),
         Decimal(0),
     )

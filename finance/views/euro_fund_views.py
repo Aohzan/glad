@@ -16,7 +16,7 @@ def _holding_url(holding: InvestmentAccountHolding) -> str:
     return (
         reverse(
             "finance:holding_detail",
-            kwargs={"account_pk": holding.account_id, "holding_pk": holding.pk},  # ty: ignore[unresolved-attribute]
+            kwargs={"account_pk": holding.account_id, "holding_pk": holding.pk},
         )
         + "#rates-panel"
     )

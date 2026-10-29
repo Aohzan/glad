@@ -56,7 +56,7 @@ class InvestmentValues:
         for holding in InvestmentAccountHolding.objects.filter(
             account__in=accounts, is_active=True
         ):
-            self._holdings[holding.account_id].append(holding)  # ty: ignore[unresolved-attribute]
+            self._holdings[holding.account_id].append(holding)
         self._history = DatedValues(
             InvestmentAccountHoldingHistory.objects.filter(
                 holding__account__in=accounts, holding__is_active=True

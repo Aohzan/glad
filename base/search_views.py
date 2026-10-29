@@ -61,7 +61,7 @@ def _other_assets():
     for asset in OtherAsset.objects.order_by("-is_active", "name"):
         yield _entry(
             asset.name,
-            asset.get_category_display(),  # ty: ignore[unresolved-attribute]
+            asset.get_category_display(),
             reverse("finance:other_asset_detail", kwargs={"pk": asset.pk}),
             asset.icon,
             "other",

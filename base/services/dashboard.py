@@ -200,7 +200,7 @@ def _property_rows(currency, holders, then):
         yield RegistryRow(
             kind="property",
             name=prop.name,
-            sub=prop.city or prop.get_property_type_display(),  # ty: ignore[unresolved-attribute]
+            sub=prop.city or prop.get_property_type_display(),
             holder=holders.label(prop),
             value=gross - remaining,
             old_value=prop.net_value_at_date(then.date()).amount,
@@ -216,7 +216,7 @@ def _scpi_rows(currency, holders, today, then):
     )
     for investment in investments:
         if investment.currency == currency:
-            by_fund[investment.scpi_id].append(investment)  # ty: ignore[unresolved-attribute]
+            by_fund[investment.scpi_id].append(investment)
     for group in sorted(by_fund.values(), key=lambda g: g[0].scpi.name):
         scpi = group[0].scpi
         yield RegistryRow(
@@ -239,7 +239,7 @@ def _other_rows(currency, holders, today, then):
         yield RegistryRow(
             kind="other",
             name=asset.name,
-            sub=asset.get_category_display(),  # ty: ignore[unresolved-attribute]
+            sub=asset.get_category_display(),
             holder=holders.label(asset),
             value=asset.get_value(today).amount,
             old_value=asset.get_value(then.date()).amount,
@@ -338,7 +338,7 @@ def liabilities(today: datetime.date) -> list[Liability]:
                 repaid_pct=(original - remaining) / original * 100
                 if original
                 else Decimal(0),
-                url=reverse("property:detail", kwargs={"pk": loan.property_id}),  # ty: ignore[unresolved-attribute]
+                url=reverse("property:detail", kwargs={"pk": loan.property_id}),
             )
         )
     result.sort(key=lambda loan: loan.remaining, reverse=True)
