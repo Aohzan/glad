@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 17:09+0100\n"
+"POT-Creation-Date: 2026-10-29 18:01+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -580,7 +580,7 @@ msgstr "État des lieux"
 msgid "Diagnostic"
 msgstr "Diagnostic"
 
-#: base/models.py:261 rental/services/move_in.py:55
+#: base/models.py:261 rental/services/move_in.py:60
 msgid "Insurance certificate"
 msgstr "Attestation d'assurance"
 
@@ -593,7 +593,7 @@ msgid "Proof of income"
 msgstr "Justificatif de revenus"
 
 #: base/models.py:264 property/models/lease.py:259 rental/models.py:135
-#: rental/services/compliance.py:273
+#: rental/services/compliance.py:282
 msgid "Guarantee"
 msgstr "Garantie"
 
@@ -822,16 +822,16 @@ msgstr "Propriétaire enregistré."
 #: finance/views/investment_views.py:309 finance/views/investment_views.py:449
 #: finance/views/other_asset_views.py:62 finance/views/saving_views.py:62
 #: finance/views/saving_views.py:88 finance/views/update_views.py:341
-#: property/views/check_views.py:132 property/views/crud_views.py:129
-#: property/views/crud_views.py:317 property/views/crud_views.py:424
-#: property/views/crud_views.py:500 property/views/edit_views.py:53
+#: property/views/check_views.py:132 property/views/crud_views.py:130
+#: property/views/crud_views.py:318 property/views/crud_views.py:425
+#: property/views/crud_views.py:509 property/views/edit_views.py:53
 #: property/views/edit_views.py:91 property/views/edit_views.py:108
 #: property/views/scpi_views.py:399 property/views/scpi_views.py:447
 #: property/views/scpi_views.py:500 property/views/scpi_views.py:591
 #: property/views/scpi_views.py:640 rental/application_views.py:49
 #: rental/application_views.py:168 rental/inventory_views.py:75
-#: rental/inventory_views.py:141 rental/uploads.py:36 rental/views.py:199
-#: rental/views.py:314 templates/finance/_form_error_alert.html:4
+#: rental/inventory_views.py:141 rental/uploads.py:36 rental/views.py:201
+#: rental/views.py:316 templates/finance/_form_error_alert.html:4
 #: templates/property/_form_error_alert.html:4
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
@@ -869,7 +869,7 @@ msgid "End of the loan"
 msgstr "Fin du prêt"
 
 #: base/services/deadlines.py:132 templates/property/_rent_revision.html:6
-#: templates/property/edit_lease.html:188
+#: templates/property/edit_lease.html:189
 msgid "Rent revision (IRL)"
 msgstr "Révision du loyer (IRL)"
 
@@ -1874,7 +1874,7 @@ msgstr "Un ISIN est nécessaire pour mettre à jour le cours automatiquement."
 #: templates/property/detail_panel_amortization.html:132
 #: templates/property/detail_panel_leases.html:53
 #: templates/property/detail_panel_mandate.html:30
-#: templates/property/edit_lease.html:103
+#: templates/property/edit_lease.html:104
 #: templates/property/edit_mandate.html:61
 #: templates/rental/lease_detail.html:45
 msgid "Start date"
@@ -1885,7 +1885,7 @@ msgstr "Date de début"
 #: templates/property/detail_panel_cashflow.html:193
 #: templates/property/detail_panel_leases.html:57
 #: templates/property/detail_panel_mandate.html:34
-#: templates/property/edit_lease.html:110
+#: templates/property/edit_lease.html:111
 #: templates/property/edit_mandate.html:68
 #: templates/rental/lease_departure.html:64
 msgid "End date"
@@ -2422,8 +2422,8 @@ msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 #: finance/views/crud_views.py:70 finance/views/investment_views.py:123
 #: finance/views/investment_views.py:350 finance/views/saving_views.py:108
 #: property/views/check_views.py:212 property/views/check_views.py:244
-#: property/views/crud_views.py:73 property/views/crud_views.py:146
-#: property/views/crud_views.py:361 property/views/crud_views.py:446
+#: property/views/crud_views.py:74 property/views/crud_views.py:147
+#: property/views/crud_views.py:362 property/views/crud_views.py:447
 #: property/views/scpi_views.py:375 property/views/scpi_views.py:415
 #: property/views/scpi_views.py:461 property/views/scpi_views.py:518
 #: property/views/scpi_views.py:660
@@ -3608,7 +3608,7 @@ msgstr "bail"
 msgid "leases"
 msgstr "baux"
 
-#: property/models/lease.py:62 templates/property/edit_lease.html:65
+#: property/models/lease.py:62 templates/property/edit_lease.html:66
 msgid "Lease type"
 msgstr "Type de bail"
 
@@ -3616,12 +3616,12 @@ msgstr "Type de bail"
 #: templates/accounts/_background_jobs.html:17
 #: templates/finance/_status_badge.html:3
 #: templates/finance/investment_detail.html:82
-#: templates/property/edit_lease.html:72 templates/rental/dashboard.html:50
+#: templates/property/edit_lease.html:73 templates/rental/dashboard.html:50
 #: templates/rental/lease_payments.html:36
 msgid "Status"
 msgstr "Statut"
 
-#: property/models/lease.py:72 templates/property/edit_lease.html:118
+#: property/models/lease.py:72 templates/property/edit_lease.html:119
 msgid "Notice date"
 msgstr "Date de préavis"
 
@@ -3658,12 +3658,12 @@ msgid "Day of the month the rent is due."
 msgstr "Jour du mois où le loyer est dû."
 
 #: property/models/lease.py:99 templates/property/detail_panel_leases.html:61
-#: templates/property/edit_lease.html:153 templates/rental/lease_detail.html:51
+#: templates/property/edit_lease.html:154 templates/rental/lease_detail.html:51
 msgid "Rent (excl. charges)"
 msgstr "Loyer (hors charges)"
 
 #: property/models/lease.py:106 templates/property/detail_panel_leases.html:65
-#: templates/property/edit_lease.html:161
+#: templates/property/edit_lease.html:162
 msgid "Charges provision"
 msgstr "Provision pour charges"
 
@@ -3675,12 +3675,12 @@ msgstr "Charges"
 
 #: property/models/lease.py:119 rental/services/compliance.py:118
 #: rental/services/move_in.py:40 templates/property/detail_panel_leases.html:69
-#: templates/property/edit_lease.html:169 templates/rental/lease_detail.html:55
+#: templates/property/edit_lease.html:170 templates/rental/lease_detail.html:55
 msgid "Security deposit"
 msgstr "Dépôt de garantie"
 
 #: property/models/lease.py:125 templates/property/detail_panel_leases.html:73
-#: templates/property/edit_lease.html:79
+#: templates/property/edit_lease.html:80
 msgid "Periodicity"
 msgstr "Périodicite"
 
@@ -3744,7 +3744,7 @@ msgid ""
 "received."
 msgstr "Envoyer la quittance aux locataires le lendemain du pointage du loyer."
 
-#: property/models/lease.py:217 templates/property/edit_lease.html:30
+#: property/models/lease.py:217 templates/property/edit_lease.html:31
 #: templates/rental/lease_detail.html:12
 msgid "Tenant"
 msgstr "Locataire"
@@ -4645,74 +4645,74 @@ msgstr "Écriture pointée."
 msgid "Entry unchecked."
 msgstr "Pointage annulé."
 
-#: property/views/crud_views.py:42
+#: property/views/crud_views.py:43
 msgid "Property not found."
 msgstr "Propriété introuvable."
 
-#: property/views/crud_views.py:59
+#: property/views/crud_views.py:60
 #, python-format
 msgid "%(name)s not found."
 msgstr "%(name)s introuvable."
 
-#: property/views/crud_views.py:85
+#: property/views/crud_views.py:86
 msgid "Valuation not found."
 msgstr "Évaluation introuvable."
 
-#: property/views/crud_views.py:89
+#: property/views/crud_views.py:90
 msgid "Property valuation deleted successfully."
 msgstr "Évaluation de propriété supprimée avec succès."
 
-#: property/views/crud_views.py:110 property/views/crud_views.py:157
-#: property/views/crud_views.py:217 rental/models.py:177
+#: property/views/crud_views.py:111 property/views/crud_views.py:158
+#: property/views/crud_views.py:218 rental/models.py:177
 #: templates/property/occurrence_checks.html:62
 msgid "Entry"
 msgstr "Écriture"
 
-#: property/views/crud_views.py:124
+#: property/views/crud_views.py:125
 msgid "Entry updated successfully."
 msgstr "Écriture mise à jour avec succès."
 
-#: property/views/crud_views.py:166 property/views/crud_views.py:371
+#: property/views/crud_views.py:167 property/views/crud_views.py:372
 msgid "Entry deleted successfully."
 msgstr "Écriture supprimée avec succès."
 
-#: property/views/crud_views.py:227
+#: property/views/crud_views.py:228
 msgid "Invalid occurrence date."
 msgstr "Date d'occurrence invalide."
 
-#: property/views/crud_views.py:257 property/views/crud_views.py:366
+#: property/views/crud_views.py:258 property/views/crud_views.py:367
 msgid "Invalid scope."
 msgstr "Portée invalide."
 
-#: property/views/crud_views.py:276
+#: property/views/crud_views.py:277
 msgid "Occurrence updated successfully."
 msgstr "Occurrence mise à jour avec succès."
 
-#: property/views/crud_views.py:310
+#: property/views/crud_views.py:311
 msgid "Series updated from this occurrence onwards."
 msgstr "Série mise à jour à partir de cette occurrence."
 
-#: property/views/crud_views.py:375
+#: property/views/crud_views.py:376
 msgid "Occurrence deleted successfully."
 msgstr "Occurrence supprimée avec succès."
 
-#: property/views/crud_views.py:384
+#: property/views/crud_views.py:385
 msgid "Series truncated from this occurrence onwards."
 msgstr "Série tronquée à partir de cette occurrence."
 
-#: property/views/crud_views.py:496
+#: property/views/crud_views.py:499
 msgid "Lease saved."
 msgstr "Bail enregistré."
 
-#: property/views/crud_views.py:520
+#: property/views/crud_views.py:530
 msgid "Lease deleted successfully."
 msgstr "Bail supprimée avec succès."
 
-#: property/views/crud_views.py:540
+#: property/views/crud_views.py:550
 msgid "Mandate saved."
 msgstr "Mandat enregistré."
 
-#: property/views/crud_views.py:554
+#: property/views/crud_views.py:564
 msgid "Mandate deleted successfully."
 msgstr "Mandat supprimé avec succès."
 
@@ -5244,7 +5244,7 @@ msgstr "Revenus nets mensuels"
 msgid "Of every tenant of the application, together."
 msgstr "De tous les locataires de la candidature, ensemble."
 
-#: rental/models.py:121 templates/property/edit_lease.html:148
+#: rental/models.py:121 templates/property/edit_lease.html:149
 #: templates/rental/application_detail.html:39
 msgid "Rent and charges"
 msgstr "Loyer et charges"
@@ -5671,7 +5671,7 @@ msgstr "Régularisation des charges du %(start)s au %(end)s"
 msgid "Tenants"
 msgstr "Locataires"
 
-#: rental/services/compliance.py:86 templates/property/edit_lease.html:49
+#: rental/services/compliance.py:86 templates/property/edit_lease.html:50
 #: templates/rental/lease_detail.html:36
 msgid "No tenant recorded."
 msgstr "Aucun locataire enregistré."
@@ -5764,33 +5764,33 @@ msgstr "Valable jusqu'au %(date)s."
 msgid "Signed lease"
 msgstr "Bail signé"
 
-#: rental/services/compliance.py:246
-msgid "Enter the signature date."
-msgstr "Saisissez la date de signature."
+#: rental/services/compliance.py:254
+msgid "Enter the signature date in the lease."
+msgstr "Saisissez la date de signature dans le bail."
 
-#: rental/services/compliance.py:249
+#: rental/services/compliance.py:258
 msgid "Add the signed lease."
 msgstr "Ajoutez le bail signé."
 
-#: rental/services/compliance.py:254
+#: rental/services/compliance.py:263
 #, python-format
 msgid "Signed on %(date)s."
 msgstr "Signé le %(date)s."
 
-#: rental/services/compliance.py:259 templates/rental/inventory_detail.html:9
+#: rental/services/compliance.py:268 templates/rental/inventory_detail.html:9
 #: templates/rental/lease_inventories.html:6
 msgid "Entry inventory"
 msgstr "État des lieux d'entrée"
 
-#: rental/services/compliance.py:267
+#: rental/services/compliance.py:276
 msgid "To do on the move-in day."
 msgstr "À faire le jour de l'entrée dans les lieux."
 
-#: rental/services/compliance.py:269
+#: rental/services/compliance.py:278
 msgid "Add the signed inventory."
 msgstr "Ajoutez l'état des lieux signé."
 
-#: rental/services/compliance.py:284
+#: rental/services/compliance.py:293
 msgid "Add the signed guarantee deed or the Visale certificate."
 msgstr "Ajoutez l'acte de cautionnement signé ou le visa Visale."
 
@@ -5802,19 +5802,19 @@ msgstr "Retenu sur le dépôt"
 msgid "Penalty for the late return of the deposit"
 msgstr "Pénalité pour restitution tardive du dépôt"
 
-#: rental/services/move_in.py:49
+#: rental/services/move_in.py:51
 msgid "Lease signed"
 msgstr "Bail signé"
 
-#: rental/services/move_in.py:51
+#: rental/services/move_in.py:56
 msgid "Entry inventory signed"
 msgstr "État des lieux d'entrée signé"
 
-#: rental/services/move_in.py:57
+#: rental/services/move_in.py:62
 msgid "Rent schedule"
 msgstr "Échéancier des loyers"
 
-#: rental/services/move_in.py:64
+#: rental/services/move_in.py:69
 msgid "Security deposit received"
 msgstr "Dépôt de garantie encaissé"
 
@@ -5860,37 +5860,37 @@ msgstr "Dépôt de garantie enregistré."
 msgid "Document added."
 msgstr "Document ajouté."
 
-#: rental/views.py:197
+#: rental/views.py:199
 #, python-format
 msgid "%(name)s saved."
 msgstr "%(name)s enregistré."
 
-#: rental/views.py:217
+#: rental/views.py:219
 #, python-format
 msgid "%(name)s removed."
 msgstr "%(name)s retiré."
 
-#: rental/views.py:245
+#: rental/views.py:247
 msgid "This lease already has a rent schedule."
 msgstr "Ce bail a déjà un échéancier."
 
-#: rental/views.py:248
+#: rental/views.py:250
 msgid "Rent schedule created."
 msgstr "Échéancier créé."
 
-#: rental/views.py:255
+#: rental/views.py:257
 msgid "Unknown period."
 msgstr "Période inconnue."
 
-#: rental/views.py:264 rental/views.py:284
+#: rental/views.py:266 rental/views.py:286
 msgid "Nothing was received for this period."
 msgstr "Rien n'a été reçu pour cette période."
 
-#: rental/views.py:276
+#: rental/views.py:278
 msgid "Unknown email."
 msgstr "Email inconnu."
 
-#: rental/views.py:312
+#: rental/views.py:314
 msgid "The email is being sent."
 msgstr "L'email est en cours d'envoi."
 
@@ -6778,10 +6778,10 @@ msgstr "prénom ou identifiant d'un membre, vide pour tout le foyer"
 #: templates/property/edit_entry_occurrence.html:41
 #: templates/property/edit_entry_occurrence.html:51
 #: templates/property/edit_entry_occurrence.html:61
-#: templates/property/edit_lease.html:39 templates/property/edit_lease.html:111
-#: templates/property/edit_lease.html:119
-#: templates/property/edit_lease.html:127
-#: templates/property/edit_lease.html:135
+#: templates/property/edit_lease.html:40 templates/property/edit_lease.html:112
+#: templates/property/edit_lease.html:120
+#: templates/property/edit_lease.html:128
+#: templates/property/edit_lease.html:136
 #: templates/property/edit_manager.html:43
 #: templates/property/edit_mandate.html:38
 #: templates/property/edit_mandate.html:46
@@ -9906,30 +9906,30 @@ msgstr "Nouveau bail"
 msgid "Do not forget to declare the new tenant on impots.gouv.fr."
 msgstr "Ne pas oublier de déclarer le nouveau locataire sur impots.gouv.fr."
 
-#: templates/property/edit_lease.html:46
+#: templates/property/edit_lease.html:47
 msgid ""
 "Add the other tenants and the guarantors on the lease page once it is saved."
 msgstr ""
 "Ajoutez les autres locataires et les garants sur la page du bail une fois "
 "enregistré."
 
-#: templates/property/edit_lease.html:50 templates/rental/lease_detail.html:10
+#: templates/property/edit_lease.html:51 templates/rental/lease_detail.html:10
 msgid "Tenants and guarantors"
 msgstr "Locataires et garants"
 
-#: templates/property/edit_lease.html:59
+#: templates/property/edit_lease.html:60
 msgid "Lease information"
 msgstr "Informations sur le bail"
 
-#: templates/property/edit_lease.html:97
+#: templates/property/edit_lease.html:98
 msgid "Dates"
 msgstr "Dates"
 
-#: templates/property/edit_lease.html:207
+#: templates/property/edit_lease.html:208
 msgid "Automatic emails"
 msgstr "Emails automatiques"
 
-#: templates/property/edit_lease.html:210
+#: templates/property/edit_lease.html:211
 msgid ""
 "Only for the leases you manage yourself: the tenants need an email address. "
 "Every email is listed on the lease page."
@@ -9937,7 +9937,7 @@ msgstr ""
 "Uniquement pour les baux que vous gérez vous-même : les locataires doivent "
 "avoir une adresse email. Chaque email est listé sur la page du bail."
 
-#: templates/property/edit_lease.html:224
+#: templates/property/edit_lease.html:225
 msgid "Reject the other open applications for this property"
 msgstr "Refuser les autres candidatures en cours pour ce bien"
 
@@ -10964,7 +10964,7 @@ msgstr[1] "sur %(counter)s baux"
 msgid "This month"
 msgstr "Ce mois-ci"
 
-#: templates/rental/dashboard.html:50 templates/rental/lease_detail.html:138
+#: templates/rental/dashboard.html:50 templates/rental/lease_detail.html:139
 msgid "Checklist"
 msgstr "Checklist"
 
@@ -10973,14 +10973,14 @@ msgstr "Checklist"
 msgid "since %(date)s"
 msgstr "depuis le %(date)s"
 
-#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:139
+#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:140
 #, python-format
 msgid "%(counter)s point"
 msgid_plural "%(counter)s points"
 msgstr[0] "%(counter)s point"
 msgstr[1] "%(counter)s points"
 
-#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:139
+#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:140
 msgid "Complete"
 msgstr "Complet"
 
@@ -10993,7 +10993,7 @@ msgstr ""
 "Aucun bail à gérer. Ajoutez un bail depuis la <a "
 "href=\"%(properties_url)s\">page d'un bien</a>."
 
-#: templates/rental/dashboard.html:82 templates/rental/lease_detail.html:148
+#: templates/rental/dashboard.html:82 templates/rental/lease_detail.html:149
 msgid "Fix"
 msgstr "Corriger"
 

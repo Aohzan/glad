@@ -242,8 +242,17 @@ def _signed_lease(lease: Lease, documents: LeaseDocuments, url: str) -> Check:
     label = _("Signed lease")
     missing = WARNING if lease.status == Lease.Status.UPCOMING else MISSING
     if lease.signed_date is None:
+        edit_url = reverse(
+            "property:edit_lease",
+            kwargs={"property_pk": lease.property.pk, "lease_pk": lease.pk},
+        )
+        detail_url = reverse("rental:lease_detail", kwargs={"pk": lease.pk})
         return Check(
-            "signed_lease", label, missing, _("Enter the signature date."), url
+            "signed_lease",
+            label,
+            missing,
+            _("Enter the signature date in the lease."),
+            f"{edit_url}?next={detail_url}",
         )
     if not documents.of_kind(Document.Kind.LEASE):
         return Check("signed_lease", label, missing, _("Add the signed lease."), url)

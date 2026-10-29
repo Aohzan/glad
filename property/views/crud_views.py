@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
 
 from base.views import get_object_or_redirect
@@ -488,12 +489,20 @@ def edit_lease(
         else None
     )
     data = request.POST if request.method == "POST" else None
+    # Page to go back to after saving, e.g. the rental lease page
+    next_url = request.POST.get("next") or request.GET.get("next") or ""
     form = LeaseForm(data, instance=lease)
     tenant_form = FirstTenantForm(data, prefix="tenant") if lease is None else None
     if data is not None:
         if form.is_valid() and (tenant_form is None or tenant_form.is_valid()):
             save_lease(property_obj, form, tenant_form)
             messages.success(request, _("Lease saved."))
+            if url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return HttpResponseRedirect(next_url)
             return HttpResponseRedirect(
                 reverse("property:detail", kwargs={"pk": property_pk}) + "#leases-panel"
             )
@@ -506,6 +515,7 @@ def edit_lease(
             "lease": lease,
             "form": form,
             "tenant_form": tenant_form,
+            "next_url": next_url,
         },
     )
 

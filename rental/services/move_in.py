@@ -44,9 +44,14 @@ def record_deposit(lease: Lease, date: datetime.date) -> PropertyLedgerEntry:
 def move_in_steps(lease: Lease, checks: list[Check]) -> list[Step]:
     """What to do before handing over the keys, from the lease checklist."""
     status = {check.key: check.status for check in checks}
+    urls = {check.key: check.url for check in checks}
     documents_url = reverse("rental:lease_documents", kwargs={"pk": lease.pk})
     steps = [
-        Step(_("Lease signed"), status.get("signed_lease") == OK, documents_url),
+        Step(
+            _("Lease signed"),
+            status.get("signed_lease") == OK,
+            urls.get("signed_lease") or documents_url,
+        ),
         Step(
             _("Entry inventory signed"),
             status.get("entry_inventory") == OK,

@@ -7,7 +7,7 @@
 {% block page_description %}<a class="text-reset" href="{% url 'property:detail' lease.property.pk %}">{{ lease.property.name }}</a> · {{ lease.get_lease_type_display }} · {% include "rental/_lease_status.html" %}{% endblock %}
 {% block page_actions %}
 <a class="btn btn-outline-secondary" href="{% url 'rental:lease_pdf' lease.pk %}">{% icon "file-down" %}{% translate "Lease PDF" %}</a>
-<a class="btn btn-outline-secondary" href="{% url 'property:edit_lease' lease.property.pk lease.pk %}">{% icon "pencil" %}{% translate "Edit the lease" %}</a>
+<a class="btn btn-outline-secondary" href="{% url 'property:edit_lease' lease.property.pk lease.pk %}?next={{ request.path|urlencode }}">{% icon "pencil" %}{% translate "Edit the lease" %}</a>
 {% endblock %}
 
 {% block content %}
