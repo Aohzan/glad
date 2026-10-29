@@ -6,6 +6,9 @@
 set -e
 
 DATA_DIR="${DATA_DIR:-/app/data}"
+# Caches of the libraries (yfinance…) in the data volume: HOME is still the one
+# of root after the switch to the glad user.
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$DATA_DIR/cache}"
 
 if [ "$(id -u)" = "0" ]; then
   mkdir -p "$DATA_DIR"
