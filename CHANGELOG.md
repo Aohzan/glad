@@ -2,6 +2,144 @@
 
 <!-- version list -->
 
+## v1.8.0 (2026-10-29)
+
+### Bug Fixes
+
+- Give every log line the same format and drop the font subsetting noise
+  ([`f14c53d`](https://github.com/Aohzan/glad/commit/f14c53d53c6217a0acc51cab461e11fbfa1b8a98))
+
+- Keep the caches of the libraries in the data volume and quiet the yfinance errors
+  ([`522f55f`](https://github.com/Aohzan/glad/commit/522f55f5094c6f1e731a750c3b164188b1392327))
+
+- **finance**: Try the other listings of an ISIN when the one Yahoo picks has no prices
+  ([`fa85ce0`](https://github.com/Aohzan/glad/commit/fa85ce00c414ad06935da87e4b0e76f9b3b5cd8c))
+
+- **property**: Keep a decimal point in the map coordinates of the info panel
+  ([`fd240a7`](https://github.com/Aohzan/glad/commit/fd240a7f863204997d95fc7a3568d1342b5cdcc0))
+
+- **property**: Let the lease parties migration be reversed with leases in the table
+  ([`90862ba`](https://github.com/Aohzan/glad/commit/90862ba188d1f7d428d10c80c6790da994b9275e))
+
+- **rental**: Hide the checklist of a lease managed by an agency
+  ([`fbb73b7`](https://github.com/Aohzan/glad/commit/fbb73b750e0d17f26350d4d530ee2fe160ac25d9))
+
+- **rental**: Leave the rent revision and the landlord notice to the agency
+  ([`82be002`](https://github.com/Aohzan/glad/commit/82be0021f06824eda99b6e04f38ff367c912e975))
+
+- **rental**: Open the lease form to enter the missing signature date
+  ([`9864475`](https://github.com/Aohzan/glad/commit/9864475b9d330cf32eaf228f3fa4449e97e8ccce))
+
+### Build System
+
+- Move to Python 3.15
+  ([`ae2d22f`](https://github.com/Aohzan/glad/commit/ae2d22f52faf6eb00cbc304d1acf2ee4d302d5c0))
+
+- **deps**: Add django-tasks-db, cryptography and apprise
+  ([`8630b22`](https://github.com/Aohzan/glad/commit/8630b223b0bc7f0de927946719b8256acdb5c6fd))
+
+- **deps**: Bump apexcharts from 8.1.0 to 8.3.1
+  ([`da11056`](https://github.com/Aohzan/glad/commit/da1105659b9a673f323728f84c4c0787dc06d260))
+
+- **deps**: Bump certifi from 2026.7.22 to 2026.10.19
+  ([`42add9a`](https://github.com/Aohzan/glad/commit/42add9aba6cfd5e73d2b588cfaa776bc1b165213))
+
+- **deps**: Bump django-money from 3.6.1 to 3.6.2
+  ([`1114c64`](https://github.com/Aohzan/glad/commit/1114c645396a9db06f74c60393e5bbc05f9b15e2))
+
+- **deps**: Bump lucide-static from 1.55.0 to 1.59.0
+  ([`e44fe1b`](https://github.com/Aohzan/glad/commit/e44fe1ba90afbe1455c7a40c49c6802ee060121a))
+
+- **deps**: Upgrade the locked dependencies
+  ([`12e28fa`](https://github.com/Aohzan/glad/commit/12e28fa6f5ed1a2a2a10a8f5c2344ea8758fa057))
+
+- **deps-dev**: Bump ruff from 0.17.0 to 0.17.1
+  ([`21d68c9`](https://github.com/Aohzan/glad/commit/21d68c905303b63f9f648d2a26c6faa00babe058))
+
+- **deps-dev**: Bump ty from 0.0.86 to 0.0.89
+  ([`0272019`](https://github.com/Aohzan/glad/commit/0272019a23b98e68f84f63a02cb043368e8ba6fc))
+
+- **deps-dev**: Update setuptools requirement from >=84.0.0 to >=84.2.0
+  ([`cef24ad`](https://github.com/Aohzan/glad/commit/cef24ada7b094937fd363030d0893e2da4528639))
+
+### Chores
+
+- Address the CodeQL alerts of the exit inventory comparison and the map script
+  ([`0ac6145`](https://github.com/Aohzan/glad/commit/0ac6145d595e183ada3a2bcac17d056c7a9fe001))
+
+- Address the CodeQL alerts of the rental pull request
+  ([`64eea4c`](https://github.com/Aohzan/glad/commit/64eea4ca1727448dc800f917cc64ba3236966ea5))
+
+- Follow ty 0.0.94: drop the ignores it no longer needs and type the budget owners
+  ([`8ab1f22`](https://github.com/Aohzan/glad/commit/8ab1f2221dc7fe7b70d9d3c20a2608bc0d811f95))
+
+- **i18n**: Translate the rental management and the notifications to French
+  ([`1676ce0`](https://github.com/Aohzan/glad/commit/1676ce00fbb9df4d16eed638591e3b0457be43c5))
+
+- **pre-commit**: Leave the French rental documents out of codespell and allow a longer PO file
+  ([`00f3622`](https://github.com/Aohzan/glad/commit/00f36229f434dc52adc1b28d9ea325f1511e1506))
+
+### Documentation
+
+- Describe the rental management, the notifications and their settings
+  ([`9d22b46`](https://github.com/Aohzan/glad/commit/9d22b46866f2f3c02e11385fdcc535c6f1960d3e))
+
+- Refresh the README screenshots and add the rental management and the notifications
+  ([`538a26f`](https://github.com/Aohzan/glad/commit/538a26fc2c716d5367a2d12af89b38c1807903dd))
+
+### Features
+
+- **accounts**: Add a postal address to the profile for the rental papers
+  ([`9ed973d`](https://github.com/Aohzan/glad/commit/9ed973d9adece4aa0452accfc92b421ebb16853e))
+
+- **accounts**: Send the login alert through the notification channels
+  ([`52e9d14`](https://github.com/Aohzan/glad/commit/52e9d14fdb9bfcac3b60dda4ed03f2388af64181))
+
+- **base**: Run background jobs and store the documents and the emails sent
+  ([`d0e31fb`](https://github.com/Aohzan/glad/commit/d0e31fb61fc36bbb83ffdde64cf858dc1ad8a5da))
+
+- **finance**: Refresh the security prices every day and notify the drops of the holdings
+  ([`1c033fd`](https://github.com/Aohzan/glad/commit/1c033fd360241809b0af393705d5c828cd2d917c))
+
+- **notifications**: Notify about the assets, the taxes and the properties through Apprise channels
+  ([`18a0e56`](https://github.com/Aohzan/glad/commit/18a0e56953a8d1d8f38b670ffa4926c044b8b9fb))
+
+- **property**: Record the tenants and guarantors of a lease and the rental conditions
+  ([`c820144`](https://github.com/Aohzan/glad/commit/c8201443f49585c5d8178e385c904d8af837a41a))
+
+- **rental**: Manage the leases without an agency: checklist, documents, rent payments, receipts and
+  emails to the tenants
+  ([`2fda6dd`](https://github.com/Aohzan/glad/commit/2fda6ddbb12886b0f7890ae8bdbc00965c571289))
+
+- **rental**: Reconcile the charges of the leases every year with the recoverable expenses
+  ([`f268299`](https://github.com/Aohzan/glad/commit/f268299a91bc5a5c5e7d8c4fc03421cc5bac04b7))
+
+- **rental**: See the tenant out: notice, exit inventory, deposit return and closing of the lease
+  ([`cf6e9f7`](https://github.com/Aohzan/glad/commit/cf6e9f7a680d990415b4c3c6a85566f10c7a8e3b))
+
+- **rental**: Welcome the tenant: applications, lease PDF, inventories with photos and electronic
+  signature
+  ([`2a5ef76`](https://github.com/Aohzan/glad/commit/2a5ef76ec8f63e754392cca71fe901c7aa8be496))
+
+### Performance Improvements
+
+- Import the large libraries lazily (PEP 810): Django starts in about 70 MB instead of 180 MB
+  ([`8008d93`](https://github.com/Aohzan/glad/commit/8008d937e0581a3fa909d493d60b524a39c50f02))
+
+- Run the scheduler and the task worker in one process and load the heavy libraries only when used
+  ([`fe60938`](https://github.com/Aohzan/glad/commit/fe60938e9b63e0e103089c6b850a25810a8beb31))
+
+### Refactoring
+
+- **property**: Move the PDF helpers to a base shared by every document
+  ([`2b7308d`](https://github.com/Aohzan/glad/commit/2b7308dc6ae3ecb1038473c7732d6a8cbec66ff0))
+
+### Testing
+
+- Add a self-managed rental and notifications to the demo data
+  ([`c243ffe`](https://github.com/Aohzan/glad/commit/c243ffeeb107cc775889be8f6d3ce6a385b94ebb))
+
+
 ## v1.7.0 (2026-10-24)
 
 ### Bug Fixes
