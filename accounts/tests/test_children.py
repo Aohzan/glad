@@ -49,7 +49,6 @@ class TestChildAdmin:
         assert not child.is_staff
         assert child.profile.is_child
         assert child.profile.birth_date is None
-        assert not child.profile.notify_on_login
 
     def test_first_name_is_required(self, admin_client):
         response = admin_client.post(

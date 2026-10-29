@@ -4436,7 +4436,6 @@ def generate_household() -> str:
     user: {pk}
     birth_date: {birth_date}
     is_child: {child}
-    notify_on_login: false
 """
     for pk, (app, model, object_id, user, share, right) in enumerate(OWNERSHIPS, 1):
         out += f"""- model: base.ownership
