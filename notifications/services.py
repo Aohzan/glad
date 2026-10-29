@@ -57,7 +57,7 @@ def household_users():
 def subscriptions(notification_type: NotificationType) -> list[Subscription]:
     """The users who receive *notification_type*."""
     preferences = {
-        pref.user_id: pref  # ty: ignore[unresolved-attribute]
+        pref.user_id: pref
         for pref in NotificationPreference.objects.filter(
             type_key=notification_type.key
         ).prefetch_related("channels")
@@ -263,19 +263,19 @@ def deliver(notifications: Iterable[Notification]) -> None:
     """Group the notifications of each user into one message per channel."""
     by_user: dict[int, list[Notification]] = defaultdict(list)
     for notification in notifications:
-        by_user[notification.user_id].append(notification)  # ty: ignore[unresolved-attribute]
+        by_user[notification.user_id].append(notification)
     if not by_user:
         return
     channels: dict[int, list[NotificationChannel]] = defaultdict(list)
     for channel in NotificationChannel.objects.filter(
         user_id__in=by_user, enabled=True
     ).select_related("user"):
-        channels[channel.user_id].append(channel)  # ty: ignore[unresolved-attribute]
+        channels[channel.user_id].append(channel)
     restrictions: dict[tuple[int, str], set[int]] = {}
     for pref in NotificationPreference.objects.filter(
         user_id__in=by_user
     ).prefetch_related("channels"):
-        restrictions[(pref.user_id, pref.type_key)] = {  # ty: ignore[unresolved-attribute]
+        restrictions[(pref.user_id, pref.type_key)] = {
             c.pk for c in pref.channels.all()
         }
     now = datetime.datetime.now()

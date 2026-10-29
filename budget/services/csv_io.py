@@ -106,7 +106,7 @@ def export_lines(budget_year: BudgetYear) -> str:
         writer.writerow(
             [
                 line.category.kind,
-                spreadsheet_safe(paths.get(line.category_id, line.category.name)),  # ty: ignore[unresolved-attribute]
+                spreadsheet_safe(paths.get(line.category_id, line.category.name)),
                 spreadsheet_safe(line.label),
                 f"{line.amount.amount:.2f}",
                 spreadsheet_safe(line.person.get_username() if line.person else ""),

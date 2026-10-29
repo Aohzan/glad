@@ -122,7 +122,7 @@ def create(
 def record_balance(reconciliation: ChargesReconciliation) -> PropertyLedgerEntry | None:
     """The balance in the ledger: charges collected, or a refund to the tenant."""
     balance = reconciliation.balance
-    if reconciliation.ledger_entry_id or not balance:  # ty: ignore[unresolved-attribute]
+    if reconciliation.ledger_entry_id or not balance:
         return None
     lease = reconciliation.lease
     owed = balance > 0

@@ -22,7 +22,7 @@ _EXCEPTIONAL_GROUPS = (ACCOUNT_WITHDRAWALS, ACCOUNT_EXCEPTIONAL)
 
 
 def _node(node: BudgetNode) -> dict:
-    assigned = node.line is not None and node.line.person_id is not None  # ty: ignore[unresolved-attribute]
+    assigned = node.line is not None and node.line.person_id is not None
     return {
         "id": node.key,
         "label": node.label,

@@ -635,7 +635,7 @@ def compute_activity(properties: Sequence | int, year: int) -> list[LmnpYearResu
         return []
     assets_by_property: dict[int, list] = {p.pk: [] for p in props}
     for asset in AmortizationAsset.objects.filter(property_id__in=assets_by_property):
-        assets_by_property[asset.property_id].append(asset)  # ty: ignore[unresolved-attribute]
+        assets_by_property[asset.property_id].append(asset)
     all_assets = [a for assets in assets_by_property.values() for a in assets]
 
     first_year = get_first_fiscal_year(props, all_assets)
@@ -1096,7 +1096,7 @@ def get_accounting_data(properties: list, year: int) -> dict:
 
     assets_by_property: dict[int, list] = {p.pk: [] for p in properties}
     for asset in AmortizationAsset.objects.filter(property_id__in=assets_by_property):
-        assets_by_property[asset.property_id].append(asset)  # ty: ignore[unresolved-attribute]
+        assets_by_property[asset.property_id].append(asset)
 
     per_prop_summaries = [
         {

@@ -406,7 +406,7 @@ class PropertyLedgerEntry(BaseModel):
         parts = [self.description] if self.description else []
         if self.third_party:
             parts.insert(0, self.third_party)
-        if self.lease_id and self.lease:  # ty: ignore[unresolved-attribute]
+        if self.lease_id and self.lease:
             parts.append(self.lease.name)
         return " - ".join(parts)
 

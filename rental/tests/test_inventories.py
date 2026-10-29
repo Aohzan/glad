@@ -210,7 +210,7 @@ def test_photos(user_client, lease):
     response = user_client.post(url, {"photo": SimpleUploadedFile("mur.jpg", _image())})
     assert response.url == reverse(
         "rental:inventory_room",
-        args=[inventory.pk, item.room_id],  # ty: ignore[unresolved-attribute]
+        args=[inventory.pk, item.room_id],
     )
     (photo,) = documents_of(item)
     assert photo.kind == Document.Kind.PHOTO

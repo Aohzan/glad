@@ -141,7 +141,7 @@ class OwnersFormMixin:
             return
         rows = [row for _asset, asset_rows in self.owner_rows for row in asset_rows]
         self.owners_with_shares = all(row.right == Ownership.Right.FULL for row in rows)
-        users = list({row.user_id: row.user for row in rows}.values())  # ty: ignore[unresolved-attribute]
+        users = list({row.user_id: row.user for row in rows}.values())
         name = form.add_prefix("owners")
         if form.is_bound:
             shares = {
@@ -152,7 +152,7 @@ class OwnersFormMixin:
         else:
             # The shares are shown when every asset splits them the same way.
             splits = {
-                frozenset((row.user_id, row.share) for row in asset_rows)  # ty: ignore[unresolved-attribute]
+                frozenset((row.user_id, row.share) for row in asset_rows)
                 for _asset, asset_rows in self.owner_rows
             }
             shares = (

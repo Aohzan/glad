@@ -30,13 +30,13 @@ def copy_year(
     BudgetLine.objects.bulk_create(
         BudgetLine(
             budget_year=target,
-            category_id=line.category_id,  # ty: ignore[unresolved-attribute]
+            category_id=line.category_id,
             label=line.label,
             amount=Money(
                 (line.amount.amount * factor).quantize(CENT, rounding=ROUND_HALF_UP),
                 line.amount.currency,
             ),
-            person_id=line.person_id,  # ty: ignore[unresolved-attribute]
+            person_id=line.person_id,
             notes=line.notes,
         )
         for line in source.lines.all()

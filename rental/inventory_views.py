@@ -169,7 +169,7 @@ def add_item(request: HttpRequest, pk: int, room_pk: int) -> HttpResponse:
 @require_POST  # type: ignore
 def delete_item(request: HttpRequest, pk: int, item_pk: int) -> HttpResponse:
     item = get_object_or_404(InventoryItem, pk=item_pk, room__inventory_id=pk)
-    room_pk = item.room_id  # ty: ignore[unresolved-attribute]
+    room_pk = item.room_id
     item.delete()
     return redirect("rental:inventory_room", pk=pk, room_pk=room_pk)
 
@@ -205,5 +205,5 @@ def add_photo(request: HttpRequest, pk: int, item_pk: int) -> HttpResponse:
     return redirect(
         "rental:inventory_room",
         pk=pk,
-        room_pk=item.room_id,  # ty: ignore[unresolved-attribute]
+        room_pk=item.room_id,
     )

@@ -89,7 +89,7 @@ def _security_drops(params: dict[str, Any], today: datetime.date) -> Iterator[Ev
             },
             url=reverse(
                 "finance:holding_detail",
-                kwargs={"account_pk": holding.account_id, "holding_pk": holding.pk},  # ty: ignore[unresolved-attribute]
+                kwargs={"account_pk": holding.account_id, "holding_pk": holding.pk},
             ),
             level="warning",
         )

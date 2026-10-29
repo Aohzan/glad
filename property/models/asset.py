@@ -126,7 +126,7 @@ class PropertyLoan(BaseModel):
 
     def _closed_on(self) -> datetime.date | None:
         """The date the loan was repaid with the sale of the property, if sold."""
-        if self.property_id is None:  # ty: ignore[unresolved-attribute]
+        if self.property_id is None:
             return None
         return self.property.selling_date
 

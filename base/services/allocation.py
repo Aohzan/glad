@@ -129,7 +129,7 @@ def _investment_items(currency: str, shares: _Shares):
     holdings = InvestmentAccountHolding.objects.filter(is_active=True)
     by_account: dict[int, list[InvestmentAccountHolding]] = {}
     for holding in holdings:
-        by_account.setdefault(holding.account_id, []).append(holding)  # ty: ignore[unresolved-attribute]
+        by_account.setdefault(holding.account_id, []).append(holding)
     accounts = InvestmentAccount.objects.active().select_related("account_type")
     for account in accounts:
         ratio = shares.ratio(account)

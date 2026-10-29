@@ -33,7 +33,7 @@ def manage_owners(request: HttpRequest, kind: str, pk: int) -> HttpResponse:
     rows = ownerships_of(asset)
     if request.method == "POST":
         user_pk = request.POST.get("user", "")
-        existing = next((r for r in rows if str(r.user_id) == user_pk), None)  # ty: ignore[unresolved-attribute]
+        existing = next((r for r in rows if str(r.user_id) == user_pk), None)
         form = OwnershipForm(
             request.POST,
             instance=existing,
