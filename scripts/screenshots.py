@@ -58,6 +58,7 @@ PAGES = [
     ("rental_inventory", "/rental/inventory/1/", None),
     # Down to the first group of alerts.
     ("notifications_settings", "/notifications/settings/", 1400),
+    ("mcp_settings", "/mcp-access/", None),
 ]
 
 SETTINGS = """
