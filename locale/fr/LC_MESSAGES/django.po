@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 18:01+0100\n"
+"POT-Creation-Date: 2026-10-29 23:17+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -868,29 +868,29 @@ msgstr "Épargnes"
 msgid "End of the loan"
 msgstr "Fin du prêt"
 
-#: base/services/deadlines.py:132 templates/property/_rent_revision.html:6
+#: base/services/deadlines.py:134 templates/property/_rent_revision.html:6
 #: templates/property/edit_lease.html:189
 msgid "Rent revision (IRL)"
 msgstr "Révision du loyer (IRL)"
 
-#: base/services/deadlines.py:142
+#: base/services/deadlines.py:144
 msgid "End of the lease"
 msgstr "Fin du bail"
 
-#: base/services/deadlines.py:154
+#: base/services/deadlines.py:156
 msgid "Last day to give notice as the landlord"
 msgstr "Date limite du congé par le bailleur"
 
-#: base/services/deadlines.py:181
+#: base/services/deadlines.py:183
 #, python-format
 msgid "Rental ban for DPE %(rating)s housing"
 msgstr "Interdiction de location des logements classés %(rating)s"
 
-#: base/services/deadlines.py:192
+#: base/services/deadlines.py:194
 msgid "DPE expiry"
 msgstr "Expiration du DPE"
 
-#: base/services/deadlines.py:209
+#: base/services/deadlines.py:211
 msgid "End of the dismemberment"
 msgstr "Fin du démembrement"
 

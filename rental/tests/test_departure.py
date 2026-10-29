@@ -297,3 +297,18 @@ def test_landlord_notice_deadline_in_the_deadlines(lease):
     (deadline,) = deadlines_of({"landlord_notice"}, datetime.date.today())
     assert deadline.detail == "Last day to give notice as the landlord"
     assert deadline.url == reverse("rental:lease_detail", args=[lease.pk])
+
+
+@pytest.mark.django_db
+def test_no_landlord_deadlines_under_a_mandate(lease):
+    from base.services.deadlines import deadlines_of
+    from property.models import ManagementMandate
+
+    kinds = {"landlord_notice", "rent_revision"}
+    assert {d.kind for d in deadlines_of(kinds, datetime.date.today())} == kinds
+    ManagementMandate.objects.create(
+        property=lease.property,
+        manager_name="Foncia",
+        start_date=datetime.date(2020, 1, 1),
+    )
+    assert deadlines_of(kinds, datetime.date.today()) == []

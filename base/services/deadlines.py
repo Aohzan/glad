@@ -117,14 +117,16 @@ def _lease_deadlines(today: datetime.date):
             status__in=[Lease.Status.ACTIVE, Lease.Status.NOTICE_PERIOD],
         )
         .select_related("property")
-        .prefetch_related("parties")
+        .prefetch_related("parties", "property__mandates")
     )
     for lease in leases:
         url = reverse("rental:lease_detail", kwargs={"pk": lease.pk})
         title = (
             f"{lease.property} — {lease.name}" if lease.name else str(lease.property)
         )
-        revision = get_rent_revision(lease, today=today)
+        # Under a mandate, the agency revises the rent and serves the notices
+        managed = lease.mandate_on(today) is not None
+        revision = None if managed else get_rent_revision(lease, today=today)
         if revision is not None and not revision.frozen:
             yield Deadline(
                 date=revision.due_date,
@@ -145,7 +147,7 @@ def _lease_deadlines(today: datetime.date):
                 today=today,
                 kind="lease_end",
             )
-        elif lease.status == Lease.Status.ACTIVE:
+        elif lease.status == Lease.Status.ACTIVE and not managed:
             deadline = landlord_notice_deadline(lease, today)
             if deadline is not None:
                 yield Deadline(
