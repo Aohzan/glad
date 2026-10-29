@@ -105,6 +105,7 @@ INSTALLED_APPS = [
     "rental.apps.RentalConfig",
     "budget.apps.BudgetConfig",
     "notifications.apps.NotificationsConfig",
+    "mcp_server.apps.McpServerConfig",
     # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
