@@ -11,10 +11,6 @@ from base.models import Document
 from base.services.documents import attach_upload
 from property.models import Lease, LeaseParty, Property
 from tests.conftest import (  # noqa: F401
-    ADMIN_PASSWORD,
-    ADMIN_USER,
-    TEST_PASSWORD,
-    TEST_USER,
     admin_client,
     admin_user,
     client,

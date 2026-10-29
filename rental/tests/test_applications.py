@@ -62,7 +62,7 @@ def test_create_and_edit(user_client, prop):
     )
     application = RentalApplication.objects.get()
     assert response.url == reverse("rental:application_detail", args=[application.pk])
-    response = user_client.post(
+    user_client.post(
         reverse("rental:edit_application", args=[application.pk]),
         {"property": prop.pk, "last_name": "Martin", "first_name": "Luc"},
     )
