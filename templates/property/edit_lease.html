@@ -218,6 +218,13 @@
       </div>
     </div>
 
+    {% if application %}
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" name="reject_others" id="reject-others" checked>
+      <label class="form-check-label" for="reject-others">{% translate "Reject the other open applications for this property" %}</label>
+    </div>
+    {% endif %}
+
     {% url 'property:detail' property.pk as cancel_url %}
     {% include "property/_edit_form_footer.html" with cancel_url=cancel_url %}
 

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load i18n format_money %}
+
+{% block title %}{{ application.name }}{% endblock %}
+{% block page_kicker %}<a class="text-reset text-decoration-none" href="{% url 'rental:applications' %}">{% translate "Rental applications" %}</a>{% endblock %}
+{% block page_title %}{{ application.name }}{% endblock %}
+{% block page_description %}{{ application.property.name }} · {% include "rental/_application_status.html" %}{% endblock %}
+{% block page_actions %}
+<a class="btn btn-outline-secondary" href="{% url 'rental:edit_application' application.pk %}">{% icon "pencil" %}{% translate "Edit" %}</a>
+{% if application.is_open %}
+<a class="btn btn-primary" href="{% url 'rental:accept_application' application.pk %}">{% icon "check" %}{% translate "Accept and create the lease" %}</a>
+{% elif application.lease %}
+<a class="btn btn-outline-primary" href="{% url 'rental:lease_detail' application.lease.pk %}">{% icon "key-round" %}{% translate "Lease" %}</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-7 d-flex flex-column gap-3">
+    <section class="g-card" id="application-summary">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Candidate" %}</h2>
+        {% if application.is_open %}
+        <div class="d-flex gap-1">
+          {% for value, label in actions %}{% if value != application.status %}
+          <form method="post" action="{% url 'rental:set_application_status' application.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="{{ value }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">{{ label }}</button>
+          </form>
+          {% endif %}{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <dl class="g-dl g-card__body small">
+        <dt>{% translate "Email" %}</dt><dd>{{ application.email|default:"—" }}</dd>
+        <dt>{% translate "Phone" %}</dt><dd>{{ application.phone|default:"—" }}</dd>
+        <dt>{% translate "Monthly net income" %}</dt><dd>{% if application.monthly_income %}{{ application.monthly_income|format_money_amount }}{% else %}—{% endif %}</dd>
+        <dt>{% translate "Rent and charges" %}</dt><dd>{% if application.rent_amount %}{{ application.rent_amount|format_money_amount }}{% else %}—{% endif %}</dd>
+        <dt>{% translate "Effort rate" %}</dt>
+        <dd>{% if application.effort_rate is not None %}<span class="g-tag{% if application.effort_rate > effort_rate_max %} g-tag--warn{% else %} g-tag--pos{% endif %}">{{ application.effort_rate }} %</span> <span class="text-body-secondary">{% blocktranslate %}rent / income, usually below {{ effort_rate_max }} %{% endblocktranslate %}</span>{% else %}—{% endif %}</dd>
+        <dt>{% translate "Guarantor" %}</dt><dd>{% if application.guarantor_name %}{{ application.guarantor_name }}{% if application.guarantee_type %} · {{ application.get_guarantee_type_display }}{% endif %}{% if application.guarantor_income %} · {{ application.guarantor_income|format_money_amount }}{% endif %}{% else %}—{% endif %}</dd>
+        {% if application.notes %}<dt>{% translate "Notes" %}</dt><dd>{{ application.notes|linebreaksbr }}</dd>{% endif %}
+      </dl>
+    </section>
+    <section class="g-card" id="application-documents">
+      <div class="g-section-head"><h2 class="g-h2">{% translate "Documents" %}</h2></div>
+      {% translate "No document yet." as empty_text %}
+      {% include "_document_list.html" with documents=documents empty_text=empty_text %}
+      <form method="post" enctype="multipart/form-data" action="{% url 'rental:upload_application_document' application.pk %}" class="g-card__body pt-3 border-top">
+        {% csrf_token %}
+        {% include "_form_non_field_errors.html" %}
+        <div class="row g-2">
+          <div class="col-md-6">{% include "_form_field.html" with field=form.file %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.kind %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.title %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.valid_until %}</div>
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary">{% icon "upload" "me-1" %}{% translate "Add" %}</button>
+      </form>
+    </section>
+  </div>
+  <div class="col-lg-5">
+    <section class="g-card" id="application-rules">
+      <div class="g-section-head"><h2 class="g-h2">{% translate "Documents you may ask for" %}</h2></div>
+      <ul class="g-card__body small mb-0">
+        {% for item in allowed %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+      <div class="g-section-head"><h2 class="g-h2 text-danger">{% translate "Forbidden documents" %}</h2></div>
+      <ul class="g-card__body small mb-0">
+        {% for item in forbidden %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+      <p class="g-card__body form-text">{% translate "Décret n° 2015-1437 of 5 November 2015. Delete the documents of the rejected candidates once you no longer need them." %}</p>
+    </section>
+  </div>
+</div>
+{% endblock %}

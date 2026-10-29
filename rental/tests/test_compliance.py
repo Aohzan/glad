@@ -172,3 +172,15 @@ def test_documents_by_lease_in_two_queries(lease, attach, django_assert_num_quer
         documents = documents_by_lease([lease])[lease.pk]
     assert [d.kind for d in documents.lease] == [Document.Kind.LEASE]
     assert [d.kind for d in documents.property] == [Document.Kind.DIAGNOSTIC]
+
+
+@pytest.mark.django_db
+def test_entry_inventory_signed_in_the_app(lease):
+    from rental.models import Inventory
+    from rental.services.inventories import create_entry
+
+    inventory = create_entry(lease, TODAY)
+    assert _check(lease, "entry_inventory").status == MISSING
+    inventory.status = Inventory.Status.SIGNED
+    inventory.save()
+    assert _check(lease, "entry_inventory").status == OK

@@ -1,0 +1,63 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n %}
+
+{% block lease_content %}
+<section class="g-card" id="inventory-room">
+  <div class="g-section-head">
+    <div class="g-section-head__title">
+      <a class="g-link" href="{% url 'rental:inventory_detail' inventory.pk %}">{% icon "arrow-left" %}</a>
+      <h2 class="g-h2">{{ room.name }}</h2>
+    </div>
+    <form method="post" action="{% url 'rental:inventory_delete_room' inventory.pk room.pk %}" data-confirm="{% blocktranslate with name=room.name %}Delete {{ name }} and its elements?{% endblocktranslate %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-danger">{% icon "trash" %}</button>
+    </form>
+  </div>
+  <form method="post" id="room-form">
+    {% csrf_token %}
+    {{ formset.management_form }}
+  </form>
+  {% for form, photos in rows %}
+  <div class="g-card__row">
+    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+      <span class="fw-semibold">{{ form.instance.name }}</span>
+      <form method="post" action="{% url 'rental:inventory_delete_item' inventory.pk form.instance.pk %}" data-confirm="{% blocktranslate with name=form.instance.name %}Delete {{ name }}?{% endblocktranslate %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="{% translate 'Delete' %}">{% icon "x" %}</button>
+      </form>
+    </div>
+    <div class="row g-2">
+      <div class="col-sm-4">
+        <select name="{{ form.condition.html_name }}" form="room-form" class="form-select" aria-label="{% translate 'Condition' %}">
+          {% for value, label in form.condition.field.choices %}<option value="{{ value }}"{% if form.condition.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-8">
+        <input type="text" name="{{ form.comment.html_name }}" form="room-form" value="{{ form.comment.value|default:'' }}" maxlength="500" class="form-control" placeholder="{% translate 'Comment' %}" aria-label="{% translate 'Comment' %}">
+      </div>
+    </div>
+    <input type="hidden" name="{{ form.id.html_name }}" value="{{ form.instance.pk }}" form="room-form">
+    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+      {% for photo in photos %}
+      <a href="{% url 'download_document' photo.pk %}" target="_blank" rel="noopener">{% if photo.is_image %}<img src="{% url 'download_document' photo.pk %}" alt="{{ photo.title }}" class="rounded border" style="width:64px;height:64px;object-fit:cover">{% else %}{% icon "image" %}{% endif %}</a>
+      {% endfor %}
+      <form method="post" enctype="multipart/form-data" action="{% url 'rental:inventory_add_photo' inventory.pk form.instance.pk %}" class="d-flex align-items-center gap-1">
+        {% csrf_token %}
+        <label class="btn btn-sm btn-outline-secondary mb-0">
+          {% icon "camera" "me-1" %}{% translate "Photo" %}
+          <input type="file" name="photo" accept="image/*" capture="environment" class="d-none" data-auto-submit>
+        </label>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+  <form method="post" action="{% url 'rental:inventory_add_item' inventory.pk room.pk %}" class="g-card__row d-flex gap-2">
+    {% csrf_token %}
+    <input type="text" name="name" class="form-control form-control-sm" placeholder="{% translate 'New element' %}" maxlength="100" required aria-label="{% translate 'New element' %}">
+    <button type="submit" class="btn btn-sm btn-outline-primary flex-shrink-0">{% icon "plus" "me-1" %}{% translate "Add" %}</button>
+  </form>
+</section>
+<div class="g-sticky-actions">
+  <button type="submit" form="room-form" class="btn btn-primary">{% translate "Save the room" %}</button>
+</div>
+{% endblock %}

@@ -6,9 +6,20 @@ from typing import cast
 from django.http import HttpResponseBase
 from django.urls import path
 
-from . import views
+from . import (
+    application_views,
+    inventory_views,
+    signature_views,
+    views,
+)
 
 app_name = "rental"
+
+
+def _post(view) -> Callable[..., HttpResponseBase]:
+    """A ``require_POST`` view, typed for ``path``."""
+    return cast(Callable[..., HttpResponseBase], view)
+
 
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
@@ -16,13 +27,13 @@ urlpatterns = [
     path("lease/<int:pk>/documents/", views.lease_documents, name="lease_documents"),
     path(
         "lease/<int:pk>/documents/upload/",
-        cast(Callable[..., HttpResponseBase], views.upload_lease_document),
+        _post(views.upload_lease_document),
         name="upload_lease_document",
     ),
     path("lease/<int:pk>/payments/", views.lease_payments, name="lease_payments"),
     path(
         "lease/<int:pk>/schedule/",
-        cast(Callable[..., HttpResponseBase], views.create_schedule),
+        _post(views.create_schedule),
         name="create_schedule",
     ),
     path(
@@ -34,6 +45,107 @@ urlpatterns = [
     path(
         "lease/<int:pk>/emails/<str:kind>/", views.compose_email, name="compose_email"
     ),
+    # Lease PDF, signatures and move-in
+    path("lease/<int:pk>/pdf/", signature_views.lease_download, name="lease_pdf"),
+    path("lease/<int:pk>/sign/", _post(signature_views.sign_lease), name="sign_lease"),
+    path(
+        "lease/<int:pk>/deposit/",
+        _post(signature_views.receive_deposit),
+        name="receive_deposit",
+    ),
+    path(
+        "signature/<int:pk>/refresh/",
+        _post(signature_views.refresh_signature),
+        name="refresh_signature",
+    ),
+    # Inventories
+    path(
+        "lease/<int:pk>/inventories/",
+        inventory_views.lease_inventories,
+        name="lease_inventories",
+    ),
+    path(
+        "lease/<int:pk>/inventories/new/<str:kind>/",
+        _post(inventory_views.create_inventory),
+        name="create_inventory",
+    ),
+    path(
+        "inventory/<int:pk>/",
+        inventory_views.inventory_detail,
+        name="inventory_detail",
+    ),
+    path(
+        "inventory/<int:pk>/pdf/",
+        inventory_views.inventory_download,
+        name="inventory_pdf",
+    ),
+    path(
+        "inventory/<int:pk>/sign/",
+        _post(signature_views.sign_inventory),
+        name="sign_inventory",
+    ),
+    path(
+        "inventory/<int:pk>/room/new/",
+        _post(inventory_views.add_room),
+        name="inventory_add_room",
+    ),
+    path(
+        "inventory/<int:pk>/room/<int:room_pk>/",
+        inventory_views.inventory_room,
+        name="inventory_room",
+    ),
+    path(
+        "inventory/<int:pk>/room/<int:room_pk>/delete/",
+        _post(inventory_views.delete_room),
+        name="inventory_delete_room",
+    ),
+    path(
+        "inventory/<int:pk>/room/<int:room_pk>/item/new/",
+        _post(inventory_views.add_item),
+        name="inventory_add_item",
+    ),
+    path(
+        "inventory/<int:pk>/item/<int:item_pk>/delete/",
+        _post(inventory_views.delete_item),
+        name="inventory_delete_item",
+    ),
+    path(
+        "inventory/<int:pk>/item/<int:item_pk>/photo/",
+        _post(inventory_views.add_photo),
+        name="inventory_add_photo",
+    ),
+    # Applications
+    path("applications/", application_views.applications, name="applications"),
+    path(
+        "applications/new/",
+        application_views.edit_application,
+        name="new_application",
+    ),
+    path(
+        "application/<int:pk>/",
+        application_views.application_detail,
+        name="application_detail",
+    ),
+    path(
+        "application/<int:pk>/edit/",
+        application_views.edit_application,
+        name="edit_application",
+    ),
+    path(
+        "application/<int:pk>/upload/",
+        _post(application_views.upload_application_document),
+        name="upload_application_document",
+    ),
+    path(
+        "application/<int:pk>/status/",
+        _post(application_views.set_application_status),
+        name="set_application_status",
+    ),
+    path(
+        "application/<int:pk>/accept/",
+        application_views.accept_application,
+        name="accept_application",
+    ),
     path("lease/<int:lease_pk>/party/new/", views.edit_party, name="new_party"),
     path(
         "lease/<int:lease_pk>/party/<int:pk>/edit/",
@@ -42,7 +154,7 @@ urlpatterns = [
     ),
     path(
         "lease/<int:lease_pk>/party/<int:pk>/delete/",
-        cast(Callable[..., HttpResponseBase], views.delete_party),
+        _post(views.delete_party),
         name="delete_party",
     ),
 ]

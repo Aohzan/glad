@@ -1,0 +1,9 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n %}
+
+{% block lease_content %}
+<div class="row g-3">
+  {% with inventory=entry kind="entry" %}{% translate "Entry inventory" as label %}{% include "rental/_inventory_card.html" %}{% endwith %}
+  {% with inventory=exit kind="exit" %}{% translate "Exit inventory" as label %}{% include "rental/_inventory_card.html" %}{% endwith %}
+</div>
+{% endblock %}

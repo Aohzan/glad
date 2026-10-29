@@ -68,3 +68,76 @@ def required_diagnostics(lease: Lease, today: datetime.date) -> list[str]:
     if year is None or today.year - year > INSTALLATION_AGE_YEARS:
         items.append(_("Electricity and gas installations"))
     return [str(item) for item in items]
+
+
+# ── Rental applications (décret n° 2015-1437 du 5 novembre 2015) ─────────────
+
+#: Rent and charges above this share of the income are flagged (indicative,
+#: the threshold most landlords and insurers use).
+EFFORT_RATE_MAX = 33
+
+#: Documents a landlord may ask a candidate for (one per kind is enough).
+ALLOWED_APPLICATION_DOCUMENTS = (
+    _("An identity document with a photo"),
+    _("A proof of address: last rent receipts, tax notice or certificate of residence"),
+    _("Proof of the professional situation: employment contract, student card…"),
+    _("Proof of the resources: last 3 payslips, last tax notice, pensions…"),
+)
+
+#: Documents the landlord must never ask for (annex of the décret).
+FORBIDDEN_APPLICATION_DOCUMENTS = (
+    _("Bank statements or a certificate of good account keeping"),
+    _("A health insurance card or a medical record"),
+    _("A marriage certificate, a family record book or a criminal record"),
+    _("A photo, other than on the identity document"),
+    _("A cheque to book the dwelling or a direct debit authorisation"),
+    _(
+        "A certificate from the previous landlord that the rent was paid, when "
+        "rent receipts can be given"
+    ),
+)
+
+# ── Inventory of fixtures ────────────────────────────────────────────────────
+#
+# The rooms and elements are written in French: they end up in the inventory
+# signed by the tenant.
+
+#: Elements checked in most rooms.
+_SURFACES = ("Murs", "Sol", "Plafond", "Porte", "Fenêtres", "Éclairage", "Prises")
+
+DEFAULT_ROOMS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Entrée", (*_SURFACES, "Interphone")),
+    ("Séjour", (*_SURFACES, "Chauffage")),
+    ("Cuisine", (*_SURFACES, "Évier", "Plan de travail", "Placards", "Hotte")),
+    ("Chambre", (*_SURFACES, "Placard", "Chauffage")),
+    (
+        "Salle de bains",
+        (*_SURFACES, "Lavabo", "Douche ou baignoire", "Robinetterie", "Ventilation"),
+    ),
+    ("WC", ("Murs", "Sol", "Plafond", "Porte", "Cuvette et chasse d'eau")),
+)
+
+#: Equipment a furnished dwelling must have (décret n° 2015-981 du 31 juillet
+#: 2015), checked in its own room of the inventory.
+FURNITURE_ROOM = "Mobilier"
+MANDATORY_FURNITURE = (
+    "Literie avec couette ou couverture",
+    "Occultation des fenêtres des chambres",
+    "Plaques de cuisson",
+    "Four ou four à micro-ondes",
+    "Réfrigérateur avec compartiment congélation",
+    "Vaisselle pour les repas",
+    "Ustensiles de cuisine",
+    "Table et sièges",
+    "Étagères de rangement",
+    "Luminaires",
+    "Matériel d'entretien ménager",
+)
+
+#: Meters read in the inventory.
+METERS = (
+    ("electricity", _("Electricity")),
+    ("gas", _("Gas")),
+    ("cold_water", _("Cold water")),
+    ("hot_water", _("Hot water")),
+)

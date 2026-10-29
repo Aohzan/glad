@@ -73,7 +73,66 @@
     </section>
   </div>
 
-  <div class="col-lg-5">
+  <div class="col-lg-5 d-flex flex-column gap-3">
+    {% if show_steps %}
+    <section class="g-card" id="move-in">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Move-in" %}</h2>
+      </div>
+      <ul class="list-unstyled g-card__body mb-0">
+        {% for step in steps %}
+        <li class="d-flex align-items-center justify-content-between gap-2 py-1">
+          <span class="d-flex align-items-center gap-2">{% if step.done %}{% icon "circle-check" "text-success" %}{% else %}{% icon "circle" "text-secondary" %}{% endif %}{{ step.label }}</span>
+          {% if not step.done %}
+            {% if step.url %}<a class="small" href="{{ step.url }}">{% translate "Do it" %}</a>
+            {% else %}
+            <form method="post" action="{% url 'rental:receive_deposit' lease.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-primary">{% icon "hand-coins" "me-1" %}{% blocktranslate with amount=lease.deposit_amount|format_money %}{{ amount }} received{% endblocktranslate %}</button>
+            </form>
+            {% endif %}
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <section class="g-card" id="lease-signatures">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Electronic signature" %}</h2>
+        {% if can_sign %}
+        <form method="post" action="{% url 'rental:sign_lease' lease.pk %}" data-confirm="{% translate 'Send the lease to the landlord and the tenants for signature? Read the PDF first.' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-primary">{% icon "signature" "me-1" %}{% translate "Sign the lease" %}</button>
+        </form>
+        {% endif %}
+      </div>
+      {% for signature in signatures %}
+      <div class="g-card__row">
+        <div class="d-flex justify-content-between align-items-center gap-2">
+          <span class="fw-semibold">{{ signature.title }}</span>
+          {% if signature.status == "completed" %}<span class="g-tag g-tag--pos">{{ signature.get_status_display }}</span>{% elif signature.status == "rejected" %}<span class="g-tag g-tag--neg">{{ signature.get_status_display }}</span>{% else %}<span class="g-tag g-tag--warn">{{ signature.get_status_display }}</span>{% endif %}
+        </div>
+        <div class="small text-body-secondary">
+          {% for signer in signature.signers %}{{ signer.name }} {% if signer.status == "signed" %}✓{% else %}…{% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}
+        </div>
+        {% if signature.error %}<div class="small text-danger">{{ signature.error }}</div>{% endif %}
+        {% if signature.signed_document %}<a class="small" href="{% url 'download_document' signature.signed_document.pk %}">{% icon "file-down" "me-1" %}{% translate "Signed PDF" %}</a>{% endif %}
+        {% if signature.status == "pending" %}
+        <form method="post" action="{% url 'rental:refresh_signature' signature.pk %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-link btn-sm p-0">{% translate "Check now" %}</button>
+        </form>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="g-card__body small text-body-secondary">
+        {% if can_sign %}{% translate "Send the lease or an inventory to be signed online by the landlord and the tenants." %}{% else %}{% translate "Set DOCUMENSO_URL and DOCUMENSO_API_TOKEN to sign online with a Documenso instance; otherwise sign on paper and add the scan to the documents." %}{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+
     <section class="g-card" id="lease-checklist">
       <div class="g-section-head">
         <h2 class="g-h2">{% translate "Checklist" %}</h2>

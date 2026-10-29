@@ -319,6 +319,11 @@ TASKS = {
     }
 }
 
+# Electronic signature of the leases and inventories through a Documenso
+# instance (https://documenso.com, self-hostable); disabled when unset.
+DOCUMENSO_URL = os.getenv("DOCUMENSO_URL", "")
+DOCUMENSO_API_TOKEN = os.getenv("DOCUMENSO_API_TOKEN", "")
+
 # Time of the daily notification checks (HH:MM, server time zone).
 NOTIFICATIONS_TIME = os.getenv("NOTIFICATIONS_TIME", "08:00")
 

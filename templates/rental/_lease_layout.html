@@ -6,6 +6,7 @@
 {% block page_title %}{{ lease.name|default:_("Lease") }}{% endblock %}
 {% block page_description %}<a class="text-reset" href="{% url 'property:detail' lease.property.pk %}">{{ lease.property.name }}</a> · {{ lease.get_lease_type_display }} · {% include "rental/_lease_status.html" %}{% endblock %}
 {% block page_actions %}
+<a class="btn btn-outline-secondary" href="{% url 'rental:lease_pdf' lease.pk %}">{% icon "file-down" %}{% translate "Lease PDF" %}</a>
 <a class="btn btn-outline-secondary" href="{% url 'property:edit_lease' lease.property.pk lease.pk %}">{% icon "pencil" %}{% translate "Edit the lease" %}</a>
 {% endblock %}
 
@@ -19,6 +20,7 @@
   <ul class="nav nav-tabs mb-0">
     <li class="nav-item"><a class="nav-link{% if tab == 'summary' %} active{% endif %}" href="{% url 'rental:lease_detail' lease.pk %}"{% if tab == 'summary' %} aria-current="page"{% endif %}>{% icon "info" "me-1" %}{% translate "Summary" %}</a></li>
     <li class="nav-item"><a class="nav-link{% if tab == 'payments' %} active{% endif %}" href="{% url 'rental:lease_payments' lease.pk %}"{% if tab == 'payments' %} aria-current="page"{% endif %}>{% icon "wallet" "me-1" %}{% translate "Payments" %}</a></li>
+    <li class="nav-item"><a class="nav-link{% if tab == 'inventories' %} active{% endif %}" href="{% url 'rental:lease_inventories' lease.pk %}"{% if tab == 'inventories' %} aria-current="page"{% endif %}>{% icon "clipboard-check" "me-1" %}{% translate "Inventories" %}</a></li>
     <li class="nav-item"><a class="nav-link{% if tab == 'documents' %} active{% endif %}" href="{% url 'rental:lease_documents' lease.pk %}"{% if tab == 'documents' %} aria-current="page"{% endif %}>{% icon "file-text" "me-1" %}{% translate "Documents" %}</a></li>
     <li class="nav-item"><a class="nav-link{% if tab == 'emails' %} active{% endif %}" href="{% url 'rental:lease_emails' lease.pk %}"{% if tab == 'emails' %} aria-current="page"{% endif %}>{% icon "mail" "me-1" %}{% translate "Emails" %}</a></li>
   </ul>

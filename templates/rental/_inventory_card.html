@@ -1,0 +1,26 @@
+{% load i18n %}
+<div class="col-md-6">
+  <section class="g-card h-100" id="inventory-{{ kind }}">
+    <div class="g-section-head">
+      <h2 class="g-h2">{{ label }}</h2>
+      {% if inventory %}{% if inventory.status == "signed" %}<span class="g-tag g-tag--pos">{{ inventory.get_status_display }}</span>{% else %}<span class="g-tag">{{ inventory.get_status_display }}</span>{% endif %}{% endif %}
+    </div>
+    <div class="g-card__body">
+      {% if inventory %}
+      <p class="small text-body-secondary">{{ inventory.date }}</p>
+      <a class="btn btn-primary btn-sm" href="{% url 'rental:inventory_detail' inventory.pk %}">{% icon "clipboard-check" "me-1" %}{% translate "Open" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'rental:inventory_pdf' inventory.pk %}">{% icon "file-down" "me-1" %}PDF</a>
+      {% else %}
+      <form method="post" action="{% url 'rental:create_inventory' lease.pk kind %}" class="d-flex flex-wrap align-items-end gap-2">
+        {% csrf_token %}
+        <div>
+          <label class="form-label small" for="date-{{ kind }}">{% translate "Date" %}</label>
+          <input type="date" class="form-control form-control-sm" id="date-{{ kind }}" name="date" value="{{ today|date:'Y-m-d' }}">
+        </div>
+        <button type="submit" class="btn btn-sm btn-outline-primary">{% icon "plus" "me-1" %}{% translate "Start" %}</button>
+      </form>
+      <p class="form-text mt-2 mb-0">{% if kind == "entry" %}{% translate "With the usual rooms, and the mandatory furniture of a furnished dwelling." %}{% else %}{% translate "With the rooms and elements of the entry inventory, to compare them." %}{% endif %}</p>
+      {% endif %}
+    </div>
+  </section>
+</div>
