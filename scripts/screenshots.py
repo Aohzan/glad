@@ -53,6 +53,11 @@ PAGES = [
     ("scpi", "/property/scpi/", None),
     # Down to the end of the sankey diagram.
     ("budget", f"/budget/{YEAR}/", 792),
+    ("rental_dashboard", "/rental/", None),
+    ("rental_lease", "/rental/lease/3/", None),
+    ("rental_inventory", "/rental/inventory/1/", None),
+    # Down to the first group of alerts.
+    ("notifications_settings", "/notifications/settings/", 1400),
 ]
 
 SETTINGS = """
@@ -70,6 +75,12 @@ MIDDLEWARE.insert(
 
 AUTO_LOGIN = """
 from django.contrib.auth import get_user_model, login
+from django.contrib.auth.signals import user_logged_in
+
+from accounts.signals import send_login_notification
+
+# Each capture logs in again: no login alert under the bell.
+user_logged_in.disconnect(send_login_notification)
 
 
 class AutoLogin:
