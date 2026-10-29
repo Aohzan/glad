@@ -406,5 +406,12 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        # yfinance logs every unknown or delisted symbol as an error; the price
+        # job reports them itself.
+        "yfinance": {
+            "handlers": ["stderr"],
+            "level": "CRITICAL",
+            "propagate": False,
+        },
     },
 }
