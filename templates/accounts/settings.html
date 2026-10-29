@@ -153,6 +153,10 @@
                 <div id="session-timeout-status" class="mt-2 small" aria-live="polite"></div>
             </div>
         </div>
+
+        {% if scheduled_jobs %}
+        {% include "accounts/_background_jobs.html" %}
+        {% endif %}
     </div>
 </div>
 {% endblock %}

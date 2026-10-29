@@ -27,6 +27,27 @@ echo "Importing initial data..."
 python manage.py loaddata finance/fixtures/*.yaml
 echo
 
+# Keep a background command running: restart it a few seconds after it exits.
+supervise() {
+  while true; do
+    "$@" || echo "$* exited with status $?, restarting..."
+    sleep 5
+  done
+}
+
+case "$(echo "${BACKGROUND_JOBS_ENABLED:-true}" | tr '[:upper:]' '[:lower:]')" in
+  false | 0 | no)
+    echo "Background jobs disabled"
+    ;;
+  *)
+    echo "Starting the background worker and scheduler..."
+    # A single worker: SQLite does not support concurrent task workers.
+    supervise python manage.py db_worker --no-reload &
+    supervise python manage.py run_scheduler &
+    ;;
+esac
+echo
+
 echo "Starting server..."
 # shellcheck disable=SC2086 # UVICORN_OPTIONS is intentionally word-split
 exec uvicorn --host 0.0.0.0 --port 8000 ${UVICORN_OPTIONS} glad.asgi:application

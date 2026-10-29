@@ -2,6 +2,7 @@
 
 import glob
 import os
+import tempfile
 from typing import cast
 
 import pytest
@@ -22,6 +23,10 @@ settings.STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+# Uploads land in a throwaway directory (background tasks run inline through
+# TASKS_BACKEND=immediate in .env.dev).
+settings.MEDIA_ROOT = tempfile.mkdtemp(prefix="glad-test-media-")
 
 User = get_user_model()
 

@@ -1,0 +1,54 @@
+{% load i18n %}
+<div class="card mb-4" id="background-jobs">
+    <div class="card-header">
+        <h5 class="mb-0">{% icon "clock" "me-2" %}{% translate "Background jobs" %}</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small">
+            {% translate "Jobs run automatically by the scheduler started next to the application." %}
+        </p>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>{% translate "Job" %}</th>
+                        <th>{% translate "Schedule" %}</th>
+                        <th>{% translate "Last run" %}</th>
+                        <th>{% translate "Status" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in scheduled_jobs %}
+                    <tr>
+                        <td>{{ row.job.label }}</td>
+                        <td class="text-nowrap small">
+                            {% if row.job.at %}{% blocktranslate with time=row.job.at|time:"H:i" %}Daily at {{ time }}{% endblocktranslate %}{% else %}{% blocktranslate with minutes=row.job.every_minutes %}Every {{ minutes }} min{% endblocktranslate %}{% endif %}
+                        </td>
+                        <td class="text-nowrap small">
+                            {% if row.state.last_started_at %}{{ row.state.last_started_at|date:"SHORT_DATETIME_FORMAT" }}{% else %}—{% endif %}
+                        </td>
+                        <td class="small">
+                            {% if row.state.last_status == "success" %}
+                            <span class="badge text-bg-success">{{ row.state.get_last_status_display }}</span>
+                            {% elif row.state.last_status == "failed" %}
+                            <span class="badge text-bg-danger" title="{{ row.state.last_message }}">{{ row.state.get_last_status_display }}</span>
+                            {% elif row.state.last_status %}
+                            <span class="badge text-bg-secondary">{{ row.state.get_last_status_display }}</span>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-end">
+                            <form method="post" action="{% url 'run_scheduled_job' row.job.name %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-primary btn-sm" title="{% translate 'Run now' %}">
+                                    {% icon "play" %}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

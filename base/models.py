@@ -1,7 +1,9 @@
 """General models for the application."""
 
 import datetime
+import uuid
 from decimal import Decimal
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -210,3 +212,146 @@ class Ownership(BaseModel):
     def __str__(self) -> str:
         right = Ownership.Right(self.right).label
         return f"{self.user} {self.share}% {right} ({self.asset})"
+
+
+class ScheduledJob(models.Model):
+    """Run state of a periodic job declared in ``base.scheduler``.
+
+    ``last_enqueued_at`` doubles as a lock: the scheduler claims a run with a
+    conditional update on its previous value, so two schedulers never enqueue
+    the same run twice.
+    """
+
+    class Status(models.TextChoices):
+        ENQUEUED = "enqueued", _("Enqueued")
+        RUNNING = "running", _("Running")
+        SUCCESS = "success", _("Succeeded")
+        FAILED = "failed", _("Failed")
+
+    class Meta:
+        verbose_name = _("scheduled job")
+        verbose_name_plural = _("scheduled jobs")
+        ordering = ["name"]
+
+    name = models.CharField(max_length=64, unique=True)
+    last_enqueued_at = models.DateTimeField(null=True, blank=True)
+    last_started_at = models.DateTimeField(null=True, blank=True)
+    last_finished_at = models.DateTimeField(null=True, blank=True)
+    last_status = models.CharField(max_length=10, choices=Status.choices, blank=True)
+    last_message = models.TextField(blank=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+def document_upload_to(instance: Document, filename: str) -> str:
+    """Store uploads under a random name: the original one is kept in the row."""
+    suffix = Path(filename).suffix.lower()
+    today = datetime.date.today()
+    return f"documents/{today:%Y/%m}/{uuid.uuid4().hex}{suffix}"
+
+
+class Document(BaseModel):
+    """File attached to any object (lease, tenant application, inventory…)."""
+
+    class Kind(models.TextChoices):
+        LEASE = "lease", _("Lease")
+        INVENTORY = "inventory", _("Inventory of fixtures")
+        DIAGNOSTIC = "diagnostic", _("Diagnostic")
+        INSURANCE = "insurance", _("Insurance certificate")
+        IDENTITY = "identity", _("Identity document")
+        INCOME = "income", _("Proof of income")
+        GUARANTEE = "guarantee", _("Guarantee")
+        RECEIPT = "receipt", _("Rent receipt")
+        STATEMENT = "statement", _("Statement")
+        LETTER = "letter", _("Letter")
+        PHOTO = "photo", _("Photo")
+        OTHER = "other", _("Other")
+
+    class Meta:
+        verbose_name = _("document")
+        verbose_name_plural = _("documents")
+        ordering = ["-created_at", "-pk"]
+        indexes = [models.Index(fields=["content_type", "object_id"])]
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveBigIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+    kind = models.CharField(
+        max_length=20, choices=Kind.choices, default=Kind.OTHER, verbose_name=_("Type")
+    )
+    title = models.CharField(max_length=200, verbose_name=_("Title"))
+    file = models.FileField(upload_to=document_upload_to, verbose_name=_("File"))
+    original_name = models.CharField(max_length=255, blank=True)
+    mime_type = models.CharField(max_length=100, blank=True)
+    size = models.PositiveBigIntegerField(default=0)
+    valid_until = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Valid until"),
+        help_text=_("For a certificate or a diagnostic that expires."),
+    )
+    notes = models.TextField(blank=True, verbose_name=_("Notes"))
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+
+    def __str__(self) -> str:
+        return self.title
+
+    @property
+    def is_image(self) -> bool:
+        return self.mime_type.startswith("image/")
+
+    @property
+    def is_expired(self) -> bool:
+        return self.valid_until is not None and self.valid_until < datetime.date.today()
+
+
+class SentEmail(BaseModel):
+    """Email sent from the application, kept as a record of what was sent."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Pending")
+        SENT = "sent", _("Sent")
+        FAILED = "failed", _("Failed")
+
+    class Meta:
+        verbose_name = _("sent email")
+        verbose_name_plural = _("sent emails")
+        ordering = ["-created_at", "-pk"]
+        indexes = [models.Index(fields=["content_type", "object_id"])]
+
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True
+    )
+    object_id = models.PositiveBigIntegerField(null=True, blank=True)
+    related = GenericForeignKey("content_type", "object_id")
+    kind = models.CharField(max_length=40, blank=True)
+    #: What the email is about within its kind, e.g. the period of a rent call.
+    reference = models.CharField(max_length=40, blank=True)
+    to = models.JSONField(default=list)
+    cc = models.JSONField(default=list, blank=True)
+    reply_to = models.EmailField(blank=True)
+    subject = models.CharField(max_length=255)
+    body = models.TextField()
+    attachments = models.ManyToManyField(Document, blank=True, related_name="emails")
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING
+    )
+    error = models.TextField(blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    sent_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+
+    def __str__(self) -> str:
+        return self.subject

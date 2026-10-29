@@ -113,6 +113,7 @@ INSTALLED_APPS = [
     # 3rd party apps
     "djmoney",
     "servestatic",
+    "django_tasks_db",
 ]
 
 MIDDLEWARE = [
@@ -295,6 +296,25 @@ else:
             "BACKEND": "servestatic.storage.CompressedManifestStaticFilesStorage",
         },
     }
+
+# Uploaded documents live in the persistent data volume and are only served
+# through an authenticated view (base.document_views), never as /media/ URLs.
+MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", BASE_DIR / "data" / "media"))
+#: Largest accepted upload, in bytes.
+DOCUMENT_MAX_SIZE = 20 * 1024 * 1024
+
+# Background tasks (django.tasks). The database backend queues them for the
+# db_worker process started next to the web server; "immediate" runs them
+# inline, which suits development without a worker.
+TASKS = {
+    "default": {
+        "BACKEND": (
+            "django.tasks.backends.immediate.ImmediateBackend"
+            if os.getenv("TASKS_BACKEND") == "immediate"
+            else "django_tasks_db.DatabaseBackend"
+        ),
+    }
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field

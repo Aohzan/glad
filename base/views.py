@@ -5,10 +5,10 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_not_required
+from django.contrib.auth.decorators import login_not_required, user_passes_test
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -17,6 +17,7 @@ from django.views.decorators.http import require_POST
 
 from base.forms import MonthlyExpensesForm, PeopleFilterForm
 from base.models import EconomicIndex
+from base.scheduler import enqueue, get_job, jobs
 from base.services.allocation import (
     EMERGENCY_FUND_MONTHS,
     compute_allocation,
@@ -154,6 +155,27 @@ def refresh_economic_indices(request: HttpRequest) -> HttpResponse:
     ):
         next_url = reverse("index")
     return redirect(next_url)
+
+
+def scheduled_jobs_status() -> list[dict[str, Any]]:
+    """Every periodic job with its last run, for the settings page."""
+    from base.models import ScheduledJob
+
+    states = {state.name: state for state in ScheduledJob.objects.all()}
+    return [{"job": job, "state": states.get(job.name)} for job in jobs()]
+
+
+@require_POST  # type: ignore
+@user_passes_test(lambda user: getattr(user, "is_superuser", False))
+def run_scheduled_job(request: HttpRequest, name: str) -> HttpResponse:
+    """Enqueue a periodic job right away."""
+    try:
+        job = get_job(name)
+    except KeyError as exc:
+        raise Http404 from exc
+    enqueue(job, force=True)
+    messages.success(request, _("Job “%(job)s” started.") % {"job": job.label})
+    return redirect(f"{reverse('accounts:settings')}#background-jobs")
 
 
 @login_not_required
