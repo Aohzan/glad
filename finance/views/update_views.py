@@ -93,6 +93,7 @@ def update_accounts(request):
                     "new_quantity": holding.quantity,
                     "isin": holding.isin,  # For the live-fetch button, not a form field
                     "account_id": account.id,  # For the live-fetch button URL
+                    "auto_update_price": holding.auto_update_price,  # Badge only
                 }
             )
         investment_accounts_initial_data[str(account)]["holdings"] = holding_data

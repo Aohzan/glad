@@ -20,6 +20,9 @@
         <div class="fw-semibold">
           {{ form.holding_name }}{{ form.initial.holding_name }}
         </div>
+        {% if form.initial.auto_update_price %}
+        <span class="badge text-bg-light border" title="{% translate 'The price is updated automatically every day.' %}">{% icon "refresh-cw" "me-1" %}{% translate "Auto" %}</span>
+        {% endif %}
         {% if form.initial.isin and live_data_enabled %}
         <button type="button" class="btn btn-sm btn-outline-secondary fetch-live-value-btn py-0 px-2">
           <span class="fetch-live-value-spinner spinner-border spinner-border-sm me-1 d-none"></span>{% icon "radio" "me-1" %}{% translate "Fetch" %}

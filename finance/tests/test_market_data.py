@@ -10,6 +10,7 @@ from django.core.cache import cache
 from finance.services.market_data import (
     LiveQuote,
     MarketDataError,
+    fetch_daily_closes,
     fetch_historical_prices,
     fetch_holding_autofill,
     fetch_live_quote,
@@ -280,3 +281,41 @@ class TestFetchHistoricalPrices:
                 datetime.date(2025, 1, 1),
                 datetime.date(2025, 3, 31),
             )
+
+
+class TestFetchDailyCloses:
+    """Tests for fetch_daily_closes."""
+
+    @patch("finance.services.market_data.yfinance.Ticker")
+    def test_skips_missing_closes(self, mock_ticker):
+        import pandas as pd
+
+        mock_ticker.return_value.history.return_value = pd.DataFrame(
+            {"Close": [100.0, float("nan"), 102.0]},
+            index=pd.to_datetime(["2026-10-26", "2026-10-27", "2026-10-28"]),
+        )
+        mock_ticker.return_value.fast_info = {"currency": "EUR"}
+        points, currency = fetch_daily_closes("LU1681043599")
+        assert currency == "EUR"
+        assert [p.date for p in points] == [
+            datetime.date(2026, 10, 26),
+            datetime.date(2026, 10, 28),
+        ]
+        mock_ticker.return_value.history.assert_called_once_with(
+            period="45d", interval="1d"
+        )
+
+    @patch("finance.services.market_data.yfinance.Ticker")
+    def test_empty_history_raises(self, mock_ticker):
+        import pandas as pd
+
+        mock_ticker.return_value.history.return_value = pd.DataFrame()
+        mock_ticker.return_value.fast_info = {"currency": "EUR"}
+        with pytest.raises(MarketDataError):
+            fetch_daily_closes("LU1681043599")
+
+    @patch("finance.services.market_data.yfinance.Ticker")
+    def test_ticker_exception_raises_market_data_error(self, mock_ticker):
+        mock_ticker.side_effect = Exception("network error")
+        with pytest.raises(MarketDataError):
+            fetch_daily_closes("INVALID000000")

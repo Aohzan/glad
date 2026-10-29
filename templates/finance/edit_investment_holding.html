@@ -83,6 +83,14 @@
               <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{% translate "Active" %}</label>
             </div>
           </div>
+          <div class="col-12">
+            <div class="form-check form-switch">
+              {{ form.auto_update_price }}
+              <label class="form-check-label" for="{{ form.auto_update_price.id_for_label }}">{{ form.auto_update_price.label }}</label>
+            </div>
+            <div class="form-text">{{ form.auto_update_price.help_text }}</div>
+            {% if form.auto_update_price.errors %}<div class="invalid-feedback d-block">{{ form.auto_update_price.errors }}</div>{% endif %}
+          </div>
         </div>
       </div>
     </div>
