@@ -680,3 +680,17 @@ def test_update_email_exception(user_client, monkeypatch):
     )
     assert response.status_code == 400
     assert response.json()["error"] == "update_failed"
+
+
+@pytest.mark.django_db
+def test_update_postal_address(user_client, user):
+    url = reverse("accounts:update_postal_address")
+    assert user_client.get(url).status_code == 405
+    response = user_client.post(
+        url, {"postal_address": " 1 rue des Lilas\n75000 Paris "}
+    )
+    assert response.status_code == 302
+    user.profile.refresh_from_db()
+    assert user.profile.postal_address == "1 rue des Lilas\n75000 Paris"
+    response = user_client.get(reverse("accounts:settings"))
+    assert "1 rue des Lilas" in response.content.decode()

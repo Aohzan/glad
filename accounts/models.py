@@ -41,6 +41,11 @@ class UserProfile(models.Model):
         verbose_name=_("Child"),
         help_text=_("A child is a household member who cannot log in."),
     )
+    postal_address = models.TextField(
+        blank=True,
+        verbose_name=_("Postal address"),
+        help_text=_("Written as the landlord address on the leases and receipts."),
+    )
     monthly_expenses = models.DecimalField(
         max_digits=10,
         decimal_places=2,
