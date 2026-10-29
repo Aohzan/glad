@@ -3,6 +3,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+lazy import apprise
 
 from notifications.registry import NotificationType
 
@@ -22,8 +23,6 @@ class ChannelForm(forms.Form):
 
     def clean_url(self) -> str:
         url = self.cleaned_data["url"].strip()
-        import apprise  # imported when checking: the library is large
-
         if not apprise.Apprise().add(url):
             raise ValidationError(_("This is not a valid Apprise URL."))
         return url

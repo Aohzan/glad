@@ -8,8 +8,8 @@ are percentages of the page, as the API expects.
 import json
 from dataclasses import dataclass
 
-import httpx
 from django.conf import settings
+lazy import httpx
 
 TIMEOUT = 30
 

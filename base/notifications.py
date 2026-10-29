@@ -6,13 +6,13 @@ from collections.abc import Iterator
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
-import httpx
 from django.db.models import Max
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy, ngettext
 from moneyed import Money
+lazy import httpx
 
 from base.services.dashboard import default_currency, hero_summary, registry
 from base.templatetags.format_money import format_money_filter

@@ -4,7 +4,7 @@ import json
 import logging
 from decimal import Decimal
 
-import httpx
+lazy import httpx
 
 logger = logging.getLogger(__name__)
 

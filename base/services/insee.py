@@ -12,8 +12,8 @@ import re
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
-import httpx
 from django.db import transaction
+lazy import httpx
 
 from base.models import EconomicIndex, EconomicIndexValue
 

@@ -10,7 +10,6 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy, ngettext
 
 from base.models import Document
-from base.services.pdf import money
 from notifications.checks import days_before_param, month_day, when
 from notifications.registry import Event, NotificationType, Param, register
 from property.models import Lease, Property
@@ -24,6 +23,7 @@ from rental.services import departure
 from rental.services.compliance import MISSING, documents_by_lease, lease_checks
 from rental.services.dashboard import current_leases
 from rental.services.payments import lease_periods
+lazy from base.services.pdf import money
 
 #: A missing item of a lease checklist is notified again after this many days.
 COMPLIANCE_RENOTIFY_DAYS = 30

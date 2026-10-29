@@ -9,7 +9,7 @@ import logging
 
 from django.db import transaction
 from django.utils import formats, translation
-from PIL import Image, UnidentifiedImageError
+lazy from PIL import Image, UnidentifiedImageError
 
 from base.services.documents import documents_of
 from base.services.pdf import BasePdf

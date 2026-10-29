@@ -18,7 +18,7 @@ from finance.models.saving_account import SavingAccount
 from property.models import Lease, Property, PropertyLoan
 from property.models.scpi import SCPIInvestment
 from property.services.rent_revision import get_rent_revision
-from rental.services.departure import landlord_notice_deadline
+lazy from rental.services.departure import landlord_notice_deadline
 
 #: Deadlines passed for less than this are still shown.
 PAST_DAYS = 30
