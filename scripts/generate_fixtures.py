@@ -4481,6 +4481,70 @@ def generate_notifications() -> str:
     return out
 
 
+def generate_mcp() -> str:
+    """API keys of Mister (their hash matches no key) and a few logged calls."""
+    keys = [
+        (1, "Claude Code", "c0de0001", "true", "true", days_ago(1)),
+        (2, "Claude Desktop", "de5k0002", "false", "true", days_ago(12)),
+        (3, "Ancien portable", "01d00003", "false", "false", None),
+    ]
+    out = ""
+    for pk, name, prefix, can_write, active, used in keys:
+        out += f"""- model: mcp_server.apikey
+  pk: {pk}
+  fields:
+    user: {MISTER}
+    name: "{name}"
+    prefix: "{prefix}"
+    key_hash: "{"0" * 64}"
+    can_write: {can_write}
+    is_active: {active}
+    last_used_at: {dt(used) if used else "null"}
+    last_used_ip: "{"192.168.1.20" if used else ""}"
+    created_at: {dt(days_ago(60 * pk))}
+    updated_at: {dt(used or days_ago(60 * pk))}
+"""
+    calls = [
+        (1, "get_net_worth", "{}", "false", "true", ""),
+        (1, "get_pending_checks", "{}", "false", "true", ""),
+        (1, "get_lease", '{"lease_id": 3}', "false", "true", ""),
+        (
+            1,
+            "check_ledger_occurrence",
+            '{"entry_id": 9, "occurrence_date": "2026-01-05"}',
+            "true",
+            "false",
+            "2026-01-05 is not a scheduled occurrence of entry 9.",
+        ),
+        (
+            1,
+            "add_ledger_entry",
+            (
+                '{"property_id": 1, "flow_type": "expense", '
+                '"management_category": "maintenance", "amount": "180.50"}'
+            ),
+            "true",
+            "true",
+            "",
+        ),
+        (2, "get_budget", f'{{"year": {TODAY.year}}}', "false", "true", ""),
+    ]
+    for pk, (key, tool, arguments, is_write, success, error) in enumerate(calls, 1):
+        out += f"""- model: mcp_server.mcpcalllog
+  pk: {pk}
+  fields:
+    api_key: {key}
+    tool: {tool}
+    arguments: {arguments}
+    is_write: {is_write}
+    success: {success}
+    error: "{error}"
+    created_at: {dt(days_ago(len(calls) - pk))}
+    updated_at: {dt(days_ago(len(calls) - pk))}
+"""
+    return out
+
+
 def generate_household() -> str:
     """Household members (a child among them) and the ownership of the assets."""
     members = [
@@ -5120,7 +5184,10 @@ def main() -> None:
     write_fixture("property.yaml", generate_property() + generate_rental())
     write_fixture(
         "household.yaml",
-        generate_household() + generate_budget() + generate_notifications(),
+        generate_household()
+        + generate_budget()
+        + generate_notifications()
+        + generate_mcp(),
     )
     print("Done.")
 
