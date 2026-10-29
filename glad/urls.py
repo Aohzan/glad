@@ -15,6 +15,7 @@ urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     path("", include("base.urls")),
     path("notifications/", include("notifications.urls")),
+    path("mcp-access/", include("mcp_server.urls")),
     path("accounts/", include("accounts.urls")),
     path("accounts/login/", LoginView.as_view(), name="login"),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),

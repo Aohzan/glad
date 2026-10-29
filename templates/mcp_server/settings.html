@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "MCP access" %}{% endblock %}
+{% block page_title %}{% translate "MCP access" %}{% endblock %}
+{% block page_description %}{% translate "Let an AI assistant read and enter your data" %}{% endblock %}
+{% block page_actions %}
+<a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:settings' %}">{% icon "settings" "me-1" %}{% translate "Settings" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-9">
+
+{% if new_key %}
+<div class="card mb-4 border-success">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{% icon "key-round" "me-2" %}{% translate "Your new key" %}</h5>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="copy-command" data-copied="{% translate 'Copied' %}">{% icon "clipboard-copy" "me-1" %}<span>{% translate "Copy" %}</span></button>
+    </div>
+    <div class="card-body">
+        <p class="small text-danger mb-2">{% icon "triangle-alert" "me-1" %}{% translate "Copy it now: it will not be shown again." %}</p>
+        <p class="small mb-1">{% translate "To add it to Claude Code:" %}</p>
+        <pre class="mb-0 small text-wrap text-break" id="command-text">claude mcp add --transport http glad {{ endpoint }} --header "Authorization: Bearer {{ new_key }}"</pre>
+    </div>
+</div>
+{% endif %}
+
+<div class="card mb-4" id="keys">
+    <div class="card-header">
+        <h5 class="mb-0">{% icon "key-round" "me-2" %}{% translate "API keys" %}</h5>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small">
+            {% blocktranslate trimmed %}
+            An MCP client (Claude Code, Claude Desktop, Cursor…) connects to <code>{{ endpoint }}</code>
+            with a key in the <code>Authorization: Bearer</code> header. It sees the data of the whole household,
+            as you do; every call is logged below.
+            {% endblocktranslate %}
+        </p>
+        {% if keys %}
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <tbody>
+                    {% for key in keys %}
+                    <tr>
+                        <td>
+                            <span class="fw-semibold">{{ key.name }}</span>
+                            <span class="g-meta d-block small"><code>glad_{{ key.prefix }}_…</code></span>
+                        </td>
+                        <td class="small">
+                            {% if key.can_write %}<span class="badge text-bg-warning">{% translate "Read and write" %}</span>{% else %}<span class="badge text-bg-info">{% translate "Read only" %}</span>{% endif %}
+                            {% if not key.is_active %}<span class="badge text-bg-secondary">{% translate "Disabled" %}</span>{% endif %}
+                        </td>
+                        <td class="small text-muted">
+                            {% if key.last_used_at %}{% blocktranslate with date=key.last_used_at|date:"SHORT_DATETIME_FORMAT" ip=key.last_used_ip %}Used on {{ date }} from {{ ip }}{% endblocktranslate %}{% else %}{% translate "Never used" %}{% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <form method="post" action="{% url 'mcp_server:toggle_key' key.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-secondary btn-sm" title="{% if key.is_active %}{% translate 'Disable' %}{% else %}{% translate 'Enable' %}{% endif %}">{% if key.is_active %}{% icon "pause" %}{% else %}{% icon "play" %}{% endif %}</button>
+                            </form>
+                            <form method="post" action="{% url 'mcp_server:delete_key' key.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="{% translate 'Delete' %}">{% icon "trash" %}</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        <form method="post" action="{% url 'mcp_server:add_key' %}">
+            {% csrf_token %}
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label" for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                    <input type="text" class="form-control{% if form.name.errors %} is-invalid{% endif %}" name="{{ form.name.html_name }}" id="{{ form.name.id_for_label }}" maxlength="100" placeholder="{{ form.name.field.widget.attrs.placeholder }}" value="{{ form.name.value|default:'' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" role="switch" name="{{ form.can_write.html_name }}" id="{{ form.can_write.id_for_label }}"{% if form.can_write.value %} checked{% endif %}>
+                        <label class="form-check-label" for="{{ form.can_write.id_for_label }}">{{ form.can_write.label }}</label>
+                    </div>
+                </div>
+                <div class="col-md-3 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">{% icon "plus" "me-1" %}{% translate "Create the key" %}</button>
+                </div>
+            </div>
+            <div class="form-text">{{ form.can_write.help_text }}</div>
+            {% for field in form %}{% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|join:" " }}</div>{% endif %}{% endfor %}
+        </form>
+    </div>
+</div>
+
+<div class="card mb-4" id="calls">
+    <div class="card-header">
+        <h5 class="mb-0">{% icon "list" "me-2" %}{% translate "Latest calls" %}</h5>
+    </div>
+    {% if calls %}
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>{% translate "Date" %}</th>
+                    <th>{% translate "Key" %}</th>
+                    <th>{% translate "Tool" %}</th>
+                    <th>{% translate "Result" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for call in calls %}
+                <tr>
+                    <td class="small text-nowrap">{{ call.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+                    <td class="small">{{ call.api_key.name }}</td>
+                    <td class="small">
+                        <code>{{ call.tool }}</code>{% if call.is_write %} <span class="badge text-bg-warning">{% translate "Write" %}</span>{% endif %}
+                        {% if call.arguments %}<span class="g-meta d-block text-break">{% for name, value in call.arguments.items %}{{ name }}={{ value }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>{% endif %}
+                    </td>
+                    <td class="small">
+                        {% if call.success %}<span class="badge text-bg-success">{% translate "OK" %}</span>{% else %}<span class="badge text-bg-danger">{% translate "Error" %}</span><span class="d-block text-danger text-break">{{ call.error|truncatechars:200 }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body"><p class="text-muted small mb-0">{% translate "No call yet." %}</p></div>
+    {% endif %}
+</div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if new_key %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  const button = document.getElementById('copy-command');
+  button.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('command-text').textContent);
+      button.querySelector('span').textContent = button.dataset.copied;
+    } catch (e) {
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById('command-text'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    }
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}
