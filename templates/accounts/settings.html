@@ -32,6 +32,15 @@
                     </button>
                 </div>
                 <div id="email-status" class="mt-2 small" aria-live="polite"></div>
+                <form method="post" action="{% url 'accounts:update_postal_address' %}" class="mt-3 pt-3 border-top">
+                    {% csrf_token %}
+                    <label for="postal-address" class="h6 mb-1 d-block">{% translate "Postal address" %}</label>
+                    <p class="text-muted small mb-2">{% translate "Written as the landlord address on the leases and receipts." %}</p>
+                    <textarea class="form-control form-control-sm" id="postal-address" name="postal_address" rows="2" maxlength="500">{{ user.profile.postal_address }}</textarea>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-outline-primary btn-sm" type="submit">{% icon "save" "me-2" %}{% translate "Save" %}</button>
+                    </div>
+                </form>
             </div>
         </div>
 

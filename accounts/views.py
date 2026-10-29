@@ -13,6 +13,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
@@ -409,3 +410,13 @@ def update_live_data_preferences(request):
     except Exception as e:
         _LOGGER.error(f"Live data preferences update failed: {e}")
         return JsonResponse({"success": False, "error": "update_failed"}, status=400)
+
+
+@require_http_methods(["POST"])
+def update_postal_address(request):
+    """Save the postal address of the current user, written on the rental papers."""
+    profile, _created = UserProfile.objects.get_or_create(user=request.user)
+    profile.postal_address = request.POST.get("postal_address", "").strip()[:500]
+    profile.save(update_fields=["postal_address"])
+    messages.success(request, _("Postal address saved."))
+    return redirect("accounts:settings")
