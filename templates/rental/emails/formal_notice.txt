@@ -1,0 +1,16 @@
+{% autoescape off %}Mise en demeure de payer les loyers impayés
+
+{{ tenants }},
+
+Malgré nos précédentes relances, les loyers suivants du logement situé {{ address }} restent impayés :
+{% for item in late %}
+- {{ item.label }} (échéance du {{ item.due }}) : {{ item.balance }}{% endfor %}
+
+Soit un total de {{ arrears }}.
+
+Par la présente, je vous mets en demeure de régler cette somme sous huit jours à compter de la réception de ce courrier. À défaut, je me verrai contraint d'engager les procédures prévues par le bail et par la loi, notamment la mise en œuvre de la clause résolutoire et de la caution.
+
+{{ landlord.name }}
+{{ landlord.address }}
+Le {{ today }}
+{% endautoescape %}

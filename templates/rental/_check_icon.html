@@ -1,0 +1,1 @@
+{% if check.status == "ok" %}{% icon "circle-check" "text-success flex-shrink-0" %}{% elif check.status == "warning" %}{% icon "triangle-alert" "text-warning flex-shrink-0" %}{% elif check.status == "missing" %}{% icon "circle-x" "text-danger flex-shrink-0" %}{% else %}{% icon "circle-minus" "text-secondary flex-shrink-0" %}{% endif %}

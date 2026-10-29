@@ -37,6 +37,7 @@
           {% endif %}
           <span class="fw-semibold">{{ lease.name }}</span>
         </div>
+        <a class="btn btn-sm btn-outline-primary ms-auto me-2" href="{% url 'rental:lease_detail' lease.pk %}">{% icon "key-round" "me-1" %}{% translate "Rental management" %}</a>
         {% url 'property:edit_lease' property.pk lease.pk as edit_url %}
         {% with modal_prefix="deleteLeaseModal" %}
           {% include "property/_item_actions.html" with edit_url=edit_url modal_prefix=modal_prefix item_pk=lease.pk %}

@@ -1,0 +1,43 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n %}
+
+{% block lease_content %}
+<div class="row g-3">
+  <div class="col-lg-7 d-flex flex-column gap-3">
+    <section class="g-card" id="lease-documents">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Documents of the lease" %}</h2>
+      </div>
+      {% translate "No document yet: add the signed lease, the inventory and the insurance certificate." as empty_text %}
+      {% include "_document_list.html" with documents=lease_documents empty_text=empty_text %}
+    </section>
+    <section class="g-card" id="property-diagnostics">
+      <div class="g-section-head">
+        <div class="g-section-head__title">
+          <h2 class="g-h2">{% translate "Diagnostics of the property" %}</h2>
+          <span class="g-meta">{% translate "Shared by every lease of the property." %}</span>
+        </div>
+      </div>
+      {% translate "No diagnostic yet." as empty_text %}
+      {% include "_document_list.html" with documents=property_documents empty_text=empty_text %}
+    </section>
+  </div>
+
+  <div class="col-lg-5">
+    <section class="g-card" id="document-upload">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Add a document" %}</h2>
+      </div>
+      <form method="post" enctype="multipart/form-data" action="{% url 'rental:upload_lease_document' lease.pk %}" class="g-card__body">
+        {% csrf_token %}
+        {% include "_form_non_field_errors.html" %}
+        {% for field in form %}
+          {% include "_form_field.html" %}
+        {% endfor %}
+        <p class="form-text">{% translate "PDF, JPEG, PNG, WebP or HEIC. A diagnostic is attached to the property." %}</p>
+        <button type="submit" class="btn btn-primary">{% icon "upload" "me-1" %}{% translate "Add" %}</button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

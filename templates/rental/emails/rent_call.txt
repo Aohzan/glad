@@ -1,0 +1,15 @@
+{% autoescape off %}Avis d'échéance — loyer de {{ period.label }}
+
+Bonjour {{ tenants }},
+
+Voici l'avis d'échéance du loyer de {{ period.label }} pour le logement situé {{ address }}, payable le {{ period.due }} :
+
+- Loyer hors charges : {{ period.rent }}
+- Charges : {{ period.charges }}
+- Total à régler : {{ period.total }}
+
+Cet avis ne vaut pas quittance.
+
+Bien cordialement,
+{{ landlord.name }}
+{% endautoescape %}

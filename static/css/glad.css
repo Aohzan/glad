@@ -873,6 +873,15 @@ a.g-list-item:hover { color: var(--g-accent-ink); }
 
 .g-empty { padding: 36px 20px; text-align: center; color: var(--g-muted); }
 
+/* Rows and padded body of a card, aligned on the section head. */
+.g-card__row { padding: 10px 20px; border-top: 1px solid var(--g-line); }
+a.g-card__row { display: block; color: inherit; text-decoration: none; }
+a.g-card__row:hover { background: var(--g-accent-tint); }
+.g-card__body { padding: 0 20px 16px; }
+.g-dl { display: grid; grid-template-columns: minmax(120px, 40%) 1fr; gap: 6px 16px; margin: 0; }
+.g-dl dt { font-weight: 400; color: var(--g-muted); }
+.g-dl dd { margin: 0; }
+
 .g-skeleton {
   border-radius: var(--g-radius-sm);
   background: linear-gradient(90deg, var(--g-surface) 25%, var(--g-line) 50%, var(--g-surface) 75%);

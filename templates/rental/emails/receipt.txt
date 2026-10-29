@@ -1,0 +1,9 @@
+{% autoescape off %}{% if period.is_full %}Quittance de loyer — {{ period.label }}{% else %}Reçu de paiement — {{ period.label }}{% endif %}
+
+Bonjour {{ tenants }},
+
+{% if period.is_full %}Vous trouverez ci-joint la quittance du loyer de {{ period.label }} ({{ period.paid }}) pour le logement situé {{ address }}. Merci pour votre règlement.{% else %}Nous avons bien reçu {{ period.paid }} pour le loyer de {{ period.label }}, sur un total de {{ period.total }}. Vous trouverez ci-joint le reçu de ce paiement partiel, qui ne vaut pas quittance.{% endif %}
+
+Bien cordialement,
+{{ landlord.name }}
+{% endautoescape %}

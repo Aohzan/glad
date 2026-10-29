@@ -47,6 +47,7 @@
         {% else %}
         <div class="d-flex align-items-center justify-content-between gap-3">
           <span>{{ lease.name|default:_("No tenant recorded.") }}</span>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'rental:lease_detail' lease.pk %}">{% icon "users" "me-1" %}{% translate "Tenants and guarantors" %}</a>
         </div>
         {% endif %}
       </div>

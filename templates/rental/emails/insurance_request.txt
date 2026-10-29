@@ -1,0 +1,9 @@
+{% autoescape off %}Attestation d'assurance habitation
+
+Bonjour {{ tenants }},
+
+Comme le prévoit le bail du logement situé {{ address }}, pourriez-vous m'adresser votre attestation d'assurance habitation pour l'année en cours ? Une photo ou un PDF en réponse à ce message suffit.
+
+Merci d'avance,
+{{ landlord.name }}
+{% endautoescape %}

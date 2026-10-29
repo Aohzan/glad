@@ -119,7 +119,7 @@ def _lease_deadlines(today: datetime.date):
         .prefetch_related("parties")
     )
     for lease in leases:
-        url = reverse("property:detail", kwargs={"pk": lease.property.pk})
+        url = reverse("rental:lease_detail", kwargs={"pk": lease.pk})
         title = (
             f"{lease.property} — {lease.name}" if lease.name else str(lease.property)
         )

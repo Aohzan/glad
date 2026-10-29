@@ -1,0 +1,20 @@
+{% load i18n %}
+{% for document in documents %}
+<div class="g-card__row d-flex align-items-center justify-content-between gap-3">
+  <div class="min-w-0">
+    <a class="fw-semibold text-decoration-none" href="{% url 'download_document' document.pk %}"{% if document.is_image %} target="_blank" rel="noopener"{% endif %}>{% icon document.is_image|yesno:"image,file-text" "me-1" %}{{ document.title }}</a>
+    <span class="g-tag ms-1">{{ document.get_kind_display }}</span>
+    <div class="small text-body-secondary">
+      {{ document.created_at|date:"SHORT_DATE_FORMAT" }} · {{ document.size|filesizeformat }}
+      {% if document.valid_until %} · {% if document.is_expired %}<span class="text-danger">{% blocktranslate with date=document.valid_until %}expired on {{ date }}{% endblocktranslate %}</span>{% else %}{% blocktranslate with date=document.valid_until %}valid until {{ date }}{% endblocktranslate %}{% endif %}{% endif %}
+    </div>
+  </div>
+  <form method="post" action="{% url 'delete_document' document.pk %}" class="flex-shrink-0" data-confirm="{% blocktranslate with title=document.title %}Delete {{ title }}?{% endblocktranslate %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button type="submit" class="btn btn-sm btn-outline-danger" title="{% translate 'Delete' %}">{% icon "trash" %}</button>
+  </form>
+</div>
+{% empty %}
+<div class="g-empty">{{ empty_text }}</div>
+{% endfor %}
