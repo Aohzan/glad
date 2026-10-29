@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 23:48+0200\n"
+"POT-Creation-Date: 2026-10-29 14:04+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: accounts/admin.py:46 accounts/admin.py:75 accounts/models.py:41
+#: accounts/admin.py:45 accounts/admin.py:74 accounts/models.py:36
+#: property/models/lease.py:246
 msgid "Birth date"
 msgstr "Date de naissance"
 
@@ -30,18 +31,10 @@ msgstr ""
 "défaut : 15 minutes."
 
 #: accounts/models.py:26
-msgid "Notify on login"
-msgstr "Notification lors de la connexion"
-
-#: accounts/models.py:27
-msgid "Receive an email notification when you log in."
-msgstr "Recevoir un email lors de la connexion à votre compte."
-
-#: accounts/models.py:31
 msgid "Enable live market data"
 msgstr "Activer les données de marché en direct"
 
-#: accounts/models.py:33
+#: accounts/models.py:28
 msgid ""
 "Fetch real-time market data from Yahoo Finance for holdings and ISIN "
 "autofill. Disable to avoid external network calls."
@@ -50,17 +43,25 @@ msgstr ""
 "titres et le remplissage automatique de l'ISIN. Désactivez pour éviter les "
 "appels réseau externes."
 
-#: accounts/models.py:42
+#: accounts/models.py:37
 msgid "Used to value a life usufruct (article 669 CGI)."
 msgstr "Utilisée pour valoriser un usufruit viager (article 669 du CGI)."
 
-#: accounts/models.py:46 accounts/models.py:97
+#: accounts/models.py:41 accounts/models.py:97
 msgid "Child"
 msgstr "Enfant"
 
-#: accounts/models.py:47
+#: accounts/models.py:42
 msgid "A child is a household member who cannot log in."
 msgstr "Un enfant est un membre du foyer qui ne peut pas se connecter."
+
+#: accounts/models.py:46 templates/accounts/settings.html:37
+msgid "Postal address"
+msgstr "Adresse postale"
+
+#: accounts/models.py:47 templates/accounts/settings.html:38
+msgid "Written as the landlord address on the leases and receipts."
+msgstr "Indiquée comme adresse du bailleur sur les baux et les quittances."
 
 #: accounts/models.py:54 base/forms.py:82 templates/allocation.html:56
 msgid "Monthly expenses"
@@ -92,13 +93,54 @@ msgstr "Identification via passkey"
 msgid "Passkey credentials"
 msgstr "Identification via passkey"
 
-#: accounts/views.py:95
+#: accounts/notifications.py:11 templates/registration/login.html:4
+msgid "Login"
+msgstr "Connexion"
+
+#: accounts/notifications.py:13
+msgid ""
+"Someone logged in to your account (sent to you only). Choose a channel "
+"outside the application, such as your email."
+msgstr ""
+"Quelqu'un s'est connecté à votre compte (envoyé à vous seul). Choisissez un "
+"canal extérieur à l'application, comme votre email."
+
+#: accounts/signals.py:22
+#, python-format
+msgid "Date: %(date)s"
+msgstr "Date : %(date)s"
+
+#: accounts/signals.py:24
+#, python-format
+msgid "IP address: %(ip)s"
+msgstr "Adresse IP : %(ip)s"
+
+#: accounts/signals.py:27
+#, python-format
+msgid "Browser: %(agent)s"
+msgstr "Navigateur : %(agent)s"
+
+#: accounts/signals.py:29
+msgid "If this was not you, change your password and review your passkey."
+msgstr ""
+"Si ce n'était pas vous, changez votre mot de passe et vérifiez votre clé "
+"d'accès."
+
+#: accounts/signals.py:35
+msgid "New login to your Glad account"
+msgstr "Nouvelle connexion à votre compte Glad"
+
+#: accounts/views.py:96
 msgid "Password updated successfully."
 msgstr "Mise à jour du mot de passe réussie"
 
-#: accounts/views.py:306
+#: accounts/views.py:311
 msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
+
+#: accounts/views.py:421
+msgid "Postal address saved."
+msgstr "Adresse postale enregistrée."
 
 #: base/choices.py:10 templates/allocation.html:39
 msgid "Available immediately"
@@ -161,8 +203,8 @@ msgstr "Titres non cotés"
 msgid "Tangible assets"
 msgstr "Biens tangibles"
 
-#: base/choices.py:30 finance/models/other_asset.py:37
-#: property/models/asset.py:293 property/models/lease.py:29
+#: base/choices.py:30 base/models.py:269 finance/models/other_asset.py:37
+#: property/models/asset.py:293 property/models/lease.py:34
 #: templates/finance/_account_chart_script.html:108
 #: templates/finance/_account_chart_script.html:123
 #: templates/finance/_account_chart_script.html:401
@@ -170,18 +212,19 @@ msgstr "Biens tangibles"
 msgid "Other"
 msgstr "Autre"
 
-#: base/context_processors.py:42 base/search_views.py:73 templates/base.html:56
+#: base/context_processors.py:44 base/search_views.py:73 templates/base.html:56
 #: templates/index.html:4 templates/index.html:6
 msgid "Dashboard"
 msgstr "Tableau de bord"
 
-#: base/context_processors.py:43 base/search_views.py:74 templates/base.html:57
+#: base/context_processors.py:45 base/search_views.py:74
+#: notifications/registry.py:22 templates/base.html:57
 #: templates/finance/_account_detail_header.html:4
 #: templates/finance/index.html:4 templates/finance/index.html:6
 msgid "Finance"
 msgstr "Finance"
 
-#: base/context_processors.py:44 base/search_views.py:77
+#: base/context_processors.py:46 base/search_views.py:77
 #: base/services/dashboard.py:50 templates/base.html:60
 #: templates/finance/edit_other_asset.html:17
 #: templates/finance/other_asset_detail.html:15
@@ -190,23 +233,23 @@ msgstr "Finance"
 msgid "Other assets"
 msgstr "Autres actifs"
 
-#: base/context_processors.py:45 templates/base.html:85
+#: base/context_processors.py:47 templates/base.html:86
 msgid "CSV import / export"
 msgstr "Import / export CSV"
 
-#: base/context_processors.py:46 base/search_views.py:75
-#: base/services/dashboard.py:46 property/forms.py:816
-#: property/models/fiscal.py:34 templates/base.html:58
+#: base/context_processors.py:48 base/search_views.py:75
+#: base/services/dashboard.py:46 notifications/registry.py:24
+#: property/forms.py:868 property/models/fiscal.py:34 templates/base.html:58
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:6
 msgid "Properties"
 msgstr "Immobilier"
 
-#: base/context_processors.py:47 base/search_views.py:76
+#: base/context_processors.py:49 base/search_views.py:76
 #: base/services/dashboard.py:49 base/services/ownership.py:134
 #: property/models/scpi.py:38 property/models/scpi.py:39
 #: property/models/scpi.py:159 property/models/scpi.py:208
-#: property/models/scpi.py:618 templates/base.html:59 templates/base.html:117
+#: property/models/scpi.py:618 templates/base.html:59 templates/base.html:118
 #: templates/property/scpi_detail.html:12
 #: templates/property/scpi_detail.html:136
 #: templates/property/scpi_dividend_batch.html:10
@@ -219,61 +262,77 @@ msgstr "Immobilier"
 msgid "SCPI"
 msgstr "SCPI"
 
-#: base/context_processors.py:48 base/search_views.py:82 templates/base.html:78
+#: base/context_processors.py:50 base/search_views.py:82 templates/base.html:79
 #: templates/property/all_loans.html:4 templates/property/all_loans.html:16
 msgid "All Loans"
 msgstr "Tous les prêts"
 
-#: base/context_processors.py:49 templates/base.html:77
-#: templates/property/occurrence_checks.html:4
+#: base/context_processors.py:51 property/notifications.py:115
+#: templates/base.html:78 templates/property/occurrence_checks.html:4
 #: templates/property/occurrence_checks.html:10
 msgid "Entries to check"
 msgstr "Écritures à pointer"
 
-#: base/context_processors.py:50 templates/base.html:69
+#: base/context_processors.py:52 notifications/registry.py:25 rental/apps.py:12
+#: templates/base.html:75 templates/property/detail_panel_leases.html:40
+#: templates/rental/_lease_layout.html:5 templates/rental/applications.html:5
+#: templates/rental/dashboard.html:4 templates/rental/dashboard.html:6
+msgid "Rental management"
+msgstr "Gestion locative"
+
+#: base/context_processors.py:53 templates/base.html:69
 #: templates/property/report.html:4 templates/property/report.html:16
 msgid "Property cash flow"
 msgstr "Cash flow immo"
 
-#: base/context_processors.py:51 templates/base.html:84
+#: base/context_processors.py:54 templates/base.html:85
 msgid "LMNP Accounting"
 msgstr "Comptabilité LMNP"
 
-#: base/context_processors.py:52 budget/services/sankey.py:116
+#: base/context_processors.py:55 budget/services/sankey.py:116
 #: templates/base.html:66 templates/budget/categories.html:6
 #: templates/budget/edit_year.html:13 templates/budget/index.html:4
 #: templates/budget/year_detail.html:6
 msgid "Budget"
 msgstr "Budget"
 
-#: base/context_processors.py:53 base/search_views.py:83
+#: base/context_processors.py:56 base/search_views.py:83
 #: templates/accounts/settings.html:4 templates/accounts/settings.html:9
-#: templates/base.html:160 templates/budget/edit_year.html:6
+#: templates/base.html:169 templates/budget/edit_year.html:6
+#: templates/notifications/inbox.html:12
 msgid "Settings"
 msgstr "Paramètres"
 
-#: base/context_processors.py:54 templates/base.html:87 templates/base.html:162
+#: base/context_processors.py:57 notifications/apps.py:15
+#: templates/accounts/settings.html:49 templates/base.html:155
+#: templates/notifications/_dropdown.html:3
+#: templates/notifications/inbox.html:4 templates/notifications/inbox.html:5
+#: templates/notifications/settings.html:8
+msgid "Notifications"
+msgstr "Notifications"
+
+#: base/context_processors.py:58 templates/base.html:88 templates/base.html:171
 msgid "Administration"
 msgstr "Administration"
 
-#: base/context_processors.py:55 base/search_views.py:78
+#: base/context_processors.py:59 base/search_views.py:78
 #: templates/allocation.html:4 templates/allocation.html:13
 #: templates/base.html:67
 msgid "Allocation"
 msgstr "Répartition"
 
-#: base/context_processors.py:56 base/search_views.py:79 templates/base.html:68
+#: base/context_processors.py:60 base/search_views.py:79 templates/base.html:68
 #: templates/owners.html:4 templates/owners.html:8
 msgid "Net worth by owner"
 msgstr "Patrimoine par propriétaire"
 
-#: base/context_processors.py:57 base/search_views.py:80 templates/base.html:75
+#: base/context_processors.py:61 base/search_views.py:80 templates/base.html:76
 #: templates/dashboard/_watch.html:5 templates/deadlines.html:4
-#: templates/deadlines.html:6
+#: templates/deadlines.html:6 templates/rental/dashboard.html:118
 msgid "Deadlines"
 msgstr "Échéances"
 
-#: base/context_processors.py:58 base/search_views.py:81 templates/base.html:76
+#: base/context_processors.py:62 base/search_views.py:81 templates/base.html:77
 #: templates/operations.html:4 templates/operations.html:6
 msgid "Operations"
 msgstr "Opérations"
@@ -298,10 +357,17 @@ msgstr "Dettes"
 msgid "Could not load chart data."
 msgstr "Impossible de charger les données du graphique."
 
+#: base/document_views.py:37
+msgid "The file of this document is missing."
+msgstr "Le fichier de ce document est introuvable."
+
+#: base/document_views.py:53
+msgid "Document deleted."
+msgstr "Document supprimé."
+
 #: base/forms.py:61 finance/models/other_asset.py:194
 #: property/models/ledger.py:309 property/models/scpi.py:161
-#: property/models/scpi.py:586
-#: templates/accounts/emails/login_notification.html:16
+#: property/models/scpi.py:586 rental/models.py:201
 #: templates/budget/year_detail.html:58
 #: templates/finance/_deposits_panel.html:15
 #: templates/finance/_edit_deposit_fields.html:8
@@ -310,7 +376,7 @@ msgstr "Impossible de charger les données du graphique."
 #: templates/finance/edit_saving_value.html:29
 #: templates/finance/holding_detail.html:144
 #: templates/finance/investment_detail.html:149 templates/operations.html:23
-#: templates/property/detail.html:465 templates/property/detail.html:562
+#: templates/property/detail.html:465 templates/property/detail.html:564
 #: templates/property/detail_panel_cashflow.html:36
 #: templates/property/detail_panel_cashflow.html:109
 #: templates/property/detail_panel_loans.html:291
@@ -318,6 +384,9 @@ msgstr "Impossible de charger les données du graphique."
 #: templates/property/scpi_fund_detail.html:148
 #: templates/property/scpi_share_price_form.html:44
 #: templates/property/scpi_theoretical_value_form.html:45
+#: templates/rental/_inventory_card.html:17
+#: templates/rental/lease_departure.html:43
+#: templates/rental/reconciliation_detail.html:18
 msgid "Date"
 msgstr "Date"
 
@@ -369,7 +438,7 @@ msgstr ""
 "Les autres droits ne laissent aucune part aux nouveaux propriétaires : "
 "définissez les quotes-parts sur la page des propriétaires."
 
-#: base/forms.py:247 base/models.py:181 finance/views/csv_views.py:543
+#: base/forms.py:247 base/models.py:183 finance/views/csv_views.py:543
 #: templates/owners_manage.html:22
 msgid "Owner"
 msgstr "Propriétaire"
@@ -382,83 +451,365 @@ msgstr ""
 "Un droit démembré nécessite la date de fin de l'usufruit ou la date de "
 "naissance de l'usufruitier."
 
-#: base/models.py:52
+#: base/jobs.py:42
+msgid "Refresh the INSEE indices (IRL, consumer prices)"
+msgstr "Actualiser les indices INSEE (IRL, prix à la consommation)"
+
+#: base/jobs.py:50
+msgid "Clean up the finished background tasks"
+msgstr "Nettoyer les tâches de fond terminées"
+
+#: base/models.py:54
 msgid "Rent reference index (IRL)"
 msgstr "Indice de référence des loyers (IRL)"
 
-#: base/models.py:53
+#: base/models.py:55
 msgid "Consumer price index"
 msgstr "Indice des prix à la consommation"
 
-#: base/models.py:60
+#: base/models.py:62
 msgid "economic index value"
 msgstr "valeur d'indice économique"
 
-#: base/models.py:61
+#: base/models.py:63
 msgid "economic index values"
 msgstr "valeurs d'indices économiques"
 
-#: base/models.py:87
+#: base/models.py:89
 #, python-brace-format
 msgid "Q{quarter} {year}"
 msgstr "T{quarter} {year}"
 
-#: base/models.py:101
+#: base/models.py:103
 msgid "net worth snapshot"
 msgstr "instantané du patrimoine"
 
-#: base/models.py:102
+#: base/models.py:104
 msgid "net worth snapshots"
 msgstr "instantanés du patrimoine"
 
-#: base/models.py:158 property/models/scpi.py:195
+#: base/models.py:160 property/models/scpi.py:195
 msgid "Full ownership"
 msgstr "Pleine propriété"
 
-#: base/models.py:159 property/models/scpi.py:196
+#: base/models.py:161 property/models/scpi.py:196
 msgid "Bare ownership (nue-propriété)"
 msgstr "Nue-propriété"
 
-#: base/models.py:160 property/models/scpi.py:197
+#: base/models.py:162 property/models/scpi.py:197
 msgid "Usufruct (usufruit)"
 msgstr "Usufruit"
 
-#: base/models.py:163
+#: base/models.py:165
 msgid "ownership"
 msgstr "détention"
 
-#: base/models.py:164
+#: base/models.py:166
 msgid "ownerships"
 msgstr "détentions"
 
-#: base/models.py:188
+#: base/models.py:190
 msgid "Share (%)"
 msgstr "Quote-part (%)"
 
-#: base/models.py:189
+#: base/models.py:191
 msgid "Part of the asset held, e.g. 50 for a couple in indivision."
 msgstr "Part de l'actif détenue, ex. 50 pour un couple en indivision."
 
-#: base/models.py:195 templates/owners_manage.html:24
+#: base/models.py:197 templates/owners_manage.html:24
 msgid "Right"
 msgstr "Droit"
 
-#: base/models.py:200
+#: base/models.py:202
 msgid "Usufructuary birth date"
 msgstr "Date de naissance de l'usufruitier"
 
-#: base/models.py:201
+#: base/models.py:203
 msgid "For a life usufruct, valued with the scale of article 669 CGI."
 msgstr ""
 "Pour un usufruit viager, valorisé selon le barème de l'article 669 du CGI."
 
-#: base/models.py:206
+#: base/models.py:208
 msgid "Usufruct end date"
 msgstr "Date de fin de l'usufruit"
 
-#: base/models.py:207
+#: base/models.py:209
 msgid "For a temporary usufruct: 23 % per period of ten years."
 msgstr "Pour un usufruit temporaire : 23 % par période de dix ans."
+
+#: base/models.py:226
+msgid "Enqueued"
+msgstr "En file d'attente"
+
+#: base/models.py:227
+msgid "Running"
+msgstr "En cours"
+
+#: base/models.py:228
+msgid "Succeeded"
+msgstr "Réussie"
+
+#: base/models.py:229 base/models.py:321
+msgid "Failed"
+msgstr "Échec"
+
+#: base/models.py:232
+msgid "scheduled job"
+msgstr "tâche planifiée"
+
+#: base/models.py:233
+msgid "scheduled jobs"
+msgstr "tâches planifiées"
+
+#: base/models.py:258 property/models/lease.py:191 property/models/lease.py:232
+#: property/models/ledger.py:295 rental/models.py:39 rental/models.py:151
+#: rental/models.py:198 rental/models.py:328 rental/models.py:385
+#: rental/notifications.py:37 templates/property/detail.html:437
+#: templates/property/detail_panel_cashflow.html:126
+#: templates/rental/_lease_layout.html:4 templates/rental/_lease_layout.html:6
+#: templates/rental/application_detail.html:13
+#: templates/rental/dashboard.html:79 templates/rental/edit_party.html:5
+msgid "Lease"
+msgstr "Bail"
+
+#: base/models.py:259
+msgid "Inventory of fixtures"
+msgstr "État des lieux"
+
+#: base/models.py:260
+msgid "Diagnostic"
+msgstr "Diagnostic"
+
+#: base/models.py:261 rental/services/move_in.py:55
+msgid "Insurance certificate"
+msgstr "Attestation d'assurance"
+
+#: base/models.py:262
+msgid "Identity document"
+msgstr "Pièce d'identité"
+
+#: base/models.py:263
+msgid "Proof of income"
+msgstr "Justificatif de revenus"
+
+#: base/models.py:264 property/models/lease.py:259 rental/models.py:135
+#: rental/services/compliance.py:273
+msgid "Guarantee"
+msgstr "Garantie"
+
+#: base/models.py:265 rental/emails.py:47
+msgid "Rent receipt"
+msgstr "Quittance de loyer"
+
+#: base/models.py:266
+msgid "Statement"
+msgstr "Décompte"
+
+#: base/models.py:267
+msgid "Letter"
+msgstr "Courrier"
+
+#: base/models.py:268 templates/rental/inventory_room.html:47
+msgid "Photo"
+msgstr "Photo"
+
+#: base/models.py:272
+msgid "document"
+msgstr "document"
+
+#: base/models.py:273
+msgid "documents"
+msgstr "documents"
+
+#: base/models.py:281 finance/views/csv_views.py:542 rental/forms.py:43
+#: rental/models.py:200 templates/finance/_account_detail_common_info.html:3
+#: templates/property/detail.html:393
+#: templates/property/detail_panel_cashflow.html:75
+#: templates/property/detail_panel_info.html:17
+#: templates/property/detail_panel_leases.html:49
+msgid "Type"
+msgstr "Type"
+
+#: base/models.py:283 rental/forms.py:47
+msgid "Title"
+msgstr "Titre"
+
+#: base/models.py:284 rental/forms.py:37
+msgid "File"
+msgstr "Fichier"
+
+#: base/models.py:291 rental/forms.py:53
+msgid "Valid until"
+msgstr "Valable jusqu'au"
+
+#: base/models.py:292
+msgid "For a certificate or a diagnostic that expires."
+msgstr "Pour une attestation ou un diagnostic qui expire."
+
+#: base/models.py:294 budget/models.py:199 budget/models.py:265
+#: finance/models/investment_account.py:507 finance/models/other_asset.py:115
+#: property/models/asset.py:951 property/models/fiscal.py:42
+#: property/models/scpi.py:73 property/models/scpi.py:596 rental/models.py:144
+#: templates/budget/year_detail.html:183
+#: templates/finance/_euro_fund_rates_panel.html:35
+#: templates/finance/other_asset_detail.html:77
+#: templates/property/_dividend_table_header.html:8
+#: templates/property/_notes_card.html:4 templates/property/_notes_card.html:8
+#: templates/property/detail.html:508
+#: templates/property/detail_panel_cashflow.html:175
+#: templates/property/detail_panel_leases.html:78
+#: templates/property/detail_panel_mandate.html:52
+#: templates/property/edit_entry_occurrence.html:60
+#: templates/property/scpi_theoretical_value_form.html:47
+#: templates/rental/application_detail.html:43
+msgid "Notes"
+msgstr "Notes"
+
+#: base/models.py:319
+msgid "Pending"
+msgstr "En attente"
+
+#: base/models.py:320 rental/models.py:317
+msgid "Sent"
+msgstr "Envoyé"
+
+#: base/models.py:324
+msgid "sent email"
+msgstr "email envoyé"
+
+#: base/models.py:325
+msgid "sent emails"
+msgstr "emails envoyés"
+
+#: base/notifications.py:85
+#, python-format
+msgid "%(count)d asset to update"
+msgid_plural "%(count)d assets to update"
+msgstr[0] "%(count)d actif à mettre à jour"
+msgstr[1] "%(count)d actifs à mettre à jour"
+
+#: base/notifications.py:91
+#, python-format
+msgid "%(asset)s: last value on %(date)s"
+msgstr "%(asset)s : dernière valeur au %(date)s"
+
+#: base/notifications.py:105
+#, python-format
+msgid "The %(year)d income tax return is open"
+msgstr "La déclaration de revenus %(year)d est ouverte"
+
+#: base/notifications.py:106
+#, python-format
+msgid "Deadline: %(date)s"
+msgstr "Date limite : %(date)s"
+
+#: base/notifications.py:113
+#, python-format
+msgid "Income tax return due on %(date)s"
+msgstr "Déclaration de revenus à faire avant le %(date)s"
+
+#: base/notifications.py:153
+#, python-format
+msgid "Glad %(version)s is available"
+msgstr "Glad %(version)s est disponible"
+
+#: base/notifications.py:154
+#, python-format
+msgid "Installed version: %(version)s"
+msgstr "Version installée : %(version)s"
+
+#: base/notifications.py:165
+#, python-format
+msgid "Net worth: %(amount)s"
+msgstr "Patrimoine net : %(amount)s"
+
+#: base/notifications.py:170
+#, python-format
+msgid "Over 30 days: %(amount)s (%(pct)+.1f %%)"
+msgstr "Sur 30 jours : %(amount)s (%(pct)+.1f %%)"
+
+#: base/notifications.py:178
+#, python-format
+msgid "Over 12 months: %(amount)s (%(pct)+.1f %%)"
+msgstr "Sur 12 mois : %(amount)s (%(pct)+.1f %%)"
+
+#: base/notifications.py:186
+#, python-format
+msgid "Net worth summary of %(month)s"
+msgstr "Bilan du patrimoine de %(month)s"
+
+#: base/notifications.py:197
+msgid "Data to update"
+msgstr "Données à mettre à jour"
+
+#: base/notifications.py:199
+msgid ""
+"The last value of an account or an asset is getting old: time for an update."
+msgstr ""
+"La dernière valeur d'un compte ou d'un actif date : il est temps de la "
+"mettre à jour."
+
+#: base/notifications.py:205
+msgid "Accounts and assets (days)"
+msgstr "Comptes et actifs (jours)"
+
+#: base/notifications.py:212
+msgid "Properties (days)"
+msgstr "Biens (jours)"
+
+#: base/notifications.py:225
+msgid "Monthly summary"
+msgstr "Bilan mensuel"
+
+#: base/notifications.py:227
+msgid "The net worth and its change, at the start of every month."
+msgstr "Le patrimoine net et son évolution, au début de chaque mois."
+
+#: base/notifications.py:236
+msgid "Income tax return"
+msgstr "Déclaration de revenus"
+
+#: base/notifications.py:238
+msgid "Opening and deadline of the yearly income tax return."
+msgstr "Ouverture et date limite de la déclaration annuelle de revenus."
+
+#: base/notifications.py:244
+msgid "Opening (MM-DD)"
+msgstr "Ouverture (MM-JJ)"
+
+#: base/notifications.py:250
+msgid "Online deadline (MM-DD)"
+msgstr "Date limite en ligne (MM-JJ)"
+
+#: base/notifications.py:253
+msgid "It depends on your department number."
+msgstr "Elle dépend du numéro de votre département."
+
+#: base/notifications.py:263
+msgid "New version"
+msgstr "Nouvelle version"
+
+#: base/notifications.py:264
+msgid "A new version of Glad is published."
+msgstr "Une nouvelle version de Glad est publiée."
+
+#: base/notifications.py:272
+msgid "Background job failure"
+msgstr "Échec d'une tâche de fond"
+
+#: base/notifications.py:274
+msgid "A background job (index refresh, notification checks…) failed."
+msgstr ""
+"Une tâche de fond (actualisation des indices, vérification des "
+"notifications…) a échoué."
+
+#: base/notifications.py:282
+msgid "Email failure"
+msgstr "Échec d'un email"
+
+#: base/notifications.py:283
+msgid "An email sent from the application failed."
+msgstr "Un email envoyé depuis l'application a échoué."
 
 #: base/ownership_views.py:48
 msgid "Owner saved."
@@ -470,14 +821,17 @@ msgstr "Propriétaire enregistré."
 #: finance/views/investment_views.py:75 finance/views/investment_views.py:101
 #: finance/views/investment_views.py:309 finance/views/investment_views.py:449
 #: finance/views/other_asset_views.py:62 finance/views/saving_views.py:62
-#: finance/views/saving_views.py:88 finance/views/update_views.py:340
-#: property/views/check_views.py:132 property/views/crud_views.py:126
-#: property/views/crud_views.py:314 property/views/crud_views.py:421
-#: property/views/edit_views.py:53 property/views/edit_views.py:91
-#: property/views/edit_views.py:108 property/views/scpi_views.py:399
-#: property/views/scpi_views.py:447 property/views/scpi_views.py:500
-#: property/views/scpi_views.py:591 property/views/scpi_views.py:640
-#: templates/finance/_form_error_alert.html:4
+#: finance/views/saving_views.py:88 finance/views/update_views.py:341
+#: property/views/check_views.py:132 property/views/crud_views.py:129
+#: property/views/crud_views.py:317 property/views/crud_views.py:424
+#: property/views/crud_views.py:500 property/views/edit_views.py:53
+#: property/views/edit_views.py:91 property/views/edit_views.py:108
+#: property/views/scpi_views.py:399 property/views/scpi_views.py:447
+#: property/views/scpi_views.py:500 property/views/scpi_views.py:591
+#: property/views/scpi_views.py:640 rental/application_views.py:49
+#: rental/application_views.py:168 rental/inventory_views.py:75
+#: rental/inventory_views.py:141 rental/uploads.py:36 rental/views.py:199
+#: rental/views.py:314 templates/finance/_form_error_alert.html:4
 #: templates/property/_form_error_alert.html:4
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
@@ -510,31 +864,44 @@ msgstr "Investissements"
 msgid "Savings"
 msgstr "Épargnes"
 
-#: base/services/deadlines.py:101
+#: base/services/deadlines.py:105
 msgid "End of the loan"
 msgstr "Fin du prêt"
 
-#: base/services/deadlines.py:121 templates/property/_rent_revision.html:6
-#: templates/property/edit_lease.html:172
+#: base/services/deadlines.py:132 templates/property/_rent_revision.html:6
+#: templates/property/edit_lease.html:188
 msgid "Rent revision (IRL)"
 msgstr "Révision du loyer (IRL)"
 
-#: base/services/deadlines.py:130
+#: base/services/deadlines.py:142
 msgid "End of the lease"
 msgstr "Fin du bail"
 
-#: base/services/deadlines.py:156
+#: base/services/deadlines.py:154
+msgid "Last day to give notice as the landlord"
+msgstr "Date limite du congé par le bailleur"
+
+#: base/services/deadlines.py:181
 #, python-format
 msgid "Rental ban for DPE %(rating)s housing"
 msgstr "Interdiction de location des logements classés %(rating)s"
 
-#: base/services/deadlines.py:166
+#: base/services/deadlines.py:192
 msgid "DPE expiry"
 msgstr "Expiration du DPE"
 
-#: base/services/deadlines.py:182
+#: base/services/deadlines.py:209
 msgid "End of the dismemberment"
 msgstr "Fin du démembrement"
+
+#: base/services/documents.py:50
+#, python-format
+msgid "The file is too large (%(max)d MB maximum)."
+msgstr "Le fichier est trop volumineux (%(max)d Mo maximum)."
+
+#: base/services/documents.py:60
+msgid "Only PDF, JPEG, PNG, WebP and HEIC files are accepted."
+msgstr "Seuls les fichiers PDF, JPEG, PNG, WebP et HEIC sont acceptés."
 
 #: base/services/operations.py:59 base/services/operations.py:107
 msgid "Value update"
@@ -542,6 +909,7 @@ msgstr "Mise à jour de valeur"
 
 #: base/services/operations.py:69 base/services/operations.py:88
 #: templates/finance/_edit_deposit_card.html:9
+#: templates/rental/lease_departure.html:79
 msgid "Deposit"
 msgstr "Dépôt"
 
@@ -561,26 +929,27 @@ msgstr "Évaluation de bien"
 msgid "Dividend"
 msgstr "Dividende"
 
-#: base/services/ownership.py:127 templates/base.html:115
+#: base/services/ownership.py:127 templates/base.html:116
 msgid "Saving account"
 msgstr "Compte d'épargne"
 
-#: base/services/ownership.py:129 templates/base.html:114
+#: base/services/ownership.py:129 templates/base.html:115
 msgid "Investment account"
 msgstr "Compte d'investissement"
 
-#: base/services/ownership.py:132 property/models/asset.py:763
-#: property/models/asset.py:860 property/models/lease.py:44
+#: base/services/ownership.py:132 property/models/asset.py:799
+#: property/models/asset.py:896 property/models/lease.py:56
 #: property/models/ledger.py:287 property/models/management.py:38
-#: templates/base.html:116 templates/dashboard/_property.html:28
-#: templates/property/all_loans.html:99 templates/property/index.html:4
-#: templates/property/index.html:68
+#: rental/models.py:94 templates/base.html:117
+#: templates/dashboard/_property.html:28 templates/property/all_loans.html:99
+#: templates/property/index.html:4 templates/property/index.html:68
 #: templates/property/occurrence_checks.html:16
 #: templates/property/occurrence_checks.html:60
+#: templates/rental/dashboard.html:50
 msgid "Property"
 msgstr "Propriété"
 
-#: base/services/ownership.py:136 templates/base.html:118
+#: base/services/ownership.py:136 templates/base.html:119
 msgid "Other asset"
 msgstr "Autre actif"
 
@@ -633,17 +1002,22 @@ msgstr "Dépôts"
 msgid "Dividends"
 msgstr "Dividendes"
 
-#: base/views.py:86
+#: base/views.py:87
 msgid "Monthly expenses saved."
 msgstr "Dépenses mensuelles enregistrées."
 
-#: base/views.py:146
+#: base/views.py:147
 msgid "Could not download the INSEE indices."
 msgstr "Impossible de télécharger les indices INSEE."
 
-#: base/views.py:148
+#: base/views.py:149
 msgid "INSEE indices updated."
 msgstr "Indices INSEE mis à jour."
+
+#: base/views.py:177
+#, python-format
+msgid "Job “%(job)s” started."
+msgstr "Tâche « %(job)s » lancée."
 
 #: budget/forms.py:76 budget/models.py:246 finance/models/other_asset.py:75
 #: property/models/ledger.py:323 templates/budget/import_preview.html:33
@@ -653,7 +1027,7 @@ msgstr "Indices INSEE mis à jour."
 #: templates/property/detail.html:414
 #: templates/property/detail_panel_cashflow.html:38
 #: templates/property/detail_panel_cashflow.html:136
-#: templates/property/detail_panel_cashflow.html:308
+#: templates/property/detail_panel_cashflow.html:309
 msgid "Category"
 msgstr "Catégorie"
 
@@ -683,7 +1057,7 @@ msgid "None (top level)"
 msgstr "Aucune (premier niveau)"
 
 #: budget/forms.py:116 budget/models.py:197 budget/models.py:240
-#: finance/models/investment_account.py:495 templates/budget/index.html:51
+#: finance/models/investment_account.py:500 templates/budget/index.html:51
 #: templates/budget/year_detail.html:10 templates/budget/year_detail.html:144
 #: templates/finance/_euro_fund_rates_panel.html:33
 #: templates/property/detail_panel_amortization.html:225
@@ -704,7 +1078,7 @@ msgstr ""
 msgid "A budget already exists for this year."
 msgstr "Un budget existe déjà pour cette année."
 
-#: budget/forms.py:140 property/forms.py:350
+#: budget/forms.py:140 property/forms.py:357
 msgid "CSV file"
 msgstr "Fichier CSV"
 
@@ -746,8 +1120,10 @@ msgid "budget categories"
 msgstr "catégories de budget"
 
 #: budget/models.py:69 finance/models/other_asset.py:70
+#: notifications/forms.py:14 notifications/models.py:35
 #: property/models/asset.py:51 property/models/asset.py:302
-#: property/models/scpi.py:42 templates/finance/_account_table_header.html:4
+#: property/models/scpi.py:42 rental/forms.py:167
+#: templates/finance/_account_table_header.html:4
 #: templates/finance/edit_investment_holding.html:48
 #: templates/finance/holding_detail.html:63
 #: templates/finance/investment_detail.html:77
@@ -761,7 +1137,7 @@ msgstr "Nom"
 
 #: budget/models.py:74 templates/budget/import_preview.html:32
 #: templates/property/detail_panel_cashflow.html:37
-#: templates/property/detail_panel_cashflow.html:307
+#: templates/property/detail_panel_cashflow.html:308
 #: templates/property/occurrence_checks.html:61
 msgid "Kind"
 msgstr "Type"
@@ -807,24 +1183,6 @@ msgstr "année de budget"
 msgid "budget years"
 msgstr "années de budget"
 
-#: budget/models.py:199 budget/models.py:265
-#: finance/models/investment_account.py:502 finance/models/other_asset.py:115
-#: property/models/asset.py:915 property/models/fiscal.py:42
-#: property/models/scpi.py:73 property/models/scpi.py:596
-#: templates/budget/year_detail.html:183
-#: templates/finance/_euro_fund_rates_panel.html:35
-#: templates/finance/other_asset_detail.html:77
-#: templates/property/_dividend_table_header.html:8
-#: templates/property/_notes_card.html:4 templates/property/_notes_card.html:8
-#: templates/property/detail.html:506
-#: templates/property/detail_panel_cashflow.html:174
-#: templates/property/detail_panel_leases.html:77
-#: templates/property/detail_panel_mandate.html:52
-#: templates/property/edit_entry_occurrence.html:60
-#: templates/property/scpi_theoretical_value_form.html:47
-msgid "Notes"
-msgstr "Notes"
-
 #: budget/models.py:202
 msgid "Include the properties"
 msgstr "Inclure les biens immobiliers"
@@ -865,11 +1223,15 @@ msgstr "ligne de budget"
 msgid "budget lines"
 msgstr "lignes de budget"
 
-#: budget/models.py:248 property/models/asset.py:864
+#: budget/models.py:248 property/models/asset.py:900
 #: templates/budget/import_preview.html:34
 #: templates/budget/year_detail.html:142
 #: templates/property/_valid_categories_table.html:6
 #: templates/property/detail_panel_amortization.html:131
+#: templates/rental/lease_departure.html:115
+#: templates/rental/lease_departure.html:121
+#: templates/rental/reconciliation_detail.html:32
+#: templates/rental/reconciliation_detail.html:39
 msgid "Label"
 msgstr "Libellé"
 
@@ -917,7 +1279,8 @@ msgstr "Autres revenus"
 msgid "Housing"
 msgstr "Logement"
 
-#: budget/services/categories.py:25
+#: budget/services/categories.py:25 rental/models.py:43
+#: rental/services/payments.py:128 templates/rental/dashboard.html:50
 msgid "Rent"
 msgstr "Loyer"
 
@@ -1222,19 +1585,19 @@ msgid "Other resources"
 msgstr "Autres ressources"
 
 #: budget/services/summary.py:324
-#: templates/property/detail_panel_cashflow.html:539
+#: templates/property/detail_panel_cashflow.html:540
 msgid "Loan principal"
 msgstr "Capital du prêt"
 
 #: budget/services/summary.py:325 property/models/ledger.py:176
 #: property/services/cashflow.py:179
-#: templates/property/detail_panel_cashflow.html:538
+#: templates/property/detail_panel_cashflow.html:539
 msgid "Loan interest"
 msgstr "Intérêts du prêt"
 
 #: budget/services/summary.py:326 property/models/ledger.py:183
 #: property/services/cashflow.py:183
-#: templates/property/detail_panel_cashflow.html:540
+#: templates/property/detail_panel_cashflow.html:541
 msgid "Loan insurance"
 msgstr "Assurance de prêt"
 
@@ -1275,7 +1638,7 @@ msgstr "Ressources"
 #: templates/property/detail.html:427
 #: templates/property/detail_panel_balance.html:68
 #: templates/property/detail_panel_cashflow.html:148
-#: templates/property/detail_panel_cashflow.html:305
+#: templates/property/detail_panel_cashflow.html:306
 msgid "Expenses"
 msgstr "Dépenses"
 
@@ -1461,7 +1824,7 @@ msgstr "Épargne"
 msgid "Data type to import"
 msgstr "Type de données à importer"
 
-#: finance/forms.py:191 property/forms.py:850
+#: finance/forms.py:191 property/forms.py:902
 msgid "CSV File"
 msgstr "Fichier CSV"
 
@@ -1490,7 +1853,7 @@ msgid "Fill in either the new value or the amount to add, not both."
 msgstr ""
 "Renseignez soit la nouvelle valeur, soit le montant à ajouter, pas les deux."
 
-#: finance/forms.py:398
+#: finance/forms.py:399
 msgid ""
 "e.g. FR0010315770 — Autofill will fetch code, name, issuer, fees & initial "
 "value"
@@ -1498,38 +1861,48 @@ msgstr ""
 "ex. FR0010315770 — Le remplissage automatique récupérera le code, le nom, "
 "l'émetteur, les frais et la valeur initiale"
 
-#: finance/forms.py:474 property/forms.py:821 property/models/lease.py:64
+#: finance/forms.py:424
+msgid "An ISIN is needed to update the price automatically."
+msgstr "Un ISIN est nécessaire pour mettre à jour le cours automatiquement."
+
+#: finance/forms.py:487 property/forms.py:873 property/models/lease.py:70
 #: property/models/management.py:46
 #: templates/property/detail_panel_amortization.html:132
-#: templates/property/detail_panel_leases.html:52
+#: templates/property/detail_panel_leases.html:53
 #: templates/property/detail_panel_mandate.html:30
-#: templates/property/edit_lease.html:109
+#: templates/property/edit_lease.html:103
 #: templates/property/edit_mandate.html:61
+#: templates/rental/lease_detail.html:45
 msgid "Start date"
 msgstr "Date de début"
 
-#: finance/forms.py:477 property/forms.py:829 property/models/lease.py:65
-#: property/models/management.py:50 templates/property/detail.html:527
-#: templates/property/detail_panel_cashflow.html:192
-#: templates/property/detail_panel_leases.html:56
+#: finance/forms.py:490 property/forms.py:881 property/models/lease.py:71
+#: property/models/management.py:50 templates/property/detail.html:529
+#: templates/property/detail_panel_cashflow.html:193
+#: templates/property/detail_panel_leases.html:57
 #: templates/property/detail_panel_mandate.html:34
-#: templates/property/edit_lease.html:116
+#: templates/property/edit_lease.html:110
 #: templates/property/edit_mandate.html:68
+#: templates/rental/lease_departure.html:64
 msgid "End date"
 msgstr "Date de fin"
 
-#: finance/forms.py:487
+#: finance/forms.py:500
 msgid "Start date must be before the end date."
 msgstr "La date de début doit être antérieure à la date de fin."
 
-#: finance/forms.py:491
+#: finance/forms.py:504
 #, python-brace-format
 msgid "The date range cannot exceed {years} years."
 msgstr "La plage de dates ne peut pas dépasser {years} ans."
 
-#: finance/forms.py:538
+#: finance/forms.py:551
 msgid "Set the sale date of an inactive asset."
 msgstr "Renseignez la date de vente d'un actif inactif."
+
+#: finance/jobs.py:173
+msgid "Refresh the security prices"
+msgstr "Actualiser les cours des titres"
 
 #: finance/models/base.py:37 templates/owners_manage.html:38
 msgid "Unknown"
@@ -1598,7 +1971,7 @@ msgstr ""
 msgid "at"
 msgstr "chez"
 
-#: finance/models/base.py:160 finance/models/investment_account.py:336
+#: finance/models/base.py:160 finance/models/investment_account.py:341
 msgid "(closed)"
 msgstr "(clôturé)"
 
@@ -1679,28 +2052,36 @@ msgstr "Classe d'actifs"
 msgid "Main exposure of the holding, used for the allocation."
 msgstr "Exposition principale du titre, utilisée pour la répartition."
 
-#: finance/models/investment_account.py:334
+#: finance/models/investment_account.py:315
+msgid "Update the price automatically"
+msgstr "Mettre à jour le cours automatiquement"
+
+#: finance/models/investment_account.py:316
+msgid "Every day, value the holding at the market close of its ISIN."
+msgstr "Chaque jour, valoriser la ligne au cours de clôture de son ISIN."
+
+#: finance/models/investment_account.py:339
 #, python-brace-format
 msgid "{} in {}."
 msgstr "{} dans {}."
 
-#: finance/models/investment_account.py:420
+#: finance/models/investment_account.py:425
 msgid "history of holding"
 msgstr "Historique du titre"
 
-#: finance/models/investment_account.py:421
+#: finance/models/investment_account.py:426
 msgid "history of holdings"
 msgstr "Historique des titres"
 
-#: finance/models/investment_account.py:445
+#: finance/models/investment_account.py:450
 msgid "Value of the holding share at the moment of valuation"
 msgstr "Valeur de la part du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:456
+#: finance/models/investment_account.py:461
 msgid "Quantity of the holding at the moment of valuation"
 msgstr "Quantité du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:464
+#: finance/models/investment_account.py:469
 msgid ""
 "Amount of cash used for this transaction (will be subtracted from account "
 "cash)"
@@ -1708,21 +2089,29 @@ msgstr ""
 "Montant de liquidités utilisé pour cette transaction (sera déduit du compte "
 "en espèces)"
 
-#: finance/models/investment_account.py:481
+#: finance/models/investment_account.py:486
 msgid "euro fund rate"
 msgstr "taux de fonds euros"
 
-#: finance/models/investment_account.py:482
+#: finance/models/investment_account.py:487
 msgid "euro fund rates"
 msgstr "taux de fonds euros"
 
-#: finance/models/investment_account.py:499
+#: finance/models/investment_account.py:504
 msgid "Credited rate (%)"
 msgstr "Taux servi (%)"
 
-#: finance/models/investment_account.py:500
+#: finance/models/investment_account.py:505
 msgid "Rate net of management fees, before social charges."
 msgstr "Taux net de frais de gestion, avant prélèvements sociaux."
+
+#: finance/models/investment_account.py:520
+msgid "market close"
+msgstr "cours de clôture"
+
+#: finance/models/investment_account.py:521
+msgid "market closes"
+msgstr "cours de clôture"
 
 #: finance/models/other_asset.py:32
 msgid "Vehicle"
@@ -1798,7 +2187,7 @@ msgid "Leave empty to use the default of the category."
 msgstr "Laisser vide pour utiliser la valeur par défaut de la catégorie."
 
 #: finance/models/other_asset.py:113 property/models/asset.py:361
-#: property/models/lease.py:21
+#: property/models/lease.py:24
 #: templates/finance/_edit_account_dates_card.html:25
 #: templates/finance/_status_badge.html:6
 #: templates/finance/edit_investment_holding.html:83
@@ -1835,7 +2224,7 @@ msgstr "valeurs d'autres actifs"
 #: templates/finance/investment_detail.html:80
 #: templates/finance/investment_detail.html:150
 #: templates/property/csv_confirm.html:53 templates/property/detail.html:357
-#: templates/property/detail.html:563
+#: templates/property/detail.html:565
 #: templates/property/detail_panel_amortization.html:133
 #: templates/property/scpi_fund_detail.html:353
 #: templates/property/scpi_theoretical_value_form.html:46
@@ -1886,6 +2275,95 @@ msgstr "dépôts sur comptes d'épargne"
 msgid "Add this deposit amount to the account value"
 msgstr "Ajouter le montant de ce dépôt au compte"
 
+#: finance/notifications.py:33
+#, python-format
+msgid "%(asset)s dropped %(pct).1f %% in 30 days"
+msgstr "%(asset)s a baissé de %(pct).1f %% en 30 jours"
+
+#: finance/notifications.py:79
+#, python-format
+msgid "%(security)s dropped %(pct).1f %% in %(days)d day"
+msgid_plural "%(security)s dropped %(pct).1f %% in %(days)d days"
+msgstr[0] "%(security)s a baissé de %(pct).1f %% en %(days)d jour"
+msgstr[1] "%(security)s a baissé de %(pct).1f %% en %(days)d jours"
+
+#: finance/notifications.py:84
+#, python-format
+msgid "Close of %(date)s: %(close)s %(currency)s"
+msgstr "Clôture du %(date)s : %(close)s %(currency)s"
+
+#: finance/notifications.py:110
+#, python-format
+msgid "%(account)s reached its deposit ceiling"
+msgstr "%(account)s a atteint son plafond de versements"
+
+#: finance/notifications.py:112
+#, python-format
+msgid "%(account)s is at %(pct).0f %% of its deposit ceiling"
+msgstr "%(account)s est à %(pct).0f %% de son plafond de versements"
+
+#: finance/notifications.py:123
+msgid "Security drop"
+msgstr "Baisse d'un titre"
+
+#: finance/notifications.py:125
+msgid ""
+"A held security (with an ISIN) lost more than the threshold, from the daily "
+"market closes, whether its value is updated automatically or by hand."
+msgstr ""
+"Un titre détenu (avec un ISIN) a perdu plus que le seuil, d'après les cours "
+"de clôture quotidiens, que sa valeur soit mise à jour automatiquement ou à "
+"la main."
+
+#: finance/notifications.py:132 finance/notifications.py:163
+msgid "Drop threshold (%)"
+msgstr "Seuil de baisse (%)"
+
+#: finance/notifications.py:139
+msgid "Over"
+msgstr "Sur"
+
+#: finance/notifications.py:143
+msgid "1 day"
+msgstr "1 jour"
+
+#: finance/notifications.py:144
+msgid "7 days"
+msgstr "7 jours"
+
+#: finance/notifications.py:145 templates/dashboard/_overview.html:49
+msgid "30 days"
+msgstr "30 jours"
+
+#: finance/notifications.py:155
+msgid "Asset drop"
+msgstr "Baisse d'un actif"
+
+#: finance/notifications.py:157
+msgid "An account or asset lost more than the threshold over 30 days."
+msgstr "Un compte ou un actif a perdu plus que le seuil sur 30 jours."
+
+#: finance/notifications.py:176 templates/finance/_envelope_card.html:12
+msgid "Deposit ceiling"
+msgstr "Plafond de versements"
+
+#: finance/notifications.py:178
+msgid "A regulated savings book or a PEA nears its deposit ceiling."
+msgstr "Un livret réglementé ou un PEA approche de son plafond de versements."
+
+#: finance/notifications.py:184
+msgid "Usage of the ceiling (%)"
+msgstr "Utilisation du plafond (%)"
+
+#: finance/notifications.py:197
+msgid "Envelope milestones"
+msgstr "Étapes des enveloppes"
+
+#: finance/notifications.py:199
+msgid ""
+"Tax milestones of the accounts: PEA 5 years, life insurance 8 years, PEL…"
+msgstr "Étapes fiscales des comptes : PEA 5 ans, assurance vie 8 ans, PEL…"
+
 #: finance/services/market_data.py:67
 #, python-brace-format
 msgid "Could not fetch market data for ISIN {isin}: {error}"
@@ -1907,13 +2385,13 @@ msgstr "Impossible de récupérer les données pour l'ISIN {isin} : {error}"
 msgid "Could not resolve a ticker symbol for ISIN {isin}"
 msgstr "Impossible de résoudre le symbole boursier pour l'ISIN {isin}"
 
-#: finance/services/market_data.py:195
+#: finance/services/market_data.py:195 finance/services/market_data.py:225
 #, python-brace-format
 msgid "Could not fetch historical data for ISIN {isin}: {error}"
 msgstr ""
 "Impossible de récupérer les données historiques pour l'ISIN {isin} : {error}"
 
-#: finance/services/market_data.py:202
+#: finance/services/market_data.py:202 finance/services/market_data.py:231
 #, python-brace-format
 msgid "No historical data available for ISIN {isin}"
 msgstr "Aucune donnée historique disponible pour l'ISIN {isin}"
@@ -1924,8 +2402,8 @@ msgid "Could not load live data."
 msgstr "Impossible de charger les données en direct."
 
 #: finance/views/api_views.py:232
-#: templates/finance/edit_investment_holding.html:162
-#: templates/finance/edit_investment_holding.html:175
+#: templates/finance/edit_investment_holding.html:170
+#: templates/finance/edit_investment_holding.html:183
 msgid "Could not fetch data for this ISIN."
 msgstr "Impossible de récupérer les données pour cet ISIN."
 
@@ -1944,8 +2422,8 @@ msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 #: finance/views/crud_views.py:70 finance/views/investment_views.py:123
 #: finance/views/investment_views.py:350 finance/views/saving_views.py:108
 #: property/views/check_views.py:212 property/views/check_views.py:244
-#: property/views/crud_views.py:70 property/views/crud_views.py:143
-#: property/views/crud_views.py:358 property/views/crud_views.py:443
+#: property/views/crud_views.py:73 property/views/crud_views.py:146
+#: property/views/crud_views.py:361 property/views/crud_views.py:446
 #: property/views/scpi_views.py:375 property/views/scpi_views.py:415
 #: property/views/scpi_views.py:461 property/views/scpi_views.py:518
 #: property/views/scpi_views.py:660
@@ -2009,15 +2487,6 @@ msgstr "Erreurs dans les lignes : "
 #, python-brace-format
 msgid " and {} more errors"
 msgstr " et {} erreurs supplémentaires"
-
-#: finance/views/csv_views.py:542
-#: templates/finance/_account_detail_common_info.html:3
-#: templates/property/detail.html:393
-#: templates/property/detail_panel_cashflow.html:75
-#: templates/property/detail_panel_info.html:17
-#: templates/property/detail_panel_leases.html:48
-msgid "Type"
-msgstr "Type"
 
 #: finance/views/csv_views.py:544
 #: templates/finance/_account_detail_common_info.html:12
@@ -2170,7 +2639,7 @@ msgstr "Compte d'épargne mis à jour avec succès."
 msgid "Saving account deleted successfully."
 msgstr "Compte d'épargne supprimé avec succès."
 
-#: finance/views/update_views.py:231
+#: finance/views/update_views.py:232
 #, python-brace-format
 msgid ""
 "Duplicate value ignored for account '{account}': a value of {value} already "
@@ -2179,7 +2648,7 @@ msgstr ""
 "Valeur en double ignorée pour le compte '{account}' : une valeur de {value} "
 "existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:268
+#: finance/views/update_views.py:269
 #, python-brace-format
 msgid ""
 "Duplicate cash value ignored for account '{account}': a value of {value} "
@@ -2188,7 +2657,7 @@ msgstr ""
 "Valeur d'espèces en double ignorée pour le compte '{account}' : une valeur "
 "de {value} existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:306
+#: finance/views/update_views.py:307
 #, python-brace-format
 msgid ""
 "Duplicate holding value ignored for '{holding}': a value of {value} with "
@@ -2197,61 +2666,280 @@ msgstr ""
 "Valeur de titre en double ignorée pour '{holding}' : une valeur de {value} "
 "avec une quantité de {quantity} existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:321
+#: finance/views/update_views.py:322
 #, python-brace-format
 msgid "{count} account(s) updated successfully."
 msgstr "{count} compte(s) mis à jour avec succès."
 
-#: finance/views/update_views.py:329
+#: finance/views/update_views.py:330
 msgid "No updates were made. All values already exist for the selected date."
 msgstr ""
 "Aucune mise à jour effectuée. Toutes les valeurs existent déjà pour la date "
 "sélectionnée."
 
-#: finance/views/update_views.py:335
+#: finance/views/update_views.py:336
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:260
+#: glad/settings.py:264
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:261
+#: glad/settings.py:265
 msgid "French"
 msgstr "Français"
 
-#: property/forms.py:67 property/models/ledger.py:315
+#: notifications/apps.py:29
+msgid "Check and send the notifications"
+msgstr "Vérifier et envoyer les notifications"
+
+#: notifications/checks.py:23
+msgid "Days before"
+msgstr "Jours avant"
+
+#: notifications/checks.py:27
+msgid "How long before the date to be notified."
+msgstr "Délai avant la date pour être notifié."
+
+#: notifications/checks.py:42
+#, python-format
+msgid "in %(days)d day"
+msgid_plural "in %(days)d days"
+msgstr[0] "dans %(days)d jour"
+msgstr[1] "dans %(days)d jours"
+
+#: notifications/checks.py:46
+msgid "today"
+msgstr "aujourd'hui"
+
+#: notifications/checks.py:48
+#, python-format
+msgid "%(days)d day ago"
+msgid_plural "%(days)d days ago"
+msgstr[0] "il y a %(days)d jour"
+msgstr[1] "il y a %(days)d jours"
+
+#: notifications/checks.py:51
+#, python-format
+msgid "On %(date)s (%(relative)s)"
+msgstr "Le %(date)s (%(relative)s)"
+
+#: notifications/forms.py:16 notifications/models.py:22
+msgid "Apprise URL"
+msgstr "URL Apprise"
+
+#: notifications/forms.py:20
+msgid "For example ntfy://, gotify://, tgram://, discord:// or mailto://."
+msgstr "Par exemple ntfy://, gotify://, tgram://, discord:// ou mailto://."
+
+#: notifications/forms.py:27
+msgid "This is not a valid Apprise URL."
+msgstr "Ce n'est pas une URL Apprise valide."
+
+#: notifications/models.py:23
+msgid "Email of the account"
+msgstr "Email du compte"
+
+#: notifications/models.py:26
+msgid "notification channel"
+msgstr "canal de notification"
+
+#: notifications/models.py:27
+msgid "notification channels"
+msgstr "canaux de notification"
+
+#: notifications/models.py:38 templates/notifications/settings.html:57
+msgid "Enabled"
+msgstr "Activé"
+
+#: notifications/models.py:72
+msgid "notification preference"
+msgstr "préférence de notification"
+
+#: notifications/models.py:73
+msgid "notification preferences"
+msgstr "préférences de notification"
+
+#: notifications/models.py:103
+msgid "Information"
+msgstr "Information"
+
+#: notifications/models.py:104
+msgid "Warning"
+msgstr "Avertissement"
+
+#: notifications/models.py:105
+msgid "Alert"
+msgstr "Alerte"
+
+#: notifications/models.py:108
+msgid "notification"
+msgstr "notification"
+
+#: notifications/models.py:109
+msgid "notifications"
+msgstr "notifications"
+
+#: notifications/receivers.py:22
+#, python-format
+msgid "Background job failed: %(job)s"
+msgstr "Échec de la tâche de fond : %(job)s"
+
+#: notifications/receivers.py:36
+#, python-format
+msgid "Email not sent: %(subject)s"
+msgstr "Email non envoyé : %(subject)s"
+
+#: notifications/receivers.py:37
+#, python-format
+msgid "To %(to)s — %(error)s"
+msgstr "À %(to)s — %(error)s"
+
+#: notifications/registry.py:23
+msgid "Tax"
+msgstr "Impôts"
+
+#: notifications/registry.py:26
+msgid "Application"
+msgstr "Application"
+
+#: notifications/registry.py:52
+msgid "Enter a whole number."
+msgstr "Saisissez un nombre entier."
+
+#: notifications/registry.py:55
+#, python-format
+msgid "Enter a number of at least %(min)d."
+msgstr "Saisissez un nombre supérieur ou égal à %(min)d."
+
+#: notifications/registry.py:60
+#, python-format
+msgid "Enter a number of at most %(max)d."
+msgstr "Saisissez un nombre inférieur ou égal à %(max)d."
+
+#: notifications/registry.py:67 notifications/registry.py:71
+msgid "Enter a date as MM-DD."
+msgstr "Saisissez une date au format MM-JJ."
+
+#: notifications/registry.py:75
+msgid "Select a valid choice."
+msgstr "Sélectionnez un choix valide."
+
+#: notifications/services.py:204
+#, python-format
+msgid "%(count)d new notification"
+msgid_plural "%(count)d new notifications"
+msgstr[0] "%(count)d nouvelle notification"
+msgstr[1] "%(count)d nouvelles notifications"
+
+#: notifications/services.py:221
+msgid "The account has no email address."
+msgstr "Le compte n'a pas d'adresse email."
+
+#: notifications/services.py:241
+msgid "The URL cannot be read anymore: enter it again."
+msgstr "L'URL ne peut plus être lue : saisissez-la à nouveau."
+
+#: notifications/services.py:245
+msgid "The URL is not a valid Apprise URL."
+msgstr "L'URL n'est pas une URL Apprise valide."
+
+#: notifications/services.py:249
+msgid "The service refused the message."
+msgstr "Le service a refusé le message."
+
+#: notifications/views.py:134
+msgid "Some settings are not valid."
+msgstr "Certains réglages ne sont pas valides."
+
+#: notifications/views.py:149
+msgid "Notification settings saved."
+msgstr "Réglages des notifications enregistrés."
+
+#: notifications/views.py:166
+#, python-format
+msgid "Channel “%(name)s” added."
+msgstr "Canal « %(name)s » ajouté."
+
+#: notifications/views.py:174
+msgid "Enter an email address in your settings first."
+msgstr "Saisissez d'abord une adresse email dans vos paramètres."
+
+#: notifications/views.py:179 property/models/lease.py:244
+#: property/models/management.py:45 rental/models.py:106
+#: templates/property/_contact_card.html:11
+#: templates/property/edit_mandate.html:45
+#: templates/rental/application_detail.html:36
+msgid "Email"
+msgstr "Email"
+
+#: notifications/views.py:181
+msgid "Notifications will also reach you by email."
+msgstr "Les notifications vous parviendront aussi par email."
+
+#: notifications/views.py:190
+msgid "Glad test notification"
+msgstr "Notification de test de Glad"
+
+#: notifications/views.py:191
+msgid "Notifications reach you on this channel."
+msgstr "Les notifications vous parviennent sur ce canal."
+
+#: notifications/views.py:194
+#, python-format
+msgid "Test notification sent to “%(name)s”."
+msgstr "Notification de test envoyée à « %(name)s »."
+
+#: notifications/views.py:199
+#, python-format
+msgid "The test notification failed: %(error)s"
+msgstr "La notification de test a échoué : %(error)s"
+
+#: notifications/views.py:217
+#, python-format
+msgid "Channel “%(name)s” deleted."
+msgstr "Canal « %(name)s » supprimé."
+
+#: property/forms.py:68 property/models/ledger.py:315
 #: templates/property/detail.html:476
 #: templates/property/detail_panel_cashflow.html:118
 msgid "Reference period"
 msgstr "Période de référence"
 
-#: property/forms.py:215
+#: property/forms.py:222 property/models/lease.py:86
 msgid "Duration (months)"
 msgstr "Durée (mois)"
 
-#: property/forms.py:216
+#: property/forms.py:223
 msgid "e.g. 240 for 20 years"
 msgstr "ex. 240 pour 20 ans"
 
-#: property/forms.py:303
+#: property/forms.py:310
 msgid "The first payment date must be after the start date."
 msgstr ""
 "La date du premier prélèvement doit être postérieure à la date de début."
 
-#: property/forms.py:351
+#: property/forms.py:358
 msgid "Columns: date, capital, interets, capital_restant"
 msgstr "Colonnes : date, capital, interets, capital_restant"
 
-#: property/forms.py:488
+#: property/forms.py:438
+msgid "For a guarantor only."
+msgstr "Pour un garant uniquement."
+
+#: property/forms.py:446
+msgid "Choose the kind of guarantee of the guarantor."
+msgstr "Choisissez le type de garantie du garant."
+
+#: property/forms.py:540
 msgid "Duration is required for depreciable assets."
 msgstr "La durée est requise pour les actifs amortissables."
 
-#: property/forms.py:515
+#: property/forms.py:567
 msgid "Acquisition fees to include"
 msgstr "Frais d'acquisition à inclure"
 
-#: property/forms.py:517
+#: property/forms.py:569
 msgid ""
 "Acquisition fees (notary, agency, loan set-up) added to the purchase price "
 "and depreciated with it. This irrevocable option is only allowed when the "
@@ -2263,66 +2951,66 @@ msgstr ""
 "le bien a été acheté l'année du début de l'activité LMNP ; sinon les frais "
 "sont perdus. Mettre 0 pour exclure."
 
-#: property/forms.py:536 property/models/asset.py:777
+#: property/forms.py:588 property/models/asset.py:813
 msgid "Land percentage (%)"
 msgstr "Pourcentage du terrain (%)"
 
-#: property/forms.py:538 property/models/asset.py:779
+#: property/forms.py:590 property/models/asset.py:815
 msgid ""
 "Non-depreciable land share as a percentage of total value. Default: 15 %."
 msgstr ""
 "Part de terrain non amortissable en pourcentage de la valeur totale. "
 "Défaut : 15 %."
 
-#: property/forms.py:767 property/models/asset.py:255
+#: property/forms.py:819 property/models/asset.py:255
 #: property/models/scpi.py:620 templates/property/_dividend_table_header.html:5
 msgid "Payment date"
 msgstr "Date de paiement"
 
-#: property/forms.py:783 templates/admin/bulk_update_date.html:27
+#: property/forms.py:835 templates/admin/bulk_update_date.html:27
 msgid "Update"
 msgstr "Mise à jour"
 
-#: property/forms.py:790 property/models/scpi.py:626
+#: property/forms.py:842 property/models/scpi.py:626
 #: templates/property/_dividend_table_header.html:6
 #: templates/property/scpi_dividend_batch.html:45
 msgid "Gross amount"
 msgstr "Montant brut"
 
-#: property/forms.py:798 property/models/scpi.py:632
+#: property/forms.py:850 property/models/scpi.py:632
 #: templates/property/_dividend_table_header.html:7
 #: templates/property/scpi_dividend_batch.html:46
 msgid "Net amount"
 msgstr "Montant net"
 
-#: property/forms.py:852
+#: property/forms.py:904
 msgid ""
 "Please upload a CSV file with columns: date, amount, category, description"
 msgstr ""
 "Veuillez télécharger un fichier CSV avec les colonnes : date, montant, "
 "catégorie, description"
 
-#: property/forms.py:865 templates/property/resale_simulation.html:65
+#: property/forms.py:917 templates/property/resale_simulation.html:65
 msgid "Sale price"
 msgstr "Prix de vente"
 
-#: property/forms.py:872
+#: property/forms.py:924
 msgid "Sale date"
 msgstr "Date de vente"
 
-#: property/forms.py:878 templates/property/resale_simulation.html:66
+#: property/forms.py:930 templates/property/resale_simulation.html:66
 msgid "Fees paid by the seller"
 msgstr "Frais à la charge du vendeur"
 
-#: property/forms.py:879
+#: property/forms.py:931
 msgid "Agency fees paid by the seller, diagnostics…"
 msgstr "Frais d'agence payés par le vendeur, diagnostics…"
 
-#: property/forms.py:887
+#: property/forms.py:939
 msgid "Works not already deducted"
 msgstr "Travaux non déjà déduits"
 
-#: property/forms.py:889
+#: property/forms.py:941
 msgid ""
 "Construction, extension or improvement works with invoices, not deducted "
 "from rental income nor amortized."
@@ -2330,11 +3018,11 @@ msgstr ""
 "Travaux de construction, d'agrandissement ou d'amélioration justifiés par "
 "des factures, ni déduits des revenus locatifs ni amortis."
 
-#: property/forms.py:899
+#: property/forms.py:951
 msgid "Main residence at the time of the sale (exempt)"
 msgstr "Résidence principale au jour de la vente (exonérée)"
 
-#: property/forms.py:904
+#: property/forms.py:956
 msgid "Student, senior or care residence (no LMNP reintegration)"
 msgstr "Résidence étudiante, senior ou EHPAD (pas de réintégration LMNP)"
 
@@ -2600,7 +3288,8 @@ msgstr "Surface bâtie réelle, utilisée pour l'estimation DVF."
 msgid "Number of rooms"
 msgstr "Nombre de pièces"
 
-#: property/models/asset.py:475 templates/property/_dpe_status.html:5
+#: property/models/asset.py:475 rental/services/compliance.py:142
+#: templates/property/_dpe_status.html:5
 msgid "Energy rating (DPE)"
 msgstr "Classe énergie (DPE)"
 
@@ -2628,11 +3317,49 @@ msgstr "Régime fiscal"
 msgid "Tax regime applicable to this property (e.g. LMNP réel)."
 msgstr "Régime fiscal applicable à ce bien (ex. LMNP réel)."
 
+#: property/models/asset.py:498
+msgid "Construction year"
+msgstr "Année de construction"
+
 #: property/models/asset.py:499
+msgid "Decides the diagnostics required when renting (lead, asbestos)."
+msgstr "Détermine les diagnostics exigés pour louer (plomb, amiante)."
+
+#: property/models/asset.py:503
+msgid "Tight rental zone"
+msgstr "Zone tendue"
+
+#: property/models/asset.py:505
+msgid ""
+"Zone tendue: the notice of the tenant of an empty dwelling is one month."
+msgstr ""
+"Zone tendue : le préavis du locataire d'un logement vide est d'un mois."
+
+#: property/models/asset.py:511 templates/rental/lease_detail.html:66
+msgid "Landlord"
+msgstr "Bailleur"
+
+#: property/models/asset.py:513
+msgid ""
+"Name written on the leases and receipts, for a SCI or an indivision. Leave "
+"empty to use the owners."
+msgstr ""
+"Nom indiqué sur les baux et les quittances, pour une SCI ou une indivision. "
+"Laissez vide pour utiliser les propriétaires."
+
+#: property/models/asset.py:519
+msgid "Landlord address"
+msgstr "Adresse du bailleur"
+
+#: property/models/asset.py:520
+msgid "Leave empty to use the postal address of the owners."
+msgstr "Laissez vide pour utiliser l'adresse postale des propriétaires."
+
+#: property/models/asset.py:526
 msgid "LMNP activity start date"
 msgstr "Date de début d'activité LMNP"
 
-#: property/models/asset.py:501
+#: property/models/asset.py:528
 msgid ""
 "Start of the furnished rental activity under the régime réel (registration "
 "date, or 1 January of the year you switched from micro-BIC). Amortization "
@@ -2644,86 +3371,86 @@ msgstr ""
 "réel). L'amortissement et le premier exercice démarrent à la plus tardive de "
 "cette date et de la date d'achat. Laisser vide pour utiliser la date d'achat."
 
-#: property/models/asset.py:512 templates/property/detail.html:5
+#: property/models/asset.py:539 templates/property/detail.html:5
 msgid "property"
 msgstr "propriété"
 
-#: property/models/asset.py:513
+#: property/models/asset.py:540
 msgid "properties"
 msgstr "propriétés"
 
-#: property/models/asset.py:719
+#: property/models/asset.py:755
 msgid "property value"
 msgstr "valeur de propriété"
 
-#: property/models/asset.py:720
+#: property/models/asset.py:756
 msgid "property values"
 msgstr "valeurs de propriétés"
 
-#: property/models/asset.py:724
+#: property/models/asset.py:760
 msgid "Manual"
 msgstr "Manuel"
 
-#: property/models/asset.py:725 templates/property/detail.html:103
+#: property/models/asset.py:761 templates/property/detail.html:103
 msgid "DVF estimate"
 msgstr "Estimation DVF"
 
-#: property/models/asset.py:733 templates/finance/_deposits_panel.html:18
+#: property/models/asset.py:769 templates/finance/_deposits_panel.html:18
 #: templates/finance/_edit_deposit_fields.html:20
 msgid "Source"
 msgstr "Source"
 
-#: property/models/asset.py:756
+#: property/models/asset.py:792
 msgid "amortization setup"
 msgstr "paramétrage d'amortissement"
 
-#: property/models/asset.py:757
+#: property/models/asset.py:793
 msgid "amortization setups"
 msgstr "paramétrages d'amortissement"
 
-#: property/models/asset.py:768
+#: property/models/asset.py:804
 msgid "Total value to depreciate"
 msgstr "Valeur totale à amortir"
 
-#: property/models/asset.py:770
+#: property/models/asset.py:806
 msgid "Total acquisition value used as the base for depreciation (excl. land)."
 msgstr ""
 "Valeur d'acquisition totale servant de base à l'amortissement (hors terrain)."
 
-#: property/models/asset.py:849
+#: property/models/asset.py:885
 msgid "immobilisation"
 msgstr "immobilisation"
 
-#: property/models/asset.py:850
+#: property/models/asset.py:886
 msgid "immobilisations"
 msgstr "immobilisations"
 
-#: property/models/asset.py:865
+#: property/models/asset.py:901
 msgid "Description of the asset, e.g. 'Toiture', 'Cuisine équipée'."
 msgstr "Description de l'immobilisation, ex. 'Toiture', 'Cuisine équipée'."
 
-#: property/models/asset.py:868
+#: property/models/asset.py:904
 msgid "Beginning date"
 msgstr "Date de début"
 
-#: property/models/asset.py:869
+#: property/models/asset.py:905
 msgid "Date of the beginning of the asset's useful life."
 msgstr "Date de début de l'amortissement."
 
-#: property/models/asset.py:874 templates/finance/holding_detail.html:95
+#: property/models/asset.py:910 templates/finance/holding_detail.html:95
 #: templates/finance/investment_detail.html:34
 msgid "Total value"
 msgstr "Valeur totale"
 
-#: property/models/asset.py:876
+#: property/models/asset.py:912
 msgid "Total acquisition value of this asset (including VAT if applicable)."
 msgstr "Valeur totale d'acquisition de cet élément (TTC si applicable)."
 
-#: property/models/asset.py:880
+#: property/models/asset.py:916
 msgid "Duration (years)"
 msgstr "Durée (ans)"
 
-#: property/models/asset.py:882
+#: property/models/asset.py:918
 msgid ""
 "Amortization duration in years. Leave blank for non-depreciable assets (e.g. "
 "land)."
@@ -2731,37 +3458,37 @@ msgstr ""
 "Durée d'amortissement en années. Laisser vide pour les actifs non "
 "amortissables (ex. : terrain)."
 
-#: property/models/asset.py:889
+#: property/models/asset.py:925
 msgid "Initial component"
 msgstr "Composant initial"
 
-#: property/models/asset.py:891
+#: property/models/asset.py:927
 msgid "Set automatically when created by the standard amortization setup."
 msgstr ""
 "Défini automatiquement lors de la création par le paramétrage "
 "d'amortissement standard."
 
-#: property/models/asset.py:896 templates/property/edit_amortization.html:119
+#: property/models/asset.py:932 templates/property/edit_amortization.html:119
 msgid "Terrains"
 msgstr "Terrains"
 
-#: property/models/asset.py:897 templates/property/edit_amortization.html:128
+#: property/models/asset.py:933 templates/property/edit_amortization.html:128
 msgid "Constructions"
 msgstr "Constructions"
 
-#: property/models/asset.py:898 templates/property/edit_amortization.html:140
+#: property/models/asset.py:934 templates/property/edit_amortization.html:140
 msgid "Installations générales"
 msgstr "Installations générales"
 
-#: property/models/asset.py:899 templates/property/edit_amortization.html:153
+#: property/models/asset.py:935 templates/property/edit_amortization.html:153
 msgid "Autres immobilisations corporelles"
 msgstr "Autres immobilisations corporelles"
 
-#: property/models/asset.py:906
+#: property/models/asset.py:942
 msgid "Cerfa 2033-C category"
 msgstr "Catégorie cerfa 2033-C"
 
-#: property/models/asset.py:908
+#: property/models/asset.py:944
 msgid ""
 "Asset category for cerfa 2033-C: terrains, constructions, installations "
 "générales, or autres immobilisations corporelles."
@@ -2769,15 +3496,15 @@ msgstr ""
 "Catégorie d'actif pour le cerfa 2033-C : terrains, constructions, "
 "installations générales, ou autres immobilisations corporelles."
 
-#: property/models/asset.py:916
+#: property/models/asset.py:952
 msgid "Optional free-text notes about this asset."
 msgstr "Notes libres sur cette immobilisation."
 
-#: property/models/asset.py:922
+#: property/models/asset.py:958
 msgid "Source transactions"
 msgstr "Transactions associées"
 
-#: property/models/asset.py:924
+#: property/models/asset.py:960
 msgid ""
 "Ledger entries recording the payment(s) for this asset. Linked transactions "
 "are excluded from deductible charges to avoid double-counting."
@@ -2821,128 +3548,163 @@ msgstr "Données figées"
 msgid "Created by"
 msgstr "Créé par"
 
-#: property/models/lease.py:20 templates/property/detail_panel_leases.html:32
+#: property/models/lease.py:23 templates/property/detail_panel_leases.html:32
+#: templates/rental/_period_status.html:1
 msgid "Upcoming"
 msgstr "À venir"
 
-#: property/models/lease.py:22 templates/property/detail_panel_leases.html:34
+#: property/models/lease.py:25 templates/property/detail_panel_leases.html:34
 msgid "Notice period"
 msgstr "Période de préavis"
 
-#: property/models/lease.py:23 templates/property/detail_panel_leases.html:36
+#: property/models/lease.py:26 templates/property/detail_panel_leases.html:36
 #: templates/property/detail_panel_mandate.html:18
 msgid "Ended"
 msgstr "Terminé"
 
-#: property/models/lease.py:26
+#: property/models/lease.py:29
 msgid "Furnished"
 msgstr "Meublé"
 
-#: property/models/lease.py:27
+#: property/models/lease.py:30
 msgid "Empty"
 msgstr "Vide"
 
-#: property/models/lease.py:28
+#: property/models/lease.py:31
+msgid "Mobility (furnished)"
+msgstr "Mobilité (meublé)"
+
+#: property/models/lease.py:32
+msgid "Student (furnished)"
+msgstr "Étudiant (meublé)"
+
+#: property/models/lease.py:33
 msgid "Commercial"
 msgstr "Commercial"
 
-#: property/models/lease.py:32 property/models/ledger.py:260
+#: property/models/lease.py:37 property/models/ledger.py:260
 #: property/models/scpi.py:33 templates/budget/year_detail.html:123
 msgid "Monthly"
 msgstr "Mensuel"
 
-#: property/models/lease.py:33 property/models/ledger.py:261
+#: property/models/lease.py:38 property/models/ledger.py:261
 #: property/models/scpi.py:34
 msgid "Quarterly"
 msgstr "Trimestriel"
 
-#: property/models/lease.py:36
+#: property/models/lease.py:41
+msgid "Provision, reconciled every year"
+msgstr "Provision, régularisée chaque année"
+
+#: property/models/lease.py:42
+msgid "Flat rate"
+msgstr "Forfait"
+
+#: property/models/lease.py:48
 msgid "lease"
 msgstr "bail"
 
-#: property/models/lease.py:37
+#: property/models/lease.py:49
 msgid "leases"
 msgstr "baux"
 
-#: property/models/lease.py:47 templates/property/edit_lease.html:36
-#: templates/property/edit_tenant.html:31
-msgid "First name"
-msgstr "Prénom"
-
-#: property/models/lease.py:49 templates/property/edit_lease.html:43
-#: templates/property/edit_tenant.html:42
-msgid "Last name"
-msgstr "Nom"
-
-#: property/models/lease.py:50 property/models/management.py:45
-#: templates/property/_contact_card.html:11
-#: templates/property/edit_lease.html:50
-#: templates/property/edit_mandate.html:45
-msgid "Email"
-msgstr "Email"
-
-#: property/models/lease.py:51 property/models/management.py:44
-#: templates/property/_contact_card.html:22
-#: templates/property/edit_lease.html:58
-#: templates/property/edit_mandate.html:37
-msgid "Phone"
-msgstr "Téléphone"
-
-#: property/models/lease.py:56 templates/property/edit_lease.html:77
+#: property/models/lease.py:62 templates/property/edit_lease.html:65
 msgid "Lease type"
 msgstr "Type de bail"
 
-#: property/models/lease.py:62 templates/finance/_status_badge.html:3
+#: property/models/lease.py:68 rental/models.py:100 rental/models.py:206
+#: templates/accounts/_background_jobs.html:17
+#: templates/finance/_status_badge.html:3
 #: templates/finance/investment_detail.html:82
-#: templates/property/edit_lease.html:84
+#: templates/property/edit_lease.html:72 templates/rental/dashboard.html:50
+#: templates/rental/lease_payments.html:36
 msgid "Status"
 msgstr "Statut"
 
-#: property/models/lease.py:66 templates/property/edit_lease.html:124
+#: property/models/lease.py:72 templates/property/edit_lease.html:118
 msgid "Notice date"
 msgstr "Date de préavis"
 
-#: property/models/lease.py:68 templates/property/detail_panel_leases.html:60
-#: templates/property/edit_lease.html:142
+#: property/models/lease.py:75 templates/rental/lease_departure.html:24
+msgid "The tenant"
+msgstr "Le locataire"
+
+#: property/models/lease.py:75 templates/rental/lease_departure.html:25
+msgid "The landlord"
+msgstr "Le bailleur"
+
+#: property/models/lease.py:77
+msgid "Notice given by"
+msgstr "Préavis donné par"
+
+#: property/models/lease.py:80 templates/rental/lease_detail.html:49
+msgid "Signature date"
+msgstr "Date de signature"
+
+#: property/models/lease.py:88
+msgid ""
+"Leave empty for the legal duration: 3 years empty, 1 year furnished, 9 "
+"months for a student."
+msgstr ""
+"Laissez vide pour la durée légale : 3 ans en vide, 1 an en meublé, 9 mois "
+"pour un étudiant."
+
+#: property/models/lease.py:95
+msgid "Payment day"
+msgstr "Jour de paiement"
+
+#: property/models/lease.py:96
+msgid "Day of the month the rent is due."
+msgstr "Jour du mois où le loyer est dû."
+
+#: property/models/lease.py:99 templates/property/detail_panel_leases.html:61
+#: templates/property/edit_lease.html:153 templates/rental/lease_detail.html:51
 msgid "Rent (excl. charges)"
 msgstr "Loyer (hors charges)"
 
-#: property/models/lease.py:75 templates/property/detail_panel_leases.html:64
-#: templates/property/edit_lease.html:150
+#: property/models/lease.py:106 templates/property/detail_panel_leases.html:65
+#: templates/property/edit_lease.html:161
 msgid "Charges provision"
 msgstr "Provision pour charges"
 
-#: property/models/lease.py:82 templates/property/detail_panel_leases.html:68
-#: templates/property/edit_lease.html:158
+#: property/models/lease.py:112 rental/models.py:44
+#: rental/services/payments.py:130 templates/dashboard/_property.html:28
+#: templates/rental/_lease_layout.html:23 templates/rental/lease_detail.html:53
+msgid "Charges"
+msgstr "Charges"
+
+#: property/models/lease.py:119 rental/services/compliance.py:118
+#: rental/services/move_in.py:40 templates/property/detail_panel_leases.html:69
+#: templates/property/edit_lease.html:169 templates/rental/lease_detail.html:55
 msgid "Security deposit"
 msgstr "Dépôt de garantie"
 
-#: property/models/lease.py:88 templates/property/detail_panel_leases.html:72
-#: templates/property/edit_lease.html:91
+#: property/models/lease.py:125 templates/property/detail_panel_leases.html:73
+#: templates/property/edit_lease.html:79
 msgid "Periodicity"
 msgstr "Périodicite"
 
-#: property/models/lease.py:93
+#: property/models/lease.py:130
 msgid "Q1"
 msgstr "T1"
 
-#: property/models/lease.py:93
+#: property/models/lease.py:130
 msgid "Q2"
 msgstr "T2"
 
-#: property/models/lease.py:93
+#: property/models/lease.py:130
 msgid "Q3"
 msgstr "T3"
 
-#: property/models/lease.py:93
+#: property/models/lease.py:130
 msgid "Q4"
 msgstr "T4"
 
-#: property/models/lease.py:94
+#: property/models/lease.py:131
 msgid "IRL reference quarter"
 msgstr "Trimestre de référence IRL"
 
-#: property/models/lease.py:96
+#: property/models/lease.py:133
 msgid ""
 "Quarter of the rent reference index named in the lease, usually the last one "
 "published when it was signed."
@@ -2950,18 +3712,105 @@ msgstr ""
 "Trimestre de l'indice de référence des loyers indiqué dans le bail, en "
 "général le dernier publié à la signature."
 
-#: property/models/lease.py:105
+#: property/models/lease.py:142
 msgid "IRL reference value"
 msgstr "Valeur IRL de référence"
 
-#: property/models/lease.py:106
+#: property/models/lease.py:143
 msgid "IRL value of the current rent (at signing or last revision)."
 msgstr ""
 "Valeur de l'IRL du loyer actuel (à la signature ou à la dernière révision)."
 
-#: property/models/lease.py:109
+#: property/models/lease.py:146
 msgid "Last rent revision"
 msgstr "Dernière révision du loyer"
+
+#: property/models/lease.py:150
+msgid "Send the rent calls"
+msgstr "Envoyer les avis d'échéance"
+
+#: property/models/lease.py:152
+msgid "Email the rent notice to the tenants a week before each due date."
+msgstr ""
+"Envoyer l'avis d'échéance aux locataires une semaine avant chaque échéance."
+
+#: property/models/lease.py:157
+msgid "Send the receipts"
+msgstr "Envoyer les quittances"
+
+#: property/models/lease.py:159
+msgid ""
+"Email the receipt to the tenants the day after the rent is checked as "
+"received."
+msgstr "Envoyer la quittance aux locataires le lendemain du pointage du loyer."
+
+#: property/models/lease.py:217 templates/property/edit_lease.html:30
+#: templates/rental/lease_detail.html:12
+msgid "Tenant"
+msgstr "Locataire"
+
+#: property/models/lease.py:218 rental/models.py:125
+#: templates/rental/application_detail.html:42
+#: templates/rental/lease_detail.html:13
+msgid "Guarantor"
+msgstr "Garant"
+
+#: property/models/lease.py:221 rental/models.py:130
+msgid "Joint and several guarantee"
+msgstr "Caution solidaire"
+
+#: property/models/lease.py:222 rental/models.py:131
+msgid "Visale"
+msgstr "Visale"
+
+#: property/models/lease.py:223 rental/models.py:132
+msgid "Other guarantee"
+msgstr "Autre garantie"
+
+#: property/models/lease.py:226
+msgid "lease party"
+msgstr "partie au bail"
+
+#: property/models/lease.py:227
+msgid "lease parties"
+msgstr "parties au bail"
+
+#: property/models/lease.py:238
+msgid "Role"
+msgstr "Rôle"
+
+#: property/models/lease.py:241 rental/models.py:103
+#: templates/property/edit_tenant.html:31
+msgid "First name"
+msgstr "Prénom"
+
+#: property/models/lease.py:243 rental/models.py:105
+#: templates/property/edit_tenant.html:42
+msgid "Last name"
+msgstr "Nom"
+
+#: property/models/lease.py:245 property/models/management.py:44
+#: rental/models.py:107 templates/property/_contact_card.html:22
+#: templates/property/edit_mandate.html:37
+#: templates/rental/application_detail.html:37
+msgid "Phone"
+msgstr "Téléphone"
+
+#: property/models/lease.py:248
+msgid "Birth place"
+msgstr "Lieu de naissance"
+
+#: property/models/lease.py:252 property/models/management.py:43
+#: templates/property/_contact_card.html:35
+#: templates/property/_property_form_fields.html:31
+#: templates/property/detail_panel_info.html:81
+#: templates/property/edit_mandate.html:53
+msgid "Address"
+msgstr "Adresse"
+
+#: property/models/lease.py:253
+msgid "Postal address, when it is not the rented dwelling."
+msgstr "Adresse postale, si ce n'est pas le logement loué."
 
 #: property/models/ledger.py:72
 msgid "Rent collected"
@@ -3027,7 +3876,7 @@ msgstr "Garantie Loyer Impayée"
 msgid "Loan capital repayment"
 msgstr "Remboursement du capital"
 
-#: property/models/ledger.py:205
+#: property/models/ledger.py:205 rental/services/departure.py:188
 msgid "Deposit returned"
 msgstr "Dépôt restitué"
 
@@ -3044,14 +3893,14 @@ msgstr "Fonds travaux (ALUR)"
 #: templates/property/detail_panel_balance.html:64
 #: templates/property/detail_panel_cashflow.html:85
 #: templates/property/detail_panel_cashflow.html:143
-#: templates/property/detail_panel_cashflow.html:294
+#: templates/property/detail_panel_cashflow.html:295
 #: templates/property/occurrence_checks.html:83
 msgid "Income"
 msgstr "Revenu"
 
 #: property/models/ledger.py:242 templates/property/detail.html:402
 #: templates/property/detail_panel_cashflow.html:94
-#: templates/property/detail_panel_cashflow.html:293
+#: templates/property/detail_panel_cashflow.html:294
 #: templates/property/occurrence_checks.html:85
 msgid "Expense"
 msgstr "Dépense"
@@ -3072,11 +3921,6 @@ msgstr "écriture comptable"
 msgid "ledger entries"
 msgstr "écritures comptables"
 
-#: property/models/ledger.py:295 templates/property/detail.html:437
-#: templates/property/detail_panel_cashflow.html:126
-msgid "Lease"
-msgstr "Bail"
-
 #: property/models/ledger.py:300
 msgid "Flow type"
 msgstr "Type de flux"
@@ -3090,6 +3934,11 @@ msgstr "Type de flux"
 #: templates/property/detail_panel_cashflow.html:39
 #: templates/property/detail_panel_cashflow.html:102
 #: templates/property/edit_entry_occurrence.html:40
+#: templates/rental/lease_departure.html:116
+#: templates/rental/lease_departure.html:122
+#: templates/rental/reconciliation_detail.html:18
+#: templates/rental/reconciliation_detail.html:33
+#: templates/rental/reconciliation_detail.html:40
 msgid "Amount"
 msgstr "Montant"
 
@@ -3115,24 +3964,39 @@ msgstr "Tiers"
 msgid "Optional. Name of the third party (tenant, supplier, etc.)."
 msgstr "Optionnel. Nom du tiers (locataire, fournisseur, etc.)."
 
-#: property/models/ledger.py:339
+#: property/models/ledger.py:335
+msgid "Recoverable from the tenant"
+msgstr "Récupérable auprès du locataire"
+
+#: property/models/ledger.py:337
+msgid ""
+"An expense the tenant reimburses through the charges (décret n° 87-713): "
+"water, collective heating, lift, upkeep of the common parts, household waste "
+"tax… Counted in the yearly charges reconciliation."
+msgstr ""
+"Une dépense que le locataire rembourse par les charges (décret n° 87-713) : "
+"eau, chauffage collectif, ascenseur, entretien des parties communes, taxe "
+"d'enlèvement des ordures ménagères… Comptée dans la régularisation annuelle "
+"des charges."
+
+#: property/models/ledger.py:348
 msgid "Recurrence type"
 msgstr "Type de récurrence"
 
-#: property/models/ledger.py:344
+#: property/models/ledger.py:353
 msgid "Recurrence end date"
 msgstr "Date de fin de récurrence"
 
-#: property/models/ledger.py:345
+#: property/models/ledger.py:354
 msgid "End date for recurring entries (leave empty for indefinite)."
 msgstr ""
 "Date de fin pour les écritures récurrentes (laisser vide pour indéfini)."
 
-#: property/models/ledger.py:366
+#: property/models/ledger.py:375
 msgid "Amount must be positive."
 msgstr "Le montant doit être positif."
 
-#: property/models/ledger.py:373
+#: property/models/ledger.py:382
 #, python-format
 msgid ""
 "Category '%(cat)s' is not valid for an INCOME entry. Use a revenue category "
@@ -3141,7 +4005,7 @@ msgstr ""
 "La catégorie '%(cat)s' n'est pas valide pour une écriture REVENU. Utiliser "
 "une catégorie de revenu ou définir flow_type sur DÉPENSE."
 
-#: property/models/ledger.py:381
+#: property/models/ledger.py:390
 #, python-format
 msgid ""
 "Category '%(cat)s' is not valid for an EXPENSE entry. Use an expense "
@@ -3150,54 +4014,54 @@ msgstr ""
 "La catégorie '%(cat)s' n'est pas valide pour une écriture DÉPENSE. Utiliser "
 "une catégorie de dépense ou définir flow_type sur REVENU."
 
-#: property/models/ledger.py:489
+#: property/models/ledger.py:498
 msgid "Parent entry"
 msgstr "Écriture parente"
 
-#: property/models/ledger.py:491
+#: property/models/ledger.py:500
 msgid "Occurrence date"
 msgstr "Date d'occurrence"
 
-#: property/models/ledger.py:492
+#: property/models/ledger.py:501
 msgid "Is deleted"
 msgstr "Est supprimé"
 
-#: property/models/ledger.py:498
+#: property/models/ledger.py:507
 msgid "Amount override"
 msgstr "Montant personnalisé"
 
-#: property/models/ledger.py:504
+#: property/models/ledger.py:513
 msgid "Description override"
 msgstr "Description personnalisée"
 
-#: property/models/ledger.py:509
+#: property/models/ledger.py:518
 msgid "Notes override"
 msgstr "Notes personnalisées"
 
-#: property/models/ledger.py:513
+#: property/models/ledger.py:522
 msgid "Is checked"
 msgstr "Pointée"
 
-#: property/models/ledger.py:514
+#: property/models/ledger.py:523
 msgid "The planned transfer has been verified on the bank account."
 msgstr "Le virement prévu a été vérifié sur le compte bancaire."
 
-#: property/models/ledger.py:519
-#: templates/property/detail_panel_cashflow.html:258
+#: property/models/ledger.py:528
+#: templates/property/detail_panel_cashflow.html:259
 #: templates/property/occurrence_checks.html:64
 #: templates/property/occurrence_checks.html:95
 msgid "Actual date"
 msgstr "Date réelle"
 
-#: property/models/ledger.py:520
+#: property/models/ledger.py:529
 msgid "Actual transfer date, when it differs from the planned date."
 msgstr "Date réelle du virement, lorsqu'elle diffère de la date prévue."
 
-#: property/models/ledger.py:524
+#: property/models/ledger.py:533
 msgid "ledger entry exception"
 msgstr "exception d'écriture comptable"
 
-#: property/models/ledger.py:525
+#: property/models/ledger.py:534
 msgid "ledger entry exceptions"
 msgstr "exceptions d'écritures comptables"
 
@@ -3225,13 +4089,6 @@ msgstr "mandats de gestion"
 #: property/models/management.py:41 templates/property/edit_mandate.html:30
 msgid "Manager name"
 msgstr "Nom du gestionnaire"
-
-#: property/models/management.py:43 templates/property/_contact_card.html:35
-#: templates/property/_property_form_fields.html:31
-#: templates/property/detail_panel_info.html:81
-#: templates/property/edit_mandate.html:53
-msgid "Address"
-msgstr "Adresse"
 
 #: property/models/management.py:51 templates/property/edit_mandate.html:72
 msgid "Leave empty if this mandate is currently active."
@@ -3452,6 +4309,142 @@ msgstr "Dividende brut avant tout prélèvement fiscal."
 msgid "Net dividend received after withholding tax."
 msgstr "Dividende net reçu après prélèvements fiscaux."
 
+#: property/notifications.py:36
+#, python-format
+msgid "%(count)d recurring entry to check"
+msgid_plural "%(count)d recurring entries to check"
+msgstr[0] "%(count)d écriture récurrente à pointer"
+msgstr[1] "%(count)d écritures récurrentes à pointer"
+
+#: property/notifications.py:41
+#, python-format
+msgid "The oldest one is %(days)d days old."
+msgstr "La plus ancienne date de %(days)d jours."
+
+#: property/notifications.py:70
+#, python-format
+msgid "The checklist reports %(count)d issue."
+msgid_plural "The checklist reports %(count)d issues."
+msgstr[0] "La checklist signale %(count)d problème."
+msgstr[1] "La checklist signale %(count)d problèmes."
+
+#: property/notifications.py:78
+#, python-format
+msgid "The declaration of %(year)d is not frozen yet."
+msgstr "La déclaration %(year)d n'est pas encore figée."
+
+#: property/notifications.py:82
+#, python-format
+msgid "LMNP tax return for %(year)d due on %(date)s"
+msgstr "Liasse LMNP %(year)d à déposer le %(date)s"
+
+#: property/notifications.py:94
+msgid "Property tax (taxe foncière)"
+msgstr "Taxe foncière"
+
+#: property/notifications.py:99
+msgid "Business property tax (CFE)"
+msgstr "Cotisation foncière des entreprises (CFE)"
+
+#: property/notifications.py:105
+#, python-format
+msgid "%(tax)s to pay"
+msgstr "%(tax)s à payer"
+
+#: property/notifications.py:117
+msgid ""
+"Recurring entries (rents, charges, loans…) not checked on the bank account."
+msgstr ""
+"Écritures récurrentes (loyers, charges, prêts…) non pointées sur le compte "
+"bancaire."
+
+#: property/notifications.py:123
+msgid "Late by more than (days)"
+msgstr "En retard de plus de (jours)"
+
+#: property/notifications.py:136
+msgid "Rent revision"
+msgstr "Révision du loyer"
+
+#: property/notifications.py:137
+msgid "The yearly IRL revision of a lease is due."
+msgstr "La révision annuelle IRL d'un bail est à faire."
+
+#: property/notifications.py:147
+msgid "End of a lease"
+msgstr "Fin d'un bail"
+
+#: property/notifications.py:149
+msgid ""
+"A lease reaches its end date, or the last day for the landlord to give "
+"notice before the end of its term."
+msgstr ""
+"Un bail arrive à sa date de fin, ou à la date limite du congé du bailleur "
+"avant la fin du terme."
+
+#: property/notifications.py:160
+msgid "DPE"
+msgstr "DPE"
+
+#: property/notifications.py:162
+msgid ""
+"The energy diagnosis of a property expires, or its rating will forbid "
+"renting it."
+msgstr ""
+"Le diagnostic énergétique d'un bien expire, ou sa classe va en interdire la "
+"location."
+
+#: property/notifications.py:172
+msgid "End of a loan"
+msgstr "Fin d'un prêt"
+
+#: property/notifications.py:173
+msgid "A property loan is about to be fully repaid."
+msgstr "Un prêt immobilier est sur le point d'être entièrement remboursé."
+
+#: property/notifications.py:182
+msgid "SCPI dismemberment"
+msgstr "Démembrement de SCPI"
+
+#: property/notifications.py:183
+msgid "The temporary dismemberment of SCPI shares ends."
+msgstr "Le démembrement temporaire de parts de SCPI prend fin."
+
+#: property/notifications.py:192
+msgid "LMNP tax return"
+msgstr "Liasse LMNP"
+
+#: property/notifications.py:194
+msgid ""
+"The LMNP tax return (2031 and 2033) is due, with the state of the checklist."
+msgstr ""
+"La liasse LMNP (2031 et 2033) est à déposer, avec l'état de la checklist."
+
+#: property/notifications.py:200
+msgid "Deadline (MM-DD)"
+msgstr "Date limite (MM-JJ)"
+
+#: property/notifications.py:204
+msgid "Usually the second working day after 1 May, plus 15 days online."
+msgstr ""
+"En général le deuxième jour ouvré après le 1er mai, plus 15 jours en ligne."
+
+#: property/notifications.py:215
+msgid "Local taxes"
+msgstr "Impôts locaux"
+
+#: property/notifications.py:217
+msgid "Payment of the property tax and of the CFE of furnished rentals."
+msgstr "Paiement de la taxe foncière et de la CFE des locations meublées."
+
+#: property/notifications.py:223
+msgid "Property tax deadline (MM-DD)"
+msgstr "Date limite de la taxe foncière (MM-JJ)"
+
+#: property/notifications.py:228
+msgid "CFE deadline (MM-DD)"
+msgstr "Date limite de la CFE (MM-JJ)"
+
 #: property/services/cashflow.py:188
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
@@ -3652,74 +4645,74 @@ msgstr "Écriture pointée."
 msgid "Entry unchecked."
 msgstr "Pointage annulé."
 
-#: property/views/crud_views.py:39
+#: property/views/crud_views.py:42
 msgid "Property not found."
 msgstr "Propriété introuvable."
 
-#: property/views/crud_views.py:56
+#: property/views/crud_views.py:59
 #, python-format
 msgid "%(name)s not found."
 msgstr "%(name)s introuvable."
 
-#: property/views/crud_views.py:82
+#: property/views/crud_views.py:85
 msgid "Valuation not found."
 msgstr "Évaluation introuvable."
 
-#: property/views/crud_views.py:86
+#: property/views/crud_views.py:89
 msgid "Property valuation deleted successfully."
 msgstr "Évaluation de propriété supprimée avec succès."
 
-#: property/views/crud_views.py:107 property/views/crud_views.py:154
-#: property/views/crud_views.py:214
+#: property/views/crud_views.py:110 property/views/crud_views.py:157
+#: property/views/crud_views.py:217 rental/models.py:177
 #: templates/property/occurrence_checks.html:62
 msgid "Entry"
 msgstr "Écriture"
 
-#: property/views/crud_views.py:121
+#: property/views/crud_views.py:124
 msgid "Entry updated successfully."
 msgstr "Écriture mise à jour avec succès."
 
-#: property/views/crud_views.py:163 property/views/crud_views.py:368
+#: property/views/crud_views.py:166 property/views/crud_views.py:371
 msgid "Entry deleted successfully."
 msgstr "Écriture supprimée avec succès."
 
-#: property/views/crud_views.py:224
+#: property/views/crud_views.py:227
 msgid "Invalid occurrence date."
 msgstr "Date d'occurrence invalide."
 
-#: property/views/crud_views.py:254 property/views/crud_views.py:363
+#: property/views/crud_views.py:257 property/views/crud_views.py:366
 msgid "Invalid scope."
 msgstr "Portée invalide."
 
-#: property/views/crud_views.py:273
+#: property/views/crud_views.py:276
 msgid "Occurrence updated successfully."
 msgstr "Occurrence mise à jour avec succès."
 
-#: property/views/crud_views.py:307
+#: property/views/crud_views.py:310
 msgid "Series updated from this occurrence onwards."
 msgstr "Série mise à jour à partir de cette occurrence."
 
-#: property/views/crud_views.py:372
+#: property/views/crud_views.py:375
 msgid "Occurrence deleted successfully."
 msgstr "Occurrence supprimée avec succès."
 
-#: property/views/crud_views.py:381
+#: property/views/crud_views.py:384
 msgid "Series truncated from this occurrence onwards."
 msgstr "Série tronquée à partir de cette occurrence."
 
-#: property/views/crud_views.py:470
+#: property/views/crud_views.py:496
 msgid "Lease saved."
 msgstr "Bail enregistré."
 
-#: property/views/crud_views.py:482
+#: property/views/crud_views.py:520
 msgid "Lease deleted successfully."
 msgstr "Bail supprimée avec succès."
 
-#: property/views/crud_views.py:502
+#: property/views/crud_views.py:540
 msgid "Mandate saved."
 msgstr "Mandat enregistré."
 
-#: property/views/crud_views.py:516
+#: property/views/crud_views.py:554
 msgid "Mandate deleted successfully."
 msgstr "Mandat supprimé avec succès."
 
@@ -4005,6 +4998,902 @@ msgstr "Valeur théorique enregistrée avec succès."
 msgid "Theoretical value deleted successfully."
 msgstr "Valeur théorique supprimée avec succès."
 
+#: rental/application_views.py:47
+msgid "Application saved."
+msgstr "Candidature enregistrée."
+
+#: rental/application_views.py:79
+msgid "Reopen"
+msgstr "Rouvrir"
+
+#: rental/application_views.py:80
+msgid "Review"
+msgstr "Étudier"
+
+#: rental/application_views.py:81
+msgid "Reject"
+msgstr "Refuser"
+
+#: rental/application_views.py:121
+msgid "Application updated."
+msgstr "Candidature mise à jour."
+
+#: rental/application_views.py:165
+#, python-format
+msgid "Lease created for %(name)s."
+msgstr "Bail créé pour %(name)s."
+
+#: rental/charges_views.py:45
+msgid "Enter a valid period."
+msgstr "Saisissez une période valide."
+
+#: rental/charges_views.py:67
+msgid "Each adjustment needs a label and an amount."
+msgstr "Chaque ajustement doit avoir un libellé et un montant."
+
+#: rental/charges_views.py:73
+msgid "Reconciliation saved."
+msgstr "Régularisation enregistrée."
+
+#: rental/charges_views.py:110
+msgid "Balance recorded in the ledger of the property."
+msgstr "Solde enregistré dans la comptabilité du bien."
+
+#: rental/charges_views.py:121
+msgid "Enter a valid amount and date."
+msgstr "Saisissez un montant et une date valides."
+
+#: rental/charges_views.py:126
+#, python-format
+msgid "Provision updated; %(count)d recurring charges series updated."
+msgstr ""
+"Provision mise à jour ; %(count)d séries de charges récurrentes mises à jour."
+
+#: rental/charges_views.py:138
+msgid "Reconciliation deleted."
+msgstr "Régularisation supprimée."
+
+#: rental/departure_views.py:63
+msgid "Enter the date of the notice and who gave it."
+msgstr "Saisissez la date du préavis et qui l'a donné."
+
+#: rental/departure_views.py:68
+#, python-format
+msgid "Notice recorded: the lease ends on %(date)s."
+msgstr "Préavis enregistré : le bail se termine le %(date)s."
+
+#: rental/departure_views.py:97
+msgid ""
+"Enter the date the keys were returned, a label and an amount for each "
+"deduction, and keep at most 20 % of the deposit."
+msgstr ""
+"Saisissez la date de remise des clés, un libellé et un montant pour chaque "
+"retenue, et conservez au plus 20 % du dépôt."
+
+#: rental/departure_views.py:111
+msgid "Deposit return saved."
+msgstr "Restitution du dépôt enregistrée."
+
+#: rental/departure_views.py:136
+msgid "Deposit return recorded in the ledger."
+msgstr "Restitution du dépôt enregistrée dans la comptabilité."
+
+#: rental/departure_views.py:146
+msgid "Enter a valid end date."
+msgstr "Saisissez une date de fin valide."
+
+#: rental/departure_views.py:151
+#, python-format
+msgid "Lease closed; %(count)d recurring series ended."
+msgstr "Bail clos ; %(count)d séries récurrentes arrêtées."
+
+#: rental/emails.py:46 templates/rental/lease_payments.html:50
+msgid "Rent notice"
+msgstr "Avis d'échéance"
+
+#: rental/emails.py:48
+msgid "Friendly reminder"
+msgstr "Relance amiable"
+
+#: rental/emails.py:49
+msgid "Formal notice"
+msgstr "Mise en demeure"
+
+#: rental/emails.py:50
+msgid "Rent revision letter"
+msgstr "Lettre de révision du loyer"
+
+#: rental/emails.py:51
+msgid "Insurance certificate request"
+msgstr "Demande d'attestation d'assurance"
+
+#: rental/emails.py:52 rental/notifications.py:251
+msgid "Charges reconciliation"
+msgstr "Régularisation des charges"
+
+#: rental/emails.py:53 rental/notifications.py:226
+#: templates/rental/lease_departure.html:74
+msgid "Deposit return"
+msgstr "Restitution du dépôt"
+
+#: rental/forms.py:50
+msgid "Defaults to the file name."
+msgstr "Par défaut, le nom du fichier."
+
+#: rental/forms.py:56
+msgid "For an insurance certificate or a diagnostic."
+msgstr "Pour une attestation d'assurance ou un diagnostic."
+
+#: rental/forms.py:85 templates/rental/lease_charges.html:32
+msgid "To"
+msgstr "À"
+
+#: rental/forms.py:85
+msgid "Addresses separated by commas."
+msgstr "Adresses séparées par des virgules."
+
+#: rental/forms.py:86 templates/budget/ai_prompt.html:22
+#: templates/budget/copy_year.html:6
+msgid "Copy"
+msgstr "Copier"
+
+#: rental/forms.py:87
+msgid "Subject"
+msgstr "Objet"
+
+#: rental/forms.py:89
+msgid "Message"
+msgstr "Message"
+
+#: rental/forms.py:156
+msgid "Condition…"
+msgstr "État…"
+
+#: rental/inventory_views.py:52
+msgid "This inventory already exists."
+msgstr "Cet état des lieux existe déjà."
+
+#: rental/inventory_views.py:73
+msgid "Inventory saved."
+msgstr "État des lieux enregistré."
+
+#: rental/inventory_views.py:139
+#, python-format
+msgid "%(room)s saved."
+msgstr "%(room)s enregistré."
+
+#: rental/inventory_views.py:181
+#, python-format
+msgid "%(room)s deleted."
+msgstr "%(room)s supprimé."
+
+#: rental/inventory_views.py:191
+msgid "Choose a photo."
+msgstr "Choisissez une photo."
+
+#: rental/inventory_views.py:204
+msgid "Photo added."
+msgstr "Photo ajoutée."
+
+#: rental/jobs.py:80
+msgid "Send the rent calls and receipts"
+msgstr "Envoyer les avis d'échéance et les quittances"
+
+#: rental/jobs.py:88
+msgid "Check the electronic signatures"
+msgstr "Vérifier les signatures électroniques"
+
+#: rental/models.py:26
+msgid "rent receipt"
+msgstr "quittance de loyer"
+
+#: rental/models.py:27
+msgid "rent receipts"
+msgstr "quittances de loyer"
+
+#: rental/models.py:41 rental/models.py:330
+msgid "Start of the period"
+msgstr "Début de la période"
+
+#: rental/models.py:42 rental/models.py:331
+msgid "End of the period"
+msgstr "Fin de la période"
+
+#: rental/models.py:46
+msgid "Amount paid"
+msgstr "Montant payé"
+
+#: rental/models.py:48
+msgid "Paid on"
+msgstr "Payé le"
+
+#: rental/models.py:49
+msgid "Sent on"
+msgstr "Envoyée le"
+
+#: rental/models.py:77 rental/models.py:240 templates/budget/_node_rows.html:15
+#: templates/budget/import_preview.html:45
+msgid "New"
+msgstr "Nouveau"
+
+#: rental/models.py:78
+msgid "Under review"
+msgstr "À l'étude"
+
+#: rental/models.py:79
+msgid "Accepted"
+msgstr "Acceptée"
+
+#: rental/models.py:80 rental/models.py:273
+msgid "Rejected"
+msgstr "Refusée"
+
+#: rental/models.py:86
+msgid "rental application"
+msgstr "candidature"
+
+#: rental/models.py:87
+msgid "rental applications"
+msgstr "candidatures"
+
+#: rental/models.py:113 templates/rental/application_detail.html:38
+msgid "Monthly net income"
+msgstr "Revenus nets mensuels"
+
+#: rental/models.py:114
+msgid "Of every tenant of the application, together."
+msgstr "De tous les locataires de la candidature, ensemble."
+
+#: rental/models.py:121 templates/property/edit_lease.html:148
+#: templates/rental/application_detail.html:39
+msgid "Rent and charges"
+msgstr "Loyer et charges"
+
+#: rental/models.py:122
+msgid "Monthly rent and charges offered to the candidate."
+msgstr "Loyer et charges mensuels proposés au candidat."
+
+#: rental/models.py:142
+msgid "Monthly net income of the guarantor"
+msgstr "Revenus nets mensuels du garant"
+
+#: rental/models.py:178
+msgid "Exit"
+msgstr "Sortie"
+
+#: rental/models.py:181 rental/models.py:316
+msgid "Draft"
+msgstr "Brouillon"
+
+#: rental/models.py:182 rental/models.py:272
+msgid "Signed"
+msgstr "Signé"
+
+#: rental/models.py:185
+msgid "inventory of fixtures"
+msgstr "état des lieux"
+
+#: rental/models.py:186
+msgid "inventories of fixtures"
+msgstr "états des lieux"
+
+#: rental/models.py:208
+msgid "Meters"
+msgstr "Compteurs"
+
+#: rental/models.py:211
+msgid "Keys"
+msgstr "Clés"
+
+#: rental/models.py:212
+msgid "Keys and badges handed over, e.g. 2 door keys, 1 mailbox key."
+msgstr ""
+"Clés et badges remis, par exemple 2 clés de porte, 1 clé de boîte aux "
+"lettres."
+
+#: rental/models.py:214 rental/models.py:256
+#: templates/rental/inventory_room.html:36
+msgid "Comment"
+msgstr "Commentaire"
+
+#: rental/models.py:224
+msgid "Room"
+msgstr "Pièce"
+
+#: rental/models.py:228
+msgid "room"
+msgstr "pièce"
+
+#: rental/models.py:229
+msgid "rooms"
+msgstr "pièces"
+
+#: rental/models.py:241
+msgid "Good"
+msgstr "Bon état"
+
+#: rental/models.py:242
+msgid "Worn"
+msgstr "Usage normal"
+
+#: rental/models.py:243
+msgid "Poor"
+msgstr "Mauvais état"
+
+#: rental/models.py:244
+msgid "Damaged"
+msgstr "Dégradé"
+
+#: rental/models.py:249
+msgid "Element"
+msgstr "Élément"
+
+#: rental/models.py:254 templates/rental/inventory_room.html:31
+msgid "Condition"
+msgstr "État"
+
+#: rental/models.py:259
+msgid "inventory element"
+msgstr "élément d'état des lieux"
+
+#: rental/models.py:260
+msgid "inventory elements"
+msgstr "éléments d'état des lieux"
+
+#: rental/models.py:271
+msgid "Waiting for the signatures"
+msgstr "En attente des signatures"
+
+#: rental/models.py:276
+msgid "signature request"
+msgstr "demande de signature"
+
+#: rental/models.py:277
+msgid "signature requests"
+msgstr "demandes de signature"
+
+#: rental/models.py:320
+msgid "charges reconciliation"
+msgstr "régularisation des charges"
+
+#: rental/models.py:321
+msgid "charges reconciliations"
+msgstr "régularisations des charges"
+
+#: rental/models.py:336 templates/rental/reconciliation_detail.html:56
+msgid "Provisions paid"
+msgstr "Provisions versées"
+
+#: rental/models.py:374 templates/rental/lease_departure.html:83
+msgid "To return"
+msgstr "À restituer"
+
+#: rental/models.py:375 templates/rental/lease_departure.html:94
+msgid "Returned"
+msgstr "Restitué"
+
+#: rental/models.py:378
+msgid "deposit settlement"
+msgstr "restitution du dépôt"
+
+#: rental/models.py:379
+msgid "deposit settlements"
+msgstr "restitutions du dépôt"
+
+#: rental/models.py:387 templates/rental/lease_departure.html:103
+msgid "Keys returned on"
+msgstr "Clés remises le"
+
+#: rental/models.py:390 templates/rental/lease_departure.html:107
+msgid "Exit inventory matching the entry one"
+msgstr "État des lieux de sortie conforme à celui d'entrée"
+
+#: rental/models.py:391
+msgid "One month to return the deposit, two months otherwise."
+msgstr "Un mois pour restituer le dépôt, deux mois sinon."
+
+#: rental/models.py:399 templates/rental/lease_departure.html:125
+msgid "Kept until the co-ownership accounts"
+msgstr "Conservé jusqu'aux comptes de copropriété"
+
+#: rental/models.py:400
+msgid "At most 20 % of the deposit, settled within a month of them."
+msgstr "Au plus 20 % du dépôt, réglés dans le mois qui suit leur approbation."
+
+#: rental/models.py:406 templates/rental/lease_departure.html:85
+#: templates/rental/lease_departure.html:93
+msgid "Returned on"
+msgstr "Restitué le"
+
+#: rental/notifications.py:54
+#, python-format
+msgid "%(lease)s: %(count)d item missing"
+msgid_plural "%(lease)s: %(count)d items missing"
+msgstr[0] "%(lease)s : %(count)d élément manquant"
+msgstr[1] "%(lease)s : %(count)d éléments manquants"
+
+#: rental/notifications.py:87
+#, python-format
+msgid "Tenant insurance expired: %(lease)s"
+msgstr "Assurance du locataire expirée : %(lease)s"
+
+#: rental/notifications.py:89
+#, python-format
+msgid "Tenant insurance expires soon: %(lease)s"
+msgstr "Assurance du locataire bientôt expirée : %(lease)s"
+
+#: rental/notifications.py:112
+#, python-format
+msgid "Diagnostic to renew: %(title)s — %(property)s"
+msgstr "Diagnostic à renouveler : %(title)s — %(property)s"
+
+#: rental/notifications.py:129
+#, python-format
+msgid "Rent of %(month)s not received: %(lease)s"
+msgstr "Loyer de %(month)s non reçu : %(lease)s"
+
+#: rental/notifications.py:131
+#, python-format
+msgid "%(amount)s still due."
+msgstr "%(amount)s restent dus."
+
+#: rental/notifications.py:148
+#, python-format
+msgid "Still to sign: %(title)s"
+msgstr "Encore à signer : %(title)s"
+
+#: rental/notifications.py:149
+#, python-format
+msgid "Waiting for %(names)s."
+msgstr "En attente de %(names)s."
+
+#: rental/notifications.py:171
+#, python-format
+msgid "Reconcile the charges of %(year)d: %(lease)s"
+msgstr "Régulariser les charges %(year)d : %(lease)s"
+
+#: rental/notifications.py:187
+#, python-format
+msgid "Return the deposit: %(lease)s"
+msgstr "Restituer le dépôt : %(lease)s"
+
+#: rental/notifications.py:216
+#, python-format
+msgid "Plan the exit inventory: %(lease)s"
+msgstr "Prévoir l'état des lieux de sortie : %(lease)s"
+
+#: rental/notifications.py:228
+msgid ""
+"The legal deadline to return the security deposit of a tenant who left "
+"approaches."
+msgstr ""
+"Le délai légal de restitution du dépôt de garantie d'un locataire parti "
+"approche."
+
+#: rental/notifications.py:239 templates/rental/inventory_detail.html:9
+#: templates/rental/lease_departure.html:36
+#: templates/rental/lease_inventories.html:7
+msgid "Exit inventory"
+msgstr "État des lieux de sortie"
+
+#: rental/notifications.py:241
+msgid "A lease under notice ends soon and its exit inventory is not started."
+msgstr ""
+"Un bail en préavis se termine bientôt et son état des lieux de sortie n'est "
+"pas commencé."
+
+#: rental/notifications.py:253
+msgid ""
+"The charges provisions of the last year of a lease are still to reconcile "
+"with the actual expenses."
+msgstr ""
+"Les provisions sur charges de l'année passée d'un bail restent à régulariser "
+"avec les dépenses réelles."
+
+#: rental/notifications.py:260 templates/rental/lease_charges.html:31
+#: templates/rental/reconciliation_detail.html:87
+msgid "From"
+msgstr "À partir du"
+
+#: rental/notifications.py:263
+msgid "Date of the reminder each year (MM-DD)."
+msgstr "Date du rappel chaque année (MM-JJ)."
+
+#: rental/notifications.py:272
+msgid "Document signed"
+msgstr "Document signé"
+
+#: rental/notifications.py:274
+msgid "Everyone signed a lease or an inventory sent for electronic signature."
+msgstr ""
+"Tout le monde a signé un bail ou un état des lieux envoyé en signature "
+"électronique."
+
+#: rental/notifications.py:282
+msgid "Signature pending"
+msgstr "Signature en attente"
+
+#: rental/notifications.py:284
+msgid ""
+"A document sent for electronic signature is still not signed by everyone "
+"after some days."
+msgstr ""
+"Un document envoyé en signature électronique n'est toujours pas signé par "
+"tous après quelques jours."
+
+#: rental/notifications.py:291
+msgid "Days after the sending"
+msgstr "Jours après l'envoi"
+
+#: rental/notifications.py:304
+msgid "Late rent"
+msgstr "Loyer en retard"
+
+#: rental/notifications.py:306
+msgid ""
+"The rent of a lease you manage yourself is not checked as received some days "
+"after its due date."
+msgstr ""
+"Le loyer d'un bail que vous gérez vous-même n'est pas pointé comme reçu "
+"quelques jours après son échéance."
+
+#: rental/notifications.py:313
+msgid "Days after the due date"
+msgstr "Jours après l'échéance"
+
+#: rental/notifications.py:325
+msgid "Lease checklist"
+msgstr "Checklist du bail"
+
+#: rental/notifications.py:327
+msgid ""
+"A document or a piece of information required by the law is missing from a "
+"lease you manage yourself."
+msgstr ""
+"Un document ou une information exigés par la loi manquent à un bail que vous "
+"gérez vous-même."
+
+#: rental/notifications.py:338 rental/services/compliance.py:204
+msgid "Tenant insurance"
+msgstr "Assurance du locataire"
+
+#: rental/notifications.py:340
+msgid ""
+"The home insurance certificate of a tenant expires: ask for the new one."
+msgstr ""
+"L'attestation d'assurance habitation d'un locataire expire : demandez la "
+"nouvelle."
+
+#: rental/notifications.py:350 rental/services/compliance.py:178
+msgid "Diagnostics"
+msgstr "Diagnostics"
+
+#: rental/notifications.py:352
+msgid "A diagnostic of a rented property expires (electricity, gas, risks…)."
+msgstr "Un diagnostic d'un bien loué expire (électricité, gaz, risques…)."
+
+#: rental/rules.py:65
+msgid "Energy performance (DPE)"
+msgstr "Performance énergétique (DPE)"
+
+#: rental/rules.py:65
+msgid "Natural and technological risks"
+msgstr "Risques naturels et technologiques"
+
+#: rental/rules.py:67
+msgid "Lead exposure (CREP)"
+msgstr "Exposition au plomb (CREP)"
+
+#: rental/rules.py:69
+msgid "Asbestos"
+msgstr "Amiante"
+
+#: rental/rules.py:71
+msgid "Electricity and gas installations"
+msgstr "Installations d'électricité et de gaz"
+
+#: rental/rules.py:83
+msgid "An identity document with a photo"
+msgstr "Une pièce d'identité avec photo"
+
+#: rental/rules.py:84
+msgid ""
+"A proof of address: last rent receipts, tax notice or certificate of "
+"residence"
+msgstr ""
+"Un justificatif de domicile : dernières quittances, avis d'imposition ou "
+"attestation d'hébergement"
+
+#: rental/rules.py:85
+msgid "Proof of the professional situation: employment contract, student card…"
+msgstr ""
+"Un justificatif de situation professionnelle : contrat de travail, carte "
+"d'étudiant…"
+
+#: rental/rules.py:86
+msgid "Proof of the resources: last 3 payslips, last tax notice, pensions…"
+msgstr ""
+"Des justificatifs de ressources : 3 derniers bulletins de salaire, dernier "
+"avis d'imposition, pensions…"
+
+#: rental/rules.py:91
+msgid "Bank statements or a certificate of good account keeping"
+msgstr "Des relevés bancaires ou une attestation de bonne tenue de compte"
+
+#: rental/rules.py:92
+msgid "A health insurance card or a medical record"
+msgstr "Une carte Vitale ou un dossier médical"
+
+#: rental/rules.py:93
+msgid "A marriage certificate, a family record book or a criminal record"
+msgstr ""
+"Un acte de mariage, un livret de famille ou un extrait de casier judiciaire"
+
+#: rental/rules.py:94
+msgid "A photo, other than on the identity document"
+msgstr "Une photo, autre que celle de la pièce d'identité"
+
+#: rental/rules.py:95
+msgid "A cheque to book the dwelling or a direct debit authorisation"
+msgstr ""
+"Un chèque de réservation du logement ou une autorisation de prélèvement"
+
+#: rental/rules.py:97
+msgid ""
+"A certificate from the previous landlord that the rent was paid, when rent "
+"receipts can be given"
+msgstr ""
+"Une attestation du précédent bailleur indiquant que les loyers ont été "
+"payés, si des quittances peuvent être fournies"
+
+#: rental/rules.py:141
+msgid "Electricity"
+msgstr "Électricité"
+
+#: rental/rules.py:142
+msgid "Gas"
+msgstr "Gaz"
+
+#: rental/rules.py:143
+msgid "Cold water"
+msgstr "Eau froide"
+
+#: rental/rules.py:144
+msgid "Hot water"
+msgstr "Eau chaude"
+
+#: rental/services/charges.py:143
+#, python-format
+msgid "Charges reconciliation %(start)s – %(end)s"
+msgstr "Régularisation des charges du %(start)s au %(end)s"
+
+#: rental/services/compliance.py:83 templates/rental/dashboard.html:50
+msgid "Tenants"
+msgstr "Locataires"
+
+#: rental/services/compliance.py:86 templates/property/edit_lease.html:49
+#: templates/rental/lease_detail.html:36
+msgid "No tenant recorded."
+msgstr "Aucun locataire enregistré."
+
+#: rental/services/compliance.py:93
+#, python-format
+msgid "No email address for %(names)s: nothing can be sent to them."
+msgstr "Pas d'adresse email pour %(names)s : rien ne peut leur être envoyé."
+
+#: rental/services/compliance.py:100
+msgid "Landlord identity"
+msgstr "Identité du bailleur"
+
+#: rental/services/compliance.py:109
+msgid ""
+"The name and postal address of the landlord are written on the receipts: "
+"enter the postal address of the owners in their settings, or the landlord on "
+"the property."
+msgstr ""
+"Le nom et l'adresse postale du bailleur figurent sur les quittances : "
+"saisissez l'adresse postale des propriétaires dans leurs paramètres, ou le "
+"bailleur sur le bien."
+
+#: rental/services/compliance.py:127
+#, python-format
+msgid "%(deposit)s exceeds the legal maximum of %(cap)s."
+msgstr "%(deposit)s dépasse le maximum légal de %(cap)s."
+
+#: rental/services/compliance.py:137
+#, python-format
+msgid "Legal maximum: %(cap)s."
+msgstr "Maximum légal : %(cap)s."
+
+#: rental/services/compliance.py:147
+msgid "No DPE recorded."
+msgstr "Aucun DPE enregistré."
+
+#: rental/services/compliance.py:153
+#, python-format
+msgid "Housing rated %(rating)s can no longer be rented out."
+msgstr "Un logement classé %(rating)s ne peut plus être loué."
+
+#: rental/services/compliance.py:158
+msgid "The DPE has expired."
+msgstr "Le DPE a expiré."
+
+#: rental/services/compliance.py:162
+#, python-format
+msgid "Rental ban from %(date)s."
+msgstr "Interdiction de location à partir du %(date)s."
+
+#: rental/services/compliance.py:166
+#, python-format
+msgid "Expires on %(date)s."
+msgstr "Expire le %(date)s."
+
+#: rental/services/compliance.py:169
+msgid "The rent cannot be increased."
+msgstr "Le loyer ne peut pas être augmenté."
+
+#: rental/services/compliance.py:186
+#, python-format
+msgid "To annex to the lease: %(list)s."
+msgstr "À annexer au bail : %(list)s."
+
+#: rental/services/compliance.py:195
+#, python-format
+msgid "Expired: %(list)s."
+msgstr "Expirés : %(list)s."
+
+#: rental/services/compliance.py:214
+msgid "Ask the tenant for their home insurance certificate."
+msgstr "Demandez au locataire son attestation d'assurance habitation."
+
+#: rental/services/compliance.py:223
+msgid "Enter the end of validity of the certificate."
+msgstr "Saisissez la fin de validité de l'attestation."
+
+#: rental/services/compliance.py:232
+#, python-format
+msgid "Expired on %(date)s."
+msgstr "Expirée le %(date)s."
+
+#: rental/services/compliance.py:235
+#, python-format
+msgid "Valid until %(date)s."
+msgstr "Valable jusqu'au %(date)s."
+
+#: rental/services/compliance.py:242
+msgid "Signed lease"
+msgstr "Bail signé"
+
+#: rental/services/compliance.py:246
+msgid "Enter the signature date."
+msgstr "Saisissez la date de signature."
+
+#: rental/services/compliance.py:249
+msgid "Add the signed lease."
+msgstr "Ajoutez le bail signé."
+
+#: rental/services/compliance.py:254
+#, python-format
+msgid "Signed on %(date)s."
+msgstr "Signé le %(date)s."
+
+#: rental/services/compliance.py:259 templates/rental/inventory_detail.html:9
+#: templates/rental/lease_inventories.html:6
+msgid "Entry inventory"
+msgstr "État des lieux d'entrée"
+
+#: rental/services/compliance.py:267
+msgid "To do on the move-in day."
+msgstr "À faire le jour de l'entrée dans les lieux."
+
+#: rental/services/compliance.py:269
+msgid "Add the signed inventory."
+msgstr "Ajoutez l'état des lieux signé."
+
+#: rental/services/compliance.py:284
+msgid "Add the signed guarantee deed or the Visale certificate."
+msgstr "Ajoutez l'acte de cautionnement signé ou le visa Visale."
+
+#: rental/services/departure.py:198
+msgid "Kept from the deposit"
+msgstr "Retenu sur le dépôt"
+
+#: rental/services/departure.py:208
+msgid "Penalty for the late return of the deposit"
+msgstr "Pénalité pour restitution tardive du dépôt"
+
+#: rental/services/move_in.py:49
+msgid "Lease signed"
+msgstr "Bail signé"
+
+#: rental/services/move_in.py:51
+msgid "Entry inventory signed"
+msgstr "État des lieux d'entrée signé"
+
+#: rental/services/move_in.py:57
+msgid "Rent schedule"
+msgstr "Échéancier des loyers"
+
+#: rental/services/move_in.py:64
+msgid "Security deposit received"
+msgstr "Dépôt de garantie encaissé"
+
+#: rental/services/signature.py:85
+msgid "Enter your email address in your settings: you sign as the landlord."
+msgstr ""
+"Saisissez votre adresse email dans vos paramètres : vous signez en tant que "
+"bailleur."
+
+#: rental/services/signature.py:90
+#, python-format
+msgid "No email address for %(names)s."
+msgstr "Pas d'adresse email pour %(names)s."
+
+#: rental/services/signature.py:93
+msgid "The lease has no tenant."
+msgstr "Le bail n'a pas de locataire."
+
+#: rental/services/signature.py:98
+#, python-format
+msgid "At most %(count)d people can sign electronically."
+msgstr "Au plus %(count)d personnes peuvent signer électroniquement."
+
+#: rental/services/signature.py:176
+#, python-format
+msgid "Signed by everyone: %(title)s"
+msgstr "Signé par tous : %(title)s"
+
+#: rental/signature_views.py:32
+msgid "No signature service is configured."
+msgstr "Aucun service de signature n'est configuré."
+
+#: rental/signature_views.py:41
+#, python-format
+msgid "Sent for signature to %(count)d people."
+msgstr "Envoyé en signature à %(count)d personnes."
+
+#: rental/signature_views.py:84
+msgid "Security deposit recorded."
+msgstr "Dépôt de garantie enregistré."
+
+#: rental/uploads.py:34
+msgid "Document added."
+msgstr "Document ajouté."
+
+#: rental/views.py:197
+#, python-format
+msgid "%(name)s saved."
+msgstr "%(name)s enregistré."
+
+#: rental/views.py:217
+#, python-format
+msgid "%(name)s removed."
+msgstr "%(name)s retiré."
+
+#: rental/views.py:245
+msgid "This lease already has a rent schedule."
+msgstr "Ce bail a déjà un échéancier."
+
+#: rental/views.py:248
+msgid "Rent schedule created."
+msgstr "Échéancier créé."
+
+#: rental/views.py:255
+msgid "Unknown period."
+msgstr "Période inconnue."
+
+#: rental/views.py:264 rental/views.py:284
+msgid "Nothing was received for this period."
+msgstr "Rien n'a été reçu pour cette période."
+
+#: rental/views.py:276
+msgid "Unknown email."
+msgstr "Email inconnu."
+
+#: rental/views.py:312
+msgid "The email is being sent."
+msgstr "L'email est en cours d'envoi."
+
 #: templates/400.html:4 templates/400.html:7
 msgid "Bad Request"
 msgstr "Requête invalide"
@@ -4094,6 +5983,43 @@ msgid_plural "In %(months)s months"
 msgstr[0] "Dans %(months)s mois"
 msgstr[1] "Dans %(months)s mois"
 
+#: templates/_document_list.html:9
+#, python-format
+msgid "expired on %(date)s"
+msgstr "expiré le %(date)s"
+
+#: templates/_document_list.html:9
+#, python-format
+msgid "valid until %(date)s"
+msgstr "valable jusqu'au %(date)s"
+
+#: templates/_document_list.html:12
+#, python-format
+msgid "Delete %(title)s?"
+msgstr "Supprimer %(title)s ?"
+
+#: templates/_document_list.html:15 templates/budget/categories.html:33
+#: templates/budget/edit_line.html:48
+#: templates/finance/_account_detail_header.html:14
+#: templates/finance/_delete_modal.html:16
+#: templates/finance/_euro_fund_rates_panel.html:48
+#: templates/finance/_item_actions.html:6
+#: templates/finance/holding_detail.html:28
+#: templates/finance/investment_detail.html:112
+#: templates/finance/other_asset_detail.html:29
+#: templates/notifications/settings.html:70 templates/property/detail.html:578
+#: templates/property/detail_panel_cashflow.html:234
+#: templates/property/detail_panel_cashflow.html:303
+#: templates/property/detail_panel_loans.html:154
+#: templates/property/occurrence_checks.html:73
+#: templates/property/scpi_detail.html:127
+#: templates/property/scpi_detail.html:187
+#: templates/property/scpi_fund_detail.html:196
+#: templates/property/scpi_fund_detail.html:245
+#: templates/rental/inventory_room.html:26
+msgid "Delete"
+msgstr "Supprimer"
+
 #: templates/_owners_summary.html:8
 msgid "Choose the owners when editing the asset."
 msgstr "Choisissez les propriétaires en modifiant l'actif."
@@ -4110,71 +6036,42 @@ msgstr "Gérer les propriétaires"
 msgid "Dismembered rights without date:"
 msgstr "Droits démembrés sans date :"
 
-#: templates/accounts/emails/login_notification.html:10
-#: templates/accounts/settings.html:45
-msgid "Login notification"
-msgstr "Notification de connexion"
+#: templates/accounts/_background_jobs.html:4
+msgid "Background jobs"
+msgstr "Tâches de fond"
 
-#: templates/accounts/emails/login_notification.html:11
-#, python-format
-msgid "Hello <strong>%(username)s</strong>,"
-msgstr "Bonjour <strong>%(username)s</strong>,"
-
-#: templates/accounts/emails/login_notification.html:12
-msgid "A login to your account was detected."
-msgstr "Une connexion à votre compte a été détectée."
-
-#: templates/accounts/emails/login_notification.html:20
-msgid "IP address"
-msgstr "Adresse IP"
-
-#: templates/accounts/emails/login_notification.html:24
-msgid "Browser"
-msgstr "Navigateur"
-
-#: templates/accounts/emails/login_notification.html:30
+#: templates/accounts/_background_jobs.html:8
 msgid ""
-"If this was not you, please change your password immediately and review your "
-"security settings."
+"Jobs run automatically by the scheduler started next to the application."
 msgstr ""
-"S'il ne s'agit pas de vous, veuillez changer votre mot de passe "
-"immédiatement et vérifier vos paramètres de sécurité."
+"Tâches lancées automatiquement par le planificateur démarré avec "
+"l'application."
 
-#: templates/accounts/emails/login_notification.html:36
-msgid "Manage notification preferences"
-msgstr "Gérer les préférences de notification"
+#: templates/accounts/_background_jobs.html:14
+msgid "Job"
+msgstr "Tâche"
 
-#: templates/accounts/emails/login_notification.txt:1
+#: templates/accounts/_background_jobs.html:15
+msgid "Schedule"
+msgstr "Planification"
+
+#: templates/accounts/_background_jobs.html:16
+msgid "Last run"
+msgstr "Dernière exécution"
+
+#: templates/accounts/_background_jobs.html:26
 #, python-format
-msgid ""
-"Hello %(username)s,\n"
-"\n"
-"A login to your account was detected on %(login_time)s.\n"
-"\n"
-"IP address: %(ip)s\n"
-"Browser: %(user_agent)s\n"
-"\n"
-"If this was not you, please change your password immediately and review your "
-"security settings.\n"
-"\n"
-"You can manage your notification preferences at: %(settings_url)s"
-msgstr ""
-"Bonjour %(username)s,\n"
-"\n"
-"Une connexion à votre compte a été détectée le %(login_time)s.\n"
-"\n"
-"Adresse IP : %(ip)s\n"
-"Navigateur : %(user_agent)s\n"
-"\n"
-"S'il ne s'agit pas de vous, veuillez changer votre mot de passe "
-"immédiatement et vérifier vos paramètres de sécurité.\n"
-"\n"
-"Vous pouvez gérer vos préférences de notification à : %(settings_url)s"
+msgid "Daily at %(time)s"
+msgstr "Chaque jour à %(time)s"
 
-#: templates/accounts/emails/login_notification_subject.txt:1
+#: templates/accounts/_background_jobs.html:26
 #, python-format
-msgid "Login notification on %(site_name)s"
-msgstr "Notification de connexion sur %(site_name)s"
+msgid "Every %(minutes)s min"
+msgstr "Toutes les %(minutes)s min"
+
+#: templates/accounts/_background_jobs.html:43
+msgid "Run now"
+msgstr "Lancer maintenant"
 
 #: templates/accounts/settings.html:13
 msgid "Profile"
@@ -4194,37 +6091,53 @@ msgstr ""
 msgid "Enter your email address"
 msgstr "Saisissez votre adresse email"
 
-#: templates/accounts/settings.html:31 templates/accounts/settings.html:150
-#: templates/allocation.html:69 templates/budget/edit_line.html:44
+#: templates/accounts/settings.html:31 templates/accounts/settings.html:41
+#: templates/accounts/settings.html:157 templates/allocation.html:69
+#: templates/budget/edit_line.html:44
 #: templates/finance/_edit_form_footer.html:4
 #: templates/finance/_euro_fund_rates_panel.html:25
-#: templates/owners_manage.html:66 templates/property/_edit_form_footer.html:6
+#: templates/notifications/settings.html:156 templates/owners_manage.html:66
+#: templates/property/_edit_form_footer.html:6
 #: templates/property/_form_submit_buttons.html:4
-#: templates/property/detail.html:369 templates/property/detail.html:541
+#: templates/property/detail.html:369 templates/property/detail.html:543
 #: templates/property/edit_amortization.html:174
 #: templates/property/edit_entry.html:12
 #: templates/property/edit_entry_occurrence.html:81
 #: templates/property/occurrence_checks.html:124
+#: templates/rental/edit_application.html:26
+#: templates/rental/edit_party.html:29
+#: templates/rental/inventory_detail.html:40
+#: templates/rental/lease_departure.html:128
+#: templates/rental/reconciliation_detail.html:45
 msgid "Save"
 msgstr "Enregistrer"
 
-#: templates/accounts/settings.html:40
-msgid "Notifications"
-msgstr "Notifications"
+#: templates/accounts/settings.html:54
+msgid "Alerts and reminders"
+msgstr "Alertes et rappels"
 
-#: templates/accounts/settings.html:47
-msgid "Receive an email when someone logs in to your account."
-msgstr "Recevoir un email lorsqu'une connexion à votre compte est détectée."
+#: templates/accounts/settings.html:56
+msgid ""
+"Choose the alerts you receive (logins, deadlines, drops, taxes…) and the "
+"channels they reach you on (email, ntfy, Gotify, Telegram…)."
+msgstr ""
+"Choisissez les alertes que vous recevez (connexions, échéances, baisses, "
+"impôts…) et les canaux par lesquels elles vous parviennent (email, ntfy, "
+"Gotify, Telegram…)."
 
-#: templates/accounts/settings.html:61
+#: templates/accounts/settings.html:60
+msgid "Configure"
+msgstr "Configurer"
+
+#: templates/accounts/settings.html:68
 msgid "Data"
 msgstr "Données"
 
-#: templates/accounts/settings.html:66 templates/finance/holding_detail.html:36
+#: templates/accounts/settings.html:73 templates/finance/holding_detail.html:36
 msgid "Live market data"
 msgstr "Données de marché en direct"
 
-#: templates/accounts/settings.html:68
+#: templates/accounts/settings.html:75
 msgid ""
 "Fetch real-time market data from Yahoo Finance for holdings and ISIN "
 "autofill."
@@ -4232,153 +6145,141 @@ msgstr ""
 "Récupère les données de marché en temps réel depuis Yahoo Finance pour les "
 "titres et le remplissage automatique de l'ISIN."
 
-#: templates/accounts/settings.html:82
+#: templates/accounts/settings.html:89
 msgid "Security"
 msgstr "Sécurité"
 
-#: templates/accounts/settings.html:87
+#: templates/accounts/settings.html:94
 msgid "Password"
 msgstr "Mot de passe"
 
-#: templates/accounts/settings.html:89
+#: templates/accounts/settings.html:96
 msgid "Update your password to keep your account secure."
 msgstr "Mettez à jour votre mot de passe pour garder votre compte sécurisé."
 
-#: templates/accounts/settings.html:96 templates/accounts/settings.html:107
+#: templates/accounts/settings.html:103 templates/accounts/settings.html:114
 msgid "Change Password"
 msgstr "Changer le mot de passe"
 
-#: templates/accounts/settings.html:115
+#: templates/accounts/settings.html:122
 msgid "Passkey"
 msgstr "Passkey"
 
-#: templates/accounts/settings.html:117
+#: templates/accounts/settings.html:124
 msgid ""
 "Register a passkey so you can log in with fingerprint or face recognition."
 msgstr ""
 "Enregistrer une passkey pour se connecter via empreinte ou reconnaissance "
 "faciale."
 
-#: templates/accounts/settings.html:120
+#: templates/accounts/settings.html:127
 msgid "You can replace your passkey at any time."
 msgstr "Vous pouvez remplacer votre passkey n'importe quand."
 
-#: templates/accounts/settings.html:125 templates/accounts/settings.html:332
+#: templates/accounts/settings.html:132 templates/accounts/settings.html:307
 msgid "Register passkey"
 msgstr "Enregistrer la passkey"
 
-#: templates/accounts/settings.html:128
+#: templates/accounts/settings.html:135
 msgid "Remove passkey"
 msgstr "Supprimer la passkey"
 
-#: templates/accounts/settings.html:136
+#: templates/accounts/settings.html:143
 msgid "Auto-logout"
 msgstr "Déconnexion automatique"
 
-#: templates/accounts/settings.html:138
+#: templates/accounts/settings.html:145
 msgid "Automatically log out after a period of inactivity for security."
 msgstr ""
 "Déconnecter automatiquement après une période d'inactivité pour des raisons "
 "de sécurité."
 
-#: templates/accounts/settings.html:145
+#: templates/accounts/settings.html:152
 msgid "minutes"
 msgstr "minutes"
 
-#: templates/accounts/settings.html:182
+#: templates/accounts/settings.html:193
 msgid "Please enter an email address."
 msgstr "Veuillez saisir une adresse email."
 
-#: templates/accounts/settings.html:198
+#: templates/accounts/settings.html:209
 msgid "Please enter a valid email address."
 msgstr "Veuillez saisir une adresse email valide."
 
-#: templates/accounts/settings.html:201 templates/accounts/settings.html:211
+#: templates/accounts/settings.html:212 templates/accounts/settings.html:222
 msgid "Failed to update email address."
 msgstr "Échec de la mise à jour de l'adresse email."
 
-#: templates/accounts/settings.html:207
+#: templates/accounts/settings.html:218
 msgid "Email address updated successfully."
 msgstr "Adresse email mise à jour avec succès."
 
-#: templates/accounts/settings.html:238
-msgid "Login notification enabled."
-msgstr "Notification de connexion activée."
-
-#: templates/accounts/settings.html:241
-msgid "Login notification disabled."
-msgstr "Notification de connexion désactivée."
-
-#: templates/accounts/settings.html:247
-msgid "Failed to update notification preferences."
-msgstr "Échec de la mise à jour des préférences de notification."
-
-#: templates/accounts/settings.html:274
+#: templates/accounts/settings.html:249
 msgid "Live market data enabled."
 msgstr "Données de marché en direct activées."
 
-#: templates/accounts/settings.html:277
+#: templates/accounts/settings.html:252
 msgid "Live market data disabled."
 msgstr "Données de marché en direct désactivées."
 
-#: templates/accounts/settings.html:283
+#: templates/accounts/settings.html:258
 msgid "Failed to update live market data preference."
 msgstr ""
 "Échec de la mise à jour de la préférence de données de marché en direct."
 
-#: templates/accounts/settings.html:331
+#: templates/accounts/settings.html:306
 msgid "Replace passkey"
 msgstr "Remplacer la passkey"
 
-#: templates/accounts/settings.html:338
+#: templates/accounts/settings.html:313
 msgid "Passkey registered."
 msgstr "Passkey enregistrée."
 
-#: templates/accounts/settings.html:340
+#: templates/accounts/settings.html:315
 msgid "No passkey registered yet."
 msgstr "Pas de passkey enregistré actuellement."
 
-#: templates/accounts/settings.html:349
+#: templates/accounts/settings.html:324
 msgid "Passkeys are not supported on this browser."
 msgstr "Les passkeys ne sont pas prises en charge sur ce navigateur."
 
-#: templates/accounts/settings.html:401
+#: templates/accounts/settings.html:376
 msgid "Passkey registered successfully."
 msgstr "Passkey enregistrée avec succès."
 
-#: templates/accounts/settings.html:406
+#: templates/accounts/settings.html:381
 msgid "Passkey registration was cancelled."
 msgstr "L'enregistrement de la passkey a été annulé."
 
-#: templates/accounts/settings.html:408
+#: templates/accounts/settings.html:383
 msgid "Failed to get registration options from server."
 msgstr "Échec de récupération des options d'enregistrement depuis le serveur."
 
-#: templates/accounts/settings.html:410 templates/registration/login.html:178
+#: templates/accounts/settings.html:385 templates/registration/login.html:178
 msgid "Failed to verify passkey with server."
 msgstr "Échec de vérification de la passkey avec le serveur."
 
-#: templates/accounts/settings.html:412
+#: templates/accounts/settings.html:387
 msgid "Failed to register passkey:"
 msgstr "Échec d'enregistrement de la passkey :"
 
-#: templates/accounts/settings.html:431
+#: templates/accounts/settings.html:406
 msgid "Passkey removed."
 msgstr "Passkey supprimée."
 
-#: templates/accounts/settings.html:434
+#: templates/accounts/settings.html:409
 msgid "Failed to remove passkey."
 msgstr "Échec de suppression de la passkey."
 
-#: templates/accounts/settings.html:451
+#: templates/accounts/settings.html:426
 msgid "Please enter a value between 5 and 1440 minutes."
 msgstr "Veuillez saisir une valeur comprise entre 5 et 1440 minutes."
 
-#: templates/accounts/settings.html:464
+#: templates/accounts/settings.html:439
 msgid "Session timeout updated successfully."
 msgstr "Délai d'expiration de session mis à jour avec succès."
 
-#: templates/accounts/settings.html:468
+#: templates/accounts/settings.html:443
 msgid "Failed to update session timeout."
 msgstr "Échec de la mise à jour du délai d'expiration de session."
 
@@ -4402,15 +6303,18 @@ msgstr[1] ""
 #: templates/property/_property_form_card.html:16
 #: templates/property/csv_confirm.html:37
 #: templates/property/delete_entry_occurrence.html:30
-#: templates/property/detail.html:368 templates/property/detail.html:539
+#: templates/property/detail.html:368 templates/property/detail.html:541
 #: templates/property/detail_panel_balance.html:42
-#: templates/property/detail_panel_cashflow.html:201
-#: templates/property/detail_panel_cashflow.html:231
-#: templates/property/detail_panel_cashflow.html:268
+#: templates/property/detail_panel_cashflow.html:202
+#: templates/property/detail_panel_cashflow.html:232
+#: templates/property/detail_panel_cashflow.html:269
 #: templates/property/edit_amortization.html:177
 #: templates/property/edit_entry.html:13
 #: templates/property/edit_entry_occurrence.html:84
 #: templates/property/scpi_dividend_batch.html:77
+#: templates/rental/compose_email.html:34
+#: templates/rental/edit_application.html:25
+#: templates/rental/edit_party.html:28
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -4518,87 +6422,94 @@ msgid "Analysis"
 msgstr "Analyse"
 
 #: templates/base.html:73 templates/deadlines.html:5
-#: templates/operations.html:5
+#: templates/operations.html:5 templates/rental/dashboard.html:5
 msgid "Tracking"
 msgstr "Suivi"
 
-#: templates/base.html:82
+#: templates/base.html:83
 msgid "Tools"
 msgstr "Outils"
 
-#: templates/base.html:93
+#: templates/base.html:94
 msgid "Favorites"
 msgstr "Favoris"
 
-#: templates/base.html:110
+#: templates/base.html:111
 msgid "Add an asset"
 msgstr "Ajouter un actif"
 
-#: templates/base.html:111
+#: templates/base.html:112 templates/rental/application_detail.html:59
+#: templates/rental/inventory_detail.html:29
+#: templates/rental/inventory_room.html:57
+#: templates/rental/lease_documents.html:38
 msgid "Add"
 msgstr "Ajouter"
 
-#: templates/base.html:114
+#: templates/base.html:115
 msgid "PEA, life insurance, securities account"
 msgstr "PEA, assurance vie, compte-titres"
 
-#: templates/base.html:115
+#: templates/base.html:116
 msgid "Passbook, PEL, CEL"
 msgstr "Livret, PEL, CEL"
 
-#: templates/base.html:116
+#: templates/base.html:117
 msgid "Main residence, rental, LMNP"
 msgstr "Résidence principale, locatif, LMNP"
 
-#: templates/base.html:117
+#: templates/base.html:118
 msgid "Shares in full or bare ownership"
 msgstr "Parts en pleine ou nue-propriété"
 
-#: templates/base.html:118
+#: templates/base.html:119
 msgid "Vehicle, gold, crypto, collectibles"
 msgstr "Véhicule, or, crypto, objets de collection"
 
-#: templates/base.html:121 templates/base.html:122
+#: templates/base.html:122 templates/base.html:123
 msgid "Bulk update"
 msgstr "Mise à jour groupée"
 
-#: templates/base.html:124
+#: templates/base.html:125
 msgid "Collapse or expand the menu"
 msgstr "Replier ou déplier le menu"
 
-#: templates/base.html:125
+#: templates/base.html:126
 msgid "Collapse the menu"
 msgstr "Replier le menu"
 
-#: templates/base.html:134
+#: templates/base.html:135
 msgid "Open the menu"
 msgstr "Ouvrir le menu"
 
-#: templates/base.html:137
+#: templates/base.html:138
 msgid "Breadcrumb"
 msgstr "Fil d'Ariane"
 
-#: templates/base.html:146
+#: templates/base.html:147
 msgid "Search an asset"
 msgstr "Rechercher un actif"
 
-#: templates/base.html:148
+#: templates/base.html:149
 msgid "No result"
 msgstr "Aucun résultat"
 
-#: templates/base.html:150 templates/base.html:212
+#: templates/base.html:151 templates/base.html:221
 msgid "Toggle dark mode"
 msgstr "Basculer en mode sombre"
 
-#: templates/base.html:154
+#: templates/base.html:159
+msgid "Loading…"
+msgstr "Chargement…"
+
+#: templates/base.html:163
 msgid "My account"
 msgstr "Mon compte"
 
-#: templates/base.html:168 templates/base.html:218
+#: templates/base.html:177 templates/base.html:227
 msgid "Language"
 msgstr "Langue"
 
-#: templates/base.html:176
+#: templates/base.html:185
 msgid "Logout"
 msgstr "Déconnexion"
 
@@ -4607,12 +6518,9 @@ msgid "Computed from the rest of the application"
 msgstr "Calculé à partir du reste de l'application"
 
 #: templates/budget/_node_rows.html:6
+#: templates/finance/_holding_update_row.html:25
 msgid "Auto"
 msgstr "Auto"
-
-#: templates/budget/_node_rows.html:15 templates/budget/import_preview.html:45
-msgid "New"
-msgstr "Nouveau"
 
 #: templates/budget/_node_rows.html:19 templates/budget/categories.html:30
 #: templates/finance/_account_detail_header.html:11
@@ -4625,7 +6533,7 @@ msgstr "Nouveau"
 #: templates/finance/other_asset_detail.html:26
 #: templates/property/_edit_page_header.html:17
 #: templates/property/detail.html:57
-#: templates/property/detail_panel_cashflow.html:297
+#: templates/property/detail_panel_cashflow.html:298
 #: templates/property/detail_panel_loans.html:39 templates/property/edit.html:5
 #: templates/property/edit.html:9 templates/property/scpi_detail.html:124
 #: templates/property/scpi_detail.html:184
@@ -4633,6 +6541,8 @@ msgstr "Nouveau"
 #: templates/property/scpi_fund_detail.html:244
 #: templates/property/scpi_fund_form.html:13
 #: templates/property/scpi_theoretical_value_form.html:59
+#: templates/rental/application_detail.html:9
+#: templates/rental/lease_detail.html:28 templates/rental/lease_detail.html:67
 msgid "Edit"
 msgstr "Modifier"
 
@@ -4674,10 +6584,6 @@ msgstr "Prompt"
 msgid "Copied"
 msgstr "Copié"
 
-#: templates/budget/ai_prompt.html:22 templates/budget/copy_year.html:6
-msgid "Copy"
-msgstr "Copier"
-
 #: templates/budget/ai_prompt.html:26
 msgid "Import the file"
 msgstr "Importer le fichier"
@@ -4716,26 +6622,6 @@ msgstr "Ajouter une sous-catégorie"
 #: templates/budget/categories.html:31
 msgid "Delete this category?"
 msgstr "Supprimer cette catégorie ?"
-
-#: templates/budget/categories.html:33 templates/budget/edit_line.html:48
-#: templates/finance/_account_detail_header.html:14
-#: templates/finance/_delete_modal.html:16
-#: templates/finance/_euro_fund_rates_panel.html:48
-#: templates/finance/_item_actions.html:6
-#: templates/finance/holding_detail.html:28
-#: templates/finance/investment_detail.html:112
-#: templates/finance/other_asset_detail.html:29
-#: templates/property/detail.html:576
-#: templates/property/detail_panel_cashflow.html:233
-#: templates/property/detail_panel_cashflow.html:302
-#: templates/property/detail_panel_loans.html:154
-#: templates/property/occurrence_checks.html:73
-#: templates/property/scpi_detail.html:127
-#: templates/property/scpi_detail.html:187
-#: templates/property/scpi_fund_detail.html:196
-#: templates/property/scpi_fund_detail.html:245
-msgid "Delete"
-msgstr "Supprimer"
 
 #: templates/budget/categories.html:38
 msgid "No category."
@@ -4824,7 +6710,7 @@ msgstr ""
 msgid "get the prompt"
 msgstr "obtenir le prompt"
 
-#: templates/budget/import.html:25
+#: templates/budget/import.html:25 templates/rental/compose_email.html:31
 msgid "Preview"
 msgstr "Aperçu"
 
@@ -4875,26 +6761,27 @@ msgstr "prénom ou identifiant d'un membre, vide pour tout le foyer"
 #: templates/finance/edit_investment_holding.html:49
 #: templates/finance/edit_investment_holding.html:57
 #: templates/finance/edit_investment_holding.html:65
-#: templates/finance/edit_investment_holding.html:100
+#: templates/finance/edit_investment_holding.html:108
 #: templates/property/_contact_card.html:12
 #: templates/property/_contact_card.html:23
 #: templates/property/_contact_card.html:36
 #: templates/property/_notes_card.html:9 templates/property/detail.html:438
 #: templates/property/detail.html:477 templates/property/detail.html:489
-#: templates/property/detail.html:496 templates/property/detail.html:507
-#: templates/property/detail.html:528
+#: templates/property/detail.html:496 templates/property/detail.html:509
+#: templates/property/detail.html:530
 #: templates/property/detail_panel_cashflow.html:119
 #: templates/property/detail_panel_cashflow.html:127
 #: templates/property/detail_panel_cashflow.html:159
 #: templates/property/detail_panel_cashflow.html:168
-#: templates/property/detail_panel_cashflow.html:175
-#: templates/property/detail_panel_cashflow.html:193
+#: templates/property/detail_panel_cashflow.html:176
+#: templates/property/detail_panel_cashflow.html:194
 #: templates/property/edit_entry_occurrence.html:41
 #: templates/property/edit_entry_occurrence.html:51
 #: templates/property/edit_entry_occurrence.html:61
-#: templates/property/edit_lease.html:51 templates/property/edit_lease.html:59
-#: templates/property/edit_lease.html:117
-#: templates/property/edit_lease.html:125
+#: templates/property/edit_lease.html:39 templates/property/edit_lease.html:111
+#: templates/property/edit_lease.html:119
+#: templates/property/edit_lease.html:127
+#: templates/property/edit_lease.html:135
 #: templates/property/edit_manager.html:43
 #: templates/property/edit_mandate.html:38
 #: templates/property/edit_mandate.html:46
@@ -4902,6 +6789,8 @@ msgstr "prénom ou identifiant d'un membre, vide pour tout le foyer"
 #: templates/property/edit_mandate.html:69
 #: templates/property/edit_mandate.html:96
 #: templates/property/edit_mandate.html:107
+#: templates/rental/edit_application.html:17
+#: templates/rental/edit_party.html:19
 msgid "optional"
 msgstr "optionnel"
 
@@ -5146,6 +7035,7 @@ msgstr "Tout replier"
 
 #: templates/budget/year_detail.html:122 templates/dashboard/_overview.html:31
 #: templates/property/detail_panel_balance.html:9
+#: templates/rental/lease_payments.html:36
 msgid "Period"
 msgstr "Période"
 
@@ -5247,10 +7137,6 @@ msgstr "Évolution du patrimoine net"
 msgid "Total net"
 msgstr "Total net"
 
-#: templates/dashboard/_overview.html:49
-msgid "30 days"
-msgstr "30 jours"
-
 #: templates/dashboard/_overview.html:55
 msgid "Stable"
 msgstr "Stable"
@@ -5301,10 +7187,7 @@ msgid "Rents"
 msgstr "Loyers"
 
 #: templates/dashboard/_property.html:28
-msgid "Charges"
-msgstr "Charges"
-
-#: templates/dashboard/_property.html:28
+#: templates/rental/reconciliation_detail.html:53
 msgid "Balance"
 msgstr "Solde"
 
@@ -5349,7 +7232,7 @@ msgid "Holder"
 msgstr "Titulaire"
 
 #: templates/dashboard/_registry.html:11 templates/operations.html:15
-#: templates/property/index.html:46
+#: templates/property/index.html:46 templates/rental/dashboard.html:96
 msgid "All"
 msgstr "Tous"
 
@@ -5450,7 +7333,7 @@ msgid "Net progression"
 msgstr "Progression nette"
 
 #: templates/finance/_account_update_row.html:23
-#: templates/finance/_holding_update_row.html:34
+#: templates/finance/_holding_update_row.html:37
 msgid "Currently:"
 msgstr "Actuellement :"
 
@@ -5472,8 +7355,9 @@ msgstr "Ajouter un dépôt"
 #: templates/finance/investment_detail.html:83
 #: templates/finance/investment_detail.html:151
 #: templates/property/_dividend_table_header.html:9
-#: templates/property/detail.html:564
+#: templates/property/detail.html:566
 #: templates/property/detail_panel_cashflow.html:41
+#: templates/rental/lease_payments.html:36
 msgid "Actions"
 msgstr "Actions"
 
@@ -5523,10 +7407,6 @@ msgstr "Commentaires"
 #: templates/finance/_envelope_card.html:6
 msgid "Envelope"
 msgstr "Enveloppe"
-
-#: templates/finance/_envelope_card.html:12
-msgid "Deposit ceiling"
-msgstr "Plafond de versements"
 
 #: templates/finance/_envelope_card.html:19
 msgid "Deposited"
@@ -5592,11 +7472,15 @@ msgstr "Retirer des favoris"
 msgid "Add to favorites"
 msgstr "Ajouter aux favoris"
 
-#: templates/finance/_holding_update_row.html:26
+#: templates/finance/_holding_update_row.html:25
+msgid "The price is updated automatically every day."
+msgstr "Le cours est mis à jour automatiquement chaque jour."
+
+#: templates/finance/_holding_update_row.html:29
 msgid "Fetch"
 msgstr "Actualiser"
 
-#: templates/finance/_holding_update_row.html:43
+#: templates/finance/_holding_update_row.html:46
 msgid "Current qty:"
 msgstr "Quantité actuelle :"
 
@@ -5972,23 +7856,23 @@ msgstr "Émetteur"
 msgid "Fees (%%)"
 msgstr "Frais (%%)"
 
-#: templates/finance/edit_investment_holding.html:93
+#: templates/finance/edit_investment_holding.html:101
 msgid "Initial values"
 msgstr "Valeurs initiales"
 
-#: templates/finance/edit_investment_holding.html:99
+#: templates/finance/edit_investment_holding.html:107
 msgid "Initial quantity"
 msgstr "Quantité initiale"
 
-#: templates/finance/edit_investment_holding.html:106
+#: templates/finance/edit_investment_holding.html:114
 msgid "Initial value"
 msgstr "Valeur initiale"
 
-#: templates/finance/edit_investment_holding.html:111
+#: templates/finance/edit_investment_holding.html:119
 msgid "Initial valuation date"
 msgstr "Date d'évaluation initiale"
 
-#: templates/finance/edit_investment_holding.html:147
+#: templates/finance/edit_investment_holding.html:155
 msgid "Please enter an ISIN first."
 msgstr "Veuillez d'abord saisir un ISIN."
 
@@ -6400,6 +8284,120 @@ msgstr "Oui"
 msgid "No"
 msgstr "Non"
 
+#: templates/notifications/_dropdown.html:4
+#: templates/notifications/settings.html:4
+#: templates/notifications/settings.html:5
+msgid "Notification settings"
+msgstr "Réglages des notifications"
+
+#: templates/notifications/_dropdown.html:10
+msgid "No notification yet."
+msgstr "Aucune notification pour l'instant."
+
+#: templates/notifications/_dropdown.html:14
+msgid "See all notifications"
+msgstr "Voir toutes les notifications"
+
+#: templates/notifications/_item.html:7
+#, python-format
+msgid "%(since)s ago"
+msgstr "il y a %(since)s"
+
+#: templates/notifications/inbox.html:6
+msgid "Alerts and reminders of the application"
+msgstr "Alertes et rappels de l'application"
+
+#: templates/notifications/inbox.html:10
+msgid "Mark all as read"
+msgstr "Tout marquer comme lu"
+
+#: templates/notifications/inbox.html:20
+msgid "No notification yet. Choose what to be notified about in the settings."
+msgstr ""
+"Aucune notification pour l'instant. Choisissez de quoi être notifié dans les "
+"réglages."
+
+#: templates/notifications/inbox.html:24 templates/operations.html:33
+msgid "Pages"
+msgstr "Pages"
+
+#: templates/notifications/inbox.html:25
+msgid "Newer"
+msgstr "Plus récentes"
+
+#: templates/notifications/inbox.html:26
+msgid "Older"
+msgstr "Plus anciennes"
+
+#: templates/notifications/settings.html:6
+msgid "Where to be notified, and about what"
+msgstr "Où être notifié, et de quoi"
+
+#: templates/notifications/settings.html:17
+msgid "Channels"
+msgstr "Canaux"
+
+#: templates/notifications/settings.html:21
+msgid ""
+"Notifications always appear under the bell. Add channels to also receive "
+"them by email or on your phone: any other service is an <a href=\"https://"
+"appriseit.com/services/\" target=\"_blank\" rel=\"noopener "
+"noreferrer\">Apprise URL</a>, such as <code>ntfy://ntfy.sh/my-topic</code>, "
+"<code>gotify://host/token</code> or <code>tgram://bottoken/chat_id</code>."
+msgstr ""
+"Les notifications apparaissent toujours sous la cloche. Ajoutez des canaux "
+"pour les recevoir aussi par email ou sur votre téléphone : tout autre "
+"service est une <a href=\"https://appriseit.com/services/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\">URL Apprise</a>, comme "
+"<code>ntfy://ntfy.sh/mon-sujet</code>, <code>gotify://hote/jeton</code> ou "
+"<code>tgram://jetondubot/chat_id</code>."
+
+#: templates/notifications/settings.html:31
+#, python-format
+msgid ""
+"Receive the notifications at <strong>%(email)s</strong>, through the email "
+"server of the application."
+msgstr ""
+"Recevoir les notifications à <strong>%(email)s</strong>, par le serveur "
+"email de l'application."
+
+#: templates/notifications/settings.html:34
+#, python-format
+msgid ""
+"Enter an email address in <a href=\"%(account_settings_url)s\">your "
+"settings</a> to receive the notifications by email."
+msgstr ""
+"Saisissez une adresse email dans <a href=\"%(account_settings_url)s\">vos "
+"paramètres</a> pour recevoir les notifications par email."
+
+#: templates/notifications/settings.html:40
+msgid "Use my email"
+msgstr "Utiliser mon email"
+
+#: templates/notifications/settings.html:57
+msgid "Disabled"
+msgstr "Désactivé"
+
+#: templates/notifications/settings.html:62
+msgid "Send a test notification"
+msgstr "Envoyer une notification de test"
+
+#: templates/notifications/settings.html:66
+msgid "Disable"
+msgstr "Désactiver"
+
+#: templates/notifications/settings.html:66
+msgid "Enable"
+msgstr "Activer"
+
+#: templates/notifications/settings.html:91
+msgid "Add the channel"
+msgstr "Ajouter le canal"
+
+#: templates/notifications/settings.html:139
+msgid "Channels (none checked: all of them)"
+msgstr "Canaux (aucun coché : tous)"
+
 #: templates/operations.html:7
 msgid "History of the movements and value updates"
 msgstr "Historique des mouvements et mises à jour de valeur"
@@ -6415,10 +8413,6 @@ msgstr "Filtrer les opérations"
 #: templates/operations.html:23
 msgid "Operation"
 msgstr "Opération"
-
-#: templates/operations.html:33
-msgid "Pages"
-msgstr "Pages"
 
 #: templates/operations.html:36
 #, python-format
@@ -6467,7 +8461,7 @@ msgstr "Valeur du droit"
 msgid "Until %(date)s"
 msgstr "Jusqu'au %(date)s"
 
-#: templates/owners_manage.html:42
+#: templates/owners_manage.html:42 templates/rental/lease_detail.html:31
 msgid "Remove"
 msgstr "Retirer"
 
@@ -6589,7 +8583,7 @@ msgid "Cadastral information"
 msgstr "Informations cadastrales"
 
 #: templates/property/_property_form_fields.html:109
-#: templates/property/_property_form_fields.html:520
+#: templates/property/_property_form_fields.html:540
 msgid "Look up cadastral info"
 msgstr "Rechercher les infos cadastrales"
 
@@ -6615,23 +8609,27 @@ msgid "Characteristics"
 msgstr "Caractéristiques"
 
 #: templates/property/_property_form_fields.html:359
+msgid "Rental"
+msgstr "Location"
+
+#: templates/property/_property_form_fields.html:379
 msgid "Selling & Status"
 msgstr "Vente & Statut"
 
-#: templates/property/_property_form_fields.html:488
+#: templates/property/_property_form_fields.html:508
 msgid "Please select an address first to get coordinates."
 msgstr ""
 "Veuillez d'abord sélectionner une adresse pour obtenir les coordonnées."
 
-#: templates/property/_property_form_fields.html:495
+#: templates/property/_property_form_fields.html:515
 msgid "Looking up..."
 msgstr "Recherche..."
 
-#: templates/property/_property_form_fields.html:506
+#: templates/property/_property_form_fields.html:526
 msgid "Could not find cadastral information for this location."
 msgstr "Impossible de trouver les informations cadastrales pour ce lieu."
 
-#: templates/property/_property_form_fields.html:515
+#: templates/property/_property_form_fields.html:535
 msgid "An error occurred during cadastral lookup."
 msgstr "Une erreur s'est produite lors de la recherche cadastrale."
 
@@ -6640,6 +8638,7 @@ msgid "Anniversary"
 msgstr "Date anniversaire"
 
 #: templates/property/_rent_revision.html:11
+#: templates/rental/lease_payments.html:36
 msgid "Due"
 msgstr "À faire"
 
@@ -6712,6 +8711,8 @@ msgstr "Tableau d'amortissement"
 
 #: templates/property/all_loans.html:102
 #: templates/property/detail_panel_loans.html:31
+#: templates/rental/_inventory_card.html:20
+#: templates/rental/lease_departure.html:44
 msgid "Start"
 msgstr "Début"
 
@@ -6993,6 +8994,7 @@ msgstr "Bilan"
 
 #: templates/property/detail.html:199
 #: templates/property/detail_panel_leases.html:4
+#: templates/rental/dashboard.html:45
 msgid "Leases"
 msgstr "Baux"
 
@@ -7016,7 +9018,7 @@ msgstr "Plus"
 msgid "Add property valuation"
 msgstr "Ajouter une évaluation de propriété"
 
-#: templates/property/detail.html:384 templates/property/detail.html:849
+#: templates/property/detail.html:384 templates/property/detail.html:851
 msgid "Add income / expense"
 msgstr "Ajouter un revenu / une dépense"
 
@@ -7029,42 +9031,43 @@ msgstr "Sélectionner une catégorie"
 msgid "Select a lease"
 msgstr "Choisir un bail"
 
-#: templates/property/detail.html:516
-#: templates/property/detail_panel_cashflow.html:181
+#: templates/property/detail.html:518
+#: templates/property/detail_panel_cashflow.html:182
 msgid "Recurrence"
 msgstr "Récurrence"
 
-#: templates/property/detail.html:521
-#: templates/property/detail_panel_cashflow.html:186
+#: templates/property/detail.html:523
+#: templates/property/detail_panel_cashflow.html:187
 msgid "Frequency"
 msgstr "Fréquence"
 
-#: templates/property/detail.html:553
+#: templates/property/detail.html:555
 msgid "Property value history"
 msgstr "Historique des valeurs de propriété"
 
-#: templates/property/detail.html:573
+#: templates/property/detail.html:575
 msgid "Are you sure you want to delete this valuation?"
 msgstr "Êtes-vous sûr de vouloir supprimer cette évaluation ?"
 
-#: templates/property/detail.html:587
+#: templates/property/detail.html:589
 msgid "No valuations recorded yet."
 msgstr "Aucune évaluation enregistrée pour le moment."
 
-#: templates/property/detail.html:591 templates/property/detail.html:641
-#: templates/property/detail_panel_cashflow.html:252
+#: templates/property/detail.html:593 templates/property/detail.html:643
+#: templates/property/detail_panel_cashflow.html:253
+#: templates/rental/lease_departure.html:65
 msgid "Close"
 msgstr "Fermer"
 
-#: templates/property/detail.html:603
+#: templates/property/detail.html:605
 msgid "DVF price estimation"
 msgstr "Estimation du prix DVF"
 
-#: templates/property/detail.html:610
+#: templates/property/detail.html:612
 msgid "Fetching comparable sales data..."
 msgstr "Récupération des données de ventes comparables..."
 
-#: templates/property/detail.html:616
+#: templates/property/detail.html:618
 msgid ""
 "Estimated value based on comparable sales in the same cadastral section over "
 "the last 5 years:"
@@ -7072,15 +9075,15 @@ msgstr ""
 "Valeur estimée à partir des ventes comparables dans la même section "
 "cadastrale sur les 5 dernières années :"
 
-#: templates/property/detail.html:622
+#: templates/property/detail.html:624
 msgid "Median price/m²"
 msgstr "Prix médian/m²"
 
-#: templates/property/detail.html:628
+#: templates/property/detail.html:630
 msgid "Comparable sales"
 msgstr "Ventes comparables"
 
-#: templates/property/detail.html:635
+#: templates/property/detail.html:637
 msgid ""
 "This estimation is based on the French DVF (Demandes de Valeurs Foncières) "
 "public dataset. It is indicative and should not replace a professional "
@@ -7090,15 +9093,15 @@ msgstr ""
 "(Demandes de Valeurs Foncières). Elle est indicative et ne remplace pas une "
 "estimation notariale."
 
-#: templates/property/detail.html:643
+#: templates/property/detail.html:645
 msgid "Save as valuation"
 msgstr "Enregistrer comme évaluation"
 
-#: templates/property/detail.html:657
+#: templates/property/detail.html:659
 msgid "Price estimation update"
 msgstr "Mise à jour de l'estimation du prix"
 
-#: templates/property/detail.html:662
+#: templates/property/detail.html:664
 msgid ""
 "The DVF price estimation for this property hasn't been updated in over 6 "
 "months. Would you like to refresh it now?"
@@ -7106,31 +9109,31 @@ msgstr ""
 "L'estimation du prix DVF pour cette propriété n'a pas été mise à jour depuis "
 "plus de 6 mois. Souhaitez-vous la rafraîchir maintenant ?"
 
-#: templates/property/detail.html:665
+#: templates/property/detail.html:667
 msgid "Later"
 msgstr "Plus tard"
 
-#: templates/property/detail.html:667
+#: templates/property/detail.html:669
 msgid "Update estimation"
 msgstr "Mettre à jour l'estimation"
 
-#: templates/property/detail.html:740
+#: templates/property/detail.html:742
 msgid "Could not load panel."
 msgstr "Impossible de charger le panneau."
 
-#: templates/property/detail.html:806
+#: templates/property/detail.html:808
 msgid "Add income"
 msgstr "Ajouter un revenu"
 
-#: templates/property/detail.html:808
+#: templates/property/detail.html:810
 msgid "Add expense"
 msgstr "Ajouter une dépense"
 
-#: templates/property/detail.html:967
+#: templates/property/detail.html:969
 msgid "Floor area is required for estimation."
 msgstr "La surface est requise pour l'estimation."
 
-#: templates/property/detail.html:968
+#: templates/property/detail.html:970
 msgid ""
 "Cadastral information (INSEE code and section) is required. Fill the address "
 "and look up cadastral info in the property edit form."
@@ -7139,40 +9142,40 @@ msgstr ""
 "Renseignez l'adresse et recherchez les infos cadastrales dans le formulaire "
 "de modification du bien."
 
-#: templates/property/detail.html:969
+#: templates/property/detail.html:971
 msgid "This property type is not supported by the DVF estimation."
 msgstr "Ce type de bien n'est pas pris en charge par l'estimation DVF."
 
-#: templates/property/detail.html:970
+#: templates/property/detail.html:972
 msgid "No comparable sales found in this area for the last 5 years."
 msgstr ""
 "Aucune vente comparable trouvée dans ce secteur sur les 5 dernières années."
 
-#: templates/property/detail.html:971
+#: templates/property/detail.html:973
 msgid "Estimation unavailable."
 msgstr "Estimation indisponible."
 
-#: templates/property/detail.html:977
+#: templates/property/detail.html:979
 msgid "Search details:"
 msgstr "Détails de la recherche :"
 
-#: templates/property/detail.html:978
+#: templates/property/detail.html:980
 msgid "Total mutations found:"
 msgstr "Mutations trouvées au total :"
 
-#: templates/property/detail.html:979
+#: templates/property/detail.html:981
 msgid "Excluded by type:"
 msgstr "Exclues par type :"
 
-#: templates/property/detail.html:980
+#: templates/property/detail.html:982
 msgid "Excluded (older than 5 years):"
 msgstr "Exclues (plus de 5 ans) :"
 
-#: templates/property/detail.html:981
+#: templates/property/detail.html:983
 msgid "Excluded (invalid data):"
 msgstr "Exclues (données invalides) :"
 
-#: templates/property/detail.html:1001
+#: templates/property/detail.html:1003
 msgid "An error occurred while fetching the estimation."
 msgstr "Une erreur s'est produite lors de la récupération de l'estimation."
 
@@ -7219,6 +9222,7 @@ msgstr "Amorti à date"
 
 #: templates/property/detail_panel_amortization.html:134
 #: templates/property/detail_panel_loans.html:36
+#: templates/rental/lease_detail.html:47
 msgid "Duration"
 msgstr "Durée"
 
@@ -7369,86 +9373,86 @@ msgstr ""
 "Ceci est une écriture récurrente. Les modifications s'appliqueront à toutes "
 "les occurrences."
 
-#: templates/property/detail_panel_cashflow.html:203
+#: templates/property/detail_panel_cashflow.html:204
 msgid "Save changes"
 msgstr "Enregistrer les modifications"
 
-#: templates/property/detail_panel_cashflow.html:218
+#: templates/property/detail_panel_cashflow.html:219
 msgid "Delete expense"
 msgstr "Supprimer la dépense"
 
-#: templates/property/detail_panel_cashflow.html:218
+#: templates/property/detail_panel_cashflow.html:219
 msgid "Delete income"
 msgstr "Supprimer le revenu"
 
-#: templates/property/detail_panel_cashflow.html:225
+#: templates/property/detail_panel_cashflow.html:226
 msgid "This is a recurring entry. All occurrences will be deleted."
 msgstr ""
 "Ceci est une écriture récurrente. Toutes les occurrences seront supprimées."
 
-#: templates/property/detail_panel_cashflow.html:228
+#: templates/property/detail_panel_cashflow.html:229
 #, python-format
 msgid "Are you sure you want to delete the entry of %(amount)s dated %(date)s?"
 msgstr ""
 "Êtes-vous sûr de vouloir supprimer l'écriture de %(amount)s datée du "
 "%(date)s ?"
 
-#: templates/property/detail_panel_cashflow.html:250
+#: templates/property/detail_panel_cashflow.html:251
 msgid "Check entry"
 msgstr "Pointer l'écriture"
 
-#: templates/property/detail_panel_cashflow.html:262
+#: templates/property/detail_panel_cashflow.html:263
 #: templates/property/occurrence_checks.html:66
 #: templates/property/occurrence_checks.html:99
 msgid "Actual amount"
 msgstr "Montant réel"
 
-#: templates/property/detail_panel_cashflow.html:269
-#: templates/property/detail_panel_cashflow.html:298
+#: templates/property/detail_panel_cashflow.html:270
+#: templates/property/detail_panel_cashflow.html:299
 #: templates/property/occurrence_checks.html:69
 #: templates/property/occurrence_checks.html:102
 msgid "Check"
 msgstr "Pointer"
 
-#: templates/property/detail_panel_cashflow.html:295
+#: templates/property/detail_panel_cashflow.html:296
 msgid "Recurring"
 msgstr "Récurrent"
 
-#: templates/property/detail_panel_cashflow.html:296
+#: templates/property/detail_panel_cashflow.html:297
 msgid "Linked to an amortization asset"
 msgstr "Lié à une immobilisation"
 
-#: templates/property/detail_panel_cashflow.html:299
+#: templates/property/detail_panel_cashflow.html:300
 msgid "Checked"
 msgstr "Pointée"
 
-#: templates/property/detail_panel_cashflow.html:300
+#: templates/property/detail_panel_cashflow.html:301
 msgid "Checked — click to uncheck"
 msgstr "Pointée — cliquer pour annuler le pointage"
 
-#: templates/property/detail_panel_cashflow.html:301
+#: templates/property/detail_panel_cashflow.html:302
 msgid "Planned on"
 msgstr "Prévue le"
 
-#: templates/property/detail_panel_cashflow.html:303
+#: templates/property/detail_panel_cashflow.html:304
 msgid "No transactions found"
 msgstr "Aucune transaction trouvée"
 
-#: templates/property/detail_panel_cashflow.html:304
+#: templates/property/detail_panel_cashflow.html:305
 #: templates/property/scpi_fund_detail.html:247
 msgid "Search"
 msgstr "Rechercher"
 
-#: templates/property/detail_panel_cashflow.html:306
-#: templates/property/detail_panel_cashflow.html:514
+#: templates/property/detail_panel_cashflow.html:307
+#: templates/property/detail_panel_cashflow.html:515
 msgid "Incomes"
 msgstr "Revenus"
 
-#: templates/property/detail_panel_cashflow.html:515
+#: templates/property/detail_panel_cashflow.html:516
 msgid "Total expenses"
 msgstr "Dépenses totales"
 
-#: templates/property/detail_panel_cashflow.html:516
+#: templates/property/detail_panel_cashflow.html:517
 msgid "Difference"
 msgstr "Différence"
 
@@ -7532,16 +9536,16 @@ msgstr ""
 msgid "Add lease"
 msgstr "Ajouter un bail"
 
-#: templates/property/detail_panel_leases.html:88
+#: templates/property/detail_panel_leases.html:89
 msgid "Delete lease"
 msgstr "Supprimer le bail"
 
-#: templates/property/detail_panel_leases.html:89
+#: templates/property/detail_panel_leases.html:90
 #, python-format
 msgid "Are you sure you want to delete the lease starting %(start)s?"
 msgstr "Êtes-vous sûr de vouloir supprimer le bail débutant le %(start)s ?"
 
-#: templates/property/detail_panel_leases.html:95
+#: templates/property/detail_panel_leases.html:96
 msgid "No leases recorded yet."
 msgstr "Aucun bail enregistré pour le moment."
 
@@ -7902,21 +9906,40 @@ msgstr "Nouveau bail"
 msgid "Do not forget to declare the new tenant on impots.gouv.fr."
 msgstr "Ne pas oublier de déclarer le nouveau locataire sur impots.gouv.fr."
 
-#: templates/property/edit_lease.html:30
-msgid "Tenant"
-msgstr "Locataire"
+#: templates/property/edit_lease.html:46
+msgid ""
+"Add the other tenants and the guarantors on the lease page once it is saved."
+msgstr ""
+"Ajoutez les autres locataires et les garants sur la page du bail une fois "
+"enregistré."
 
-#: templates/property/edit_lease.html:71
+#: templates/property/edit_lease.html:50 templates/rental/lease_detail.html:10
+msgid "Tenants and guarantors"
+msgstr "Locataires et garants"
+
+#: templates/property/edit_lease.html:59
 msgid "Lease information"
 msgstr "Informations sur le bail"
 
-#: templates/property/edit_lease.html:103
+#: templates/property/edit_lease.html:97
 msgid "Dates"
 msgstr "Dates"
 
-#: templates/property/edit_lease.html:137
-msgid "Rent and charges"
-msgstr "Loyer et charges"
+#: templates/property/edit_lease.html:207
+msgid "Automatic emails"
+msgstr "Emails automatiques"
+
+#: templates/property/edit_lease.html:210
+msgid ""
+"Only for the leases you manage yourself: the tenants need an email address. "
+"Every email is listed on the lease page."
+msgstr ""
+"Uniquement pour les baux que vous gérez vous-même : les locataires doivent "
+"avoir une adresse email. Chaque email est listé sur la page du bail."
+
+#: templates/property/edit_lease.html:224
+msgid "Reject the other open applications for this property"
+msgstr "Refuser les autres candidatures en cours pour ce bien"
 
 #: templates/property/edit_manager.html:5
 #: templates/property/edit_manager.html:11
@@ -8024,7 +10047,7 @@ msgstr "Cash-flow : médiane mensuelle sur 12 mois"
 msgid "Show inactive"
 msgstr "Afficher les inactives"
 
-#: templates/property/index.html:68
+#: templates/property/index.html:68 templates/rental/dashboard.html:32
 msgid "Occupancy"
 msgstr "Occupation"
 
@@ -8639,10 +10662,6 @@ msgstr "Valeurs théoriques existantes"
 msgid "Delete this theoretical value?"
 msgstr "Supprimer cette valeur théorique ?"
 
-#: templates/registration/login.html:4
-msgid "Login"
-msgstr "Connexion"
-
 #: templates/registration/login.html:11
 msgid "Log In"
 msgstr "Connexion"
@@ -8725,3 +10744,764 @@ msgstr "Envoyer l'e-mail de réinitialisation"
 #: templates/registration/signup.html:13
 msgid "Sign up"
 msgstr "Créer un compte"
+
+#: templates/rental/_application_list.html:13
+msgid "No application."
+msgstr "Aucune candidature."
+
+#: templates/rental/_inventory_card.html:11
+#: templates/rental/lease_departure.html:37
+msgid "Open"
+msgstr "Ouvrir"
+
+#: templates/rental/_inventory_card.html:22
+msgid ""
+"With the usual rooms, and the mandatory furniture of a furnished dwelling."
+msgstr ""
+"Avec les pièces habituelles, et le mobilier obligatoire d'un logement meublé."
+
+#: templates/rental/_inventory_card.html:22
+msgid "With the rooms and elements of the entry inventory, to compare them."
+msgstr ""
+"Avec les pièces et éléments de l'état des lieux d'entrée, pour les comparer."
+
+#: templates/rental/_lease_layout.html:9
+msgid "Lease PDF"
+msgstr "Bail PDF"
+
+#: templates/rental/_lease_layout.html:10
+msgid "Edit the lease"
+msgstr "Modifier le bail"
+
+#: templates/rental/_lease_layout.html:17
+#, python-format
+msgid ""
+"Managed by %(manager)s: the agency handles the rent, the receipts and the "
+"paperwork of this lease."
+msgstr ""
+"Géré par %(manager)s : l'agence s'occupe du loyer, des quittances et des "
+"démarches de ce bail."
+
+#: templates/rental/_lease_layout.html:21
+msgid "Summary"
+msgstr "Synthèse"
+
+#: templates/rental/_lease_layout.html:22
+#: templates/rental/lease_payments.html:25
+msgid "Payments"
+msgstr "Paiements"
+
+#: templates/rental/_lease_layout.html:24
+msgid "Inventories"
+msgstr "États des lieux"
+
+#: templates/rental/_lease_layout.html:25
+#: templates/rental/application_detail.html:47
+msgid "Documents"
+msgstr "Documents"
+
+#: templates/rental/_lease_layout.html:26 templates/rental/lease_emails.html:7
+msgid "Emails"
+msgstr "Emails"
+
+#: templates/rental/_lease_layout.html:27
+msgid "Departure"
+msgstr "Départ"
+
+#: templates/rental/_period_status.html:1
+msgid "Paid"
+msgstr "Payé"
+
+#: templates/rental/_period_status.html:1
+msgid "Partly paid"
+msgstr "Payé en partie"
+
+#: templates/rental/_period_status.html:1
+#, python-format
+msgid "Late by %(days)s day"
+msgid_plural "Late by %(days)s days"
+msgstr[0] "En retard de %(days)s jour"
+msgstr[1] "En retard de %(days)s jours"
+
+#: templates/rental/application_detail.html:5
+#: templates/rental/applications.html:4 templates/rental/applications.html:6
+#: templates/rental/edit_application.html:5
+msgid "Rental applications"
+msgstr "Candidatures"
+
+#: templates/rental/application_detail.html:11
+msgid "Accept and create the lease"
+msgstr "Accepter et créer le bail"
+
+#: templates/rental/application_detail.html:22
+msgid "Candidate"
+msgstr "Candidat"
+
+#: templates/rental/application_detail.html:40
+msgid "Effort rate"
+msgstr "Taux d'effort"
+
+#: templates/rental/application_detail.html:41
+#, python-format
+msgid "rent / income, usually below %(effort_rate_max)s %%"
+msgstr "loyer / revenus, en général sous %(effort_rate_max)s %%"
+
+#: templates/rental/application_detail.html:48
+msgid "No document yet."
+msgstr "Aucun document pour l'instant."
+
+#: templates/rental/application_detail.html:65
+msgid "Documents you may ask for"
+msgstr "Pièces que vous pouvez demander"
+
+#: templates/rental/application_detail.html:69
+msgid "Forbidden documents"
+msgstr "Pièces interdites"
+
+#: templates/rental/application_detail.html:73
+msgid ""
+"Décret n° 2015-1437 of 5 November 2015. Delete the documents of the rejected "
+"candidates once you no longer need them."
+msgstr ""
+"Décret n° 2015-1437 du 5 novembre 2015. Supprimez les pièces des candidats "
+"refusés dès qu'elles ne vous sont plus utiles."
+
+#: templates/rental/applications.html:7
+msgid "Candidates for your properties and their documents"
+msgstr "Les candidats à vos biens et leurs pièces"
+
+#: templates/rental/applications.html:9
+#: templates/rental/edit_application.html:4
+#: templates/rental/edit_application.html:6
+msgid "New application"
+msgstr "Nouvelle candidature"
+
+#: templates/rental/applications.html:14
+msgid "To decide"
+msgstr "À décider"
+
+#: templates/rental/applications.html:17
+msgid "Decided"
+msgstr "Décidées"
+
+#: templates/rental/compose_email.html:17
+msgid ""
+"No email server is configured: the email will only be written to the logs of "
+"the application."
+msgstr ""
+"Aucun serveur email n'est configuré : l'email sera seulement écrit dans les "
+"journaux de l'application."
+
+#: templates/rental/compose_email.html:20
+msgid ""
+"A formal notice is better sent by registered letter with acknowledgement of "
+"receipt: this email keeps a written trace of it."
+msgstr ""
+"Une mise en demeure s'envoie de préférence par lettre recommandée avec "
+"accusé de réception : cet email en garde une trace écrite."
+
+#: templates/rental/compose_email.html:30
+#, python-format
+msgid "Attached: %(attachment)s"
+msgstr "En pièce jointe : %(attachment)s"
+
+#: templates/rental/compose_email.html:35
+msgid "Send"
+msgstr "Envoyer"
+
+#: templates/rental/dashboard.html:7
+msgid "Leases you manage yourself, without an agency"
+msgstr "Les baux que vous gérez vous-même, sans agence"
+
+#: templates/rental/dashboard.html:9
+msgid "Applications"
+msgstr "Candidatures"
+
+#: templates/rental/dashboard.html:17
+msgid "Running leases"
+msgstr "Baux en cours"
+
+#: templates/rental/dashboard.html:19
+#, python-format
+msgid "%(amount)s a month · %(counter)s upcoming"
+msgid_plural "%(amount)s a month · %(counter)s upcoming"
+msgstr[0] "%(amount)s par mois · %(counter)s à venir"
+msgstr[1] "%(amount)s par mois · %(counter)s à venir"
+
+#: templates/rental/dashboard.html:22
+msgid "Received this month"
+msgstr "Reçu ce mois-ci"
+
+#: templates/rental/dashboard.html:24
+#, python-format
+msgid "of %(amount)s due"
+msgstr "sur %(amount)s dus"
+
+#: templates/rental/dashboard.html:27
+msgid "Unpaid"
+msgstr "Impayés"
+
+#: templates/rental/dashboard.html:29
+msgid "Rent due and not received"
+msgstr "Loyers dus et non reçus"
+
+#: templates/rental/dashboard.html:34
+msgid "Over the last 12 months"
+msgstr "Sur les 12 derniers mois"
+
+#: templates/rental/dashboard.html:37 templates/rental/dashboard.html:74
+msgid "Points to check"
+msgstr "Points à vérifier"
+
+#: templates/rental/dashboard.html:39
+#, python-format
+msgid "on %(counter)s lease"
+msgid_plural "on %(counter)s leases"
+msgstr[0] "sur %(counter)s bail"
+msgstr[1] "sur %(counter)s baux"
+
+#: templates/rental/dashboard.html:50
+msgid "This month"
+msgstr "Ce mois-ci"
+
+#: templates/rental/dashboard.html:50 templates/rental/lease_detail.html:138
+msgid "Checklist"
+msgstr "Checklist"
+
+#: templates/rental/dashboard.html:53
+#, python-format
+msgid "since %(date)s"
+msgstr "depuis le %(date)s"
+
+#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:139
+#, python-format
+msgid "%(counter)s point"
+msgid_plural "%(counter)s points"
+msgstr[0] "%(counter)s point"
+msgstr[1] "%(counter)s points"
+
+#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:139
+msgid "Complete"
+msgstr "Complet"
+
+#: templates/rental/dashboard.html:66
+#, python-format
+msgid ""
+"No lease to manage. Add a lease from the <a href=\"%(properties_url)s\">page "
+"of a property</a>."
+msgstr ""
+"Aucun bail à gérer. Ajoutez un bail depuis la <a "
+"href=\"%(properties_url)s\">page d'un bien</a>."
+
+#: templates/rental/dashboard.html:82 templates/rental/lease_detail.html:148
+msgid "Fix"
+msgstr "Corriger"
+
+#: templates/rental/dashboard.html:96
+msgid "Open applications"
+msgstr "Candidatures en cours"
+
+#: templates/rental/dashboard.html:106
+msgid "Signatures in progress"
+msgstr "Signatures en cours"
+
+#: templates/rental/dashboard.html:108
+#, python-format
+msgid "sent on %(date)s"
+msgstr "envoyé le %(date)s"
+
+#: templates/rental/dashboard.html:119
+msgid "Next 6 months"
+msgstr "6 prochains mois"
+
+#: templates/rental/dashboard.html:129
+msgid "No rental deadline in the next 6 months."
+msgstr "Aucune échéance locative dans les 6 prochains mois."
+
+#: templates/rental/dashboard.html:137
+msgid "Managed by an agency"
+msgstr "Gérés par une agence"
+
+#: templates/rental/dashboard.html:138
+msgid "The agency handles the rent, the receipts and the paperwork."
+msgstr "L'agence s'occupe du loyer, des quittances et des démarches."
+
+#: templates/rental/edit_party.html:4 templates/rental/edit_party.html:6
+msgid "New tenant or guarantor"
+msgstr "Nouveau locataire ou garant"
+
+#: templates/rental/inventory_detail.html:13
+msgid "Send the inventory to the landlord and the tenants for signature?"
+msgstr "Envoyer l'état des lieux en signature au bailleur et aux locataires ?"
+
+#: templates/rental/inventory_detail.html:15
+msgid "Sign"
+msgstr "Signer"
+
+#: templates/rental/inventory_detail.html:28
+msgid "New room"
+msgstr "Nouvelle pièce"
+
+#: templates/rental/inventory_detail.html:35
+msgid "Meters and keys"
+msgstr "Compteurs et clés"
+
+#: templates/rental/inventory_room.html:11
+#, python-format
+msgid "Delete %(name)s and its elements?"
+msgstr "Supprimer %(name)s et ses éléments ?"
+
+#: templates/rental/inventory_room.html:24
+#, python-format
+msgid "Delete %(name)s?"
+msgstr "Supprimer %(name)s ?"
+
+#: templates/rental/inventory_room.html:56
+msgid "New element"
+msgstr "Nouvel élément"
+
+#: templates/rental/inventory_room.html:61
+msgid "Save the room"
+msgstr "Enregistrer la pièce"
+
+#: templates/rental/lease_charges.html:6
+msgid "The charges of this lease are a flat rate: they are not reconciled."
+msgstr ""
+"Les charges de ce bail sont forfaitaires : elles ne sont pas régularisées."
+
+#: templates/rental/lease_charges.html:11
+msgid "Charges reconciliations"
+msgstr "Régularisations des charges"
+
+#: templates/rental/lease_charges.html:21
+msgid "No reconciliation yet."
+msgstr "Aucune régularisation pour l'instant."
+
+#: templates/rental/lease_charges.html:27
+msgid "New reconciliation"
+msgstr "Nouvelle régularisation"
+
+#: templates/rental/lease_charges.html:34
+msgid ""
+"The provisions checked as received and the recoverable expenses of the "
+"property over the period are added up. Mark the recoverable expenses in the "
+"ledger of the property."
+msgstr ""
+"Les provisions pointées comme reçues et les dépenses récupérables du bien "
+"sur la période sont additionnées. Marquez les dépenses récupérables dans la "
+"comptabilité du bien."
+
+#: templates/rental/lease_charges.html:35
+msgid "Compute"
+msgstr "Calculer"
+
+#: templates/rental/lease_departure.html:9
+msgid "Notice"
+msgstr "Préavis"
+
+#: templates/rental/lease_departure.html:12
+#, python-format
+msgid "Notice given by the landlord on %(date)s: the lease ends on %(end)s."
+msgstr ""
+"Congé donné par le bailleur le %(date)s : le bail se termine le %(end)s."
+
+#: templates/rental/lease_departure.html:12
+#, python-format
+msgid "Notice given by the tenant on %(date)s: the lease ends on %(end)s."
+msgstr ""
+"Préavis donné par le locataire le %(date)s : le bail se termine le %(end)s."
+
+#: templates/rental/lease_departure.html:14
+#, python-format
+msgid "The tenant can leave with %(months)s month of notice."
+msgid_plural "The tenant can leave with %(months)s months of notice."
+msgstr[0] "Le locataire peut partir avec %(months)s mois de préavis."
+msgstr[1] "Le locataire peut partir avec %(months)s mois de préavis."
+
+#: templates/rental/lease_departure.html:15
+#, python-format
+msgid ""
+"The current term ends on %(term)s: to end the lease, the landlord gives "
+"notice by %(deadline)s at the latest, for a legitimate reason (sale, taking "
+"back the dwelling, serious breach)."
+msgstr ""
+"Le terme en cours se termine le %(term)s : pour mettre fin au bail, le "
+"bailleur donne congé au plus tard le %(deadline)s, pour un motif légitime "
+"(vente, reprise du logement, manquement grave)."
+
+#: templates/rental/lease_departure.html:21
+msgid "Received on"
+msgstr "Reçu le"
+
+#: templates/rental/lease_departure.html:22
+msgid "Given by"
+msgstr "Donné par"
+
+#: templates/rental/lease_departure.html:28
+msgid "Record"
+msgstr "Enregistrer"
+
+#: templates/rental/lease_departure.html:47
+msgid "No entry inventory to compare with."
+msgstr "Aucun état des lieux d'entrée avec lequel comparer."
+
+#: templates/rental/lease_departure.html:49
+#, python-format
+msgid "%(counter)s element in a worse condition than at the entry:"
+msgid_plural "%(counter)s elements in a worse condition than at the entry:"
+msgstr[0] "%(counter)s élément en moins bon état qu'à l'entrée :"
+msgstr[1] "%(counter)s éléments en moins bon état qu'à l'entrée :"
+
+#: templates/rental/lease_departure.html:54
+msgid "No element in a worse condition than at the entry."
+msgstr "Aucun élément en moins bon état qu'à l'entrée."
+
+#: templates/rental/lease_departure.html:61
+msgid "Close the lease"
+msgstr "Clore le bail"
+
+#: templates/rental/lease_departure.html:62
+msgid "Close the lease? Its recurring rent and charges stop at the end date."
+msgstr ""
+"Clore le bail ? Ses loyers et charges récurrents s'arrêtent à la date de fin."
+
+#: templates/rental/lease_departure.html:80
+msgid "Kept"
+msgstr "Retenu"
+
+#: templates/rental/lease_departure.html:81
+msgid "Withheld"
+msgstr "Conservé"
+
+#: templates/rental/lease_departure.html:82
+msgid "Late penalty"
+msgstr "Pénalité de retard"
+
+#: templates/rental/lease_departure.html:84
+msgid "Deadline"
+msgstr "Échéance"
+
+#: templates/rental/lease_departure.html:89
+#: templates/rental/reconciliation_detail.html:62
+msgid "Send to the tenants"
+msgstr "Envoyer aux locataires"
+
+#: templates/rental/lease_departure.html:111
+msgid "Deductions"
+msgstr "Retenues"
+
+#: templates/rental/lease_departure.html:112
+msgid ""
+"Repairs of the damage shown by the exit inventory, rent or charges still "
+"due… keep the invoices or estimates."
+msgstr ""
+"Réparations des dégradations constatées à l'état des lieux de sortie, loyers "
+"ou charges restant dus… conservez les factures ou devis."
+
+#: templates/rental/lease_departure.html:127
+#, python-format
+msgid ""
+"At most %(max)s, 20 %% of the deposit, settled within a month of the "
+"approval of the accounts."
+msgstr ""
+"Au plus %(max)s, 20 %% du dépôt, réglés dans le mois qui suit l'approbation "
+"des comptes."
+
+#: templates/rental/lease_detail.html:21
+msgid "No email address"
+msgstr "Pas d'adresse email"
+
+#: templates/rental/lease_detail.html:23
+#, python-format
+msgid "born on %(date)s in %(place)s"
+msgstr "né(e) le %(date)s à %(place)s"
+
+#: templates/rental/lease_detail.html:29
+#, python-format
+msgid "Remove %(name)s from the lease?"
+msgstr "Retirer %(name)s du bail ?"
+
+#: templates/rental/lease_detail.html:42
+msgid "Conditions"
+msgstr "Conditions"
+
+#: templates/rental/lease_detail.html:48
+#, python-format
+msgid "%(counter)s month"
+msgid_plural "%(counter)s months"
+msgstr[0] "%(counter)s mois"
+msgstr[1] "%(counter)s mois"
+
+#: templates/rental/lease_detail.html:48
+#, python-format
+msgid "%(counter)s month (legal duration)"
+msgid_plural "%(counter)s months (legal duration)"
+msgstr[0] "%(counter)s mois (durée légale)"
+msgstr[1] "%(counter)s mois (durée légale)"
+
+#: templates/rental/lease_detail.html:52
+#, python-format
+msgid "due on day %(day)s"
+msgstr "dû le %(day)s du mois"
+
+#: templates/rental/lease_detail.html:56
+#, python-format
+msgid "maximum %(cap)s"
+msgstr "maximum %(cap)s"
+
+#: templates/rental/lease_detail.html:58
+msgid "IRL reference"
+msgstr "IRL de référence"
+
+#: templates/rental/lease_detail.html:71
+msgid "No postal address"
+msgstr "Pas d'adresse postale"
+
+#: templates/rental/lease_detail.html:80
+msgid "Move-in"
+msgstr "Entrée dans les lieux"
+
+#: templates/rental/lease_detail.html:87
+msgid "Do it"
+msgstr "Faire"
+
+#: templates/rental/lease_detail.html:91
+#, python-format
+msgid "%(amount)s received"
+msgstr "%(amount)s reçus"
+
+#: templates/rental/lease_detail.html:103
+msgid "Electronic signature"
+msgstr "Signature électronique"
+
+#: templates/rental/lease_detail.html:105
+msgid ""
+"Send the lease to the landlord and the tenants for signature? Read the PDF "
+"first."
+msgstr ""
+"Envoyer le bail en signature au bailleur et aux locataires ? Relisez d'abord "
+"le PDF."
+
+#: templates/rental/lease_detail.html:107
+msgid "Sign the lease"
+msgstr "Signer le bail"
+
+#: templates/rental/lease_detail.html:121
+msgid "Signed PDF"
+msgstr "PDF signé"
+
+#: templates/rental/lease_detail.html:125
+msgid "Check now"
+msgstr "Vérifier maintenant"
+
+#: templates/rental/lease_detail.html:131
+msgid ""
+"Send the lease or an inventory to be signed online by the landlord and the "
+"tenants."
+msgstr ""
+"Envoyez le bail ou un état des lieux à signer en ligne par le bailleur et "
+"les locataires."
+
+#: templates/rental/lease_detail.html:131
+msgid ""
+"Set DOCUMENSO_URL and DOCUMENSO_API_TOKEN to sign online with a Documenso "
+"instance; otherwise sign on paper and add the scan to the documents."
+msgstr ""
+"Définissez DOCUMENSO_URL et DOCUMENSO_API_TOKEN pour signer en ligne avec "
+"une instance Documenso ; sinon signez sur papier et ajoutez le scan aux "
+"documents."
+
+#: templates/rental/lease_documents.html:9
+msgid "Documents of the lease"
+msgstr "Documents du bail"
+
+#: templates/rental/lease_documents.html:11
+msgid ""
+"No document yet: add the signed lease, the inventory and the insurance "
+"certificate."
+msgstr ""
+"Aucun document pour l'instant : ajoutez le bail signé, l'état des lieux et "
+"l'attestation d'assurance."
+
+#: templates/rental/lease_documents.html:17
+msgid "Diagnostics of the property"
+msgstr "Diagnostics du bien"
+
+#: templates/rental/lease_documents.html:18
+msgid "Shared by every lease of the property."
+msgstr "Communs à tous les baux du bien."
+
+#: templates/rental/lease_documents.html:21
+msgid "No diagnostic yet."
+msgstr "Aucun diagnostic pour l'instant."
+
+#: templates/rental/lease_documents.html:29
+msgid "Add a document"
+msgstr "Ajouter un document"
+
+#: templates/rental/lease_documents.html:37
+msgid "PDF, JPEG, PNG, WebP or HEIC. A diagnostic is attached to the property."
+msgstr "PDF, JPEG, PNG, WebP ou HEIC. Un diagnostic est rattaché au bien."
+
+#: templates/rental/lease_emails.html:9
+msgid "New email"
+msgstr "Nouvel email"
+
+#: templates/rental/lease_emails.html:15
+msgid "Rent notices and receipts: from the payments"
+msgstr "Avis d'échéance et quittances : depuis les paiements"
+
+#: templates/rental/lease_emails.html:24
+msgid "copy"
+msgstr "copie"
+
+#: templates/rental/lease_emails.html:35
+msgid "No email sent yet."
+msgstr "Aucun email envoyé pour l'instant."
+
+#: templates/rental/lease_payments.html:9
+msgid "No rent schedule"
+msgstr "Pas d'échéancier"
+
+#: templates/rental/lease_payments.html:11
+#, python-format
+msgid ""
+"Create the recurring rent and charges entries of the lease, from %(date)s "
+"(%(total)s per period). Check each one once received, from the entries to "
+"check. Enter a prorated first rent as a one-off entry."
+msgstr ""
+"Créer les écritures récurrentes de loyer et de charges du bail, à partir du "
+"%(date)s (%(total)s par échéance). Pointez chacune une fois reçue, depuis "
+"les écritures à pointer. Saisissez un premier loyer au prorata comme "
+"écriture ponctuelle."
+
+#: templates/rental/lease_payments.html:16
+msgid "Create the rent schedule"
+msgstr "Créer l'échéancier"
+
+#: templates/rental/lease_payments.html:26
+#, python-format
+msgid "%(amount)s due"
+msgstr "%(amount)s dus"
+
+#: templates/rental/lease_payments.html:29
+msgid "Check the payments"
+msgstr "Pointer les paiements"
+
+#: templates/rental/lease_payments.html:30
+msgid "Send a reminder"
+msgstr "Envoyer une relance"
+
+#: templates/rental/lease_payments.html:36
+msgid "Due date"
+msgstr "Échéance"
+
+#: templates/rental/lease_payments.html:36
+msgid "Received"
+msgstr "Reçu"
+
+#: templates/rental/lease_payments.html:39
+#, python-format
+msgid "Receipt sent on %(date)s"
+msgstr "Quittance envoyée le %(date)s"
+
+#: templates/rental/lease_payments.html:46
+msgid "Download the receipt"
+msgstr "Télécharger la quittance"
+
+#: templates/rental/lease_payments.html:47
+msgid "Receipt"
+msgstr "Quittance"
+
+#: templates/rental/lease_payments.html:47
+msgid "Partial receipt"
+msgstr "Reçu partiel"
+
+#: templates/rental/lease_payments.html:58
+msgid "No rent recorded for this lease yet."
+msgstr "Aucun loyer enregistré pour ce bail pour l'instant."
+
+#: templates/rental/reconciliation_detail.html:15
+#, python-format
+msgid ""
+"The lease covers part of the period: the tenant pays a share of %(share)s of "
+"each expense."
+msgstr ""
+"Le bail couvre une partie de la période : le locataire paie une part de "
+"%(share)s de chaque dépense."
+
+#: templates/rental/reconciliation_detail.html:18
+msgid "Recoverable expense"
+msgstr "Dépense récupérable"
+
+#: templates/rental/reconciliation_detail.html:18
+msgid "Tenant share"
+msgstr "Part du locataire"
+
+#: templates/rental/reconciliation_detail.html:22
+msgid ""
+"No recoverable expense over the period: mark them in the ledger of the "
+"property, or add adjustments below."
+msgstr ""
+"Aucune dépense récupérable sur la période : marquez-les dans la comptabilité "
+"du bien, ou ajoutez des ajustements ci-dessous."
+
+#: templates/rental/reconciliation_detail.html:28
+msgid "Adjustments"
+msgstr "Ajustements"
+
+#: templates/rental/reconciliation_detail.html:29
+msgid ""
+"The recoverable share of the co-ownership charges, the household waste tax… "
+"Negative to deduct."
+msgstr ""
+"La part récupérable des charges de copropriété, la taxe d'enlèvement des "
+"ordures ménagères… Négatif pour déduire."
+
+#: templates/rental/reconciliation_detail.html:44
+msgid "Recompute"
+msgstr "Recalculer"
+
+#: templates/rental/reconciliation_detail.html:55
+msgid "Charges due"
+msgstr "Charges dues"
+
+#: templates/rental/reconciliation_detail.html:57
+msgid "Owed by the tenant"
+msgstr "Dû par le locataire"
+
+#: templates/rental/reconciliation_detail.html:57
+msgid "To refund to the tenant"
+msgstr "À rembourser au locataire"
+
+#: templates/rental/reconciliation_detail.html:64
+msgid "In the ledger"
+msgstr "En comptabilité"
+
+#: templates/rental/reconciliation_detail.html:68
+msgid "Record in the ledger"
+msgstr "Enregistrer en comptabilité"
+
+#: templates/rental/reconciliation_detail.html:72
+msgid "Delete this reconciliation?"
+msgstr "Supprimer cette régularisation ?"
+
+#: templates/rental/reconciliation_detail.html:81
+msgid "Provision"
+msgstr "Provision"
+
+#: templates/rental/reconciliation_detail.html:84
+#, python-format
+msgid ""
+"Current provision: %(current)s per payment. Matching the actual charges:"
+msgstr ""
+"Provision actuelle : %(current)s par échéance. Correspondant aux charges "
+"réelles :"
+
+#: templates/rental/reconciliation_detail.html:86
+msgid "New provision"
+msgstr "Nouvelle provision"
+
+#: templates/rental/reconciliation_detail.html:89
+msgid "Update the provision"
+msgstr "Mettre à jour la provision"
