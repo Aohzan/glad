@@ -69,6 +69,11 @@ For the leases you manage yourself, without an agency (see [docs/rental.md](docs
 - Alerts on the application bell and on any channel: email or one of the 100+ services of [Apprise](https://appriseit.com/services/) (ntfy, Gotify, Telegram, Discord…), see [docs/notifications.md](docs/notifications.md)
 - Each alert enabled and tuned per user: security or account drop, data to update, income tax and LMNP returns, local taxes, deadlines of the leases, loans and DPE, late rent, tenant insurance, deposit return, signatures, new release, login…
 
+### AI assistants
+
+- [MCP](https://modelcontextprotocol.io) server for Claude Code, Claude Desktop, Cursor…: net worth, accounts, properties, leases, budget and LMNP analyses, pending checks, and entry of values, expenses, received rents and budget lines, see [docs/mcp.md](docs/mcp.md)
+- Read-only or read-write API keys per user, with the log of every call
+
 ### Web application
 
 - Multi-language support (English and French)
@@ -89,8 +94,8 @@ For the leases you manage yourself, without an agency (see [docs/rental.md](docs
 | Property cash flow | Property LMNP | SCPI |
 | [![Household budget](docs/images/budget.png)](docs/images/budget.png) | [![Rental management](docs/images/rental_dashboard.png)](docs/images/rental_dashboard.png) | [![Lease](docs/images/rental_lease.png)](docs/images/rental_lease.png) |
 | Household budget | Rental management | Lease |
-| [![Inventory of fixtures](docs/images/rental_inventory.png)](docs/images/rental_inventory.png) | [![Notification settings](docs/images/notifications_settings.png)](docs/images/notifications_settings.png) | |
-| Inventory of fixtures | Notification settings | |
+| [![Inventory of fixtures](docs/images/rental_inventory.png)](docs/images/rental_inventory.png) | [![Notification settings](docs/images/notifications_settings.png)](docs/images/notifications_settings.png) | [![MCP access](docs/images/mcp_settings.png)](docs/images/mcp_settings.png) |
+| Inventory of fixtures | Notification settings | MCP access |
 
 ## Configuration
 
