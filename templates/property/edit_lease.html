@@ -30,38 +30,25 @@
         <h6 class="mb-0">{% icon "user" "me-1" %}{% translate "Tenant" %}</h6>
       </div>
       <div class="card-body">
+        {% if tenant_form %}
         <div class="row g-3">
+          {% for field in tenant_form %}
           <div class="col-md-6">
-            <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">
-              {% translate "First name" %}
+            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+              {{ field.label }}
+              {% if not field.field.required %}<span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>{% endif %}
             </label>
-            {{ form.first_name }}
-            {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors }}</div>{% endif %}
+            {{ field }}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
           </div>
-          <div class="col-md-6">
-            <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">
-              {% translate "Last name" %}
-            </label>
-            {{ form.last_name }}
-            {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors }}</div>{% endif %}
-          </div>
-          <div class="col-md-6">
-            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
-              {% translate "Email" %}
-              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
-            </label>
-            {{ form.email }}
-            {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors }}</div>{% endif %}
-          </div>
-          <div class="col-md-6">
-            <label for="{{ form.phone.id_for_label }}" class="form-label fw-semibold">
-              {% translate "Phone" %}
-              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
-            </label>
-            {{ form.phone }}
-            {% if form.phone.errors %}<div class="invalid-feedback d-block">{{ form.phone.errors }}</div>{% endif %}
-          </div>
+          {% endfor %}
         </div>
+        <p class="form-text mb-0 mt-2">{% translate "Add the other tenants and the guarantors on the lease page once it is saved." %}</p>
+        {% else %}
+        <div class="d-flex align-items-center justify-content-between gap-3">
+          <span>{{ lease.name|default:_("No tenant recorded.") }}</span>
+        </div>
+        {% endif %}
       </div>
     </div>
 
@@ -92,6 +79,12 @@
             </label>
             {{ form.periodicity }}
             {% if form.periodicity.errors %}<div class="invalid-feedback d-block">{{ form.periodicity.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <label for="{{ form.payment_day.id_for_label }}" class="form-label fw-semibold">{{ form.payment_day.label }}</label>
+            {{ form.payment_day }}
+            {% if form.payment_day.errors %}<div class="invalid-feedback d-block">{{ form.payment_day.errors }}</div>{% endif %}
+            <div class="form-text">{{ form.payment_day.help_text }}</div>
           </div>
         </div>
       </div>
@@ -126,6 +119,23 @@
             </label>
             {{ form.notice_date }}
             {% if form.notice_date.errors %}<div class="invalid-feedback d-block">{{ form.notice_date.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ form.signed_date.id_for_label }}" class="form-label fw-semibold">
+              {{ form.signed_date.label }}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ form.signed_date }}
+            {% if form.signed_date.errors %}<div class="invalid-feedback d-block">{{ form.signed_date.errors }}</div>{% endif %}
+          </div>
+          <div class="col-md-8">
+            <label for="{{ form.duration_months.id_for_label }}" class="form-label fw-semibold">
+              {{ form.duration_months.label }}
+              <span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>
+            </label>
+            {{ form.duration_months }}
+            {% if form.duration_months.errors %}<div class="invalid-feedback d-block">{{ form.duration_months.errors }}</div>{% endif %}
+            <div class="form-text">{{ form.duration_months.help_text }}</div>
           </div>
         </div>
       </div>
@@ -162,6 +172,11 @@
             </div>
             {% if form.deposit_amount.errors %}<div class="invalid-feedback d-block">{{ form.deposit_amount.errors }}</div>{% endif %}
           </div>
+          <div class="col-md-8">
+            <label for="{{ form.charges_mode.id_for_label }}" class="form-label fw-semibold">{{ form.charges_mode.label }}</label>
+            {{ form.charges_mode }}
+            {% if form.charges_mode.errors %}<div class="invalid-feedback d-block">{{ form.charges_mode.errors }}</div>{% endif %}
+          </div>
         </div>
       </div>
     </div>
@@ -182,6 +197,23 @@
           </div>
           {% endif %}{% endfor %}
         </div>
+      </div>
+    </div>
+
+    {# ── Automatic emails ───────────────────────────────────────────────────── #}
+    <div class="card mb-3">
+      <div class="card-header py-2">
+        <h6 class="mb-0">{% icon "mail" "me-1" %}{% translate "Automatic emails" %}</h6>
+      </div>
+      <div class="card-body">
+        <p class="small text-body-secondary">{% translate "Only for the leases you manage yourself: the tenants need an email address. Every email is listed on the lease page." %}</p>
+        {% for field in form %}{% if field.name == "send_rent_calls" or field.name == "send_receipts" %}
+        <div class="form-check form-switch mb-2">
+          {{ field }}
+          <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          <div class="form-text mt-0">{{ field.help_text }}</div>
+        </div>
+        {% endif %}{% endfor %}
       </div>
     </div>
 

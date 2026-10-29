@@ -20,6 +20,7 @@ from property.models import (
     AmortizationAsset,
     AmortizationSetup,
     Lease,
+    LeaseParty,
     ManagementMandate,
     Property,
     PropertyLedgerEntry,
@@ -163,6 +164,10 @@ class PropertyEditForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
             "number_of_rooms",
             "dpe_rating",
             "dpe_date",
+            "construction_year",
+            "is_tight_zone",
+            "landlord_name",
+            "landlord_address",
             "buying_value",
             "notary_fees",
             "agency_fees",
@@ -181,6 +186,7 @@ class PropertyEditForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
             ),
             "dpe_rating": forms.Select(attrs={"class": "form-select"}),
             "dpe_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "landlord_address": forms.Textarea(attrs={"rows": 2}),
             "street_number": forms.TextInput(attrs={"class": "form-control"}),
             "street_name": forms.TextInput(attrs={"class": "form-control"}),
             "additional_address": forms.TextInput(attrs={"class": "form-control"}),
@@ -362,29 +368,33 @@ class LeaseForm(MoneyInputGroupMixin, forms.ModelForm):
     class Meta:
         model = Lease
         fields = [
-            "first_name",
-            "last_name",
-            "email",
-            "phone",
             "lease_type",
             "status",
             "start_date",
             "end_date",
             "notice_date",
+            "signed_date",
+            "duration_months",
             "rent_amount",
             "charges_amount",
+            "charges_mode",
             "deposit_amount",
             "periodicity",
+            "payment_day",
             "irl_reference_quarter",
             "irl_reference_value",
             "last_rent_revision_date",
+            "send_rent_calls",
+            "send_receipts",
             "notes",
         ]
         widgets = {
             "start_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "end_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "notice_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "signed_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "lease_type": forms.Select(attrs={"class": "form-select"}),
+            "charges_mode": forms.Select(attrs={"class": "form-select"}),
             "status": forms.Select(attrs={"class": "form-select"}),
             "periodicity": forms.Select(attrs={"class": "form-select"}),
             "irl_reference_quarter": forms.Select(attrs={"class": "form-select"}),
@@ -394,6 +404,47 @@ class LeaseForm(MoneyInputGroupMixin, forms.ModelForm):
             ),
             "notes": forms.Textarea(attrs={"rows": 2}),
         }
+
+
+class FirstTenantForm(forms.ModelForm):
+    """Tenant entered with a new lease; the others are added on the lease page."""
+
+    class Meta:
+        model = LeaseParty
+        fields = ["first_name", "last_name", "email", "phone"]
+
+
+class LeasePartyForm(forms.ModelForm):
+    """Form for a tenant or a guarantor of a lease."""
+
+    class Meta:
+        model = LeaseParty
+        fields = [
+            "role",
+            "first_name",
+            "last_name",
+            "email",
+            "phone",
+            "birth_date",
+            "birth_place",
+            "address",
+            "guarantee_type",
+        ]
+        widgets = {
+            "birth_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "address": forms.Textarea(attrs={"rows": 2}),
+        }
+        help_texts = {"guarantee_type": _("For a guarantor only.")}
+
+    def clean(self):
+        cleaned = super().clean() or {}
+        if cleaned.get("role") == LeaseParty.Role.TENANT:
+            cleaned["guarantee_type"] = ""
+        elif not cleaned.get("guarantee_type"):
+            self.add_error(
+                "guarantee_type", _("Choose the kind of guarantee of the guarantor.")
+            )
+        return cleaned
 
 
 # ─── Management ───────────────────────────────────────────────────────────────

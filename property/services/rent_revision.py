@@ -24,7 +24,11 @@ CENT = Decimal("0.01")
 #: The IRL of a quarter is published about 15 days after its end.
 _PUBLICATION_DELAY = relativedelta(months=3, days=15)
 _REVISABLE_STATUSES = (Lease.Status.ACTIVE, Lease.Status.NOTICE_PERIOD)
-_REVISABLE_TYPES = (Lease.LeaseType.EMPTY, Lease.LeaseType.FURNISHED)
+_REVISABLE_TYPES = (
+    Lease.LeaseType.EMPTY,
+    Lease.LeaseType.FURNISHED,
+    Lease.LeaseType.STUDENT,
+)
 
 
 def next_revision_date(lease: Lease, today: datetime.date) -> datetime.date:

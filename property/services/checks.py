@@ -52,7 +52,7 @@ def _recurring_entries(property_obj: Property | None = None):
         PropertyLedgerEntry.objects.filter(property__is_active=True)
         .exclude(recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE)
         .select_related("property", "lease")
-        .prefetch_related("exceptions")
+        .prefetch_related("exceptions", "lease__parties")
     )
     if property_obj is not None:
         qs = qs.filter(property=property_obj)

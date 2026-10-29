@@ -411,7 +411,7 @@ class PropertyDetailView(DetailView):
         entries_qs = (
             PropertyLedgerEntry.objects.filter(property=property_obj)
             .select_related("lease")
-            .prefetch_related("exceptions", "capitalized_as")
+            .prefetch_related("exceptions", "capitalized_as", "lease__parties")
         )
         rows: list[dict] = []
         for entry in entries_qs:
@@ -639,7 +639,7 @@ def property_panel_cashflow(request: HttpRequest, pk: int) -> HttpResponse:
     entries = (
         PropertyLedgerEntry.objects.filter(property=prop)
         .select_related("lease")
-        .prefetch_related("exceptions", "capitalized_as")
+        .prefetch_related("exceptions", "capitalized_as", "lease__parties")
     )
     entries_with_forms = [
         {
@@ -749,6 +749,7 @@ def property_panel_leases(request: HttpRequest, pk: int) -> HttpResponse:
     property_leases = list(
         Lease.objects.filter(property=prop)
         .select_related("property")
+        .prefetch_related("parties", "property__mandates")
         .order_by("-start_date")
     )
     for lease in property_leases:

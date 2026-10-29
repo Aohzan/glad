@@ -355,6 +355,26 @@
   </div>
 </div>
 
+{# ── Rental ──────────────────────────────────────────────────────────── #}
+<h6 class="text-uppercase text-body-secondary small fw-semibold mb-3 prop-label">{% translate "Rental" %}</h6>
+<div class="row g-3 mb-4">
+  {% for field in property_form %}{% if field.name == "construction_year" or field.name == "landlord_name" or field.name == "landlord_address" %}
+  <div class="{% if field.name == 'landlord_address' %}col-md-8{% else %}col-md-4{% endif %}">
+    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+  </div>
+  {% endif %}{% endfor %}
+  <div class="col-md-4">
+    <div class="form-check form-switch mt-md-4">
+      {{ property_form.is_tight_zone }}
+      <label class="form-check-label" for="{{ property_form.is_tight_zone.id_for_label }}">{{ property_form.is_tight_zone.label }}</label>
+    </div>
+    <div class="form-text">{{ property_form.is_tight_zone.help_text }}</div>
+  </div>
+</div>
+
 {# ── Selling & Status ────────────────────────────────────────────────── #}
 <h6 class="text-uppercase text-body-secondary small fw-semibold mb-3 prop-label">{% translate "Selling & Status" %}</h6>
 <div class="row g-3">
