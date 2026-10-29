@@ -66,7 +66,7 @@ def sample_types():
 @pytest.fixture
 def apprise_mock():
     """Apprise replaced by a mock accepting every URL and message."""
-    with patch("notifications.services.apprise.Apprise") as cls:
+    with patch("apprise.Apprise") as cls:
         sender = MagicMock()
         sender.add.return_value = True
         sender.notify.return_value = True

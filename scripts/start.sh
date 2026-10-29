@@ -41,9 +41,9 @@ case "$(echo "${BACKGROUND_JOBS_ENABLED:-true}" | tr '[:upper:]' '[:lower:]')" i
     ;;
   *)
     echo "Starting the background worker and scheduler..."
-    # A single worker: SQLite does not support concurrent task workers.
-    supervise python manage.py db_worker --no-reload &
-    supervise python manage.py run_scheduler &
+    # One process runs the scheduler and the single task worker (SQLite does
+    # not support concurrent workers), to keep the memory use low.
+    supervise python manage.py run_scheduler --with-worker &
     ;;
 esac
 echo

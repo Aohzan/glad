@@ -1,8 +1,10 @@
 """Enqueue the periodic jobs when they are due (see ``base.scheduler``)."""
 
 import signal
+import threading
 import time
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 
@@ -24,14 +26,31 @@ class Command(BaseCommand):
             action="store_true",
             help="Enqueue the due jobs once and exit (for an external cron).",
         )
+        parser.add_argument(
+            "--with-worker",
+            action="store_true",
+            help=(
+                "Also run the task worker (db_worker) in this process, which "
+                "saves the memory of a second Django process."
+            ),
+        )
 
     def handle(self, *args, **options):
         if options["once"]:
             self._tick()
             return
         self.running = True
+        if options["with_worker"]:
+            # The worker owns the main thread and its stop signals; the
+            # scheduler thread ends with the process.
+            threading.Thread(target=self._loop, daemon=True).start()
+            call_command("db_worker", reload=False)
+            return
         signal.signal(signal.SIGTERM, self._stop)
         signal.signal(signal.SIGINT, self._stop)
+        self._loop()
+
+    def _loop(self) -> None:
         self.stdout.write("Scheduler started")
         while self.running:
             self._tick()

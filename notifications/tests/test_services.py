@@ -180,7 +180,7 @@ def test_format_a_single_notification(settings):
 @pytest.mark.django_db
 def test_send_to_channel_failures(user):
     channel = _channel(user)
-    with patch("notifications.services.apprise.Apprise") as cls:
+    with patch("apprise.Apprise") as cls:
         cls.return_value.add.return_value = False
         assert not send_to_channel(channel, "T", "B")
         assert "not a valid Apprise URL" in channel.last_error

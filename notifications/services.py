@@ -14,7 +14,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
-import apprise
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
@@ -240,6 +239,8 @@ def send_to_channel(channel: NotificationChannel, title: str, body: str) -> bool
     elif url is None:
         error = _("The URL cannot be read anymore: enter it again.")
     else:
+        import apprise  # imported when sending: the library is large
+
         sender = apprise.Apprise()
         if not sender.add(url):
             error = _("The URL is not a valid Apprise URL.")
