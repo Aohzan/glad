@@ -27,6 +27,7 @@ dependencies = [
     "django-tasks-db>=0.13.0",
     "cryptography>=50.0.2",
     "apprise>=2.1.0",
+    "mcp>=2.3.0", # MCP server of the AI assistants
 ]
 
 [project.optional-dependencies]
