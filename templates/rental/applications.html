@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Rental applications" %}{% endblock %}
+{% block page_kicker %}<a class="text-reset text-decoration-none" href="{% url 'rental:dashboard' %}">{% translate "Rental management" %}</a>{% endblock %}
+{% block page_title %}{% translate "Rental applications" %}{% endblock %}
+{% block page_description %}{% translate "Candidates for your properties and their documents" %}{% endblock %}
+{% block page_actions %}
+<a class="btn btn-primary" href="{% url 'rental:new_application' %}">{% icon "plus" %}{% translate "New application" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="g-stack">
+  {% translate "To decide" as open_title %}
+  {% include "rental/_application_list.html" with title=open_title items=open section="open-applications" %}
+  {% if closed %}
+  {% translate "Decided" as closed_title %}
+  {% include "rental/_application_list.html" with title=closed_title items=closed section="closed-applications" %}
+  {% endif %}
+</div>
+{% endblock %}

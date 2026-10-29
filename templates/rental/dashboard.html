@@ -5,6 +5,9 @@
 {% block page_kicker %}{% translate "Tracking" %}{% endblock %}
 {% block page_title %}{% translate "Rental management" %}{% endblock %}
 {% block page_description %}{% translate "Leases you manage yourself, without an agency" %}{% endblock %}
+{% block page_actions %}
+<a class="btn btn-outline-secondary" href="{% url 'rental:applications' %}">{% icon "user-search" %}{% translate "Applications" %}</a>
+{% endblock %}
 
 {% block content %}
 <div class="g-stack">
@@ -83,6 +86,31 @@
       {% endfor %}
     </div>
   </section>
+  {% endif %}
+
+  {% if applications or pending_signatures %}
+  <div class="row g-3">
+    {% if applications %}
+    <div class="col-lg-6">
+      <section class="g-card h-100" id="rental-applications">
+        <div class="g-section-head"><h2 class="g-h2">{% translate "Open applications" %}</h2><a class="g-link" href="{% url 'rental:applications' %}">{% translate "All" %}</a></div>
+        {% for application in applications %}
+        <a class="g-card__row d-flex justify-content-between" href="{% url 'rental:application_detail' application.pk %}"><span>{{ application.name }} <span class="text-body-secondary small">· {{ application.property.name }}</span></span>{% include "rental/_application_status.html" %}</a>
+        {% endfor %}
+      </section>
+    </div>
+    {% endif %}
+    {% if pending_signatures %}
+    <div class="col-lg-6">
+      <section class="g-card h-100" id="rental-signatures">
+        <div class="g-section-head"><h2 class="g-h2">{% translate "Signatures in progress" %}</h2></div>
+        {% for signature in pending_signatures %}
+        <div class="g-card__row"><span class="fw-semibold">{{ signature.title }}</span> <span class="small text-body-secondary">· {% blocktranslate with date=signature.created_at|date:"SHORT_DATE_FORMAT" %}sent on {{ date }}{% endblocktranslate %}</span></div>
+        {% endfor %}
+      </section>
+    </div>
+    {% endif %}
+  </div>
   {% endif %}
 
   <section class="g-card" id="rental-deadlines">

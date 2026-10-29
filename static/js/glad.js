@@ -446,6 +446,15 @@
     });
   }
 
+  // <input type="file" data-auto-submit> sends its form once a file is chosen
+  // (a photo taken with the phone camera, for instance).
+  document.addEventListener('change', function (event) {
+    var input = event.target;
+    if (input.matches && input.matches('input[data-auto-submit]') && input.files.length) {
+      input.form.submit();
+    }
+  });
+
   function ready() {
     decorateForms();
     loadPanels();

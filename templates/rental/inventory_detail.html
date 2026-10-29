@@ -1,0 +1,45 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n %}
+
+{% block lease_content %}
+<div class="row g-3">
+  <div class="col-lg-7">
+    <section class="g-card" id="inventory-rooms">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% if inventory.kind == "entry" %}{% translate "Entry inventory" %}{% else %}{% translate "Exit inventory" %}{% endif %}</h2>
+        <div class="d-flex gap-2">
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'rental:inventory_pdf' inventory.pk %}">{% icon "file-down" "me-1" %}PDF</a>
+          {% if can_sign %}
+          <form method="post" action="{% url 'rental:sign_inventory' inventory.pk %}" data-confirm="{% translate 'Send the inventory to the landlord and the tenants for signature?' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-primary">{% icon "signature" "me-1" %}{% translate "Sign" %}</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% for row in rooms %}
+      <a class="g-card__row d-flex justify-content-between align-items-center" href="{% url 'rental:inventory_room' inventory.pk row.room.pk %}">
+        <span class="fw-semibold">{{ row.room.name }}</span>
+        <span class="g-tag{% if row.done == row.count and row.count %} g-tag--pos{% endif %}">{{ row.done }} / {{ row.count }}</span>
+      </a>
+      {% endfor %}
+      <form method="post" action="{% url 'rental:inventory_add_room' inventory.pk %}" class="g-card__row d-flex gap-2">
+        {% csrf_token %}
+        <input type="text" name="name" class="form-control form-control-sm" placeholder="{% translate 'New room' %}" maxlength="100" required aria-label="{% translate 'New room' %}">
+        <button type="submit" class="btn btn-sm btn-outline-primary flex-shrink-0">{% icon "plus" "me-1" %}{% translate "Add" %}</button>
+      </form>
+    </section>
+  </div>
+  <div class="col-lg-5">
+    <section class="g-card" id="inventory-header">
+      <div class="g-section-head"><h2 class="g-h2">{% translate "Meters and keys" %}</h2></div>
+      <form method="post" class="g-card__body">
+        {% csrf_token %}
+        {% include "_form_non_field_errors.html" %}
+        {% for field in form %}{% include "_form_field.html" %}{% endfor %}
+        <button type="submit" class="btn btn-primary">{% translate "Save" %}</button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

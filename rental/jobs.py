@@ -81,3 +81,12 @@ def register_jobs() -> None:
             at=datetime.time(7, 30),
         )
     )
+    register(
+        Job(
+            name="poll_signatures",
+            func="rental.services.signature.poll_signatures",
+            label=_("Check the electronic signatures"),
+            every=datetime.timedelta(minutes=15),
+            when="rental.services.signature.has_pending",
+        )
+    )

@@ -458,6 +458,22 @@ def _delete_property_related(
 # ─── Lease CRUD ───────────────────────────────────────────────────────────────
 
 
+def save_lease(
+    property_obj: Property, form: LeaseForm, tenant_form: FirstTenantForm | None
+) -> Lease:
+    """Save a valid lease form of *property_obj*, with its first tenant if given."""
+    with transaction.atomic():
+        lease = form.save(commit=False)
+        lease.property = property_obj
+        lease.save()
+        if tenant_form is not None:
+            tenant = tenant_form.save(commit=False)
+            tenant.lease = lease
+            tenant.role = LeaseParty.Role.TENANT
+            tenant.save()
+    return lease
+
+
 def edit_lease(
     request: HttpRequest, property_pk: int, lease_pk: int | None = None
 ) -> HttpResponse:
@@ -476,15 +492,7 @@ def edit_lease(
     tenant_form = FirstTenantForm(data, prefix="tenant") if lease is None else None
     if data is not None:
         if form.is_valid() and (tenant_form is None or tenant_form.is_valid()):
-            with transaction.atomic():
-                saved = form.save(commit=False)
-                saved.property = property_obj
-                saved.save()
-                if tenant_form is not None:
-                    tenant = tenant_form.save(commit=False)
-                    tenant.lease = saved
-                    tenant.role = LeaseParty.Role.TENANT
-                    tenant.save()
+            save_lease(property_obj, form, tenant_form)
             messages.success(request, _("Lease saved."))
             return HttpResponseRedirect(
                 reverse("property:detail", kwargs={"pk": property_pk}) + "#leases-panel"

@@ -882,6 +882,17 @@ a.g-card__row:hover { background: var(--g-accent-tint); }
 .g-dl dt { font-weight: 400; color: var(--g-muted); }
 .g-dl dd { margin: 0; }
 
+/* Actions kept in view at the bottom of a long form (inventory room on a phone). */
+.g-sticky-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 0;
+  background: var(--g-bg);
+}
+
 .g-skeleton {
   border-radius: var(--g-radius-sm);
   background: linear-gradient(90deg, var(--g-surface) 25%, var(--g-line) 50%, var(--g-surface) 75%);

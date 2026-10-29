@@ -1,0 +1,15 @@
+{% load i18n %}
+<section class="g-card" id="{{ section }}">
+  <div class="g-section-head"><h2 class="g-h2">{{ title }}</h2></div>
+  {% for application in items %}
+  <a class="g-card__row d-flex flex-wrap justify-content-between align-items-center gap-2" href="{% url 'rental:application_detail' application.pk %}">
+    <span><span class="fw-semibold">{{ application.name }}</span> <span class="text-body-secondary small">· {{ application.property.name }} · {{ application.created_at|date:"SHORT_DATE_FORMAT" }}</span></span>
+    <span class="d-flex gap-2 align-items-center">
+      {% if application.effort_rate is not None %}<span class="g-tag{% if application.effort_rate > effort_rate_max %} g-tag--warn{% endif %}">{{ application.effort_rate }} %</span>{% endif %}
+      {% include "rental/_application_status.html" %}
+    </span>
+  </a>
+  {% empty %}
+  <div class="g-empty">{% translate "No application." %}</div>
+  {% endfor %}
+</section>

@@ -14,6 +14,9 @@ from base.services.pdf import money
 from notifications.checks import days_before_param, when
 from notifications.registry import Event, NotificationType, Param, register
 from property.models import Lease, Property
+from rental.models import (
+    SignatureRequest,
+)
 from rental.services.compliance import MISSING, documents_by_lease, lease_checks
 from rental.services.dashboard import current_leases
 from rental.services.payments import lease_periods
@@ -129,6 +132,54 @@ def _rent_late(params: dict[str, Any], today: datetime.date) -> Iterator[Event]:
             )
 
 
+def _signature_pending(params: dict[str, Any], today: datetime.date) -> Iterator[Event]:
+    pending = SignatureRequest.objects.filter(
+        status=SignatureRequest.Status.PENDING,
+        created_at__date__lte=today - datetime.timedelta(days=params["days"]),
+    )
+    for signature in pending:
+        waiting = [s["name"] for s in signature.signers if s.get("status") != "signed"]
+        yield Event(
+            key=str(signature.pk),
+            title=_("Still to sign: %(title)s") % {"title": signature.title},
+            body=_("Waiting for %(names)s.") % {"names": ", ".join(waiting)},
+            url=reverse("rental:dashboard"),
+            level="warning",
+        )
+
+
+register(
+    NotificationType(
+        key="signature_completed",
+        group="rental",
+        label=gettext_lazy("Document signed"),
+        description=gettext_lazy(
+            "Everyone signed a lease or an inventory sent for electronic signature."
+        ),
+    )
+)
+register(
+    NotificationType(
+        key="signature_pending",
+        group="rental",
+        label=gettext_lazy("Signature pending"),
+        description=gettext_lazy(
+            "A document sent for electronic signature is still not signed by "
+            "everyone after some days."
+        ),
+        check=_signature_pending,
+        params=(
+            Param(
+                "days",
+                gettext_lazy("Days after the sending"),
+                7,
+                min_value=1,
+                max_value=60,
+            ),
+        ),
+        renotify_days=7,
+    )
+)
 register(
     NotificationType(
         key="rent_late",

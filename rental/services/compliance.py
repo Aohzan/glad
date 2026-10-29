@@ -19,6 +19,7 @@ from base.templatetags.format_money import format_money_filter as format_money
 from property.models import Lease, Property
 from property.services.energy import get_dpe_status
 from rental import rules
+from rental.models import Inventory
 from rental.services.landlord import landlord_of
 
 #: An insurance certificate expiring within this many days is flagged.
@@ -256,7 +257,10 @@ def _signed_lease(lease: Lease, documents: LeaseDocuments, url: str) -> Check:
 
 def _entry_inventory(lease: Lease, documents: LeaseDocuments, url: str) -> Check:
     label = _("Entry inventory")
-    if documents.of_kind(Document.Kind.INVENTORY):
+    signed = Inventory.objects.filter(
+        lease=lease, kind=Inventory.Kind.ENTRY, status=Inventory.Status.SIGNED
+    ).exists()
+    if signed or documents.of_kind(Document.Kind.INVENTORY):
         return Check("entry_inventory", label, OK)
     if lease.status == Lease.Status.UPCOMING:
         return Check(
