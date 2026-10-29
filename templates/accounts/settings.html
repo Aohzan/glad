@@ -42,17 +42,15 @@
             <div class="card-body">
                 <div class="d-flex align-items-start justify-content-between gap-3">
                     <div>
-                        <h6 class="mb-1">{% translate "Login notification" %}</h6>
+                        <h6 class="mb-1">{% translate "Alerts and reminders" %}</h6>
                         <p class="text-muted small mb-0">
-                            {% translate "Receive an email when someone logs in to your account." %}
+                            {% translate "Choose the alerts you receive (logins, deadlines, drops, taxes…) and the channels they reach you on (email, ntfy, Gotify, Telegram…)." %}
                         </p>
                     </div>
-                    <div class="form-check form-switch flex-shrink-0">
-                        <input class="form-check-input" type="checkbox" role="switch"
-                            id="notify-on-login-switch" {% if notify_on_login %}checked{% endif %}>
-                    </div>
+                    <a class="btn btn-outline-primary btn-sm flex-shrink-0" href="{% url 'notifications:settings' %}">
+                        {% icon "bell" "me-2" %}{% translate "Configure" %}
+                    </a>
                 </div>
-                <div id="notification-preferences-status" class="mt-2 small" aria-live="polite"></div>
             </div>
         </div>
 
@@ -217,42 +215,6 @@
                 emailStatusEl.className = 'mt-2 small text-danger';
             } finally {
                 emailSaveBtn.disabled = false;
-            }
-        });
-    }
-
-    // --- Notification preferences ---
-    const notifyOnLoginSwitch = document.getElementById('notify-on-login-switch');
-    const notificationStatusEl = document.getElementById('notification-preferences-status');
-    const updateNotificationUrl = '{% url "accounts:update_notification_preferences" %}';
-
-    if (notifyOnLoginSwitch) {
-        notifyOnLoginSwitch.addEventListener('change', async function () {
-            const notifyOnLogin = notifyOnLoginSwitch.checked;
-            notifyOnLoginSwitch.disabled = true;
-            try {
-                const csrfToken = getCsrfToken();
-                const response = await fetch(updateNotificationUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                    body: JSON.stringify({ notify_on_login: notifyOnLogin }),
-                });
-                if (!response.ok) throw new Error('update_failed');
-                if (notifyOnLogin) {
-                    {% translate "Login notification enabled." as msg %}
-                    notificationStatusEl.textContent = '{{ msg|escapejs }}';
-                } else {
-                    {% translate "Login notification disabled." as msg %}
-                    notificationStatusEl.textContent = '{{ msg|escapejs }}';
-                }
-                notificationStatusEl.className = 'mt-2 small text-success';
-            } catch (err) {
-                notifyOnLoginSwitch.checked = !notifyOnLogin;
-                {% translate "Failed to update notification preferences." as msg %}
-                notificationStatusEl.textContent = '{{ msg|escapejs }}';
-                notificationStatusEl.className = 'mt-2 small text-danger';
-            } finally {
-                notifyOnLoginSwitch.disabled = false;
             }
         });
     }

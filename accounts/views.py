@@ -386,33 +386,6 @@ def update_email(request):
 
 @login_required
 @require_http_methods(["POST"])
-def update_notification_preferences(request):
-    """Update notification preferences for the current user."""
-    try:
-        data = json.loads(request.body or "{}")
-        notify_on_login = data.get("notify_on_login")
-
-        if notify_on_login is None or not isinstance(notify_on_login, bool):
-            return JsonResponse(
-                {"success": False, "error": "invalid_request"}, status=400
-            )
-
-        profile, _ = UserProfile.objects.get_or_create(user=request.user)
-        profile.notify_on_login = notify_on_login
-        profile.save(update_fields=["notify_on_login"])
-
-        return JsonResponse(
-            {"success": True, "notify_on_login": profile.notify_on_login}
-        )
-    except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "invalid_request"}, status=400)
-    except Exception as e:
-        _LOGGER.error(f"Notification preferences update failed: {e}")
-        return JsonResponse({"success": False, "error": "update_failed"}, status=400)
-
-
-@login_required
-@require_http_methods(["POST"])
 def update_live_data_preferences(request):
     """Update the live market data fetching preference for the current user."""
     try:

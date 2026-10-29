@@ -12,7 +12,6 @@ from .views import (
     passkey_register_options,
     update_email,
     update_live_data_preferences,
-    update_notification_preferences,
     update_session_timeout,
 )
 
@@ -55,11 +54,6 @@ urlpatterns = [
         "api/email/update/",
         update_email,
         name="update_email",
-    ),
-    path(
-        "api/notification-preferences/update/",
-        update_notification_preferences,
-        name="update_notification_preferences",
     ),
     path(
         "api/live-data-preferences/update/",

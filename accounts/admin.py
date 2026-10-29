@@ -17,7 +17,6 @@ class UserProfileAdmin(admin.ModelAdmin):
         "user",
         "is_child",
         "birth_date",
-        "notify_on_login",
         "live_data_enabled",
     )
     list_filter = ("is_child",)
@@ -85,5 +84,4 @@ class ChildAdmin(admin.ModelAdmin):
         profile, _created = UserProfile.objects.get_or_create(user=obj)
         profile.is_child = True
         profile.birth_date = form.cleaned_data.get("birth_date")
-        profile.notify_on_login = False
         profile.save()
