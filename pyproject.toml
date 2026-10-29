@@ -7,7 +7,7 @@ authors = [{ name = "Aohzan", email = "aohzan@gmail.com" }]
 maintainers = [{ name = "Aohzan", email = "aohzan@gmail.com" }]
 
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.15"
 license = { file = "LICENSE.md" }
 
 dependencies = [
@@ -105,7 +105,7 @@ exclude = [
     ".venv",
     "venv",
 ]
-pythonVersion = "3.14"
+pythonVersion = "3.15"
 typeCheckingMode = "basic"
 reportMissingTypeStubs = false
 reportUnknownMemberType = false
