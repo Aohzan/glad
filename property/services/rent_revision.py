@@ -171,6 +171,30 @@ def _first_occurrence_from(
     return None
 
 
+def split_series(
+    entry: PropertyLedgerEntry, effective_date: datetime.date, new_amount: Money
+) -> bool:
+    """End the recurring *entry* before *effective_date*, continued with *new_amount*.
+
+    The new series starts at the first occurrence on or after *effective_date*;
+    False when there is none.
+    """
+    split_date = _first_occurrence_from(entry, effective_date)
+    if split_date is None:
+        return False
+    previous_end = entry.recurrence_end_date
+    entry.recurrence_end_date = split_date - datetime.timedelta(days=1)
+    entry.save(update_fields=["recurrence_end_date"])
+    entry.pk = None
+    entry.id = None
+    entry._state.adding = True
+    entry.amount = new_amount
+    entry.entry_date = split_date
+    entry.recurrence_end_date = previous_end
+    entry.save()
+    return True
+
+
 def _update_rent_series(
     lease: Lease, old_rent: Money, new_rent: Money, effective_date: datetime.date
 ) -> int:
@@ -196,20 +220,7 @@ def _update_rent_series(
             entry.recurrence_end_date and entry.recurrence_end_date < effective_date
         ):
             continue
-        split_date = _first_occurrence_from(entry, effective_date)
-        if split_date is None:
-            continue
-        previous_end = entry.recurrence_end_date
-        entry.recurrence_end_date = split_date - datetime.timedelta(days=1)
-        entry.save(update_fields=["recurrence_end_date"])
-        entry.pk = None
-        entry.id = None
-        entry._state.adding = True
-        entry.amount = new_amount
-        entry.entry_date = split_date
-        entry.recurrence_end_date = previous_end
-        entry.save()
-        updated += 1
+        updated += split_series(entry, effective_date, new_amount)
     return updated
 
 

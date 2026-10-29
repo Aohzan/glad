@@ -163,7 +163,7 @@ def _default_days() -> dict:
     values = {}
     for notification_type in types():
         for param in notification_type.params:
-            if param.kind in ("int", "choice"):
+            if param.kind in ("int", "choice", "monthday"):
                 values[f"{notification_type.key}-{param.key}"] = str(param.default)
     values["stale_data-days"] = "45"
     return values

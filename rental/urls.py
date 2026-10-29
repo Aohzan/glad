@@ -8,6 +8,7 @@ from django.urls import path
 
 from . import (
     application_views,
+    charges_views,
     inventory_views,
     signature_views,
     views,
@@ -113,6 +114,34 @@ urlpatterns = [
         "inventory/<int:pk>/item/<int:item_pk>/photo/",
         _post(inventory_views.add_photo),
         name="inventory_add_photo",
+    ),
+    # Charges reconciliation
+    path("lease/<int:pk>/charges/", charges_views.lease_charges, name="lease_charges"),
+    path(
+        "lease/<int:pk>/charges/new/",
+        _post(charges_views.create_reconciliation),
+        name="create_reconciliation",
+    ),
+    path(
+        "charges/<int:pk>/",
+        charges_views.reconciliation_detail,
+        name="reconciliation_detail",
+    ),
+    path("charges/<int:pk>/pdf/", charges_views.reconciliation_pdf, name="charges_pdf"),
+    path(
+        "charges/<int:pk>/record/",
+        _post(charges_views.record_reconciliation),
+        name="record_reconciliation",
+    ),
+    path(
+        "charges/<int:pk>/provision/",
+        _post(charges_views.update_provision),
+        name="update_provision",
+    ),
+    path(
+        "charges/<int:pk>/delete/",
+        _post(charges_views.delete_reconciliation),
+        name="delete_reconciliation",
     ),
     # Applications
     path("applications/", application_views.applications, name="applications"),

@@ -1,0 +1,15 @@
+{% autoescape off %}Régularisation des charges du {{ reconciliation.start }} au {{ reconciliation.end }}
+
+Bonjour {{ tenants }},
+
+Vous trouverez ci-joint le décompte de régularisation des charges du logement situé {{ address }}, pour la période du {{ reconciliation.start }} au {{ reconciliation.end }} :
+
+- Charges dues : {{ reconciliation.actual }}
+- Provisions versées : {{ reconciliation.provisions }}
+{% if reconciliation.owed %}- Reste à régler : {{ reconciliation.balance }}, que vous pourrez verser avec votre prochain loyer.{% elif reconciliation.refund %}- Trop-perçu : {{ reconciliation.balance }}, qui vous sera remboursé.{% else %}- Aucun solde : les provisions couvrent exactement les charges.{% endif %}
+
+Les justificatifs sont à votre disposition pendant six mois.
+
+Bien cordialement,
+{{ landlord.name }}
+{% endautoescape %}
