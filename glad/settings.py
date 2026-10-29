@@ -362,9 +362,14 @@ SECURE_CSP = {
 # Logging configuration
 # https://docs.djangoproject.com/en/6.0/topics/logging/
 
+# One line format for Django, uvicorn and the background jobs, which share the
+# container output.
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "skip_health_checks": {"()": "base.log_filters.SkipHealthChecks"},
+    },
     "handlers": {
         "stderr": {
             "class": "logging.StreamHandler",
@@ -378,7 +383,8 @@ LOGGING = {
     },
     "formatters": {
         "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "format": "{asctime} {levelname:<7} {name}: {message}",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
             "style": "{",
         },
         "simple": {
@@ -404,6 +410,25 @@ LOGGING = {
         "django.server": {
             "handlers": ["stderr"],
             "level": "INFO",
+            "propagate": False,
+        },
+        # Configured after uvicorn's own logging, so these replace its format.
+        "uvicorn.error": {
+            "handlers": ["stderr"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "uvicorn.access": {
+            "handlers": ["stderr"],
+            "level": "INFO",
+            "filters": ["skip_health_checks"],
+            "propagate": False,
+        },
+        # fpdf2 subsets the fonts of every PDF with fontTools, which logs each
+        # step.
+        "fontTools": {
+            "handlers": ["stderr"],
+            "level": "WARNING",
             "propagate": False,
         },
         # yfinance logs every unknown or delisted symbol as an error; the price

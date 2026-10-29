@@ -1,5 +1,6 @@
 """Enqueue the periodic jobs when they are due (see ``base.scheduler``)."""
 
+import logging
 import signal
 import threading
 import time
@@ -9,6 +10,8 @@ from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 
 from base.scheduler import enqueue_due_jobs
+
+logger = logging.getLogger(__name__)
 
 #: Seconds between two looks at the jobs.
 INTERVAL = 60
@@ -51,24 +54,24 @@ class Command(BaseCommand):
         self._loop()
 
     def _loop(self) -> None:
-        self.stdout.write("Scheduler started")
+        logger.info("Scheduler started")
         while self.running:
             self._tick()
             for _ in range(INTERVAL):
                 if not self.running:
                     break
                 time.sleep(1)
-        self.stdout.write("Scheduler stopped")
+        logger.info("Scheduler stopped")
 
     def _tick(self) -> None:
         close_old_connections()
         try:
             names = enqueue_due_jobs()
         except Exception as exc:  # keep the loop alive on a transient DB error
-            self.stderr.write(f"Could not enqueue the jobs: {exc}")
+            logger.error("Could not enqueue the jobs: %s", exc)
             return
         for name in names:
-            self.stdout.write(f"Enqueued {name}")
+            logger.info("Enqueued %s", name)
 
     def _stop(self, signum, frame) -> None:
         self.running = False

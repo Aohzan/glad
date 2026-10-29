@@ -188,25 +188,24 @@ def test_enqueue_due_jobs_returns_the_enqueued_names(
 
 
 @pytest.mark.django_db
-def test_run_scheduler_once(test_jobs, capsys, django_capture_on_commit_callbacks):
+def test_run_scheduler_once(test_jobs, caplog, django_capture_on_commit_callbacks):
     with django_capture_on_commit_callbacks(execute=True):
         call_command("run_scheduler", "--once")
-    out = capsys.readouterr().out
-    assert "Enqueued failing" in out
+    assert "Enqueued failing" in caplog.messages
 
 
 @pytest.mark.django_db
-def test_run_scheduler_survives_a_database_error(test_jobs, capsys):
+def test_run_scheduler_survives_a_database_error(test_jobs, caplog):
     with patch(
         "base.management.commands.run_scheduler.enqueue_due_jobs",
         side_effect=RuntimeError("locked"),
     ):
         call_command("run_scheduler", "--once")
-    assert "Could not enqueue the jobs: locked" in capsys.readouterr().err
+    assert "Could not enqueue the jobs: locked" in caplog.messages
 
 
 @pytest.mark.django_db
-def test_run_scheduler_loop_stops_on_signal(test_jobs, capsys):
+def test_run_scheduler_loop_stops_on_signal(test_jobs, caplog):
     from base.management.commands import run_scheduler
 
     command = run_scheduler.Command()
@@ -220,13 +219,11 @@ def test_run_scheduler_loop_stops_on_signal(test_jobs, capsys):
         patch.object(run_scheduler.signal, "signal"),
     ):
         call_command(command)
-    out = capsys.readouterr().out
-    assert "Scheduler started" in out
-    assert "Scheduler stopped" in out
+    assert caplog.messages == ["Scheduler started", "Scheduler stopped"]
 
 
 @pytest.mark.django_db
-def test_run_scheduler_with_the_worker(test_jobs, capsys):
+def test_run_scheduler_with_the_worker(test_jobs, caplog):
     from base.management.commands import run_scheduler
 
     command = run_scheduler.Command()
@@ -248,7 +245,7 @@ def test_run_scheduler_with_the_worker(test_jobs, capsys):
     ):
         call_command(command, "--with-worker")
     worker.assert_called_once_with("db_worker", reload=False)
-    assert "Scheduler started" in capsys.readouterr().out
+    assert "Scheduler started" in caplog.messages
 
 
 def test_base_jobs_are_registered():
