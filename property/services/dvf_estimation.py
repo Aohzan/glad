@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-import httpx
 from moneyed import Money
+lazy import httpx
 
 if TYPE_CHECKING:
     from property.models import Property

@@ -22,6 +22,7 @@ from django.tasks import task
 from django.utils import translation
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
+lazy import apprise
 
 from notifications.models import (
     Notification,
@@ -239,8 +240,6 @@ def send_to_channel(channel: NotificationChannel, title: str, body: str) -> bool
     elif url is None:
         error = _("The URL cannot be read anymore: enter it again.")
     else:
-        import apprise  # imported when sending: the library is large
-
         sender = apprise.Apprise()
         if not sender.add(url):
             error = _("The URL is not a valid Apprise URL.")

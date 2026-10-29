@@ -14,12 +14,12 @@ from django.utils import formats, translation
 from django.utils.translation import gettext as _
 from djmoney.money import Money
 
-from base.services.pdf import BasePdf, money
 from property.models import Lease, PropertyLedgerEntry
 from property.models.ledger import ManagementCategory
 from rental import rules
 from rental.models import DepositSettlement, Inventory, InventoryItem
 from rental.services.landlord import landlord_of
+lazy from base.services.pdf import BasePdf, money
 
 CENT = Decimal("0.01")
 TENANT = "tenant"

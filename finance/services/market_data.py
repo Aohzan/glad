@@ -4,9 +4,9 @@ import datetime
 from dataclasses import dataclass
 from decimal import Decimal
 
-import yfinance
 from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
+lazy import yfinance
 
 CACHE_TTL_SECONDS = 900
 

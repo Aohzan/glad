@@ -7,8 +7,8 @@ unreadable, which ``decrypt`` reports as None instead of raising.
 import base64
 import hashlib
 
-from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
+lazy from cryptography.fernet import Fernet, InvalidToken
 
 
 def _fernet() -> Fernet:
