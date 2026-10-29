@@ -1,6 +1,7 @@
 """Market data lookups for investment holdings, backed by yfinance."""
 
 import datetime
+import re
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -9,6 +10,11 @@ from django.utils.translation import gettext_lazy as _
 lazy import yfinance
 
 CACHE_TTL_SECONDS = 900
+#: The Yahoo symbol found for an ISIN is remembered this long.
+SYMBOL_CACHE_SECONDS = 7 * 24 * 3600
+#: Listings tried first among the search results of an ISIN.
+LISTED_TYPES = ("ETF", "EQUITY")
+ISIN_PATTERN = re.compile(r"^[A-Z]{2}[A-Z0-9]{9}[0-9]$")
 
 
 class MarketDataError(Exception):
@@ -212,27 +218,68 @@ def fetch_historical_prices(
     return points, currency
 
 
+def _search_symbols(isin: str) -> list[str]:
+    """Yahoo symbols of the listings of *isin*, the ETFs and equities first."""
+    try:
+        quotes = yfinance.Search(isin, max_results=10, news_count=0).quotes
+    except Exception:
+        return []
+    listed = [quote for quote in quotes if quote.get("symbol")]
+    listed.sort(key=lambda quote: quote.get("quoteType") not in LISTED_TYPES)
+    return [quote["symbol"] for quote in listed]
+
+
+def _closes(symbol: str, days: int):
+    """The daily history and currency of *symbol*, None when it has no prices."""
+    ticker = yfinance.Ticker(symbol)
+    history = ticker.history(period=f"{days}d", interval="1d")
+    if history is None or history.empty:
+        return None
+    return history, str(ticker.fast_info["currency"])
+
+
 def fetch_daily_closes(
     isin: str, days: int = 45
 ) -> tuple[list[HistoricalPricePoint], str]:
-    """The daily closing prices of the last *days* days for an ISIN, oldest first."""
-    try:
-        ticker = yfinance.Ticker(isin)
-        history = ticker.history(period=f"{days}d", interval="1d")
-        currency = str(ticker.fast_info["currency"])
-    except Exception as exc:
+    """The daily closing prices of the last *days* days for an ISIN, oldest first.
+
+    Yahoo resolves an ISIN to one listing, which may have no prices (a fund
+    listed in Stuttgart, for instance): the other listings found by its search
+    are then tried, and the one with prices is remembered. An identifier that
+    is not an ISIN (a currency pair) is used as it is.
+    """
+    cache_key = f"market-symbol:{isin}"
+    candidates = [cache.get(cache_key) or isin]
+    tried: list[str] = []
+    errors: list[Exception] = []
+    while candidates:
+        symbol = candidates.pop(0)
+        if symbol in tried:
+            continue
+        tried.append(symbol)
+        try:
+            found = _closes(symbol, days)
+        except Exception as exc:
+            errors.append(exc)
+            found = None
+        if found is None:
+            if len(tried) == 1 and ISIN_PATTERN.match(isin):
+                candidates += [*_search_symbols(isin), isin]
+            continue
+        cache.set(cache_key, symbol, SYMBOL_CACHE_SECONDS)
+        history, currency = found
+        points = []
+        for timestamp, row in history.iterrows():
+            price = _decimal_or_none(row["Close"])
+            if price is not None and not price.is_nan():
+                points.append(HistoricalPricePoint(date=timestamp.date(), price=price))
+        return points, currency
+    if errors and len(errors) == len(tried):
         raise MarketDataError(
             str(_("Could not fetch historical data for ISIN {isin}: {error}")).format(
-                isin=isin, error=exc
+                isin=isin, error=errors[-1]
             )
-        ) from exc
-    if history is None or history.empty:
-        raise MarketDataError(
-            str(_("No historical data available for ISIN {isin}")).format(isin=isin)
-        )
-    points = []
-    for timestamp, row in history.iterrows():
-        price = _decimal_or_none(row["Close"])
-        if price is not None and not price.is_nan():
-            points.append(HistoricalPricePoint(date=timestamp.date(), price=price))
-    return points, currency
+        ) from errors[-1]
+    raise MarketDataError(
+        str(_("No historical data available for ISIN {isin}")).format(isin=isin)
+    )
