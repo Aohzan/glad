@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 23:17+0100\n"
+"POT-Creation-Date: 2026-10-30 00:04+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -105,28 +105,28 @@ msgstr ""
 "Quelqu'un s'est connecté à votre compte (envoyé à vous seul). Choisissez un "
 "canal extérieur à l'application, comme votre email."
 
-#: accounts/signals.py:22
+#: accounts/signals.py:23
 #, python-format
 msgid "Date: %(date)s"
 msgstr "Date : %(date)s"
 
-#: accounts/signals.py:24
+#: accounts/signals.py:25
 #, python-format
 msgid "IP address: %(ip)s"
 msgstr "Adresse IP : %(ip)s"
 
-#: accounts/signals.py:27
+#: accounts/signals.py:28
 #, python-format
 msgid "Browser: %(agent)s"
 msgstr "Navigateur : %(agent)s"
 
-#: accounts/signals.py:29
+#: accounts/signals.py:30
 msgid "If this was not you, change your password and review your passkey."
 msgstr ""
 "Si ce n'était pas vous, changez votre mot de passe et vérifiez votre clé "
 "d'accès."
 
-#: accounts/signals.py:35
+#: accounts/signals.py:36
 msgid "New login to your Glad account"
 msgstr "Nouvelle connexion à votre compte Glad"
 
@@ -299,7 +299,7 @@ msgstr "Budget"
 #: base/context_processors.py:56 base/search_views.py:83
 #: templates/accounts/settings.html:4 templates/accounts/settings.html:9
 #: templates/base.html:169 templates/budget/edit_year.html:6
-#: templates/notifications/inbox.html:12
+#: templates/mcp_server/settings.html:8 templates/notifications/inbox.html:12
 msgid "Settings"
 msgstr "Paramètres"
 
@@ -375,7 +375,8 @@ msgstr "Document supprimé."
 #: templates/finance/edit_investment_cash.html:29
 #: templates/finance/edit_saving_value.html:29
 #: templates/finance/holding_detail.html:144
-#: templates/finance/investment_detail.html:149 templates/operations.html:23
+#: templates/finance/investment_detail.html:149
+#: templates/mcp_server/settings.html:106 templates/operations.html:23
 #: templates/property/detail.html:465 templates/property/detail.html:564
 #: templates/property/detail_panel_cashflow.html:36
 #: templates/property/detail_panel_cashflow.html:109
@@ -822,9 +823,9 @@ msgstr "Propriétaire enregistré."
 #: finance/views/investment_views.py:309 finance/views/investment_views.py:449
 #: finance/views/other_asset_views.py:62 finance/views/saving_views.py:62
 #: finance/views/saving_views.py:88 finance/views/update_views.py:341
-#: property/views/check_views.py:132 property/views/crud_views.py:130
-#: property/views/crud_views.py:318 property/views/crud_views.py:425
-#: property/views/crud_views.py:509 property/views/edit_views.py:53
+#: property/views/check_views.py:133 property/views/crud_views.py:130
+#: property/views/crud_views.py:308 property/views/crud_views.py:415
+#: property/views/crud_views.py:499 property/views/edit_views.py:53
 #: property/views/edit_views.py:91 property/views/edit_views.py:108
 #: property/views/scpi_views.py:399 property/views/scpi_views.py:447
 #: property/views/scpi_views.py:500 property/views/scpi_views.py:591
@@ -1119,7 +1120,8 @@ msgstr "catégorie de budget"
 msgid "budget categories"
 msgstr "catégories de budget"
 
-#: budget/models.py:69 finance/models/other_asset.py:70
+#: budget/models.py:69 finance/models/other_asset.py:70 mcp_server/forms.py:11
+#: mcp_server/models.py:39 mcp_server/tests/test_serializers.py:48
 #: notifications/forms.py:14 notifications/models.py:35
 #: property/models/asset.py:51 property/models/asset.py:302
 #: property/models/scpi.py:42 rental/forms.py:167
@@ -2186,8 +2188,8 @@ msgstr "Liquidité"
 msgid "Leave empty to use the default of the category."
 msgstr "Laisser vide pour utiliser la valeur par défaut de la catégorie."
 
-#: finance/models/other_asset.py:113 property/models/asset.py:361
-#: property/models/lease.py:24
+#: finance/models/other_asset.py:113 mcp_server/models.py:43
+#: property/models/asset.py:361 property/models/lease.py:24
 #: templates/finance/_edit_account_dates_card.html:25
 #: templates/finance/_status_badge.html:6
 #: templates/finance/edit_investment_holding.html:83
@@ -2421,9 +2423,9 @@ msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 
 #: finance/views/crud_views.py:70 finance/views/investment_views.py:123
 #: finance/views/investment_views.py:350 finance/views/saving_views.py:108
-#: property/views/check_views.py:212 property/views/check_views.py:244
+#: property/views/check_views.py:213 property/views/check_views.py:245
 #: property/views/crud_views.py:74 property/views/crud_views.py:147
-#: property/views/crud_views.py:362 property/views/crud_views.py:447
+#: property/views/crud_views.py:352 property/views/crud_views.py:437
 #: property/views/scpi_views.py:375 property/views/scpi_views.py:415
 #: property/views/scpi_views.py:461 property/views/scpi_views.py:518
 #: property/views/scpi_views.py:660
@@ -2681,13 +2683,65 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:264
+#: glad/settings.py:265
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:265
+#: glad/settings.py:266
 msgid "French"
 msgstr "Français"
+
+#: mcp_server/apps.py:12 templates/accounts/settings.html:68
+#: templates/mcp_server/settings.html:4 templates/mcp_server/settings.html:5
+msgid "MCP access"
+msgstr "Accès MCP"
+
+#: mcp_server/forms.py:13
+msgid "Claude Code on my laptop"
+msgstr "Claude Code sur mon portable"
+
+#: mcp_server/forms.py:16
+msgid "Allow writing"
+msgstr "Autoriser l'écriture"
+
+#: mcp_server/forms.py:19
+msgid ""
+"Without it, the key only reads the data. With it, the client can also enter "
+"values, expenses, received rents and budget lines."
+msgstr ""
+"Sans elle, la clé ne fait que lire les données. Avec elle, le client peut "
+"aussi saisir des valeurs, des dépenses, des loyers reçus et des lignes de "
+"budget."
+
+#: mcp_server/models.py:32
+msgid "API key"
+msgstr "clé d'API"
+
+#: mcp_server/models.py:33 templates/mcp_server/settings.html:31
+msgid "API keys"
+msgstr "Clés d'API"
+
+#: mcp_server/models.py:42
+msgid "Write access"
+msgstr "Accès en écriture"
+
+#: mcp_server/models.py:86
+msgid "MCP call"
+msgstr "appel MCP"
+
+#: mcp_server/models.py:87
+msgid "MCP calls"
+msgstr "appels MCP"
+
+#: mcp_server/views.py:60
+#, python-format
+msgid "Key “%(name)s” created."
+msgstr "Clé « %(name)s » créée."
+
+#: mcp_server/views.py:76
+#, python-format
+msgid "Key “%(name)s” deleted."
+msgstr "Clé « %(name)s » supprimée."
 
 #: notifications/apps.py:29
 msgid "Check and send the notifications"
@@ -4449,6 +4503,14 @@ msgstr "Date limite de la CFE (MM-JJ)"
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
+#: property/services/checks.py:122
+msgid "The actual date cannot be in the future."
+msgstr "La date réelle ne peut pas être dans le futur."
+
+#: property/services/checks.py:124 property/views/check_views.py:59
+msgid "The actual amount must be positive."
+msgstr "Le montant réel doit être positif."
+
 #: property/services/tax_lmnp.py:1347
 msgid "No active loan — not required."
 msgstr "Aucun prêt actif — non requis."
@@ -4598,50 +4660,42 @@ msgstr "Composition du capital"
 msgid "Filiales et participations"
 msgstr "Filiales et participations"
 
-#: property/views/check_views.py:55
+#: property/views/check_views.py:56
 msgid "Invalid actual date."
 msgstr "Date réelle invalide."
 
-#: property/views/check_views.py:57
-msgid "The actual date cannot be in the future."
-msgstr "La date réelle ne peut pas être dans le futur."
-
-#: property/views/check_views.py:60
-msgid "The actual amount must be positive."
-msgstr "Le montant réel doit être positif."
-
-#: property/views/check_views.py:116
+#: property/views/check_views.py:117
 msgid "An entry cannot be both checked and deleted."
 msgstr "Une écriture ne peut pas être à la fois pointée et supprimée."
 
-#: property/views/check_views.py:135
+#: property/views/check_views.py:136
 msgid "No entry was selected."
 msgstr "Aucune écriture sélectionnée."
 
-#: property/views/check_views.py:147
+#: property/views/check_views.py:148
 #, python-brace-format
 msgid "{checked} entry(ies) checked, {deleted} occurrence(s) deleted."
 msgstr ""
 "{checked} écriture(s) pointée(s), {deleted} occurrence(s) supprimée(s)."
 
-#: property/views/check_views.py:167
+#: property/views/check_views.py:168
 msgid "Invalid date."
 msgstr "Date invalide."
 
-#: property/views/check_views.py:174
+#: property/views/check_views.py:175
 #, python-brace-format
 msgid "{count} entry(ies) checked."
 msgstr "{count} écriture(s) pointée(s)."
 
-#: property/views/check_views.py:182
+#: property/views/check_views.py:183
 msgid "Invalid action."
 msgstr "Action invalide."
 
-#: property/views/check_views.py:232
+#: property/views/check_views.py:233
 msgid "Entry checked."
 msgstr "Écriture pointée."
 
-#: property/views/check_views.py:256
+#: property/views/check_views.py:257
 msgid "Entry unchecked."
 msgstr "Pointage annulé."
 
@@ -4663,7 +4717,7 @@ msgid "Property valuation deleted successfully."
 msgstr "Évaluation de propriété supprimée avec succès."
 
 #: property/views/crud_views.py:111 property/views/crud_views.py:158
-#: property/views/crud_views.py:218 rental/models.py:177
+#: property/views/crud_views.py:208 rental/models.py:177
 #: templates/property/occurrence_checks.html:62
 msgid "Entry"
 msgstr "Écriture"
@@ -4672,47 +4726,47 @@ msgstr "Écriture"
 msgid "Entry updated successfully."
 msgstr "Écriture mise à jour avec succès."
 
-#: property/views/crud_views.py:167 property/views/crud_views.py:372
+#: property/views/crud_views.py:167 property/views/crud_views.py:362
 msgid "Entry deleted successfully."
 msgstr "Écriture supprimée avec succès."
 
-#: property/views/crud_views.py:228
+#: property/views/crud_views.py:218
 msgid "Invalid occurrence date."
 msgstr "Date d'occurrence invalide."
 
-#: property/views/crud_views.py:258 property/views/crud_views.py:367
+#: property/views/crud_views.py:248 property/views/crud_views.py:357
 msgid "Invalid scope."
 msgstr "Portée invalide."
 
-#: property/views/crud_views.py:277
+#: property/views/crud_views.py:267
 msgid "Occurrence updated successfully."
 msgstr "Occurrence mise à jour avec succès."
 
-#: property/views/crud_views.py:311
+#: property/views/crud_views.py:301
 msgid "Series updated from this occurrence onwards."
 msgstr "Série mise à jour à partir de cette occurrence."
 
-#: property/views/crud_views.py:376
+#: property/views/crud_views.py:366
 msgid "Occurrence deleted successfully."
 msgstr "Occurrence supprimée avec succès."
 
-#: property/views/crud_views.py:385
+#: property/views/crud_views.py:375
 msgid "Series truncated from this occurrence onwards."
 msgstr "Série tronquée à partir de cette occurrence."
 
-#: property/views/crud_views.py:499
+#: property/views/crud_views.py:489
 msgid "Lease saved."
 msgstr "Bail enregistré."
 
-#: property/views/crud_views.py:530
+#: property/views/crud_views.py:520
 msgid "Lease deleted successfully."
 msgstr "Bail supprimée avec succès."
 
-#: property/views/crud_views.py:550
+#: property/views/crud_views.py:540
 msgid "Mandate saved."
 msgstr "Mandat enregistré."
 
-#: property/views/crud_views.py:564
+#: property/views/crud_views.py:554
 msgid "Mandate deleted successfully."
 msgstr "Mandat supprimé avec succès."
 
@@ -5141,7 +5195,7 @@ msgid "Addresses separated by commas."
 msgstr "Adresses séparées par des virgules."
 
 #: rental/forms.py:86 templates/budget/ai_prompt.html:22
-#: templates/budget/copy_year.html:6
+#: templates/budget/copy_year.html:6 templates/mcp_server/settings.html:19
 msgid "Copy"
 msgstr "Copier"
 
@@ -6007,6 +6061,7 @@ msgstr "Supprimer %(title)s ?"
 #: templates/finance/holding_detail.html:28
 #: templates/finance/investment_detail.html:112
 #: templates/finance/other_asset_detail.html:29
+#: templates/mcp_server/settings.html:65
 #: templates/notifications/settings.html:70 templates/property/detail.html:578
 #: templates/property/detail_panel_cashflow.html:234
 #: templates/property/detail_panel_cashflow.html:303
@@ -6092,7 +6147,7 @@ msgid "Enter your email address"
 msgstr "Saisissez votre adresse email"
 
 #: templates/accounts/settings.html:31 templates/accounts/settings.html:41
-#: templates/accounts/settings.html:157 templates/allocation.html:69
+#: templates/accounts/settings.html:176 templates/allocation.html:69
 #: templates/budget/edit_line.html:44
 #: templates/finance/_edit_form_footer.html:4
 #: templates/finance/_euro_fund_rates_panel.html:25
@@ -6125,19 +6180,33 @@ msgstr ""
 "impôts…) et les canaux par lesquels elles vous parviennent (email, ntfy, "
 "Gotify, Telegram…)."
 
-#: templates/accounts/settings.html:60
+#: templates/accounts/settings.html:60 templates/accounts/settings.html:79
 msgid "Configure"
 msgstr "Configurer"
 
-#: templates/accounts/settings.html:68
+#: templates/accounts/settings.html:73
+msgid "AI assistants"
+msgstr "Assistants IA"
+
+#: templates/accounts/settings.html:75
+msgid ""
+"Create API keys so that an AI assistant (Claude Code, Claude Desktop, "
+"Cursor…) can analyse your data, check it and, if you allow it, enter new "
+"values."
+msgstr ""
+"Créez des clés d'API pour qu'un assistant IA (Claude Code, Claude Desktop, "
+"Cursor…) analyse vos données, les vérifie et, si vous l'autorisez, saisisse "
+"de nouvelles valeurs."
+
+#: templates/accounts/settings.html:87
 msgid "Data"
 msgstr "Données"
 
-#: templates/accounts/settings.html:73 templates/finance/holding_detail.html:36
+#: templates/accounts/settings.html:92 templates/finance/holding_detail.html:36
 msgid "Live market data"
 msgstr "Données de marché en direct"
 
-#: templates/accounts/settings.html:75
+#: templates/accounts/settings.html:94
 msgid ""
 "Fetch real-time market data from Yahoo Finance for holdings and ISIN "
 "autofill."
@@ -6145,141 +6214,141 @@ msgstr ""
 "Récupère les données de marché en temps réel depuis Yahoo Finance pour les "
 "titres et le remplissage automatique de l'ISIN."
 
-#: templates/accounts/settings.html:89
+#: templates/accounts/settings.html:108
 msgid "Security"
 msgstr "Sécurité"
 
-#: templates/accounts/settings.html:94
+#: templates/accounts/settings.html:113
 msgid "Password"
 msgstr "Mot de passe"
 
-#: templates/accounts/settings.html:96
+#: templates/accounts/settings.html:115
 msgid "Update your password to keep your account secure."
 msgstr "Mettez à jour votre mot de passe pour garder votre compte sécurisé."
 
-#: templates/accounts/settings.html:103 templates/accounts/settings.html:114
+#: templates/accounts/settings.html:122 templates/accounts/settings.html:133
 msgid "Change Password"
 msgstr "Changer le mot de passe"
 
-#: templates/accounts/settings.html:122
+#: templates/accounts/settings.html:141
 msgid "Passkey"
 msgstr "Passkey"
 
-#: templates/accounts/settings.html:124
+#: templates/accounts/settings.html:143
 msgid ""
 "Register a passkey so you can log in with fingerprint or face recognition."
 msgstr ""
 "Enregistrer une passkey pour se connecter via empreinte ou reconnaissance "
 "faciale."
 
-#: templates/accounts/settings.html:127
+#: templates/accounts/settings.html:146
 msgid "You can replace your passkey at any time."
 msgstr "Vous pouvez remplacer votre passkey n'importe quand."
 
-#: templates/accounts/settings.html:132 templates/accounts/settings.html:307
+#: templates/accounts/settings.html:151 templates/accounts/settings.html:326
 msgid "Register passkey"
 msgstr "Enregistrer la passkey"
 
-#: templates/accounts/settings.html:135
+#: templates/accounts/settings.html:154
 msgid "Remove passkey"
 msgstr "Supprimer la passkey"
 
-#: templates/accounts/settings.html:143
+#: templates/accounts/settings.html:162
 msgid "Auto-logout"
 msgstr "Déconnexion automatique"
 
-#: templates/accounts/settings.html:145
+#: templates/accounts/settings.html:164
 msgid "Automatically log out after a period of inactivity for security."
 msgstr ""
 "Déconnecter automatiquement après une période d'inactivité pour des raisons "
 "de sécurité."
 
-#: templates/accounts/settings.html:152
+#: templates/accounts/settings.html:171
 msgid "minutes"
 msgstr "minutes"
 
-#: templates/accounts/settings.html:193
+#: templates/accounts/settings.html:212
 msgid "Please enter an email address."
 msgstr "Veuillez saisir une adresse email."
 
-#: templates/accounts/settings.html:209
+#: templates/accounts/settings.html:228
 msgid "Please enter a valid email address."
 msgstr "Veuillez saisir une adresse email valide."
 
-#: templates/accounts/settings.html:212 templates/accounts/settings.html:222
+#: templates/accounts/settings.html:231 templates/accounts/settings.html:241
 msgid "Failed to update email address."
 msgstr "Échec de la mise à jour de l'adresse email."
 
-#: templates/accounts/settings.html:218
+#: templates/accounts/settings.html:237
 msgid "Email address updated successfully."
 msgstr "Adresse email mise à jour avec succès."
 
-#: templates/accounts/settings.html:249
+#: templates/accounts/settings.html:268
 msgid "Live market data enabled."
 msgstr "Données de marché en direct activées."
 
-#: templates/accounts/settings.html:252
+#: templates/accounts/settings.html:271
 msgid "Live market data disabled."
 msgstr "Données de marché en direct désactivées."
 
-#: templates/accounts/settings.html:258
+#: templates/accounts/settings.html:277
 msgid "Failed to update live market data preference."
 msgstr ""
 "Échec de la mise à jour de la préférence de données de marché en direct."
 
-#: templates/accounts/settings.html:306
+#: templates/accounts/settings.html:325
 msgid "Replace passkey"
 msgstr "Remplacer la passkey"
 
-#: templates/accounts/settings.html:313
+#: templates/accounts/settings.html:332
 msgid "Passkey registered."
 msgstr "Passkey enregistrée."
 
-#: templates/accounts/settings.html:315
+#: templates/accounts/settings.html:334
 msgid "No passkey registered yet."
 msgstr "Pas de passkey enregistré actuellement."
 
-#: templates/accounts/settings.html:324
+#: templates/accounts/settings.html:343
 msgid "Passkeys are not supported on this browser."
 msgstr "Les passkeys ne sont pas prises en charge sur ce navigateur."
 
-#: templates/accounts/settings.html:376
+#: templates/accounts/settings.html:395
 msgid "Passkey registered successfully."
 msgstr "Passkey enregistrée avec succès."
 
-#: templates/accounts/settings.html:381
+#: templates/accounts/settings.html:400
 msgid "Passkey registration was cancelled."
 msgstr "L'enregistrement de la passkey a été annulé."
 
-#: templates/accounts/settings.html:383
+#: templates/accounts/settings.html:402
 msgid "Failed to get registration options from server."
 msgstr "Échec de récupération des options d'enregistrement depuis le serveur."
 
-#: templates/accounts/settings.html:385 templates/registration/login.html:178
+#: templates/accounts/settings.html:404 templates/registration/login.html:178
 msgid "Failed to verify passkey with server."
 msgstr "Échec de vérification de la passkey avec le serveur."
 
-#: templates/accounts/settings.html:387
+#: templates/accounts/settings.html:406
 msgid "Failed to register passkey:"
 msgstr "Échec d'enregistrement de la passkey :"
 
-#: templates/accounts/settings.html:406
+#: templates/accounts/settings.html:425
 msgid "Passkey removed."
 msgstr "Passkey supprimée."
 
-#: templates/accounts/settings.html:409
+#: templates/accounts/settings.html:428
 msgid "Failed to remove passkey."
 msgstr "Échec de suppression de la passkey."
 
-#: templates/accounts/settings.html:426
+#: templates/accounts/settings.html:445
 msgid "Please enter a value between 5 and 1440 minutes."
 msgstr "Veuillez saisir une valeur comprise entre 5 et 1440 minutes."
 
-#: templates/accounts/settings.html:439
+#: templates/accounts/settings.html:458
 msgid "Session timeout updated successfully."
 msgstr "Délai d'expiration de session mis à jour avec succès."
 
-#: templates/accounts/settings.html:443
+#: templates/accounts/settings.html:462
 msgid "Failed to update session timeout."
 msgstr "Échec de la mise à jour du délai d'expiration de session."
 
@@ -6580,7 +6649,7 @@ msgstr ""
 msgid "Prompt"
 msgstr "Prompt"
 
-#: templates/budget/ai_prompt.html:22
+#: templates/budget/ai_prompt.html:22 templates/mcp_server/settings.html:19
 msgid "Copied"
 msgstr "Copié"
 
@@ -8284,6 +8353,103 @@ msgstr "Oui"
 msgid "No"
 msgstr "Non"
 
+#: templates/mcp_server/settings.html:6
+msgid "Let an AI assistant read and enter your data"
+msgstr "Laisser un assistant IA lire et saisir vos données"
+
+#: templates/mcp_server/settings.html:18
+msgid "Your new key"
+msgstr "Votre nouvelle clé"
+
+#: templates/mcp_server/settings.html:22
+msgid "Copy it now: it will not be shown again."
+msgstr "Copiez-la maintenant : elle ne sera plus affichée."
+
+#: templates/mcp_server/settings.html:23
+msgid "To add it to Claude Code:"
+msgstr "Pour l'ajouter à Claude Code :"
+
+#: templates/mcp_server/settings.html:35
+#, python-format
+msgid ""
+"An MCP client (Claude Code, Claude Desktop, Cursor…) connects to "
+"<code>%(endpoint)s</code> with a key in the <code>Authorization: Bearer</"
+"code> header. It sees the data of the whole household, as you do; every call "
+"is logged below."
+msgstr ""
+"Un client MCP (Claude Code, Claude Desktop, Cursor…) se connecte à "
+"<code>%(endpoint)s</code> avec une clé dans l'en-tête <code>Authorization: "
+"Bearer</code>. Il voit les données de tout le foyer, comme vous ; chaque "
+"appel est journalisé ci-dessous."
+
+#: templates/mcp_server/settings.html:52
+msgid "Read and write"
+msgstr "Lecture et écriture"
+
+#: templates/mcp_server/settings.html:52
+msgid "Read only"
+msgstr "Lecture seule"
+
+#: templates/mcp_server/settings.html:53
+#: templates/notifications/settings.html:57
+msgid "Disabled"
+msgstr "Désactivé"
+
+#: templates/mcp_server/settings.html:56
+#, python-format
+msgid "Used on %(date)s from %(ip)s"
+msgstr "Utilisée le %(date)s depuis %(ip)s"
+
+#: templates/mcp_server/settings.html:56
+msgid "Never used"
+msgstr "Jamais utilisée"
+
+#: templates/mcp_server/settings.html:61
+#: templates/notifications/settings.html:66
+msgid "Disable"
+msgstr "Désactiver"
+
+#: templates/mcp_server/settings.html:61
+#: templates/notifications/settings.html:66
+msgid "Enable"
+msgstr "Activer"
+
+#: templates/mcp_server/settings.html:88
+msgid "Create the key"
+msgstr "Créer la clé"
+
+#: templates/mcp_server/settings.html:99
+msgid "Latest calls"
+msgstr "Derniers appels"
+
+#: templates/mcp_server/settings.html:107
+msgid "Key"
+msgstr "Clé"
+
+#: templates/mcp_server/settings.html:108
+msgid "Tool"
+msgstr "Outil"
+
+#: templates/mcp_server/settings.html:109
+msgid "Result"
+msgstr "Résultat"
+
+#: templates/mcp_server/settings.html:118
+msgid "Write"
+msgstr "Écriture"
+
+#: templates/mcp_server/settings.html:122
+msgid "OK"
+msgstr "OK"
+
+#: templates/mcp_server/settings.html:122
+msgid "Error"
+msgstr "Erreur"
+
+#: templates/mcp_server/settings.html:130
+msgid "No call yet."
+msgstr "Aucun appel pour le moment."
+
 #: templates/notifications/_dropdown.html:4
 #: templates/notifications/settings.html:4
 #: templates/notifications/settings.html:5
@@ -8374,21 +8540,9 @@ msgstr ""
 msgid "Use my email"
 msgstr "Utiliser mon email"
 
-#: templates/notifications/settings.html:57
-msgid "Disabled"
-msgstr "Désactivé"
-
 #: templates/notifications/settings.html:62
 msgid "Send a test notification"
 msgstr "Envoyer une notification de test"
-
-#: templates/notifications/settings.html:66
-msgid "Disable"
-msgstr "Désactiver"
-
-#: templates/notifications/settings.html:66
-msgid "Enable"
-msgstr "Activer"
 
 #: templates/notifications/settings.html:91
 msgid "Add the channel"
