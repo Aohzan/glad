@@ -9,8 +9,9 @@ from base.services.documents import attach_pdf
 from base.services.mailer import send_email
 from property.models import Lease
 from rental.emails import RECEIPT, EmailKind
-from rental.models import ChargesReconciliation
+from rental.models import ChargesReconciliation, DepositSettlement
 from rental.services.charges import statement_pdf
+from rental.services.departure import statement_pdf as deposit_statement_pdf
 from rental.services.payments import Period
 from rental.services.receipts import receipt_for, store_receipt_pdf
 
@@ -25,6 +26,7 @@ def send_lease_email(
     body: str,
     period: Period | None = None,
     reconciliation: ChargesReconciliation | None = None,
+    settlement: DepositSettlement | None = None,
     user=None,
 ) -> SentEmail:
     """Record and enqueue an email to the tenants of *lease*."""
@@ -41,6 +43,17 @@ def send_lease_email(
                     statement_pdf(reconciliation),
                     filename=f"regularisation-charges-{reconciliation.period_end:%Y}.pdf",
                     title=f"Régularisation des charges {reconciliation.period_end:%Y}",
+                    kind=Document.Kind.STATEMENT,
+                    user=user,
+                )
+            )
+        if settlement is not None:
+            attachments.append(
+                attach_pdf(
+                    lease,
+                    deposit_statement_pdf(settlement),
+                    filename="restitution-depot-de-garantie.pdf",
+                    title="Restitution du dépôt de garantie",
                     kind=Document.Kind.STATEMENT,
                     user=user,
                 )
@@ -70,6 +83,9 @@ def send_lease_email(
             reconciliation.status = ChargesReconciliation.Status.SENT
             reconciliation.sent_at = timezone.now()
             reconciliation.save(update_fields=["status", "sent_at", "updated_at"])
+        if settlement is not None:
+            settlement.sent_at = timezone.now()
+            settlement.save(update_fields=["sent_at", "updated_at"])
     return email
 
 

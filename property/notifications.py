@@ -145,8 +145,11 @@ register(
         key="lease_term",
         group="property",
         label=gettext_lazy("End of a lease"),
-        description=gettext_lazy("A lease reaches its end date."),
-        check=deadline_check("lease_end"),
+        description=gettext_lazy(
+            "A lease reaches its end date, or the last day for the landlord to "
+            "give notice before the end of its term."
+        ),
+        check=deadline_check("lease_end", "landlord_notice"),
         params=(days_before_param(90),),
     )
 )

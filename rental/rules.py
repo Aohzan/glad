@@ -7,7 +7,9 @@ changes a rule.
 """
 
 import datetime
+from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
 from django.utils.translation import gettext_lazy as _
 
 from property.models import Lease
@@ -141,3 +143,54 @@ METERS = (
     ("cold_water", _("Cold water")),
     ("hot_water", _("Hot water")),
 )
+
+
+# ── Departure ────────────────────────────────────────────────────────────────
+
+#: Notice of the tenant in months: art. 15 (3 months for an empty dwelling,
+#: 1 month in a tight rental zone) and art. 25-8 (1 month when furnished).
+#: A mobility lease can be ended with one month of notice (art. 25-12).
+TENANT_NOTICE_MONTHS: dict[str, int] = {
+    Lease.LeaseType.EMPTY: 3,
+    Lease.LeaseType.FURNISHED: 1,
+    Lease.LeaseType.STUDENT: 1,
+    Lease.LeaseType.MOBILITY: 1,
+}
+TIGHT_ZONE_NOTICE_MONTHS = 1
+#: Notice of the landlord before the end of the term: 6 months (art. 15),
+#: 3 months for a furnished dwelling (art. 25-8).
+LANDLORD_NOTICE_MONTHS: dict[str, int] = {
+    Lease.LeaseType.EMPTY: 6,
+    Lease.LeaseType.FURNISHED: 3,
+    Lease.LeaseType.STUDENT: 3,
+}
+
+#: The deposit is returned within 1 month of the return of the keys when the
+#: exit inventory matches the entry one, 2 months otherwise (art. 22).
+DEPOSIT_RETURN_MONTHS = 1
+DEPOSIT_RETURN_MONTHS_DAMAGED = 2
+#: A late return costs 10 % of the monthly rent excluding charges per started
+#: month of delay (art. 22).
+DEPOSIT_LATE_PENALTY = Decimal("0.10")
+#: Share of the deposit that can be kept until the yearly accounts of the
+#: co-ownership are approved (art. 22).
+COOWNERSHIP_WITHHOLDING_MAX = Decimal("0.20")
+
+
+def tenant_notice_months(lease: Lease) -> int:
+    if lease.lease_type == Lease.LeaseType.EMPTY and lease.property.is_tight_zone:
+        return TIGHT_ZONE_NOTICE_MONTHS
+    return TENANT_NOTICE_MONTHS.get(lease.lease_type, 3)
+
+
+def term_end(lease: Lease, today: datetime.date) -> datetime.date | None:
+    """Last day of the current term of a lease renewed by tacit agreement."""
+    if lease.end_date:
+        return lease.end_date
+    months = lease.duration_months or DEFAULT_DURATION_MONTHS.get(lease.lease_type)
+    if months is None:
+        return None
+    end = lease.start_date
+    while end <= today:
+        end += relativedelta(months=months)
+    return end - datetime.timedelta(days=1)

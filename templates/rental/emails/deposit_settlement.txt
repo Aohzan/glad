@@ -1,0 +1,14 @@
+{% autoescape off %}Restitution de votre dépôt de garantie
+
+Bonjour {{ tenants }},
+
+Suite à votre départ du logement situé {{ address }}, voici le décompte de restitution de votre dépôt de garantie de {{ settlement.deposit }} :
+{% for line in settlement.deductions %}
+- Retenue : {{ line.label }} ({{ line.amount }}){% endfor %}{% if settlement.has_withholding %}
+- Provision conservée dans l'attente de l'arrêté des comptes de copropriété : {{ settlement.withheld }}{% endif %}
+
+Montant restitué : {{ settlement.amount }}, au plus tard le {{ settlement.deadline }}. Le décompte détaillé est joint à ce message.
+
+Bien cordialement,
+{{ landlord.name }}
+{% endautoescape %}

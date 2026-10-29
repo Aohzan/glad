@@ -9,6 +9,7 @@ from django.urls import path
 from . import (
     application_views,
     charges_views,
+    departure_views,
     inventory_views,
     signature_views,
     views,
@@ -142,6 +143,35 @@ urlpatterns = [
         "charges/<int:pk>/delete/",
         _post(charges_views.delete_reconciliation),
         name="delete_reconciliation",
+    ),
+    # Departure
+    path(
+        "lease/<int:pk>/departure/",
+        departure_views.lease_departure,
+        name="lease_departure",
+    ),
+    path(
+        "lease/<int:pk>/notice/",
+        _post(departure_views.give_notice),
+        name="give_notice",
+    ),
+    path(
+        "lease/<int:pk>/deposit/settlement/",
+        _post(departure_views.save_settlement),
+        name="save_settlement",
+    ),
+    path(
+        "lease/<int:pk>/deposit/pdf/", departure_views.deposit_pdf, name="deposit_pdf"
+    ),
+    path(
+        "lease/<int:pk>/deposit/return/",
+        _post(departure_views.return_deposit),
+        name="return_deposit",
+    ),
+    path(
+        "lease/<int:pk>/close/",
+        _post(departure_views.close_lease),
+        name="close_lease",
     ),
     # Applications
     path("applications/", application_views.applications, name="applications"),

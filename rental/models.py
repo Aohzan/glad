@@ -365,3 +365,57 @@ class ChargesReconciliation(BaseModel):
     def balance(self) -> Decimal:
         """Owed by the tenant when positive, to refund when negative."""
         return self.actual - self.provisions
+
+
+class DepositSettlement(BaseModel):
+    """Return of the security deposit when the tenant leaves."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", _("To return")
+        RETURNED = "returned", _("Returned")
+
+    class Meta:
+        verbose_name = _("deposit settlement")
+        verbose_name_plural = _("deposit settlements")
+
+    lease = models.OneToOneField(
+        "property.Lease",
+        on_delete=models.CASCADE,
+        related_name="deposit_settlement",
+        verbose_name=_("Lease"),
+    )
+    keys_returned_date = models.DateField(verbose_name=_("Keys returned on"))
+    exit_matches_entry = models.BooleanField(
+        default=True,
+        verbose_name=_("Exit inventory matching the entry one"),
+        help_text=_("One month to return the deposit, two months otherwise."),
+    )
+    #: [{"label", "amount"}] kept from the deposit, with their justification.
+    deductions = models.JSONField(default=list, blank=True)
+    coownership_withholding = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal(0),
+        verbose_name=_("Kept until the co-ownership accounts"),
+        help_text=_("At most 20 % of the deposit, settled within a month of them."),
+    )
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.DRAFT
+    )
+    returned_date = models.DateField(
+        null=True, blank=True, verbose_name=_("Returned on")
+    )
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.lease}"
+
+    @_property
+    def deposit(self) -> Decimal:
+        return self.lease.deposit_amount.amount
+
+    @_property
+    def deducted(self) -> Decimal:
+        return sum(
+            (Decimal(str(line["amount"])) for line in self.deductions), Decimal(0)
+        )

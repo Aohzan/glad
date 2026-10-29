@@ -1,0 +1,134 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n format_money %}
+
+{% block lease_content %}
+<div class="row g-3">
+  <div class="col-lg-6 d-flex flex-column gap-3">
+
+    <section class="g-card" id="notice">
+      <div class="g-section-head"><h2 class="g-h2">{% translate "Notice" %}</h2></div>
+      <div class="g-card__body small">
+        {% if lease.notice_date %}
+        <p class="mb-2">{% if lease.notice_by == "landlord" %}{% blocktranslate with date=lease.notice_date end=lease.end_date|default:"—" %}Notice given by the landlord on {{ date }}: the lease ends on {{ end }}.{% endblocktranslate %}{% else %}{% blocktranslate with date=lease.notice_date end=lease.end_date|default:"—" %}Notice given by the tenant on {{ date }}: the lease ends on {{ end }}.{% endblocktranslate %}{% endif %}</p>
+        {% else %}
+        <p class="mb-2">{% blocktranslate count months=tenant_notice_months %}The tenant can leave with {{ months }} month of notice.{% plural %}The tenant can leave with {{ months }} months of notice.{% endblocktranslate %}
+          {% if landlord_deadline %}{% blocktranslate with term=term_end deadline=landlord_deadline %}The current term ends on {{ term }}: to end the lease, the landlord gives notice by {{ deadline }} at the latest, for a legitimate reason (sale, taking back the dwelling, serious breach).{% endblocktranslate %}{% endif %}
+        </p>
+        {% endif %}
+        {% if lease.status != "ended" %}
+        <form method="post" action="{% url 'rental:give_notice' lease.pk %}" class="row g-2 align-items-end">
+          {% csrf_token %}
+          <div class="col-sm-5"><label class="form-label" for="notice-date">{% translate "Received on" %}</label><input type="date" class="form-control form-control-sm" id="notice-date" name="notice_date" value="{{ lease.notice_date|default:today|date:'Y-m-d' }}" required></div>
+          <div class="col-sm-4"><label class="form-label" for="notice-by">{% translate "Given by" %}</label>
+            <select class="form-select form-select-sm" id="notice-by" name="notice_by">
+              <option value="tenant"{% if lease.notice_by != "landlord" %} selected{% endif %}>{% translate "The tenant" %}</option>
+              <option value="landlord"{% if lease.notice_by == "landlord" %} selected{% endif %}>{% translate "The landlord" %}</option>
+            </select>
+          </div>
+          <div class="col-sm-3"><button type="submit" class="btn btn-sm btn-outline-primary w-100">{% translate "Record" %}</button></div>
+        </form>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="g-card" id="exit-inventory">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Exit inventory" %}</h2>
+        {% if exit_inventory %}<a class="g-link" href="{% url 'rental:inventory_detail' exit_inventory.pk %}">{% translate "Open" %}</a>{% endif %}
+      </div>
+      <div class="g-card__body small">
+        {% if not exit_inventory %}
+        <form method="post" action="{% url 'rental:create_inventory' lease.pk 'exit' %}" class="d-flex gap-2 align-items-end">
+          {% csrf_token %}
+          <div><label class="form-label" for="exit-date">{% translate "Date" %}</label><input type="date" class="form-control form-control-sm" id="exit-date" name="date" value="{{ lease.end_date|default:today|date:'Y-m-d' }}"></div>
+          <button type="submit" class="btn btn-sm btn-outline-primary">{% icon "plus" "me-1" %}{% translate "Start" %}</button>
+        </form>
+        {% elif not compared %}
+        <p class="mb-0 text-body-secondary">{% translate "No entry inventory to compare with." %}</p>
+        {% elif worse %}
+        <p class="mb-1 fw-semibold text-danger">{% blocktranslate count counter=worse|length %}{{ counter }} element in a worse condition than at the entry:{% plural %}{{ counter }} elements in a worse condition than at the entry:{% endblocktranslate %}</p>
+        <ul class="mb-0">
+          {% for row in worse %}<li>{{ row.room }} — {{ row.item }}{% if row.comment %} : {{ row.comment }}{% endif %}</li>{% endfor %}
+        </ul>
+        {% else %}
+        <p class="mb-0 text-success">{% icon "circle-check" "me-1" %}{% translate "No element in a worse condition than at the entry." %}</p>
+        {% endif %}
+      </div>
+    </section>
+
+    {% if lease.status != "ended" %}
+    <section class="g-card" id="close-lease">
+      <div class="g-section-head"><h2 class="g-h2">{% translate "Close the lease" %}</h2></div>
+      <form method="post" action="{% url 'rental:close_lease' lease.pk %}" class="g-card__body small d-flex gap-2 align-items-end flex-wrap" data-confirm="{% translate 'Close the lease? Its recurring rent and charges stop at the end date.' %}">
+        {% csrf_token %}
+        <div><label class="form-label" for="end-date">{% translate "End date" %}</label><input type="date" class="form-control form-control-sm" id="end-date" name="end_date" value="{{ lease.end_date|default:today|date:'Y-m-d' }}" required></div>
+        <button type="submit" class="btn btn-sm btn-outline-danger">{% icon "door-closed" "me-1" %}{% translate "Close" %}</button>
+      </form>
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-6">
+    <section class="g-card" id="deposit">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Deposit return" %}</h2>
+        {% if settlement %}{% if settlement.status == "returned" %}<span class="g-tag g-tag--pos">{{ settlement.get_status_display }}</span>{% else %}<span class="g-tag g-tag--warn">{{ settlement.get_status_display }}</span>{% endif %}{% endif %}
+      </div>
+      {% if settlement %}
+      <dl class="g-dl g-card__body small">
+        <dt>{% translate "Deposit" %}</dt><dd>{{ settlement.deposit|format_money_amount:lease.deposit_amount.currency }}</dd>
+        <dt>{% translate "Kept" %}</dt><dd>{{ settlement.deducted|format_money_amount:lease.deposit_amount.currency }}</dd>
+        {% if settlement.coownership_withholding %}<dt>{% translate "Withheld" %}</dt><dd>{{ settlement.coownership_withholding|format_money_amount:lease.deposit_amount.currency }}</dd>{% endif %}
+        {% if penalty %}<dt class="text-danger">{% translate "Late penalty" %}</dt><dd class="text-danger">{{ penalty|format_money_amount:lease.deposit_amount.currency }}</dd>{% endif %}
+        <dt>{% translate "To return" %}</dt><dd class="fw-semibold">{{ to_pay|format_money_amount:lease.deposit_amount.currency }}</dd>
+        <dt>{% translate "Deadline" %}</dt><dd>{{ deadline }}</dd>
+        {% if settlement.returned_date %}<dt>{% translate "Returned on" %}</dt><dd>{{ settlement.returned_date }}</dd>{% endif %}
+      </dl>
+      <div class="g-card__body d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'rental:deposit_pdf' lease.pk %}">{% icon "file-down" "me-1" %}PDF</a>
+        <a class="btn btn-sm btn-primary" href="{% url 'rental:compose_email' lease.pk 'deposit_settlement' %}">{% icon "send" "me-1" %}{% translate "Send to the tenants" %}</a>
+        {% if settlement.status == "draft" %}
+        <form method="post" action="{% url 'rental:return_deposit' lease.pk %}" class="d-flex gap-1">
+          {% csrf_token %}
+          <input type="date" class="form-control form-control-sm" name="returned_date" value="{{ today|date:'Y-m-d' }}" aria-label="{% translate 'Returned on' %}">
+          <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">{% translate "Returned" %}</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% if not settlement or settlement.status == "draft" %}
+      <form method="post" action="{% url 'rental:save_settlement' lease.pk %}" class="g-card__body {% if settlement %}border-top pt-3{% endif %}">
+        {% csrf_token %}
+        <div class="row g-2">
+          <div class="col-sm-6"><label class="form-label small" for="keys-date">{% translate "Keys returned on" %}</label><input type="date" class="form-control form-control-sm" id="keys-date" name="keys_returned_date" value="{{ settlement.keys_returned_date|default:lease.end_date|default:today|date:'Y-m-d' }}" required></div>
+          <div class="col-sm-6 d-flex align-items-end">
+            <div class="form-check form-switch mb-1">
+              <input class="form-check-input" type="checkbox" role="switch" id="exit-matches" name="exit_matches_entry"{% if settlement %}{% if settlement.exit_matches_entry %} checked{% endif %}{% elif not worse %} checked{% endif %}>
+              <label class="form-check-label small" for="exit-matches">{% translate "Exit inventory matching the entry one" %}</label>
+            </div>
+          </div>
+        </div>
+        <h3 class="h6 mt-3">{% translate "Deductions" %}</h3>
+        <p class="form-text">{% translate "Repairs of the damage shown by the exit inventory, rent or charges still due… keep the invoices or estimates." %}</p>
+        {% for line in settlement.deductions %}
+        <div class="row g-2 mb-2">
+          <div class="col-8"><input type="text" name="deduction_label" class="form-control form-control-sm" value="{{ line.label }}" maxlength="200" aria-label="{% translate 'Label' %}"></div>
+          <div class="col-4"><input type="text" inputmode="decimal" name="deduction_amount" class="form-control form-control-sm" value="{{ line.amount }}" aria-label="{% translate 'Amount' %}"></div>
+        </div>
+        {% endfor %}
+        {% for _ in empty_rows %}
+        <div class="row g-2 mb-2">
+          <div class="col-8"><input type="text" name="deduction_label" class="form-control form-control-sm" maxlength="200" placeholder="{% translate 'Label' %}" aria-label="{% translate 'Label' %}"></div>
+          <div class="col-4"><input type="text" inputmode="decimal" name="deduction_amount" class="form-control form-control-sm" placeholder="0,00" aria-label="{% translate 'Amount' %}"></div>
+        </div>
+        {% endfor %}
+        <label class="form-label small mt-2" for="withholding">{% translate "Kept until the co-ownership accounts" %}</label>
+        <input type="text" inputmode="decimal" class="form-control form-control-sm" id="withholding" name="coownership_withholding" value="{{ settlement.coownership_withholding|default:'0' }}">
+        <div class="form-text">{% blocktranslate with max=withholding_max|format_money_amount:lease.deposit_amount.currency %}At most {{ max }}, 20 % of the deposit, settled within a month of the approval of the accounts.{% endblocktranslate %}</div>
+        <button type="submit" class="btn btn-sm btn-primary mt-3">{% translate "Save" %}</button>
+      </form>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

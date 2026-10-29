@@ -16,8 +16,11 @@ from notifications.registry import Event, NotificationType, Param, register
 from property.models import Lease, Property
 from rental.models import (
     ChargesReconciliation,
+    DepositSettlement,
+    Inventory,
     SignatureRequest,
 )
+from rental.services import departure
 from rental.services.compliance import MISSING, documents_by_lease, lease_checks
 from rental.services.dashboard import current_leases
 from rental.services.payments import lease_periods
@@ -171,6 +174,76 @@ def _charges_due(params: dict[str, Any], today: datetime.date) -> Iterator[Event
         )
 
 
+def _deposit_due(params: dict[str, Any], today: datetime.date) -> Iterator[Event]:
+    pending = DepositSettlement.objects.filter(
+        status=DepositSettlement.Status.DRAFT
+    ).select_related("lease__property")
+    for settlement in pending:
+        deadline = departure.return_deadline(settlement)
+        if (deadline - today).days > params["days_before"]:
+            continue
+        yield Event(
+            key=f"{settlement.pk}:{deadline.isoformat()}",
+            title=_("Return the deposit: %(lease)s")
+            % {"lease": _title(settlement.lease)},
+            body=when(deadline, today),
+            url=reverse("rental:lease_departure", kwargs={"pk": settlement.lease.pk}),
+            level="warning",
+        )
+
+
+def _exit_inventory_due(
+    params: dict[str, Any], today: datetime.date
+) -> Iterator[Event]:
+    leases = [
+        lease
+        for lease in _self_managed(today)
+        if lease.status == Lease.Status.NOTICE_PERIOD
+        and lease.end_date is not None
+        and (lease.end_date - today).days <= params["days_before"]
+    ]
+    with_exit = set(
+        Inventory.objects.filter(
+            lease__in=leases, kind=Inventory.Kind.EXIT
+        ).values_list("lease_id", flat=True)
+    )
+    for lease in leases:
+        if lease.pk in with_exit:
+            continue
+        assert lease.end_date is not None
+        yield Event(
+            key=f"{lease.pk}:{lease.end_date.isoformat()}",
+            title=_("Plan the exit inventory: %(lease)s") % {"lease": _title(lease)},
+            body=when(lease.end_date, today),
+            url=reverse("rental:lease_departure", kwargs={"pk": lease.pk}),
+        )
+
+
+register(
+    NotificationType(
+        key="deposit_return_due",
+        group="rental",
+        label=gettext_lazy("Deposit return"),
+        description=gettext_lazy(
+            "The legal deadline to return the security deposit of a tenant "
+            "who left approaches."
+        ),
+        check=_deposit_due,
+        params=(days_before_param(7),),
+    )
+)
+register(
+    NotificationType(
+        key="exit_inventory_due",
+        group="rental",
+        label=gettext_lazy("Exit inventory"),
+        description=gettext_lazy(
+            "A lease under notice ends soon and its exit inventory is not started."
+        ),
+        check=_exit_inventory_due,
+        params=(days_before_param(15),),
+    )
+)
 register(
     NotificationType(
         key="charges_reconciliation_due",

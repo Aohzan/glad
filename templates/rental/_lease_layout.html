@@ -24,6 +24,7 @@
     <li class="nav-item"><a class="nav-link{% if tab == 'inventories' %} active{% endif %}" href="{% url 'rental:lease_inventories' lease.pk %}"{% if tab == 'inventories' %} aria-current="page"{% endif %}>{% icon "clipboard-check" "me-1" %}{% translate "Inventories" %}</a></li>
     <li class="nav-item"><a class="nav-link{% if tab == 'documents' %} active{% endif %}" href="{% url 'rental:lease_documents' lease.pk %}"{% if tab == 'documents' %} aria-current="page"{% endif %}>{% icon "file-text" "me-1" %}{% translate "Documents" %}</a></li>
     <li class="nav-item"><a class="nav-link{% if tab == 'emails' %} active{% endif %}" href="{% url 'rental:lease_emails' lease.pk %}"{% if tab == 'emails' %} aria-current="page"{% endif %}>{% icon "mail" "me-1" %}{% translate "Emails" %}</a></li>
+    <li class="nav-item"><a class="nav-link{% if tab == 'departure' %} active{% endif %}" href="{% url 'rental:lease_departure' lease.pk %}"{% if tab == 'departure' %} aria-current="page"{% endif %}>{% icon "door-open" "me-1" %}{% translate "Departure" %}</a></li>
   </ul>
   {% block lease_content %}{% endblock %}
 </div>
