@@ -1,7 +1,11 @@
-"""Delete the net worth snapshots affected by a change of any value or asset."""
+"""Delete the net worth snapshots affected by a change of any value or asset.
+
+Also removes the file of a deleted document from the storage.
+"""
 
 from django.db.models.signals import post_delete, post_save, pre_save
 
+from base.models import Document
 from base.services.snapshots import invalidate_from
 from finance.models.investment_account import (
     InvestmentAccount,
@@ -77,3 +81,13 @@ for _model in DATED_MODELS:
 for _model in UNDATED_MODELS:
     post_save.connect(_undated_change, sender=_model, dispatch_uid=f"nw-save-{_model}")
     post_delete.connect(_undated_change, sender=_model, dispatch_uid=f"nw-del-{_model}")
+
+
+def _delete_document_file(sender, instance: Document, **kwargs):
+    if instance.file:
+        instance.file.delete(save=False)
+
+
+post_delete.connect(
+    _delete_document_file, sender=Document, dispatch_uid="document-file-delete"
+)

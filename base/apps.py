@@ -10,5 +10,8 @@ class BaseConfig(AppConfig):
     name = "base"
 
     def ready(self):
-        """Connect the net worth snapshot invalidation signals."""
+        """Connect the signals and declare the periodic jobs."""
         import base.signals  # noqa: F401
+        from base.jobs import register_jobs
+
+        register_jobs()

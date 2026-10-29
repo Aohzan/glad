@@ -9,6 +9,7 @@ from django.urls import path
 from base import (
     api_views,
     dashboard_views,
+    document_views,
     ownership_views,
     search_views,
     tracking_views,
@@ -58,6 +59,21 @@ urlpatterns = [
         name="api_recent_operations",
     ),
     path("api/alerts/", api_views.AlertsApiView.as_view(), name="api_alerts"),
+    path(
+        "documents/<int:pk>/",
+        document_views.download_document,
+        name="download_document",
+    ),
+    path(
+        "documents/<int:pk>/delete/",
+        cast(Callable[..., HttpResponseBase], document_views.delete_document),
+        name="delete_document",
+    ),
+    path(
+        "jobs/<str:name>/run/",
+        cast(Callable[..., HttpResponseBase], views.run_scheduled_job),
+        name="run_scheduled_job",
+    ),
     path(
         "indices/refresh/",
         cast(Callable[..., HttpResponseBase], views.refresh_economic_indices),

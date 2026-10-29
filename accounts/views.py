@@ -100,6 +100,10 @@ class SettingsView(LoginRequiredMixin, FormView):
         context["passkey_registered"] = PasskeyCredential.objects.filter(
             user=self.request.user
         ).exists()
+        if getattr(self.request.user, "is_superuser", False):
+            from base.views import scheduled_jobs_status
+
+            context["scheduled_jobs"] = scheduled_jobs_status()
         return context
 
 
