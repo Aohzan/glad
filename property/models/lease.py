@@ -70,6 +70,12 @@ class Lease(BaseModel):
     start_date = models.DateField(verbose_name=_("Start date"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("End date"))
     notice_date = models.DateField(null=True, blank=True, verbose_name=_("Notice date"))
+    notice_by = models.CharField(
+        max_length=10,
+        choices=[("tenant", _("The tenant")), ("landlord", _("The landlord"))],
+        blank=True,
+        verbose_name=_("Notice given by"),
+    )
     signed_date = models.DateField(
         null=True, blank=True, verbose_name=_("Signature date")
     )

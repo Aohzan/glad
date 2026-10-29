@@ -28,7 +28,7 @@
     {% include "_form_field.html" with field=form.body %}
     {% if attachment %}
     <p class="small">{% icon "paperclip" "me-1" %}{% blocktranslate %}Attached: {{ attachment }}{% endblocktranslate %}
-      — <a href="{% if reconciliation %}{% url 'rental:charges_pdf' reconciliation.pk %}{% else %}{% url 'rental:download_receipt' lease.pk period.key %}{% endif %}">{% translate "Preview" %}</a></p>
+      — <a href="{% if reconciliation %}{% url 'rental:charges_pdf' reconciliation.pk %}{% elif settlement %}{% url 'rental:deposit_pdf' lease.pk %}{% else %}{% url 'rental:download_receipt' lease.pk period.key %}{% endif %}">{% translate "Preview" %}</a></p>
     {% endif %}
     <div class="d-flex justify-content-end gap-2">
       <a class="btn btn-outline-secondary" href="{% url 'rental:lease_emails' lease.pk %}">{% translate "Cancel" %}</a>

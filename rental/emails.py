@@ -14,7 +14,8 @@ from django.utils.translation import gettext_lazy as _
 
 from base.services.pdf import money
 from property.models import Lease
-from rental.models import ChargesReconciliation
+from rental.models import ChargesReconciliation, DepositSettlement
+from rental.services import departure
 from rental.services.landlord import landlord_of
 from rental.services.payments import PARTIAL, UNPAID, Period, arrears
 
@@ -22,6 +23,7 @@ from rental.services.payments import PARTIAL, UNPAID, Period, arrears
 RECEIPT = "receipt"
 RENT_CALL = "rent_call"
 CHARGES = "charges_reconciliation"
+DEPOSIT = "deposit_settlement"
 
 
 @dataclass(frozen=True)
@@ -32,6 +34,8 @@ class EmailKind:
     needs_period: bool = False
     #: The email sends a charges reconciliation, chosen with ``?reconciliation=``.
     needs_reconciliation: bool = False
+    #: The email sends the deposit statement of the lease.
+    needs_settlement: bool = False
     #: The guarantors are copied.
     copy_guarantors: bool = False
 
@@ -46,6 +50,7 @@ KINDS = {
         EmailKind("rent_revision", _("Rent revision letter")),
         EmailKind("insurance_request", _("Insurance certificate request")),
         EmailKind(CHARGES, _("Charges reconciliation"), needs_reconciliation=True),
+        EmailKind(DEPOSIT, _("Deposit return"), needs_settlement=True),
     )
 }
 
@@ -71,6 +76,7 @@ def render(
     period: Period | None = None,
     today: datetime.date | None = None,
     reconciliation: ChargesReconciliation | None = None,
+    settlement: DepositSettlement | None = None,
 ) -> tuple[str, str]:
     """Subject and body of an email of *kind* about *lease*."""
     today = today or datetime.date.today()
@@ -121,6 +127,19 @@ def render(
                 "balance": money(abs(balance)),
                 "owed": balance > 0,
                 "refund": balance < 0,
+            }
+        if settlement is not None:
+            context["settlement"] = {
+                "deposit": money(settlement.deposit),
+                "deducted": money(settlement.deducted),
+                "deductions": [
+                    {"label": line["label"], "amount": money(line["amount"])}
+                    for line in settlement.deductions
+                ],
+                "withheld": money(settlement.coownership_withholding),
+                "has_withholding": bool(settlement.coownership_withholding),
+                "amount": money(departure.to_pay(settlement, today)),
+                "deadline": _date(departure.return_deadline(settlement)),
             }
         text = render_to_string(f"rental/emails/{kind.key}.txt", context)
     subject, _sep, body = text.strip().partition("\n")

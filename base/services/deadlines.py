@@ -18,6 +18,7 @@ from finance.models.saving_account import SavingAccount
 from property.models import Lease, Property, PropertyLoan
 from property.models.scpi import SCPIInvestment
 from property.services.rent_revision import get_rent_revision
+from rental.services.departure import landlord_notice_deadline
 
 #: Deadlines passed for less than this are still shown.
 PAST_DAYS = 30
@@ -144,6 +145,18 @@ def _lease_deadlines(today: datetime.date):
                 today=today,
                 kind="lease_end",
             )
+        elif lease.status == Lease.Status.ACTIVE:
+            deadline = landlord_notice_deadline(lease, today)
+            if deadline is not None:
+                yield Deadline(
+                    date=deadline,
+                    title=title,
+                    detail=_("Last day to give notice as the landlord"),
+                    url=url,
+                    icon="door-open",
+                    today=today,
+                    kind="landlord_notice",
+                )
 
 
 def _dpe_deadlines(today: datetime.date):
@@ -209,6 +222,7 @@ SOURCES = {
     "loan_end": _loan_deadlines,
     "rent_revision": _lease_deadlines,
     "lease_end": _lease_deadlines,
+    "landlord_notice": _lease_deadlines,
     "dpe_ban": _dpe_deadlines,
     "dpe_expiry": _dpe_deadlines,
     "scpi_dismemberment": _scpi_deadlines,
