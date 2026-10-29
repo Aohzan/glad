@@ -1,0 +1,13 @@
+{% autoescape off %}Loyer en attente de règlement
+
+Bonjour {{ tenants }},
+
+Sauf erreur de notre part, nous n'avons pas reçu le règlement complet des loyers suivants pour le logement situé {{ address }} :
+{% for item in late %}
+- {{ item.label }} (échéance du {{ item.due }}) : {{ item.balance }}{% endfor %}
+
+Soit un total de {{ arrears }}. Il s'agit peut-être d'un simple oubli : pourriez-vous procéder au règlement dans les meilleurs délais ? Si le paiement a été fait entre-temps, merci de ne pas tenir compte de ce message.
+
+Bien cordialement,
+{{ landlord.name }}
+{% endautoescape %}

@@ -40,6 +40,7 @@ urlpatterns = [
     ),
     path("finance/", include(("finance.urls", "finance"), namespace="finance")),
     path("property/", include(("property.urls", "property"), namespace="property")),
+    path("rental/", include(("rental.urls", "rental"), namespace="rental")),
     path("budget/", include(("budget.urls", "budget"), namespace="budget")),
     path("admin/", admin.site.urls),
 ]

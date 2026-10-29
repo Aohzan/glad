@@ -45,4 +45,9 @@ def apply_lease_rent_revision(
             rent=new_rent, count=updated
         ),
     )
+    if lease.is_self_managed and any(tenant.email for tenant in lease.tenants):
+        # Offer to tell the tenants: the letter is shown before it is sent.
+        redirect_url = reverse(
+            "rental:compose_email", kwargs={"pk": lease.pk, "kind": "rent_revision"}
+        )
     return HttpResponseRedirect(redirect_url)

@@ -1,0 +1,97 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n format_money %}
+
+{% block lease_content %}
+<div class="row g-3">
+  <div class="col-lg-7 d-flex flex-column gap-3">
+
+    <section class="g-card" id="lease-parties">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Tenants and guarantors" %}</h2>
+        <div class="d-flex gap-2">
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'rental:new_party' lease.pk %}?role=tenant">{% icon "user-plus" "me-1" %}{% translate "Tenant" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'rental:new_party' lease.pk %}?role=guarantor">{% icon "shield-check" "me-1" %}{% translate "Guarantor" %}</a>
+        </div>
+      </div>
+      {% for party in lease.parties.all %}
+      <div class="g-card__row d-flex align-items-start justify-content-between gap-3">
+        <div class="min-w-0">
+          <div class="fw-semibold">{{ party.name }} <span class="g-tag ms-1">{% if party.guarantee_type %}{{ party.get_guarantee_type_display }}{% else %}{{ party.get_role_display }}{% endif %}</span></div>
+          <div class="small text-body-secondary">
+            {% if party.email %}<a href="mailto:{{ party.email }}">{{ party.email }}</a>{% else %}<span class="text-warning">{% translate "No email address" %}</span>{% endif %}
+            {% if party.phone %} · {{ party.phone }}{% endif %}
+            {% if party.birth_date %} · {% blocktranslate with date=party.birth_date place=party.birth_place|default:"—" %}born on {{ date }} in {{ place }}{% endblocktranslate %}{% endif %}
+          </div>
+          {% if party.address %}<div class="small text-body-secondary">{{ party.address|linebreaksbr }}</div>{% endif %}
+        </div>
+        <div class="d-flex gap-1 flex-shrink-0">
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'rental:edit_party' lease.pk party.pk %}" title="{% translate 'Edit' %}">{% icon "pencil" %}</a>
+          <form method="post" action="{% url 'rental:delete_party' lease.pk party.pk %}" data-confirm="{% blocktranslate with name=party.name %}Remove {{ name }} from the lease?{% endblocktranslate %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger" title="{% translate 'Remove' %}">{% icon "trash" %}</button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="g-empty">{% translate "No tenant recorded." %}</div>
+      {% endfor %}
+    </section>
+
+    <section class="g-card" id="lease-conditions">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Conditions" %}</h2>
+      </div>
+      <dl class="g-dl g-card__body small">
+        <dt>{% translate "Start date" %}</dt>
+        <dd>{{ lease.start_date }}{% if lease.end_date %} → {{ lease.end_date }}{% endif %}</dd>
+        <dt>{% translate "Duration" %}</dt>
+        <dd>{% if lease.duration_months %}{% blocktranslate count counter=lease.duration_months %}{{ counter }} month{% plural %}{{ counter }} months{% endblocktranslate %}{% elif legal_duration %}{% blocktranslate count counter=legal_duration %}{{ counter }} month (legal duration){% plural %}{{ counter }} months (legal duration){% endblocktranslate %}{% else %}—{% endif %}</dd>
+        <dt>{% translate "Signature date" %}</dt>
+        <dd>{{ lease.signed_date|default:"—" }}</dd>
+        <dt>{% translate "Rent (excl. charges)" %}</dt>
+        <dd class="fw-semibold">{{ lease.rent_amount|format_money }} <span class="fw-normal text-body-secondary">· {{ lease.get_periodicity_display|lower }}, {% blocktranslate with day=lease.payment_day %}due on day {{ day }}{% endblocktranslate %}</span></dd>
+        <dt>{% translate "Charges" %}</dt>
+        <dd>{{ lease.charges_amount|format_money }} <span class="text-body-secondary">· {{ lease.get_charges_mode_display|lower }}</span></dd>
+        <dt>{% translate "Security deposit" %}</dt>
+        <dd>{{ lease.deposit_amount|format_money }}{% if deposit_cap is not None %} <span class="text-body-secondary">· {% blocktranslate with cap=deposit_cap|format_money %}maximum {{ cap }}{% endblocktranslate %}</span>{% endif %}</dd>
+        {% if lease.irl_reference_value %}
+        <dt>{% translate "IRL reference" %}</dt>
+        <dd>{{ lease.get_irl_reference_quarter_display|default:"" }} · {{ lease.irl_reference_value }}</dd>
+        {% endif %}
+      </dl>
+    </section>
+
+    <section class="g-card" id="lease-landlord">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Landlord" %}</h2>
+        <a class="g-link" href="{% url 'property:edit' lease.property.pk %}">{% translate "Edit" %}</a>
+      </div>
+      <div class="g-card__body small">
+        <div class="fw-semibold">{{ landlord.name|default:"—" }}</div>
+        <div class="text-body-secondary">{{ landlord.address|linebreaksbr|default:_("No postal address") }}</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="col-lg-5">
+    <section class="g-card" id="lease-checklist">
+      <div class="g-section-head">
+        <h2 class="g-h2">{% translate "Checklist" %}</h2>
+        {% if issue_count %}<span class="g-tag g-tag--neg">{% blocktranslate count counter=issue_count %}{{ counter }} point{% plural %}{{ counter }} points{% endblocktranslate %}</span>{% else %}<span class="g-tag g-tag--pos">{% translate "Complete" %}</span>{% endif %}
+      </div>
+      <ul class="list-unstyled g-card__body mb-0">
+        {% for check in checks %}
+        <li class="d-flex gap-2 align-items-start py-2{% if not forloop.first %} border-top{% endif %}">
+          {% include "rental/_check_icon.html" %}
+          <span class="min-w-0">
+            <span class="fw-semibold d-block">{{ check.label }}</span>
+            {% if check.detail %}<span class="small text-body-secondary">{{ check.detail }}</span>{% endif %}
+            {% if check.url and check.is_issue %} <a class="small" href="{{ check.url }}">{% translate "Fix" %}</a>{% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

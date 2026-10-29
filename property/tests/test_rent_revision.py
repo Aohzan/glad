@@ -9,7 +9,7 @@ from django.urls import reverse
 from moneyed import Money
 
 from base.models import EconomicIndex, EconomicIndexValue
-from property.models import Lease, Property, PropertyLedgerEntry
+from property.models import Lease, LeaseParty, Property, PropertyLedgerEntry
 from property.services.rent_revision import (
     RentRevision,
     apply_rent_revision,
@@ -283,6 +283,17 @@ class TestRentRevisionViews:
         assert lease.rent_amount > Money(Decimal("1000.00"), EUR)
         assert any(
             "Rent revised" in str(m) for m in get_messages(response.wsgi_request)
+        )
+
+    def test_apply_offers_the_letter_to_the_tenants(
+        self, user_client, lease, irl_series
+    ):
+        lease.start_date = datetime.date.today() - datetime.timedelta(days=375)
+        lease.save()
+        LeaseParty.objects.create(lease=lease, last_name="Doe", email="d@example.com")
+        response = user_client.post(self._url(lease))
+        assert response.url == reverse(
+            "rental:compose_email", kwargs={"pk": lease.pk, "kind": "rent_revision"}
         )
 
     def test_not_computable(self, user_client, lease):

@@ -336,6 +336,17 @@ class TestEditLease:
         assert response.context["tenant_form"].errors["last_name"]
         assert not Lease.objects.filter(property=property_obj).exists()
 
+    def test_edit_page_links_to_the_parties(self, user_client, property_obj, lease):
+        url = reverse(
+            "property:edit_lease",
+            kwargs={"property_pk": property_obj.pk, "lease_pk": lease.pk},
+        )
+        response = user_client.get(url)
+        assert response.context["tenant_form"] is None
+        assert (
+            reverse("rental:lease_detail", args=[lease.pk]) in response.content.decode()
+        )
+
     def test_post_edit_lease_invalid(self, user_client, property_obj, lease):
         url = reverse(
             "property:edit_lease",

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load i18n format_money glad_format %}
+
+{% block title %}{% translate "Rental management" %}{% endblock %}
+{% block page_kicker %}{% translate "Tracking" %}{% endblock %}
+{% block page_title %}{% translate "Rental management" %}{% endblock %}
+{% block page_description %}{% translate "Leases you manage yourself, without an agency" %}{% endblock %}
+
+{% block content %}
+<div class="g-stack">
+
+  <section class="g-card g-kpis">
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Running leases" %}</span>
+      <span class="g-kpi__value">{{ running_count }}</span>
+      <span class="g-kpi__sub">{% blocktranslate with amount=rent_roll|format_money_amount count counter=upcoming_count %}{{ amount }} a month · {{ counter }} upcoming{% plural %}{{ amount }} a month · {{ counter }} upcoming{% endblocktranslate %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Received this month" %}</span>
+      <span class="g-kpi__value">{{ payments.received|format_money_amount }}</span>
+      <span class="g-kpi__sub">{% blocktranslate with amount=payments.expected|format_money_amount %}of {{ amount }} due{% endblocktranslate %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Unpaid" %}</span>
+      <span class="g-kpi__value{% if payments.arrears > 0 %} g-neg{% endif %}">{{ payments.arrears|format_money_amount }}</span>
+      <span class="g-kpi__sub">{% translate "Rent due and not received" %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Occupancy" %}</span>
+      <span class="g-kpi__value">{% if occupancy is not None %}{{ occupancy }} %{% else %}—{% endif %}</span>
+      <span class="g-kpi__sub">{% translate "Over the last 12 months" %}</span>
+    </div>
+    <div class="g-kpi">
+      <span class="g-kpi__label">{% translate "Points to check" %}</span>
+      <span class="g-kpi__value{% if issue_count %} g-neg{% endif %}">{{ issue_count }}</span>
+      <span class="g-kpi__sub">{% blocktranslate count counter=issue_rows|length %}on {{ counter }} lease{% plural %}on {{ counter }} leases{% endblocktranslate %}</span>
+    </div>
+  </section>
+
+  <section class="g-card" id="rental-leases">
+    <div class="g-section-head">
+      <h2 class="g-h2">{% translate "Leases" %}</h2>
+    </div>
+    {% if self_managed %}
+    <div class="g-table-wrap">
+      <div class="g-table" style="--g-cols: minmax(220px, 2fr) minmax(160px, 1.4fr) 130px 120px 150px 150px; --g-table-min: 920px">
+        <div class="g-table__head"><span>{% translate "Property" %}</span><span>{% translate "Tenants" %}</span><span>{% translate "Status" %}</span><span class="g-cell-end">{% translate "Rent" %}</span><span>{% translate "This month" %}</span><span>{% translate "Checklist" %}</span></div>
+        {% for row in self_managed %}
+        <a class="g-table__row" href="{% url 'rental:lease_detail' row.lease.pk %}">
+          <span class="g-cell-main"><span class="g-cell-title">{{ row.lease.property.name }}</span><span class="g-cell-sub">{{ row.lease.get_lease_type_display }} · {% blocktranslate with date=row.lease.start_date|date:"SHORT_DATE_FORMAT" %}since {{ date }}{% endblocktranslate %}</span></span>
+          <span>{{ row.lease.name|default:"—" }}</span>
+          <span>{% include "rental/_lease_status.html" with lease=row.lease %}</span>
+          <span class="g-cell-end">{{ row.lease.total_rent|format_money }}</span>
+          <span>{% with period=row.current_period %}{% if period %}{% include "rental/_period_status.html" %}{% else %}—{% endif %}{% endwith %}</span>
+          <span>{% if row.issues %}<span class="g-tag g-tag--neg">{% blocktranslate count counter=row.issues|length %}{{ counter }} point{% plural %}{{ counter }} points{% endblocktranslate %}</span>{% else %}<span class="g-tag g-tag--pos">{% icon "check" %}{% translate "Complete" %}</span>{% endif %}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="g-empty">
+      {% url 'property:index' as properties_url %}
+      {% blocktranslate %}No lease to manage. Add a lease from the <a href="{{ properties_url }}">page of a property</a>.{% endblocktranslate %}
+    </div>
+    {% endif %}
+  </section>
+
+  {% if issue_rows %}
+  <section class="g-card" id="rental-issues">
+    <div class="g-section-head">
+      <h2 class="g-h2">{% translate "Points to check" %}</h2>
+    </div>
+    <div>
+      {% for row in issue_rows %}
+      <div class="g-card__row">
+        <a class="fw-semibold text-decoration-none" href="{% url 'rental:lease_detail' row.lease.pk %}">{{ row.lease.property.name }} — {{ row.lease.name|default:_("Lease") }}</a>
+        <ul class="list-unstyled mb-0 mt-1 small">
+          {% for check in row.issues %}
+          <li class="d-flex gap-2 align-items-start py-1">{% include "rental/_check_icon.html" %}<span><span class="fw-semibold">{{ check.label }}</span> · <span class="text-body-secondary">{{ check.detail }}</span>{% if check.url %} <a href="{{ check.url }}">{% translate "Fix" %}</a>{% endif %}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="g-card" id="rental-deadlines">
+    <div class="g-section-head">
+      <h2 class="g-h2">{% translate "Deadlines" %}</h2>
+      <span class="g-meta">{% translate "Next 6 months" %}</span>
+    </div>
+    {% for d in deadlines %}
+    <a class="g-deadline" href="{{ d.url }}">
+      <span class="g-deadline__date"><span class="g-deadline__day">{{ d.date|date:"d" }}</span><span class="g-date__mon">{{ d.date|date:"M" }}{% if d.date.year != today.year %} {{ d.date|date:"y" }}{% endif %}</span></span>
+      <span class="g-icon-circle g-icon-circle--accent">{% icon d.icon %}</span>
+      <span class="g-cell-main"><span class="g-cell-title">{{ d.detail }}</span><span class="g-cell-sub">{{ d.title }}</span></span>
+      {% include "_days_left_tag.html" %}
+    </a>
+    {% empty %}
+    <div class="g-empty">{% translate "No rental deadline in the next 6 months." %}</div>
+    {% endfor %}
+  </section>
+
+  {% if managed %}
+  <section class="g-card" id="rental-managed">
+    <div class="g-section-head">
+      <div class="g-section-head__title">
+        <h2 class="g-h2">{% translate "Managed by an agency" %}</h2>
+        <span class="g-meta">{% translate "The agency handles the rent, the receipts and the paperwork." %}</span>
+      </div>
+    </div>
+    {% for row in managed %}
+    <a class="g-card__row d-flex justify-content-between align-items-center" href="{% url 'rental:lease_detail' row.lease.pk %}">
+      <span>{{ row.lease.property.name }} — {{ row.lease.name|default:"—" }}</span>
+      <span class="g-tag">{{ row.mandate.manager_name }}</span>
+    </a>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

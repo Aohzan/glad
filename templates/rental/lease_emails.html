@@ -1,0 +1,38 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n %}
+
+{% block lease_content %}
+<section class="g-card" id="lease-emails">
+  <div class="g-section-head">
+    <h2 class="g-h2">{% translate "Emails" %}</h2>
+    <div class="dropdown">
+      <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">{% icon "mail-plus" "me-1" %}{% translate "New email" %}</button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        {% for kind in kinds %}
+        <li><a class="dropdown-item" href="{% url 'rental:compose_email' lease.pk kind.key %}">{{ kind.label }}</a></li>
+        {% endfor %}
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item small text-body-secondary" href="{% url 'rental:lease_payments' lease.pk %}">{% translate "Rent notices and receipts: from the payments" %}</a></li>
+      </ul>
+    </div>
+  </div>
+  {% for email in sent_emails %}
+  <details class="g-card__row">
+    <summary class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <span class="min-w-0">
+        <span class="fw-semibold">{{ email.subject }}</span>
+        <span class="small text-body-secondary d-block">{{ email.created_at|date:"SHORT_DATETIME_FORMAT" }} · {{ email.to|join:", " }}{% if email.cc %} · {% translate "copy" %} {{ email.cc|join:", " }}{% endif %}</span>
+      </span>
+      {% if email.status == "sent" %}<span class="g-tag g-tag--pos">{{ email.get_status_display }}</span>{% elif email.status == "failed" %}<span class="g-tag g-tag--neg">{{ email.get_status_display }}</span>{% else %}<span class="g-tag">{{ email.get_status_display }}</span>{% endif %}
+    </summary>
+    {% if email.error %}<div class="alert alert-danger small py-2 mt-2 mb-0">{{ email.error }}</div>{% endif %}
+    <pre class="small mt-2 mb-1 text-wrap">{{ email.body }}</pre>
+    {% for document in email.attachments.all %}
+    <a class="small" href="{% url 'download_document' document.pk %}">{% icon "paperclip" "me-1" %}{{ document.original_name|default:document.title }}</a>
+    {% endfor %}
+  </details>
+  {% empty %}
+  <div class="g-empty">{% translate "No email sent yet." %}</div>
+  {% endfor %}
+</section>
+{% endblock %}

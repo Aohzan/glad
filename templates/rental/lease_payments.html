@@ -1,0 +1,61 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n format_money %}
+
+{% block lease_content %}
+{% if not has_schedule %}
+<section class="g-card" id="rent-schedule">
+  <div class="g-card__body pt-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+      <div class="fw-semibold">{% translate "No rent schedule" %}</div>
+      <div class="small text-body-secondary">
+        {% blocktranslate with date=first_due_date total=lease.total_rent|format_money %}Create the recurring rent and charges entries of the lease, from {{ date }} ({{ total }} per period). Check each one once received, from the entries to check. Enter a prorated first rent as a one-off entry.{% endblocktranslate %}
+      </div>
+    </div>
+    <form method="post" action="{% url 'rental:create_schedule' lease.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">{% icon "calendar-plus" "me-1" %}{% translate "Create the rent schedule" %}</button>
+    </form>
+  </div>
+</section>
+{% endif %}
+
+<section class="g-card" id="lease-payments">
+  <div class="g-section-head">
+    <div class="g-section-head__title">
+      <h2 class="g-h2">{% translate "Payments" %}</h2>
+      {% if arrears > 0 %}<span class="g-tag g-tag--neg">{% blocktranslate with amount=arrears|format_money_amount:lease.rent_amount.currency %}{{ amount }} due{% endblocktranslate %}</span>{% endif %}
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ checks_url }}">{% icon "list-checks" "me-1" %}{% translate "Check the payments" %}</a>
+      {% if arrears > 0 %}<a class="btn btn-sm btn-outline-danger" href="{% url 'rental:compose_email' lease.pk 'reminder' %}">{% icon "mail-warning" "me-1" %}{% translate "Send a reminder" %}</a>{% endif %}
+    </div>
+  </div>
+  {% if rows %}
+  <div class="g-table-wrap">
+    <div class="g-table" style="--g-cols: minmax(140px, 1.2fr) 120px 120px 120px 150px minmax(220px, 1.6fr); --g-table-min: 880px">
+      <div class="g-table__head"><span>{% translate "Period" %}</span><span>{% translate "Due date" %}</span><span class="g-cell-end">{% translate "Due" %}</span><span class="g-cell-end">{% translate "Received" %}</span><span>{% translate "Status" %}</span><span class="g-cell-end">{% translate "Actions" %}</span></div>
+      {% for period, receipt in rows %}
+      <div class="g-table__row">
+        <span class="g-cell-main"><span class="g-cell-title">{{ period.start|date:"F Y"|capfirst }}</span>{% if receipt.sent_at %}<span class="g-cell-sub">{% blocktranslate with date=receipt.sent_at|date:"SHORT_DATE_FORMAT" %}Receipt sent on {{ date }}{% endblocktranslate %}</span>{% endif %}</span>
+        <span>{{ period.due_date|date:"SHORT_DATE_FORMAT"|default:"—" }}</span>
+        <span class="g-cell-end">{{ period.expected|format_money_amount:lease.rent_amount.currency }}</span>
+        <span class="g-cell-end">{{ period.paid|format_money_amount:lease.rent_amount.currency }}</span>
+        <span>{% include "rental/_period_status.html" %}</span>
+        <span class="g-cell-end d-flex justify-content-end gap-1 flex-wrap">
+          {% if period.paid %}
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'rental:download_receipt' lease.pk period.key %}" title="{% translate 'Download the receipt' %}">{% icon "file-down" %}</a>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'rental:compose_email' lease.pk 'receipt' %}?period={{ period.key }}">{% icon "send" "me-1" %}{% if period.status == "paid" %}{% translate "Receipt" %}{% else %}{% translate "Partial receipt" %}{% endif %}</a>
+          {% endif %}
+          {% if period.status == "upcoming" or period.status == "unpaid" %}
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'rental:compose_email' lease.pk 'rent_call' %}?period={{ period.key }}">{% icon "bell" "me-1" %}{% translate "Rent notice" %}</a>
+          {% endif %}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="g-empty">{% translate "No rent recorded for this lease yet." %}</div>
+  {% endif %}
+</section>
+{% endblock %}

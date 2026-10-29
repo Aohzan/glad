@@ -102,6 +102,7 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "finance.apps.FinanceConfig",
     "property.apps.PropertyConfig",
+    "rental.apps.RentalConfig",
     "budget.apps.BudgetConfig",
     "notifications.apps.NotificationsConfig",
     # Django apps

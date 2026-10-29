@@ -1,0 +1,13 @@
+{% autoescape off %}Révision annuelle du loyer
+
+Bonjour {{ tenants }},
+
+Conformément à la clause de révision du bail du logement situé {{ address }}, le loyer est révisé{% if revision_date %} à compter du {{ revision_date }}{% endif %} selon l'indice de référence des loyers (IRL){% if lease.irl_reference_value %} du {{ lease.irl_reference_quarter }}e trimestre, d'une valeur de {{ lease.irl_reference_value }}{% endif %}.
+
+- Nouveau loyer hors charges : {{ rent }}
+- Charges : {{ charges }}
+- Total par échéance : {{ total }}
+
+Bien cordialement,
+{{ landlord.name }}
+{% endautoescape %}

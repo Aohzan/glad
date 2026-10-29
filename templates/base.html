@@ -72,6 +72,7 @@
                 <div class="g-nav__group">
                     {% translate "Tracking" as label %}{% include "_nav_group_head.html" with group="tracking" badge=deadlines_soon_count %}
                     <div class="g-nav__items" id="g-nav-tracking"{% if nav_group != "tracking" %} data-folded{% endif %}>
+                        {% translate "Rental management" as label %}{% include "_nav_item.html" with url_name="rental:dashboard" section="rental" icon="key-round" %}
                         {% translate "Deadlines" as label %}{% include "_nav_item.html" with url_name="deadlines" section="deadlines" icon="calendar-clock" badge=deadlines_soon_count %}
                         {% translate "Operations" as label %}{% include "_nav_item.html" with url_name="operations" section="operations" icon="arrow-left-right" %}
                         {% translate "Entries to check" as label %}{% include "_nav_item.html" with url_name="property:checks" section="checks" icon="list-checks" %}
