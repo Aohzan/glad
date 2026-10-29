@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
+from base.services.network import client_ip
 from notifications.registry import Event
 from notifications.services import notify
 
@@ -44,13 +45,7 @@ def send_login_notification(sender, user, request, **kwargs):
 
 def _get_client_ip(request):
     """Extract the client IP address from the request."""
-    if request is None:
-        return ""
-    if x_forwarded_for := request.META.get("HTTP_X_FORWARDED_FOR"):
-        return x_forwarded_for.split(",")[0].strip()
-    if x_real_ip := request.META.get("HTTP_X_REAL_IP"):
-        return x_real_ip.strip()
-    return request.META.get("REMOTE_ADDR", "")
+    return "" if request is None else client_ip(request.META)
 
 
 user_logged_in.connect(send_login_notification)
