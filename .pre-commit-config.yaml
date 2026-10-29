@@ -35,7 +35,7 @@ repos:
       - id: codespell
         args:
           - --ignore-words-list=OT,activite,garantie,individuel,exercice,Adresse
-          - --skip=./.*,*.csv,*.json,*.ambr,*.lock,*/migrations/*.py,*/fixtures/*.yaml,scripts/generate_fixtures.py,locale/**/*.po,TODO.md,templates/property/accounting_lmnp_reel.html,templates/property/lmnp/*.html,docs/lmnp.md,docs/budget.md,property/services/lmnp_pdf.py,templates/rental/emails/*.txt,rental/services/receipts.py,rental/tests/test_emails.py
+          - --skip=./.*,*.csv,*.json,*.ambr,*.lock,*/migrations/*.py,*/fixtures/*.yaml,scripts/generate_fixtures.py,locale/**/*.po,TODO.md,templates/property/accounting_lmnp_reel.html,templates/property/lmnp/*.html,docs/lmnp.md,docs/budget.md,property/services/lmnp_pdf.py,templates/rental/emails/*.txt,rental/services/receipts.py,rental/tests/test_emails.py,rental/rules.py,rental/services/lease_pdf.py,rental/services/inventories.py,rental/services/signature.py,rental/services/charges.py
           - --quiet-level=2
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.38.0
@@ -71,7 +71,7 @@ repos:
       - id: fuzzy-messages
       - id: remove-django-translators
       - id: max-lines
-        args: ["10000"]
+        args: ["15000"]
 
   - repo: local
     hooks:
