@@ -8,8 +8,10 @@ date), alongside the optional actual date and amount.
 
 import datetime
 from dataclasses import dataclass
+from decimal import Decimal
 
 from django.db import transaction
+from django.utils.translation import gettext as _
 from moneyed import Money
 
 from property.models import Property, PropertyLedgerEntry, PropertyLedgerEntryException
@@ -102,6 +104,25 @@ def pending_checks_summary() -> dict:
     oldest_days = (today - overdue[0].planned_date).days
     level = "danger" if oldest_days > DANGER_AFTER_DAYS else "warning"
     return {"count": len(overdue), "oldest_days": oldest_days, "level": level}
+
+
+def is_occurrence(entry: PropertyLedgerEntry, occurrence_date: datetime.date) -> bool:
+    """True if *occurrence_date* is a scheduled occurrence of *entry*."""
+    return any(
+        occ.get("occurrence_date") == occurrence_date
+        for occ in entry.generate_occurrences()
+    )
+
+
+def actual_values_error(
+    actual_date: datetime.date, actual_amount: Decimal
+) -> str | None:
+    """Why the actual date and amount of a checked occurrence are refused, or None."""
+    if actual_date > datetime.date.today():
+        return _("The actual date cannot be in the future.")
+    if not actual_amount.is_finite() or actual_amount <= 0:
+        return _("The actual amount must be positive.")
+    return None
 
 
 def check_occurrence(

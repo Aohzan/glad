@@ -27,7 +27,7 @@ from property.models import (
     PropertyLedgerEntryException,
     PropertyValue,
 )
-from property.services.checks import delete_occurrence
+from property.services.checks import delete_occurrence, is_occurrence
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -190,16 +190,6 @@ def _parse_occurrence_date(occurrence_date_str: str) -> datetime.date | None:
         return None
 
 
-def _is_valid_occurrence(
-    entry: PropertyLedgerEntry, occurrence_date: datetime.date
-) -> bool:
-    """Return True if occurrence_date is a real occurrence of the entry."""
-    return any(
-        occ.get("occurrence_date") == occurrence_date
-        for occ in entry.generate_occurrences()
-    )
-
-
 def _get_entry_and_occurrence(
     request: HttpRequest,
     property_pk: int,
@@ -224,7 +214,7 @@ def _get_entry_and_occurrence(
     assert entry is not None
 
     occ_date = _parse_occurrence_date(occurrence_date)
-    if occ_date is None or not _is_valid_occurrence(entry, occ_date):
+    if occ_date is None or not is_occurrence(entry, occ_date):
         messages.error(request, _("Invalid occurrence date."))
         return None, None, None, redirect("property:detail", pk=property_pk)
 
