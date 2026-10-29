@@ -133,6 +133,7 @@
       {% endfor %}
     </section>
 
+    {% if not mandate %}
     <section class="g-card" id="lease-checklist">
       <div class="g-section-head">
         <h2 class="g-h2">{% translate "Checklist" %}</h2>
@@ -151,6 +152,7 @@
         {% endfor %}
       </ul>
     </section>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

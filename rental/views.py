@@ -124,13 +124,15 @@ def lease_context(lease: Lease, tab: str) -> dict:
 def lease_detail(request: HttpRequest, pk: int) -> HttpResponse:
     """Summary of a lease: parties, conditions, landlord and checklist."""
     lease = get_lease(pk)
-    checks = lease_checks(lease)
-    steps = move_in_steps(lease, checks)
+    context = lease_context(lease, "summary")
+    # Under a mandate, the agency handles the paperwork: nothing to check here
+    checks = [] if context["mandate"] else lease_checks(lease)
+    steps = move_in_steps(lease, checks) if checks else []
     return render(
         request,
         "rental/lease_detail.html",
         {
-            **lease_context(lease, "summary"),
+            **context,
             "checks": checks,
             "issue_count": len(issues(checks)),
             "landlord": landlord_of(lease.property),

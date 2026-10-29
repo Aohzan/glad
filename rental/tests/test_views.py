@@ -69,7 +69,11 @@ def test_lease_detail_under_mandate(user_client, lease):
         start_date=datetime.date(2020, 1, 1),
     )
     response = user_client.get(reverse("rental:lease_detail", args=[lease.pk]))
-    assert "Managed by Foncia" in response.content.decode()
+    content = response.content.decode()
+    assert "Managed by Foncia" in content
+    assert 'id="lease-checklist"' not in content
+    assert response.context["checks"] == []
+    assert not response.context["show_steps"]
 
 
 @pytest.mark.django_db
