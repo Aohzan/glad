@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-29 16:35+0100\n"
+"POT-Creation-Date: 2026-10-29 16:50+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -1120,7 +1120,7 @@ msgid "budget categories"
 msgstr "catégories de budget"
 
 #: budget/models.py:69 finance/models/other_asset.py:70
-#: notifications/forms.py:13 notifications/models.py:35
+#: notifications/forms.py:14 notifications/models.py:35
 #: property/models/asset.py:51 property/models/asset.py:302
 #: property/models/scpi.py:42 rental/forms.py:167
 #: templates/finance/_account_table_header.html:4
@@ -2364,34 +2364,34 @@ msgid ""
 "Tax milestones of the accounts: PEA 5 years, life insurance 8 years, PEL…"
 msgstr "Étapes fiscales des comptes : PEA 5 ans, assurance vie 8 ans, PEL…"
 
-#: finance/services/market_data.py:67
+#: finance/services/market_data.py:73
 #, python-brace-format
 msgid "Could not fetch market data for ISIN {isin}: {error}"
 msgstr ""
 "Impossible de récupérer les données de marché pour l'ISIN {isin} : {error}"
 
-#: finance/services/market_data.py:74
+#: finance/services/market_data.py:80
 #, python-brace-format
 msgid "No price data available for ISIN {isin}"
 msgstr "Aucune donnée de prix disponible pour l'ISIN {isin}"
 
-#: finance/services/market_data.py:131
+#: finance/services/market_data.py:137
 #, python-brace-format
 msgid "Could not fetch data for ISIN {isin}: {error}"
 msgstr "Impossible de récupérer les données pour l'ISIN {isin} : {error}"
 
-#: finance/services/market_data.py:139
+#: finance/services/market_data.py:145
 #, python-brace-format
 msgid "Could not resolve a ticker symbol for ISIN {isin}"
 msgstr "Impossible de résoudre le symbole boursier pour l'ISIN {isin}"
 
-#: finance/services/market_data.py:195 finance/services/market_data.py:225
+#: finance/services/market_data.py:201 finance/services/market_data.py:279
 #, python-brace-format
 msgid "Could not fetch historical data for ISIN {isin}: {error}"
 msgstr ""
 "Impossible de récupérer les données historiques pour l'ISIN {isin} : {error}"
 
-#: finance/services/market_data.py:202 finance/services/market_data.py:231
+#: finance/services/market_data.py:208 finance/services/market_data.py:284
 #, python-brace-format
 msgid "No historical data available for ISIN {isin}"
 msgstr "Aucune donnée historique disponible pour l'ISIN {isin}"
@@ -2724,15 +2724,15 @@ msgstr[1] "il y a %(days)d jours"
 msgid "On %(date)s (%(relative)s)"
 msgstr "Le %(date)s (%(relative)s)"
 
-#: notifications/forms.py:15 notifications/models.py:22
+#: notifications/forms.py:16 notifications/models.py:22
 msgid "Apprise URL"
 msgstr "URL Apprise"
 
-#: notifications/forms.py:19
+#: notifications/forms.py:20
 msgid "For example ntfy://, gotify://, tgram://, discord:// or mailto://."
 msgstr "Par exemple ntfy://, gotify://, tgram://, discord:// ou mailto://."
 
-#: notifications/forms.py:28
+#: notifications/forms.py:27
 msgid "This is not a valid Apprise URL."
 msgstr "Ce n'est pas une URL Apprise valide."
 
@@ -2825,26 +2825,26 @@ msgstr "Saisissez une date au format MM-JJ."
 msgid "Select a valid choice."
 msgstr "Sélectionnez un choix valide."
 
-#: notifications/services.py:203
+#: notifications/services.py:204
 #, python-format
 msgid "%(count)d new notification"
 msgid_plural "%(count)d new notifications"
 msgstr[0] "%(count)d nouvelle notification"
 msgstr[1] "%(count)d nouvelles notifications"
 
-#: notifications/services.py:220
+#: notifications/services.py:221
 msgid "The account has no email address."
 msgstr "Le compte n'a pas d'adresse email."
 
-#: notifications/services.py:240
+#: notifications/services.py:241
 msgid "The URL cannot be read anymore: enter it again."
 msgstr "L'URL ne peut plus être lue : saisissez-la à nouveau."
 
-#: notifications/services.py:246
+#: notifications/services.py:245
 msgid "The URL is not a valid Apprise URL."
 msgstr "L'URL n'est pas une URL Apprise valide."
 
-#: notifications/services.py:250
+#: notifications/services.py:249
 msgid "The service refused the message."
 msgstr "Le service a refusé le message."
 

@@ -283,39 +283,106 @@ class TestFetchHistoricalPrices:
             )
 
 
+def _history(*closes, start="2026-10-26"):
+    import pandas as pd
+
+    if not closes:
+        return pd.DataFrame()
+    return pd.DataFrame(
+        {"Close": list(closes)},
+        index=pd.date_range(start, periods=len(closes), freq="D"),
+    )
+
+
+class _Ticker:
+    """A yfinance Ticker answering from a dict of histories by symbol."""
+
+    histories: dict = {}
+
+    def __init__(self, symbol):
+        if isinstance(self.histories.get(symbol), Exception):
+            raise self.histories[symbol]
+        self.symbol = symbol
+        self.fast_info = {"currency": "EUR"}
+
+    def history(self, period, interval):
+        assert (period, interval) == ("45d", "1d")
+        return self.histories.get(self.symbol, _history())
+
+
 class TestFetchDailyCloses:
     """Tests for fetch_daily_closes."""
 
-    @patch("finance.services.market_data.yfinance.Ticker")
-    def test_skips_missing_closes(self, mock_ticker):
-        import pandas as pd
+    @pytest.fixture(autouse=True)
+    def _clear_cache(self):
+        cache.clear()
+        yield
+        cache.clear()
 
-        mock_ticker.return_value.history.return_value = pd.DataFrame(
-            {"Close": [100.0, float("nan"), 102.0]},
-            index=pd.to_datetime(["2026-10-26", "2026-10-27", "2026-10-28"]),
+    def _patch(self, histories, quotes=()):
+        _Ticker.histories = histories
+        search = patch("finance.services.market_data.yfinance.Search")
+        mock_search = search.start()
+        mock_search.return_value.quotes = list(quotes)
+        ticker = patch("finance.services.market_data.yfinance.Ticker", _Ticker)
+        ticker.start()
+        return mock_search, [search, ticker]
+
+    def _run(self, histories, quotes=(), isin="LU2195226068"):
+        mock_search, patchers = self._patch(histories, quotes)
+        try:
+            return fetch_daily_closes(isin), mock_search
+        finally:
+            for patcher in patchers:
+                patcher.stop()
+
+    def test_skips_missing_closes(self):
+        (points, currency), search = self._run(
+            {"LU2195226068": _history(100.0, float("nan"), 102.0)}
         )
-        mock_ticker.return_value.fast_info = {"currency": "EUR"}
-        points, currency = fetch_daily_closes("LU1681043599")
         assert currency == "EUR"
         assert [p.date for p in points] == [
             datetime.date(2026, 10, 26),
             datetime.date(2026, 10, 28),
         ]
-        mock_ticker.return_value.history.assert_called_once_with(
-            period="45d", interval="1d"
-        )
+        search.assert_not_called()
 
-    @patch("finance.services.market_data.yfinance.Ticker")
-    def test_empty_history_raises(self, mock_ticker):
-        import pandas as pd
+    def test_other_listing_when_the_isin_has_no_prices(self):
+        quotes = [
+            {"symbol": "LU2195226068.SG", "quoteType": "MUTUALFUND"},
+            {"symbol": "EPAB.PA", "quoteType": "ETF"},
+            {"quoteType": "ETF"},
+        ]
+        (points, _currency), search = self._run({"EPAB.PA": _history(10.5)}, quotes)
+        assert [p.price for p in points] == [Decimal("10.5")]
+        search.assert_called_once_with("LU2195226068", max_results=10, news_count=0)
+        # The listing found is remembered: no search the next time.
+        (points, _currency), search = self._run({"EPAB.PA": _history(10.7)}, quotes)
+        assert [p.price for p in points] == [Decimal("10.7")]
+        search.assert_not_called()
 
-        mock_ticker.return_value.history.return_value = pd.DataFrame()
-        mock_ticker.return_value.fast_info = {"currency": "EUR"}
-        with pytest.raises(MarketDataError):
-            fetch_daily_closes("LU1681043599")
+    def test_search_failure_and_no_listing_with_prices(self):
+        mock_search, patchers = self._patch({})
+        mock_search.side_effect = Exception("search down")
+        try:
+            with pytest.raises(MarketDataError, match="No historical data"):
+                fetch_daily_closes("IE000Y77LGG9")
+        finally:
+            for patcher in patchers:
+                patcher.stop()
 
-    @patch("finance.services.market_data.yfinance.Ticker")
-    def test_ticker_exception_raises_market_data_error(self, mock_ticker):
-        mock_ticker.side_effect = Exception("network error")
-        with pytest.raises(MarketDataError):
-            fetch_daily_closes("INVALID000000")
+    def test_every_listing_failing_raises_the_error(self):
+        with pytest.raises(MarketDataError, match="Could not fetch historical data"):
+            self._run({"LU2195226068": Exception("network error")})
+
+    def test_a_currency_pair_is_not_searched(self):
+        with pytest.raises(MarketDataError, match="No historical data"):
+            self._run({}, isin="USDEUR=X")
+        mock_search, patchers = self._patch({"USDEUR=X": _history(0.9)})
+        try:
+            points, _currency = fetch_daily_closes("USDEUR=X")
+        finally:
+            for patcher in patchers:
+                patcher.stop()
+        assert [p.price for p in points] == [Decimal("0.9")]
+        mock_search.assert_not_called()
