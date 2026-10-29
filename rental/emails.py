@@ -14,12 +14,14 @@ from django.utils.translation import gettext_lazy as _
 
 from base.services.pdf import money
 from property.models import Lease
+from rental.models import ChargesReconciliation
 from rental.services.landlord import landlord_of
 from rental.services.payments import PARTIAL, UNPAID, Period, arrears
 
 #: Kind of the emails holding a receipt.
 RECEIPT = "receipt"
 RENT_CALL = "rent_call"
+CHARGES = "charges_reconciliation"
 
 
 @dataclass(frozen=True)
@@ -28,6 +30,8 @@ class EmailKind:
     label: str | Promise
     #: The email is about one rent period, chosen with ``?period=YYYY-MM``.
     needs_period: bool = False
+    #: The email sends a charges reconciliation, chosen with ``?reconciliation=``.
+    needs_reconciliation: bool = False
     #: The guarantors are copied.
     copy_guarantors: bool = False
 
@@ -41,6 +45,7 @@ KINDS = {
         EmailKind("formal_notice", _("Formal notice"), copy_guarantors=True),
         EmailKind("rent_revision", _("Rent revision letter")),
         EmailKind("insurance_request", _("Insurance certificate request")),
+        EmailKind(CHARGES, _("Charges reconciliation"), needs_reconciliation=True),
     )
 }
 
@@ -65,6 +70,7 @@ def render(
     periods: list[Period],
     period: Period | None = None,
     today: datetime.date | None = None,
+    reconciliation: ChargesReconciliation | None = None,
 ) -> tuple[str, str]:
     """Subject and body of an email of *kind* about *lease*."""
     today = today or datetime.date.today()
@@ -104,6 +110,17 @@ def render(
                 "total": money(period.expected),
                 "paid": money(period.paid),
                 "is_full": period.paid >= period.expected,
+            }
+        if reconciliation is not None:
+            balance = reconciliation.balance
+            context["reconciliation"] = {
+                "start": _date(reconciliation.period_start),
+                "end": _date(reconciliation.period_end),
+                "actual": money(reconciliation.actual),
+                "provisions": money(reconciliation.provisions),
+                "balance": money(abs(balance)),
+                "owed": balance > 0,
+                "refund": balance < 0,
             }
         text = render_to_string(f"rental/emails/{kind.key}.txt", context)
     subject, _sep, body = text.strip().partition("\n")

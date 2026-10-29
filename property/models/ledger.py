@@ -330,6 +330,15 @@ class PropertyLedgerEntry(BaseModel):
         help_text=_("Optional. Name of the third party (tenant, supplier, etc.)."),
     )
     notes = models.TextField(blank=True)
+    is_recoverable = models.BooleanField(
+        default=False,
+        verbose_name=_("Recoverable from the tenant"),
+        help_text=_(
+            "An expense the tenant reimburses through the charges (décret n° 87-713): "
+            "water, collective heating, lift, upkeep of the common parts, household "
+            "waste tax… Counted in the yearly charges reconciliation."
+        ),
+    )
 
     # Recurrence — same pattern as former PropertyRevenue/PropertyExpense
     recurrence_type = models.CharField(

@@ -20,6 +20,7 @@ from property.models import Lease, LeaseParty
 from rental import emails, rules
 from rental.forms import DocumentUploadForm, LeaseEmailForm
 from rental.models import (
+    ChargesReconciliation,
     Inventory,
     SignatureRequest,
 )
@@ -279,6 +280,15 @@ def compose_email(request: HttpRequest, pk: int, kind: str) -> HttpResponse:
         )
     if email_kind.key == emails.RECEIPT and period is not None and not period.paid:
         raise Http404(_("Nothing was received for this period."))
+    reconciliation = None
+    if email_kind.needs_reconciliation:
+        reconciliation = get_object_or_404(
+            ChargesReconciliation,
+            pk=request.POST.get("reconciliation")
+            or request.GET.get("reconciliation")
+            or 0,
+            lease=lease,
+        )
     if request.method == "POST":
         form = LeaseEmailForm(request.POST)
         if form.is_valid():
@@ -290,6 +300,7 @@ def compose_email(request: HttpRequest, pk: int, kind: str) -> HttpResponse:
                 subject=form.cleaned_data["subject"],
                 body=form.cleaned_data["body"],
                 period=period,
+                reconciliation=reconciliation,
                 user=request.user,
             )
             messages.success(request, _("The email is being sent."))
@@ -301,6 +312,7 @@ def compose_email(request: HttpRequest, pk: int, kind: str) -> HttpResponse:
             lease,
             periods,
             period,
+            reconciliation=reconciliation,
         )
         form = LeaseEmailForm(
             initial={
@@ -314,6 +326,8 @@ def compose_email(request: HttpRequest, pk: int, kind: str) -> HttpResponse:
     if email_kind.key == emails.RECEIPT and period is not None:
         attachment = "quittance" if period.paid >= period.expected else "recu"
         attachment = f"{attachment}-{period.key}.pdf"
+    if reconciliation is not None:
+        attachment = f"regularisation-charges-{reconciliation.period_end:%Y}.pdf"
     return render(
         request,
         "rental/compose_email.html",
@@ -321,6 +335,7 @@ def compose_email(request: HttpRequest, pk: int, kind: str) -> HttpResponse:
             **lease_context(lease, "emails"),
             "kind": email_kind,
             "period": period,
+            "reconciliation": reconciliation,
             "form": form,
             "attachment": attachment,
             "can_send": can_send_emails(),
@@ -338,7 +353,9 @@ def lease_emails(request: HttpRequest, pk: int) -> HttpResponse:
             **lease_context(lease, "emails"),
             "sent_emails": emails_of(lease),
             "kinds": [
-                kind for kind in emails.KINDS.values() if not (kind.needs_period)
+                kind
+                for kind in emails.KINDS.values()
+                if not (kind.needs_period or kind.needs_reconciliation)
             ],
         },
     )

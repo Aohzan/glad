@@ -11,10 +11,11 @@ from django.utils.translation import gettext_lazy, ngettext
 
 from base.models import Document
 from base.services.pdf import money
-from notifications.checks import days_before_param, when
+from notifications.checks import days_before_param, month_day, when
 from notifications.registry import Event, NotificationType, Param, register
 from property.models import Lease, Property
 from rental.models import (
+    ChargesReconciliation,
     SignatureRequest,
 )
 from rental.services.compliance import MISSING, documents_by_lease, lease_checks
@@ -148,6 +149,49 @@ def _signature_pending(params: dict[str, Any], today: datetime.date) -> Iterator
         )
 
 
+def _charges_due(params: dict[str, Any], today: datetime.date) -> Iterator[Event]:
+    """Leases with provisions whose last year is not reconciled yet."""
+    if today < month_day(params["date"], today.year):
+        return
+    year_end = datetime.date(today.year - 1, 12, 31)
+    for lease in _self_managed(today):
+        if (
+            lease.charges_mode != Lease.ChargesMode.PROVISION
+            or lease.start_date > year_end
+            or ChargesReconciliation.objects.filter(
+                lease=lease, period_end__gte=year_end.replace(day=1)
+            ).exists()
+        ):
+            continue
+        yield Event(
+            key=f"{lease.pk}:{year_end.year}",
+            title=_("Reconcile the charges of %(year)d: %(lease)s")
+            % {"year": year_end.year, "lease": _title(lease)},
+            url=reverse("rental:lease_charges", kwargs={"pk": lease.pk}),
+        )
+
+
+register(
+    NotificationType(
+        key="charges_reconciliation_due",
+        group="rental",
+        label=gettext_lazy("Charges reconciliation"),
+        description=gettext_lazy(
+            "The charges provisions of the last year of a lease are still to "
+            "reconcile with the actual expenses."
+        ),
+        check=_charges_due,
+        params=(
+            Param(
+                "date",
+                gettext_lazy("From"),
+                "03-01",
+                kind="monthday",
+                help_text=gettext_lazy("Date of the reminder each year (MM-DD)."),
+            ),
+        ),
+    )
+)
 register(
     NotificationType(
         key="signature_completed",

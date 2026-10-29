@@ -81,6 +81,7 @@ class PropertyLedgerEntryBaseForm(MoneyInputGroupMixin, forms.ModelForm):
             "description",
             "recurrence_type",
             "recurrence_end_date",
+            "is_recoverable",
             "notes",
         ]
         widgets = {

@@ -302,3 +302,66 @@ class SignatureRequest(BaseModel):
 
     def __str__(self) -> str:
         return self.title
+
+
+class ChargesReconciliation(BaseModel):
+    """Yearly reconciliation of the charges provisions with the actual expenses.
+
+    The recoverable expenses of the property are kept as computed when the
+    reconciliation was made (``expenses``), with the manual adjustments
+    (``adjustments``), so that the statement sent stays as it was.
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", _("Draft")
+        SENT = "sent", _("Sent")
+
+    class Meta:
+        verbose_name = _("charges reconciliation")
+        verbose_name_plural = _("charges reconciliations")
+        ordering = ["-period_end", "-pk"]
+
+    lease = models.ForeignKey(
+        "property.Lease",
+        on_delete=models.CASCADE,
+        related_name="charges_reconciliations",
+        verbose_name=_("Lease"),
+    )
+    period_start = models.DateField(verbose_name=_("Start of the period"))
+    period_end = models.DateField(verbose_name=_("End of the period"))
+    provisions = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal(0),
+        verbose_name=_("Provisions paid"),
+    )
+    #: [{"label", "date", "amount", "share"}]: the tenant pays ``share``.
+    expenses = models.JSONField(default=list, blank=True)
+    #: [{"label", "amount"}], negative to deduct.
+    adjustments = models.JSONField(default=list, blank=True)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.DRAFT
+    )
+    sent_at = models.DateTimeField(null=True, blank=True)
+    ledger_entry = models.ForeignKey(
+        "property.PropertyLedgerEntry",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+
+    def __str__(self) -> str:
+        return f"{self.period_start} → {self.period_end} — {self.lease}"
+
+    @_property
+    def actual(self) -> Decimal:
+        """Charges actually due by the tenant over the period."""
+        return sum(
+            (Decimal(str(line["share"])) for line in self.expenses), Decimal(0)
+        ) + sum((Decimal(str(line["amount"])) for line in self.adjustments), Decimal(0))
+
+    @_property
+    def balance(self) -> Decimal:
+        """Owed by the tenant when positive, to refund when negative."""
+        return self.actual - self.provisions

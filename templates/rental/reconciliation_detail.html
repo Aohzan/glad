@@ -1,0 +1,95 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n format_money %}
+
+{% block lease_content %}
+<div class="row g-3">
+  <div class="col-lg-7">
+    <section class="g-card" id="reconciliation-lines">
+      <div class="g-section-head">
+        <div class="g-section-head__title">
+          <a class="g-link" href="{% url 'rental:lease_charges' lease.pk %}">{% icon "arrow-left" %}</a>
+          <h2 class="g-h2">{{ reconciliation.period_start }} → {{ reconciliation.period_end }}</h2>
+        </div>
+        <span class="g-tag">{{ reconciliation.get_status_display }}</span>
+      </div>
+      {% if ratio < 1 %}<p class="g-card__body small text-body-secondary mb-0">{% blocktranslate with share=ratio|floatformat:2 %}The lease covers part of the period: the tenant pays a share of {{ share }} of each expense.{% endblocktranslate %}</p>{% endif %}
+      <div class="g-table-wrap">
+        <div class="g-table" style="--g-cols: minmax(200px, 2fr) 110px 110px 120px; --g-table-min: 560px">
+          <div class="g-table__head"><span>{% translate "Recoverable expense" %}</span><span>{% translate "Date" %}</span><span class="g-cell-end">{% translate "Amount" %}</span><span class="g-cell-end">{% translate "Tenant share" %}</span></div>
+          {% for line in reconciliation.expenses %}
+          <div class="g-table__row"><span>{{ line.label }}</span><span>{{ line.date }}</span><span class="g-cell-end">{{ line.amount|format_money_amount:lease.charges_amount.currency }}</span><span class="g-cell-end">{{ line.share|format_money_amount:lease.charges_amount.currency }}</span></div>
+          {% empty %}
+          <div class="g-empty">{% translate "No recoverable expense over the period: mark them in the ledger of the property, or add adjustments below." %}</div>
+          {% endfor %}
+        </div>
+      </div>
+      <form method="post" class="g-card__body pt-3 border-top">
+        {% csrf_token %}
+        <h3 class="h6">{% translate "Adjustments" %}</h3>
+        <p class="form-text">{% translate "The recoverable share of the co-ownership charges, the household waste tax… Negative to deduct." %}</p>
+        {% for line in reconciliation.adjustments %}
+        <div class="row g-2 mb-2">
+          <div class="col-8"><input type="text" name="adjustment_label" class="form-control form-control-sm" value="{{ line.label }}" maxlength="200" aria-label="{% translate 'Label' %}"{% if not editable %} disabled{% endif %}></div>
+          <div class="col-4"><input type="text" inputmode="decimal" name="adjustment_amount" class="form-control form-control-sm" value="{{ line.amount }}" aria-label="{% translate 'Amount' %}"{% if not editable %} disabled{% endif %}></div>
+        </div>
+        {% endfor %}
+        {% if editable %}
+        {% for _ in empty_rows %}
+        <div class="row g-2 mb-2">
+          <div class="col-8"><input type="text" name="adjustment_label" class="form-control form-control-sm" maxlength="200" placeholder="{% translate 'Label' %}" aria-label="{% translate 'Label' %}"></div>
+          <div class="col-4"><input type="text" inputmode="decimal" name="adjustment_amount" class="form-control form-control-sm" placeholder="0,00" aria-label="{% translate 'Amount' %}"></div>
+        </div>
+        {% endfor %}
+        <div class="d-flex justify-content-end gap-2">
+          <button type="submit" name="action" value="refresh" class="btn btn-sm btn-outline-secondary">{% icon "refresh-cw" "me-1" %}{% translate "Recompute" %}</button>
+          <button type="submit" class="btn btn-sm btn-primary">{% translate "Save" %}</button>
+        </div>
+        {% endif %}
+      </form>
+    </section>
+  </div>
+  <div class="col-lg-5 d-flex flex-column gap-3">
+    <section class="g-card" id="reconciliation-balance">
+      <div class="g-section-head"><h2 class="g-h2">{% translate "Balance" %}</h2></div>
+      <dl class="g-dl g-card__body small">
+        <dt>{% translate "Charges due" %}</dt><dd>{{ reconciliation.actual|format_money_amount:lease.charges_amount.currency }}</dd>
+        <dt>{% translate "Provisions paid" %}</dt><dd>{{ reconciliation.provisions|format_money_amount:lease.charges_amount.currency }}</dd>
+        <dt>{% if reconciliation.balance >= 0 %}{% translate "Owed by the tenant" %}{% else %}{% translate "To refund to the tenant" %}{% endif %}</dt>
+        <dd class="fw-semibold">{{ balance_abs|format_money_amount:lease.charges_amount.currency }}</dd>
+      </dl>
+      <div class="g-card__body d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'rental:charges_pdf' reconciliation.pk %}">{% icon "file-down" "me-1" %}PDF</a>
+        <a class="btn btn-sm btn-primary" href="{% url 'rental:compose_email' lease.pk 'charges_reconciliation' %}?reconciliation={{ reconciliation.pk }}">{% icon "send" "me-1" %}{% translate "Send to the tenants" %}</a>
+        {% if reconciliation.ledger_entry %}
+        <span class="g-tag g-tag--pos">{% icon "check" %}{% translate "In the ledger" %}</span>
+        {% elif reconciliation.balance %}
+        <form method="post" action="{% url 'rental:record_reconciliation' reconciliation.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-primary">{% icon "book-open" "me-1" %}{% translate "Record in the ledger" %}</button>
+        </form>
+        {% endif %}
+        {% if editable %}
+        <form method="post" action="{% url 'rental:delete_reconciliation' reconciliation.pk %}" data-confirm="{% translate 'Delete this reconciliation?' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-danger">{% icon "trash" %}</button>
+        </form>
+        {% endif %}
+      </div>
+    </section>
+    {% if suggested is not None %}
+    <section class="g-card" id="provision">
+      <div class="g-section-head"><h2 class="g-h2">{% translate "Provision" %}</h2></div>
+      <form method="post" action="{% url 'rental:update_provision' reconciliation.pk %}" class="g-card__body">
+        {% csrf_token %}
+        <p class="small">{% blocktranslate with current=lease.charges_amount|format_money %}Current provision: {{ current }} per payment. Matching the actual charges:{% endblocktranslate %} <strong>{{ suggested|format_money_amount:lease.charges_amount.currency }}</strong>.</p>
+        <div class="row g-2">
+          <div class="col-6"><label class="form-label small" for="provision-amount">{% translate "New provision" %}</label><input type="text" inputmode="decimal" class="form-control form-control-sm" id="provision-amount" name="amount" value="{{ suggested }}"></div>
+          <div class="col-6"><label class="form-label small" for="provision-date">{% translate "From" %}</label><input type="date" class="form-control form-control-sm" id="provision-date" name="effective_date" value="{{ effective_date|date:'Y-m-d' }}"></div>
+        </div>
+        <button type="submit" class="btn btn-sm btn-outline-primary mt-2">{% translate "Update the provision" %}</button>
+      </form>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

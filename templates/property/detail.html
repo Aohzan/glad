@@ -500,6 +500,8 @@
             </div>
           </div>
 
+          {% include "property/_recoverable_switch.html" with field=entry_form.is_recoverable %}
+
           {# ── Row 4b: Notes ── #}
           <div class="mb-3">
             <label for="{{ entry_form.notes.id_for_label }}" class="form-label fw-semibold">

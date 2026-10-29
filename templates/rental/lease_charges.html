@@ -1,0 +1,40 @@
+{% extends "rental/_lease_layout.html" %}
+{% load i18n format_money %}
+
+{% block lease_content %}
+{% if not is_provision %}
+<div class="alert alert-info mb-0">{% icon "info" "me-1" %}{% translate "The charges of this lease are a flat rate: they are not reconciled." %}</div>
+{% endif %}
+<div class="row g-3">
+  <div class="col-lg-7">
+    <section class="g-card" id="reconciliations">
+      <div class="g-section-head"><h2 class="g-h2">{% translate "Charges reconciliations" %}</h2></div>
+      {% for reconciliation in reconciliations %}
+      <a class="g-card__row d-flex justify-content-between align-items-center" href="{% url 'rental:reconciliation_detail' reconciliation.pk %}">
+        <span>{{ reconciliation.period_start }} → {{ reconciliation.period_end }}</span>
+        <span class="d-flex gap-2 align-items-center">
+          <span class="small">{% if reconciliation.balance > 0 %}+{% endif %}{{ reconciliation.balance|format_money_amount:lease.charges_amount.currency }}</span>
+          {% if reconciliation.status == "sent" %}<span class="g-tag g-tag--pos">{{ reconciliation.get_status_display }}</span>{% else %}<span class="g-tag">{{ reconciliation.get_status_display }}</span>{% endif %}
+        </span>
+      </a>
+      {% empty %}
+      <div class="g-empty">{% translate "No reconciliation yet." %}</div>
+      {% endfor %}
+    </section>
+  </div>
+  <div class="col-lg-5">
+    <section class="g-card" id="new-reconciliation">
+      <div class="g-section-head"><h2 class="g-h2">{% translate "New reconciliation" %}</h2></div>
+      <form method="post" action="{% url 'rental:create_reconciliation' lease.pk %}" class="g-card__body">
+        {% csrf_token %}
+        <div class="row g-2">
+          <div class="col-6"><label class="form-label" for="period-start">{% translate "From" %}</label><input type="date" class="form-control" id="period-start" name="period_start" value="{{ default_start|date:'Y-m-d' }}" required></div>
+          <div class="col-6"><label class="form-label" for="period-end">{% translate "To" %}</label><input type="date" class="form-control" id="period-end" name="period_end" value="{{ default_end|date:'Y-m-d' }}" required></div>
+        </div>
+        <p class="form-text">{% translate "The provisions checked as received and the recoverable expenses of the property over the period are added up. Mark the recoverable expenses in the ledger of the property." %}</p>
+        <button type="submit" class="btn btn-primary">{% icon "calculator" "me-1" %}{% translate "Compute" %}</button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}
