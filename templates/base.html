@@ -150,6 +150,14 @@
                 <button type="button" class="g-round-btn" id="theme-toggle" aria-label="{% translate 'Toggle dark mode' %}" title="{% translate 'Toggle dark mode' %}">
                     {% icon "moon" "g-theme-icon--light" %}{% icon "sun" "g-theme-icon--dark" %}
                 </button>
+                <div class="dropdown" id="g-notifications" data-url="{% url 'notifications:dropdown' %}">
+                    <button type="button" class="g-round-btn g-bell" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="{% translate 'Notifications' %}" title="{% translate 'Notifications' %}">
+                        {% icon "bell" %}{% if unread_notifications %}<span class="g-bell__count">{% if unread_notifications > 99 %}99+{% else %}{{ unread_notifications }}{% endif %}</span>{% endif %}
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end g-notif-menu" aria-live="polite">
+                        <div class="g-notif-menu__body"><div class="g-meta p-2">{% translate "Loading…" %}</div></div>
+                    </div>
+                </div>
                 <div class="dropdown">
                     <button type="button" class="g-avatar" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{% translate 'My account' %}">{{ user_initials }}</button>
                     <div class="dropdown-menu dropdown-menu-end g-user-menu">

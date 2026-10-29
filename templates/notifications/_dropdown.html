@@ -1,0 +1,15 @@
+{% load i18n %}
+<div class="g-notif-menu__head">
+    <span class="fw-semibold">{% translate "Notifications" %}</span>
+    <a class="g-meta" href="{% url 'notifications:settings' %}" title="{% translate 'Notification settings' %}">{% icon "settings" %}</a>
+</div>
+<div class="g-notif-menu__list">
+    {% for notification in latest %}
+    {% include "notifications/_item.html" %}
+    {% empty %}
+    <div class="g-meta p-3 text-center">{% translate "No notification yet." %}</div>
+    {% endfor %}
+</div>
+<div class="g-notif-menu__foot">
+    <a href="{% url 'notifications:inbox' %}">{% translate "See all notifications" %}</a>
+</div>

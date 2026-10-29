@@ -1,0 +1,9 @@
+{% load i18n %}
+<a class="g-notif{% if not notification.read_at %} g-notif--unread{% endif %} g-notif--{{ notification.level }}" href="{% url 'notifications:open' notification.pk %}">
+    <span class="g-notif__dot" aria-hidden="true"></span>
+    <span class="g-notif__text">
+        <span class="g-notif__title d-block">{{ notification.title }}</span>
+        {% if notification.body %}<span class="g-notif__body d-block">{{ notification.body }}</span>{% endif %}
+        <span class="g-meta d-block small">{% blocktranslate with since=notification.created_at|timesince %}{{ since }} ago{% endblocktranslate %}</span>
+    </span>
+</a>

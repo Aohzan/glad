@@ -431,9 +431,25 @@
     });
   }
 
+  /* ── Notifications ─────────────────────────────────────────────────── */
+
+  // The bell menu loads the latest notifications each time it opens.
+  function wireNotifications() {
+    var menu = document.getElementById('g-notifications');
+    if (!menu) return;
+    menu.addEventListener('show.bs.dropdown', function () {
+      var body = menu.querySelector('.g-notif-menu__body');
+      fetch(menu.dataset.url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) { return r.ok ? r.text() : Promise.reject(r); })
+        .then(function (html) { body.innerHTML = html; })
+        .catch(function () { /* keep the loading text */ });
+    });
+  }
+
   function ready() {
     decorateForms();
     loadPanels();
+    wireNotifications();
   }
 
   if (document.readyState === 'loading') {

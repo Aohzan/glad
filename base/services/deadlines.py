@@ -37,6 +37,8 @@ class Deadline:
     url: str
     icon: str
     today: datetime.date
+    #: What the deadline is about (see ``KINDS``), for the notifications.
+    kind: str = ""
 
     @property
     def days_left(self) -> int:
@@ -87,6 +89,7 @@ def _account_deadlines(today: datetime.date):
                     url=reverse(url_name, kwargs={"pk": account.pk}),
                     icon=icon,
                     today=today,
+                    kind="milestone",
                 )
 
 
@@ -102,6 +105,7 @@ def _loan_deadlines(today: datetime.date):
             url=reverse("property:detail", kwargs={"pk": loan.property.pk}),
             icon="landmark",
             today=today,
+            kind="loan_end",
         )
 
 
@@ -122,6 +126,7 @@ def _lease_deadlines(today: datetime.date):
                 url=url,
                 icon="percent",
                 today=today,
+                kind="lease_end",
             )
         if lease.end_date:
             yield Deadline(
@@ -131,6 +136,7 @@ def _lease_deadlines(today: datetime.date):
                 url=url,
                 icon="key-round",
                 today=today,
+                kind="rent_revision",
             )
 
 
@@ -158,6 +164,7 @@ def _dpe_deadlines(today: datetime.date):
                 url=url,
                 icon="thermometer-sun",
                 today=today,
+                kind="dpe_expiry",
             )
         if status.expires_on:
             yield Deadline(
@@ -167,6 +174,7 @@ def _dpe_deadlines(today: datetime.date):
                 url=url,
                 icon="thermometer-sun",
                 today=today,
+                kind="dpe_ban",
             )
 
 
@@ -185,7 +193,33 @@ def _scpi_deadlines(today: datetime.date):
             ),
             icon="building",
             today=today,
+            kind="scpi_dismemberment",
         )
+
+
+#: Generator of the deadlines of each kind.
+SOURCES = {
+    "milestone": _account_deadlines,
+    "loan_end": _loan_deadlines,
+    "rent_revision": _lease_deadlines,
+    "lease_end": _lease_deadlines,
+    "dpe_ban": _dpe_deadlines,
+    "dpe_expiry": _dpe_deadlines,
+    "scpi_dismemberment": _scpi_deadlines,
+}
+
+
+def deadlines_of(kinds: set[str], today: datetime.date) -> list[Deadline]:
+    """Every deadline of *kinds*, whatever its date, soonest first."""
+    sources = dict.fromkeys(SOURCES[kind] for kind in kinds)
+    deadlines = [
+        deadline
+        for source in sources
+        for deadline in source(today)
+        if deadline.kind in kinds
+    ]
+    deadlines.sort(key=lambda d: (d.date, d.title))
+    return deadlines
 
 
 def upcoming_deadlines(
