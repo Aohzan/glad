@@ -8,7 +8,12 @@ from django.contrib.messages import get_messages
 from django.urls import reverse
 from moneyed import Money
 
-from property.models import Property, PropertyLedgerEntry, PropertyLedgerEntryException
+from property.models import (
+    LeaseParty,
+    Property,
+    PropertyLedgerEntry,
+    PropertyLedgerEntryException,
+)
 from property.services.checks import (
     PendingOccurrence,
     check_all_up_to,
@@ -86,11 +91,10 @@ class TestModel:
         assert rent.display_label == "John - Monthly rent"
         lease = Lease.objects.create(
             property=property_obj,
-            first_name="Jane",
-            last_name="Doe",
             start_date=datetime.date(2024, 1, 1),
             rent_amount=EUR_1000,
         )
+        LeaseParty.objects.create(lease=lease, first_name="Jane", last_name="Doe")
         rent.lease = lease
         rent.description = ""
         rent.third_party = ""

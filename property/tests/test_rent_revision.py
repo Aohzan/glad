@@ -62,7 +62,6 @@ def property_obj():
 def lease(property_obj):
     return Lease.objects.create(
         property=property_obj,
-        last_name="Doe",
         lease_type=Lease.LeaseType.EMPTY,
         status=Lease.Status.ACTIVE,
         start_date=datetime.date(2024, 3, 1),

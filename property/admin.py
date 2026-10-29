@@ -7,6 +7,7 @@ from property.models import (
     AmortizationAsset,
     AmortizationSetup,
     Lease,
+    LeaseParty,
     LmnpDeclarationSnapshot,
     ManagementMandate,
     Property,
@@ -177,6 +178,12 @@ class PropertyLedgerEntryAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
+class LeasePartyInline(admin.TabularInline):
+    model = LeaseParty
+    extra = 0
+    fields = ("role", "first_name", "last_name", "email", "phone", "guarantee_type")
+
+
 @admin.register(Lease)
 class LeaseAdmin(admin.ModelAdmin):
     list_display = (
@@ -188,8 +195,9 @@ class LeaseAdmin(admin.ModelAdmin):
         "rent_amount",
     )
     list_filter = ("status", "lease_type", "periodicity")
-    search_fields = ("property__name", "tenant_first_name", "tenant_last_name")
+    search_fields = ("property__name", "parties__first_name", "parties__last_name")
     readonly_fields = ("created_at", "updated_at")
+    inlines = [LeasePartyInline]
 
 
 @admin.register(ManagementMandate)

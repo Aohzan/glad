@@ -6,7 +6,7 @@ from decimal import Decimal
 import pytest
 from moneyed import Money
 
-from property.models import Lease, Property
+from property.models import Lease, LeaseParty, ManagementMandate, Property
 
 
 @pytest.fixture
@@ -21,12 +21,8 @@ def property_obj():
 
 @pytest.fixture
 def lease(property_obj):
-    return Lease.objects.create(
+    lease = Lease.objects.create(
         property=property_obj,
-        first_name="Jean",
-        last_name="Dupont",
-        email="jean.dupont@example.com",
-        phone="0612345678",
         lease_type=Lease.LeaseType.FURNISHED,
         status=Lease.Status.ACTIVE,
         start_date=datetime.date(2022, 1, 1),
@@ -34,6 +30,14 @@ def lease(property_obj):
         charges_amount=Money(Decimal("50.00"), "EUR"),
         deposit_amount=Money(Decimal("1600.00"), "EUR"),
     )
+    LeaseParty.objects.create(
+        lease=lease,
+        first_name="Jean",
+        last_name="Dupont",
+        email="jean.dupont@example.com",
+        phone="0612345678",
+    )
+    return lease
 
 
 @pytest.mark.django_db
@@ -41,35 +45,70 @@ class TestLeaseModel:
     def test_name_with_first_and_last(self, lease):
         assert lease.name == "Jean Dupont"
 
-    def test_name_with_only_last_name(self, property_obj):
-        lease = Lease.objects.create(
-            property=property_obj,
-            first_name="",
-            last_name="Martin",
-            lease_type=Lease.LeaseType.FURNISHED,
-            status=Lease.Status.ACTIVE,
-            start_date=datetime.date(2022, 1, 1),
-            rent_amount=Money(Decimal("700.00"), "EUR"),
-        )
+    def test_name_with_only_last_name(self, lease):
+        LeaseParty.objects.filter(lease=lease).delete()
+        LeaseParty.objects.create(lease=lease, last_name="Martin")
         assert lease.name == "Martin"
+
+    def test_name_joins_the_tenants_only(self, lease):
+        LeaseParty.objects.create(lease=lease, first_name="Anne", last_name="Leroy")
+        guarantor = LeaseParty.objects.create(
+            lease=lease,
+            role=LeaseParty.Role.GUARANTOR,
+            first_name="Paul",
+            last_name="Dupont",
+            guarantee_type=LeaseParty.GuaranteeType.JOINT,
+        )
+        assert lease.name == "Jean Dupont, Anne Leroy"
+        assert lease.guarantors == [guarantor]
+        assert str(guarantor) == "Paul Dupont"
+
+    def test_unsaved_lease_has_no_parties(self, property_obj):
+        lease = Lease(property=property_obj, start_date=datetime.date(2022, 1, 1))
+        assert lease.tenants == []
+        assert lease.guarantors == []
+        assert str(lease) == "Lease (2022-01-01)"
+
+    def test_is_furnished(self, lease):
+        assert lease.is_furnished
+        for lease_type in (Lease.LeaseType.MOBILITY, Lease.LeaseType.STUDENT):
+            lease.lease_type = lease_type
+            assert lease.is_furnished
+        lease.lease_type = Lease.LeaseType.EMPTY
+        assert not lease.is_furnished
+
+    def test_self_managed_without_a_running_mandate(self, lease, property_obj):
+        assert lease.is_self_managed
+        ManagementMandate.objects.create(
+            property=property_obj,
+            manager_name="Agence",
+            start_date=datetime.date(2020, 1, 1),
+            end_date=datetime.date(2021, 1, 1),
+        )
+        assert lease.mandate_on() is None
+        mandate = ManagementMandate.objects.create(
+            property=property_obj,
+            manager_name="Agence",
+            start_date=datetime.date(2021, 6, 1),
+        )
+        assert lease.mandate_on() == mandate
+        assert not lease.is_self_managed
+        assert lease.mandate_on(datetime.date(2021, 3, 1)) is None
 
     def test_str_representation(self, lease):
         result = str(lease)
         assert "Jean Dupont" in result
         assert "2022-01-01" in result
 
-    def test_str_with_only_last_name(self, property_obj):
+    def test_str_without_tenant(self, property_obj):
         lease = Lease.objects.create(
             property=property_obj,
-            first_name="",
-            last_name="Martin",
             lease_type=Lease.LeaseType.FURNISHED,
             status=Lease.Status.ACTIVE,
             start_date=datetime.date(2022, 1, 1),
             rent_amount=Money(Decimal("700.00"), "EUR"),
         )
-        result = str(lease)
-        assert "Martin" in result
+        assert str(lease) == "Lease (2022-01-01)"
 
     def test_is_active_at_during_lease(self, lease):
         assert lease.is_active_at(datetime.date(2022, 6, 1)) is True
@@ -84,8 +123,6 @@ class TestLeaseModel:
     def _make_ended_lease(property_obj):
         return Lease.objects.create(
             property=property_obj,
-            first_name="Marie",
-            last_name="Curie",
             lease_type=Lease.LeaseType.FURNISHED,
             status=Lease.Status.ENDED,
             start_date=datetime.date(2022, 1, 1),
@@ -114,8 +151,6 @@ class TestLeaseModel:
     def test_total_rent_zero_charges(self, property_obj):
         lease = Lease.objects.create(
             property=property_obj,
-            first_name="Paul",
-            last_name="Blanc",
             lease_type=Lease.LeaseType.EMPTY,
             status=Lease.Status.ACTIVE,
             start_date=datetime.date(2022, 1, 1),
@@ -144,7 +179,6 @@ class TestLeaseModel:
     def test_default_status_is_upcoming(self, property_obj):
         lease = Lease.objects.create(
             property=property_obj,
-            last_name="Test",
             start_date=datetime.date(2025, 1, 1),
             rent_amount=Money(Decimal("500.00"), "EUR"),
         )
@@ -153,7 +187,6 @@ class TestLeaseModel:
     def test_default_periodicity_is_monthly(self, property_obj):
         lease = Lease.objects.create(
             property=property_obj,
-            last_name="Test",
             start_date=datetime.date(2025, 1, 1),
             rent_amount=Money(Decimal("500.00"), "EUR"),
         )

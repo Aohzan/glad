@@ -331,7 +331,6 @@ class TestPropertyLedgerEntryWithLease:
     def test_entry_can_have_lease(self, property_obj):
         lease = Lease.objects.create(
             property=property_obj,
-            last_name="Dupont",
             start_date=datetime.date(2022, 1, 1),
             rent_amount=Money(Decimal("800.00"), "EUR"),
         )

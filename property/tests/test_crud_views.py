@@ -43,8 +43,6 @@ def ledger_entry(property_obj):
 def lease(property_obj):
     return Lease.objects.create(
         property=property_obj,
-        first_name="Jean",
-        last_name="Dupont",
         lease_type=Lease.LeaseType.FURNISHED,
         status=Lease.Status.ACTIVE,
         start_date=datetime.date(2022, 1, 1),
@@ -293,8 +291,9 @@ class TestEditLease:
     def test_post_create_lease_valid(self, user_client, property_obj):
         url = reverse("property:new_lease", kwargs={"property_pk": property_obj.pk})
         data = {
-            "first_name": "Marie",
-            "last_name": "Curie",
+            "tenant-first_name": "Marie",
+            "tenant-last_name": "Curie",
+            "tenant-email": "marie@example.com",
             "lease_type": Lease.LeaseType.FURNISHED,
             "status": Lease.Status.ACTIVE,
             "start_date": "2023-01-01",
@@ -305,10 +304,37 @@ class TestEditLease:
             "deposit_amount_0": "1800.00",
             "deposit_amount_1": "EUR",
             "periodicity": Lease.Periodicity.MONTHLY,
+            "payment_day": "5",
+            "charges_mode": Lease.ChargesMode.PROVISION,
         }
         response = user_client.post(url, data)
         assert response.status_code == 302
-        assert Lease.objects.filter(last_name="Curie", property=property_obj).exists()
+        lease = Lease.objects.get(property=property_obj)
+        assert lease.payment_day == 5
+        (tenant,) = lease.tenants
+        assert (tenant.name, tenant.email) == ("Marie Curie", "marie@example.com")
+
+    def test_post_create_lease_needs_a_tenant(self, user_client, property_obj):
+        url = reverse("property:new_lease", kwargs={"property_pk": property_obj.pk})
+        data = {
+            "tenant-last_name": "",
+            "lease_type": Lease.LeaseType.FURNISHED,
+            "status": Lease.Status.ACTIVE,
+            "start_date": "2023-01-01",
+            "rent_amount_0": "900.00",
+            "rent_amount_1": "EUR",
+            "charges_amount_0": "0",
+            "charges_amount_1": "EUR",
+            "deposit_amount_0": "0",
+            "deposit_amount_1": "EUR",
+            "periodicity": Lease.Periodicity.MONTHLY,
+            "payment_day": "1",
+            "charges_mode": Lease.ChargesMode.PROVISION,
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 200
+        assert response.context["tenant_form"].errors["last_name"]
+        assert not Lease.objects.filter(property=property_obj).exists()
 
     def test_post_edit_lease_invalid(self, user_client, property_obj, lease):
         url = reverse(
@@ -319,7 +345,6 @@ class TestEditLease:
             },
         )
         data = {
-            "last_name": "",  # Required
             "lease_type": Lease.LeaseType.FURNISHED,
             "status": Lease.Status.ACTIVE,
             "start_date": "2023-01-01",

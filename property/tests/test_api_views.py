@@ -7,7 +7,7 @@ import pytest
 from django.urls import reverse
 from moneyed import Money
 
-from property.models import Property, PropertyLoan, PropertyValue
+from property.models import LeaseParty, Property, PropertyLoan, PropertyValue
 from property.models.lease import Lease
 from property.models.ledger import PropertyLedgerEntry
 
@@ -59,15 +59,15 @@ def valuation(prop):
 
 @pytest.fixture
 def active_lease(prop):
-    return Lease.objects.create(
+    lease = Lease.objects.create(
         property=prop,
-        first_name="Jean",
-        last_name="Dupont",
         start_date=datetime.date(2023, 1, 1),
         end_date=None,
         rent_amount=Money(850, "EUR"),
         charges_amount=Money(50, "EUR"),
     )
+    LeaseParty.objects.create(lease=lease, first_name="Jean", last_name="Dupont")
+    return lease
 
 
 # ── Model helpers: appreciation_percent ────────────────────────────────────
@@ -150,8 +150,6 @@ def test_active_lease_present(prop, active_lease):
 def test_active_lease_none_when_ended(prop):
     Lease.objects.create(
         property=prop,
-        first_name="Old",
-        last_name="Tenant",
         start_date=datetime.date(2020, 1, 1),
         end_date=datetime.date(2022, 12, 31),
         rent_amount=Money(700, "EUR"),
@@ -169,8 +167,6 @@ def test_active_lease_none_when_no_leases(prop):
 def test_active_lease_upcoming_not_returned(prop):
     Lease.objects.create(
         property=prop,
-        first_name="Future",
-        last_name="Tenant",
         start_date=datetime.date.today() + datetime.timedelta(days=30),
         end_date=None,
         rent_amount=Money(800, "EUR"),

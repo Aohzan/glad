@@ -110,13 +110,19 @@ def _loan_deadlines(today: datetime.date):
 
 
 def _lease_deadlines(today: datetime.date):
-    leases = Lease.objects.filter(
-        property__is_active=True,
-        status__in=[Lease.Status.ACTIVE, Lease.Status.NOTICE_PERIOD],
-    ).select_related("property")
+    leases = (
+        Lease.objects.filter(
+            property__is_active=True,
+            status__in=[Lease.Status.ACTIVE, Lease.Status.NOTICE_PERIOD],
+        )
+        .select_related("property")
+        .prefetch_related("parties")
+    )
     for lease in leases:
         url = reverse("property:detail", kwargs={"pk": lease.property.pk})
-        title = f"{lease.property} — {lease.name}"
+        title = (
+            f"{lease.property} — {lease.name}" if lease.name else str(lease.property)
+        )
         revision = get_rent_revision(lease, today=today)
         if revision is not None and not revision.frozen:
             yield Deadline(
@@ -126,7 +132,7 @@ def _lease_deadlines(today: datetime.date):
                 url=url,
                 icon="percent",
                 today=today,
-                kind="lease_end",
+                kind="rent_revision",
             )
         if lease.end_date:
             yield Deadline(
@@ -136,7 +142,7 @@ def _lease_deadlines(today: datetime.date):
                 url=url,
                 icon="key-round",
                 today=today,
-                kind="rent_revision",
+                kind="lease_end",
             )
 
 
@@ -164,7 +170,7 @@ def _dpe_deadlines(today: datetime.date):
                 url=url,
                 icon="thermometer-sun",
                 today=today,
-                kind="dpe_expiry",
+                kind="dpe_ban",
             )
         if status.expires_on:
             yield Deadline(
@@ -174,7 +180,7 @@ def _dpe_deadlines(today: datetime.date):
                 url=url,
                 icon="thermometer-sun",
                 today=today,
-                kind="dpe_ban",
+                kind="dpe_expiry",
             )
 
 

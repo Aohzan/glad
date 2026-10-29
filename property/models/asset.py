@@ -492,6 +492,33 @@ class Property(BaseModel):
         verbose_name=_("Tax regime"),
         help_text=_("Tax regime applicable to this property (e.g. LMNP réel)."),
     )
+    construction_year = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Construction year"),
+        help_text=_("Decides the diagnostics required when renting (lead, asbestos)."),
+    )
+    is_tight_zone = models.BooleanField(
+        default=False,
+        verbose_name=_("Tight rental zone"),
+        help_text=_(
+            "Zone tendue: the notice of the tenant of an empty dwelling is one month."
+        ),
+    )
+    landlord_name = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name=_("Landlord"),
+        help_text=_(
+            "Name written on the leases and receipts, for a SCI or an indivision. "
+            "Leave empty to use the owners."
+        ),
+    )
+    landlord_address = models.TextField(
+        blank=True,
+        verbose_name=_("Landlord address"),
+        help_text=_("Leave empty to use the postal address of the owners."),
+    )
     ownerships = GenericRelation("base.Ownership")
     lmnp_start_date = models.DateField(
         null=True,
@@ -700,6 +727,15 @@ class Property(BaseModel):
     def dpe_status(self) -> DpeStatus | None:
         """Rental ban and validity status of the energy rating, None without DPE."""
         return get_dpe_status(self.dpe_rating, self.dpe_date)
+
+    def mandate_on(self, date: datetime.date):
+        """Management mandate covering *date*, from the prefetched mandates."""
+        for mandate in self.mandates.all():  # ty: ignore[unresolved-attribute]
+            if mandate.start_date <= date and (
+                mandate.end_date is None or mandate.end_date >= date
+            ):
+                return mandate
+        return None
 
     @property
     def active_lease(self):

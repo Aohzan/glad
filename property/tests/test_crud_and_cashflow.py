@@ -38,8 +38,6 @@ def _make_lease(prop):
         start_date=datetime.date(2021, 1, 1),
         status=Lease.Status.ACTIVE,
         rent_amount=Money(800, "EUR"),
-        first_name="Alice",
-        last_name="Dupont",
     )
 
 

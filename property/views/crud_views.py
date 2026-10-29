@@ -3,6 +3,7 @@
 import datetime
 
 from django.contrib import messages
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -10,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from base.views import get_object_or_redirect
 from property.forms import (
+    FirstTenantForm,
     LeaseForm,
     ManagementMandateForm,
     PropertyLedgerEntryEditForm,
@@ -17,6 +19,7 @@ from property.forms import (
 )
 from property.models import (
     Lease,
+    LeaseParty,
     ManagementMandate,
     Property,
     PropertyLedgerEntry,
@@ -458,17 +461,44 @@ def _delete_property_related(
 def edit_lease(
     request: HttpRequest, property_pk: int, lease_pk: int | None = None
 ) -> HttpResponse:
-    """Create or edit a lease for a property."""
-    return _edit_property_related(
+    """Create or edit a lease for a property, with its first tenant on creation.
+
+    The other tenants and the guarantors are managed on the rental lease page.
+    """
+    property_obj = get_object_or_404(Property, pk=property_pk)
+    lease = (
+        get_object_or_404(Lease, pk=lease_pk, property=property_obj)
+        if lease_pk
+        else None
+    )
+    data = request.POST if request.method == "POST" else None
+    form = LeaseForm(data, instance=lease)
+    tenant_form = FirstTenantForm(data, prefix="tenant") if lease is None else None
+    if data is not None:
+        if form.is_valid() and (tenant_form is None or tenant_form.is_valid()):
+            with transaction.atomic():
+                saved = form.save(commit=False)
+                saved.property = property_obj
+                saved.save()
+                if tenant_form is not None:
+                    tenant = tenant_form.save(commit=False)
+                    tenant.lease = saved
+                    tenant.role = LeaseParty.Role.TENANT
+                    tenant.save()
+            messages.success(request, _("Lease saved."))
+            return HttpResponseRedirect(
+                reverse("property:detail", kwargs={"pk": property_pk}) + "#leases-panel"
+            )
+        messages.error(request, _("Please correct the errors below."))
+    return render(
         request,
-        property_pk=property_pk,
-        model=Lease,
-        object_pk=lease_pk,
-        form_class=LeaseForm,
-        template="property/edit_lease.html",
-        context_key="lease",
-        success_message=str(_("Lease saved.")),
-        anchor="#leases-panel",
+        "property/edit_lease.html",
+        {
+            "property": property_obj,
+            "lease": lease,
+            "form": form,
+            "tenant_form": tenant_form,
+        },
     )
 
 

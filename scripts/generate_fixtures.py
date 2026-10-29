@@ -3188,10 +3188,6 @@ def generate_property() -> str:
     created_at: {dt(M36)}
     updated_at: {dt(M36)}
     property: 2
-    first_name: Sophie
-    last_name: Martin
-    email: sophie.martin@example.com
-    phone: "0612345678"
     lease_type: furnished
     status: active
     start_date: {ds(M36)}
@@ -3207,6 +3203,17 @@ def generate_property() -> str:
     irl_reference_quarter: 2
     irl_reference_value: "140.59"
     notes: "Bail meublé 1 an renouvelable"
+- model: property.leaseparty
+  pk: 1
+  fields:
+    created_at: {dt(M36)}
+    updated_at: {dt(M36)}
+    lease: 1
+    role: tenant
+    first_name: Sophie
+    last_name: Martin
+    email: sophie.martin@example.com
+    phone: "0612345678"
 # Transactions — Property 2
 - model: property.propertyledgerentry
   pk: 5
@@ -3458,10 +3465,6 @@ def generate_property() -> str:
     created_at: {dt(M24)}
     updated_at: {dt(M24)}
     property: 3
-    first_name: Lucas
-    last_name: Dupont
-    email: lucas.dupont@example.com
-    phone: "0698765432"
     lease_type: furnished
     status: active
     start_date: {ds(M24)}
@@ -3477,6 +3480,17 @@ def generate_property() -> str:
     irl_reference_quarter: 3
     irl_reference_value: "142.06"
     notes: "Bail meublé étudiant"
+- model: property.leaseparty
+  pk: 2
+  fields:
+    created_at: {dt(M24)}
+    updated_at: {dt(M24)}
+    lease: 2
+    role: tenant
+    first_name: Lucas
+    last_name: Dupont
+    email: lucas.dupont@example.com
+    phone: "0698765432"
 # Transactions — Property 3
 - model: property.propertyledgerentry
   pk: 14

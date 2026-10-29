@@ -10,7 +10,7 @@ from moneyed import Money
 
 from base.services.deadlines import Deadline, upcoming_deadlines
 from finance.models.investment_account import InvestmentAccount, InvestmentAccountType
-from property.models import Lease, Property, PropertyLoan
+from property.models import Lease, LeaseParty, Property, PropertyLoan
 from property.models.scpi import SCPI, SCPIInvestment
 
 TODAY = datetime.date.today()
@@ -61,15 +61,15 @@ def data(db):
             original_amount=Money(10000, "EUR"),
             interest_rate=Decimal("1.5"),
         )
-    Lease.objects.create(
+    lease = Lease.objects.create(
         property=prop,
-        last_name="Tenant",
         lease_type=Lease.LeaseType.EMPTY,
         status=Lease.Status.ACTIVE,
         start_date=_in(-10) - relativedelta(years=1),
         end_date=_in(20),
         rent_amount=Money(800, "EUR"),
     )
+    LeaseParty.objects.create(lease=lease, last_name="Tenant")
     banned = Property.objects.create(
         name="Deadline F house",
         property_type=Property.HOUSE,
@@ -79,7 +79,6 @@ def data(db):
     )
     Lease.objects.create(
         property=banned,
-        last_name="Other",
         lease_type=Lease.LeaseType.EMPTY,
         status=Lease.Status.ACTIVE,
         start_date=_in(-200),
