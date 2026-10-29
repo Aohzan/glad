@@ -22,6 +22,7 @@
 - Annualized money-weighted return (XIRR), real return deflated with the INSEE consumer price index, and comparison with a benchmark index fund
 - Life insurance split between euro funds and units of account, with the yearly credited rates
 - **Other assets** — vehicles, precious metals, crypto-assets, unlisted shares, collectibles, optionally valued from a market symbol
+- **Daily prices** — the market close of every held security is stored each day; the holdings you choose are valued automatically from it
 
 ### Properties
 
@@ -37,6 +38,18 @@
 - **DPE** — energy rating with the rental bans (G 2025, F 2028, E 2034), the rent freeze of F/G housing and the diagnosis validity
 - **Resale simulation** — capital gain tax with allowances, surtax and the add-back of the LMNP amortization (finance act 2025)
 
+### Rental management
+
+For the leases you manage yourself, without an agency (see [docs/rental.md](docs/rental.md)):
+
+- **Applications** — candidates with their documents, the allowed and forbidden ones (décret 2015-1437), the effort rate, and the lease created from the accepted one
+- **Move-in** — lease PDF following the standard contract (décret 2015-587), interactive inventory of fixtures room by room with photos taken from the phone, electronic signature with a self-hosted [Documenso](https://documenso.com), deposit received
+- **Checklist** — signed lease and inventory, deposit cap, guarantee, tenant insurance, DPE and the diagnostics required by the construction year
+- **Rent** — rent schedule, payments checked month after month, late rents, receipts (quittance or partial receipt) in PDF, rent notices, reminders, formal notice and rent revision letter, each email checked before it is sent or sent automatically
+- **Charges** — recoverable expenses of the ledger, yearly reconciliation with the provisions, statement in PDF and new provision
+- **Departure** — notice with the legal end date, exit inventory compared with the entry one, deposit return with deductions, deadline and late penalty, closing of the lease
+- Dashboard with the rents received this month, the unpaid ones, the occupancy, the points to check and the rental deadlines
+
 ### Household budget
 
 - **Yearly budget** — income per person or for the whole household, expenses and savings in a shared category tree (up to three levels), entered as yearly amounts
@@ -50,6 +63,11 @@
 - Dashboard with the upcoming deadlines of every asset and a monthly net worth history stored as snapshots
 - Allocation by asset class and by liquidity, and emergency fund sized in months of expenses (from the budget when there is one)
 - Owners among the application users, with shares and dismembered rights valued with article 669 CGI, and the net worth of each owner
+
+### Notifications
+
+- Alerts on the application bell and on any channel: email or one of the 100+ services of [Apprise](https://appriseit.com/services/) (ntfy, Gotify, Telegram, Discord…), see [docs/notifications.md](docs/notifications.md)
+- Each alert enabled and tuned per user: security or account drop, data to update, income tax and LMNP returns, local taxes, deadlines of the leases, loans and DPE, late rent, tenant insurance, deposit return, signatures, new release, login…
 
 ### Web application
 
@@ -69,8 +87,10 @@
 | Finance batch update | Property home | Property details |
 | [![Property cash flow](docs/images/property_accounting.png)](docs/images/property_accounting.png) | [![Property LMNP](docs/images/property_lmnp.png)](docs/images/property_lmnp.png) | [![SCPI](docs/images/scpi.png)](docs/images/scpi.png) |
 | Property cash flow | Property LMNP | SCPI |
-| [![Household budget](docs/images/budget.png)](docs/images/budget.png) | | |
-| Household budget | | |
+| [![Household budget](docs/images/budget.png)](docs/images/budget.png) | [![Rental management](docs/images/rental_dashboard.png)](docs/images/rental_dashboard.png) | [![Lease](docs/images/rental_lease.png)](docs/images/rental_lease.png) |
+| Household budget | Rental management | Lease |
+| [![Inventory of fixtures](docs/images/rental_inventory.png)](docs/images/rental_inventory.png) | [![Notification settings](docs/images/notifications_settings.png)](docs/images/notifications_settings.png) | |
+| Inventory of fixtures | Notification settings | |
 
 ## Configuration
 
@@ -90,6 +110,8 @@ services:
       SECRET_KEY: "change-me-to-a-long-random-string"
       APP_URL: "https://glad.my.domain"
 ```
+
+The `/app/data` volume holds the SQLite database and the uploaded documents (`media/`: leases, inventories, photos, receipts). Next to the web server, the container runs a worker for the background tasks (emails, notifications) and a scheduler for the daily jobs (prices, notification checks, rent emails); set `BACKGROUND_JOBS_ENABLED=false` to run them elsewhere.
 
 The image runs the application as an unprivileged user (`glad`, UID 1000). On start it takes ownership of `/app/data` if needed, so volumes created by older versions keep working. The container exposes port 8000, answers health checks on `/health`, and the `latest` tag always points to the latest release. Images are published for `linux/amd64` and `linux/arm64`.
 
@@ -137,6 +159,12 @@ When `APP_URL` uses `https`, the secure defaults below (SSL redirect, secure coo
 | `EMAIL_TIMEOUT`         | No          | `10`                    | SMTP timeout in seconds                                                          |
 | `DEFAULT_FROM_EMAIL`    | No          | `Glad <glad@localhost>` | Sender address for notifications                                                 |
 | `EMAIL_SUBJECT_PREFIX`  | No          | `[Glad] `               | Prefix of email subjects                                                         |
+| `BACKGROUND_JOBS_ENABLED` | No        | `true`                  | Start the task worker and the scheduler with the web server                      |
+| `TASKS_BACKEND`         | No          | database                | `immediate` runs the background tasks inline (development, no worker needed)     |
+| `NOTIFICATIONS_TIME`    | No          | `08:00`                 | Time of the daily notification checks (HH:MM, server time zone)                  |
+| `MEDIA_ROOT`            | No          | `data/media`            | Folder of the uploaded documents                                                 |
+| `DOCUMENSO_URL`         | No          | —                       | URL of a Documenso instance, to sign the leases and inventories online           |
+| `DOCUMENSO_API_TOKEN`   | No          | —                       | API token of the Documenso instance                                              |
 
 ### Database
 
