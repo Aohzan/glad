@@ -24,6 +24,12 @@ def percent(value: Decimal | float | None) -> str | None:
     return None if value is None else decimal(value)
 
 
+def quantity(value: Decimal | None) -> str | None:
+    """A number of units, to the precision of the quantity fields (6
+    decimals), None when unknown."""
+    return None if value is None else decimal(value, 6)
+
+
 def money(value: Money | None) -> dict[str, str] | None:
     if value is None:
         return None

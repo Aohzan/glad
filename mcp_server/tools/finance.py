@@ -15,7 +15,7 @@ from finance.models.investment_account import (
 from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount
 from finance.services.performance import account_performance
-from mcp_server.serializers import decimal, money, percent, ref, to_json
+from mcp_server.serializers import decimal, money, percent, quantity, ref, to_json
 from mcp_server.server import glad_tool
 
 AccountKind = Literal["saving", "investment", "other"]
@@ -123,10 +123,10 @@ def _holding(holding: InvestmentAccountHolding) -> dict:
         "name": holding.name or holding.code or "",
         "isin": holding.isin or "",
         "asset_class": holding.asset_class or "unclassified",
-        "quantity": None if holding.quantity is None else decimal(holding.quantity, 6),
+        "quantity": quantity(holding.quantity),
         "value": money(holding.value),
         "initial_value": money(holding.initial_value),
-        "initial_quantity": to_json(holding.initial_quantity),
+        "initial_quantity": quantity(holding.initial_quantity),
     }
 
 
