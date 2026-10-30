@@ -5,6 +5,7 @@ from typing import Literal
 
 from django.db.models import Max
 
+from base.choices import AssetClass
 from base.services.ownership import HolderResolver
 from finance.models.investment_account import (
     InvestmentAccount,
@@ -14,7 +15,7 @@ from finance.models.investment_account import (
 from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount
 from finance.services.performance import account_performance
-from mcp_server.serializers import decimal, money, percent, to_json
+from mcp_server.serializers import decimal, money, percent, ref, to_json
 from mcp_server.server import glad_tool
 
 AccountKind = Literal["saving", "investment", "other"]
@@ -185,3 +186,60 @@ def get_account(kind: AccountKind, account_id: int, history: int = 24) -> dict:
             ],
         )
     return details
+
+
+def _holding_issues(holding: InvestmentAccountHolding) -> list[str]:
+    issues = []
+    if not holding.asset_class:
+        issues.append("no_asset_class")
+    if not holding.isin and holding.asset_class != AssetClass.EURO_FUND:
+        issues.append("no_isin")
+    initial = holding.initial_value
+    if holding.value.amount > 0 and (initial is None or not initial.amount):
+        issues.append("no_purchase_value")
+    return issues
+
+
+def _account_issues(account) -> list[str]:
+    issues = []
+    if not _invested(account) and account.current_value.amount > 0:
+        issues.append("no_deposits_nor_opening_value")
+    if isinstance(account, SavingAccount) and not account.interest_rate:
+        issues.append("no_interest_rate")
+    usage = account.ceiling_usage
+    if usage is not None and usage.contributed > usage.ceiling:
+        issues.append("deposit_ceiling_exceeded")
+    return issues
+
+
+@glad_tool()
+def get_data_quality_issues() -> list[dict]:
+    """Data to complete in the active accounts: holdings without asset class
+    (no_asset_class), ISIN (no_isin, euro funds left aside) or purchase value
+    (no_purchase_value: no PRU, no gain), accounts with a value but neither
+    deposit nor opening value (no_deposits_nor_opening_value: no XIRR),
+    savings accounts without interest rate (no_interest_rate), envelopes over
+    their deposit ceiling (deposit_ceiling_exceeded). Fix them with
+    update_holding, update_account or add_account_deposit."""
+    rows = []
+    for kind in ("saving", "investment"):
+        for account in (
+            MODELS[kind].objects.filter(is_active=True).select_related("account_type")
+        ):
+            if issues := _account_issues(account):
+                rows.append({"kind": kind, "account": ref(account), "issues": issues})
+    holdings = InvestmentAccountHolding.objects.filter(
+        is_active=True, account__is_active=True
+    ).select_related("account__account_type")
+    for holding in holdings:
+        if issues := _holding_issues(holding):
+            rows.append(
+                {
+                    "kind": "holding",
+                    "holding_id": holding.pk,
+                    "name": holding.name or holding.code or "",
+                    "account": ref(holding.account),
+                    "issues": issues,
+                }
+            )
+    return rows
