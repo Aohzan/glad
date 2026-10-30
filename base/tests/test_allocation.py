@@ -59,6 +59,12 @@ class TestAllocation:
         allocation = Allocation("EUR")
         assert allocation.by_asset_class() == []
         assert allocation.total == 0
+        assert allocation.negative_total == 0
+
+    def test_negative_total(self):
+        allocation = Allocation("EUR", [_item(300), _item(-50), _item(-20)])
+        assert allocation.total == Decimal(300)
+        assert allocation.negative_total == Decimal(-70)
 
 
 class TestEmergencyFund:
@@ -142,7 +148,7 @@ class TestComputeAllocation:
         assert by_liquidity[Liquidity.CONDITIONAL] == Decimal(6500)
         assert by_liquidity[Liquidity.ILLIQUID] == Decimal(102000)
 
-    def test_underwater_property_counts_zero(self, assets):
+    def test_underwater_property_left_out(self, assets):
         """A pie chart cannot show the negative equity of a property."""
         prop = Property.objects.get(name="Alloc flat")
         PropertyLoan.objects.create(
@@ -156,6 +162,10 @@ class TestComputeAllocation:
         by_class = {r.key: r.amount for r in allocation.by_asset_class()}
         # Only the SCPI is left in real estate.
         assert by_class[AssetClass.REAL_ESTATE] == Decimal(2000)
+        assert allocation.negative_total < 0
+        assert allocation.negative_total == sum(
+            i.amount for i in allocation.items if i.label == str(prop)
+        )
 
     def test_other_currency_is_ignored(self, assets):
         assert compute_allocation("JPY").items == []
@@ -168,6 +178,23 @@ class TestAllocationView:
         assert response.status_code == 200
         assert 'id="emergency-fund"' in response.content.decode()
         assert response.context["fund"].monthly_expenses is None
+
+    def test_page_shows_the_negative_total(self, user_client, monkeypatch):
+        allocation = Allocation("EUR", [_item(1000), _item(-250)])
+        monkeypatch.setattr(
+            "base.views.compute_allocation", lambda *_args, **_kwargs: allocation
+        )
+        content = user_client.get(reverse("allocation")).content.decode()
+        assert 'id="allocation-negative"' in content
+        assert "assets worth less than nothing, -€250.00" in content
+
+    def test_page_without_negative_total(self, user_client, monkeypatch):
+        allocation = Allocation("EUR", [_item(1000)])
+        monkeypatch.setattr(
+            "base.views.compute_allocation", lambda *_args, **_kwargs: allocation
+        )
+        content = user_client.get(reverse("allocation")).content.decode()
+        assert 'id="allocation-negative"' not in content
 
     def test_save_expenses(self, user_client, user):
         response = user_client.post(reverse("allocation"), {"monthly_expenses": "2500"})

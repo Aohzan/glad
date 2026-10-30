@@ -79,7 +79,8 @@ def test_get_allocation(api_key):
         and len(row["share_pct"].partition(".")[2]) <= 2
         for row in result["by_asset_class"]
     )
-    assert Decimal(result["negative_total"]) <= 0
+    # The fixture parking is worth less than its loan.
+    assert Decimal(result["negative_total"]) < 0
 
 
 @pytest.mark.django_db

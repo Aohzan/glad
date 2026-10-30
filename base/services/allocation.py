@@ -69,6 +69,11 @@ class Allocation:
         """Sum of the positive items."""
         return sum((i.amount for i in self.items if i.amount > 0), Decimal(0))
 
+    @property
+    def negative_total(self) -> Decimal:
+        """Sum of the items worth less than nothing, left out of the breakdown."""
+        return sum((i.amount for i in self.items if i.amount < 0), Decimal(0))
+
     def _rows(self, attr: str, labels: dict[str, str]) -> list[AllocationRow]:
         totals: dict[str, Decimal] = {}
         for item in self.items:
@@ -178,9 +183,9 @@ def compute_allocation(currency: str, people: set[int] | None = None) -> Allocat
             items.append(
                 AllocationItem(
                     label=str(prop),
-                    # A pie chart cannot show the negative equity of an
-                    # underwater property.
-                    amount=max(Decimal(0), prop.net_value.amount) * ratio,
+                    # The negative equity of an underwater property is kept:
+                    # the breakdown leaves it out, negative_total sums it.
+                    amount=prop.net_value.amount * ratio,
                     asset_class=AssetClass.REAL_ESTATE,
                     liquidity=Liquidity.ILLIQUID,
                 )
