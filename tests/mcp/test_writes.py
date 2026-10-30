@@ -7,6 +7,7 @@ import pytest
 from asgiref.sync import async_to_sync
 from djmoney.money import Money
 
+from base.choices import AssetClass
 from budget.models import BudgetCategory, BudgetLine, BudgetYear
 from finance.models.investment_account import (
     InvestmentAccount,
@@ -687,11 +688,16 @@ def test_record_trade_refuses_closed_unknown_or_out_of_order(write_key, traded_h
 
 @pytest.mark.django_db
 def test_get_data_quality_issues(api_key):
-    holding = InvestmentAccountHolding.objects.filter(
+    holding, euro_fund = InvestmentAccountHolding.objects.filter(
         is_active=True, account__is_active=True
-    )[0]
+    )[:2]
     InvestmentAccountHolding.objects.filter(pk=holding.pk).update(
         asset_class="", isin="", initial_value=Money(0, holding.account.currency)
+    )
+    InvestmentAccountHolding.objects.filter(pk=euro_fund.pk).update(
+        asset_class=AssetClass.EURO_FUND,
+        isin="",
+        initial_value=Money(0, euro_fund.account.currency),
     )
     saving = SavingAccount.objects.filter(is_active=True)[0]
     SavingAccount.objects.filter(pk=saving.pk).update(interest_rate=0)
@@ -715,6 +721,7 @@ def test_get_data_quality_issues(api_key):
     assert {"no_asset_class", "no_isin", "no_purchase_value"} <= set(
         by_holding[holding.pk]["issues"]
     )
+    assert euro_fund.pk not in by_holding
     by_account = {
         row["account"]["id"]: row for row in result if row["kind"] == "saving"
     }
