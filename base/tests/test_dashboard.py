@@ -141,6 +141,22 @@ class TestRegistry:
         assert dashboard._history_net(today) == hero.net
         assert today["properties_gross"] - today["properties_net"] == hero.debt
 
+    def test_property_bought_within_30_days_was_worth_nothing(self, assets):
+        """An estimate dated before the purchase and a loan disbursed since
+        then do not turn the purchase into a loss."""
+        prop = assets["property"]
+        prop.buying_date = TODAY - datetime.timedelta(days=2)
+        prop.save()
+        PropertyValue.objects.create(
+            property=prop,
+            value=_money(110000),
+            valuation_date=TODAY - datetime.timedelta(days=60),
+        )
+        groups = dashboard.registry(CURRENCY, TODAY)
+        row = next(g for g in groups if g.kind == "property").rows[0]
+        assert row.old_value == 0
+        assert row.change == row.value
+
     def test_underwater_property_shows_its_negative_equity(self, assets):
         """The net value and the debts keep a loan above the property value."""
         prop = assets["property"]
