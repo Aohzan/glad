@@ -5,9 +5,15 @@ from decimal import Decimal
 
 import pytest
 from asgiref.sync import async_to_sync
+from djmoney.money import Money
 
 from budget.models import BudgetCategory, BudgetLine, BudgetYear
-from finance.models.investment_account import InvestmentAccount, InvestmentAccountCash
+from finance.models.investment_account import (
+    InvestmentAccount,
+    InvestmentAccountCash,
+    InvestmentAccountDeposit,
+    InvestmentAccountHolding,
+)
 from finance.models.other_asset import OtherAsset, OtherAssetValue
 from finance.models.saving_account import (
     SavingAccount,
@@ -28,6 +34,10 @@ WRITE_TOOLS = {
     "add_ledger_entry",
     "check_ledger_occurrence",
     "save_budget_line",
+    "update_deposit",
+    "delete_deposit",
+    "update_account",
+    "update_holding",
 }
 
 
@@ -353,3 +363,239 @@ def test_save_budget_line_refuses_a_negative_amount(write_key):
             label="x",
             amount="-5",
         )
+
+
+def _deposit(write_key, account, amount="250", **extra):
+    return call_tool(
+        write_key,
+        "add_account_deposit",
+        kind="saving",
+        account_id=account.pk,
+        amount=amount,
+        date=TODAY.isoformat(),
+        **extra,
+    )
+
+
+@pytest.mark.django_db
+def test_add_account_deposit_refuses_a_duplicate(write_key):
+    account = SavingAccount.objects.filter(is_active=True)[0]
+    first = _deposit(write_key, account)
+    with pytest.raises(ToolFailed, match=f"Deposit {first['id']} already"):
+        _deposit(write_key, account)
+    assert _deposit(write_key, account, amount="251")["id"] != first["id"]
+
+
+@pytest.mark.django_db
+def test_update_deposit_into_a_duplicate_is_refused(write_key):
+    account = SavingAccount.objects.filter(is_active=True)[0]
+    _deposit(write_key, account)
+    other = _deposit(write_key, account, amount="251")
+    with pytest.raises(ToolFailed, match="duplicate an existing entry"):
+        call_tool(
+            write_key,
+            "update_deposit",
+            kind="saving",
+            deposit_id=other["id"],
+            amount="250",
+        )
+
+
+@pytest.mark.django_db
+def test_update_deposit_keeps_the_left_out_values(write_key):
+    account = SavingAccount.objects.filter(is_active=True)[0]
+    created = _deposit(write_key, account, origin="income", source="Salary")
+    result = call_tool(
+        write_key,
+        "update_deposit",
+        kind="saving",
+        deposit_id=created["id"],
+        amount="300",
+    )
+    deposit = SavingAccountDeposit.objects.get(pk=created["id"])
+    assert deposit.amount.amount == 300
+    assert deposit.origin == "income"
+    assert deposit.source == "Salary"
+    assert result["date"] == TODAY.isoformat()
+
+
+@pytest.mark.django_db
+def test_update_investment_deposit(write_key):
+    deposit = InvestmentAccountDeposit.objects.all()[0]
+    call_tool(
+        write_key,
+        "update_deposit",
+        kind="investment",
+        deposit_id=deposit.pk,
+        date="2024-02-03",
+        origin="transfer",
+    )
+    deposit.refresh_from_db()
+    assert deposit.deposit_date == datetime.date(2024, 2, 3)
+    assert deposit.origin == "transfer"
+
+
+@pytest.mark.django_db
+def test_update_deposit_reports_form_errors(write_key):
+    deposit = InvestmentAccountDeposit.objects.all()[0]
+    with pytest.raises(ToolFailed, match="origin"):
+        call_tool(
+            write_key,
+            "update_deposit",
+            kind="investment",
+            deposit_id=deposit.pk,
+            origin="lottery",
+        )
+
+
+@pytest.mark.django_db
+def test_delete_deposit_needs_a_confirmation(write_key):
+    account = SavingAccount.objects.filter(is_active=True)[0]
+    created = _deposit(write_key, account)
+    described = call_tool(
+        write_key, "delete_deposit", kind="saving", deposit_id=created["id"]
+    )
+    assert described["deleted"] is False
+    assert described["deposit"]["amount"]["amount"] == "250"
+    assert SavingAccountDeposit.objects.filter(pk=created["id"]).exists()
+    deleted = call_tool(
+        write_key,
+        "delete_deposit",
+        kind="saving",
+        deposit_id=created["id"],
+        confirm=True,
+    )
+    assert deleted["deleted"] is True
+    assert not SavingAccountDeposit.objects.filter(pk=created["id"]).exists()
+
+
+def test_delete_deposit_is_flagged_destructive():
+    tool = mcp._tool_manager.get_tool("delete_deposit")
+    assert tool is not None and tool.annotations is not None
+    assert tool.annotations.destructive_hint
+
+
+@pytest.mark.django_db
+def test_update_saving_account(write_key):
+    account = SavingAccount.objects.filter(is_active=True)[0]
+    owners = list(account.ownerships.values_list("user_id", "share"))
+    result = call_tool(
+        write_key,
+        "update_account",
+        kind="saving",
+        account_id=account.pk,
+        interest_rate="2.4",
+        notes="Rate of the bank",
+    )
+    account.refresh_from_db()
+    assert account.interest_rate == Decimal("2.4")
+    assert account.commentaire == "Rate of the bank"
+    assert result["interest_rate"] == "2.4"
+    assert list(account.ownerships.values_list("user_id", "share")) == owners
+
+
+@pytest.mark.django_db
+def test_update_investment_account_and_other_asset(write_key):
+    account = InvestmentAccount.objects.filter(is_active=True)[0]
+    call_tool(
+        write_key,
+        "update_account",
+        kind="investment",
+        account_id=account.pk,
+        institution="New bank",
+    )
+    account.refresh_from_db()
+    assert account.institution == "New bank"
+    asset = OtherAsset.objects.filter(is_active=True)[0]
+    result = call_tool(
+        write_key, "update_account", kind="other", account_id=asset.pk, name="Car"
+    )
+    assert result["name"] == "Car"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("kind", "model", "arguments", "message"),
+    [
+        ("investment", InvestmentAccount, {"interest_rate": "1"}, "Only a savings"),
+        ("other", OtherAsset, {"institution": "Bank"}, "only a name and notes"),
+    ],
+)
+def test_update_account_refuses_foreign_fields(
+    write_key, kind, model, arguments, message
+):
+    account = model.objects.filter(is_active=True)[0]
+    with pytest.raises(ToolFailed, match=message):
+        call_tool(
+            write_key, "update_account", kind=kind, account_id=account.pk, **arguments
+        )
+
+
+@pytest.mark.django_db
+def test_update_holding(write_key):
+    holding = InvestmentAccountHolding.objects.filter(is_active=True)[0]
+    result = call_tool(
+        write_key,
+        "update_holding",
+        holding_id=holding.pk,
+        isin=" fr0010315770 ",
+        asset_class="equities",
+        initial_value="1234.5",
+    )
+    holding.refresh_from_db()
+    assert holding.isin == "FR0010315770"
+    assert holding.asset_class == "equities"
+    assert holding.initial_value.amount == Decimal("1234.5")
+    assert result["asset_class"] == "equities"
+
+
+@pytest.mark.django_db
+def test_update_holding_validates_the_asset_class_and_the_isin(write_key):
+    holding = InvestmentAccountHolding.objects.filter(is_active=True)[0]
+    with pytest.raises(ToolFailed, match="asset_class"):
+        call_tool(
+            write_key, "update_holding", holding_id=holding.pk, asset_class="gold"
+        )
+    holding.auto_update_price = True
+    holding.isin = "FR0010315770"
+    holding.save()
+    with pytest.raises(ToolFailed, match="auto_update_price"):
+        call_tool(write_key, "update_holding", holding_id=holding.pk, isin="")
+
+
+@pytest.mark.django_db
+def test_get_data_quality_issues(api_key):
+    holding = InvestmentAccountHolding.objects.filter(
+        is_active=True, account__is_active=True
+    )[0]
+    InvestmentAccountHolding.objects.filter(pk=holding.pk).update(
+        asset_class="", isin="", initial_value=Money(0, holding.account.currency)
+    )
+    saving = SavingAccount.objects.filter(is_active=True)[0]
+    SavingAccount.objects.filter(pk=saving.pk).update(interest_rate=0)
+    capped = next(
+        a for a in SavingAccount.objects.filter(is_active=True) if a.ceiling_usage
+    )
+    SavingAccountDeposit.objects.create(
+        account=capped, amount=Money(10**6, capped.currency), deposit_date=TODAY
+    )
+    empty = SavingAccount.objects.create(
+        account_type=saving.account_type,
+        name="Without deposit",
+        opening_value=Money(0, "EUR"),
+        opening_date=datetime.date(2024, 1, 1),
+    )
+    SavingAccountValue.objects.create(
+        account=empty, value=Money(500, "EUR"), value_date=datetime.datetime(2025, 1, 1)
+    )
+    result = call_tool(api_key, "get_data_quality_issues")
+    by_holding = {row["holding_id"]: row for row in result if row["kind"] == "holding"}
+    assert {"no_asset_class", "no_isin", "no_purchase_value"} <= set(
+        by_holding[holding.pk]["issues"]
+    )
+    by_account = {
+        row["account"]["id"]: row for row in result if row["kind"] == "saving"
+    }
+    assert "no_interest_rate" in by_account[saving.pk]["issues"]
+    assert "deposit_ceiling_exceeded" in by_account[capped.pk]["issues"]
+    assert "no_deposits_nor_opening_value" in by_account[empty.pk]["issues"]
