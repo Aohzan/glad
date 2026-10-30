@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 09:48+0100\n"
+"POT-Creation-Date: 2026-10-30 12:35+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -1121,7 +1121,7 @@ msgid "budget categories"
 msgstr "catégories de budget"
 
 #: budget/models.py:69 finance/models/other_asset.py:70 mcp_server/forms.py:11
-#: mcp_server/models.py:39 mcp_server/tests/test_serializers.py:56
+#: mcp_server/models.py:39 mcp_server/tests/test_serializers.py:62
 #: notifications/forms.py:14 notifications/models.py:35
 #: property/models/asset.py:51 property/models/asset.py:302
 #: property/models/scpi.py:42 rental/forms.py:167
