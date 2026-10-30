@@ -41,6 +41,7 @@ from finance.models.saving_account import (
     SavingAccountValue,
 )
 from mcp_server.serializers import money, ref, to_json
+from mcp_server.serializers import quantity as units
 from mcp_server.server import ToolInputError, glad_tool
 from property.forms import (
     PropertyLedgerEntryQuickCreateForm,
@@ -325,7 +326,7 @@ def update_holding(
         "isin": saved.isin or "",
         "asset_class": saved.asset_class or "unclassified",
         "initial_value": money(saved.initial_value),
-        "initial_quantity": to_json(saved.initial_quantity),
+        "initial_quantity": units(saved.initial_quantity),
     }
 
 

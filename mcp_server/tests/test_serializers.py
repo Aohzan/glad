@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy
 from djmoney.money import Money
 
 from mcp_server.models import ApiKey, McpCallLog
-from mcp_server.serializers import decimal, money, percent, ref, to_json
+from mcp_server.serializers import decimal, money, percent, quantity, ref, to_json
 from mcp_server.server import _error_message
 
 
@@ -41,6 +41,12 @@ def test_decimal_rounds_to_the_cent_without_trailing_zeros():
 def test_percent():
     assert percent(None) is None
     assert percent(12.3456) == "12.35"
+
+
+def test_quantity_keeps_the_fractions_of_units():
+    assert quantity(Decimal("102.256000")) == "102.256"
+    assert quantity(Decimal("23.9945")) == "23.9945"
+    assert quantity(None) is None
 
 
 def test_money_and_ref_of_none():

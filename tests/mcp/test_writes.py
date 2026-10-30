@@ -541,12 +541,15 @@ def test_update_holding(write_key):
         isin=" fr0010315770 ",
         asset_class="equities",
         initial_value="1234.5",
+        initial_quantity="23.9945",
     )
     holding.refresh_from_db()
     assert holding.isin == "FR0010315770"
     assert holding.asset_class == "equities"
     assert holding.initial_value.amount == Decimal("1234.5")
     assert result["asset_class"] == "equities"
+    assert holding.initial_quantity == Decimal("23.9945")
+    assert result["initial_quantity"] == "23.9945"
 
 
 @pytest.mark.django_db
