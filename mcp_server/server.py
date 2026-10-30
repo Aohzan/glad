@@ -16,7 +16,7 @@ from typing import Any
 
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import close_old_connections, transaction
+from django.db import IntegrityError, close_old_connections, transaction
 from django.utils import timezone
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
@@ -71,6 +71,8 @@ def _error_message(exc: Exception) -> str:
         return " ".join(exc.messages)
     if isinstance(exc, ObjectDoesNotExist):
         return "Not found."
+    if isinstance(exc, IntegrityError):
+        return "This would duplicate an existing entry."
     return str(exc)
 
 
@@ -85,7 +87,12 @@ def _run(func: FunctionType, write: bool, kwargs: dict[str, Any]) -> Any:
     try:
         with transaction.atomic() if write else nullcontext():
             result = func(**kwargs)
-    except (ToolInputError, ValidationError, ObjectDoesNotExist) as exc:
+    except (
+        ToolInputError,
+        ValidationError,
+        ObjectDoesNotExist,
+        IntegrityError,
+    ) as exc:
         log.success = False
         log.error = _error_message(exc)
         raise ToolError(log.error) from exc
@@ -100,11 +107,14 @@ def _run(func: FunctionType, write: bool, kwargs: dict[str, Any]) -> Any:
     return result
 
 
-def glad_tool(*, write: bool = False) -> Callable[[FunctionType], FunctionType]:
+def glad_tool(
+    *, write: bool = False, destructive: bool = False
+) -> Callable[[FunctionType], FunctionType]:
     """Register a synchronous function as an MCP tool.
 
     The docstring is the description the model reads, and the type hints its
-    input schema. The result is returned as JSON text.
+    input schema. The result is returned as JSON text. A *destructive* tool
+    (a deletion) is flagged so that the client asks the user first.
     """
 
     def decorator(func: FunctionType) -> FunctionType:
@@ -118,7 +128,7 @@ def glad_tool(*, write: bool = False) -> Callable[[FunctionType], FunctionType]:
         mcp.tool(
             annotations=ToolAnnotations(
                 read_only_hint=not write,
-                destructive_hint=False,
+                destructive_hint=destructive,
                 open_world_hint=False,
             ),
             structured_output=False,

@@ -1,8 +1,10 @@
-"""Write tools: values, deposits, ledger entries, checked occurrences, budget lines.
+"""Write tools: values, deposits, accounts, holdings, ledger entries, checked
+occurrences, budget lines.
 
-Each tool fills the form of the matching page of the application, so the
-data goes through the same validation; the form errors are sent back to the
-model. ``glad_tool(write=True)`` runs them in a transaction.
+Each tool fills the form of the matching page of the application (restricted
+to the changed fields for the updates), so the data goes through the same
+validation; the form errors are sent back to the model. ``glad_tool(write=True)``
+runs them in a transaction.
 """
 
 import datetime
@@ -14,11 +16,13 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from djmoney.money import Money
 
+from base.choices import AssetClass
 from budget.forms import BudgetLineForm
 from budget.models import BudgetCategory, BudgetLine, BudgetYear
 from finance.forms import (
     InvestmentAccountCashForm,
     InvestmentAccountDepositForm,
+    InvestmentAccountHoldingForm,
     OtherAssetValueForm,
     SavingAccountDepositForm,
     SavingAccountValueForm,
@@ -28,6 +32,7 @@ from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountCash,
     InvestmentAccountDeposit,
+    InvestmentAccountHolding,
 )
 from finance.models.other_asset import OtherAsset, OtherAssetValue
 from finance.models.saving_account import (
@@ -98,6 +103,44 @@ def _money_data(name: str, amount: Decimal, currency: str) -> dict:
     return {f"{name}_0": str(amount), f"{name}_1": currency}
 
 
+def _field_data(name: str, value) -> dict:
+    """Form data of one model field value."""
+    if isinstance(value, Money):
+        return _money_data(name, value.amount, str(value.currency))
+    if isinstance(value, bool):
+        return {name: "on"} if value else {}
+    if isinstance(value, datetime.date):
+        return {name: value.isoformat()}
+    return {name: "" if value is None else str(value)}
+
+
+def _update(instance, fields: dict, form=forms.ModelForm):
+    """Save *instance* with the new values of *fields* (None: unchanged)
+    through a form of *form* restricted to those fields."""
+    form_class = forms.modelform_factory(type(instance), form=form, fields=list(fields))
+    data = {}
+    for name, value in fields.items():
+        data.update(
+            _field_data(name, getattr(instance, name) if value is None else value)
+        )
+    return _save(form_class(data, instance=instance))
+
+
+def _day(value: datetime.date) -> datetime.date:
+    return value.date() if isinstance(value, datetime.datetime) else value
+
+
+def _deposit(deposit) -> dict:
+    return {
+        "id": deposit.pk,
+        "account": ref(deposit.account),
+        "date": to_json(deposit.deposit_date),
+        "amount": money(deposit.amount),
+        "origin": DepositOrigin(deposit.origin).value,
+        "source": deposit.source or "",
+    }
+
+
 @glad_tool(write=True)
 def add_account_value(
     kind: Literal["saving", "investment", "other"],
@@ -140,9 +183,18 @@ def add_account_deposit(
     account. *origin* tells where the money comes from, for the budget
     (income, transfer between accounts, exceptional, employer). With
     *update_balance*, the account balance (savings) or cash (investment)
-    gains the amount, as in the application."""
+    gains the amount, as in the application. An account takes one deposit of
+    a given amount per day: a second one is refused as a duplicate."""
     form_class, parent_model, model, update_field = DEPOSITS[kind]
     parent = parent_model.objects.get(pk=account_id)
+    same = model.objects.filter(account=parent, amount=Money(amount, parent.currency))
+    duplicate = next((d for d in same if _day(d.deposit_date) == date), None)
+    if duplicate is not None:
+        raise ToolInputError(
+            f"Deposit {duplicate.pk} already has this amount on this day: "
+            "check that this is not the same deposit, or change it with "
+            "update_deposit."
+        )
     data = {
         **_money_data("amount", amount, parent.currency),
         "deposit_date": date.isoformat(),
@@ -152,14 +204,136 @@ def add_account_deposit(
     if update_balance:
         data[update_field] = "on"
     saved = _save(form_class(data, instance=model(account=parent)))
+    return {**_deposit(saved), "account_value": money(parent.get_value())}
+
+
+@glad_tool(write=True)
+def update_deposit(
+    kind: Literal["saving", "investment"],
+    deposit_id: int,
+    amount: Decimal | None = None,
+    date: datetime.date | None = None,
+    origin: Origin | None = None,
+    source: str | None = None,
+) -> dict:
+    """Correct a deposit of a savings or investment account: the arguments
+    left out keep their value. The balance (or cash) value that the deposit
+    created when it was entered is not changed: correct it with
+    add_account_value if needed."""
+    form_class, _parent_model, model, _update_field = DEPOSITS[kind]
+    deposit = model.objects.select_related("account").get(pk=deposit_id)
+    saved = _update(
+        deposit,
+        {
+            "amount": None
+            if amount is None
+            else Money(amount, deposit.account.currency),
+            "deposit_date": date,
+            "origin": origin,
+            "source": source,
+        },
+        form=form_class,
+    )
+    return _deposit(saved)
+
+
+@glad_tool(write=True, destructive=True)
+def delete_deposit(
+    kind: Literal["saving", "investment"], deposit_id: int, confirm: bool = False
+) -> dict:
+    """Delete a deposit entered by mistake. Without *confirm*, only describe
+    the deposit that would be deleted: show it to the user and call again
+    with confirm=true once they agree. The balance (or cash) value that the
+    deposit created when it was entered is kept: correct it with
+    add_account_value if needed."""
+    _form_class, _parent_model, model, _update_field = DEPOSITS[kind]
+    deposit = model.objects.select_related("account").get(pk=deposit_id)
+    described = _deposit(deposit)
+    if not confirm:
+        return {"deleted": False, "deposit": described}
+    deposit.delete()
+    return {"deleted": True, "deposit": described}
+
+
+@glad_tool(write=True)
+def update_account(
+    kind: Literal["saving", "investment", "other"],
+    account_id: int,
+    name: str | None = None,
+    institution: str | None = None,
+    notes: str | None = None,
+    interest_rate: Decimal | None = None,
+) -> dict:
+    """Change the name, institution, notes or interest rate (savings
+    accounts, in percent) of an account; the name and notes of an other
+    asset. The arguments left out keep their value."""
+    account = VALUES[kind][1].objects.get(pk=account_id)
+    if isinstance(account, OtherAsset):
+        if institution is not None or interest_rate is not None:
+            raise ToolInputError("An other asset has only a name and notes.")
+        fields = {"name": name, "notes": notes}
+    else:
+        fields = {"name": name, "institution": institution, "commentaire": notes}
+        if isinstance(account, SavingAccount):
+            fields["interest_rate"] = interest_rate
+        elif interest_rate is not None:
+            raise ToolInputError("Only a savings account has an interest rate.")
+    saved = _update(account, fields)
     return {
         "id": saved.pk,
-        "account": ref(parent),
-        "date": to_json(saved.deposit_date),
-        "amount": money(saved.amount),
-        "origin": DepositOrigin(saved.origin).value,
-        "account_value": money(parent.get_value()),
+        "kind": kind,
+        "name": str(saved),
+        "institution": getattr(saved, "institution", None) or "",
+        "notes": getattr(saved, "commentaire", None) or getattr(saved, "notes", ""),
+        "interest_rate": to_json(getattr(saved, "interest_rate", None)),
     }
+
+
+def update_holding(
+    holding_id: int,
+    name: str | None = None,
+    isin: str | None = None,
+    asset_class: str | None = None,
+    initial_value: Decimal | None = None,
+    initial_quantity: Decimal | None = None,
+) -> dict:
+    """Change a holding of an investment account: its name, ISIN, asset class
+    (one of: {asset_classes}), or its initial value and quantity, from which
+    the purchase price (PRU) and the gain are computed. The arguments left
+    out keep their value."""
+    holding = InvestmentAccountHolding.objects.select_related("account").get(
+        pk=holding_id
+    )
+    saved = _update(
+        holding,
+        {
+            "name": name,
+            "isin": None if isin is None else isin.strip().upper(),
+            "asset_class": asset_class,
+            "initial_value": None
+            if initial_value is None
+            else Money(initial_value, holding.account.currency),
+            "initial_quantity": initial_quantity,
+            "auto_update_price": None,
+        },
+        form=InvestmentAccountHoldingForm,
+    )
+    return {
+        "id": saved.pk,
+        "account": ref(saved.account),
+        "name": saved.name or "",
+        "isin": saved.isin or "",
+        "asset_class": saved.asset_class or "unclassified",
+        "initial_value": money(saved.initial_value),
+        "initial_quantity": to_json(saved.initial_quantity),
+    }
+
+
+# The asset classes are listed in the description the model reads.
+update_holding.__doc__ = (update_holding.__doc__ or "").replace(
+    "{asset_classes}", ", ".join(AssetClass.values)
+)
+glad_tool(write=True)(update_holding)
 
 
 @glad_tool(write=True)
