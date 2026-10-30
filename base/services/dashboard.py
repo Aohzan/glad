@@ -23,6 +23,7 @@ from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount
 from property.models import Property, PropertyLoan
 from property.models.scpi import SCPIInvestment
+from property.services.loans import loan_rows
 from property.services.monthly_flows import monthly_flows
 
 #: Days of the short-term change shown everywhere on the dashboard.
@@ -326,13 +327,16 @@ def liabilities(today: datetime.date) -> list[Liability]:
         .select_related("property")
         .prefetch_related("amortization_entries")
     )
-    for loan in loans:
-        remaining = loan.remaining_balance(today).amount
+    for row in loan_rows(loans, today):
+        loan = row.loan
+        remaining = row.remaining_balance.amount
         if remaining <= 0:
             continue
         original = loan.original_amount.amount
-        monthly = (loan.monthly_payment.amount if loan.monthly_payment else 0) + (
-            loan.insurance.amount if loan.insurance else 0
+        # The next installment of the schedule, as on the loan tables: the
+        # stored payment misses a smoothed loan or a partial first installment.
+        monthly = (row.monthly_payment.amount if row.monthly_payment else 0) + (
+            row.monthly_insurance.amount if row.monthly_insurance else 0
         )
         result.append(
             Liability(

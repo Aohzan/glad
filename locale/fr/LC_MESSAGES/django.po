@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 22:53+0100\n"
+"POT-Creation-Date: 2026-10-31 00:05+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -225,7 +225,7 @@ msgid "Finance"
 msgstr "Finance"
 
 #: base/context_processors.py:46 base/search_views.py:77
-#: base/services/dashboard.py:50 templates/base.html:60
+#: base/services/dashboard.py:51 templates/base.html:60
 #: templates/finance/edit_other_asset.html:17
 #: templates/finance/other_asset_detail.html:15
 #: templates/finance/other_asset_list.html:4
@@ -238,7 +238,7 @@ msgid "CSV import / export"
 msgstr "Import / export CSV"
 
 #: base/context_processors.py:48 base/search_views.py:75
-#: base/services/dashboard.py:46 notifications/registry.py:24
+#: base/services/dashboard.py:47 notifications/registry.py:24
 #: property/forms.py:868 property/models/fiscal.py:34 templates/base.html:58
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:6
@@ -246,7 +246,7 @@ msgid "Properties"
 msgstr "Immobilier"
 
 #: base/context_processors.py:49 base/search_views.py:76
-#: base/services/dashboard.py:49 base/services/ownership.py:134
+#: base/services/dashboard.py:50 base/services/ownership.py:134
 #: property/models/scpi.py:38 property/models/scpi.py:39
 #: property/models/scpi.py:159 property/models/scpi.py:208
 #: property/models/scpi.py:618 templates/base.html:59 templates/base.html:118
@@ -856,12 +856,12 @@ msgstr "Non classé"
 msgid "Cash"
 msgstr "Espèces"
 
-#: base/services/dashboard.py:47 templates/finance/index.html:22
+#: base/services/dashboard.py:48 templates/finance/index.html:22
 #: templates/property/scpi_fund_detail.html:138
 msgid "Investments"
 msgstr "Investissements"
 
-#: base/services/dashboard.py:48 templates/finance/index.html:23
+#: base/services/dashboard.py:49 templates/finance/index.html:23
 msgid "Savings"
 msgstr "Épargnes"
 
