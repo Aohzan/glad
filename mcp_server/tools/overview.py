@@ -1,21 +1,26 @@
 """Household-wide tools: net worth, allocation, deadlines and pending checks."""
 
 import datetime
+from typing import Literal
+
+from dateutil.relativedelta import relativedelta
 
 from base.services import dashboard
 from base.services.allocation import UNCLASSIFIED, AllocationRow, compute_allocation
 from base.services.deadlines import upcoming_deadlines
 from base.services.ownership import net_worth_by_person
-from base.services.snapshots import month_starts, net_worth_history
+from base.services.snapshots import net_worth_history, values_on
 from finance.models.investment_account import InvestmentAccount
 from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount
 from mcp_server.serializers import decimal, percent, ref, to_json
-from mcp_server.server import glad_tool
+from mcp_server.server import ToolInputError, glad_tool
 from property.models import Property, SCPIInvestment
 from property.services.checks import PendingOccurrence, pending_occurrences
 from rental.services.dashboard import lease_rows
 from rental.services.payments import arrears
+
+Granularity = Literal["month", "week", "day"]
 
 
 def _currencies() -> set[str]:
@@ -95,15 +100,62 @@ def get_net_worth(currency: str | None = None) -> dict:
     }
 
 
-@glad_tool()
-def get_net_worth_history(months: int = 24, currency: str | None = None) -> dict:
-    """Monthly net worth over the last *months* months (at most 240), split by
-    asset class, the last point being today."""
+#: Most points of a history.
+MAX_POINTS = 400
+
+
+def _history_days(
+    start: datetime.date, end: datetime.date, granularity: Granularity
+) -> list[datetime.date]:
+    """The days of a history from *start* to *end* (always the last one)."""
+    days = []
+    if granularity == "month":
+        day = start.replace(day=1)
+        if day < start:
+            day += relativedelta(months=1)
+        while day < end:
+            days.append(day)
+            day += relativedelta(months=1)
+    else:
+        step = datetime.timedelta(days=7 if granularity == "week" else 1)
+        days = [start + step * i for i in range((end - start) // step + 1)]
+        days = [day for day in days if day < end]
+    if len(days) >= MAX_POINTS:
+        raise ToolInputError(
+            f"More than {MAX_POINTS} points: shorten the period or use a "
+            "coarser granularity."
+        )
+    return [*days, end]
+
+
+def get_net_worth_history(
+    months: int = 24,
+    currency: str | None = None,
+    granularity: Granularity = "month",
+    start: datetime.date | None = None,
+    end: datetime.date | None = None,
+) -> dict:
+    """Net worth split by asset class from *start* to *end* (today by default,
+    always the last point). Without *start*, the period is the *months*
+    months (at most 240) before the end. One point
+    per month start (month), every 7 days from the start (week) or every day
+    (day), at most {max_points} points. A month start point
+    is the value at the start of that day, every other point the value at the
+    end of its day: use day to find the date of a sudden change."""
     today = datetime.date.today()
     currency = currency or dashboard.default_currency()
+    end = min(end or today, today)
     months = max(1, min(months, 240))
-    days = [*month_starts(months, today)[:-1], today]
-    history = net_worth_history(days, currency, today)
+    start = start or end - relativedelta(months=months)
+    if start > end:
+        raise ToolInputError("start is after end.")
+    days = _history_days(start, end, granularity)
+    starts = days[:-1] if granularity == "month" else []
+    # The month starts are stored, the other days computed each time.
+    history = [
+        *net_worth_history(starts, currency, today),
+        *values_on(days[len(starts) :], currency),
+    ]
     return {
         "currency": currency,
         "points": [
@@ -111,6 +163,12 @@ def get_net_worth_history(months: int = 24, currency: str | None = None) -> dict
             for day, values in zip(days, history, strict=True)
         ],
     }
+
+
+get_net_worth_history.__doc__ = (get_net_worth_history.__doc__ or "").replace(
+    "{max_points}", str(MAX_POINTS)
+)
+glad_tool()(get_net_worth_history)
 
 
 def _rows(rows: list[AllocationRow]) -> list[dict]:

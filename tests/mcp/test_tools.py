@@ -69,6 +69,47 @@ def test_get_net_worth_history(api_key):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("granularity", "days", "points"),
+    [("day", 9, 10), ("week", 20, 4), ("month", 70, 3)],
+)
+def test_get_net_worth_history_granularity(api_key, granularity, days, points):
+    from base.models import NetWorthSnapshot
+
+    end = datetime.date.today() - datetime.timedelta(days=1)
+    start = end - datetime.timedelta(days=days)
+    stored = NetWorthSnapshot.objects.count()
+    result = call_tool(
+        api_key,
+        "get_net_worth_history",
+        granularity=granularity,
+        start=start.isoformat(),
+        end=end.isoformat(),
+    )
+    dates = [point["date"] for point in result["points"]]
+    assert len(dates) in (points, points + 1)
+    assert dates[-1] == end.isoformat()
+    assert dates == sorted(dates)
+    if granularity != "month":
+        assert dates[0] == start.isoformat()
+        # Only the month starts are stored.
+        assert NetWorthSnapshot.objects.count() == stored
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("arguments", "message"),
+    [
+        ({"granularity": "day", "months": 24}, "points"),
+        ({"start": "2030-01-01", "end": "2029-01-01"}, "start is after end"),
+    ],
+)
+def test_get_net_worth_history_refuses(api_key, arguments, message):
+    with pytest.raises(ToolFailed, match=message):
+        call_tool(api_key, "get_net_worth_history", **arguments)
+
+
+@pytest.mark.django_db
 def test_get_allocation(api_key):
     result = call_tool(api_key, "get_allocation")
     assert result["by_asset_class"]
