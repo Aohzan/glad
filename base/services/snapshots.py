@@ -195,6 +195,16 @@ def net_worth_history(
     return result
 
 
+def values_on(days: list[datetime.date], currency: str) -> list[dict[str, Decimal]]:
+    """Series values at the end of each of *days*, computed and never stored
+    (the snapshots only hold month starts)."""
+    assets = _load_assets(currency)
+    return [
+        compute_month(assets, day, datetime.datetime.combine(day, datetime.time.max))
+        for day in days
+    ]
+
+
 def invalidate_from(day: datetime.date | datetime.datetime | None) -> None:
     """Delete the snapshots that a change dated *day* may affect (all when None)."""
     snapshots = NetWorthSnapshot.objects.all()

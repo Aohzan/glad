@@ -24,7 +24,7 @@ Serve the application over HTTPS: the reverse proxy must also protect `/mcp`, wh
 | Tool | Access | What it returns or does |
 | --- | --- | --- |
 | `get_net_worth` | read | Net worth, its changes, every asset by class with the total and share of each class, the loans, the share of each member, and the assets in another currency (not converted) |
-| `get_net_worth_history` | read | Monthly net worth by asset class |
+| `get_net_worth_history` | read | Net worth by asset class over a period, one point per month, week or day |
 | `get_allocation` | read | Assets by class and by liquidity; the assets worth less than nothing are summed apart |
 | `get_upcoming_deadlines` | read | Loan ends, rent revisions, lease ends, notices, DPE, account milestones… |
 | `get_pending_checks` | read | Recurring ledger entries not checked yet, rent arrears, lease checklist issues |
