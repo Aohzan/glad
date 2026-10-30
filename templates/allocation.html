@@ -11,14 +11,19 @@
 <div class="container py-4">
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="mb-0 h3">{% icon "chart-pie" "me-2 text-primary" %}{% translate "Allocation" %}</h1>
-    <span class="text-body-secondary" id="allocation-total">
+    <div class="text-body-secondary text-sm-end" id="allocation-total">
       {% if is_household %}
         {% translate "Household total" %} <strong>{{ allocation.total|format_money_amount:allocation.currency }}</strong>
       {% else %}
         {% translate "Selection" %} <strong>{{ allocation.total|format_money_amount:allocation.currency }}</strong>
         <span class="small">/ {% translate "household" %} {{ household_total|format_money_amount:allocation.currency }}</span>
       {% endif %}
-    </span>
+      {% if allocation.negative_total %}
+        <div class="small" id="allocation-negative">
+          {% blocktranslate with amount=allocation.negative_total|format_money_amount:allocation.currency %}Left out: assets worth less than nothing, {{ amount }}{% endblocktranslate %}
+        </div>
+      {% endif %}
+    </div>
   </div>
 
   <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-4" id="people-filter">

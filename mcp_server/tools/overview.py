@@ -1,7 +1,6 @@
 """Household-wide tools: net worth, allocation, deadlines and pending checks."""
 
 import datetime
-from decimal import Decimal
 
 from base.services import dashboard
 from base.services.allocation import UNCLASSIFIED, AllocationRow, compute_allocation
@@ -136,9 +135,7 @@ def get_allocation(currency: str | None = None) -> dict:
     return {
         "currency": allocation.currency,
         "total": decimal(allocation.total),
-        "negative_total": decimal(
-            sum((i.amount for i in allocation.items if i.amount < 0), Decimal(0))
-        ),
+        "negative_total": decimal(allocation.negative_total),
         "by_asset_class": _rows(allocation.by_asset_class()),
         "by_liquidity": _rows(allocation.by_liquidity()),
     }
