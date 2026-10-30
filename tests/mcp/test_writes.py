@@ -103,6 +103,22 @@ def test_add_account_value(write_key, kind, parent_model, model, parent_field):
 
 
 @pytest.mark.django_db
+def test_add_account_value_replaces_the_cash_of_the_date(write_key):
+    account = InvestmentAccount.objects.filter(is_active=True)[0]
+    for value in ("100", "200"):
+        call_tool(
+            write_key,
+            "add_account_value",
+            kind="investment",
+            account_id=account.pk,
+            value=value,
+            date=TODAY.isoformat(),
+        )
+    (cash,) = InvestmentAccountCash.objects.filter(account=account, value_date=TODAY)
+    assert cash.value.amount == Decimal(200)
+
+
+@pytest.mark.django_db
 def test_add_account_value_reports_form_errors(write_key):
     account = SavingAccount.objects.filter(is_active=True)[0]
     with pytest.raises(ToolFailed, match="value"):

@@ -246,35 +246,17 @@ def update_accounts(request):
                         account = InvestmentAccount.objects.get(
                             id=form.cleaned_data["account_id"]
                         )
-                        try:
-                            with transaction.atomic():
-                                InvestmentAccountCash.objects.create(
-                                    account=account,
-                                    value=Money(
-                                        form.cleaned_data["new_value"], account.currency
-                                    ),
-                                    value_date=new_values_date,
+                        # A new value replaces the cash value of its date.
+                        InvestmentAccountCash.objects.update_or_create(
+                            account=account,
+                            value_date=new_values_date,
+                            defaults={
+                                "value": Money(
+                                    form.cleaned_data["new_value"], account.currency
                                 )
-                            updated_count += 1
-                        except IntegrityError:
-                            duplicate_count += 1
-                            date_str = (
-                                new_values_date.strftime("%Y-%m-%d")
-                                if new_values_date
-                                else "N/A"
-                            )
-                            messages.warning(
-                                request,
-                                _(
-                                    "Duplicate cash value ignored for account '{account}': a value of {value} already exists for the date {date}."
-                                ).format(
-                                    account=str(account),
-                                    value=Money(
-                                        form.cleaned_data["new_value"], account.currency
-                                    ),
-                                    date=date_str,
-                                ),
-                            )
+                            },
+                        )
+                        updated_count += 1
 
                 # Process holdings forms
                 for form in formset_by_type["holdings"]:

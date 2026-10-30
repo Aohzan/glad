@@ -487,6 +487,50 @@ class TestInvestmentCashCRUD:
             account=investment_account, value_date=datetime.date(2025, 6, 1)
         ).exists()
 
+    def test_post_create_cash_at_a_taken_date_replaces_it(
+        self, user_client, investment_account, investment_cash
+    ):
+        """A second cash entry at the same date replaces the first one."""
+        url = reverse(
+            "finance:new_investment_cash",
+            kwargs={"account_pk": investment_account.pk},
+        )
+        data = {
+            "value_0": "7000.00",
+            "value_1": "EUR",
+            "value_date": investment_cash.value_date.isoformat(),
+        }
+        assert user_client.post(url, data).status_code == 302
+        (cash,) = InvestmentAccountCash.objects.filter(
+            account=investment_account, value_date=investment_cash.value_date
+        )
+        assert cash.pk == investment_cash.pk
+        assert cash.value.amount == Decimal("7000.00")
+
+    def test_post_edit_cash_onto_a_taken_date(
+        self, user_client, investment_account, investment_cash
+    ):
+        """An entry cannot be moved onto the date of another entry."""
+        other = InvestmentAccountCash.objects.create(
+            account=investment_account,
+            value=Money(Decimal("100.00"), "EUR"),
+            value_date=datetime.date(2025, 1, 1),
+        )
+        url = reverse(
+            "finance:edit_investment_cash",
+            kwargs={"account_pk": investment_account.pk, "cash_pk": other.pk},
+        )
+        data = {
+            "value_0": "200.00",
+            "value_1": "EUR",
+            "value_date": investment_cash.value_date.isoformat(),
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 200
+        assert "value_date" in response.context["form"].errors
+        other.refresh_from_db()
+        assert other.value_date == datetime.date(2025, 1, 1)
+
     def test_get_edit_cash(self, user_client, investment_account, investment_cash):
         """GET returns cash edit form."""
         url = reverse(

@@ -201,6 +201,42 @@ class TestUpdateAccountsPost:
             value=Money(Decimal("600.00"), "EUR"),
         ).exists()
 
+    def test_post_investment_cash_replaces_the_value_of_the_date(
+        self, user_client, investment_account
+    ):
+        day = datetime.datetime(2023, 6, 15, 12, 0, 0)
+        InvestmentAccountCash.objects.create(
+            account=investment_account,
+            value=Money(Decimal("500.00"), "EUR"),
+            value_date=day.date(),
+        )
+        prefix = f"investment_{investment_account.pk}"
+        data = {
+            "new_values_date": day.strftime("%Y-%m-%dT%H:%M:%S"),
+            "saving_accounts-TOTAL_FORMS": "0",
+            "saving_accounts-INITIAL_FORMS": "0",
+            "saving_accounts-MIN_NUM_FORMS": "0",
+            "saving_accounts-MAX_NUM_FORMS": "1000",
+            f"{prefix}_cash-TOTAL_FORMS": "1",
+            f"{prefix}_cash-INITIAL_FORMS": "0",
+            f"{prefix}_cash-MIN_NUM_FORMS": "0",
+            f"{prefix}_cash-MAX_NUM_FORMS": "1000",
+            f"{prefix}_cash-0-account_id": str(investment_account.pk),
+            f"{prefix}_cash-0-account_name": str(investment_account),
+            f"{prefix}_cash-0-current_value": "500.00",
+            f"{prefix}_cash-0-new_value": "600.00",
+            f"{prefix}_cash-0-update_account": "on",
+            f"{prefix}_holdings-TOTAL_FORMS": "0",
+            f"{prefix}_holdings-INITIAL_FORMS": "0",
+            f"{prefix}_holdings-MIN_NUM_FORMS": "0",
+            f"{prefix}_holdings-MAX_NUM_FORMS": "1000",
+        }
+        assert user_client.post(reverse("finance:update"), data).status_code == 302
+        (cash,) = InvestmentAccountCash.objects.filter(
+            account=investment_account, value_date=day.date()
+        )
+        assert cash.value == Money(Decimal("600.00"), "EUR")
+
     def test_post_with_holding_update(
         self, user_client, investment_account, investment_holding
     ):

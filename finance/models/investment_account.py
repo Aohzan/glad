@@ -202,14 +202,15 @@ class InvestmentAccount(AbstractAccount):
     def subtract_cash(
         self, amount: Money, at_date: datetime.datetime | datetime.date
     ) -> None:
-        """Subtract *amount* from the account cash at *at_date* by creating a new cash record."""
+        """Subtract *amount* from the account cash at *at_date*, in the cash
+        record of that date (created when missing)."""
         current_cash = self.get_cash_value(max_date=at_date)
         new_value = Money(current_cash.amount - amount.amount, self.currency)
         cash_date = (
             at_date.date() if isinstance(at_date, datetime.datetime) else at_date
         )
-        InvestmentAccountCash.objects.create(
-            account=self, value_date=cash_date, value=new_value
+        InvestmentAccountCash.objects.update_or_create(
+            account=self, value_date=cash_date, defaults={"value": new_value}
         )
 
 
@@ -225,8 +226,8 @@ class InvestmentAccountCash(BaseModel):
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=["account", "value_date", "value"],
-                name="unique_investment_account_cash",
+                fields=["account", "value_date"],
+                name="unique_investment_account_cash_date",
             ),
         ]
 

@@ -103,6 +103,37 @@ class TestInvestmentAccountDepositSignals(TestCase):
         assert cash_value is not None
         assert cash_value.value == Money(2800, "EUR")  # 2000 + 800
 
+    def test_deposits_of_the_same_day_update_its_cash_value(self):
+        """Each deposit adds to the single cash value of its date."""
+        day = datetime.date(2023, 2, 1)
+        InvestmentAccountCash.objects.create(
+            account=self.account, value=Money(3000, "EUR"), value_date=day
+        )
+        for amount in (800, 200):
+            InvestmentAccountDeposit.objects.create(
+                account=self.account,
+                amount=Money(amount, "EUR"),
+                deposit_date=day,
+                update_account_cash=True,
+            )
+        (cash,) = InvestmentAccountCash.objects.filter(
+            account=self.account, value_date=day
+        )
+        assert cash.value == Money(4000, "EUR")
+
+    def test_loading_a_fixture_leaves_the_cash_alone(self):
+        """A fixture already holds the cash value that its deposits made."""
+        deposit = InvestmentAccountDeposit(
+            account=self.account,
+            amount=Money(800, "EUR"),
+            deposit_date=datetime.date(2023, 2, 1),
+            update_account_cash=True,
+            created_at=datetime.datetime(2023, 2, 1),
+            updated_at=datetime.datetime(2023, 2, 1),
+        )
+        deposit.save_base(raw=True)
+        assert not InvestmentAccountCash.objects.filter(account=self.account).exists()
+
     def test_deposit_does_not_create_cash_value_when_disabled(self):
         """Test that a deposit doesn't create a cash value when update_account_cash is False."""
         InvestmentAccountDeposit.objects.create(
@@ -166,6 +197,31 @@ class TestInvestmentAccountHoldingHistorySignals(TestCase):
 
         assert cash_value is not None
         assert cash_value.value == Money(4500, "EUR")  # 5000 - 500
+
+    def test_transaction_updates_the_cash_value_of_its_day(self):
+        """A transaction on a day with a cash value updates that value."""
+        InvestmentAccountHoldingHistory.objects.create(
+            holding=self.holding,
+            value=Money(120, "EUR"),
+            quantity=Decimal(5),
+            valuation_date=datetime.datetime(2023, 1, 1, 10, 0),
+            cash_used=Money(500, "EUR"),
+        )
+        (cash,) = InvestmentAccountCash.objects.filter(account=self.account)
+        assert cash.value == Money(4500, "EUR")
+
+    def test_loading_a_fixture_leaves_the_cash_alone(self):
+        history = InvestmentAccountHoldingHistory(
+            holding=self.holding,
+            value=Money(120, "EUR"),
+            quantity=Decimal(5),
+            valuation_date=datetime.datetime(2023, 2, 1, 10, 0),
+            cash_used=Money(500, "EUR"),
+            created_at=datetime.datetime(2023, 2, 1),
+            updated_at=datetime.datetime(2023, 2, 1),
+        )
+        history.save_base(raw=True)
+        assert InvestmentAccountCash.objects.filter(account=self.account).count() == 1
 
     def test_holding_history_does_not_subtract_from_cash_when_no_cash_used(self):
         """Test that holding history doesn't subtract from cash when cash_used is None."""

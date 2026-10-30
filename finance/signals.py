@@ -15,7 +15,9 @@ from .models.saving_account import SavingAccountDeposit, SavingAccountValue
 def _make_deposit_value_handler(
     value_model, update_flag_field, get_current_value, value_date_field="deposit_date"
 ):
-    """Factory: return a post_save handler that creates a value record when a deposit is saved.
+    """Factory: return a post_save handler that records the value after a deposit.
+
+    The value record of the deposit date is created, or updated when it exists.
 
     Args:
         value_model: ORM model to create (e.g. SavingAccountValue).
@@ -24,16 +26,19 @@ def _make_deposit_value_handler(
         value_date_field: Field name on the deposit that holds the date for the new record.
     """
 
-    def handler(sender, instance, created, **kwargs):
-        if not (created and getattr(instance, update_flag_field)):
+    def handler(sender, instance, created, raw=False, **kwargs):
+        # A fixture already holds the values that the deposit made.
+        if raw or not (created and getattr(instance, update_flag_field)):
             return
         deposit_date = getattr(instance, value_date_field)
         current = get_current_value(instance, deposit_date)
         new_value = Money(
             current.amount + instance.amount.amount, instance.account.currency
         )
-        value_model.objects.create(
-            account=instance.account, value_date=deposit_date, value=new_value
+        value_model.objects.update_or_create(
+            account=instance.account,
+            value_date=deposit_date,
+            defaults={"value": new_value},
         )
 
     return handler
@@ -69,9 +74,11 @@ create_investment_account_cash_on_deposit = receiver(
 
 
 @receiver(post_save, sender=InvestmentAccountHoldingHistory)
-def subtract_cash_on_holding_transaction(sender, instance, created, **kwargs):
+def subtract_cash_on_holding_transaction(
+    sender, instance, created, raw=False, **kwargs
+):
     """Subtract the specified cash amount from account cash when cash_used is provided."""
-    if created and instance.cash_used:
+    if created and not raw and instance.cash_used:
         instance.holding.account.subtract_cash(
             amount=instance.cash_used,
             at_date=instance.valuation_date,
