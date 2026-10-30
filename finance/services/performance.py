@@ -35,6 +35,12 @@ def _npv(rate: float, flows: list[tuple[float, float]]) -> float:
     return sum(amount / (1 + rate) ** years for years, amount in flows)
 
 
+def span_days(cash_flows: list[CashFlow]) -> int:
+    """Days between the first and the last non-zero flow of *cash_flows*."""
+    days = [day for day, amount in cash_flows if amount]
+    return (max(days) - min(days)).days if days else 0
+
+
 def xirr(cash_flows: list[CashFlow]) -> float | None:
     """Yearly rate (0.05 for 5 %) cancelling the net present value of *cash_flows*.
 
@@ -42,12 +48,9 @@ def xirr(cash_flows: list[CashFlow]) -> float | None:
     the flows do not change sign or span less than MIN_DAYS.
     """
     flows = [(day, float(amount)) for day, amount in cash_flows if amount]
-    if not flows:
+    if span_days(cash_flows) < MIN_DAYS:
         return None
     start = min(day for day, _amount in flows)
-    end = max(day for day, _amount in flows)
-    if (end - start).days < MIN_DAYS:
-        return None
     if not (any(a < 0 for _d, a in flows) and any(a > 0 for _d, a in flows)):
         return None
     timed = [((day - start).days / 365.0, amount) for day, amount in flows]
@@ -118,6 +121,8 @@ class Performance:
 
     xirr: float | None
     real_xirr: float | None
+    #: Days between the first and the last cash flow.
+    days: int = 0
 
     @property
     def xirr_percent(self) -> float | None:
@@ -134,7 +139,9 @@ def account_performance(account) -> Performance:
     """Nominal and real XIRR of an account."""
     flows = account_cash_flows(account)
     real = real_cash_flows(flows)
-    return Performance(xirr=xirr(flows), real_xirr=xirr(real) if real else None)
+    return Performance(
+        xirr=xirr(flows), real_xirr=xirr(real) if real else None, days=span_days(flows)
+    )
 
 
 def _price_at(points, day: datetime.date) -> Decimal | None:

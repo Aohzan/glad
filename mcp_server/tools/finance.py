@@ -14,7 +14,7 @@ from finance.models.investment_account import (
 )
 from finance.models.other_asset import OtherAsset
 from finance.models.saving_account import SavingAccount
-from finance.services.performance import account_performance
+from finance.services.performance import MIN_DAYS, account_performance
 from mcp_server.serializers import decimal, money, percent, quantity, ref, to_json
 from mcp_server.server import glad_tool
 
@@ -54,9 +54,13 @@ def _performance(account) -> dict:
         "real_xirr_pct": percent(performance.real_xirr_percent),
     }
     if performance.xirr is None:
-        row["xirr_unavailable_reason"] = (
-            "not_computable" if _invested(account) else "no_deposits_nor_opening_value"
-        )
+        if not _invested(account):
+            row["xirr_unavailable_reason"] = "no_deposits_nor_opening_value"
+        elif performance.days < MIN_DAYS:
+            row["xirr_unavailable_reason"] = "period_too_short"
+            row["xirr_min_days"] = MIN_DAYS
+        else:
+            row["xirr_unavailable_reason"] = "not_computable"
     return row
 
 
@@ -102,7 +106,10 @@ def list_accounts(include_closed: bool = False) -> list[dict]:
     account…) and other assets (vehicles, precious metals, crypto…) with
     their holder, current value, date of the latest value, annualized return
     (XIRR) and the use of the deposit ceiling of regulated envelopes. Use the
-    kind and id with get_account."""
+    kind and id with get_account. Without XIRR, xirr_unavailable_reason says
+    why: no_deposits_nor_opening_value, period_too_short (the flows span less
+    than xirr_min_days days: a shorter period is not meaningful once
+    annualized) or not_computable."""
     holders = HolderResolver()
     rows = []
     for kind, model in MODELS.items():

@@ -168,6 +168,28 @@ def test_xirr_unavailable_reason(api_key):
 
 
 @pytest.mark.django_db
+def test_xirr_unavailable_over_a_short_period(api_key):
+    today = datetime.date.today()
+    account = _usd_account()
+    SavingAccount.objects.filter(pk=account.pk).update(
+        opening_date=today - datetime.timedelta(days=60)
+    )
+    result = call_tool(api_key, "get_account", kind="saving", account_id=account.pk)
+    assert result["xirr_unavailable_reason"] == "period_too_short"
+    assert result["xirr_min_days"] == 90
+
+
+@pytest.mark.django_db
+def test_xirr_not_computable(api_key):
+    account = _usd_account()
+    # Every flow is invested: no rate cancels them.
+    SavingAccountValue.objects.filter(account=account).update(value=Money(-1, "USD"))
+    result = call_tool(api_key, "get_account", kind="saving", account_id=account.pk)
+    assert result["xirr_unavailable_reason"] == "not_computable"
+    assert "xirr_min_days" not in result
+
+
+@pytest.mark.django_db
 def test_get_account_unknown(api_key):
     with pytest.raises(ToolFailed, match="Not found"):
         call_tool(api_key, "get_account", kind="saving", account_id=999999)

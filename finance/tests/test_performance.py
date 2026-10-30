@@ -28,6 +28,7 @@ from finance.services.performance import (
     account_performance,
     benchmark_xirr,
     real_cash_flows,
+    span_days,
     xirr,
 )
 
@@ -66,6 +67,15 @@ class TestXirr:
     )
     def test_not_computable(self, flows):
         assert xirr(flows) is None
+
+    def test_span_days(self):
+        flows = [
+            (D(2023, 1, 1), Decimal(0)),
+            (D(2023, 2, 1), Decimal(-1000)),
+            (D(2023, 3, 3), Decimal(1100)),
+        ]
+        assert span_days(flows) == 30
+        assert span_days([]) == 0
 
     def test_no_root(self):
         # NPV = 100 - 300x + 300x² with x = (1 + r)^-0.5 is always positive.
