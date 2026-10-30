@@ -29,7 +29,7 @@ Serve the application over HTTPS: the reverse proxy must also protect `/mcp`, wh
 | `get_upcoming_deadlines` | read | Loan ends, rent revisions, lease ends, notices, DPE, account milestones… |
 | `get_pending_checks` | read | Recurring ledger entries not checked yet, rent arrears, lease checklist issues |
 | `list_accounts`, `get_account` | read | Savings, investment accounts and other assets: holder, values, deposits, holdings, XIRR (or why it is missing), deposit ceiling |
-| `get_data_quality_issues` | read | Holdings without asset class, ISIN or purchase value, accounts without deposit, savings without rate, ceilings exceeded |
+| `get_data_quality_issues` | read | Holdings without asset class or ISIN, accounts without deposit, savings without rate, ceilings exceeded |
 | `list_properties`, `get_property` | read | Values, loans, median monthly flows, leases, ledger totals of the year |
 | `get_property_ledger` | read | Income and expenses of a property between two dates, by category and by occurrence |
 | `get_lmnp_summary` | read | LMNP figures, cerfa boxes and checklist of a property for a year |
