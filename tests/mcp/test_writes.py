@@ -734,9 +734,7 @@ def test_get_data_quality_issues(api_key):
     )
     result = call_tool(api_key, "get_data_quality_issues")
     by_holding = {row["holding_id"]: row for row in result if row["kind"] == "holding"}
-    assert {"no_asset_class", "no_isin", "no_purchase_value"} <= set(
-        by_holding[holding.pk]["issues"]
-    )
+    assert by_holding[holding.pk]["issues"] == ["no_asset_class", "no_isin"]
     assert euro_fund.pk not in by_holding
     by_account = {
         row["account"]["id"]: row for row in result if row["kind"] == "saving"

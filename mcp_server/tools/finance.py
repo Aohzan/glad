@@ -201,13 +201,6 @@ def _holding_issues(holding: InvestmentAccountHolding) -> list[str]:
         issues.append("no_asset_class")
     if not holding.isin and holding.asset_class != AssetClass.EURO_FUND:
         issues.append("no_isin")
-    initial = holding.initial_value
-    if (
-        holding.value.amount > 0
-        and holding.asset_class != AssetClass.EURO_FUND
-        and (initial is None or not initial.amount)
-    ):
-        issues.append("no_purchase_value")
     return issues
 
 
@@ -226,10 +219,9 @@ def _account_issues(account) -> list[str]:
 @glad_tool()
 def get_data_quality_issues() -> list[dict]:
     """Data to complete in the active accounts: holdings without asset class
-    (no_asset_class), ISIN (no_isin) or purchase value
-    (no_purchase_value: no PRU, no gain; euro funds left aside for both),
-    accounts with a value but neither
-    deposit nor opening value (no_deposits_nor_opening_value: no XIRR),
+    (no_asset_class) or ISIN (no_isin, euro funds left aside), accounts with
+    a value but neither deposit nor opening value
+    (no_deposits_nor_opening_value: no XIRR),
     savings accounts without interest rate (no_interest_rate), envelopes over
     their deposit ceiling (deposit_ceiling_exceeded). Fix them with
     update_holding, update_account or add_account_deposit."""
