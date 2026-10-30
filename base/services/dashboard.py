@@ -203,7 +203,13 @@ def _property_rows(currency, holders, then):
             sub=prop.city or prop.get_property_type_display(),
             holder=holders.label(prop),
             value=gross - remaining,
-            old_value=prop.net_value_at_date(then.date()).amount,
+            # A property bought since then was not held: neither its value nor
+            # the loan disbursed for it count, as in the history.
+            old_value=(
+                prop.net_value_at_date(then.date()).amount
+                if prop.buying_date <= then.date()
+                else Decimal(0)
+            ),
             url=reverse("property:detail", kwargs={"pk": prop.pk}),
             gross=gross,
         )
