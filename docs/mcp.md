@@ -41,6 +41,7 @@ Serve the application over HTTPS: the reverse proxy must also protect `/mcp`, wh
 | `delete_deposit` | write, destructive | A deposit deleted, only when called again with `confirm=true` |
 | `update_account` | write | Name, institution, notes or interest rate of an account |
 | `update_holding` | write | Name, ISIN, asset class, initial value and quantity of a holding |
+| `record_trade` | write | A purchase or sale of an existing holding (quantity, unit price, fees): a history entry with the new quantity, and the cash debited or credited; the purchase price is left unchanged |
 | `add_property_value` | write | Market value estimate of a property |
 | `add_ledger_entry` | write | Income or expense of a property, recurring or not |
 | `check_ledger_occurrence` | write | An occurrence checked: rent received, charge paid |
