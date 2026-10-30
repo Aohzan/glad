@@ -188,8 +188,10 @@ class AbstractAccount(BaseModel):
     def ceiling_usage(self) -> CeilingUsage | None:
         """Deposits counted against the envelope ceiling, or None without ceiling.
 
-        The opening value counts as a deposit. Withdrawals (negative deposits)
-        free up room only for envelopes whose rule allows it.
+        The opening value counts as a deposit, up to the ceiling: it is the
+        balance when the account entered the app, which may include capitalized
+        interest or gains, while no deposit can exceed the ceiling. Withdrawals
+        (negative deposits) free up room only for envelopes whose rule allows it.
         """
         from django.db.models import Q, Sum
 
@@ -202,7 +204,7 @@ class AbstractAccount(BaseModel):
         total = deposits.aggregate(total=Sum("amount"))["total"] or 0
         return CeilingUsage(
             ceiling=rule.deposit_ceiling,
-            contributed=self.opening_amount.amount + total,
+            contributed=min(self.opening_amount.amount, rule.deposit_ceiling) + total,
             currency=self.currency,  # ty: ignore[unresolved-attribute]
         )
 
