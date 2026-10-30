@@ -6,11 +6,18 @@ from moneyed import Money
 
 from .models.base import set_day_value
 from .models.investment_account import (
+    InvestmentAccount,
     InvestmentAccountCash,
     InvestmentAccountDeposit,
+    InvestmentAccountHolding,
     InvestmentAccountHoldingHistory,
 )
-from .models.saving_account import SavingAccountDeposit, SavingAccountValue
+from .models.other_asset import OtherAsset, OtherAssetValue
+from .models.saving_account import (
+    SavingAccount,
+    SavingAccountDeposit,
+    SavingAccountValue,
+)
 
 
 def _make_deposit_value_handler(
@@ -80,3 +87,38 @@ def subtract_cash_on_holding_transaction(
             amount=instance.cash_used,
             at_date=instance.valuation_date,
         )
+
+
+#: Money fields that carry the currency of their account or asset, as
+#: (model, money field, lookup from the model to the account or asset).
+CURRENCY_FOLLOWERS = {
+    SavingAccount: (
+        (SavingAccountValue, "value", "account"),
+        (SavingAccountDeposit, "amount", "account"),
+    ),
+    InvestmentAccount: (
+        (InvestmentAccountCash, "value", "account"),
+        (InvestmentAccountDeposit, "amount", "account"),
+        (InvestmentAccountHolding, "initial_value", "account"),
+        (InvestmentAccountHoldingHistory, "value", "holding__account"),
+    ),
+    OtherAsset: ((OtherAssetValue, "value", "asset"),),
+}
+
+
+def follow_currency(sender, instance, raw=False, **kwargs):
+    """Give the values, deposits and holdings the currency of their account.
+
+    A change of currency corrects the account: the amounts were entered in
+    the new currency, so they keep their figures and are not converted.
+    """
+    if raw:
+        return
+    for model, field, lookup in CURRENCY_FOLLOWERS[sender]:
+        model.objects.filter(**{lookup: instance}).exclude(
+            **{f"{field}_currency": instance.currency}
+        ).update(**{f"{field}_currency": instance.currency})
+
+
+for _model in CURRENCY_FOLLOWERS:
+    post_save.connect(follow_currency, sender=_model, dispatch_uid=f"currency-{_model}")
