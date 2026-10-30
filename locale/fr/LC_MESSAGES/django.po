@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 12:35+0100\n"
+"POT-Creation-Date: 2026-10-30 13:17+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -63,7 +63,7 @@ msgstr "Adresse postale"
 msgid "Written as the landlord address on the leases and receipts."
 msgstr "Indiquée comme adresse du bailleur sur les baux et les quittances."
 
-#: accounts/models.py:54 base/forms.py:82 templates/allocation.html:56
+#: accounts/models.py:54 base/forms.py:82 templates/allocation.html:61
 msgid "Monthly expenses"
 msgstr "Dépenses mensuelles"
 
@@ -142,7 +142,7 @@ msgstr "Passkey supprimé avec succès."
 msgid "Postal address saved."
 msgstr "Adresse postale enregistrée."
 
-#: base/choices.py:10 templates/allocation.html:39
+#: base/choices.py:10 templates/allocation.html:44
 msgid "Available immediately"
 msgstr "Disponible immédiatement"
 
@@ -845,11 +845,11 @@ msgstr "Propriétaire retiré."
 msgid "Page"
 msgstr "Page"
 
-#: base/services/allocation.py:93
+#: base/services/allocation.py:98
 msgid "Not classified"
 msgstr "Non classé"
 
-#: base/services/allocation.py:140 finance/views/chart_views.py:132
+#: base/services/allocation.py:145 finance/views/chart_views.py:132
 #: finance/views/index_views.py:126
 #: templates/finance/_account_chart_script.html:83
 #: templates/finance/_euro_fund_split.html:15 templates/finance/update.html:80
@@ -1038,7 +1038,7 @@ msgstr "Catégorie"
 msgid "Person"
 msgstr "Personne"
 
-#: budget/forms.py:82 budget/forms.py:170 templates/allocation.html:27
+#: budget/forms.py:82 budget/forms.py:170 templates/allocation.html:32
 #: templates/budget/year_detail.html:8
 msgid "Whole household"
 msgstr "Tout le foyer"
@@ -6147,7 +6147,7 @@ msgid "Enter your email address"
 msgstr "Saisissez votre adresse email"
 
 #: templates/accounts/settings.html:31 templates/accounts/settings.html:41
-#: templates/accounts/settings.html:176 templates/allocation.html:69
+#: templates/accounts/settings.html:176 templates/allocation.html:74
 #: templates/budget/edit_line.html:44
 #: templates/finance/_edit_form_footer.html:4
 #: templates/finance/_euro_fund_rates_panel.html:25
@@ -6403,52 +6403,57 @@ msgstr "Sélection"
 msgid "household"
 msgstr "foyer"
 
-#: templates/allocation.html:28 templates/budget/year_detail.html:15
+#: templates/allocation.html:23
+#, python-format
+msgid "Left out: assets worth less than nothing, %(amount)s"
+msgstr "Hors répartition : biens à valeur nette négative, %(amount)s"
+
+#: templates/allocation.html:33 templates/budget/year_detail.html:15
 #: templates/property/detail_panel_balance.html:15
 #: templates/property/detail_panel_balance.html:41
 #: templates/property/report.html:45
 msgid "Apply"
 msgstr "Appliquer"
 
-#: templates/allocation.html:34
+#: templates/allocation.html:39
 msgid "Emergency fund"
 msgstr "Épargne de précaution"
 
-#: templates/allocation.html:44
+#: templates/allocation.html:49
 msgid "Months of expenses covered"
 msgstr "Mois de dépenses couverts"
 
-#: templates/allocation.html:47
+#: templates/allocation.html:52
 #, python-format
 msgid "Target: %(low)s to %(high)s months"
 msgstr "Objectif : %(low)s à %(high)s mois"
 
-#: templates/allocation.html:51
+#: templates/allocation.html:56
 msgid "Enter your monthly expenses to size your emergency fund."
 msgstr ""
 "Saisissez vos dépenses mensuelles pour dimensionner votre épargne de "
 "précaution."
 
-#: templates/allocation.html:60
+#: templates/allocation.html:65
 #, python-format
 msgid "From the <a href=\"%(budget_url)s\">budget %(year)s</a>"
 msgstr "D'après le <a href=\"%(budget_url)s\">budget %(year)s</a>"
 
-#: templates/allocation.html:71
+#: templates/allocation.html:76
 #, python-format
 msgid "Or describe your expenses in a <a href=\"%(budget_url)s\">budget</a>."
 msgstr ""
 "Ou décrivez vos dépenses dans un <a href=\"%(budget_url)s\">budget</a>."
 
-#: templates/allocation.html:80
+#: templates/allocation.html:85
 msgid "By asset class"
 msgstr "Par classe d'actifs"
 
-#: templates/allocation.html:84
+#: templates/allocation.html:89
 msgid "By liquidity"
 msgstr "Par liquidité"
 
-#: templates/allocation.html:89
+#: templates/allocation.html:94
 msgid ""
 "Each asset counts for the share held by the chosen owners; with every member "
 "chosen, the total is the household's part of the assets. The emergency fund "
@@ -6459,7 +6464,7 @@ msgstr ""
 "détenue par le foyer. L'épargne de précaution couvre toujours l'ensemble du "
 "foyer."
 
-#: templates/allocation.html:90
+#: templates/allocation.html:95
 msgid ""
 "Real estate is counted net of the remaining loans. Only assets in the "
 "reference currency are included. Set the asset class of each holding to "
