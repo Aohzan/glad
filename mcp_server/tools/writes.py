@@ -153,7 +153,8 @@ def add_account_value(
 ) -> dict:
     """Record the balance of a savings account, the cash balance of an
     investment account (its holdings are valued apart), or the value of an
-    other asset, at *date*, in the currency of the account."""
+    other asset, at *date*, in the currency of the account. The cash balance
+    of an investment account has one value per date: a new one replaces it."""
     form_class, parent_model, model, parent_field = VALUES[kind]
     parent = parent_model.objects.get(pk=account_id)
     form = form_class(

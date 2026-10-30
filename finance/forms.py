@@ -440,6 +440,26 @@ class InvestmentAccountCashForm(
             "value_date": DATE_WIDGET,
         }
 
+    def clean_value_date(self):
+        """Keep one cash value per date: a new entry replaces the value of its
+        date, an edit cannot move onto the date of another entry."""
+        value_date = self.cleaned_data["value_date"]
+        taken = (
+            InvestmentAccountCash.objects.filter(
+                account_id=self.instance.account_id, value_date=value_date
+            )
+            .exclude(pk=self.instance.pk)
+            .first()
+        )
+        if taken is None:
+            return value_date
+        if self.instance.pk is not None:
+            raise forms.ValidationError(
+                _("Another cash value exists at this date: edit that one instead.")
+            )
+        self.instance = taken
+        return value_date
+
 
 class InvestmentAccountDepositForm(MoneyInputGroupMixin, forms.ModelForm):
     """Form for creating/editing an investment account deposit."""
