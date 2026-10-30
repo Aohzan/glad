@@ -17,6 +17,7 @@ from moneyed import Money
 from base.csv_utils import parse_datetime
 from base.services.ownership import HolderResolver
 from finance.forms import CSVAccountMappingForm, CSVExportForm, CSVImportForm
+from finance.models.base import same_day_values, set_day_value
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountCash,
@@ -26,6 +27,12 @@ from finance.models.investment_account import (
 from finance.models.saving_account import SavingAccount, SavingAccountValue
 
 _LOGGER = logging.getLogger(__name__)
+
+#: Value model and account model of the CSV types of account values.
+VALUE_MODELS = {
+    "saving_value": (SavingAccountValue, SavingAccount),
+    "investment_cash": (InvestmentAccountCash, InvestmentAccount),
+}
 
 
 def csv_export(request):
@@ -368,55 +375,30 @@ def csv_import_confirm(request):
                                 (row_index, _("No mapping found for account"))
                             )
                             continue
+                        if new_date is None:
+                            error_rows.append((row_index, _("Invalid date.")))
+                            continue
 
-                        if csv_type == "saving_value":
-                            currency = SavingAccount.objects.get(
-                                id=app_account_id
-                            ).currency
-                            try:
-                                with transaction.atomic():
-                                    SavingAccountValue.objects.create(
-                                        account_id=app_account_id,
-                                        value=Money(
-                                            new_value,
-                                            currency,
-                                        ),
-                                        value_date=new_date,
-                                    )
-                                imported_count += 1
-                            except IntegrityError:
-                                # Record already exists, ignore it
-                                ignored_count += 1
-                                _LOGGER.debug(
-                                    "Duplicate saving account value ignored: account=%s, date=%s, value=%s",
-                                    app_account_id,
-                                    new_date,
-                                    new_value,
-                                )
-                        elif csv_type == "investment_cash":
-                            currency = InvestmentAccount.objects.get(
-                                id=app_account_id
-                            ).currency
-                            try:
-                                with transaction.atomic():
-                                    InvestmentAccountCash.objects.create(
-                                        account_id=app_account_id,
-                                        value=Money(
-                                            new_value,
-                                            currency,
-                                        ),
-                                        value_date=new_date,
-                                    )
-                                imported_count += 1
-                            except IntegrityError:
-                                # Record already exists, ignore it
-                                ignored_count += 1
-                                _LOGGER.debug(
-                                    "Duplicate investment cash value ignored: account=%s, date=%s, value=%s",
-                                    app_account_id,
-                                    new_date,
-                                    new_value,
-                                )
+                        model, parent_model = VALUE_MODELS[csv_type]
+                        account = parent_model.objects.get(id=app_account_id)
+                        value = Money(new_value, account.currency)
+                        same_day = same_day_values(
+                            model, "account", account.pk, new_date
+                        ).first()
+                        if same_day is not None and same_day.value == value:
+                            # Already imported, ignore it
+                            ignored_count += 1
+                            _LOGGER.debug(
+                                "Duplicate %s ignored: account=%s, date=%s, value=%s",
+                                csv_type,
+                                app_account_id,
+                                new_date,
+                                new_value,
+                            )
+                            continue
+                        # A new value replaces the value of its day.
+                        set_day_value(model, "account", account, new_date, value)
+                        imported_count += 1
 
                     elif csv_type == "investment_holding":
                         # For holdings, the mapping key is "account - holding"

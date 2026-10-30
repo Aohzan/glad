@@ -229,6 +229,48 @@ class TestSavingValueCRUD:
         assert response.status_code == 302
         assert SavingAccountValue.objects.filter(account=saving_account).exists()
 
+    def test_post_create_value_on_a_taken_day_replaces_it(
+        self, user_client, saving_account, saving_value
+    ):
+        """A second value on the same day, at another time, replaces the first."""
+        url = reverse(
+            "finance:new_saving_value", kwargs={"account_pk": saving_account.pk}
+        )
+        later = saving_value.value_date.replace(
+            hour=23, minute=59, second=0, microsecond=0
+        )
+        data = {
+            "value_0": "1300.00",
+            "value_1": "EUR",
+            "value_date": later.strftime("%Y-%m-%dT%H:%M"),
+        }
+        assert user_client.post(url, data).status_code == 302
+        (value,) = SavingAccountValue.objects.filter(account=saving_account)
+        assert value.pk == saving_value.pk
+        assert (value.value.amount, value.value_date) == (Decimal("1300.00"), later)
+
+    def test_post_edit_value_onto_a_taken_day(
+        self, user_client, saving_account, saving_value
+    ):
+        """A value cannot be moved onto the day of another value."""
+        other = SavingAccountValue.objects.create(
+            account=saving_account,
+            value=Money(Decimal("900.00"), "EUR"),
+            value_date=datetime.datetime(2025, 1, 1, 9, 0),
+        )
+        url = reverse(
+            "finance:edit_saving_value",
+            kwargs={"account_pk": saving_account.pk, "value_pk": other.pk},
+        )
+        data = {
+            "value_0": "900.00",
+            "value_1": "EUR",
+            "value_date": saving_value.value_date.strftime("%Y-%m-%dT08:00"),
+        }
+        response = user_client.post(url, data)
+        assert response.status_code == 200
+        assert "value_date" in response.context["form"].errors
+
     def test_get_edit_value(self, user_client, saving_account, saving_value):
         """GET returns value edit form with existing data."""
         url = reverse(

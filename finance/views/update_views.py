@@ -18,6 +18,7 @@ from finance.forms import (
     UpdateInvestmentCashAddValueForm,
     UpdateSavingAccountAddValueForm,
 )
+from finance.models.base import set_day_value
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountCash,
@@ -209,35 +210,15 @@ def update_accounts(request):
                     account = SavingAccount.objects.get(
                         id=form.cleaned_data["account_id"]
                     )
-                    try:
-                        with transaction.atomic():
-                            SavingAccountValue.objects.create(
-                                account=account,
-                                value=Money(
-                                    form.cleaned_data["new_value"], account.currency
-                                ),
-                                value_date=new_values_date,
-                            )
-                        updated_count += 1
-                    except IntegrityError:
-                        duplicate_count += 1
-                        date_str = (
-                            new_values_date.strftime("%Y-%m-%d")
-                            if new_values_date
-                            else "N/A"
-                        )
-                        messages.warning(
-                            request,
-                            _(
-                                "Duplicate value ignored for account '{account}': a value of {value} already exists for the date {date}."
-                            ).format(
-                                account=str(account),
-                                value=Money(
-                                    form.cleaned_data["new_value"], account.currency
-                                ),
-                                date=date_str,
-                            ),
-                        )
+                    # A new value replaces the value of its day.
+                    set_day_value(
+                        SavingAccountValue,
+                        "account",
+                        account,
+                        new_values_date,
+                        Money(form.cleaned_data["new_value"], account.currency),
+                    )
+                    updated_count += 1
             # Update investment accounts
             for formset_by_type in investment_accounts_formsets.values():
                 # Process cash forms

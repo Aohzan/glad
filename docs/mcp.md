@@ -35,7 +35,7 @@ Serve the application over HTTPS: the reverse proxy must also protect `/mcp`, wh
 | `get_lmnp_summary` | read | LMNP figures, cerfa boxes and checklist of a property for a year |
 | `list_leases`, `get_lease` | read | Rent periods, payments, arrears and checklist |
 | `get_budget`, `list_budget_categories` | read | Budget of a year with the previous year, budget categories |
-| `add_account_value` | write | Balance of a savings account, cash of an investment account, value of an other asset |
+| `add_account_value` | write | Balance of a savings account, cash of an investment account, value of an other asset; a new value replaces the one of the same date |
 | `add_account_deposit` | write | Deposit or withdrawal on a savings or investment account; a second deposit of the same amount on the same day is refused |
 | `update_deposit` | write | Corrected amount, date, origin or source of a deposit |
 | `delete_deposit` | write, destructive | A deposit deleted, only when called again with `confirm=true` |

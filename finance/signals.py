@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from moneyed import Money
 
+from .models.base import set_day_value
 from .models.investment_account import (
     InvestmentAccountCash,
     InvestmentAccountDeposit,
@@ -17,7 +18,7 @@ def _make_deposit_value_handler(
 ):
     """Factory: return a post_save handler that records the value after a deposit.
 
-    The value record of the deposit date is created, or updated when it exists.
+    The value record of the deposit day is created, or replaced when it exists.
 
     Args:
         value_model: ORM model to create (e.g. SavingAccountValue).
@@ -35,11 +36,7 @@ def _make_deposit_value_handler(
         new_value = Money(
             current.amount + instance.amount.amount, instance.account.currency
         )
-        value_model.objects.update_or_create(
-            account=instance.account,
-            value_date=deposit_date,
-            defaults={"value": new_value},
-        )
+        set_day_value(value_model, "account", instance.account, deposit_date, new_value)
 
     return handler
 

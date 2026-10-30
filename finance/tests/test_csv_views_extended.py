@@ -314,3 +314,47 @@ def test_csv_import_confirm_investment_holding_success(
 # Needed imports for Decimal
 # ---------------------------------------------------------------------------
 from decimal import Decimal
+
+# ---------------------------------------------------------------------------
+# csv_import_confirm — a value of a day already known replaces it
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("csv_type", "account_fixture", "model"),
+    [
+        ("saving_value", "active_saving_account", SavingAccountValue),
+        ("investment_cash", "active_investment_account", InvestmentAccountCash),
+    ],
+)
+def test_csv_import_confirm_replaces_the_value_of_the_day(
+    request, user_client, csv_type, account_fixture, model
+):
+    """A different value on a known day replaces it; a bad date is an error."""
+    account = request.getfixturevalue(account_fixture)
+    model.objects.create(
+        account=account,
+        value=Money(1000, "EUR"),
+        value_date=datetime.datetime(2024, 3, 15, 10, 0, 0),
+    )
+    setup_csv_import_session(
+        user_client,
+        account,
+        csv_data=[
+            [account.name, "1100", "2024-03-15 18:00:00"],
+            [account.name, "1200", "not a date"],
+        ],
+        csv_type=csv_type,
+    )
+
+    response = user_client.post(
+        reverse("finance:csv_import_confirm"),
+        csv_confirm_post_data(account.name, account.id),
+    )
+
+    assert response.status_code == 302
+    (value,) = model.objects.filter(account=account, value_date__year=2024)
+    assert value.value.amount == 1100
+    response = user_client.get(reverse("finance:csv_import"))
+    assert any("Invalid date" in str(m) for m in response.context["messages"])

@@ -173,7 +173,13 @@ class TestOtherAssetViews:
             url, {"value_0": "1200", "value_1": "EUR", "value_date": "2024-01-01"}
         )
         assert response.status_code == 302
+        # A second value at the same date replaces the first one.
+        response = user_client.post(
+            url, {"value_0": "1300", "value_1": "EUR", "value_date": "2024-01-01"}
+        )
+        assert response.status_code == 302
         value = asset.values.get()
+        assert value.value.amount == 1300
         response = user_client.post(
             reverse("finance:delete_other_asset_value", args=[asset.pk, value.pk])
         )

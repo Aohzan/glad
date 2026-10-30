@@ -9,6 +9,7 @@ from moneyed import Money
 
 from base.forms import MoneyInputGroupMixin, OwnersFormMixin
 from base.widgets import SuggestionsTextInput
+from finance.models.base import same_day_values
 from finance.models.investment_account import (
     EuroFundRate,
     InvestmentAccount,
@@ -228,6 +229,37 @@ _COMMON_ACCOUNT_WIDGETS = {
 }
 
 
+class OneValuePerDayMixin:
+    """Keep one value per parent and day: a new entry replaces the value of
+    its day, an edit cannot move onto the day of another entry. Apply it
+    before ``forms.ModelForm``."""
+
+    parent_field = "account"
+
+    def clean_value_date(self):
+        form = cast(forms.ModelForm, self)
+        value_date = form.cleaned_data["value_date"]
+        instance = form.instance
+        taken = (
+            same_day_values(
+                type(instance),
+                self.parent_field,
+                getattr(instance, f"{self.parent_field}_id"),
+                value_date,
+            )
+            .exclude(pk=instance.pk)
+            .first()
+        )
+        if taken is None:
+            return value_date
+        if instance.pk is not None:
+            raise forms.ValidationError(
+                _("Another value exists at this date: edit that one instead.")
+            )
+        form.instance = taken
+        return value_date
+
+
 class AddToPreviousValueMixin:
     """Let a new value entry be typed as an amount added to the previous value.
 
@@ -317,7 +349,10 @@ class SavingAccountForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
 
 
 class SavingAccountValueForm(
-    AddToPreviousValueMixin, MoneyInputGroupMixin, forms.ModelForm
+    OneValuePerDayMixin,
+    AddToPreviousValueMixin,
+    MoneyInputGroupMixin,
+    forms.ModelForm,
 ):
     """Form for creating/editing a saving account value entry."""
 
@@ -427,7 +462,10 @@ class InvestmentAccountHoldingForm(MoneyInputGroupMixin, forms.ModelForm):
 
 
 class InvestmentAccountCashForm(
-    AddToPreviousValueMixin, MoneyInputGroupMixin, forms.ModelForm
+    OneValuePerDayMixin,
+    AddToPreviousValueMixin,
+    MoneyInputGroupMixin,
+    forms.ModelForm,
 ):
     """Form for creating/editing an investment account cash entry."""
 
@@ -439,26 +477,6 @@ class InvestmentAccountCashForm(
         widgets = {
             "value_date": DATE_WIDGET,
         }
-
-    def clean_value_date(self):
-        """Keep one cash value per date: a new entry replaces the value of its
-        date, an edit cannot move onto the date of another entry."""
-        value_date = self.cleaned_data["value_date"]
-        taken = (
-            InvestmentAccountCash.objects.filter(
-                account_id=self.instance.account_id, value_date=value_date
-            )
-            .exclude(pk=self.instance.pk)
-            .first()
-        )
-        if taken is None:
-            return value_date
-        if self.instance.pk is not None:
-            raise forms.ValidationError(
-                _("Another cash value exists at this date: edit that one instead.")
-            )
-        self.instance = taken
-        return value_date
 
 
 class InvestmentAccountDepositForm(MoneyInputGroupMixin, forms.ModelForm):
@@ -573,7 +591,10 @@ class OtherAssetForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
 
 
 class OtherAssetValueForm(
-    AddToPreviousValueMixin, MoneyInputGroupMixin, forms.ModelForm
+    OneValuePerDayMixin,
+    AddToPreviousValueMixin,
+    MoneyInputGroupMixin,
+    forms.ModelForm,
 ):
     """Form for creating/editing an other asset value entry."""
 

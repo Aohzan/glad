@@ -56,6 +56,31 @@ def deposit_origin_field() -> models.CharField:
     )
 
 
+def same_day_values(model, parent_field: str, parent_id, when) -> models.QuerySet:
+    """The value entries of *model* (``value_date`` and ``value`` fields) of a
+    parent on the day of *when*: an account or asset keeps one value per day."""
+    day = when.date() if isinstance(when, datetime.datetime) else when
+    lookup = (
+        "value_date__date"
+        if isinstance(model._meta.get_field("value_date"), models.DateTimeField)
+        else "value_date"
+    )
+    return model.objects.filter(**{f"{parent_field}_id": parent_id, lookup: day})
+
+
+def set_day_value(model, parent_field: str, parent, when, value):
+    """Record *value* of *parent* at *when*, replacing its value of that day."""
+    entry = same_day_values(model, parent_field, parent.pk, when).first()
+    if entry is None:
+        entry = model(**{parent_field: parent})
+    if not isinstance(model._meta.get_field("value_date"), models.DateTimeField):
+        when = when.date() if isinstance(when, datetime.datetime) else when
+    entry.value_date = when
+    entry.value = value
+    entry.save()
+    return entry
+
+
 class ActiveAccountManager(models.Manager):
     """Default manager that provides an ``active()`` shortcut queryset."""
 
