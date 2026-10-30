@@ -16,7 +16,12 @@ from base.services.ownership import HolderResolver, holder_label
 from base.templatetags import glad_format
 from finance.models.other_asset import OtherAsset, OtherAssetValue
 from finance.models.saving_account import SavingAccount, SavingAccountValue
-from property.models import Property, PropertyLoan, PropertyValue
+from property.models import (
+    Property,
+    PropertyLoan,
+    PropertyLoanAmortizationEntry,
+    PropertyValue,
+)
 from property.models.scpi import SCPI, SCPIInvestment
 
 TODAY = datetime.date.today()
@@ -204,6 +209,22 @@ class TestRegistry:
         assert loan.lender == "Gold bank"
         assert loan.monthly == Decimal(520)
         assert 0 < loan.repaid_pct < 100
+
+    def test_liabilities_take_the_next_installment_of_the_table(self, assets):
+        """A smoothed loan pays its table installment, not the stored annuity."""
+        loan = PropertyLoan.objects.get(lender="Gold bank")
+        for months, capital in ((-1, 150), (1, 151)):
+            PropertyLoanAmortizationEntry.objects.create(
+                loan=loan,
+                date=TODAY + datetime.timedelta(days=30 * months),
+                capital=_money(capital),
+                interest=_money(75),
+                remaining_balance_amount=_money(60000 - capital),
+            )
+        (row,) = [
+            loan for loan in dashboard.liabilities(TODAY) if loan.name == "Gold flat"
+        ]
+        assert row.monthly == Decimal(246)  # 151 + 75 + 20 of insurance
 
     def test_property_flows(self, assets):
         flows = [f for f in dashboard.property_flows(TODAY) if f.name == "Gold flat"]
