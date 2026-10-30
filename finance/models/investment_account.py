@@ -394,7 +394,9 @@ class InvestmentAccountHolding(BaseModel):
         )
         if holding_last_value:
             return holding_last_value.quantity
-        return Decimal(str(self.initial_quantity)) if self.initial_quantity else None
+        if self.initial_quantity is None:
+            return None
+        return Decimal(str(self.initial_quantity))
 
     @property
     def is_euro_fund(self) -> bool:

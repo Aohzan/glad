@@ -376,6 +376,19 @@ def test_holding_get_quantity_no_history_with_initial(active_investment_account)
 
 
 @pytest.mark.django_db
+def test_holding_get_quantity_zero_initial(active_investment_account):
+    """An initial quantity of 0 is a known quantity, not a missing one."""
+    holding = InvestmentAccountHolding.objects.create(
+        account=active_investment_account,
+        name="Fund Z",
+        is_active=True,
+        initial_value=Money(Decimal(0), "EUR"),
+        initial_quantity=Decimal(0),
+    )
+    assert holding.get_quantity() == 0
+
+
+@pytest.mark.django_db
 def test_holding_get_quantity_no_history_no_initial(active_investment_account):
     """get_quantity() returns None when no history and no initial_quantity."""
     holding = InvestmentAccountHolding.objects.create(
