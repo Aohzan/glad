@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 13:17+0100\n"
+"POT-Creation-Date: 2026-10-30 13:52+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -648,7 +648,7 @@ msgid "For a certificate or a diagnostic that expires."
 msgstr "Pour une attestation ou un diagnostic qui expire."
 
 #: base/models.py:294 budget/models.py:199 budget/models.py:265
-#: finance/models/investment_account.py:507 finance/models/other_asset.py:115
+#: finance/models/investment_account.py:508 finance/models/other_asset.py:115
 #: property/models/asset.py:951 property/models/fiscal.py:42
 #: property/models/scpi.py:73 property/models/scpi.py:596 rental/models.py:144
 #: templates/budget/year_detail.html:183
@@ -822,7 +822,7 @@ msgstr "Propriétaire enregistré."
 #: finance/views/investment_views.py:75 finance/views/investment_views.py:101
 #: finance/views/investment_views.py:309 finance/views/investment_views.py:449
 #: finance/views/other_asset_views.py:62 finance/views/saving_views.py:62
-#: finance/views/saving_views.py:88 finance/views/update_views.py:341
+#: finance/views/saving_views.py:88 finance/views/update_views.py:323
 #: property/views/check_views.py:133 property/views/crud_views.py:130
 #: property/views/crud_views.py:308 property/views/crud_views.py:415
 #: property/views/crud_views.py:499 property/views/edit_views.py:53
@@ -1058,7 +1058,7 @@ msgid "None (top level)"
 msgstr "Aucune (premier niveau)"
 
 #: budget/forms.py:116 budget/models.py:197 budget/models.py:240
-#: finance/models/investment_account.py:500 templates/budget/index.html:51
+#: finance/models/investment_account.py:501 templates/budget/index.html:51
 #: templates/budget/year_detail.html:10 templates/budget/year_detail.html:144
 #: templates/finance/_euro_fund_rates_panel.html:33
 #: templates/property/detail_panel_amortization.html:225
@@ -1871,7 +1871,11 @@ msgstr ""
 msgid "An ISIN is needed to update the price automatically."
 msgstr "Un ISIN est nécessaire pour mettre à jour le cours automatiquement."
 
-#: finance/forms.py:487 property/forms.py:873 property/models/lease.py:70
+#: finance/forms.py:458
+msgid "Another cash value exists at this date: edit that one instead."
+msgstr "Une autre valeur d'espèces existe à cette date : modifiez-la plutôt."
+
+#: finance/forms.py:507 property/forms.py:873 property/models/lease.py:70
 #: property/models/management.py:46
 #: templates/property/detail_panel_amortization.html:132
 #: templates/property/detail_panel_leases.html:53
@@ -1882,7 +1886,7 @@ msgstr "Un ISIN est nécessaire pour mettre à jour le cours automatiquement."
 msgid "Start date"
 msgstr "Date de début"
 
-#: finance/forms.py:490 property/forms.py:881 property/models/lease.py:71
+#: finance/forms.py:510 property/forms.py:881 property/models/lease.py:71
 #: property/models/management.py:50 templates/property/detail.html:529
 #: templates/property/detail_panel_cashflow.html:193
 #: templates/property/detail_panel_leases.html:57
@@ -1893,16 +1897,16 @@ msgstr "Date de début"
 msgid "End date"
 msgstr "Date de fin"
 
-#: finance/forms.py:500
+#: finance/forms.py:520
 msgid "Start date must be before the end date."
 msgstr "La date de début doit être antérieure à la date de fin."
 
-#: finance/forms.py:504
+#: finance/forms.py:524
 #, python-brace-format
 msgid "The date range cannot exceed {years} years."
 msgstr "La plage de dates ne peut pas dépasser {years} ans."
 
-#: finance/forms.py:551
+#: finance/forms.py:571
 msgid "Set the sale date of an inactive asset."
 msgstr "Renseignez la date de vente d'un actif inactif."
 
@@ -1973,7 +1977,7 @@ msgstr ""
 msgid "at"
 msgstr "chez"
 
-#: finance/models/base.py:160 finance/models/investment_account.py:341
+#: finance/models/base.py:160 finance/models/investment_account.py:342
 msgid "(closed)"
 msgstr "(clôturé)"
 
@@ -2005,85 +2009,85 @@ msgstr ""
 "Symbole Yahoo Finance ou ISIN d'un fonds indiciel coté dans la devise du "
 "compte (ex. CW8.PA pour le MSCI World), pour comparer la performance."
 
-#: finance/models/investment_account.py:220
+#: finance/models/investment_account.py:221
 msgid "cash value of investment account"
 msgstr "valeur d'espèces du compte d'investissement"
 
-#: finance/models/investment_account.py:221
+#: finance/models/investment_account.py:222
 msgid "cash values of investment accounts"
 msgstr "valeurs d'espèces des comptes d'investissement"
 
-#: finance/models/investment_account.py:247
+#: finance/models/investment_account.py:248
 msgid "deposit on investment account"
 msgstr "dépôt sur compte d'investissement"
 
-#: finance/models/investment_account.py:248
+#: finance/models/investment_account.py:249
 msgid "deposits on investment accounts"
 msgstr "dépôts sur comptes d'investissement"
 
-#: finance/models/investment_account.py:264
+#: finance/models/investment_account.py:265
 #: finance/models/saving_account.py:161
 msgid "Use a negative value to record a withdrawal"
 msgstr "Saisir une valeur négative pour enregistrer un retrait"
 
-#: finance/models/investment_account.py:271
+#: finance/models/investment_account.py:272
 msgid "Add this deposit amount to the account cash value"
 msgstr "Ajouter le montant de ce dépôt au compte espèce"
 
-#: finance/models/investment_account.py:281
+#: finance/models/investment_account.py:282
 msgid "holding of investment account"
 msgstr "titre de compte d'investissement"
 
-#: finance/models/investment_account.py:282
+#: finance/models/investment_account.py:283
 msgid "holdings of investment accounts"
 msgstr "titres de comptes d'investissement"
 
-#: finance/models/investment_account.py:296
+#: finance/models/investment_account.py:297
 msgid "Fees associated with the holding, in percentage"
 msgstr "Frais associés à la part, en pourcentage"
 
-#: finance/models/investment_account.py:302
+#: finance/models/investment_account.py:303
 msgid "Issuer of the holding"
 msgstr "Émetteur du titre"
 
-#: finance/models/investment_account.py:309
+#: finance/models/investment_account.py:310
 msgid "Asset class"
 msgstr "Classe d'actifs"
 
-#: finance/models/investment_account.py:310
+#: finance/models/investment_account.py:311
 msgid "Main exposure of the holding, used for the allocation."
 msgstr "Exposition principale du titre, utilisée pour la répartition."
 
-#: finance/models/investment_account.py:315
+#: finance/models/investment_account.py:316
 msgid "Update the price automatically"
 msgstr "Mettre à jour le cours automatiquement"
 
-#: finance/models/investment_account.py:316
+#: finance/models/investment_account.py:317
 msgid "Every day, value the holding at the market close of its ISIN."
 msgstr "Chaque jour, valoriser la ligne au cours de clôture de son ISIN."
 
-#: finance/models/investment_account.py:339
+#: finance/models/investment_account.py:340
 #, python-brace-format
 msgid "{} in {}."
 msgstr "{} dans {}."
 
-#: finance/models/investment_account.py:425
+#: finance/models/investment_account.py:426
 msgid "history of holding"
 msgstr "Historique du titre"
 
-#: finance/models/investment_account.py:426
+#: finance/models/investment_account.py:427
 msgid "history of holdings"
 msgstr "Historique des titres"
 
-#: finance/models/investment_account.py:450
+#: finance/models/investment_account.py:451
 msgid "Value of the holding share at the moment of valuation"
 msgstr "Valeur de la part du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:461
+#: finance/models/investment_account.py:462
 msgid "Quantity of the holding at the moment of valuation"
 msgstr "Quantité du titre au moment de l'évaluation"
 
-#: finance/models/investment_account.py:469
+#: finance/models/investment_account.py:470
 msgid ""
 "Amount of cash used for this transaction (will be subtracted from account "
 "cash)"
@@ -2091,27 +2095,27 @@ msgstr ""
 "Montant de liquidités utilisé pour cette transaction (sera déduit du compte "
 "en espèces)"
 
-#: finance/models/investment_account.py:486
+#: finance/models/investment_account.py:487
 msgid "euro fund rate"
 msgstr "taux de fonds euros"
 
-#: finance/models/investment_account.py:487
+#: finance/models/investment_account.py:488
 msgid "euro fund rates"
 msgstr "taux de fonds euros"
 
-#: finance/models/investment_account.py:504
+#: finance/models/investment_account.py:505
 msgid "Credited rate (%)"
 msgstr "Taux servi (%)"
 
-#: finance/models/investment_account.py:505
+#: finance/models/investment_account.py:506
 msgid "Rate net of management fees, before social charges."
 msgstr "Taux net de frais de gestion, avant prélèvements sociaux."
 
-#: finance/models/investment_account.py:520
+#: finance/models/investment_account.py:521
 msgid "market close"
 msgstr "cours de clôture"
 
-#: finance/models/investment_account.py:521
+#: finance/models/investment_account.py:522
 msgid "market closes"
 msgstr "cours de clôture"
 
@@ -2650,16 +2654,7 @@ msgstr ""
 "Valeur en double ignorée pour le compte '{account}' : une valeur de {value} "
 "existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:269
-#, python-brace-format
-msgid ""
-"Duplicate cash value ignored for account '{account}': a value of {value} "
-"already exists for the date {date}."
-msgstr ""
-"Valeur d'espèces en double ignorée pour le compte '{account}' : une valeur "
-"de {value} existe déjà pour la date {date}."
-
-#: finance/views/update_views.py:307
+#: finance/views/update_views.py:289
 #, python-brace-format
 msgid ""
 "Duplicate holding value ignored for '{holding}': a value of {value} with "
@@ -2668,18 +2663,18 @@ msgstr ""
 "Valeur de titre en double ignorée pour '{holding}' : une valeur de {value} "
 "avec une quantité de {quantity} existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:322
+#: finance/views/update_views.py:304
 #, python-brace-format
 msgid "{count} account(s) updated successfully."
 msgstr "{count} compte(s) mis à jour avec succès."
 
-#: finance/views/update_views.py:330
+#: finance/views/update_views.py:312
 msgid "No updates were made. All values already exist for the selected date."
 msgstr ""
 "Aucune mise à jour effectuée. Toutes les valeurs existent déjà pour la date "
 "sélectionnée."
 
-#: finance/views/update_views.py:336
+#: finance/views/update_views.py:318
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
