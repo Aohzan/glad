@@ -1,25 +1,57 @@
 """Household-wide tools: net worth, allocation, deadlines and pending checks."""
 
 import datetime
+from decimal import Decimal
 
 from base.services import dashboard
-from base.services.allocation import compute_allocation
+from base.services.allocation import UNCLASSIFIED, AllocationRow, compute_allocation
 from base.services.deadlines import upcoming_deadlines
 from base.services.ownership import net_worth_by_person
 from base.services.snapshots import month_starts, net_worth_history
-from mcp_server.serializers import decimal, ref, to_json
+from finance.models.investment_account import InvestmentAccount
+from finance.models.other_asset import OtherAsset
+from finance.models.saving_account import SavingAccount
+from mcp_server.serializers import decimal, percent, ref, to_json
 from mcp_server.server import glad_tool
+from property.models import Property, SCPIInvestment
 from property.services.checks import PendingOccurrence, pending_occurrences
 from rental.services.dashboard import lease_rows
 from rental.services.payments import arrears
 
 
+def _currencies() -> set[str]:
+    """Currencies of the assets currently held."""
+    return {
+        *(a.currency for a in SavingAccount.objects.active()),
+        *(a.currency for a in InvestmentAccount.objects.active()),
+        *(a.currency for a in OtherAsset.objects.filter(is_active=True)),
+        *(p.currency for p in Property.objects.filter(is_active=True)),
+        *(i.currency for i in SCPIInvestment.objects.filter(sold_date__isnull=True)),
+    }
+
+
+def _left_out(currency: str, today: datetime.date) -> list[dict]:
+    """The assets held in another currency than *currency*, not converted."""
+    return [
+        {
+            "kind": row.kind,
+            "name": row.name,
+            "holder": row.holder,
+            "value": {"amount": decimal(row.value), "currency": other},
+        }
+        for other in sorted(_currencies() - {currency})
+        for group in dashboard.registry(other, today)
+        for row in group.rows
+    ]
+
+
 @glad_tool()
 def get_net_worth(currency: str | None = None) -> dict:
     """Net worth of the household: totals, changes over 30 days and 12 months,
-    every asset grouped by class, the remaining loans, and the share of each
-    household member. *currency* defaults to the main currency of the data;
-    assets in another currency are left out."""
+    every asset grouped by class with the total and share of each class, the
+    remaining loans, and the share of each household member. *currency*
+    defaults to the main currency of the data; the assets in another currency
+    are not converted: they are listed apart in left_out_other_currencies."""
     today = datetime.date.today()
     currency = currency or dashboard.default_currency()
     groups = dashboard.registry(currency, today)
@@ -32,7 +64,8 @@ def get_net_worth(currency: str | None = None) -> dict:
             {
                 "kind": group.kind,
                 "label": str(group.asset_class.label),
-                "net_total": decimal(group.net_total),
+                "total": decimal(group.value),
+                "share_pct": percent(group.share),
                 "assets": [
                     {
                         "name": row.name,
@@ -59,6 +92,7 @@ def get_net_worth(currency: str | None = None) -> dict:
             for worth in [*people, unassigned, outside]
             if worth.by_kind or worth.unvalued
         ],
+        "left_out_other_currencies": _left_out(currency, today),
     }
 
 
@@ -80,15 +114,33 @@ def get_net_worth_history(months: int = 24, currency: str | None = None) -> dict
     }
 
 
+def _rows(rows: list[AllocationRow]) -> list[dict]:
+    return [
+        {
+            "key": "unclassified" if row.key == UNCLASSIFIED else row.key,
+            "label": row.label,
+            "amount": decimal(row.amount),
+            "share_pct": percent(row.percent),
+        }
+        for row in rows
+    ]
+
+
 @glad_tool()
 def get_allocation(currency: str | None = None) -> dict:
-    """Breakdown of the current assets by asset class and by liquidity."""
+    """Breakdown of the current assets by asset class and by liquidity, as
+    the allocation page shows it: the assets worth less than nothing (a
+    property whose loans exceed its value) are left out of the total, and
+    summed in negative_total; total plus negative_total is the net worth."""
     allocation = compute_allocation(currency or dashboard.default_currency())
     return {
         "currency": allocation.currency,
         "total": decimal(allocation.total),
-        "by_asset_class": to_json(allocation.by_asset_class()),
-        "by_liquidity": to_json(allocation.by_liquidity()),
+        "negative_total": decimal(
+            sum((i.amount for i in allocation.items if i.amount < 0), Decimal(0))
+        ),
+        "by_asset_class": _rows(allocation.by_asset_class()),
+        "by_liquidity": _rows(allocation.by_liquidity()),
     }
 
 
