@@ -24,7 +24,7 @@ def write_key(user):
     return key
 
 
-def call_tool(key: ApiKey | None, name: str, **arguments):
+def call_tool(key: ApiKey | None, name: str, /, **arguments):
     """Call a tool as *key*; returns the decoded JSON result, or raises."""
     token = current_key.set(key)
     try:

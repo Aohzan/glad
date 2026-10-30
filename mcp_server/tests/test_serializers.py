@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy
 from djmoney.money import Money
 
 from mcp_server.models import ApiKey, McpCallLog
-from mcp_server.serializers import decimal, money, ref, to_json
+from mcp_server.serializers import decimal, money, percent, ref, to_json
 from mcp_server.server import _error_message
 
 
@@ -29,10 +29,18 @@ class Point:
         return 1
 
 
-def test_decimal_keeps_four_decimals_without_trailing_zeros():
+def test_decimal_rounds_to_the_cent_without_trailing_zeros():
     assert decimal(Decimal("1234.50000")) == "1234.5"
     assert decimal(Decimal(100)) == "100"
-    assert decimal(Decimal("0.123456")) == "0.1235"
+    assert decimal(Decimal("687153.817")) == "687153.82"
+    assert decimal(Decimal("0.123456"), 4) == "0.1235"
+    assert decimal(Decimal("-0.001")) == "0"
+    assert decimal(31.823456789) == "31.82"
+
+
+def test_percent():
+    assert percent(None) is None
+    assert percent(12.3456) == "12.35"
 
 
 def test_money_and_ref_of_none():
@@ -48,14 +56,16 @@ def test_to_json_converts_nested_values():
         "label": gettext_lazy("Name"),
         "when": datetime.datetime(2026, 1, 2, 3, 4),
         "set": {True},
+        "ratio": 0.0534567,
         "other": object,
     }
     assert to_json(value) == {
         "1": [{"day": "2026-01-02", "amount": "3.5"}],
         "color": "red",
         "label": "Name",
-        "when": "2026-01-02T03:04:00",
+        "when": "2026-01-02",
         "set": [True],
+        "ratio": "0.0535",
         "other": str(object),
     }
 
