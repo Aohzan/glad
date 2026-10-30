@@ -23,24 +23,31 @@ Serve the application over HTTPS: the reverse proxy must also protect `/mcp`, wh
 
 | Tool | Access | What it returns or does |
 | --- | --- | --- |
-| `get_net_worth` | read | Net worth, its changes, every asset by class, the loans and the share of each member |
+| `get_net_worth` | read | Net worth, its changes, every asset by class with the total and share of each class, the loans, the share of each member, and the assets in another currency (not converted) |
 | `get_net_worth_history` | read | Monthly net worth by asset class |
-| `get_allocation` | read | Assets by class and by liquidity |
+| `get_allocation` | read | Assets by class and by liquidity; the assets worth less than nothing are summed apart |
 | `get_upcoming_deadlines` | read | Loan ends, rent revisions, lease ends, notices, DPE, account milestones… |
 | `get_pending_checks` | read | Recurring ledger entries not checked yet, rent arrears, lease checklist issues |
-| `list_accounts`, `get_account` | read | Savings, investment accounts and other assets: values, deposits, holdings, XIRR |
+| `list_accounts`, `get_account` | read | Savings, investment accounts and other assets: holder, values, deposits, holdings, XIRR (or why it is missing), deposit ceiling |
+| `get_data_quality_issues` | read | Holdings without asset class, ISIN or purchase value, accounts without deposit, savings without rate, ceilings exceeded |
 | `list_properties`, `get_property` | read | Values, loans, median monthly flows, leases, ledger totals of the year |
 | `get_property_ledger` | read | Income and expenses of a property between two dates, by category and by occurrence |
 | `get_lmnp_summary` | read | LMNP figures, cerfa boxes and checklist of a property for a year |
 | `list_leases`, `get_lease` | read | Rent periods, payments, arrears and checklist |
 | `get_budget`, `list_budget_categories` | read | Budget of a year with the previous year, budget categories |
 | `add_account_value` | write | Balance of a savings account, cash of an investment account, value of an other asset |
-| `add_account_deposit` | write | Deposit or withdrawal on a savings or investment account |
+| `add_account_deposit` | write | Deposit or withdrawal on a savings or investment account; a second deposit of the same amount on the same day is refused |
+| `update_deposit` | write | Corrected amount, date, origin or source of a deposit |
+| `delete_deposit` | write, destructive | A deposit deleted, only when called again with `confirm=true` |
+| `update_account` | write | Name, institution, notes or interest rate of an account |
+| `update_holding` | write | Name, ISIN, asset class, initial value and quantity of a holding |
 | `add_property_value` | write | Market value estimate of a property |
 | `add_ledger_entry` | write | Income or expense of a property, recurring or not |
 | `check_ledger_occurrence` | write | An occurrence checked: rent received, charge paid |
 | `save_budget_line` | write | New or changed budget line |
 
-The write tools fill the same forms as the pages of the application, so the data goes through the same validation, and the errors go back to the assistant. No tool deletes anything.
+The write tools fill the same forms as the pages of the application (restricted to the changed fields for the updates), so the data goes through the same validation, and the errors go back to the assistant. The only deletion is `delete_deposit`: it first describes the deposit, deletes it only when called again with `confirm=true`, and is flagged as destructive so that the client asks you first. Changing or deleting a deposit keeps the balance value it created when it was entered.
+
+Amounts are rounded to the cent and percentages to 2 decimals, both as strings; dates are plain ISO dates.
 
 Names, notes and descriptions entered in the application reach the assistant as they are: an assistant allowed to write may act on text planted in them, so give write access only to the assistants you watch.
