@@ -141,6 +141,22 @@ class TestAccountEnvelope:
         assert usage is not None
         assert usage.contributed == Decimal(3000)
 
+    def test_opening_value_counts_up_to_the_ceiling(self):
+        """The opening balance may include interest above the ceiling."""
+        account = _saving("LDDS", opening="12300")
+        usage = account.ceiling_usage
+        assert usage is not None
+        assert usage.contributed == Decimal(12000)
+        assert usage.remaining == 0
+        SavingAccountDeposit.objects.create(
+            account=account,
+            amount=Money(100, "EUR"),
+            deposit_date=datetime.date.today(),
+        )
+        usage = account.ceiling_usage
+        assert usage is not None
+        assert usage.contributed == Decimal(12100)
+
     def test_no_ceiling(self):
         assert _investment("CTO").ceiling_usage is None
         assert _investment("CTO").milestones == []
