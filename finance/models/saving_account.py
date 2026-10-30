@@ -107,7 +107,10 @@ class SavingAccount(AbstractAccount):
 
 
 class SavingAccountValue(BaseModel):
-    """Model representing the value of an account."""
+    """Model representing the value of an account.
+
+    An account keeps one value per day: see ``set_day_value``.
+    """
 
     class Meta:
         verbose_name = _("saving account value")

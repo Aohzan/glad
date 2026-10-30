@@ -140,10 +140,10 @@ class TestUpdateAccountsPost:
             value=Money(Decimal("1100.00"), "EUR"),
         ).exists()
 
-    def test_post_duplicate_saving_account_value_shows_warning(
+    def test_post_saving_account_value_replaces_the_value_of_the_day(
         self, user_client, saving_account
     ):
-        """Posting the same value twice for the same date should show a warning."""
+        """A new value replaces the value of its day."""
         fixed_date = datetime.datetime(2023, 6, 15, 12, 0, 0)
         # Create existing value
         SavingAccountValue.objects.create(
@@ -153,7 +153,9 @@ class TestUpdateAccountsPost:
         )
         url = reverse("finance:update")
         data = {
-            "new_values_date": fixed_date.strftime("%Y-%m-%dT%H:%M:%S"),
+            "new_values_date": fixed_date.replace(hour=18).strftime(
+                "%Y-%m-%dT%H:%M:%S"
+            ),
             "saving_accounts-TOTAL_FORMS": "1",
             "saving_accounts-INITIAL_FORMS": "0",
             "saving_accounts-MIN_NUM_FORMS": "0",
@@ -161,11 +163,14 @@ class TestUpdateAccountsPost:
             "saving_accounts-0-account_id": str(saving_account.pk),
             "saving_accounts-0-account_name": str(saving_account),
             "saving_accounts-0-current_value": "1100.00",
-            "saving_accounts-0-new_value": "1100.00",
+            "saving_accounts-0-new_value": "1250.00",
             "saving_accounts-0-update_account": "on",
         }
         response = user_client.post(url, data)
         assert response.status_code == 302
+        (value,) = SavingAccountValue.objects.filter(account=saving_account)
+        assert value.value.amount == Decimal("1250.00")
+        assert value.value_date == fixed_date.replace(hour=18)
 
     def test_post_with_investment_cash_update(self, user_client, investment_account):
         url = reverse("finance:update")

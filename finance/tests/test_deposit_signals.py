@@ -54,6 +54,19 @@ class TestSavingAccountDepositSignals(TestCase):
         assert account_value is not None
         assert account_value.value == Money(1500, "EUR")  # 1000 + 500
 
+    def test_deposits_of_a_day_keep_one_account_value(self):
+        """Each deposit adds to the single value of its day, whatever its time."""
+        for hour, amount in ((9, 500), (17, 200)):
+            SavingAccountDeposit.objects.create(
+                account=self.account,
+                amount=Money(amount, "EUR"),
+                deposit_date=datetime.datetime(2023, 2, 1, hour),
+                update_account_value=True,
+            )
+        (value,) = SavingAccountValue.objects.filter(account=self.account)
+        assert value.value == Money(1700, "EUR")
+        assert value.value_date == datetime.datetime(2023, 2, 1, 17)
+
     def test_deposit_does_not_create_account_value_when_disabled(self):
         """Test that a deposit doesn't create an account value when update_account_value is False."""
         SavingAccountDeposit.objects.create(
