@@ -12,9 +12,16 @@ from django.utils.functional import Promise
 from moneyed import Money
 
 
-def decimal(value: Decimal) -> str:
-    """At most 4 decimals, without trailing zeros: ``"1234.5"``."""
-    return format(round(value, 4).normalize(), "f")
+def decimal(value: Decimal | float, places: int = 2) -> str:
+    """Rounded to *places* decimals (the cent by default), without trailing
+    zeros: ``"1234.5"``."""
+    rounded = round(Decimal(str(value)), places)
+    return format(rounded.normalize() if rounded else Decimal(0), "f")
+
+
+def percent(value: Decimal | float | None) -> str | None:
+    """A percentage rounded to 2 decimals, None when unknown."""
+    return None if value is None else decimal(value)
 
 
 def money(value: Money | None) -> dict[str, str] | None:
@@ -31,16 +38,21 @@ def ref(obj: models.Model | None) -> dict[str, Any] | None:
 def to_json(value: Any) -> Any:
     """Recursively convert *value* to JSON-compatible data.
 
-    Dataclasses keep their fields (not their properties), model instances
-    become a ``ref``.
+    Numbers become strings (amounts rounded to the cent), datetimes their
+    date, dataclasses keep their fields (not their properties), model
+    instances become a ``ref``.
     """
     match value:
-        case None | bool() | int() | float() | str():
+        case None | bool() | int() | str():
             return value
+        case float():
+            return decimal(value, 4)
         case Decimal():
             return decimal(value)
         case Money():
             return money(value)
+        case datetime.datetime():
+            return value.date().isoformat()
         case datetime.date():
             return value.isoformat()
         case enum.Enum():
