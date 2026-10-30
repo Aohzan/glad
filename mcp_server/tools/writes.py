@@ -1,5 +1,5 @@
-"""Write tools: values, deposits, accounts, holdings, ledger entries, checked
-occurrences, budget lines.
+"""Write tools: values, deposits, accounts, holdings, trades, ledger
+entries, checked occurrences, budget lines.
 
 Each tool fills the form of the matching page of the application (restricted
 to the changed fields for the updates), so the data goes through the same
@@ -23,6 +23,7 @@ from finance.forms import (
     InvestmentAccountCashForm,
     InvestmentAccountDepositForm,
     InvestmentAccountHoldingForm,
+    InvestmentAccountHoldingHistoryForm,
     OtherAssetValueForm,
     SavingAccountDepositForm,
     SavingAccountValueForm,
@@ -33,6 +34,7 @@ from finance.models.investment_account import (
     InvestmentAccountCash,
     InvestmentAccountDeposit,
     InvestmentAccountHolding,
+    InvestmentAccountHoldingHistory,
 )
 from finance.models.other_asset import OtherAsset, OtherAssetValue
 from finance.models.saving_account import (
@@ -335,6 +337,84 @@ update_holding.__doc__ = (update_holding.__doc__ or "").replace(
     "{asset_classes}", ", ".join(AssetClass.values)
 )
 glad_tool(write=True)(update_holding)
+
+
+def _trade_time(date: datetime.date) -> datetime.datetime:
+    """Time of a trade on *date*: now for today, else the end of that day,
+    after the values entered on the same day."""
+    if date == datetime.date.today():
+        return datetime.datetime.now().replace(microsecond=0)
+    return datetime.datetime.combine(date, datetime.time(23, 59, 59))
+
+
+@glad_tool(write=True)
+def record_trade(
+    holding_id: int,
+    side: Literal["buy", "sell"],
+    quantity: Decimal,
+    unit_price: Decimal,
+    date: datetime.date,
+    fees: Decimal = Decimal(0),
+) -> dict:
+    """Record a purchase or a sale of *quantity* units of an existing holding
+    at *unit_price*, as the history page of the holding does: a new entry
+    with the new quantity valued at *unit_price*, and the account cash
+    debited of quantity × unit_price + fees (buy) or credited of
+    quantity × unit_price − fees (sell). The purchase price (PRU, initial
+    value) is left unchanged: correct it with update_holding if needed."""
+    if quantity <= 0 or unit_price <= 0 or fees < 0:
+        raise ToolInputError(
+            "The quantity and the unit price must be positive, the fees not negative."
+        )
+    day = _day(date)
+    if day > datetime.date.today():
+        raise ToolInputError("A trade cannot be in the future.")
+    holding = InvestmentAccountHolding.objects.select_related("account").get(
+        pk=holding_id
+    )
+    if not holding.is_active:
+        raise ToolInputError("This holding is closed.")
+    at = _trade_time(day)
+    if InvestmentAccountHoldingHistory.objects.filter(
+        holding=holding, valuation_date__gt=at
+    ).exists():
+        raise ToolInputError(
+            "The holding has values entered after this date: record the trades "
+            "in date order."
+        )
+    held = holding.get_quantity(at)
+    if held is None:
+        raise ToolInputError(
+            "The quantity held is unknown: set it with update_holding "
+            "(initial_quantity) first."
+        )
+    if side == "sell" and quantity > held:
+        raise ToolInputError(f"Only {units(held)} units are held.")
+    new_quantity = held + quantity if side == "buy" else held - quantity
+    amount = quantity * unit_price
+    cash_used = amount + fees if side == "buy" else -(amount - fees)
+    currency = holding.account.currency
+    form = InvestmentAccountHoldingHistoryForm(
+        {
+            **_money_data("value", round(new_quantity * unit_price, 2), currency),
+            "valuation_date": at.isoformat(),
+            "quantity": str(new_quantity),
+            **_money_data("cash_used", round(cash_used, 2), currency),
+        },
+        instance=InvestmentAccountHoldingHistory(holding=holding),
+    )
+    saved = _save(form)
+    return {
+        "id": saved.pk,
+        "holding": ref(holding),
+        "side": side,
+        "date": to_json(saved.valuation_date),
+        "quantity_before": units(held),
+        "quantity_after": units(saved.quantity),
+        "value": money(saved.value),
+        "cash_change": money(-saved.cash_used),
+        "cash_after": money(holding.account.get_cash_value(max_date=at)),
+    }
 
 
 @glad_tool(write=True)

@@ -13,6 +13,7 @@ from finance.models.investment_account import (
     InvestmentAccountCash,
     InvestmentAccountDeposit,
     InvestmentAccountHolding,
+    InvestmentAccountHoldingHistory,
 )
 from finance.models.other_asset import OtherAsset, OtherAssetValue
 from finance.models.saving_account import (
@@ -38,6 +39,7 @@ WRITE_TOOLS = {
     "delete_deposit",
     "update_account",
     "update_holding",
+    "record_trade",
 }
 
 
@@ -564,6 +566,123 @@ def test_update_holding_validates_the_asset_class_and_the_isin(write_key):
     holding.save()
     with pytest.raises(ToolFailed, match="auto_update_price"):
         call_tool(write_key, "update_holding", holding_id=holding.pk, isin="")
+
+
+@pytest.fixture
+def traded_holding(db):
+    """A holding of 10 units."""
+    account = InvestmentAccount.objects.filter(is_active=True)[0]
+    return InvestmentAccountHolding.objects.create(
+        account=account,
+        name="Traded fund",
+        initial_quantity=Decimal(10),
+        initial_value=Money(500, account.currency),
+        initial_valuation_date=TODAY - datetime.timedelta(days=100),
+    )
+
+
+@pytest.mark.django_db
+def test_record_trade_buy_then_sell(write_key, traded_holding):
+    account = traded_holding.account
+    five_days_ago = TODAY - datetime.timedelta(days=5)
+    cash = account.get_cash_value(five_days_ago).amount
+    bought = call_tool(
+        write_key,
+        "record_trade",
+        holding_id=traded_holding.pk,
+        side="buy",
+        quantity="2.5",
+        unit_price="60",
+        fees="1.5",
+        date=five_days_ago.isoformat(),
+    )
+    assert bought["quantity_before"] == "10"
+    assert bought["quantity_after"] == "12.5"
+    assert bought["value"]["amount"] == "750"
+    assert bought["cash_change"]["amount"] == "-151.5"
+    assert Decimal(bought["cash_after"]["amount"]) == cash - Decimal("151.5")
+    cash = account.current_cash_value.amount
+    sold = call_tool(
+        write_key,
+        "record_trade",
+        holding_id=traded_holding.pk,
+        side="sell",
+        quantity="12.5",
+        unit_price="70",
+        fees="2",
+        date=TODAY.isoformat(),
+    )
+    assert sold["quantity_after"] == "0"
+    assert sold["cash_change"]["amount"] == "873"
+    assert account.current_cash_value.amount == cash + 873
+    assert traded_holding.quantity == 0
+    traded_holding.refresh_from_db()
+    assert traded_holding.initial_value.amount == 500
+    assert (
+        InvestmentAccountHoldingHistory.objects.filter(holding=traded_holding).count()
+        == 2
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("arguments", "message"),
+    [
+        ({"quantity": "0"}, "must be positive"),
+        ({"fees": "-1"}, "must be positive"),
+        ({"date": (TODAY + datetime.timedelta(days=1)).isoformat()}, "future"),
+        ({"side": "sell", "quantity": "11"}, "Only 10 units"),
+    ],
+)
+def test_record_trade_refuses_invalid_trades(
+    write_key, traded_holding, arguments, message
+):
+    trade = {
+        "holding_id": traded_holding.pk,
+        "side": "buy",
+        "quantity": "1",
+        "unit_price": "50",
+        "date": TODAY.isoformat(),
+    }
+    with pytest.raises(ToolFailed, match=message):
+        call_tool(write_key, "record_trade", **(trade | arguments))
+    assert not InvestmentAccountHoldingHistory.objects.filter(
+        holding=traded_holding
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_record_trade_refuses_closed_unknown_or_out_of_order(write_key, traded_holding):
+    trade = {"side": "buy", "quantity": "1", "unit_price": "50"}
+    yesterday = (TODAY - datetime.timedelta(days=1)).isoformat()
+    call_tool(
+        write_key,
+        "record_trade",
+        holding_id=traded_holding.pk,
+        date=TODAY.isoformat(),
+        **trade,
+    )
+    with pytest.raises(ToolFailed, match="date order"):
+        call_tool(
+            write_key,
+            "record_trade",
+            holding_id=traded_holding.pk,
+            date=yesterday,
+            **trade,
+        )
+    unknown = InvestmentAccountHolding.objects.create(
+        account=traded_holding.account, name="Unknown quantity"
+    )
+    with pytest.raises(ToolFailed, match="quantity held is unknown"):
+        call_tool(
+            write_key, "record_trade", holding_id=unknown.pk, date=yesterday, **trade
+        )
+    unknown.is_active = False
+    unknown.save()
+    with pytest.raises(ToolFailed, match="closed"):
+        call_tool(
+            write_key, "record_trade", holding_id=unknown.pk, date=yesterday, **trade
+        )
 
 
 @pytest.mark.django_db
