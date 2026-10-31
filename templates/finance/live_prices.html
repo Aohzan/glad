@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Automatic price update" %}{% endblock %}
+{% block page_title %}{% translate "Automatic price update" %}{% endblock %}
+{% block page_description %}{% translate "Every day, the holdings set to update automatically are valued at the market close of their ISIN." %}{% endblock %}
+{% block page_actions %}
+<a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:settings' %}">{% icon "settings" "me-1" %}{% translate "Settings" %}</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-10">
+
+{% if not live_data_allowed %}
+<div class="alert alert-warning small" role="alert">
+    {% icon "triangle-alert" "me-1" %}{% translate "Live market data is disabled for every household member: no price is updated until one of them enables it in their settings." %}
+</div>
+{% endif %}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">{% icon "refresh-cw" "me-2" %}{% translate "Holdings with an ISIN" %}</h5>
+    </div>
+    {% if holdings %}
+    <div class="table-responsive">
+        <table class="table table-sm align-middle small mb-0">
+            <thead>
+                <tr>
+                    <th scope="col" class="ps-3">{% translate "Holding" %}</th>
+                    <th scope="col">{% translate "Account" %}</th>
+                    <th scope="col">{% translate "ISIN" %}</th>
+                    <th scope="col">{% translate "Last valuation" %}</th>
+                    <th scope="col" class="text-end pe-3">{% translate "Automatic update" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for holding in holdings %}
+                <tr>
+                    <td class="ps-3"><a href="{% url 'finance:holding_detail' holding.account_id holding.pk %}" class="text-decoration-none">{{ holding.short_name }}</a></td>
+                    <td class="text-muted">{{ holding.account }}</td>
+                    <td class="font-monospace">{{ holding.isin }}</td>
+                    <td class="text-muted">{{ holding.last_valuation|date:"SHORT_DATE_FORMAT"|default:"—" }}</td>
+                    <td class="text-end pe-3">
+                        <div class="form-check form-switch d-inline-block mb-0">
+                            <input class="form-check-input auto-update-switch" type="checkbox" role="switch"
+                                id="auto-update-{{ holding.pk }}"
+                                data-url="{% url 'finance:toggle_holding_auto_update' holding.account_id holding.pk %}"
+                                aria-label="{% blocktranslate with name=holding.short_name %}Update the price of {{ name }} automatically{% endblocktranslate %}"
+                                {% if holding.auto_update_price %}checked{% endif %}>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <p class="text-muted small mb-0">{% translate "No active holding with an ISIN. Add the ISIN of a holding from its edit page." %}</p>
+    </div>
+    {% endif %}
+</div>
+<div id="auto-update-status" class="small" aria-live="polite"></div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ csp_nonce }}">
+document.addEventListener('DOMContentLoaded', function () {
+    const statusEl = document.getElementById('auto-update-status');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    document.querySelectorAll('.auto-update-switch').forEach(function (input) {
+        input.addEventListener('change', async function () {
+            const enabled = input.checked;
+            input.disabled = true;
+            try {
+                const response = await fetch(input.dataset.url, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ enabled: enabled }),
+                });
+                if (!response.ok) throw new Error(response.status);
+                statusEl.textContent = '';
+            } catch (err) {
+                input.checked = !enabled;
+                {% translate "Failed to update the holding." as msg %}
+                statusEl.textContent = '{{ msg|escapejs }}';
+                statusEl.className = 'small text-danger';
+            } finally {
+                input.disabled = false;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

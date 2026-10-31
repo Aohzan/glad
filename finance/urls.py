@@ -21,6 +21,7 @@ urlpatterns = [
     # Main views
     path("", views.index, name="index"),
     path("update", views.update_accounts, name="update"),
+    path("live-prices/", views.live_prices, name="live_prices"),
     # Chart data
     path(
         "chart-data/<str:data_type>/<int:object_id>/",
@@ -166,6 +167,11 @@ urlpatterns = [
         "investment/<int:account_pk>/holding/<int:holding_pk>/delete/",
         views.delete_investment_holding,
         name="delete_holding",
+    ),
+    path(
+        "investment/<int:account_pk>/holding/<int:holding_pk>/auto-update/",
+        cast(Callable[..., HttpResponseBase], views.toggle_holding_auto_update),
+        name="toggle_holding_auto_update",
     ),
     # Investment deposits
     path(

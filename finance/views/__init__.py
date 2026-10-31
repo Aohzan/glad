@@ -21,6 +21,7 @@ from .investment_views import (
     investment_detail,
     toggle_investment_favorite,
 )
+from .live_price_views import live_prices, toggle_holding_auto_update
 from .other_asset_views import (
     create_other_asset,
     delete_other_asset,
@@ -79,9 +80,11 @@ __all__ = [
     "holding_detail",
     "index",
     "investment_detail",
+    "live_prices",
     "other_asset_detail",
     "other_asset_list",
     "saving_detail",
+    "toggle_holding_auto_update",
     "toggle_investment_favorite",
     "toggle_saving_favorite",
     "update_accounts",
