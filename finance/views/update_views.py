@@ -2,6 +2,7 @@
 
 import logging
 from datetime import datetime
+from typing import Any
 
 from django.contrib import messages
 from django.db import IntegrityError, transaction
@@ -12,6 +13,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
+from base.services.ownership import HolderResolver
 from finance.forms import (
     UpdateGlobalForm,
     UpdateInvestmentAccountHoldingAddValueForm,
@@ -48,6 +50,7 @@ def update_accounts(request):
     investment_accounts: QuerySet[InvestmentAccount] = InvestmentAccount.objects.filter(
         is_active=True
     )
+    holders = HolderResolver()
 
     # Prepare initial data for all forms - common for both GET and POST
     saving_accounts_initial_data = []
@@ -56,6 +59,7 @@ def update_accounts(request):
             {
                 "account_id": account.id,
                 "account_name": str(account),
+                "holder": holders.label(account),  # For template display
                 "current_value": account.current_value.amount,  # For hidden field
                 "current_value_display": account.current_value,  # For template display
                 "new_value": account.current_value.amount,
@@ -107,9 +111,12 @@ def update_accounts(request):
             initial=saving_accounts_initial_data, prefix="saving_accounts"
         )
 
-        investment_accounts_formsets = {}
+        # Formsets and holder label of each investment account, by account name
+        investment_accounts_formsets: dict[str, dict[str, Any]] = {}
         for account in investment_accounts:
-            investment_accounts_formsets[str(account)] = {}
+            investment_accounts_formsets[str(account)] = {
+                "holder": holders.label(account)
+            }
             investment_accounts_formsets[str(account)]["cash"] = (
                 UpdateInvestmentCashAddValueFormSet(
                     initial=investment_accounts_initial_data[str(account)]["cash"],
@@ -134,9 +141,12 @@ def update_accounts(request):
             request.POST, prefix="saving_accounts", initial=saving_accounts_initial_data
         )
 
-        investment_accounts_formsets = {}
+        # Formsets and holder label of each investment account, by account name
+        investment_accounts_formsets: dict[str, dict[str, Any]] = {}
         for account in investment_accounts:
-            investment_accounts_formsets[str(account)] = {}
+            investment_accounts_formsets[str(account)] = {
+                "holder": holders.label(account)
+            }
 
             investment_accounts_formsets[str(account)]["cash"] = (
                 UpdateInvestmentCashAddValueFormSet(
