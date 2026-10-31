@@ -16,6 +16,7 @@
     <div class="flex-grow-1">
       <div class="fw-semibold mb-2">
         {{ form.account_name }}{{ account_name_suffix }}
+        {% if holder %}<span class="badge bg-body-secondary text-body-secondary fw-normal ms-1" title="{% translate 'Holder' %}">{% icon "user" "me-1" %}{{ holder }}</span>{% endif %}
       </div>
       <div class="row g-2">
         <div class="col-12 col-sm-6 col-md-4">
