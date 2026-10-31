@@ -34,6 +34,7 @@
         <div class="col-6 col-md-4">
           <div class="small text-muted mb-1">
             {{ form.current_value }}{% translate 'Currently:' %} {{ form.initial.current_value_display | format_money }}
+            {% if form.initial.last_valuation %}<span title="{% translate 'Last valuation' %}">· {{ form.initial.last_valuation|date:"SHORT_DATE_FORMAT" }}</span>{% endif %}
           </div>
           {{ form.new_value }}
           {% if form.new_value.errors %}
