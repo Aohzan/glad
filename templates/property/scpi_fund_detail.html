@@ -121,7 +121,7 @@
   </div>
 
   {# ── Chart ───────────────────────────────────────────────────────────────── #}
-  {% if chart_months != "[]" %}
+  {% if chart_months %}
   <div class="card shadow-sm rounded-4 mb-4">
     <div class="card-header border-0">
       <h2 class="h5 mb-0">{% icon "chart-line" "me-2 text-primary" %}{% translate "Invested, estimated value & dividends over time" %}</h2>
@@ -236,6 +236,12 @@
 
 {% block scripts %}
 {{ dividends_json|json_script:"dividends-data" }}
+{% if chart_months %}
+{{ chart_months|json_script:"scpi-chart-months" }}
+{{ chart_invested_monthly|json_script:"scpi-chart-invested" }}
+{{ chart_estimated_monthly|json_script:"scpi-chart-estimated" }}
+{{ chart_dividend_monthly|json_script:"scpi-chart-dividends" }}
+{% endif %}
 {% include "property/_datatable_helper.html" %}
 
 <script nonce="{{ csp_nonce }}">
@@ -247,7 +253,7 @@
     search:   "{% translate 'Search' %}",
     confirm:  "{% translate 'Are you sure you want to delete this dividend?' %}",
   };
-  var scpiPk = {{ scpi.pk }};
+  var scpiPk = '{{ scpi.pk }}';
   var currency = "{{ currency }}";
 
   function formatAmount(value) {
@@ -305,17 +311,18 @@
   ]);
   void datatable;
 
-  {% if chart_months != "[]" %}
+  if (document.getElementById('scpi-chart-months')) {
   // ── Chart ───────────────────────────────────────────────────────────────────
   (function () {
     function getCurrentTheme() {
       return document.documentElement.getAttribute('data-bs-theme') || 'light';
     }
 
-    var chartMonths = {{ chart_months|safe }};
-    var chartInvested = {{ chart_invested_monthly|safe }};
-    var chartEstimated = {{ chart_estimated_monthly|safe }};
-    var chartDividends = {{ chart_dividend_monthly|safe }};
+    function readJson(id) { return JSON.parse(document.getElementById(id).textContent); }
+    var chartMonths = readJson('scpi-chart-months');
+    var chartInvested = readJson('scpi-chart-invested');
+    var chartEstimated = readJson('scpi-chart-estimated');
+    var chartDividends = readJson('scpi-chart-dividends');
 
     var options = {
       chart: {
@@ -383,7 +390,7 @@
       });
     };
   })();
-  {% endif %}
+  }
 })();
 </script>
 {% endblock %}

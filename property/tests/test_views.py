@@ -155,6 +155,7 @@ def test_property_index_with_active_and_inactive_properties(user_client):
     assert len(response.context["properties_months"]) == len(
         response.context["properties_net_evolution"]
     )
+    assert b'id="properties-months" type="application/json"' in response.content
 
 
 @pytest.mark.django_db
@@ -1012,8 +1013,8 @@ def test_panel_info_map_coordinates_unlocalized(user_client):
         reverse("property:panel_info", args=[prop.pk]), HTTP_ACCEPT_LANGUAGE="fr"
     )
     content = response.content.decode()
-    assert "var lat = 48.856600;" in content
-    assert "var lon = 2.352200;" in content
+    assert "coordinate('48.856600')" in content
+    assert "coordinate('2.352200')" in content
 
 
 @pytest.mark.django_db
@@ -1022,8 +1023,8 @@ def test_panel_info_map_without_coordinates(user_client):
     prop = _make_property()
     response = user_client.get(reverse("property:panel_info", args=[prop.pk]))
     content = response.content.decode()
-    assert "var lat = null;" in content
-    assert "var lon = null;" in content
+    assert "var lat = coordinate('');" in content
+    assert "var lon = coordinate('');" in content
 
 
 @pytest.mark.django_db
@@ -1101,7 +1102,7 @@ def test_dvf_stale_popup_shown_when_no_estimate(user_client):
     response = user_client.get(reverse("property:detail", args=[prop.pk]))
     assert response.status_code == 200
     assert response.context["dvf_estimate_stale"] is True
-    assert b"dvfStaleModal" in response.content
+    assert b'id="dvfStaleModal"' in response.content
 
 
 @pytest.mark.django_db
@@ -1130,7 +1131,7 @@ def test_dvf_stale_popup_not_shown_when_estimate_recent(user_client):
     )
     response = user_client.get(reverse("property:detail", args=[prop.pk]))
     assert response.context["dvf_estimate_stale"] is False
-    assert b"dvfStaleModal" not in response.content
+    assert b'id="dvfStaleModal"' not in response.content
 
 
 @pytest.mark.django_db

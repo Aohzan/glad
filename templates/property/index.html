@@ -108,6 +108,9 @@
 </div>
 {% endblock %}
 {% block scripts %}
+{{ properties_months|json_script:"properties-months" }}
+{{ properties_gross_evolution|json_script:"properties-gross-evolution" }}
+{{ properties_net_evolution|json_script:"properties-net-evolution" }}
 <script nonce="{{ csp_nonce }}">
 /* ── Utilities ─────────────────────────────────────────────────────────── */
 function getCurrentTheme() {
@@ -115,9 +118,10 @@ function getCurrentTheme() {
 }
 
 /* ── Evolution chart ────────────────────────────────────────────────────── */
-var allPropertiesMonths = {{ properties_months|safe }};
-var allPropertiesGrossEvolution = {{ properties_gross_evolution|safe }};
-var allPropertiesNetEvolution = {{ properties_net_evolution|safe }};
+function readJson(id) { return JSON.parse(document.getElementById(id).textContent); }
+var allPropertiesMonths = readJson('properties-months');
+var allPropertiesGrossEvolution = readJson('properties-gross-evolution');
+var allPropertiesNetEvolution = readJson('properties-net-evolution');
 
 var optionsPropertiesEvolution = {
   chart: {
