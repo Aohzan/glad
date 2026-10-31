@@ -100,6 +100,23 @@
                     </div>
                 </div>
                 <div id="live-data-preferences-status" class="mt-2 small" aria-live="polite"></div>
+
+                <hr>
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <h6 class="mb-1">{% translate "Automatic price update" %}</h6>
+                        <p class="text-muted small mb-0">
+                            {% blocktranslate trimmed count total=live_holdings_total with enabled=live_holdings_enabled %}
+                            {{ enabled }} of the {{ total }} holding with an ISIN is valued every day at the market close.
+                            {% plural %}
+                            {{ enabled }} of the {{ total }} holdings with an ISIN are valued every day at the market close.
+                            {% endblocktranslate %}
+                        </p>
+                    </div>
+                    <a class="btn btn-outline-primary btn-sm flex-shrink-0" href="{% url 'finance:live_prices' %}">
+                        {% icon "refresh-cw" "me-2" %}{% translate "Configure" %}
+                    </a>
+                </div>
             </div>
         </div>
 

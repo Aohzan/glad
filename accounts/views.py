@@ -12,6 +12,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -37,6 +38,8 @@ from webauthn.helpers.structs import (
     ResidentKeyRequirement,
     UserVerificationRequirement,
 )
+
+from finance.jobs import live_updatable_holdings
 
 from .backends import HouseholdModelBackend
 from .models import PasskeyCredential, UserProfile
@@ -101,6 +104,17 @@ class SettingsView(LoginRequiredMixin, FormView):
         context["passkey_registered"] = PasskeyCredential.objects.filter(
             user=self.request.user
         ).exists()
+        context.update(
+            {
+                f"live_holdings_{key}": value
+                for key, value in live_updatable_holdings()
+                .aggregate(
+                    total=Count("pk"),
+                    enabled=Count("pk", filter=Q(auto_update_price=True)),
+                )
+                .items()
+            }
+        )
         if getattr(self.request.user, "is_superuser", False):
             from base.views import scheduled_jobs_status
 
