@@ -4,9 +4,11 @@ import datetime
 from decimal import Decimal
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from moneyed import Money
 
+from base.models import Ownership
 from finance.models.investment_account import (
     InvestmentAccount,
     InvestmentAccountCash,
@@ -97,6 +99,26 @@ class TestUpdateAccountsGet:
         url = reverse("finance:update")
         response = user_client.get(url)
         assert response.status_code == 200
+
+    def test_get_update_page_shows_the_holders(
+        self, user_client, user, saving_account, investment_account
+    ):
+        user.first_name = "Alice"
+        user.save()
+        Ownership.objects.create(
+            content_type=ContentType.objects.get_for_model(saving_account),
+            object_id=saving_account.pk,
+            user=user,
+        )
+        response = user_client.get(reverse("finance:update"))
+        saving_form = response.context["saving_accounts_formset"].forms[0]
+        assert saving_form.initial["holder"] == "Alice"
+        formsets = response.context["investment_accounts_formsets"]
+        # Without owner, the whole household holds the account.
+        assert formsets[str(investment_account)]["holder"] == "Household"
+        content = response.content.decode()
+        assert "Alice" in content
+        assert "Household" in content
 
 
 @pytest.mark.django_db
