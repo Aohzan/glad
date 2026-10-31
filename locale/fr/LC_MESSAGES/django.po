@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 11:44+0100\n"
+"POT-Creation-Date: 2026-10-31 12:32+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -130,15 +130,15 @@ msgstr ""
 msgid "New login to your Glad account"
 msgstr "Nouvelle connexion à votre compte Glad"
 
-#: accounts/views.py:96
+#: accounts/views.py:99
 msgid "Password updated successfully."
 msgstr "Mise à jour du mot de passe réussie"
 
-#: accounts/views.py:311
+#: accounts/views.py:325
 msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
-#: accounts/views.py:421
+#: accounts/views.py:435
 msgid "Postal address saved."
 msgstr "Adresse postale enregistrée."
 
@@ -299,7 +299,8 @@ msgstr "Budget"
 #: base/context_processors.py:56 base/search_views.py:83
 #: templates/accounts/settings.html:4 templates/accounts/settings.html:9
 #: templates/base.html:169 templates/budget/edit_year.html:6
-#: templates/mcp_server/settings.html:8 templates/notifications/inbox.html:12
+#: templates/finance/live_prices.html:8 templates/mcp_server/settings.html:8
+#: templates/notifications/inbox.html:12
 msgid "Settings"
 msgstr "Paramètres"
 
@@ -822,7 +823,7 @@ msgstr "Propriétaire enregistré."
 #: finance/views/investment_views.py:75 finance/views/investment_views.py:101
 #: finance/views/investment_views.py:309 finance/views/investment_views.py:449
 #: finance/views/other_asset_views.py:62 finance/views/saving_views.py:62
-#: finance/views/saving_views.py:88 finance/views/update_views.py:314
+#: finance/views/saving_views.py:88 finance/views/update_views.py:317
 #: property/views/check_views.py:133 property/views/crud_views.py:130
 #: property/views/crud_views.py:308 property/views/crud_views.py:415
 #: property/views/crud_views.py:499 property/views/edit_views.py:53
@@ -2649,7 +2650,7 @@ msgstr "Compte d'épargne mis à jour avec succès."
 msgid "Saving account deleted successfully."
 msgstr "Compte d'épargne supprimé avec succès."
 
-#: finance/views/update_views.py:280
+#: finance/views/update_views.py:283
 #, python-brace-format
 msgid ""
 "Duplicate holding value ignored for '{holding}': a value of {value} with "
@@ -2658,18 +2659,18 @@ msgstr ""
 "Valeur de titre en double ignorée pour '{holding}' : une valeur de {value} "
 "avec une quantité de {quantity} existe déjà pour la date {date}."
 
-#: finance/views/update_views.py:295
+#: finance/views/update_views.py:298
 #, python-brace-format
 msgid "{count} account(s) updated successfully."
 msgstr "{count} compte(s) mis à jour avec succès."
 
-#: finance/views/update_views.py:303
+#: finance/views/update_views.py:306
 msgid "No updates were made. All values already exist for the selected date."
 msgstr ""
 "Aucune mise à jour effectuée. Toutes les valeurs existent déjà pour la date "
 "sélectionnée."
 
-#: finance/views/update_views.py:309
+#: finance/views/update_views.py:312
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
@@ -6133,7 +6134,7 @@ msgid "Enter your email address"
 msgstr "Saisissez votre adresse email"
 
 #: templates/accounts/settings.html:31 templates/accounts/settings.html:41
-#: templates/accounts/settings.html:176 templates/allocation.html:74
+#: templates/accounts/settings.html:193 templates/allocation.html:74
 #: templates/budget/edit_line.html:44
 #: templates/finance/_edit_form_footer.html:4
 #: templates/finance/_euro_fund_rates_panel.html:25
@@ -6167,6 +6168,7 @@ msgstr ""
 "Gotify, Telegram…)."
 
 #: templates/accounts/settings.html:60 templates/accounts/settings.html:79
+#: templates/accounts/settings.html:117
 msgid "Configure"
 msgstr "Configurer"
 
@@ -6200,141 +6202,161 @@ msgstr ""
 "Récupère les données de marché en temps réel depuis Yahoo Finance pour les "
 "titres et le remplissage automatique de l'ISIN."
 
-#: templates/accounts/settings.html:108
+#: templates/accounts/settings.html:107 templates/finance/live_prices.html:4
+#: templates/finance/live_prices.html:5
+msgid "Automatic price update"
+msgstr "Mise à jour automatique des cours"
+
+#: templates/accounts/settings.html:109
+#, python-format
+msgid ""
+"%(enabled)s of the %(total)s holding with an ISIN is valued every day at the "
+"market close."
+msgid_plural ""
+"%(enabled)s of the %(total)s holdings with an ISIN are valued every day at "
+"the market close."
+msgstr[0] ""
+"%(enabled)s sur %(total)s titre avec un ISIN est valorisé chaque jour au "
+"cours de clôture."
+msgstr[1] ""
+"%(enabled)s sur %(total)s titres avec un ISIN sont valorisés chaque jour au "
+"cours de clôture."
+
+#: templates/accounts/settings.html:125
 msgid "Security"
 msgstr "Sécurité"
 
-#: templates/accounts/settings.html:113
+#: templates/accounts/settings.html:130
 msgid "Password"
 msgstr "Mot de passe"
 
-#: templates/accounts/settings.html:115
+#: templates/accounts/settings.html:132
 msgid "Update your password to keep your account secure."
 msgstr "Mettez à jour votre mot de passe pour garder votre compte sécurisé."
 
-#: templates/accounts/settings.html:122 templates/accounts/settings.html:133
+#: templates/accounts/settings.html:139 templates/accounts/settings.html:150
 msgid "Change Password"
 msgstr "Changer le mot de passe"
 
-#: templates/accounts/settings.html:141
+#: templates/accounts/settings.html:158
 msgid "Passkey"
 msgstr "Passkey"
 
-#: templates/accounts/settings.html:143
+#: templates/accounts/settings.html:160
 msgid ""
 "Register a passkey so you can log in with fingerprint or face recognition."
 msgstr ""
 "Enregistrer une passkey pour se connecter via empreinte ou reconnaissance "
 "faciale."
 
-#: templates/accounts/settings.html:146
+#: templates/accounts/settings.html:163
 msgid "You can replace your passkey at any time."
 msgstr "Vous pouvez remplacer votre passkey n'importe quand."
 
-#: templates/accounts/settings.html:151 templates/accounts/settings.html:326
+#: templates/accounts/settings.html:168 templates/accounts/settings.html:343
 msgid "Register passkey"
 msgstr "Enregistrer la passkey"
 
-#: templates/accounts/settings.html:154
+#: templates/accounts/settings.html:171
 msgid "Remove passkey"
 msgstr "Supprimer la passkey"
 
-#: templates/accounts/settings.html:162
+#: templates/accounts/settings.html:179
 msgid "Auto-logout"
 msgstr "Déconnexion automatique"
 
-#: templates/accounts/settings.html:164
+#: templates/accounts/settings.html:181
 msgid "Automatically log out after a period of inactivity for security."
 msgstr ""
 "Déconnecter automatiquement après une période d'inactivité pour des raisons "
 "de sécurité."
 
-#: templates/accounts/settings.html:171
+#: templates/accounts/settings.html:188
 msgid "minutes"
 msgstr "minutes"
 
-#: templates/accounts/settings.html:212
+#: templates/accounts/settings.html:229
 msgid "Please enter an email address."
 msgstr "Veuillez saisir une adresse email."
 
-#: templates/accounts/settings.html:228
+#: templates/accounts/settings.html:245
 msgid "Please enter a valid email address."
 msgstr "Veuillez saisir une adresse email valide."
 
-#: templates/accounts/settings.html:231 templates/accounts/settings.html:241
+#: templates/accounts/settings.html:248 templates/accounts/settings.html:258
 msgid "Failed to update email address."
 msgstr "Échec de la mise à jour de l'adresse email."
 
-#: templates/accounts/settings.html:237
+#: templates/accounts/settings.html:254
 msgid "Email address updated successfully."
 msgstr "Adresse email mise à jour avec succès."
 
-#: templates/accounts/settings.html:268
+#: templates/accounts/settings.html:285
 msgid "Live market data enabled."
 msgstr "Données de marché en direct activées."
 
-#: templates/accounts/settings.html:271
+#: templates/accounts/settings.html:288
 msgid "Live market data disabled."
 msgstr "Données de marché en direct désactivées."
 
-#: templates/accounts/settings.html:277
+#: templates/accounts/settings.html:294
 msgid "Failed to update live market data preference."
 msgstr ""
 "Échec de la mise à jour de la préférence de données de marché en direct."
 
-#: templates/accounts/settings.html:325
+#: templates/accounts/settings.html:342
 msgid "Replace passkey"
 msgstr "Remplacer la passkey"
 
-#: templates/accounts/settings.html:332
+#: templates/accounts/settings.html:349
 msgid "Passkey registered."
 msgstr "Passkey enregistrée."
 
-#: templates/accounts/settings.html:334
+#: templates/accounts/settings.html:351
 msgid "No passkey registered yet."
 msgstr "Pas de passkey enregistré actuellement."
 
-#: templates/accounts/settings.html:343
+#: templates/accounts/settings.html:360
 msgid "Passkeys are not supported on this browser."
 msgstr "Les passkeys ne sont pas prises en charge sur ce navigateur."
 
-#: templates/accounts/settings.html:395
+#: templates/accounts/settings.html:412
 msgid "Passkey registered successfully."
 msgstr "Passkey enregistrée avec succès."
 
-#: templates/accounts/settings.html:400
+#: templates/accounts/settings.html:417
 msgid "Passkey registration was cancelled."
 msgstr "L'enregistrement de la passkey a été annulé."
 
-#: templates/accounts/settings.html:402
+#: templates/accounts/settings.html:419
 msgid "Failed to get registration options from server."
 msgstr "Échec de récupération des options d'enregistrement depuis le serveur."
 
-#: templates/accounts/settings.html:404 templates/registration/login.html:178
+#: templates/accounts/settings.html:421 templates/registration/login.html:178
 msgid "Failed to verify passkey with server."
 msgstr "Échec de vérification de la passkey avec le serveur."
 
-#: templates/accounts/settings.html:406
+#: templates/accounts/settings.html:423
 msgid "Failed to register passkey:"
 msgstr "Échec d'enregistrement de la passkey :"
 
-#: templates/accounts/settings.html:425
+#: templates/accounts/settings.html:442
 msgid "Passkey removed."
 msgstr "Passkey supprimée."
 
-#: templates/accounts/settings.html:428
+#: templates/accounts/settings.html:445
 msgid "Failed to remove passkey."
 msgstr "Échec de suppression de la passkey."
 
-#: templates/accounts/settings.html:445
+#: templates/accounts/settings.html:462
 msgid "Please enter a value between 5 and 1440 minutes."
 msgstr "Veuillez saisir une valeur comprise entre 5 et 1440 minutes."
 
-#: templates/accounts/settings.html:458
+#: templates/accounts/settings.html:475
 msgid "Session timeout updated successfully."
 msgstr "Délai d'expiration de session mis à jour avec succès."
 
-#: templates/accounts/settings.html:462
+#: templates/accounts/settings.html:479
 msgid "Failed to update session timeout."
 msgstr "Échec de la mise à jour du délai d'expiration de session."
 
@@ -7011,6 +7033,7 @@ msgid "See the movements"
 msgstr "Voir les mouvements"
 
 #: templates/budget/year_detail.html:58 templates/finance/_accounts_head.html:1
+#: templates/finance/live_prices.html:31
 msgid "Account"
 msgstr "Compte"
 
@@ -7541,7 +7564,12 @@ msgstr "Le cours est mis à jour automatiquement chaque jour."
 msgid "Fetch"
 msgstr "Actualiser"
 
-#: templates/finance/_holding_update_row.html:46
+#: templates/finance/_holding_update_row.html:38
+#: templates/finance/live_prices.html:33
+msgid "Last valuation"
+msgstr "Dernière valorisation"
+
+#: templates/finance/_holding_update_row.html:47
 msgid "Current qty:"
 msgstr "Quantité actuelle :"
 
@@ -7896,6 +7924,7 @@ msgid "Holding information"
 msgstr "Informations sur le titre"
 
 #: templates/finance/edit_investment_holding.html:32
+#: templates/finance/live_prices.html:32
 msgid "ISIN"
 msgstr "ISIN"
 
@@ -8235,6 +8264,51 @@ msgid ""
 msgstr ""
 "Êtes-vous sûr de vouloir supprimer ce compte d'investissement et toutes ses "
 "données ?"
+
+#: templates/finance/live_prices.html:6
+msgid ""
+"Every day, the holdings set to update automatically are valued at the market "
+"close of their ISIN."
+msgstr ""
+"Chaque jour, les titres en mise à jour automatique sont valorisés au cours "
+"de clôture de leur ISIN."
+
+#: templates/finance/live_prices.html:17
+msgid ""
+"Live market data is disabled for every household member: no price is updated "
+"until one of them enables it in their settings."
+msgstr ""
+"Les données de marché en direct sont désactivées pour tous les membres du "
+"foyer : aucun cours n'est mis à jour tant que l'un d'eux ne les active pas "
+"dans ses paramètres."
+
+#: templates/finance/live_prices.html:23
+msgid "Holdings with an ISIN"
+msgstr "Titres avec un ISIN"
+
+#: templates/finance/live_prices.html:30
+msgid "Holding"
+msgstr "Titre"
+
+#: templates/finance/live_prices.html:34
+msgid "Automatic update"
+msgstr "Mise à jour automatique"
+
+#: templates/finance/live_prices.html:49
+#, python-format
+msgid "Update the price of %(name)s automatically"
+msgstr "Mettre à jour le cours de %(name)s automatiquement"
+
+#: templates/finance/live_prices.html:60
+msgid ""
+"No active holding with an ISIN. Add the ISIN of a holding from its edit page."
+msgstr ""
+"Aucun titre actif avec un ISIN. Ajoutez l'ISIN d'un titre depuis sa page de "
+"modification."
+
+#: templates/finance/live_prices.html:90
+msgid "Failed to update the holding."
+msgstr "Échec de la mise à jour du titre."
 
 #: templates/finance/other_asset_detail.html:22
 msgid "Update from market price"
