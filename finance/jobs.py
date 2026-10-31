@@ -101,6 +101,15 @@ def _update_holding(
     return outcome
 
 
+def live_updatable_holdings():
+    """Holdings the daily job can value at the market close: active, with an ISIN."""
+    return (
+        InvestmentAccountHolding.objects.filter(is_active=True, account__is_active=True)
+        .exclude(isin__isnull=True)
+        .exclude(isin="")
+    )
+
+
 def refresh_security_prices() -> str:
     """Store the daily closes of the held securities and update the holdings.
 
@@ -109,12 +118,7 @@ def refresh_security_prices() -> str:
     """
     if not live_data_allowed():
         return "Live market data is disabled"
-    holdings = list(
-        InvestmentAccountHolding.objects.filter(is_active=True, account__is_active=True)
-        .exclude(isin__isnull=True)
-        .exclude(isin="")
-        .select_related("account")
-    )
+    holdings = list(live_updatable_holdings().select_related("account"))
     isins = sorted({h.isin for h in holdings if h.isin})
     failures: list[str] = []
     outcomes: list[str] = []
