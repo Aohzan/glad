@@ -2,6 +2,171 @@
 
 <!-- version list -->
 
+## v1.9.0 (2026-10-31)
+
+### Bug Fixes
+
+- Keep Django template tags out of the JavaScript syntax
+  ([`50fbab7`](https://github.com/Aohzan/glad/commit/50fbab78d5129e77a4dfbf5ae42e5d4caf273783))
+
+- **allocation**: Sum the properties worth less than their loans apart
+  ([`0282001`](https://github.com/Aohzan/glad/commit/0282001de6f0df2ada610880c7dc52b84b942a73))
+
+- **dashboard**: Count a property bought within 30 days as worth nothing 30 days ago
+  ([`a24b6e9`](https://github.com/Aohzan/glad/commit/a24b6e9b1cf051adf44fb94c21df3e83929c4c9a))
+
+- **dashboard**: Show the next loan installment in the net worth
+  ([`3e3c97c`](https://github.com/Aohzan/glad/commit/3e3c97c014de0c6176edc8b1ca1dc4a0d247cd8d))
+
+- **finance**: Count the opening value against the deposit ceiling up to the ceiling
+  ([`c9b93b7`](https://github.com/Aohzan/glad/commit/c9b93b7b0c3e46a5ef6faefdea1907e9f717c0f5))
+
+- **finance**: Give the values of an account its new currency
+  ([`be07127`](https://github.com/Aohzan/glad/commit/be07127b366b34b3d458da8abcc348edbd409418))
+
+- **finance**: Keep one cash value per investment account and date
+  ([`5aa0f50`](https://github.com/Aohzan/glad/commit/5aa0f50289ea6152df6022cec0c25efef8e7b133))
+
+- **finance**: Keep one value per account and day
+  ([`1efee35`](https://github.com/Aohzan/glad/commit/1efee3522697adc123557e5ff929fa2f0d256b67))
+
+- **finance**: Read an initial holding quantity of 0 as known
+  ([`9d429a8`](https://github.com/Aohzan/glad/commit/9d429a8135d7b72a3e8f3d070fe34252cf87c103))
+
+- **mcp**: Drop the missing purchase value check
+  ([`23a057a`](https://github.com/Aohzan/glad/commit/23a057ab863b9411d806dba841650bd1301a9544))
+
+- **mcp**: Give each asset class its own total and share, round amounts to the cent
+  ([`83e5de9`](https://github.com/Aohzan/glad/commit/83e5de9d70c6d2c00c389def58724f31a9b599e7))
+
+- **mcp**: Keep the six decimals of the holding quantities
+  ([`e4da00d`](https://github.com/Aohzan/glad/commit/e4da00ddb64d2c1ebba05ba7386a84e21785b1dc))
+
+- **mcp**: Leave the euro funds out of the missing purchase value check
+  ([`220312b`](https://github.com/Aohzan/glad/commit/220312be0a93ccb63694616dab0d8f860ed6dc82))
+
+- **mcp**: Say when the XIRR is missing because the period is under 90 days
+  ([`aa9a5a6`](https://github.com/Aohzan/glad/commit/aa9a5a66fa1576036f60156873a6606e5ab7210a))
+
+### Build System
+
+- Add the MCP Python SDK
+  ([`9a6014e`](https://github.com/Aohzan/glad/commit/9a6014e6694ebd104dc430a99e4c9edef6a28a63))
+
+### Chores
+
+- **i18n**: Refresh the references of the catalog
+  ([`80715ed`](https://github.com/Aohzan/glad/commit/80715ed95cf5dea267a57c941f095aa34ed5179e))
+
+- **i18n**: Refresh the references of the catalog
+  ([`528a667`](https://github.com/Aohzan/glad/commit/528a6675b4cf4efdb00189b1f6d831f249e8a55a))
+
+- **i18n**: Translate the automatic price update
+  ([`8923861`](https://github.com/Aohzan/glad/commit/892386181f29f53ed632c014181b4e2a7015c327))
+
+- **i18n**: Translate the cash value date error
+  ([`1391f47`](https://github.com/Aohzan/glad/commit/1391f47469f58dbb0e29e05b50098d0d4d848378))
+
+- **i18n**: Translate the line of the assets worth less than nothing
+  ([`3d16f4b`](https://github.com/Aohzan/glad/commit/3d16f4b4f6ca3e41cc86e9597eba9b7cc931ec23))
+
+- **i18n**: Translate the MCP access into French
+  ([`0a8a499`](https://github.com/Aohzan/glad/commit/0a8a4991c370a45ec38291b00efa9fb945b1abb9))
+
+- **i18n**: Translate the value date error
+  ([`b138190`](https://github.com/Aohzan/glad/commit/b13819088511726bc9abfad0c7bd90fac199b2a7))
+
+- **i18n**: Update the references of the holder label
+  ([`2f83c9a`](https://github.com/Aohzan/glad/commit/2f83c9aed68d543035750b67c6ced5693f2e7b10))
+
+### Code Style
+
+- Raise the base font size to 14px and scale every text size with it
+  ([`17df6ed`](https://github.com/Aohzan/glad/commit/17df6ed640efa54ef5f7f42b79b6609453713b40))
+
+### Continuous Integration
+
+- Publish the Docker image of the pull requests
+  ([`6d3fdfa`](https://github.com/Aohzan/glad/commit/6d3fdfa3a781800de134921f6f35c8cb51bec86c))
+
+### Documentation
+
+- Describe the new MCP tools and the deletion of a deposit
+  ([`a63d5e0`](https://github.com/Aohzan/glad/commit/a63d5e0c70f9caeefe3f6e0bbf3702f11e74bd24))
+
+- Document the MCP access and add its settings page to the screenshots
+  ([`82d49e9`](https://github.com/Aohzan/glad/commit/82d49e93e95ff3806efbf946495416389877d525))
+
+- Show the account holders in the update screenshot
+  ([`ed96840`](https://github.com/Aohzan/glad/commit/ed968404d820febc22bf9f076b0e0096f998891c))
+
+- Show the last valuations in the update screenshot
+  ([`d473d28`](https://github.com/Aohzan/glad/commit/d473d28642ac7877756f91d0f2f5490299083456))
+
+### Features
+
+- **accounts**: Link the automatic price update from the settings
+  ([`983a6e0`](https://github.com/Aohzan/glad/commit/983a6e0c6a5602a9701fcf206cd97bac8e58a7ce))
+
+- **finance**: Manage the automatic price update of the holdings from one page
+  ([`dc28ed8`](https://github.com/Aohzan/glad/commit/dc28ed8d39123bd0607a34e21854728bc237e5c3))
+
+- **finance**: Show the account holder on the update page
+  ([`0b165af`](https://github.com/Aohzan/glad/commit/0b165afef21ae0d132b1a1e059e09731365f2a8e))
+
+- **finance**: Show the last valuation of the holdings on the update page
+  ([`ea6d2a6`](https://github.com/Aohzan/glad/commit/ea6d2a6f7aa5138eb4f330d06b1a9dcc975a29bd))
+
+- **mcp**: Correct and delete deposits, update accounts and holdings, refuse duplicate deposits
+  ([`c7cec63`](https://github.com/Aohzan/glad/commit/c7cec6312a6d8abfb937a08b1fe8f98e6b8b03c2))
+
+- **mcp**: Give the holder, latest value date, XIRR and deposit ceiling of each account
+  ([`711aacd`](https://github.com/Aohzan/glad/commit/711aacd3b9c3a8e15274be242a84cb1781e09514))
+
+- **mcp**: Give the net worth history by month, week or day
+  ([`4feed39`](https://github.com/Aohzan/glad/commit/4feed39d82379b48728ce4ac1a36dd8616c54337))
+
+- **mcp**: List the account and holding data to complete
+  ([`75dfb0b`](https://github.com/Aohzan/glad/commit/75dfb0b0fc0b049029bafe6168ef8f4f988f4773))
+
+- **mcp**: Record a purchase or a sale of a holding
+  ([`da7be62`](https://github.com/Aohzan/glad/commit/da7be6251e8a4f76bc8c382cecd81b9c1e92ba44))
+
+- **mcp**: Serve an MCP server at /mcp, authenticated by API keys, with read tools
+  ([`49b6188`](https://github.com/Aohzan/glad/commit/49b618899e5bd62d0e97a88b080b2ea22fe82d52))
+
+- **mcp**: Settings page to create, disable and delete the API keys and read the call log
+  ([`ee1087d`](https://github.com/Aohzan/glad/commit/ee1087de92d784d8174f48a14bb881cc7a23e3be))
+
+- **mcp**: Write tools for values, deposits, ledger entries, checked occurrences and budget lines
+  ([`98e927b`](https://github.com/Aohzan/glad/commit/98e927b59b0f59d3c3fddf263a97711613a04bbf))
+
+### Refactoring
+
+- **accounts**: Share the client IP helper of the login notification
+  ([`382d704`](https://github.com/Aohzan/glad/commit/382d7049ff7e1c6dae2c8c31acaedf0326fa83f2))
+
+- **finance**: Share the holdings the price job can update
+  ([`8205400`](https://github.com/Aohzan/glad/commit/8205400021685d0e1e58ed9d9d2d43350bdc8814))
+
+- **property**: Move the validation of a checked occurrence into the checks service
+  ([`7e60cc2`](https://github.com/Aohzan/glad/commit/7e60cc226471bfc8761c82e88356a313f4a14982))
+
+### Testing
+
+- **finance**: Cover the account holders of the update page
+  ([`d4fdfa5`](https://github.com/Aohzan/glad/commit/d4fdfa517b134735f7a4efc002834558b697bb9b))
+
+- **finance**: Cover the automatic price update page and the last valuations
+  ([`8070e2b`](https://github.com/Aohzan/glad/commit/8070e2b958ba96903bb36d0e8f0911d8a4943a78))
+
+- **mcp**: Cover the account details, the updates, the deletion and the data quality checks
+  ([`04e9112`](https://github.com/Aohzan/glad/commit/04e9112a9a3a40a53cedd2378af83f24995b8ce5))
+
+- **mcp**: Cover the API keys, the /mcp endpoint, the settings page and every tool
+  ([`5ea6d55`](https://github.com/Aohzan/glad/commit/5ea6d55ca94bf1e2dd4f9c11aeaca8968e066a52))
+
+
 ## v1.8.0 (2026-10-29)
 
 ### Bug Fixes
