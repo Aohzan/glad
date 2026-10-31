@@ -8,10 +8,16 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, AnonymousUser
 from django.test import RequestFactory
 from django.urls import reverse
+from moneyed import Money
 
 from accounts import views
 from accounts.context_processors import session_config
 from accounts.models import PasskeyCredential
+from finance.models.investment_account import (
+    InvestmentAccount,
+    InvestmentAccountHolding,
+    InvestmentAccountType,
+)
 
 
 @pytest.mark.django_db
@@ -694,3 +700,29 @@ def test_update_postal_address(user_client, user):
     assert user.profile.postal_address == "1 rue des Lilas\n75000 Paris"
     response = user_client.get(reverse("accounts:settings"))
     assert "1 rue des Lilas" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_settings_view_counts_the_holdings_updated_automatically(user_client):
+    account = InvestmentAccount.objects.create(
+        account_type=InvestmentAccountType.objects.create(name="PEA", code="PEA"),
+        name="Main",
+        is_active=True,
+        opening_cash_value=Money(0, "EUR"),
+    )
+    for name, isin, auto in [
+        ("World", "IE00B4L5Y983", True),
+        ("Europe", "FR0010315770", False),
+        ("No ISIN", "", False),
+    ]:
+        InvestmentAccountHolding.objects.create(
+            account=account, name=name, isin=isin, auto_update_price=auto
+        )
+
+    response = user_client.get(reverse("accounts:settings"))
+
+    assert response.context["live_holdings_total"] == 2
+    assert response.context["live_holdings_enabled"] == 1
+    content = response.content.decode()
+    assert "1 of the 2 holdings with an ISIN are valued" in content
+    assert reverse("finance:live_prices") in content

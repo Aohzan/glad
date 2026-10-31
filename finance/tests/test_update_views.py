@@ -100,6 +100,21 @@ class TestUpdateAccountsGet:
         response = user_client.get(url)
         assert response.status_code == 200
 
+    def test_get_update_page_shows_the_last_valuation_of_the_holdings(
+        self, user_client, investment_holding
+    ):
+        InvestmentAccountHoldingHistory.objects.create(
+            holding=investment_holding,
+            value=Money(Decimal("110.00"), "EUR"),
+            quantity=Decimal(10),
+            valuation_date=datetime.datetime(2026, 10, 30, 18, 0),
+        )
+        response = user_client.get(reverse("finance:update"))
+        formsets = response.context["investment_accounts_formsets"]
+        form = formsets[str(investment_holding.account)]["holdings"].forms[0]
+        assert form.initial["last_valuation"] == datetime.datetime(2026, 10, 30, 18, 0)
+        assert "10/30/2026" in response.content.decode()
+
     def test_get_update_page_shows_the_holders(
         self, user_client, user, saving_account, investment_account
     ):
