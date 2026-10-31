@@ -209,9 +209,9 @@
 
 /* ── Base typography ────────────────────────────────────────────────────── */
 
-/* 13px base, as in the design, while still honouring the browser's font size */
+/* 14px base, as in common apps, while still honouring the browser's font size */
 html {
-  font-size: 81.25%;
+  font-size: 87.5%;
 }
 
 body {
