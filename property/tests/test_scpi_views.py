@@ -102,6 +102,17 @@ class TestSCPIFundDetailView:
         assert "total_estimated_value" in response.context
         assert "chart_estimated_monthly" in response.context
 
+    def test_fund_detail_renders_chart_data_as_json_script(
+        self, user_client, investment
+    ):
+        url = reverse(
+            "property:scpi_fund_detail", kwargs={"scpi_pk": investment.scpi.pk}
+        )
+        response = user_client.get(url)
+        assert response.context["chart_months"]
+        assert b'id="scpi-chart-months" type="application/json"' in response.content
+        assert b'id="scpi-chart-dividends" type="application/json"' in response.content
+
     def test_get_fund_detail_not_found(self, user_client):
         url = reverse("property:scpi_fund_detail", kwargs={"scpi_pk": 9999})
         response = user_client.get(url)

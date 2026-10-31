@@ -61,7 +61,7 @@
     </div>
     {% endif %}
 </div>
-<div id="auto-update-status" class="small" aria-live="polite"></div>
+<div id="auto-update-status" class="small" aria-live="polite" data-error="{% translate "Failed to update the holding." %}"></div>
 
 </div>
 </div>
@@ -87,8 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 statusEl.textContent = '';
             } catch (err) {
                 input.checked = !enabled;
-                {% translate "Failed to update the holding." as msg %}
-                statusEl.textContent = '{{ msg|escapejs }}';
+                statusEl.textContent = statusEl.dataset.error;
                 statusEl.className = 'small text-danger';
             } finally {
                 input.disabled = false;

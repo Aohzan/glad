@@ -124,17 +124,19 @@
 {% endblock %}
 
 {% block scripts %}
+{% if has_chart_data %}
+{{ chart_months|json_script:"finance-chart-months" }}
+{{ chart_series|json_script:"finance-chart-series" }}
 <script nonce="{{ csp_nonce }}">
 /* ── Utilities ─────────────────────────────────────────────────────────── */
 function getCurrentTheme() {
   return document.documentElement.getAttribute('data-bs-theme') || 'light';
 }
 
-{% if has_chart_data %}
 /* ── Evolution chart ────────────────────────────────────────────────────── */
-var allFinanceMonths = {{ chart_months_json|safe }};
+var allFinanceMonths = JSON.parse(document.getElementById('finance-chart-months').textContent);
 var allFinanceSeries = (function() {
-  var raw = {{ chart_series_json|safe }};
+  var raw = JSON.parse(document.getElementById('finance-chart-series').textContent);
   return raw.slice().sort(function(a, b) {
     var lastA = 0, lastB = 0;
     for (var i = a.data.length - 1; i >= 0; i--) { if (a.data[i] != null) { lastA = a.data[i]; break; } }
@@ -258,6 +260,6 @@ function updateChartsTheme(themeName) {
     });
   }
 }
-{% endif %}
 </script>
+{% endif %}
 {% endblock %}

@@ -707,7 +707,7 @@ const PANEL_URLS = {
   loans:      "{% url 'property:panel_loans' property.pk %}",
   leases:     "{% url 'property:panel_leases' property.pk %}",
   mandate:    "{% url 'property:panel_mandate' property.pk %}",
-  {% if show_amortization_tab %}amortization: "{% url 'property:panel_amortization' property.pk %}",{% endif %}
+  amortization: "{% url 'property:panel_amortization' property.pk %}",
 };
 
 // Panel fragments are rendered in their own response, so their scripts carry a
@@ -777,8 +777,8 @@ function updateChartsTheme(themeName) {
 
 // ── Entry modal: conditional fields logic ────────────────────────────────────
 (function() {
-  const INCOME_MGMT  = [{% for value, label in ledger_income_categories %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
-  const EXPENSE_MGMT = [{% for value, label in ledger_expense_categories %}'{{ value }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+  const INCOME_MGMT  = '{% for value, label in ledger_income_categories %}{{ value }}{% if not forloop.last %},{% endif %}{% endfor %}'.split(',');
+  const EXPENSE_MGMT = '{% for value, label in ledger_expense_categories %}{{ value }}{% if not forloop.last %},{% endif %}{% endfor %}'.split(',');
 
   // ── Helper: apply optgroup filtering to a management category select ──────
   function applyMgmtFilter(mgmtSelect, flowType) {
@@ -1018,7 +1018,6 @@ function updateChartsTheme(themeName) {
     new bootstrap.Modal(document.getElementById('valueModal')).show();
   });
 
-  {% if dvf_estimate_stale %}
   // ── Stale DVF popup: auto-show and trigger refresh ───────────────────────
   (function () {
     var staleModal = document.getElementById('dvfStaleModal');
@@ -1034,7 +1033,6 @@ function updateChartsTheme(themeName) {
       btn.click();
     });
   })();
-  {% endif %}
 })();
 </script>
 {% endblock %}

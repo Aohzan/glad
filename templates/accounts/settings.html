@@ -226,8 +226,7 @@
         emailSaveBtn.addEventListener('click', async function () {
             const email = emailInput.value.trim();
             if (!email) {
-                {% translate "Please enter an email address." as msg %}
-                emailStatusEl.textContent = '{{ msg|escapejs }}';
+                emailStatusEl.textContent = '{% filter escapejs %}{% translate "Please enter an email address." %}{% endfilter %}';
                 emailStatusEl.className = 'mt-2 small text-danger';
                 return;
             }
@@ -242,21 +241,17 @@
                 const data = await response.json();
                 if (!response.ok) {
                     if (data.error === 'invalid_email') {
-                        {% translate "Please enter a valid email address." as msg %}
-                        emailStatusEl.textContent = '{{ msg|escapejs }}';
+                        emailStatusEl.textContent = '{% filter escapejs %}{% translate "Please enter a valid email address." %}{% endfilter %}';
                     } else {
-                        {% translate "Failed to update email address." as msg %}
-                        emailStatusEl.textContent = '{{ msg|escapejs }}';
+                        emailStatusEl.textContent = '{% filter escapejs %}{% translate "Failed to update email address." %}{% endfilter %}';
                     }
                     emailStatusEl.className = 'mt-2 small text-danger';
                     return;
                 }
-                {% translate "Email address updated successfully." as msg %}
-                emailStatusEl.textContent = '{{ msg|escapejs }}';
+                emailStatusEl.textContent = '{% filter escapejs %}{% translate "Email address updated successfully." %}{% endfilter %}';
                 emailStatusEl.className = 'mt-2 small text-success';
             } catch (err) {
-                {% translate "Failed to update email address." as msg %}
-                emailStatusEl.textContent = '{{ msg|escapejs }}';
+                emailStatusEl.textContent = '{% filter escapejs %}{% translate "Failed to update email address." %}{% endfilter %}';
                 emailStatusEl.className = 'mt-2 small text-danger';
             } finally {
                 emailSaveBtn.disabled = false;
@@ -282,17 +277,14 @@
                 });
                 if (!response.ok) throw new Error('update_failed');
                 if (liveDataEnabled) {
-                    {% translate "Live market data enabled." as msg %}
-                    liveDataStatusEl.textContent = '{{ msg|escapejs }}';
+                    liveDataStatusEl.textContent = '{% filter escapejs %}{% translate "Live market data enabled." %}{% endfilter %}';
                 } else {
-                    {% translate "Live market data disabled." as msg %}
-                    liveDataStatusEl.textContent = '{{ msg|escapejs }}';
+                    liveDataStatusEl.textContent = '{% filter escapejs %}{% translate "Live market data disabled." %}{% endfilter %}';
                 }
                 liveDataStatusEl.className = 'mt-2 small text-success';
             } catch (err) {
                 liveDataEnabledSwitch.checked = !liveDataEnabled;
-                {% translate "Failed to update live market data preference." as msg %}
-                liveDataStatusEl.textContent = '{{ msg|escapejs }}';
+                liveDataStatusEl.textContent = '{% filter escapejs %}{% translate "Failed to update live market data preference." %}{% endfilter %}';
                 liveDataStatusEl.className = 'mt-2 small text-danger';
             } finally {
                 liveDataEnabledSwitch.disabled = false;
@@ -307,7 +299,7 @@
     const passkeyRegisterOptionsUrl = '{% url "accounts:passkey_register_options" %}';
     const passkeyRegisterCompleteUrl = '{% url "accounts:passkey_register_complete" %}';
     const passkeyDeleteUrl = '{% url "accounts:passkey_delete" %}';
-    const passkeyRegistered = {{ passkey_registered|yesno:"true,false" }};
+    const passkeyRegistered = '{{ passkey_registered|yesno:"true,false" }}' === 'true';
 
     function showPasskeyStatus(msg, isError) {
         passkeyStatusEl.textContent = msg;
@@ -346,9 +338,9 @@
     if (passkeyRegisterBtn && passkeyDeleteBtn) {
         updatePasskeyButtons(passkeyRegistered);
         if (passkeyRegistered) {
-            {% translate "Passkey registered." as msg %}showPasskeyStatus('{{ msg|escapejs }}');
+            showPasskeyStatus('{% filter escapejs %}{% translate "Passkey registered." %}{% endfilter %}');
         } else {
-            {% translate "No passkey registered yet." as msg %}showPasskeyStatus('{{ msg|escapejs }}');
+            showPasskeyStatus('{% filter escapejs %}{% translate "No passkey registered yet." %}{% endfilter %}');
         }
     }
 
@@ -357,7 +349,7 @@
             clearPasskeyStatus();
 
             if (!window.PublicKeyCredential) {
-                {% translate "Passkeys are not supported on this browser." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+                showPasskeyStatus('{% filter escapejs %}{% translate "Passkeys are not supported on this browser." %}{% endfilter %}', true);
                 return;
             }
 
@@ -409,18 +401,18 @@
                     throw new Error(errorData.error || 'verify_failed');
                 }
 
-                {% translate "Passkey registered successfully." as msg %}showPasskeyStatus('{{ msg|escapejs }}');
+                showPasskeyStatus('{% filter escapejs %}{% translate "Passkey registered successfully." %}{% endfilter %}');
                 updatePasskeyButtons(true);
             } catch (err) {
                 console.error('Passkey registration error:', err);
                 if (err.name === 'NotAllowedError') {
-                    {% translate "Passkey registration was cancelled." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+                    showPasskeyStatus('{% filter escapejs %}{% translate "Passkey registration was cancelled." %}{% endfilter %}', true);
                 } else if (err.message === 'options_failed') {
-                    {% translate "Failed to get registration options from server." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+                    showPasskeyStatus('{% filter escapejs %}{% translate "Failed to get registration options from server." %}{% endfilter %}', true);
                 } else if (err.message === 'verify_failed') {
-                    {% translate "Failed to verify passkey with server." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+                    showPasskeyStatus('{% filter escapejs %}{% translate "Failed to verify passkey with server." %}{% endfilter %}', true);
                 } else {
-                    {% translate "Failed to register passkey:" as msg %}showPasskeyStatus('{{ msg|escapejs }}' + ' ' + (err.message || err.name || 'Unknown error'), true);
+                    showPasskeyStatus('{% filter escapejs %}{% translate "Failed to register passkey:" %}{% endfilter %}' + ' ' + (err.message || err.name || 'Unknown error'), true);
                 }
             } finally {
                 passkeyRegisterBtn.disabled = false;
@@ -439,10 +431,10 @@
                     headers: { 'X-CSRFToken': csrfToken },
                 });
                 if (!response.ok) throw new Error('delete_failed');
-                {% translate "Passkey removed." as msg %}showPasskeyStatus('{{ msg|escapejs }}');
+                showPasskeyStatus('{% filter escapejs %}{% translate "Passkey removed." %}{% endfilter %}');
                 updatePasskeyButtons(false);
             } catch (err) {
-                {% translate "Failed to remove passkey." as msg %}showPasskeyStatus('{{ msg|escapejs }}', true);
+                showPasskeyStatus('{% filter escapejs %}{% translate "Failed to remove passkey." %}{% endfilter %}', true);
             } finally {
                 passkeyDeleteBtn.disabled = false;
             }
@@ -459,7 +451,7 @@
         sessionTimeoutSaveBtn.addEventListener('click', async function () {
             const timeout = parseInt(sessionTimeoutInput.value, 10);
             if (isNaN(timeout) || timeout < 5 || timeout > 1440) {
-                sessionTimeoutStatusEl.textContent = "{% translate "Please enter a value between 5 and 1440 minutes." %}";
+                sessionTimeoutStatusEl.textContent = '{% filter escapejs %}{% translate "Please enter a value between 5 and 1440 minutes." %}{% endfilter %}';
                 sessionTimeoutStatusEl.className = 'mt-2 small text-danger';
                 return;
             }
@@ -472,12 +464,10 @@
                     body: JSON.stringify({ timeout }),
                 });
                 if (!response.ok) throw new Error('update_failed');
-                {% translate "Session timeout updated successfully." as msg %}
-                sessionTimeoutStatusEl.textContent = '{{ msg|escapejs }}';
+                sessionTimeoutStatusEl.textContent = '{% filter escapejs %}{% translate "Session timeout updated successfully." %}{% endfilter %}';
                 sessionTimeoutStatusEl.className = 'mt-2 small text-success';
             } catch (err) {
-                {% translate "Failed to update session timeout." as msg %}
-                sessionTimeoutStatusEl.textContent = '{{ msg|escapejs }}';
+                sessionTimeoutStatusEl.textContent = '{% filter escapejs %}{% translate "Failed to update session timeout." %}{% endfilter %}';
                 sessionTimeoutStatusEl.className = 'mt-2 small text-danger';
             } finally {
                 sessionTimeoutSaveBtn.disabled = false;

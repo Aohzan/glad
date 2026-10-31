@@ -175,9 +175,9 @@
       if (err.name === 'NotAllowedError' || err.name === 'AbortError') return;
       console.error('Passkey login error:', err);
       if (err.message === 'verify_failed') {
-        {% translate "Failed to verify passkey with server." as msg %}showStatus('{{ msg|escapejs }}', true);
+        showStatus('{% filter escapejs %}{% translate "Failed to verify passkey with server." %}{% endfilter %}', true);
       } else if (!conditional) {
-        {% translate "Passkey login failed:" as msg %}showStatus('{{ msg|escapejs }}' + ' ' + (err.message || err.name || 'Unknown error'), true);
+        showStatus('{% filter escapejs %}{% translate "Passkey login failed:" %}{% endfilter %}' + ' ' + (err.message || err.name || 'Unknown error'), true);
       }
     })
     .then(function (loggedIn) {

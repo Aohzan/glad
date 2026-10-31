@@ -257,7 +257,7 @@
       renderHoldingChart();
     });
 
-  {% if holding.isin and live_data_enabled %}
+  // The live data card is only rendered for a holding with an ISIN when live data is enabled.
   var liveInfoUrl = "{% url 'finance:api_holding_live_info' account.pk holding.pk %}";
   var newHistoryBaseUrl = "{% url 'finance:new_holding_history' account.pk holding.pk %}";
   var loadingEl = document.getElementById('liveInfoLoading');
@@ -326,9 +326,10 @@
       });
   }
 
-  refreshBtn.addEventListener('click', function () { loadLiveInfo(true); });
-  loadLiveInfo(false);
-  {% endif %}
+  if (loadingEl) {
+    refreshBtn.addEventListener('click', function () { loadLiveInfo(true); });
+    loadLiveInfo(false);
+  }
 })();
 </script>
 {% endblock %}

@@ -1,7 +1,6 @@
 """Tests for the context returned by the finance index view."""
 
 import datetime
-import json
 from unittest.mock import patch
 
 import pytest
@@ -93,10 +92,10 @@ def test_index_view_savings_accounts_structure(
     assert entry["model"] == active_saving_account
     assert isinstance(entry["progression"], AccountProgression)
     assert context["total_saving_value"] == Money(1100, "EUR")
-    (series,) = json.loads(context["chart_series_json"])
+    (series,) = context["chart_series"]
     assert series["name"] == str(active_saving_account)
     assert series["data"][-1] == 1100.0
-    assert len(series["data"]) == len(json.loads(context["chart_months_json"]))
+    assert len(series["data"]) == len(context["chart_months"])
 
 
 @pytest.mark.django_db
@@ -129,7 +128,7 @@ def test_index_view_investment_accounts_structure(
     assert fund["id"] == holding.id
     assert fund["value"] == Money(300, "EUR")
     assert fund["weight"] == 12
-    (series,) = json.loads(context["chart_series_json"])
+    (series,) = context["chart_series"]
     assert series["data"][-1] == 2500.0
 
 
@@ -181,4 +180,17 @@ def test_index_view_queries_do_not_grow_with_history(
     with django_assert_max_num_queries(40):
         context = client.get(INDEX_URL).context
 
-    assert len(json.loads(context["chart_months_json"])) > 100
+    assert len(context["chart_months"]) > 100
+
+
+@pytest.mark.django_db
+def test_index_view_renders_chart_data_as_json_script(
+    client, user, active_saving_account
+):
+    """The evolution chart reads its data from json_script elements."""
+    client.force_login(user)
+
+    content = client.get(INDEX_URL).content.decode()
+
+    assert 'id="finance-chart-months" type="application/json"' in content
+    assert 'id="finance-chart-series" type="application/json"' in content

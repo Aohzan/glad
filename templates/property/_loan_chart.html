@@ -30,7 +30,7 @@
     series: series,
     chart: {
       type: 'bar',
-      height: {{ chart_height|default:300 }},
+      height: Number('{{ chart_height|default:300 }}'),
       stacked: true,
       stackOnlyBar: true,
       toolbar: { show: false },

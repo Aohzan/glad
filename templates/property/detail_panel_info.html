@@ -162,8 +162,9 @@
 {# Unlocalized coordinates: the French decimal comma would break the JavaScript #}
 <script nonce="{{ csp_nonce }}">
 (function () {
-  var lat = {{ property.latitude|default_if_none:"null"|unlocalize }};
-  var lon = {{ property.longitude|default_if_none:"null"|unlocalize }};
+  function coordinate(value) { return value === '' ? null : parseFloat(value); }
+  var lat = coordinate('{{ property.latitude|default_if_none:""|unlocalize }}');
+  var lon = coordinate('{{ property.longitude|default_if_none:""|unlocalize }}');
   var hasCoords = lat !== null && lon !== null;
   var defaultLat = 46.6034;
   var defaultLon = 1.8883;

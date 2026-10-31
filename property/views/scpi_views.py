@@ -2,7 +2,6 @@
 
 import calendar
 import datetime
-import json
 from decimal import Decimal
 
 from django.contrib import messages
@@ -221,10 +220,10 @@ def _compute_fund_data(fund: SCPI, today: datetime.date) -> dict:
         "growth_rentability": growth_rentability,
         "last_12mo_growth_pct": last_12mo_growth_pct,
         "currency": currency,
-        "chart_months": json.dumps(chart_months),
-        "chart_invested_monthly": json.dumps(chart_invested_monthly),
-        "chart_estimated_monthly": json.dumps(chart_estimated_monthly),
-        "chart_dividend_monthly": json.dumps(chart_dividend_monthly),
+        "chart_months": chart_months,
+        "chart_invested_monthly": chart_invested_monthly,
+        "chart_estimated_monthly": chart_estimated_monthly,
+        "chart_dividend_monthly": chart_dividend_monthly,
         "dividends_json": dividends_json,
     }
 
