@@ -6,7 +6,7 @@ from typing import Any
 
 from django.contrib import messages
 from django.db import IntegrityError, transaction
-from django.db.models import QuerySet
+from django.db.models import Max, QuerySet
 from django.forms import formset_factory
 from django.shortcuts import redirect, render
 from django.utils.dateparse import parse_datetime
@@ -86,6 +86,8 @@ def update_accounts(request):
         holding_data = []
         for holding in InvestmentAccountHolding.objects.filter(
             account=account, is_active=True
+        ).annotate(
+            last_valuation=Max("investmentaccountholdinghistory__valuation_date")
         ):
             holding_data.append(
                 {
@@ -99,6 +101,7 @@ def update_accounts(request):
                     "isin": holding.isin,  # For the live-fetch button, not a form field
                     "account_id": account.id,  # For the live-fetch button URL
                     "auto_update_price": holding.auto_update_price,  # Badge only
+                    "last_valuation": holding.last_valuation,  # ty: ignore[unresolved-attribute]
                 }
             )
         investment_accounts_initial_data[str(account)]["holdings"] = holding_data
