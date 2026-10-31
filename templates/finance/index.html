@@ -182,18 +182,18 @@ var optionsFinanceEvolution = {
         if (val == null) continue;
         var color = w.globals.colors[i];
         rows += '<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">' +
-          '<span style="display:flex;align-items:center;gap:6px;color:' + textMuted + ';font-size:12px;">' +
+          '<span style="display:flex;align-items:center;gap:6px;color:' + textMuted + ';font-size:.92rem;">' +
             '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + color + ';flex-shrink:0;"></span>' +
             w.globals.seriesNames[i] +
           '</span>' +
-          '<span style="font-weight:600;font-size:12px;">' + Math.round(val).toLocaleString() + '</span>' +
+          '<span style="font-weight:600;font-size:.92rem;">' + Math.round(val).toLocaleString() + '</span>' +
         '</div>';
       }
       return '<div style="padding:10px 14px;min-width:200px;">' +
-        '<div style="font-weight:700;margin-bottom:6px;font-size:13px;">' + label + '</div>' +
+        '<div style="font-weight:700;margin-bottom:6px;font-size:1rem;">' + label + '</div>' +
         '<div style="display:flex;justify-content:space-between;gap:16px;padding:4px 0 6px;border-bottom:1px solid ' + border + ';margin-bottom:6px;">' +
-          '<span style="font-size:13px;font-weight:600;">{% filter escapejs %}{% translate "Total" %}{% endfilter %}</span>' +
-          '<span style="font-size:13px;font-weight:700;">' + Math.round(total).toLocaleString() + '</span>' +
+          '<span style="font-size:1rem;font-weight:600;">{% filter escapejs %}{% translate "Total" %}{% endfilter %}</span>' +
+          '<span style="font-size:1rem;font-weight:700;">' + Math.round(total).toLocaleString() + '</span>' +
         '</div>' +
         rows +
       '</div>';

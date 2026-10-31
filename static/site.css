@@ -74,7 +74,7 @@
 .account-card:hover { background: var(--g-surface); }
 
 /* Section header */
-.section-title { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
+.section-title { font-size: 1.23rem; font-weight: 650; letter-spacing: -.01em; }
 
 /* Finance tables and cards */
 .table-finance {
