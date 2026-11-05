@@ -15,11 +15,13 @@ from moneyed import Money
 
 from property.models import Property
 from property.services.checks import (
+    UPCOMING_DAYS,
     PendingOccurrence,
     actual_values_error,
     check_all_up_to,
     check_occurrence,
     delete_occurrence,
+    is_checkable_occurrence,
     pending_occurrences,
     uncheck_occurrence,
 )
@@ -90,12 +92,17 @@ def _checks_url(property_obj: Property | None) -> str:
 def _build_rows(
     pending: list[PendingOccurrence], data: dict | None = None
 ) -> list[_CheckRow]:
-    """Build table rows, pre-filled with planned values or with posted values."""
+    """Build table rows, pre-filled with planned values or with posted values.
+
+    An upcoming occurrence is pre-filled with today, the actual date of a payment
+    made early never being in the future.
+    """
+    today = datetime.date.today()
     rows = []
     for p in pending:
         row = _CheckRow(
             pending=p,
-            actual_date=p.planned_date.isoformat(),
+            actual_date=min(p.planned_date, today).isoformat(),
             actual_amount=f"{p.planned_amount.amount:.2f}",
         )
         if data is not None:
@@ -156,7 +163,9 @@ def occurrence_checks(request: HttpRequest) -> HttpResponse:
     """List unchecked occurrences of recurring entries and check them in bulk."""
     source = request.POST if request.method == "POST" else request.GET
     property_obj = _selected_property(source.get("property"))
-    pending = pending_occurrences(property_obj=property_obj)
+    pending = pending_occurrences(
+        property_obj=property_obj, upcoming_days=UPCOMING_DAYS
+    )
     shown = pending[:MAX_ROWS]
     rows = _build_rows(shown)
 
@@ -220,6 +229,12 @@ def check_ledger_entry_occurrence(
         return error
     assert entry is not None
     assert occ_date is not None
+    if not is_checkable_occurrence(entry, occ_date):
+        messages.error(
+            request,
+            _("Only the next occurrence can be checked before its planned date."),
+        )
+        return _cashflow_redirect(property_pk)
 
     actual_date, actual_amount, error_message = _validate_actual_values(
         request.POST.get("actual_date"),

@@ -18,6 +18,8 @@ from property.models import Property, PropertyLedgerEntry, PropertyLedgerEntryEx
 
 WARNING_AFTER_DAYS = 7
 DANGER_AFTER_DAYS = 30
+# Occurrences due within this many days are offered for checking (paid early).
+UPCOMING_DAYS = 15
 
 _KEY_DATE_FORMAT = "%Y%m%d"
 
@@ -29,6 +31,11 @@ class PendingOccurrence:
     entry: PropertyLedgerEntry
     planned_date: datetime.date
     planned_amount: Money
+
+    @property
+    def is_upcoming(self) -> bool:
+        """Scheduled after today: only checkable when paid early."""
+        return self.planned_date > datetime.date.today()
 
     @property
     def key(self) -> str:
@@ -64,18 +71,30 @@ def _recurring_entries(property_obj: Property | None = None):
 def pending_occurrences(
     property_obj: Property | None = None,
     up_to: datetime.date | None = None,
+    upcoming_days: int = 0,
 ) -> list[PendingOccurrence]:
-    """Return unchecked occurrences scheduled up to ``up_to`` (default today), oldest first."""
-    up_to = up_to or datetime.date.today()
+    """Return unchecked occurrences scheduled up to ``up_to`` (default today), oldest first.
+
+    With *upcoming_days*, also return the next occurrence of each entry when it
+    is scheduled within that many days after today, to check it when paid early.
+    """
+    today = datetime.date.today()
+    up_to = up_to or today
+    horizon = today + datetime.timedelta(days=upcoming_days)
     pending: list[PendingOccurrence] = []
     for entry in _recurring_entries(property_obj):
-        for occ in entry.generate_occurrences():
+        occurrences = entry.generate_occurrences(end_date=max(up_to, horizon))
+        next_date = _next_occurrence_date(occurrences, today)
+        for occ in occurrences:
             planned_date = occ.get("occurrence_date")
             if (
                 planned_date is None
                 or not occ["is_recurring"]
                 or occ["is_checked"]
-                or planned_date > up_to
+                or (
+                    planned_date > up_to
+                    and not (upcoming_days and planned_date == next_date)
+                )
             ):
                 continue
             pending.append(
@@ -106,12 +125,55 @@ def pending_checks_summary() -> dict:
     return {"count": len(overdue), "oldest_days": oldest_days, "level": level}
 
 
+def _next_occurrence_date(
+    occurrences: list[dict], today: datetime.date
+) -> datetime.date | None:
+    """Scheduled date of the first occurrence after *today*, checked or not."""
+    return next(
+        (
+            occ["occurrence_date"]
+            for occ in occurrences
+            if occ.get("occurrence_date") and occ["occurrence_date"] > today
+        ),
+        None,
+    )
+
+
+def _is_next_occurrence(
+    entry: PropertyLedgerEntry, occurrence_date: datetime.date, today: datetime.date
+) -> bool:
+    """True if *occurrence_date* is the first occurrence of *entry* after *today*."""
+    if occurrence_date <= today:
+        return False
+    occurrences = entry.generate_occurrences(end_date=occurrence_date)
+    return _next_occurrence_date(occurrences, today) == occurrence_date
+
+
 def is_occurrence(entry: PropertyLedgerEntry, occurrence_date: datetime.date) -> bool:
-    """True if *occurrence_date* is a scheduled occurrence of *entry*."""
+    """True if *occurrence_date* is a scheduled occurrence of *entry*.
+
+    That is one listed by ``generate_occurrences`` (up to today, or the whole
+    schedule when the recurrence has an end date), or the next one after today.
+    """
     return any(
         occ.get("occurrence_date") == occurrence_date
         for occ in entry.generate_occurrences()
-    )
+    ) or _is_next_occurrence(entry, occurrence_date, datetime.date.today())
+
+
+def is_checkable_occurrence(
+    entry: PropertyLedgerEntry, occurrence_date: datetime.date
+) -> bool:
+    """True if the occurrence of *entry* on *occurrence_date* can be checked.
+
+    An occurrence scheduled up to today can, and so can the next one, which may
+    have been paid early (a rent the agency transferred before the due date).
+    The later ones cannot, so that the future schedule is not checked ahead.
+    """
+    today = datetime.date.today()
+    if occurrence_date > today:
+        return _is_next_occurrence(entry, occurrence_date, today)
+    return is_occurrence(entry, occurrence_date)
 
 
 def actual_values_error(
