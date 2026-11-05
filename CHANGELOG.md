@@ -2,6 +2,52 @@
 
 <!-- version list -->
 
+## v1.10.0 (2026-11-05)
+
+### Bug Fixes
+
+- **property**: List the occurrences of a recurring entry paid before their due date
+  ([`9c38dbc`](https://github.com/Aohzan/glad/commit/9c38dbc3a88327cda169d4a6f01752f7d6d12b3a))
+
+### Build System
+
+- **deps**: Bump actions/setup-python from 7.0.0 to 7.1.0
+  ([`63555ac`](https://github.com/Aohzan/glad/commit/63555acf8817c23228123167c4303267df94a239))
+
+- **deps**: Bump apexcharts from 8.3.1 to 8.5.0
+  ([`557fb7b`](https://github.com/Aohzan/glad/commit/557fb7b1bc21e9007d8407671c75770f562ffba0))
+
+- **deps**: Bump astral-sh/setup-uv from 10.3.0 to 10.3.2
+  ([`e33bc6b`](https://github.com/Aohzan/glad/commit/e33bc6b5d34fcf3aefff0e1edc12d15b28b65bb6))
+
+- **deps**: Bump docker/login-action from 4.6.0 to 4.7.0
+  ([`d94c461`](https://github.com/Aohzan/glad/commit/d94c4616ca2cef66614837e1de08f9aa42539a47))
+
+- **deps**: Bump lucide-static from 1.59.0 to 1.61.0
+  ([`9387734`](https://github.com/Aohzan/glad/commit/9387734b2435e8a7f60f03815f21929ef1b5a6fa))
+
+- **deps-dev**: Bump jscpd from 5.4.1 to 5.4.2
+  ([`27950a7`](https://github.com/Aohzan/glad/commit/27950a7f54bdd6a054d284d8303f3f032c61b2d4))
+
+- **deps-dev**: Update setuptools requirement from >=84.2.0 to >=84.2.1
+  ([`3a4872d`](https://github.com/Aohzan/glad/commit/3a4872d3dc440d4db2401dd20f7037b3fd6c788b))
+
+### Chores
+
+- **i18n**: Translate the early check messages
+  ([`2acb3a3`](https://github.com/Aohzan/glad/commit/2acb3a33d15f014a02f6a97bc266ed52ed4a07f4))
+
+### Features
+
+- **property**: Check the next occurrence of a recurring entry when it was paid early
+  ([`3065d4d`](https://github.com/Aohzan/glad/commit/3065d4d7861870c09d996e99eaec9a161bc119d1))
+
+### Testing
+
+- **property**: Cover the occurrences checked before their due date
+  ([`528f9ab`](https://github.com/Aohzan/glad/commit/528f9ab403c4f213cb6b3af66459cd60de6a7f3b))
+
+
 ## v1.9.0 (2026-10-31)
 
 ### Bug Fixes
