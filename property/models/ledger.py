@@ -13,6 +13,10 @@ from djmoney.models.fields import MoneyField
 from base.models import BaseModel
 from property.utils import generate_recurring_occurrences
 
+# How far past the covered range an occurrence paid early is looked for: one
+# period of the longest recurrence (yearly).
+EARLY_PAYMENT_LOOKAHEAD = datetime.timedelta(days=366)
+
 
 class ManagementCategory(str, enum.Enum):
     """
@@ -418,18 +422,30 @@ class PropertyLedgerEntry(BaseModel):
         date) and, for recurring entries, ``occurrence_date`` (the scheduled date,
         which identifies the occurrence), ``is_checked`` and ``actual_date``.
 
+        Without *end_date*, recurring occurrences stop at today (or at the end of
+        the recurrence when set). An occurrence scheduled later is still listed
+        once checked with an actual date of today or earlier (paid early).
+
         Uses Django's prefetch cache when ``prefetch_related('exceptions')`` has been
         called on the queryset, otherwise falls back to one extra DB query per entry.
         Callers that do not prefetch still get correct results; prefetching is only
         needed for performance.
         """
         is_recurring_entry = bool(self.pk) and self.recurrence_type != self.NONE
+        today = datetime.date.today()
         generation_end = end_date
-        if is_recurring_entry and end_date is not None:
+        covered_until: datetime.date | None = None
+        if is_recurring_entry:
             # Actual dates are never in the future, so an occurrence scheduled after
-            # end_date (but before today) may have been paid within the range.
-            generation_end = max(end_date, datetime.date.today())
-        raw = generate_recurring_occurrences(
+            # end_date may have been paid within the range: one scheduled before
+            # today, or a later one paid early. Generate a year past the covered
+            # range to reach the early ones; the others beyond it are dropped below.
+            if end_date is None:
+                covered_until = self.recurrence_end_date or today
+            else:
+                covered_until = max(end_date, today)
+            generation_end = covered_until + EARLY_PAYMENT_LOOKAHEAD
+        raw: list[dict[str, Any]] = generate_recurring_occurrences(
             start_date=self.entry_date,
             amount=self.amount,
             recurrence_type=self.recurrence_type,
@@ -447,6 +463,10 @@ class PropertyLedgerEntry(BaseModel):
 
         exceptions_qs = self.exceptions.all()  # ty: ignore[unresolved-attribute]  # uses prefetch cache if available
         exc_map = {exc.occurrence_date: exc for exc in exceptions_qs}
+        assert covered_until is not None
+        if raw[0]["date"] > covered_until:
+            # Starts after the covered range: listed once, like a single entry.
+            raw = [{**raw[0], "is_recurring": False}]
         result = []
         for occurrence in raw:
             updated: dict[str, Any] = {
@@ -470,6 +490,12 @@ class PropertyLedgerEntry(BaseModel):
                     updated["actual_date"] = exc.actual_date
                 updated["is_checked"] = exc.is_checked
                 updated["has_exception"] = True
+            if (
+                occurrence["is_recurring"]
+                and occurrence["date"] > covered_until
+                and not (updated["is_checked"] and updated["date"] <= today)
+            ):
+                continue
             if end_date is not None and updated["date"] > end_date:
                 continue
             result.append(updated)
