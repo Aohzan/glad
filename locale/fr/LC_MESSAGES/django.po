@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-31 14:02+0100\n"
+"POT-Creation-Date: 2026-11-05 22:24+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -367,7 +367,7 @@ msgid "Document deleted."
 msgstr "Document supprimé."
 
 #: base/forms.py:61 finance/models/other_asset.py:194
-#: property/models/ledger.py:309 property/models/scpi.py:161
+#: property/models/ledger.py:313 property/models/scpi.py:161
 #: property/models/scpi.py:586 rental/models.py:201
 #: templates/budget/year_detail.html:58
 #: templates/finance/_deposits_panel.html:15
@@ -564,7 +564,7 @@ msgid "scheduled jobs"
 msgstr "tâches planifiées"
 
 #: base/models.py:258 property/models/lease.py:191 property/models/lease.py:232
-#: property/models/ledger.py:295 rental/models.py:39 rental/models.py:151
+#: property/models/ledger.py:299 rental/models.py:39 rental/models.py:151
 #: rental/models.py:198 rental/models.py:328 rental/models.py:385
 #: rental/notifications.py:37 templates/property/detail.html:437
 #: templates/property/detail_panel_cashflow.html:126
@@ -824,7 +824,7 @@ msgstr "Propriétaire enregistré."
 #: finance/views/investment_views.py:309 finance/views/investment_views.py:449
 #: finance/views/other_asset_views.py:62 finance/views/saving_views.py:62
 #: finance/views/saving_views.py:88 finance/views/update_views.py:317
-#: property/views/check_views.py:133 property/views/crud_views.py:130
+#: property/views/check_views.py:140 property/views/crud_views.py:130
 #: property/views/crud_views.py:308 property/views/crud_views.py:415
 #: property/views/crud_views.py:499 property/views/edit_views.py:53
 #: property/views/edit_views.py:91 property/views/edit_views.py:108
@@ -941,7 +941,7 @@ msgstr "Compte d'investissement"
 
 #: base/services/ownership.py:132 property/models/asset.py:799
 #: property/models/asset.py:896 property/models/lease.py:56
-#: property/models/ledger.py:287 property/models/management.py:38
+#: property/models/ledger.py:291 property/models/management.py:38
 #: rental/models.py:94 templates/base.html:117
 #: templates/dashboard/_property.html:28 templates/property/all_loans.html:99
 #: templates/property/index.html:4 templates/property/index.html:68
@@ -1022,7 +1022,7 @@ msgid "Job “%(job)s” started."
 msgstr "Tâche « %(job)s » lancée."
 
 #: budget/forms.py:76 budget/models.py:246 finance/models/other_asset.py:75
-#: property/models/ledger.py:323 templates/budget/import_preview.html:33
+#: property/models/ledger.py:327 templates/budget/import_preview.html:33
 #: templates/finance/other_asset_detail.html:38
 #: templates/finance/other_asset_list.html:22
 #: templates/property/_report_category_table.html:11
@@ -1274,7 +1274,7 @@ msgstr "Allocations et prestations"
 msgid "Pensions"
 msgstr "Pensions et retraites"
 
-#: budget/services/categories.py:20 property/models/ledger.py:86
+#: budget/services/categories.py:20 property/models/ledger.py:90
 msgid "Other income"
 msgstr "Autres revenus"
 
@@ -1362,7 +1362,7 @@ msgstr "Impôts"
 msgid "Income tax"
 msgstr "Impôt sur le revenu"
 
-#: budget/services/categories.py:50 property/models/ledger.py:161
+#: budget/services/categories.py:50 property/models/ledger.py:165
 msgid "Property tax"
 msgstr "Taxe foncière"
 
@@ -1402,7 +1402,7 @@ msgstr "Loisirs et vacances"
 msgid "Subscriptions"
 msgstr "Abonnements"
 
-#: budget/services/categories.py:57 property/models/ledger.py:158
+#: budget/services/categories.py:57 property/models/ledger.py:162
 msgid "Insurance"
 msgstr "Assurance"
 
@@ -1592,13 +1592,13 @@ msgstr "Autres ressources"
 msgid "Loan principal"
 msgstr "Capital du prêt"
 
-#: budget/services/summary.py:325 property/models/ledger.py:176
+#: budget/services/summary.py:325 property/models/ledger.py:180
 #: property/services/cashflow.py:179
 #: templates/property/detail_panel_cashflow.html:539
 msgid "Loan interest"
 msgstr "Intérêts du prêt"
 
-#: budget/services/summary.py:326 property/models/ledger.py:183
+#: budget/services/summary.py:326 property/models/ledger.py:187
 #: property/services/cashflow.py:183
 #: templates/property/detail_panel_cashflow.html:541
 msgid "Loan insurance"
@@ -2428,7 +2428,7 @@ msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 
 #: finance/views/crud_views.py:70 finance/views/investment_views.py:123
 #: finance/views/investment_views.py:350 finance/views/saving_views.py:108
-#: property/views/check_views.py:213 property/views/check_views.py:245
+#: property/views/check_views.py:222 property/views/check_views.py:260
 #: property/views/crud_views.py:74 property/views/crud_views.py:147
 #: property/views/crud_views.py:352 property/views/crud_views.py:437
 #: property/views/scpi_views.py:374 property/views/scpi_views.py:414
@@ -2463,7 +2463,7 @@ msgstr "Session d'import de CSV expirée, merci de réessayer"
 msgid "No mapping found for account"
 msgstr "Aucune correspondance trouvée pour le compte"
 
-#: finance/views/csv_views.py:379 property/views/check_views.py:168
+#: finance/views/csv_views.py:379 property/views/check_views.py:177
 msgid "Invalid date."
 msgstr "Date invalide."
 
@@ -2945,7 +2945,7 @@ msgstr "La notification de test a échoué : %(error)s"
 msgid "Channel “%(name)s” deleted."
 msgstr "Canal « %(name)s » supprimé."
 
-#: property/forms.py:68 property/models/ledger.py:315
+#: property/forms.py:68 property/models/ledger.py:319
 #: templates/property/detail.html:476
 #: templates/property/detail_panel_cashflow.html:118
 msgid "Reference period"
@@ -3346,7 +3346,7 @@ msgstr "Date du DPE"
 msgid "Date the energy performance diagnosis was carried out."
 msgstr "Date de réalisation du diagnostic de performance énergétique."
 
-#: property/models/asset.py:485 property/models/ledger.py:259
+#: property/models/asset.py:485 property/models/ledger.py:263
 msgid "None"
 msgstr "Aucune"
 
@@ -3594,6 +3594,7 @@ msgid "Created by"
 msgstr "Créé par"
 
 #: property/models/lease.py:23 templates/property/detail_panel_leases.html:32
+#: templates/property/occurrence_checks.html:95
 #: templates/rental/_period_status.html:1
 msgid "Upcoming"
 msgstr "À venir"
@@ -3627,12 +3628,12 @@ msgstr "Étudiant (meublé)"
 msgid "Commercial"
 msgstr "Commercial"
 
-#: property/models/lease.py:37 property/models/ledger.py:260
+#: property/models/lease.py:37 property/models/ledger.py:264
 #: property/models/scpi.py:33 templates/budget/year_detail.html:123
 msgid "Monthly"
 msgstr "Mensuel"
 
-#: property/models/lease.py:38 property/models/ledger.py:261
+#: property/models/lease.py:38 property/models/ledger.py:265
 #: property/models/scpi.py:34
 msgid "Quarterly"
 msgstr "Trimestriel"
@@ -3857,83 +3858,83 @@ msgstr "Adresse"
 msgid "Postal address, when it is not the rented dwelling."
 msgstr "Adresse postale, si ce n'est pas le logement loué."
 
-#: property/models/ledger.py:72
+#: property/models/ledger.py:76
 msgid "Rent collected"
 msgstr "Loyer encaissé"
 
-#: property/models/ledger.py:79
+#: property/models/ledger.py:83
 msgid "Charges collected"
 msgstr "Charges encaissées"
 
-#: property/models/ledger.py:93
+#: property/models/ledger.py:97
 msgid "Deposit received"
 msgstr "Dépôt reçu"
 
-#: property/models/ledger.py:100
+#: property/models/ledger.py:104
 msgid "Manager reversal"
 msgstr "Reversement du gestionnaire"
 
-#: property/models/ledger.py:108
+#: property/models/ledger.py:112
 msgid "Management fees"
 msgstr "Frais de gestion"
 
-#: property/models/ledger.py:115
+#: property/models/ledger.py:119
 msgid "Letting fees"
 msgstr "Frais de mise en location"
 
-#: property/models/ledger.py:122
+#: property/models/ledger.py:126
 msgid "Other general fees"
 msgstr "Autres frais généraux"
 
-#: property/models/ledger.py:131
+#: property/models/ledger.py:135
 msgid "Accounting fees"
 msgstr "Frais de comptabilité"
 
-#: property/models/ledger.py:138
+#: property/models/ledger.py:142
 msgid "Co-ownership fees"
 msgstr "Charges de copropriété"
 
-#: property/models/ledger.py:145
+#: property/models/ledger.py:149
 msgid "Routine maintenance"
 msgstr "Entretien courant"
 
-#: property/models/ledger.py:150 templates/property/resale_simulation.html:75
+#: property/models/ledger.py:154 templates/property/resale_simulation.html:75
 msgid "Works"
 msgstr "Travaux"
 
-#: property/models/ledger.py:153
+#: property/models/ledger.py:157
 msgid "Furnitures"
 msgstr "Meublé"
 
-#: property/models/ledger.py:166
+#: property/models/ledger.py:170
 msgid "CFE"
 msgstr "CFE"
 
-#: property/models/ledger.py:169
+#: property/models/ledger.py:173
 msgid "Miscellaneous deductible"
 msgstr "Charges diverses déductibles"
 
-#: property/models/ledger.py:190
+#: property/models/ledger.py:194
 msgid "Rental guarantee"
 msgstr "Garantie Loyer Impayée"
 
-#: property/models/ledger.py:198
+#: property/models/ledger.py:202
 msgid "Loan capital repayment"
 msgstr "Remboursement du capital"
 
-#: property/models/ledger.py:205 rental/services/departure.py:189
+#: property/models/ledger.py:209 rental/services/departure.py:189
 msgid "Deposit returned"
 msgstr "Dépôt restitué"
 
-#: property/models/ledger.py:212
+#: property/models/ledger.py:216
 msgid "Other non-deductible"
 msgstr "Autres charges non déductibles"
 
-#: property/models/ledger.py:219
+#: property/models/ledger.py:223
 msgid "ALUR works fund"
 msgstr "Fonds travaux (ALUR)"
 
-#: property/models/ledger.py:241 templates/property/detail.html:398
+#: property/models/ledger.py:245 templates/property/detail.html:398
 #: templates/property/detail.html:421
 #: templates/property/detail_panel_balance.html:64
 #: templates/property/detail_panel_cashflow.html:85
@@ -3943,34 +3944,34 @@ msgstr "Fonds travaux (ALUR)"
 msgid "Income"
 msgstr "Revenu"
 
-#: property/models/ledger.py:242 templates/property/detail.html:402
+#: property/models/ledger.py:246 templates/property/detail.html:402
 #: templates/property/detail_panel_cashflow.html:94
 #: templates/property/detail_panel_cashflow.html:294
 #: templates/property/occurrence_checks.html:85
 msgid "Expense"
 msgstr "Dépense"
 
-#: property/models/ledger.py:262
+#: property/models/ledger.py:266
 msgid "Biannual"
 msgstr "Biannuel"
 
-#: property/models/ledger.py:263 templates/budget/year_detail.html:123
+#: property/models/ledger.py:267 templates/budget/year_detail.html:123
 msgid "Yearly"
 msgstr "Annuel"
 
-#: property/models/ledger.py:274
+#: property/models/ledger.py:278
 msgid "ledger entry"
 msgstr "écriture comptable"
 
-#: property/models/ledger.py:275
+#: property/models/ledger.py:279
 msgid "ledger entries"
 msgstr "écritures comptables"
 
-#: property/models/ledger.py:300
+#: property/models/ledger.py:304
 msgid "Flow type"
 msgstr "Type de flux"
 
-#: property/models/ledger.py:305 templates/budget/import_preview.html:36
+#: property/models/ledger.py:309 templates/budget/import_preview.html:36
 #: templates/budget/year_detail.html:58
 #: templates/finance/_deposits_panel.html:16
 #: templates/finance/_edit_deposit_fields.html:3 templates/operations.html:23
@@ -3987,33 +3988,33 @@ msgstr "Type de flux"
 msgid "Amount"
 msgstr "Montant"
 
-#: property/models/ledger.py:306
+#: property/models/ledger.py:310
 msgid "Always positive. Use flow_type to indicate income or expense."
 msgstr "Toujours positif. Utiliser flow_type pour indiquer revenu ou dépense."
 
-#: property/models/ledger.py:310
+#: property/models/ledger.py:314
 msgid "Date of the entry (or start date for recurring entries)."
 msgstr "Date de l'écriture (ou date de début pour les écritures récurrentes)."
 
-#: property/models/ledger.py:317
+#: property/models/ledger.py:321
 msgid "The month/period this entry covers, e.g. first day of March 2024."
 msgstr ""
 "Le mois/période que couvre cette écriture, ex. premier jour de mars 2024."
 
-#: property/models/ledger.py:329 templates/property/detail.html:495
+#: property/models/ledger.py:333 templates/property/detail.html:495
 #: templates/property/detail_panel_cashflow.html:158
 msgid "Third party"
 msgstr "Tiers"
 
-#: property/models/ledger.py:330
+#: property/models/ledger.py:334
 msgid "Optional. Name of the third party (tenant, supplier, etc.)."
 msgstr "Optionnel. Nom du tiers (locataire, fournisseur, etc.)."
 
-#: property/models/ledger.py:335
+#: property/models/ledger.py:339
 msgid "Recoverable from the tenant"
 msgstr "Récupérable auprès du locataire"
 
-#: property/models/ledger.py:337
+#: property/models/ledger.py:341
 msgid ""
 "An expense the tenant reimburses through the charges (décret n° 87-713): "
 "water, collective heating, lift, upkeep of the common parts, household waste "
@@ -4024,24 +4025,24 @@ msgstr ""
 "d'enlèvement des ordures ménagères… Comptée dans la régularisation annuelle "
 "des charges."
 
-#: property/models/ledger.py:348
+#: property/models/ledger.py:352
 msgid "Recurrence type"
 msgstr "Type de récurrence"
 
-#: property/models/ledger.py:353
+#: property/models/ledger.py:357
 msgid "Recurrence end date"
 msgstr "Date de fin de récurrence"
 
-#: property/models/ledger.py:354
+#: property/models/ledger.py:358
 msgid "End date for recurring entries (leave empty for indefinite)."
 msgstr ""
 "Date de fin pour les écritures récurrentes (laisser vide pour indéfini)."
 
-#: property/models/ledger.py:375
+#: property/models/ledger.py:379
 msgid "Amount must be positive."
 msgstr "Le montant doit être positif."
 
-#: property/models/ledger.py:382
+#: property/models/ledger.py:386
 #, python-format
 msgid ""
 "Category '%(cat)s' is not valid for an INCOME entry. Use a revenue category "
@@ -4050,7 +4051,7 @@ msgstr ""
 "La catégorie '%(cat)s' n'est pas valide pour une écriture REVENU. Utiliser "
 "une catégorie de revenu ou définir flow_type sur DÉPENSE."
 
-#: property/models/ledger.py:390
+#: property/models/ledger.py:394
 #, python-format
 msgid ""
 "Category '%(cat)s' is not valid for an EXPENSE entry. Use an expense "
@@ -4059,54 +4060,54 @@ msgstr ""
 "La catégorie '%(cat)s' n'est pas valide pour une écriture DÉPENSE. Utiliser "
 "une catégorie de dépense ou définir flow_type sur REVENU."
 
-#: property/models/ledger.py:498
+#: property/models/ledger.py:524
 msgid "Parent entry"
 msgstr "Écriture parente"
 
-#: property/models/ledger.py:500
+#: property/models/ledger.py:526
 msgid "Occurrence date"
 msgstr "Date d'occurrence"
 
-#: property/models/ledger.py:501
+#: property/models/ledger.py:527
 msgid "Is deleted"
 msgstr "Est supprimé"
 
-#: property/models/ledger.py:507
+#: property/models/ledger.py:533
 msgid "Amount override"
 msgstr "Montant personnalisé"
 
-#: property/models/ledger.py:513
+#: property/models/ledger.py:539
 msgid "Description override"
 msgstr "Description personnalisée"
 
-#: property/models/ledger.py:518
+#: property/models/ledger.py:544
 msgid "Notes override"
 msgstr "Notes personnalisées"
 
-#: property/models/ledger.py:522
+#: property/models/ledger.py:548
 msgid "Is checked"
 msgstr "Pointée"
 
-#: property/models/ledger.py:523
+#: property/models/ledger.py:549
 msgid "The planned transfer has been verified on the bank account."
 msgstr "Le virement prévu a été vérifié sur le compte bancaire."
 
-#: property/models/ledger.py:528
+#: property/models/ledger.py:554
 #: templates/property/detail_panel_cashflow.html:259
 #: templates/property/occurrence_checks.html:64
-#: templates/property/occurrence_checks.html:95
+#: templates/property/occurrence_checks.html:98
 msgid "Actual date"
 msgstr "Date réelle"
 
-#: property/models/ledger.py:529
+#: property/models/ledger.py:555
 msgid "Actual transfer date, when it differs from the planned date."
 msgstr "Date réelle du virement, lorsqu'elle diffère de la date prévue."
 
-#: property/models/ledger.py:533
+#: property/models/ledger.py:559
 msgid "ledger entry exception"
 msgstr "exception d'écriture comptable"
 
-#: property/models/ledger.py:534
+#: property/models/ledger.py:560
 msgid "ledger entry exceptions"
 msgstr "exceptions d'écritures comptables"
 
@@ -4494,11 +4495,11 @@ msgstr "Date limite de la CFE (MM-JJ)"
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
-#: property/services/checks.py:122
+#: property/services/checks.py:184
 msgid "The actual date cannot be in the future."
 msgstr "La date réelle ne peut pas être dans le futur."
 
-#: property/services/checks.py:124 property/views/check_views.py:59
+#: property/services/checks.py:186 property/views/check_views.py:61
 msgid "The actual amount must be positive."
 msgstr "Le montant réel doit être positif."
 
@@ -4651,38 +4652,42 @@ msgstr "Composition du capital"
 msgid "Filiales et participations"
 msgstr "Filiales et participations"
 
-#: property/views/check_views.py:56
+#: property/views/check_views.py:58
 msgid "Invalid actual date."
 msgstr "Date réelle invalide."
 
-#: property/views/check_views.py:117
+#: property/views/check_views.py:124
 msgid "An entry cannot be both checked and deleted."
 msgstr "Une écriture ne peut pas être à la fois pointée et supprimée."
 
-#: property/views/check_views.py:136
+#: property/views/check_views.py:143
 msgid "No entry was selected."
 msgstr "Aucune écriture sélectionnée."
 
-#: property/views/check_views.py:148
+#: property/views/check_views.py:155
 #, python-brace-format
 msgid "{checked} entry(ies) checked, {deleted} occurrence(s) deleted."
 msgstr ""
 "{checked} écriture(s) pointée(s), {deleted} occurrence(s) supprimée(s)."
 
-#: property/views/check_views.py:175
+#: property/views/check_views.py:184
 #, python-brace-format
 msgid "{count} entry(ies) checked."
 msgstr "{count} écriture(s) pointée(s)."
 
-#: property/views/check_views.py:183
+#: property/views/check_views.py:192
 msgid "Invalid action."
 msgstr "Action invalide."
 
-#: property/views/check_views.py:233
+#: property/views/check_views.py:235
+msgid "Only the next occurrence can be checked before its planned date."
+msgstr "Seule la prochaine occurrence peut être pointée avant sa date prévue."
+
+#: property/views/check_views.py:248
 msgid "Entry checked."
 msgstr "Écriture pointée."
 
-#: property/views/check_views.py:257
+#: property/views/check_views.py:272
 msgid "Entry unchecked."
 msgstr "Pointage annulé."
 
@@ -6145,7 +6150,7 @@ msgstr "Saisissez votre adresse email"
 #: templates/property/edit_amortization.html:174
 #: templates/property/edit_entry.html:12
 #: templates/property/edit_entry_occurrence.html:81
-#: templates/property/occurrence_checks.html:124
+#: templates/property/occurrence_checks.html:127
 #: templates/rental/edit_application.html:26
 #: templates/rental/edit_party.html:29
 #: templates/rental/inventory_detail.html:40
@@ -9623,14 +9628,14 @@ msgstr "Pointer l'écriture"
 
 #: templates/property/detail_panel_cashflow.html:263
 #: templates/property/occurrence_checks.html:66
-#: templates/property/occurrence_checks.html:99
+#: templates/property/occurrence_checks.html:102
 msgid "Actual amount"
 msgstr "Montant réel"
 
 #: templates/property/detail_panel_cashflow.html:270
 #: templates/property/detail_panel_cashflow.html:299
 #: templates/property/occurrence_checks.html:69
-#: templates/property/occurrence_checks.html:102
+#: templates/property/occurrence_checks.html:105
 msgid "Check"
 msgstr "Pointer"
 
@@ -10350,11 +10355,15 @@ msgstr "Montant prévu"
 msgid "Select all"
 msgstr "Tout sélectionner"
 
-#: templates/property/occurrence_checks.html:105
+#: templates/property/occurrence_checks.html:95
+msgid "Not due yet: check it when it was paid early."
+msgstr "Pas encore échue : à pointer si elle a été payée en avance."
+
+#: templates/property/occurrence_checks.html:108
 msgid "Delete this occurrence"
 msgstr "Supprimer cette occurrence"
 
-#: templates/property/occurrence_checks.html:112
+#: templates/property/occurrence_checks.html:115
 msgid "All recurring entries are checked."
 msgstr "Toutes les écritures récurrentes sont pointées."
 
