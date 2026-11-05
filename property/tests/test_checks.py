@@ -15,15 +15,19 @@ from property.models import (
     PropertyLedgerEntryException,
 )
 from property.services.checks import (
+    UPCOMING_DAYS,
     PendingOccurrence,
     check_all_up_to,
     check_occurrence,
     delete_occurrence,
+    is_checkable_occurrence,
+    is_occurrence,
     parse_occurrence_key,
     pending_checks_summary,
     pending_occurrences,
     uncheck_occurrence,
 )
+from property.utils.date_utils import add_months_safe
 from property.views import check_views
 
 TODAY = datetime.date.today()
@@ -67,6 +71,25 @@ def rent(property_obj):
         recurrence_end_date=datetime.date(2024, 6, 1),
         third_party="John",
     )
+
+
+def next_due_date() -> datetime.date:
+    """A date within the next days on a day every month has (the 28th at most)."""
+    due = TODAY + datetime.timedelta(days=1)
+    while due.day > 28:
+        due += datetime.timedelta(days=1)
+    return due
+
+
+@pytest.fixture
+def due():
+    return next_due_date()
+
+
+@pytest.fixture
+def monthly(property_obj, due):
+    """Monthly rent started a year ago, next due in a few days."""
+    return _monthly_entry(property_obj, due.replace(year=due.year - 1))
 
 
 def _url(name, entry, occ_date):
@@ -581,3 +604,112 @@ class TestIndexAlert:
         assert f"alert-{level}" in content
         assert "property-checks-alert" in content
         assert reverse("property:checks") in content
+
+
+# ─── Occurrences paid early ───────────────────────────────────────────────────
+
+
+def _scheduled_dates(entry, **kwargs):
+    return [occ["occurrence_date"] for occ in entry.generate_occurrences(**kwargs)]
+
+
+@pytest.mark.django_db
+class TestPaidEarly:
+    def test_listed_once_checked(self, monthly, due):
+        assert due not in _scheduled_dates(monthly)
+        assert due not in _scheduled_dates(monthly, end_date=TODAY)
+
+        check_occurrence(monthly, due, TODAY)
+        occ = next(o for o in monthly.generate_occurrences() if o["date"] == TODAY)
+        assert occ["occurrence_date"] == due
+        assert occ["is_checked"]
+        assert due in _scheduled_dates(monthly, end_date=TODAY)
+        yesterday = TODAY - datetime.timedelta(days=1)
+        assert due not in _scheduled_dates(monthly, end_date=yesterday)
+        # The occurrence after it stays out of the past ones.
+        assert add_months_safe(due, 1) not in _scheduled_dates(monthly)
+
+    def test_future_start_is_listed_once(self, property_obj):
+        start = TODAY + datetime.timedelta(days=10)
+        entry = _monthly_entry(property_obj, start)
+        (occ,) = entry.generate_occurrences()
+        assert (occ["date"], occ["is_recurring"]) == (start, False)
+
+    def test_only_the_next_occurrence_is_checkable(self, monthly, due):
+        after_next = add_months_safe(due, 1)
+        last_due = add_months_safe(due, -1)
+        assert is_occurrence(monthly, due)
+        assert not is_occurrence(monthly, after_next)
+        assert is_checkable_occurrence(monthly, due)
+        assert is_checkable_occurrence(monthly, last_due)
+        assert not is_checkable_occurrence(monthly, after_next)
+        assert not is_checkable_occurrence(monthly, due + datetime.timedelta(days=1))
+
+    def test_bounded_schedule_is_not_checkable_ahead(self, property_obj, due):
+        entry = _monthly_entry(
+            property_obj,
+            due.replace(year=due.year - 1),
+            recurrence_end_date=add_months_safe(due, 6),
+        )
+        after_next = add_months_safe(due, 2)
+        assert is_occurrence(entry, after_next)
+        assert not is_checkable_occurrence(entry, after_next)
+        assert is_checkable_occurrence(entry, due)
+
+    def test_pending_upcoming(self, monthly, due):
+        assert due not in [p.planned_date for p in pending_occurrences()]
+        pending = pending_occurrences(upcoming_days=UPCOMING_DAYS)
+        upcoming = [p for p in pending if p.planned_date > TODAY]
+        assert [(p.planned_date, p.is_upcoming) for p in upcoming] == [(due, True)]
+        assert not pending[0].is_upcoming
+        # Not within the window yet.
+        assert all(
+            p.planned_date <= TODAY
+            for p in pending_occurrences(upcoming_days=(due - TODAY).days - 1)
+        )
+        check_occurrence(monthly, due, TODAY)
+        assert due not in [
+            p.planned_date for p in pending_occurrences(upcoming_days=UPCOMING_DAYS)
+        ]
+
+    def test_checks_page_offers_the_upcoming_occurrence(
+        self, admin_client, monthly, due
+    ):
+        url = reverse("property:checks")
+        key = PendingOccurrence(monthly, due, EUR_1000).key
+        response = admin_client.get(url)
+        row = next(r for r in response.context["rows"] if r.pending.key == key)
+        assert row.actual_date == TODAY.isoformat()
+        assert "Upcoming" in response.content.decode()
+
+        response = admin_client.post(
+            url,
+            {
+                "action": "save",
+                f"check_{key}": "1",
+                f"date_{key}": row.actual_date,
+                f"amount_{key}": row.actual_amount,
+            },
+        )
+        assert response.status_code == 302
+        exc = PropertyLedgerEntryException.objects.get(
+            parent_entry=monthly, occurrence_date=due
+        )
+        assert (exc.is_checked, exc.actual_date) == (True, TODAY)
+
+    def test_check_from_cashflow(self, admin_client, monthly, due):
+        # With an end date, the whole schedule is listed but not checkable ahead.
+        monthly.recurrence_end_date = add_months_safe(due, 6)
+        monthly.save()
+        values = {"actual_date": TODAY.isoformat(), "actual_amount": "1000"}
+        response = admin_client.post(
+            _url("check_occurrence", monthly, add_months_safe(due, 1)), values
+        )
+        assert response.status_code == 302
+        msgs = [str(m) for m in get_messages(response.wsgi_request)]
+        assert any("next occurrence" in m for m in msgs)
+        assert not PropertyLedgerEntryException.objects.exists()
+
+        admin_client.post(_url("check_occurrence", monthly, due), values)
+        exc = PropertyLedgerEntryException.objects.get(parent_entry=monthly)
+        assert (exc.occurrence_date, exc.actual_date) == (due, TODAY)

@@ -164,3 +164,20 @@ def test_summarize(scheduled):
 
 def test_period_months_cover_the_periodicities():
     assert set(payments.PERIOD_MONTHS) == set(Lease.Periodicity.values)
+
+
+@pytest.mark.django_db
+def test_rent_paid_before_the_due_date(lease):
+    today = datetime.date.today()
+    due = today + datetime.timedelta(days=1)
+    while due.day > 28:
+        due += datetime.timedelta(days=1)
+    lease.start_date = datetime.date(due.year - 1, due.month, 1)
+    lease.payment_day = due.day
+    lease.save()
+    rent, charges = create_rent_schedule(lease)
+    check_occurrence(rent, due, today)
+    check_occurrence(charges, due, today)
+    period = period_of_month(lease_periods(lease, today), due)
+    assert period is not None
+    assert (period.status, period.paid_date) == (PAID, today)

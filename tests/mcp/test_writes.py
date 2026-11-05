@@ -315,6 +315,60 @@ def test_check_ledger_occurrence_refuses_an_unknown_date(write_key):
         )
 
 
+@pytest.fixture
+def paid_early():
+    """A monthly rent next due in a few days, and that due date."""
+    due = TODAY + datetime.timedelta(days=1)
+    while due.day > 28:
+        due += datetime.timedelta(days=1)
+    entry = PropertyLedgerEntry.objects.create(
+        property=Property.objects.create(
+            name="Early",
+            property_type="apartment",
+            buying_value=Money(100000, "EUR"),
+            buying_date=datetime.date(2020, 1, 1),
+        ),
+        flow_type=PropertyLedgerEntry.FlowType.INCOME,
+        management_category="rent_collected",
+        amount=Money(600, "EUR"),
+        entry_date=due.replace(year=due.year - 1),
+        recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
+    )
+    return entry, due
+
+
+@pytest.mark.django_db
+def test_check_ledger_occurrence_paid_early(write_key, paid_early):
+    entry, due = paid_early
+    result = call_tool(
+        write_key,
+        "check_ledger_occurrence",
+        entry_id=entry.pk,
+        occurrence_date=due.isoformat(),
+        actual_date=TODAY.isoformat(),
+        actual_amount="600",
+    )
+    assert result["checked"]
+    assert result["actual_date"] == TODAY.isoformat()
+    (occurrence,) = [
+        occ for occ in entry.generate_occurrences() if occ["occurrence_date"] == due
+    ]
+    assert (occurrence["date"], occurrence["is_checked"]) == (TODAY, True)
+
+
+@pytest.mark.django_db
+def test_check_ledger_occurrence_refuses_the_one_after_the_next(write_key, paid_early):
+    entry, due = paid_early
+    with pytest.raises(ToolFailed, match="not a scheduled occurrence"):
+        call_tool(
+            write_key,
+            "check_ledger_occurrence",
+            entry_id=entry.pk,
+            occurrence_date=due.replace(year=due.year + 1).isoformat(),
+            actual_date=TODAY.isoformat(),
+        )
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     ("arguments", "message"),

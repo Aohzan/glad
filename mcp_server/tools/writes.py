@@ -58,7 +58,7 @@ from property.models import (
 from property.services.checks import (
     actual_values_error,
     check_occurrence,
-    is_occurrence,
+    is_checkable_occurrence,
 )
 
 FlowType = Literal["income", "expense"]
@@ -511,11 +511,14 @@ def check_ledger_occurrence(
     received, a charge actually paid. *occurrence_date* is its scheduled date
     (see get_pending_checks or get_property_ledger); give *actual_date* and
     *actual_amount* when they differ from the schedule (a partial rent, a late
-    payment)."""
+    payment). The next occurrence after today can be checked too when it was
+    paid early, with an actual date of today or earlier."""
     entry = PropertyLedgerEntry.objects.select_related("property").get(pk=entry_id)
-    if not is_occurrence(entry, occurrence_date):
+    if not is_checkable_occurrence(entry, occurrence_date):
         raise ToolInputError(
-            f"{occurrence_date} is not a scheduled occurrence of entry {entry_id}."
+            f"{occurrence_date} is not a scheduled occurrence of entry {entry_id}"
+            " that can be checked: one scheduled up to today, or the next one when"
+            " it was paid early."
         )
     actual_date = actual_date or occurrence_date
     amount = actual_amount if actual_amount is not None else entry.amount.amount

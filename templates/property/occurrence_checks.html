@@ -90,7 +90,10 @@
                 {% if entry.display_label %}<div class="small text-body-secondary">{{ entry.display_label }}</div>{% endif %}
                 {% if row.error %}<div class="small text-danger">{{ row.error }}</div>{% endif %}
               </td>
-              <td class="text-nowrap">{{ p.planned_date|date:"SHORT_DATE_FORMAT" }}</td>
+              <td class="text-nowrap">
+                {{ p.planned_date|date:"SHORT_DATE_FORMAT" }}
+                {% if p.is_upcoming %}<span class="badge text-bg-info-subtle text-info-emphasis ms-1" title="{% translate 'Not due yet: check it when it was paid early.' %}">{% translate "Upcoming" %}</span>{% endif %}
+              </td>
               <td>
                 <input type="date" name="date_{{ p.key }}" value="{{ row.actual_date }}" max="{{ today|date:'Y-m-d' }}" class="form-control form-control-sm" data-row-input aria-label="{% translate 'Actual date' %}">
               </td>
