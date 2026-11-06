@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.10.1 (2026-11-06)
+
+### Bug Fixes
+
+- **notifications**: Read the installed version from pyproject.toml
+  ([`9c8143d`](https://github.com/Aohzan/glad/commit/9c8143d027e216f73a646cd38c113d04de0fc405))
+
+- **notifications**: Sort a prerelease before its stable version
+  ([`9c0bf3d`](https://github.com/Aohzan/glad/commit/9c0bf3d1b271f1bc223411fa0c570deec27c547d))
+
+### Build System
+
+- **deps**: Bump oauthlib from 4.0.0 to 4.0.1
+  ([`cce95b1`](https://github.com/Aohzan/glad/commit/cce95b1985a8fcad0d8967d0f272ae6e39e9dc2b))
+
+### Chores
+
+- **i18n**: Refresh the message references of the notifications
+  ([`192533d`](https://github.com/Aohzan/glad/commit/192533de67a7a7136e9e8eeb95d8ddda1c4d022c))
+
+
 ## v1.10.0 (2026-11-05)
 
 ### Bug Fixes
