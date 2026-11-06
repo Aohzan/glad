@@ -1,11 +1,13 @@
 """Notification types about the whole application and the household."""
 
 import datetime
+import functools
 import logging
+import tomllib
 from collections.abc import Iterator
-from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
+from django.conf import settings
 from django.db.models import Max
 from django.urls import reverse
 from django.utils.formats import date_format
@@ -118,22 +120,42 @@ def _income_tax_return(params: dict[str, Any], today: datetime.date) -> Iterator
         )
 
 
+def _number(text: str) -> int:
+    digits = "".join(c for c in text if c.isdigit())
+    return int(digits) if digits else 0
+
+
 def _version_tuple(text: str) -> tuple[int, ...]:
-    parts = []
-    for part in text.strip().lstrip("v").split("."):
-        digits = "".join(c for c in part if c.isdigit())
-        parts.append(int(digits) if digits else 0)
-    return tuple(parts)
+    """Sortable key of a version such as "v1.10.0" or "1.11.0-beta.2".
+
+    A prerelease sorts before the stable version of the same number.
+    """
+    core, _sep, pre = text.strip().lstrip("v").partition("-")
+    numbers = [_number(part) for part in core.split(".")]
+    numbers += [0] * (3 - len(numbers))
+    stable = (1, 0) if not pre else (0, _number(pre))
+    return (*numbers[:3], *stable)
 
 
-def installed_version() -> str:
+@functools.cache
+def installed_version() -> str | None:
+    """Version of the running code, read from pyproject.toml.
+
+    The package metadata is not used: the Docker image installs the
+    dependencies only, without the project itself.
+    """
     try:
-        return version("glad")
-    except PackageNotFoundError:
-        return "0"
+        with (settings.BASE_DIR / "pyproject.toml").open("rb") as file:
+            return str(tomllib.load(file)["project"]["version"])
+    except OSError, KeyError, tomllib.TOMLDecodeError:
+        logger.warning("Could not read the installed Glad version", exc_info=True)
+        return None
 
 
 def _app_release(params: dict[str, Any], today: datetime.date) -> Iterator[Event]:
+    current = installed_version()
+    if current is None:
+        return
     try:
         response = httpx.get(
             RELEASES_URL,
@@ -146,12 +168,12 @@ def _app_release(params: dict[str, Any], today: datetime.date) -> Iterator[Event
         logger.warning("Could not read the latest Glad release", exc_info=True)
         return
     tag = str(release.get("tag_name") or "")
-    if not tag or _version_tuple(tag) <= _version_tuple(installed_version()):
+    if not tag or _version_tuple(tag) <= _version_tuple(current):
         return
     yield Event(
         key=tag,
         title=_("Glad %(version)s is available") % {"version": tag.lstrip("v")},
-        body=_("Installed version: %(version)s") % {"version": installed_version()},
+        body=_("Installed version: %(version)s") % {"version": current},
         url=str(release.get("html_url") or ""),
     )
 

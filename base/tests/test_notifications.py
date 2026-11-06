@@ -2,7 +2,6 @@
 
 import datetime
 from decimal import Decimal
-from importlib.metadata import PackageNotFoundError
 from unittest.mock import MagicMock, patch
 
 import httpx
@@ -163,16 +162,64 @@ def test_release_check_survives_a_network_error():
         assert list(notifications._app_release({}, TODAY)) == []
 
 
+@pytest.mark.parametrize(
+    ("newer", "older"),
+    [
+        ("v1.10.0", "1.9.3"),
+        ("v1.11.0", "1.11.0-beta.1"),
+        ("1.11.0-beta.2", "1.11.0-beta.1"),
+        ("1.11.0-beta.1", "v1.10.0"),
+        ("v2.0", "1.99.99"),
+    ],
+)
+def test_version_tuple_order(newer, older):
+    assert notifications._version_tuple(newer) > notifications._version_tuple(older)
+
+
 def test_version_tuple():
-    assert notifications._version_tuple("v1.10.0") > notifications._version_tuple(
-        "1.9.3"
-    )
-    assert notifications._version_tuple("2.0.0-rc1") == (2, 0, 1)
+    assert notifications._version_tuple("v1.10.0") == (1, 10, 0, 1, 0)
+    assert notifications._version_tuple("1.10") == (1, 10, 0, 1, 0)
+    assert notifications._version_tuple("2.0.0-rc1") == (2, 0, 0, 0, 1)
 
 
-def test_installed_version_without_metadata():
-    with patch.object(notifications, "version", side_effect=PackageNotFoundError):
-        assert notifications.installed_version() == "0"
+def test_stable_release_is_notified_on_its_prerelease():
+    with (
+        patch.object(notifications.httpx, "get", return_value=_release("v1.11.0")),
+        patch.object(notifications, "installed_version", return_value="1.11.0-beta.3"),
+    ):
+        (event,) = notifications._app_release({}, TODAY)
+    assert event.key == "v1.11.0"
+
+
+def test_installed_version_reads_pyproject(settings, tmp_path):
+    (tmp_path / "pyproject.toml").write_text('[project]\nversion = "1.10.0"\n')
+    settings.BASE_DIR = tmp_path
+    notifications.installed_version.cache_clear()
+    try:
+        assert notifications.installed_version() == "1.10.0"
+    finally:
+        notifications.installed_version.cache_clear()
+
+
+@pytest.mark.parametrize("content", [None, "[project]\n", "not toml ["])
+def test_installed_version_unknown(settings, tmp_path, content):
+    if content is not None:
+        (tmp_path / "pyproject.toml").write_text(content)
+    settings.BASE_DIR = tmp_path
+    notifications.installed_version.cache_clear()
+    try:
+        assert notifications.installed_version() is None
+    finally:
+        notifications.installed_version.cache_clear()
+
+
+def test_release_check_skipped_without_installed_version():
+    with (
+        patch.object(notifications.httpx, "get") as get,
+        patch.object(notifications, "installed_version", return_value=None),
+    ):
+        assert list(notifications._app_release({}, TODAY)) == []
+    get.assert_not_called()
 
 
 def _hero(change_30d_pct, change_12m_pct):
