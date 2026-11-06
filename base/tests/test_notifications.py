@@ -162,11 +162,33 @@ def test_release_check_survives_a_network_error():
         assert list(notifications._app_release({}, TODAY)) == []
 
 
+@pytest.mark.parametrize(
+    ("newer", "older"),
+    [
+        ("v1.10.0", "1.9.3"),
+        ("v1.11.0", "1.11.0-beta.1"),
+        ("1.11.0-beta.2", "1.11.0-beta.1"),
+        ("1.11.0-beta.1", "v1.10.0"),
+        ("v2.0", "1.99.99"),
+    ],
+)
+def test_version_tuple_order(newer, older):
+    assert notifications._version_tuple(newer) > notifications._version_tuple(older)
+
+
 def test_version_tuple():
-    assert notifications._version_tuple("v1.10.0") > notifications._version_tuple(
-        "1.9.3"
-    )
-    assert notifications._version_tuple("2.0.0-rc1") == (2, 0, 1)
+    assert notifications._version_tuple("v1.10.0") == (1, 10, 0, 1, 0)
+    assert notifications._version_tuple("1.10") == (1, 10, 0, 1, 0)
+    assert notifications._version_tuple("2.0.0-rc1") == (2, 0, 0, 0, 1)
+
+
+def test_stable_release_is_notified_on_its_prerelease():
+    with (
+        patch.object(notifications.httpx, "get", return_value=_release("v1.11.0")),
+        patch.object(notifications, "installed_version", return_value="1.11.0-beta.3"),
+    ):
+        (event,) = notifications._app_release({}, TODAY)
+    assert event.key == "v1.11.0"
 
 
 def test_installed_version_reads_pyproject(settings, tmp_path):

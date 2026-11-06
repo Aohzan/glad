@@ -120,12 +120,21 @@ def _income_tax_return(params: dict[str, Any], today: datetime.date) -> Iterator
         )
 
 
+def _number(text: str) -> int:
+    digits = "".join(c for c in text if c.isdigit())
+    return int(digits) if digits else 0
+
+
 def _version_tuple(text: str) -> tuple[int, ...]:
-    parts = []
-    for part in text.strip().lstrip("v").split("."):
-        digits = "".join(c for c in part if c.isdigit())
-        parts.append(int(digits) if digits else 0)
-    return tuple(parts)
+    """Sortable key of a version such as "v1.10.0" or "1.11.0-beta.2".
+
+    A prerelease sorts before the stable version of the same number.
+    """
+    core, _sep, pre = text.strip().lstrip("v").partition("-")
+    numbers = [_number(part) for part in core.split(".")]
+    numbers += [0] * (3 - len(numbers))
+    stable = (1, 0) if not pre else (0, _number(pre))
+    return (*numbers[:3], *stable)
 
 
 @functools.cache
