@@ -2,6 +2,37 @@
 
 <!-- version list -->
 
+## v1.13.0 (2026-11-21)
+
+### Bug Fixes
+
+- **csv**: Read the UTF-16, Windows-1252 and tab-separated exports
+  ([`9c155d2`](https://github.com/Aohzan/glad/commit/9c155d23820ad115d863f41affc2b8dc518c9e4b))
+
+### Chores
+
+- **i18n**: Refresh the translations after the rebase
+  ([`a54eeb7`](https://github.com/Aohzan/glad/commit/a54eeb71af440b7af048f08b64c73077496213d7))
+
+### Documentation
+
+- **property**: Describe the ledger CSV import and its AI prompt
+  ([`c6b41d7`](https://github.com/Aohzan/glad/commit/c6b41d7d10d858a6f85ced44df54ea35f8710e61))
+
+### Features
+
+- **property**: Accept the exports of other tools in the ledger CSV import
+  ([`d45c48c`](https://github.com/Aohzan/glad/commit/d45c48c171068ea477e648d980d9ffeacf126e65))
+
+### Refactoring
+
+- **budget**: Share the AI prompt card with its copy button
+  ([`f0438a5`](https://github.com/Aohzan/glad/commit/f0438a5f047af4fceef5b28195202412c1a9e955))
+
+- **property**: Read the ledger categories from their choices
+  ([`96e3a7d`](https://github.com/Aohzan/glad/commit/96e3a7d7778bdfe41b5bd428f7211a8fbb83f0c0))
+
+
 ## v1.12.0 (2026-11-21)
 
 ### Chores
