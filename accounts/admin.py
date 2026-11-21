@@ -1,11 +1,9 @@
 """Admin interface for managing accounts."""
 
-from django import forms
 from django.contrib import admin
-from django.contrib.auth import get_user_model
-from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from .forms import ChildForm, child_username
 from .models import Child, UserProfile
 
 
@@ -21,42 +19,6 @@ class UserProfileAdmin(admin.ModelAdmin):
     )
     list_filter = ("is_child",)
     search_fields = ("user__username", "user__first_name")
-
-
-def child_username(first_name: str) -> str:
-    """Unique username for a child, built from the first name (never used to log in)."""
-    base = f"child-{slugify(first_name) or 'member'}"[:140]
-    taken = set(
-        get_user_model()
-        .objects.filter(username__startswith=base)
-        .values_list("username", flat=True)
-    )
-    username, number = base, 1
-    while username in taken:
-        number += 1
-        username = f"{base}-{number}"
-    return username
-
-
-class ChildForm(forms.ModelForm):
-    """A child only needs a first name: the other fields are optional."""
-
-    birth_date = forms.DateField(
-        label=_("Birth date"),
-        required=False,
-        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
-    )
-
-    class Meta:
-        model = Child
-        fields = ("first_name", "last_name", "email")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["first_name"].required = True
-        profile = getattr(self.instance, "profile", None)
-        if profile is not None:
-            self.fields["birth_date"].initial = profile.birth_date
 
 
 @admin.register(Child)

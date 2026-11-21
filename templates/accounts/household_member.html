@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if member %}{{ member.get_full_name|default:member.get_username }}{% else %}{% translate "Add a member" %}{% endif %}{% endblock %}
+{% block breadcrumb_parents %}{% url 'accounts:household' as url %}{% translate "Household" as label %}{% include "_crumb.html" with url=url label=label %}{% endblock %}
+{% block breadcrumb %}{% if member %}{{ member.get_full_name|default:member.get_username }}{% else %}{% translate "Add a member" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 860px;">
+  {% url 'accounts:household' as back_url %}
+  {% translate "Household" as back_label %}
+  {% translate "Add a member" as new_title %}
+  {% if member %}{% with edit_title=member.get_full_name|default:member.get_username %}{% include "finance/_edit_page_header.html" with is_edit=True %}{% endwith %}
+  {% else %}{% include "finance/_edit_page_header.html" %}{% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      {% include "_form_non_field_errors.html" %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">{% include "_form_field.html" with field=form.first_name %}</div>
+          <div class="col-md-6">{% include "_form_field.html" with field=form.last_name %}</div>
+          {% if form.kind %}<div class="col-md-6">{% include "_form_field.html" with field=form.kind %}</div>{% endif %}
+          <div class="col-md-6">{% include "_form_field.html" with field=form.birth_date %}</div>
+        </div>
+        {% if form.can_log_in %}
+        <fieldset class="border-top pt-3 mt-1 mb-3">
+          <div class="form-check mb-2">
+            {{ form.can_log_in }}
+            <label class="form-check-label" for="{{ form.can_log_in.id_for_label }}">{{ form.can_log_in.label }}</label>
+            {% if form.can_log_in.errors %}<div class="invalid-feedback d-block">{{ form.can_log_in.errors }}</div>{% endif %}
+          </div>
+          <p class="form-text mt-0">{% translate "Only for an adult who logs in to the application. A member who does not log in is enough to own assets." %}</p>
+          <div class="row g-3">
+            <div class="col-md-4">{% include "_form_field.html" with field=form.login %}</div>
+            <div class="col-md-4">{% include "_form_field.html" with field=form.password1 %}</div>
+            <div class="col-md-4">{% include "_form_field.html" with field=form.password2 %}</div>
+          </div>
+        </fieldset>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">{% icon "check" "me-1" %}{% translate "Save" %}</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

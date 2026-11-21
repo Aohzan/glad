@@ -36,8 +36,9 @@
               {% if row.obj.usufruct_end_date %}<div class="small text-body-secondary">{% blocktranslate with date=row.obj.usufruct_end_date %}Until {{ date }}{% endblocktranslate %}</div>{% endif %}
             </td>
             <td class="text-end">{% if row.ratio is not None %}{% widthratio row.ratio 1 100 %}%{% else %}<span class="text-warning">{% translate "Unknown" %}</span>{% endif %}</td>
-            <td class="text-end">
-              <form method="post" action="{% url 'delete_ownership' row.obj.pk %}">
+            <td class="text-end text-nowrap">
+              <a class="btn btn-sm btn-outline-secondary" href="?user={{ row.obj.user_id }}#owner-form" title="{% translate 'Edit' %}">{% icon "pencil" %}</a>
+              <form method="post" action="{% url 'delete_ownership' row.obj.pk %}" class="d-inline">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-outline-danger" title="{% translate 'Remove' %}">{% icon "x" %}</button>
               </form>
@@ -52,7 +53,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="owner-form">
     <div class="card-header py-2"><h6 class="mb-0">{% icon "user-plus" "me-1" %}{% translate "Add or update an owner" %}</h6></div>
     <div class="card-body">
       {% include "_form_non_field_errors.html" %}
@@ -64,6 +65,7 @@
           {% endfor %}
         </div>
         <button type="submit" class="btn btn-primary">{% icon "check" "me-1" %}{% translate "Save" %}</button>
+        <a class="small ms-2" href="{% url 'accounts:household_add' %}">{% icon "user-plus" "me-1" %}{% translate "Add a household member" %}</a>
       </form>
       {% if kind.dismemberable %}
       <p class="small text-body-secondary mt-3 mb-0">{% translate "Dismembered rights are valued with article 669 CGI: a life usufruct from the age of the usufructuary (90 % before 21 years, 10 points less every ten years, 10 % from 91 years), a temporary usufruct at 23 % per period of ten years, the bare ownership being worth the rest." %}</p>

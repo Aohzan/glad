@@ -84,9 +84,6 @@
                     <div class="g-nav__items" id="g-nav-tools"{% if nav_group != "tools" %} data-folded{% endif %}>
                         {% translate "LMNP Accounting" as label %}{% include "_nav_item.html" with url_name="property:lmnp_accounting" section="lmnp" icon="calculator" %}
                         {% translate "CSV import / export" as label %}{% include "_nav_item.html" with url_name="finance:csv_import" section="csv" icon="file-up" %}
-                        {% if user.is_superuser %}
-                        {% translate "Administration" as label %}{% include "_nav_item.html" with url_name="admin:index" section="admin" icon="shield" %}
-                        {% endif %}
                     </div>
                 </div>
                 {% if nav_accounts or nav_properties %}
@@ -167,9 +164,6 @@
                             {% if user.email %}<span class="g-meta">{{ user.email }}</span>{% endif %}
                         </div>
                         <a class="dropdown-item" href="{% url 'accounts:settings' %}">{% icon "settings" %}{% translate "Settings" %}</a>
-                        {% if user.is_superuser %}
-                        <a class="dropdown-item" href="{% url 'admin:index' %}">{% icon "shield" %}{% translate "Administration" %}</a>
-                        {% endif %}
                         <form action="{% url 'set_language' %}" method="post" class="dropdown-item-text d-flex align-items-center gap-2">
                             {% csrf_token %}
                             <input name="next" type="hidden" value="{{ request.get_full_path }}">

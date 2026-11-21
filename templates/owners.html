@@ -11,8 +11,8 @@
     {% icon "triangle-alert" "me-2" %}
     {% translate "A life usufruct is valued according to the age of its holder (scale of article 669 of the French tax code). Until the birth date is entered, the share of the asset is counted as not assigned." %}
     <div class="mt-2">
-      {% translate "Enter the birth date in the administration for:" %}
-      {% for person in missing_birth_dates %}{% if user.is_staff %}<a href="{{ person.admin_url }}" class="alert-link">{{ person.name }}</a>{% else %}{{ person.name }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
+      {% translate "Enter the birth date of:" %}
+      {% for person in missing_birth_dates %}{% if person.edit_url %}<a href="{{ person.edit_url }}" class="alert-link">{{ person.name }}</a>{% else %}{{ person.name }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
     </div>
   </div>
   {% endif %}
@@ -22,7 +22,8 @@
     {% if outside.total %}{% include "_person_worth_card.html" with person=outside icon="external-link" %}{% endif %}
   </div>
   <p class="small text-body-secondary mt-3 mb-0">
-    {% translate "Each asset counts for the share and the value of the right held by each owner. Assets without owner are shown as not assigned; the part held by people who are not household members is shown as outside the household. Children are added in the administration. Real estate is counted net of the remaining loans." %}
+    {% url 'accounts:household' as household_url %}
+    {% blocktranslate %}Each asset counts for the share and the value of the right held by each owner. Assets without owner are shown as not assigned; the part held by people who are not household members is shown as outside the household. The members, adults and children, are managed on the <a href="{{ household_url }}">household page</a>. Real estate is counted net of the remaining loans.{% endblocktranslate %}
   </p>
 </div>
 {% endblock %}
