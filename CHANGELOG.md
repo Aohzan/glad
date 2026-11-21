@@ -2,6 +2,81 @@
 
 <!-- version list -->
 
+## v1.10.2 (2026-11-21)
+
+### Bug Fixes
+
+- **property**: Find the parcels of Paris, Lyon and Marseille arrondissements
+  ([`4c876c7`](https://github.com/Aohzan/glad/commit/4c876c7615fe87ca54b2f5e979675e6017cc7929))
+
+- **property**: Keep the addresses and coordinates out of the logs
+  ([`50e238c`](https://github.com/Aohzan/glad/commit/50e238c9aea66f726ac3f7b7f069e4dd1f86b0de))
+
+- **property**: Look up the cadastral parcel before saving the property
+  ([`54ed817`](https://github.com/Aohzan/glad/commit/54ed817eb51059f4698350d58e44cff2eff5a2fa))
+
+### Build System
+
+- **deps**: Bump @wernfried/daterangepicker from 5.3.8 to 5.5.1
+  ([`a6996fe`](https://github.com/Aohzan/glad/commit/a6996fedc67df576d5073c155b7f5669b128a70e))
+
+- **deps**: Bump apexcharts from 8.5.0 to 8.7.0
+  ([`e9e1bb5`](https://github.com/Aohzan/glad/commit/e9e1bb5291d14574c50ffa623521799024ded186))
+
+- **deps**: Bump apexcharts from 8.7.0 to 8.8.1
+  ([`bef44f2`](https://github.com/Aohzan/glad/commit/bef44f20795f6b2bea30236df65e3bd202d32987))
+
+- **deps**: Bump apprise from 2.1.0 to 2.2.0
+  ([`e1a56c1`](https://github.com/Aohzan/glad/commit/e1a56c176dc7717bc56a515858e964ecfef5eb52))
+
+- **deps**: Bump astral-sh/setup-uv from 10.3.2 to 10.3.3
+  ([`cc85508`](https://github.com/Aohzan/glad/commit/cc855085ab85d26db61c5bad371d56adbe2fffab))
+
+- **deps**: Bump dateparser from 1.4.3 to 1.5.0
+  ([`e8c1f8c`](https://github.com/Aohzan/glad/commit/e8c1f8c1ed1a895641e55546b7d1c1be8c420008))
+
+- **deps**: Bump django from 6.1.2 to 6.1.3
+  ([`2dd1aac`](https://github.com/Aohzan/glad/commit/2dd1aac7953b9e3effd216b1621f62ac59b0d406))
+
+- **deps**: Bump docker/login-action from 4.7.0 to 4.8.0
+  ([`3f61e9c`](https://github.com/Aohzan/glad/commit/3f61e9cc4271783448ef28c92e0dab0c9c62678d))
+
+- **deps**: Bump fpdf2 from 2.8.9 to 2.9.0
+  ([`278c3ac`](https://github.com/Aohzan/glad/commit/278c3acbf929596381051e50ee9cddd3bc473a58))
+
+- **deps**: Bump lucide-static from 1.61.0 to 1.66.0
+  ([`2992c9e`](https://github.com/Aohzan/glad/commit/2992c9e51f9da7fdc8e90ba15a6d5bc144fb98ad))
+
+- **deps**: Bump lucide-static from 1.66.0 to 1.70.0
+  ([`676522b`](https://github.com/Aohzan/glad/commit/676522bf513e20b1f7cc96fe7a9141a318314da8))
+
+- **deps**: Bump python-dateutil from 3.0.0 to 4.0.0
+  ([`a5163a4`](https://github.com/Aohzan/glad/commit/a5163a48150bf2ff5e42dce8396b12cc9bfcd54a))
+
+- **deps**: Bump soupsieve from 3.0.4 to 4.0
+  ([`5fb4eeb`](https://github.com/Aohzan/glad/commit/5fb4eeb99ea054dd3de2acb2db97398eb26a41f5))
+
+- **deps-dev**: Bump djangorestframework-stubs from 3.18.1 to 3.18.2
+  ([`0d893b7`](https://github.com/Aohzan/glad/commit/0d893b7c4be8c50e0285341b995813d880eb3a15))
+
+- **deps-dev**: Bump jscpd from 5.4.2 to 5.4.3
+  ([`e2146b7`](https://github.com/Aohzan/glad/commit/e2146b72f14475bf4732d380bfcca53d11570154))
+
+- **deps-dev**: Bump ruff from 0.17.3 to 0.17.4
+  ([`a5ae300`](https://github.com/Aohzan/glad/commit/a5ae3009795f1c1f807116293978918de82062f5))
+
+- **deps-dev**: Bump ty from 0.0.94 to 0.0.96
+  ([`5b1bd82`](https://github.com/Aohzan/glad/commit/5b1bd82e18b539d353f2822ec8703dcff4d3fd22))
+
+- **deps-dev**: Bump types-python-dateutil
+  ([`d696938`](https://github.com/Aohzan/glad/commit/d6969388c09fb696109e1cf3e3e108165bda51c3))
+
+### Chores
+
+- **i18n**: Refresh the message references of the cadastral lookup
+  ([`d884094`](https://github.com/Aohzan/glad/commit/d884094cf3f4c3141ee3b0c513c49f0a2f444a5c))
+
+
 ## v1.10.1 (2026-11-06)
 
 ### Bug Fixes
