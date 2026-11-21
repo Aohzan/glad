@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v1.12.0 (2026-11-21)
+
+### Chores
+
+- **i18n**: Refresh the translations after the rebase
+  ([`ab2dd47`](https://github.com/Aohzan/glad/commit/ab2dd47c64d74cffd880b9afe1f055ec0e2eb20a))
+
+### Features
+
+- **accounts**: Manage the household members outside the administration
+  ([`8bd137e`](https://github.com/Aohzan/glad/commit/8bd137e7ba0c25c46c5355c8eee46f9e3077c144))
+
+- **accounts**: Move the administration link to the bottom of the settings
+  ([`5a4fb4f`](https://github.com/Aohzan/glad/commit/5a4fb4f6d89782da514fb0291e7d4895e54c9625))
+
+- **owners**: Link the owners pages to the household page
+  ([`329735c`](https://github.com/Aohzan/glad/commit/329735c96418d0cd3cf7243dda198227a93f0bb8))
+
+
 ## v1.11.0 (2026-11-21)
 
 ### Chores
