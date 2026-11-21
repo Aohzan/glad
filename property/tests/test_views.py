@@ -14,6 +14,7 @@ from property.models import (
     PropertyLoan,
     PropertyValue,
 )
+from property.models.lease import Lease
 
 
 @pytest.mark.django_db
@@ -1179,3 +1180,27 @@ def test_dvf_stale_ignores_manual_valuations(user_client):
     )
     response = user_client.get(reverse("property:detail", args=[prop.pk]))
     assert response.context["dvf_estimate_stale"] is True
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("charges", "expected"),
+    [(50, "Furnished · €650 incl. charges"), (0, "Furnished · €600")],
+)
+def test_index_occupancy_shows_the_rent_with_charges(user_client, charges, expected):
+    """The tenant pays rent and charges: the list shows their total."""
+    prop = Property.objects.create(
+        name="Rented Flat",
+        property_type=Property.APARTMENT,
+        buying_value=Money(100_000, "EUR"),
+        buying_date=datetime.date(2020, 1, 1),
+    )
+    Lease.objects.create(
+        property=prop,
+        start_date=datetime.date(2023, 1, 1),
+        rent_amount=Money(600, "EUR"),
+        charges_amount=Money(charges, "EUR"),
+    )
+    content = user_client.get(reverse("property:index")).content.decode()
+    text = " ".join(content.replace("\xa0", " ").replace("\u202f", " ").split())
+    assert f'<span class="g-cell-sub">{expected}</span>' in text

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 22:58+0100\n"
+"POT-Creation-Date: 2026-11-21 23:08+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -10615,6 +10615,11 @@ msgstr "Valeur brute"
 #, python-format
 msgid "Rented · %(tenant)s"
 msgstr "Loué · %(tenant)s"
+
+#: templates/property/index.html:78
+#, python-format
+msgid "%(amount)s incl. charges"
+msgstr "%(amount)s CC"
 
 #: templates/property/index.html:80
 msgid "Not rented"

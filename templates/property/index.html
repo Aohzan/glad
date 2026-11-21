@@ -75,7 +75,7 @@
           <span class="g-cell-main">
             {% if prop.lease %}
             <span class="g-cell-title">{% blocktranslate with tenant=prop.lease.name %}Rented · {{ tenant }}{% endblocktranslate %}</span>
-            <span class="g-cell-sub">{{ prop.lease.get_lease_type_display }} · {{ prop.lease.rent_amount|money0 }}</span>
+            <span class="g-cell-sub">{{ prop.lease.get_lease_type_display }} · {% if prop.lease.charges_amount.amount %}{% blocktranslate with amount=prop.lease.total_rent|money0 %}{{ amount }} incl. charges{% endblocktranslate %}{% else %}{{ prop.lease.rent_amount|money0 }}{% endif %}</span>
             {% else %}
             <span class="g-cell-title g-muted">{% translate "Not rented" %}</span>
             {% endif %}
