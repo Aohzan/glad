@@ -137,6 +137,7 @@ def lease_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "issue_count": len(issues(checks)),
             "landlord": landlord_of(lease.property),
             "deposit_cap": rules.deposit_cap(lease),
+            "settlement": DepositSettlement.objects.filter(lease=lease).first(),
             "legal_duration": rules.DEFAULT_DURATION_MONTHS.get(lease.lease_type),
             "steps": steps,
             "show_steps": lease.start_date >= datetime.date.today() - MOVE_IN_DAYS

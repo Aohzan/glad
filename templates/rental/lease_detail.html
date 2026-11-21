@@ -53,7 +53,9 @@
         <dt>{% translate "Charges" %}</dt>
         <dd>{{ lease.charges_amount|format_money }} <span class="text-body-secondary">· {{ lease.get_charges_mode_display|lower }}</span></dd>
         <dt>{% translate "Security deposit" %}</dt>
-        <dd>{{ lease.deposit_amount|format_money }}{% if deposit_cap is not None %} <span class="text-body-secondary">· {% blocktranslate with cap=deposit_cap|format_money %}maximum {{ cap }}{% endblocktranslate %}</span>{% endif %}</dd>
+        <dd>{{ lease.deposit_amount|format_money }}{% if deposit_cap is not None %} <span class="text-body-secondary">· {% blocktranslate with cap=deposit_cap|format_money %}maximum {{ cap }}{% endblocktranslate %}</span>{% endif %}
+          {% if settlement %}<a class="text-decoration-none" href="{% url 'rental:lease_departure' lease.pk %}#deposit">{% if settlement.status == "returned" %}<span class="g-tag g-tag--pos ms-1">{{ settlement.get_status_display }}{% if settlement.returned_date %} · {{ settlement.returned_date }}{% endif %}</span>{% else %}<span class="g-tag g-tag--warn ms-1">{{ settlement.get_status_display }}</span>{% endif %}</a>{% endif %}
+        </dd>
         {% if lease.irl_reference_value %}
         <dt>{% translate "IRL reference" %}</dt>
         <dd>{{ lease.get_irl_reference_quarter_display|default:"" }} · {{ lease.irl_reference_value }}</dd>

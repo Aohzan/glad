@@ -406,3 +406,23 @@ def test_dashboard_payments(user_client, lease, rent_schedule):
     payments = response.context["payments"]
     assert payments["arrears"] > 0
     assert set(payments) == {"expected", "received", "arrears"}
+
+
+@pytest.mark.django_db
+def test_lease_detail_shows_the_deposit_return(user_client, lease):
+    """The summary tells whether the deposit was returned, as the departure tab."""
+    from rental.models import DepositSettlement
+
+    url = reverse("rental:lease_detail", args=[lease.pk])
+    assert user_client.get(url).context["settlement"] is None
+    settlement = DepositSettlement.objects.create(
+        lease=lease, keys_returned_date=datetime.date(2026, 1, 10)
+    )
+    content = user_client.get(url).content.decode()
+    assert 'class="g-tag g-tag--warn ms-1">To return</span>' in content
+    settlement.status = DepositSettlement.Status.RETURNED
+    settlement.returned_date = datetime.date(2026, 2, 1)
+    settlement.save()
+    content = user_client.get(url).content.decode()
+    assert 'g-tag--pos ms-1">Returned · ' in content
+    assert reverse("rental:lease_departure", args=[lease.pk]) + "#deposit" in content
