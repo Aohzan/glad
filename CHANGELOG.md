@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.11.0 (2026-11-21)
+
+### Chores
+
+- **i18n**: Translate the coproperty tantièmes
+  ([`58b2182`](https://github.com/Aohzan/glad/commit/58b21823b2d8c7ee2ceda859b885ca6104625aeb))
+
+### Features
+
+- **property**: Enter and show the coproperty tantièmes
+  ([`92c21a4`](https://github.com/Aohzan/glad/commit/92c21a4953c8759053c067cba08a10eed1d7cad4))
+
+- **property**: Replace the share fields with the coproperty tantièmes
+  ([`c931dc8`](https://github.com/Aohzan/glad/commit/c931dc8ead3eca97e9e08100d2c90e77e15c09eb))
+
+
 ## v1.10.2 (2026-11-21)
 
 ### Bug Fixes
