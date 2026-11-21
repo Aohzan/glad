@@ -173,8 +173,8 @@ dans `property/services/ledger_csv.py`.
 | `notes` | `note`, `commentaire`, `comment` | non | notes libres |
 | `reference_period` | `periode`, `periode_de_reference`, `period` | non | date de la période comptable concernée |
 
-- Séparateur `;` ou `,` (détecté sur la ligne d'en-tête), encodage UTF-8
-  (avec ou sans BOM) ou Latin-1.
+- Séparateur `;`, `,` ou tabulation (détecté sur la ligne d'en-tête),
+  encodage UTF-8 (avec ou sans BOM), UTF-16, Windows-1252 ou Latin-1.
 - Les noms de colonnes sont comparés en minuscules et sans accents
   (`Libellé` = `libelle`) ; les colonnes inconnues sont ignorées.
 - Le signe du montant donne le sens du flux et doit correspondre à la
