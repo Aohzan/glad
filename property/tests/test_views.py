@@ -1219,6 +1219,9 @@ def test_info_panel_map_tiles_send_the_site_origin(user_client):
     content = response.content.decode()
     assert "https://tile.openstreetmap.org/{z}/{x}/{y}.png" in content
     assert "referrerPolicy: 'strict-origin-when-cross-origin'" in content
-    assert (
-        "https://tile.openstreetmap.org" in response.headers["Content-Security-Policy"]
+    directives = dict(
+        directive.strip().split(" ", 1)
+        for directive in response.headers["Content-Security-Policy"].split(";")
+        if directive.strip()
     )
+    assert "https://tile.openstreetmap.org" in directives["img-src"].split()
