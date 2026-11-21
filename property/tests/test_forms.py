@@ -6,7 +6,7 @@ from decimal import Decimal
 import pytest
 from moneyed import Money
 
-from property.forms import PropertyLoanForm
+from property.forms import PropertyEditForm, PropertyLoanForm
 from property.models import Property, PropertyLoan
 
 
@@ -256,3 +256,13 @@ def test_loan_form_computes_a_missing_payment(prop):
 
     loan.refresh_from_db()
     assert loan.monthly_payment == Money(Decimal("1159.92"), "EUR")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "field", ["insee_code", "cadastral_section", "cadastral_parcel_number"]
+)
+def test_property_form_cadastral_fields_are_editable(field):
+    """The lookup may find nothing: the cadastral fields can be typed by hand."""
+    widget = PropertyEditForm().fields[field].widget
+    assert "readonly" not in widget.attrs

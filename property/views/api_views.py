@@ -152,25 +152,21 @@ class AddressAutocompleteApiView(View):
 
 @method_decorator(login_required, name="dispatch")
 class CadastralLookupApiView(View):
-    """Look up cadastral section/parcel for a property via IGN APICarto."""
+    """Look up the cadastral section/parcel of a point via IGN APICarto.
 
-    def get(self, request, pk: int):
-        prop = get_object_or_404(Property, pk=pk)
-        latitude = prop.latitude
-        longitude = prop.longitude
-        insee_code = prop.insee_code
-        # Allow unsaved form coordinates (query params) so the lookup works
-        # before the property is saved.
+    The coordinates and the INSEE code come from the query string (the form
+    being filled), so the lookup also works before the property is saved.
+    """
+
+    def get(self, request):
+        insee_code = request.GET.get("insee") or None
         try:
             lat_param = request.GET.get("lat")
             lon_param = request.GET.get("lon")
-            if lat_param is not None:
-                latitude = Decimal(lat_param)
-            if lon_param is not None:
-                longitude = Decimal(lon_param)
-            insee_param = request.GET.get("insee")
-            if insee_param:
-                insee_code = insee_param
+            latitude = Decimal(lat_param) if lat_param else None
+            longitude = Decimal(lon_param) if lon_param else None
+            if not all(c.is_finite() for c in (latitude, longitude) if c is not None):
+                raise ValueError
         except InvalidOperation, ValueError:
             return JsonResponse(
                 {"error": "invalid_coordinates"},

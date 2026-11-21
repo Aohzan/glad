@@ -440,7 +440,8 @@ document.addEventListener('DOMContentLoaded', function() {
   var suggestionsDiv = document.getElementById('addressSuggestions');
   var btnCadastral = document.getElementById('btnCadastralLookup');
   var autocompleteUrl = "{% url 'property:api_address_autocomplete' %}";
-  var cadastralUrl = "{{ property_form.instance.pk|default:'' }}";  var debounceTimer = null;
+  var cadastralUrl = "{% url 'property:api_cadastral_lookup' %}";
+  var debounceTimer = null;
 
   function setField(name, value) {
     var el = document.getElementById('id_' + name);
@@ -508,17 +509,14 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('{% filter escapejs %}{% translate "Please select an address first to get coordinates." %}{% endfilter %}');
         return;
       }
-      var pk = cadastralUrl;
-      if (!pk) return;
       btnCadastral.disabled = true;
       btnCadastral.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>{% filter escapejs %}{% translate "Looking up..." %}{% endfilter %}';
-      var url = '{% if property_form.instance.pk %}{% url "property:api_cadastral_lookup" property_form.instance.pk %}{% endif %}';
       var params = new URLSearchParams();
       if (lat) params.set('lat', lat);
       if (lon) params.set('lon', lon);
       var insee = getField('insee_code');
       if (insee) params.set('insee', insee);
-      fetch(url + '?' + params.toString())
+      fetch(cadastralUrl + '?' + params.toString())
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (data.error) {
