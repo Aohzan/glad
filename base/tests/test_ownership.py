@@ -270,6 +270,14 @@ class TestViews:
         response = user_client.post(url, {"user": user.pk, "share": "0"})
         assert response.status_code == 200
 
+        # The edit button of a row prefills the form with that owner.
+        form = user_client.get(url, {"user": user.pk}).context["form"]
+        assert form["user"].value() == user.pk
+        assert form["share"].value() == Decimal(70)
+        assert (
+            user_client.get(url, {"user": "x"}).context["form"]["user"].value() is None
+        )
+
         response = user_client.post(reverse("delete_ownership", args=[ownership.pk]))
         assert response.status_code == 302
         assert response.url == url
@@ -321,16 +329,16 @@ class TestViews:
         listed = response.context["missing_birth_dates"]
         assert [p["name"] for p in listed] == ["Adult", "Kid"]
         content = response.content.decode()
-        adult_url = reverse(
-            "admin:accounts_userprofile_change", args=[adult.profile.pk]
-        )
+        adult_url = reverse("accounts:household_edit", args=[adult.pk])
         assert adult_url in content
-        assert reverse("admin:accounts_child_change", args=[child.pk]) in content
+        assert reverse("accounts:household_edit", args=[child.pk]) in content
 
+        # The birth date is entered outside the administration: every member
+        # gets the link.
         client.force_login(adult)
         content = client.get(reverse("owners")).content.decode()
-        assert "Adult" in content
-        assert adult_url not in content
+        assert adult_url in content
+        assert reverse("accounts:household") in content
 
     def test_summary_on_detail_page(self, user_client, user):
         account = _saving()

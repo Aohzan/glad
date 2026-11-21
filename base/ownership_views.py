@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from accounts.models import is_child
+from accounts.forms import can_edit_member
 from base.forms import OwnershipForm
 from base.models import Ownership, display_name
 from base.services.ownership import (
@@ -49,7 +49,14 @@ def manage_owners(request: HttpRequest, kind: str, pk: int) -> HttpResponse:
             return redirect("manage_owners", kind=kind, pk=pk)
         messages.error(request, _("Please correct the errors below."))
     else:
-        form = OwnershipForm(others=rows, dismemberable=asset_kind.dismemberable)
+        # The edit button of a row prefills the form with that owner.
+        user_pk = request.GET.get("user", "")
+        existing = next((r for r in rows if str(r.user_id) == user_pk), None)
+        form = OwnershipForm(
+            instance=existing,
+            others=[r for r in rows if r is not existing],
+            dismemberable=asset_kind.dismemberable,
+        )
     today = datetime.date.today()
     return render(
         request,
@@ -89,15 +96,13 @@ def owners_overview(request: HttpRequest) -> HttpResponse:
             "kinds": ASSET_KINDS,
             "currency": settings.DEFAULT_CURRENCY,
             "missing_birth_dates": [
-                {"name": display_name(user), "admin_url": _profile_admin_url(user)}
+                {
+                    "name": display_name(user),
+                    "edit_url": reverse("accounts:household_edit", args=[user.pk])
+                    if can_edit_member(request.user, user)
+                    else "",
+                }
                 for user in missing_birth_dates()
             ],
         },
     )
-
-
-def _profile_admin_url(user) -> str:
-    """Admin page where the birth date of a household member is entered."""
-    if is_child(user):
-        return reverse("admin:accounts_child_change", args=[user.pk])
-    return reverse("admin:accounts_userprofile_change", args=[user.profile.pk])
