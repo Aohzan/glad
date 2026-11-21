@@ -3,8 +3,13 @@
 from unittest.mock import patch
 
 import httpx
+import pytest
 
-from property.services.geocoding import lookup_cadastral_parcel, search_addresses
+from property.services.geocoding import (
+    _apicarto_commune_code,
+    lookup_cadastral_parcel,
+    search_addresses,
+)
 
 
 def _mock_response(status_code=200, json_data=None, text=""):
@@ -267,10 +272,10 @@ class TestLookupCadastralParcel:
         )
         mock_get.side_effect = [empty_response, parcel_response]
 
-        lookup_cadastral_parcel(48.8, 2.3, insee_code="75114")
+        lookup_cadastral_parcel(48.8, 2.3, insee_code="49007")
 
         second_call_params = mock_get.call_args_list[1].kwargs.get("params", {})
-        assert second_call_params.get("code_insee") == "75114"
+        assert second_call_params.get("code_insee") == "49007"
 
     @patch("property.services.geocoding.httpx.get")
     def test_buffered_fallback_uses_limit(self, mock_get):
@@ -301,3 +306,79 @@ class TestLookupCadastralParcel:
         mock_get.side_effect = [empty_response, bad_response]
 
         assert lookup_cadastral_parcel(48.8, 2.3) is None
+
+
+@pytest.mark.parametrize(
+    ("arrondissement", "commune", "idu"),
+    [
+        ("75118", "75056", "75118000BN0023"),
+        ("69382", "69123", "69382000AB0062"),
+        ("13202", "13055", "132028090C0098"),
+    ],
+)
+@patch("property.services.geocoding.httpx.get")
+def test_arrondissement_queries_commune_code(mock_get, arrondissement, commune, idu):
+    """APICarto files the parcels of Paris, Lyon and Marseille under the commune
+    code: the arrondissement code given by BAN is replaced in the query, and kept
+    in the result (DVF needs it)."""
+    mock_get.return_value = _mock_response(
+        200,
+        json_data={
+            "features": [
+                {
+                    "properties": {
+                        "section": "BN",
+                        "numero": "0023",
+                        "code_insee": commune,
+                        "com_abs": "000",
+                        "idu": idu,
+                    }
+                }
+            ]
+        },
+    )
+
+    result = lookup_cadastral_parcel(48.89, 2.34, insee_code=arrondissement)
+
+    assert mock_get.call_args.kwargs["params"]["code_insee"] == commune
+    assert mock_get.call_count == 1
+    assert result is not None
+    assert result["insee_code"] == arrondissement
+
+
+@pytest.mark.parametrize(
+    ("insee_code", "expected"),
+    [
+        ("75101", "75056"),
+        ("75120", "75056"),
+        ("75121", "75121"),
+        ("69381", "69123"),
+        ("69389", "69123"),
+        ("13201", "13055"),
+        ("13216", "13055"),
+        ("49007", "49007"),
+        ("2A004", "2A004"),
+        (None, None),
+        ("", ""),
+    ],
+)
+def test_apicarto_commune_code(insee_code, expected):
+    """Only the arrondissements of Paris, Lyon and Marseille are replaced."""
+    assert _apicarto_commune_code(insee_code) == expected
+
+
+@patch("property.services.geocoding.httpx.get")
+def test_buffered_fallback_queries_commune_code(mock_get):
+    empty_response = _mock_response(200, json_data={"features": []})
+    parcel_response = _mock_response(
+        200,
+        json_data={"features": [{"properties": {"section": "A", "numero": "1"}}]},
+    )
+    mock_get.side_effect = [empty_response, parcel_response]
+
+    result = lookup_cadastral_parcel(48.8, 2.3, insee_code="75114")
+
+    second_call_params = mock_get.call_args_list[1].kwargs.get("params", {})
+    assert second_call_params.get("code_insee") == "75056"
+    assert result is not None
+    assert result["insee_code"] == "75114"

@@ -14,6 +14,15 @@ _APICARTO_PARCELLE_URL = "https://apicarto.ign.fr/api/cadastre/parcelle"
 
 _FALLBACK_BUFFER_DEG = 0.0002
 
+#: Communes split into arrondissements: (first code, last code, commune code).
+#: BAN gives the arrondissement code (75118) while APICarto files the parcels
+#: under the commune code (75056), the arrondissement being in ``code_arr``.
+_ARRONDISSEMENTS = (
+    (75101, 75120, "75056"),  # Paris
+    (69381, 69389, "69123"),  # Lyon
+    (13201, 13216, "13055"),  # Marseille
+)
+
 
 def search_addresses(query: str, limit: int = 5) -> list[dict]:
     """Search French addresses via the BAN (Base Adresse Nationale) API."""
@@ -54,6 +63,20 @@ def search_addresses(query: str, limit: int = 5) -> list[dict]:
     return results
 
 
+def _apicarto_commune_code(insee_code: str | None) -> str | None:
+    """Code under which APICarto files the parcels of *insee_code*.
+
+    An arrondissement of Paris, Lyon or Marseille is replaced by its commune
+    code; any other code is returned unchanged.
+    """
+    if insee_code and insee_code.isdigit():
+        number = int(insee_code)
+        for first, last, commune in _ARRONDISSEMENTS:
+            if first <= number <= last:
+                return commune
+    return insee_code
+
+
 def lookup_cadastral_parcel(
     latitude: Decimal | float, longitude: Decimal | float, insee_code: str | None = None
 ) -> dict | None:
@@ -76,8 +99,9 @@ def _query_apicarto_parcelle(
     """Query APICarto with an exact point intersection."""
     geom = {"type": "Point", "coordinates": [float(longitude), float(latitude)]}
     params: dict = {"geom": json.dumps(geom)}
-    if insee_code:
-        params["code_insee"] = insee_code
+    commune_code = _apicarto_commune_code(insee_code)
+    if commune_code:
+        params["code_insee"] = commune_code
 
     try:
         response = httpx.get(_APICARTO_PARCELLE_URL, params=params, timeout=_TIMEOUT)
@@ -115,8 +139,9 @@ def _query_apicarto_parcelle_buffered(
         ],
     }
     params: dict = {"geom": json.dumps(poly), "_limit": 1}
-    if insee_code:
-        params["code_insee"] = insee_code
+    commune_code = _apicarto_commune_code(insee_code)
+    if commune_code:
+        params["code_insee"] = commune_code
 
     try:
         response = httpx.get(_APICARTO_PARCELLE_URL, params=params, timeout=_TIMEOUT)
@@ -140,6 +165,10 @@ def _extract_parcel(data: dict, insee_code: str | None) -> dict | None:
     The ``section_prefixe`` returned is the 5-character field used by DVF:
     a 3-char commune prefix (``com_abs``, almost always ``"000"``) followed
     by the 2-char section code.
+
+    The returned ``insee_code`` is the one of the arrondissement in Paris,
+    Lyon and Marseille (the first 5 characters of ``idu``), as DVF expects,
+    and not the commune code APICarto returns in ``code_insee``.
     """
     features = data.get("features") or []
     if not features:
@@ -152,5 +181,7 @@ def _extract_parcel(data: dict, insee_code: str | None) -> dict | None:
     return {
         "section": section_prefixe or section,
         "numero": properties.get("numero"),
-        "insee_code": properties.get("code_insee") or insee_code,
+        "insee_code": (properties.get("idu") or "")[:5]
+        or insee_code
+        or properties.get("code_insee"),
     }
