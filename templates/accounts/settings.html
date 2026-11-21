@@ -219,6 +219,27 @@
         {% if scheduled_jobs %}
         {% include "accounts/_background_jobs.html" %}
         {% endif %}
+
+        {% if user.is_superuser %}
+        <div class="card mb-4 border-warning-subtle">
+            <div class="card-header">
+                <h5 class="mb-0">{% icon "shield" "me-2" %}{% translate "Advanced" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <h6 class="mb-1">{% translate "Administration" %}</h6>
+                        <p class="text-muted small mb-0">
+                            {% translate "Reserved for advanced users: raw access to every record, to fix data the application cannot change (account types, users' rights). A wrong change can break the computations." %}
+                        </p>
+                    </div>
+                    <a class="btn btn-outline-warning btn-sm flex-shrink-0" href="{% url 'admin:index' %}">
+                        {% icon "shield" "me-2" %}{% translate "Open" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

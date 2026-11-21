@@ -297,3 +297,16 @@ def test_save_without_commit_writes_nothing(admin_user):
     form.save_m2m()
     assert is_child(child)
     assert child.profile.birth_date == datetime.date(2015, 3, 1)
+
+
+@pytest.mark.django_db
+def test_administration_is_linked_from_the_settings_only(user, admin_user):
+    """The administration is a tool for advanced users, not part of the menus."""
+    admin_url = reverse("admin:index")
+    for member, linked in ((user, False), (admin_user, True)):
+        client = Client()
+        client.force_login(member)
+        settings_page = client.get(reverse("accounts:settings")).content.decode()
+        household_page = client.get(reverse("accounts:household")).content.decode()
+        assert (f'href="{admin_url}"' in settings_page) is linked
+        assert f'href="{admin_url}"' not in household_page
