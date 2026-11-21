@@ -1204,3 +1204,29 @@ def test_index_occupancy_shows_the_rent_with_charges(user_client, charges, expec
     content = user_client.get(reverse("property:index")).content.decode()
     text = " ".join(content.replace("\xa0", " ").replace("\u202f", " ").split())
     assert f'<span class="g-cell-sub">{expected}</span>' in text
+
+
+@pytest.mark.django_db
+def test_info_panel_map_tiles_send_the_site_origin(user_client):
+    """OpenStreetMap refuses the tiles requested without a Referer."""
+    prop = Property.objects.create(
+        name="Mapped Flat",
+        property_type=Property.APARTMENT,
+        buying_value=Money(100_000, "EUR"),
+        buying_date=datetime.date(2020, 1, 1),
+    )
+    response = user_client.get(reverse("property:panel_info", args=[prop.pk]))
+    content = response.content.decode()
+    assert "https://tile.openstreetmap.org/{z}/{x}/{y}.png" in content
+    assert "referrerPolicy: 'strict-origin-when-cross-origin'" in content
+    directives = dict(
+        directive.strip().split(" ", 1)
+        for directive in response.headers["Content-Security-Policy"].split(";")
+        if directive.strip()
+    )
+    assert directives["img-src"].split() == [
+        "'self'",
+        "data:",
+        "blob:",
+        "https://tile.openstreetmap.org",
+    ]
