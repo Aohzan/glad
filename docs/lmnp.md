@@ -158,6 +158,36 @@ dotation 2026 de 7 015,04 €.
 ENV_FILE=.env.dev uv run pytest property/tests/test_lmnp_golden_excel.py property/tests/test_lmnp_conformity.py -q
 ```
 
+## 9. Importer les écritures d'un bien en CSV
+
+Depuis la page d'un bien, **Importer un CSV** charge des écritures
+du grand livre en deux étapes : aperçu, puis confirmation. La lecture est
+dans `property/services/ledger_csv.py`.
+
+| Colonne | Autres noms acceptés | Obligatoire | Contenu |
+|---|---|---|---|
+| `date` | `date_operation`, `jour` | oui | `2024-01-15`, `15/01/2024`, `15 janvier 2024` |
+| `amount` | `montant`, `montant_eur`, `somme`, `value` | oui | positif pour une recette, négatif pour une dépense ; `1 234,56 €` et `1,234.56` sont lus |
+| `category` | `categorie`, `management_category` | oui | code (`rent_collected`) ou libellé de la catégorie en français ou en anglais, sans tenir compte des accents ni de la casse |
+| `description` | `libelle`, `label`, `intitule`, `objet` | oui | libellé de l'écriture |
+| `notes` | `note`, `commentaire`, `comment` | non | notes libres |
+| `reference_period` | `periode`, `periode_de_reference`, `period` | non | date de la période comptable concernée |
+
+- Séparateur `;` ou `,` (détecté sur la ligne d'en-tête), encodage UTF-8
+  (avec ou sans BOM) ou Latin-1.
+- Les noms de colonnes sont comparés en minuscules et sans accents
+  (`Libellé` = `libelle`) ; les colonnes inconnues sont ignorées.
+- Le signe du montant donne le sens du flux et doit correspondre à la
+  catégorie : une catégorie de recette exige un montant positif, une
+  catégorie de dépense un montant négatif. Les lignes refusées sont listées
+  après l'import, les autres sont enregistrées.
+
+Pour un export d'un autre outil (Matera, relevé bancaire, tableur), la page
+**Prompt pour une IA** donne des instructions à coller dans l'assistant de
+son choix avec l'export : elles décrivent ce format, la règle de signe et la
+liste des catégories, et l'assistant répond par un fichier prêt à importer.
+Les écritures du bien sont alors envoyées à ce service.
+
 ## Sources
 
 - [Article 39 C du CGI](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000029355753)
