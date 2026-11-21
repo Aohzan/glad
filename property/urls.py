@@ -187,7 +187,7 @@ urlpatterns = [
         name="api_address_autocomplete",
     ),
     path(
-        "<int:pk>/api/cadastral/",
+        "api/cadastral/",
         views.cadastral_lookup_api,
         name="api_cadastral_lookup",
     ),

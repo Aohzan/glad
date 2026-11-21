@@ -196,15 +196,9 @@ class PropertyEditForm(MoneyInputGroupMixin, OwnersFormMixin, forms.ModelForm):
             "country": forms.TextInput(attrs={"class": "form-control"}),
             "latitude": forms.HiddenInput(),
             "longitude": forms.HiddenInput(),
-            "insee_code": forms.TextInput(
-                attrs={"class": "form-control", "readonly": "readonly"}
-            ),
-            "cadastral_section": forms.TextInput(
-                attrs={"class": "form-control", "readonly": "readonly"}
-            ),
-            "cadastral_parcel_number": forms.TextInput(
-                attrs={"class": "form-control", "readonly": "readonly"}
-            ),
+            "insee_code": forms.TextInput(attrs={"class": "form-control"}),
+            "cadastral_section": forms.TextInput(attrs={"class": "form-control"}),
+            "cadastral_parcel_number": forms.TextInput(attrs={"class": "form-control"}),
         }
 
 

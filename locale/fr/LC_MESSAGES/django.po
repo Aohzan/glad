@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 12:13+0100\n"
+"POT-Creation-Date: 2026-11-21 19:27+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -239,7 +239,7 @@ msgstr "Import / export CSV"
 
 #: base/context_processors.py:48 base/search_views.py:75
 #: base/services/dashboard.py:47 notifications/registry.py:24
-#: property/forms.py:868 property/models/fiscal.py:34 templates/base.html:58
+#: property/forms.py:862 property/models/fiscal.py:34 templates/base.html:58
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:6
 msgid "Properties"
@@ -1080,7 +1080,7 @@ msgstr ""
 msgid "A budget already exists for this year."
 msgstr "Un budget existe déjà pour cette année."
 
-#: budget/forms.py:140 property/forms.py:357
+#: budget/forms.py:140 property/forms.py:351
 msgid "CSV file"
 msgstr "Fichier CSV"
 
@@ -1831,7 +1831,7 @@ msgstr "Épargne"
 msgid "Data type to import"
 msgstr "Type de données à importer"
 
-#: finance/forms.py:192 property/forms.py:902
+#: finance/forms.py:192 property/forms.py:896
 msgid "CSV File"
 msgstr "Fichier CSV"
 
@@ -1876,7 +1876,7 @@ msgstr ""
 msgid "An ISIN is needed to update the price automatically."
 msgstr "Un ISIN est nécessaire pour mettre à jour le cours automatiquement."
 
-#: finance/forms.py:525 property/forms.py:873 property/models/lease.py:70
+#: finance/forms.py:525 property/forms.py:867 property/models/lease.py:70
 #: property/models/management.py:46
 #: templates/property/detail_panel_amortization.html:132
 #: templates/property/detail_panel_leases.html:53
@@ -1887,7 +1887,7 @@ msgstr "Un ISIN est nécessaire pour mettre à jour le cours automatiquement."
 msgid "Start date"
 msgstr "Date de début"
 
-#: finance/forms.py:528 property/forms.py:881 property/models/lease.py:71
+#: finance/forms.py:528 property/forms.py:875 property/models/lease.py:71
 #: property/models/management.py:50 templates/property/detail.html:529
 #: templates/property/detail_panel_cashflow.html:193
 #: templates/property/detail_panel_leases.html:57
@@ -2951,40 +2951,40 @@ msgstr "Canal « %(name)s » supprimé."
 msgid "Reference period"
 msgstr "Période de référence"
 
-#: property/forms.py:222 property/models/lease.py:86
+#: property/forms.py:216 property/models/lease.py:86
 msgid "Duration (months)"
 msgstr "Durée (mois)"
 
-#: property/forms.py:223
+#: property/forms.py:217
 msgid "e.g. 240 for 20 years"
 msgstr "ex. 240 pour 20 ans"
 
-#: property/forms.py:310
+#: property/forms.py:304
 msgid "The first payment date must be after the start date."
 msgstr ""
 "La date du premier prélèvement doit être postérieure à la date de début."
 
-#: property/forms.py:358
+#: property/forms.py:352
 msgid "Columns: date, capital, interets, capital_restant"
 msgstr "Colonnes : date, capital, interets, capital_restant"
 
-#: property/forms.py:438
+#: property/forms.py:432
 msgid "For a guarantor only."
 msgstr "Pour un garant uniquement."
 
-#: property/forms.py:446
+#: property/forms.py:440
 msgid "Choose the kind of guarantee of the guarantor."
 msgstr "Choisissez le type de garantie du garant."
 
-#: property/forms.py:540
+#: property/forms.py:534
 msgid "Duration is required for depreciable assets."
 msgstr "La durée est requise pour les actifs amortissables."
 
-#: property/forms.py:567
+#: property/forms.py:561
 msgid "Acquisition fees to include"
 msgstr "Frais d'acquisition à inclure"
 
-#: property/forms.py:569
+#: property/forms.py:563
 msgid ""
 "Acquisition fees (notary, agency, loan set-up) added to the purchase price "
 "and depreciated with it. This irrevocable option is only allowed when the "
@@ -2996,66 +2996,66 @@ msgstr ""
 "le bien a été acheté l'année du début de l'activité LMNP ; sinon les frais "
 "sont perdus. Mettre 0 pour exclure."
 
-#: property/forms.py:588 property/models/asset.py:813
+#: property/forms.py:582 property/models/asset.py:813
 msgid "Land percentage (%)"
 msgstr "Pourcentage du terrain (%)"
 
-#: property/forms.py:590 property/models/asset.py:815
+#: property/forms.py:584 property/models/asset.py:815
 msgid ""
 "Non-depreciable land share as a percentage of total value. Default: 15 %."
 msgstr ""
 "Part de terrain non amortissable en pourcentage de la valeur totale. "
 "Défaut : 15 %."
 
-#: property/forms.py:819 property/models/asset.py:255
+#: property/forms.py:813 property/models/asset.py:255
 #: property/models/scpi.py:620 templates/property/_dividend_table_header.html:5
 msgid "Payment date"
 msgstr "Date de paiement"
 
-#: property/forms.py:835 templates/admin/bulk_update_date.html:27
+#: property/forms.py:829 templates/admin/bulk_update_date.html:27
 msgid "Update"
 msgstr "Mise à jour"
 
-#: property/forms.py:842 property/models/scpi.py:626
+#: property/forms.py:836 property/models/scpi.py:626
 #: templates/property/_dividend_table_header.html:6
 #: templates/property/scpi_dividend_batch.html:45
 msgid "Gross amount"
 msgstr "Montant brut"
 
-#: property/forms.py:850 property/models/scpi.py:632
+#: property/forms.py:844 property/models/scpi.py:632
 #: templates/property/_dividend_table_header.html:7
 #: templates/property/scpi_dividend_batch.html:46
 msgid "Net amount"
 msgstr "Montant net"
 
-#: property/forms.py:904
+#: property/forms.py:898
 msgid ""
 "Please upload a CSV file with columns: date, amount, category, description"
 msgstr ""
 "Veuillez télécharger un fichier CSV avec les colonnes : date, montant, "
 "catégorie, description"
 
-#: property/forms.py:917 templates/property/resale_simulation.html:65
+#: property/forms.py:911 templates/property/resale_simulation.html:65
 msgid "Sale price"
 msgstr "Prix de vente"
 
-#: property/forms.py:924
+#: property/forms.py:918
 msgid "Sale date"
 msgstr "Date de vente"
 
-#: property/forms.py:930 templates/property/resale_simulation.html:66
+#: property/forms.py:924 templates/property/resale_simulation.html:66
 msgid "Fees paid by the seller"
 msgstr "Frais à la charge du vendeur"
 
-#: property/forms.py:931
+#: property/forms.py:925
 msgid "Agency fees paid by the seller, diagnostics…"
 msgstr "Frais d'agence payés par le vendeur, diagnostics…"
 
-#: property/forms.py:939
+#: property/forms.py:933
 msgid "Works not already deducted"
 msgstr "Travaux non déjà déduits"
 
-#: property/forms.py:941
+#: property/forms.py:935
 msgid ""
 "Construction, extension or improvement works with invoices, not deducted "
 "from rental income nor amortized."
@@ -3063,11 +3063,11 @@ msgstr ""
 "Travaux de construction, d'agrandissement ou d'amélioration justifiés par "
 "des factures, ni déduits des revenus locatifs ni amortis."
 
-#: property/forms.py:951
+#: property/forms.py:945
 msgid "Main residence at the time of the sale (exempt)"
 msgstr "Résidence principale au jour de la vente (exonérée)"
 
-#: property/forms.py:956
+#: property/forms.py:950
 msgid "Student, senior or care residence (no LMNP reintegration)"
 msgstr "Résidence étudiante, senior ou EHPAD (pas de réintégration LMNP)"
 
@@ -8808,7 +8808,7 @@ msgid "Cadastral information"
 msgstr "Informations cadastrales"
 
 #: templates/property/_property_form_fields.html:109
-#: templates/property/_property_form_fields.html:537
+#: templates/property/_property_form_fields.html:535
 msgid "Look up cadastral info"
 msgstr "Rechercher les infos cadastrales"
 
@@ -8841,20 +8841,20 @@ msgstr "Location"
 msgid "Selling & Status"
 msgstr "Vente & Statut"
 
-#: templates/property/_property_form_fields.html:508
+#: templates/property/_property_form_fields.html:509
 msgid "Please select an address first to get coordinates."
 msgstr ""
 "Veuillez d'abord sélectionner une adresse pour obtenir les coordonnées."
 
-#: templates/property/_property_form_fields.html:514
+#: templates/property/_property_form_fields.html:513
 msgid "Looking up..."
 msgstr "Recherche..."
 
-#: templates/property/_property_form_fields.html:525
+#: templates/property/_property_form_fields.html:523
 msgid "Could not find cadastral information for this location."
 msgstr "Impossible de trouver les informations cadastrales pour ce lieu."
 
-#: templates/property/_property_form_fields.html:533
+#: templates/property/_property_form_fields.html:531
 msgid "An error occurred during cadastral lookup."
 msgstr "Une erreur s'est produite lors de la recherche cadastrale."
 

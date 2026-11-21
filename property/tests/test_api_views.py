@@ -423,21 +423,14 @@ def test_address_autocomplete_returns_results(admin_client):
 
 @pytest.mark.django_db
 def test_cadastral_lookup_missing_coordinates(admin_client):
-    prop = Property.objects.create(
-        name="No Coords",
-        property_type=Property.HOUSE,
-        buying_value=Money(100000, "EUR"),
-        buying_date=datetime.date(2020, 1, 1),
-    )
-    response = admin_client.get(
-        reverse("property:api_cadastral_lookup", args=[prop.pk])
-    )
+    response = admin_client.get(reverse("property:api_cadastral_lookup"))
     assert response.status_code == 400
     assert response.json()["error"] == "missing_coordinates"
 
 
 @pytest.mark.django_db
 def test_cadastral_lookup_with_query_params(admin_client):
+    """The lookup needs no saved property: it works from the create form."""
     from unittest.mock import patch
 
     with patch("property.views.api_views.lookup_cadastral_parcel") as mock_lookup:
@@ -446,13 +439,7 @@ def test_cadastral_lookup_with_query_params(admin_client):
             "numero": "0042",
             "insee_code": "75114",
         }
-        prop = Property.objects.create(
-            name="No Saved Coords",
-            property_type=Property.HOUSE,
-            buying_value=Money(100000, "EUR"),
-            buying_date=datetime.date(2020, 1, 1),
-        )
-        url = reverse("property:api_cadastral_lookup", args=[prop.pk])
+        url = reverse("property:api_cadastral_lookup")
         response = admin_client.get(url + "?lat=48.832501&lon=2.327763&insee=75114")
     assert response.status_code == 200
     mock_lookup.assert_called_once_with(
@@ -464,44 +451,26 @@ def test_cadastral_lookup_with_query_params(admin_client):
 
 
 @pytest.mark.django_db
-def test_cadastral_lookup_invalid_coordinates(admin_client):
-    prop = Property.objects.create(
-        name="Bad Coords",
-        property_type=Property.HOUSE,
-        buying_value=Money(100000, "EUR"),
-        buying_date=datetime.date(2020, 1, 1),
-    )
-    url = reverse("property:api_cadastral_lookup", args=[prop.pk])
-    response = admin_client.get(url + "?lat=abc&lon=2.327763")
-    assert response.status_code == 400
-    assert response.json()["error"] == "invalid_coordinates"
-
-
-@pytest.mark.django_db
-def test_cadastral_lookup_success(admin_client):
+def test_cadastral_lookup_without_insee(admin_client):
     from unittest.mock import patch
 
     with patch("property.views.api_views.lookup_cadastral_parcel") as mock_lookup:
-        mock_lookup.return_value = {
-            "section": "AR",
-            "numero": "0042",
-            "insee_code": "75114",
-        }
-        prop = Property.objects.create(
-            name="With Coords",
-            property_type=Property.HOUSE,
-            buying_value=Money(100000, "EUR"),
-            buying_date=datetime.date(2020, 1, 1),
-            latitude=Decimal("48.832501"),
-            longitude=Decimal("2.327763"),
-        )
-        response = admin_client.get(
-            reverse("property:api_cadastral_lookup", args=[prop.pk])
-        )
+        mock_lookup.return_value = {"section": "AR", "numero": "1", "insee_code": "1"}
+        url = reverse("property:api_cadastral_lookup")
+        response = admin_client.get(url + "?lat=48.8&lon=2.3")
     assert response.status_code == 200
-    data = response.json()
-    assert data["section"] == "AR"
-    assert data["numero"] == "0042"
+    mock_lookup.assert_called_once_with(
+        Decimal("48.8"), Decimal("2.3"), insee_code=None
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("query", ["?lat=abc&lon=2.327763", "?lat=NaN&lon=2.3"])
+def test_cadastral_lookup_invalid_coordinates(admin_client, query):
+    url = reverse("property:api_cadastral_lookup")
+    response = admin_client.get(url + query)
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_coordinates"
 
 
 @pytest.mark.django_db
@@ -510,19 +479,16 @@ def test_cadastral_lookup_failure(admin_client):
 
     with patch("property.views.api_views.lookup_cadastral_parcel") as mock_lookup:
         mock_lookup.return_value = None
-        prop = Property.objects.create(
-            name="With Coords",
-            property_type=Property.HOUSE,
-            buying_value=Money(100000, "EUR"),
-            buying_date=datetime.date(2020, 1, 1),
-            latitude=Decimal("48.832501"),
-            longitude=Decimal("2.327763"),
-        )
-        response = admin_client.get(
-            reverse("property:api_cadastral_lookup", args=[prop.pk])
-        )
+        url = reverse("property:api_cadastral_lookup")
+        response = admin_client.get(url + "?lat=48.832501&lon=2.327763")
     assert response.status_code == 404
     assert response.json()["error"] == "cadastral_not_found"
+
+
+@pytest.mark.django_db
+def test_cadastral_lookup_requires_login(client):
+    response = client.get(reverse("property:api_cadastral_lookup") + "?lat=1&lon=2")
+    assert response.status_code == 302
 
 
 # ── DVF estimate API ──────────────────────────────────────────────────────────
