@@ -579,7 +579,7 @@ wheels = [
 
 [[package]]
 name = "glad"
-version = "1.13.0"
+version = "1.13.1"
 source = { editable = "." }
 dependencies = [
     { name = "apprise" },

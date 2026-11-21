@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.13.1 (2026-11-21)
+
+### Bug Fixes
+
+- **property**: Show the rent with charges in the property list
+  ([`ad4ca62`](https://github.com/Aohzan/glad/commit/ad4ca620f1901834d55574eb8b3928b1cbff19b9))
+
+### Chores
+
+- **i18n**: Refresh the translations after the rebase
+  ([`6ed45c6`](https://github.com/Aohzan/glad/commit/6ed45c60f4fe0ff99c63c836aaa629fd1cbed0dc))
+
+
 ## v1.13.0 (2026-11-21)
 
 ### Bug Fixes
