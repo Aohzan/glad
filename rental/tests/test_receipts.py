@@ -58,3 +58,36 @@ def test_partial_receipt(lease, rent_schedule):
     assert not receipt.is_full
     assert receipt.filename == "recu-2026-07.pdf"
     assert receipt_pdf(receipt, TODAY).startswith(b"%PDF")
+
+
+@pytest.mark.django_db
+def test_prorated_first_month_is_a_full_receipt(lease):
+    """A lease starting on 2 November: the prorated rent gives a quittance."""
+    from unittest.mock import patch
+
+    from rental.services import receipts
+    from rental.services.payments import create_rent_schedule
+
+    lease.start_date = datetime.date(2026, 11, 2)
+    lease.payment_day = 5
+    lease.save()
+    rent, charges = create_rent_schedule(lease)
+    check_occurrence(
+        rent, datetime.date(2026, 11, 5), None, Money(Decimal("773.33"), "EUR")
+    )
+    check_occurrence(
+        charges, datetime.date(2026, 11, 5), None, Money(Decimal("48.33"), "EUR")
+    )
+    november = period_of_month(
+        lease_periods(lease, datetime.date(2026, 11, 20)), datetime.date(2026, 11, 1)
+    )
+    assert november is not None
+    receipt = receipt_for(lease, november)
+    assert receipt.rent == Money(Decimal("773.33"), "EUR")
+    assert receipt.is_full
+    assert receipt.filename == "quittance-2026-11.pdf"
+    # The quittance covers the days of the lease, from 2 November.
+    with patch.object(receipts, "_date", wraps=receipts._date) as spy:
+        assert receipt_pdf(receipt, datetime.date(2026, 11, 20)).startswith(b"%PDF")
+    assert spy.call_args_list[0].args == (datetime.date(2026, 11, 2),)
+    assert spy.call_args_list[1].args == (datetime.date(2026, 11, 30),)

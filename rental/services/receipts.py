@@ -50,7 +50,10 @@ def receipt_pdf(receipt: RentReceipt, today: datetime.date | None = None) -> byt
     lease = receipt.lease
     landlord = landlord_of(lease.property)
     tenants = " et ".join(t.name for t in lease.tenants) or lease.name
-    period = f"du {_date(receipt.period_start)} au {_date(receipt.period_end)}"
+    # A lease starting or ending during the period covers only part of it.
+    first = max(receipt.period_start, lease.start_date)
+    last = min(receipt.period_end, lease.end_date or receipt.period_end)
+    period = f"du {_date(first)} au {_date(last)}"
 
     pdf = BasePdf()
     pdf.add_page()

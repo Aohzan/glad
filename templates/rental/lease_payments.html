@@ -8,7 +8,7 @@
     <div>
       <div class="fw-semibold">{% translate "No rent schedule" %}</div>
       <div class="small text-body-secondary">
-        {% blocktranslate with date=first_due_date total=lease.total_rent|format_money %}Create the recurring rent and charges entries of the lease, from {{ date }} ({{ total }} per period). Check each one once received, from the entries to check. Enter a prorated first rent as a one-off entry.{% endblocktranslate %}
+        {% blocktranslate with date=first_due_date total=lease.total_rent|format_money %}Create the recurring rent and charges entries of the lease, from {{ date }} ({{ total }} per period). Check each one once received, from the entries to check. A month the lease covers only in part expects the rent prorated to its days; a first rent paid before {{ date }} is entered as a one-off entry.{% endblocktranslate %}
       </div>
     </div>
     <form method="post" action="{% url 'rental:create_schedule' lease.pk %}">

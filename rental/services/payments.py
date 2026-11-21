@@ -4,12 +4,16 @@ The rent and charges are recurring ledger entries linked to the lease: an
 occurrence is paid once it is checked (``property.services.checks``), for the
 amount actually received. A one-off rent or charges entry linked to the lease
 (a catch-up payment, a prorated first rent) counts as paid in its month.
+
+A period the lease covers only in part (it starts or ends during it) expects
+the rent and charges prorated to the calendar days covered, as the charges
+reconciliation does.
 """
 
 import datetime
 from collections import defaultdict
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
@@ -29,6 +33,7 @@ _RECURRENCE = {
 }
 #: The periods due within this many days are shown as upcoming.
 AHEAD_DAYS = 40
+CENT = Decimal("0.01")
 
 PAID = "paid"
 PARTIAL = "partial"
@@ -87,6 +92,22 @@ class Period:
         if self.status not in (PARTIAL, UNPAID) or self.due_date is None:
             return 0
         return (self.today - self.due_date).days
+
+
+def covered_ratio(lease: Lease, period: Period) -> Decimal:
+    """Share of the calendar days of *period* that *lease* covers."""
+    first = max(period.start, lease.start_date)
+    last = min(period.end, lease.end_date) if lease.end_date else period.end
+    covered = max((last - first).days + 1, 0)
+    return Decimal(covered) / Decimal((period.end - period.start).days + 1)
+
+
+def _prorate(lease: Lease, period: Period) -> None:
+    """Prorate what *period* expects when the lease covers it only in part."""
+    ratio = covered_ratio(lease, period)
+    if ratio < 1:
+        period.rent = (period.rent * ratio).quantize(CENT, rounding=ROUND_HALF_UP)
+        period.charges = (period.charges * ratio).quantize(CENT, rounding=ROUND_HALF_UP)
 
 
 def rent_entries(lease: Lease):
@@ -182,6 +203,8 @@ def lease_periods(lease: Lease, today: datetime.date | None = None) -> list[Peri
                 )
             else:
                 period.unchecked.append((entry, scheduled))
+    for period in periods.values():
+        _prorate(lease, period)
     return sorted(periods.values(), key=lambda p: p.start, reverse=True)
 
 

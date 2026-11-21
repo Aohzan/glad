@@ -181,3 +181,53 @@ def test_rent_paid_before_the_due_date(lease):
     period = period_of_month(lease_periods(lease, today), due)
     assert period is not None
     assert (period.status, period.paid_date) == (PAID, today)
+
+
+@pytest.mark.django_db
+def test_first_month_is_prorated(lease):
+    """A lease starting on 2 November expects 29/30 of the November rent."""
+    lease.start_date = datetime.date(2026, 11, 2)
+    lease.payment_day = 5
+    lease.save()
+    rent, charges = create_rent_schedule(lease)
+    today = datetime.date(2026, 12, 20)
+
+    november = period_of_month(lease_periods(lease, today), datetime.date(2026, 11, 1))
+    assert november is not None
+    assert (november.rent, november.charges) == (Decimal("773.33"), Decimal("48.33"))
+    assert november.expected == Decimal("821.66")
+
+    # Receiving the prorated amounts pays the month in full.
+    check_occurrence(
+        rent, datetime.date(2026, 11, 5), actual_amount=Money(Decimal("773.33"), "EUR")
+    )
+    check_occurrence(
+        charges,
+        datetime.date(2026, 11, 5),
+        actual_amount=Money(Decimal("48.33"), "EUR"),
+    )
+    periods = lease_periods(lease, today)
+    november = period_of_month(periods, datetime.date(2026, 11, 1))
+    assert november is not None
+    assert november.status == PAID
+    assert november.balance == 0
+    # December is a full month.
+    december = period_of_month(periods, datetime.date(2026, 12, 1))
+    assert december is not None
+    assert december.expected == Decimal(850)
+
+
+@pytest.mark.django_db
+def test_last_month_is_prorated(lease):
+    """A lease ending on 15 April expects half of the April rent."""
+    lease.start_date = datetime.date(2026, 1, 1)
+    lease.end_date = datetime.date(2026, 4, 15)
+    lease.payment_day = 1
+    lease.save()
+    create_rent_schedule(lease)
+
+    april = period_of_month(
+        lease_periods(lease, datetime.date(2026, 5, 1)), datetime.date(2026, 4, 1)
+    )
+    assert april is not None
+    assert (april.rent, april.charges) == (Decimal(400), Decimal(25))
