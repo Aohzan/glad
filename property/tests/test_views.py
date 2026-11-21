@@ -1224,4 +1224,9 @@ def test_info_panel_map_tiles_send_the_site_origin(user_client):
         for directive in response.headers["Content-Security-Policy"].split(";")
         if directive.strip()
     )
-    assert "https://tile.openstreetmap.org" in directives["img-src"].split()
+    assert directives["img-src"].split() == [
+        "'self'",
+        "data:",
+        "blob:",
+        "https://tile.openstreetmap.org",
+    ]
