@@ -2,6 +2,7 @@
 
 from django.urls import path
 
+from .household_views import household, household_member
 from .views import (
     LogoutConfirmView,
     SettingsView,
@@ -21,6 +22,9 @@ app_name = "accounts"
 urlpatterns = [
     path("logout_confirm/", LogoutConfirmView.as_view(), name="logout_confirm"),
     path("settings/", SettingsView.as_view(), name="settings"),
+    path("household/", household, name="household"),
+    path("household/add/", household_member, name="household_add"),
+    path("household/<int:pk>/", household_member, name="household_edit"),
     path(
         "api/passkey/register/options/",
         passkey_register_options,

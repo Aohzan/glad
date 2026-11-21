@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Household" %}{% endblock %}
+{% block breadcrumb %}{% translate "Household" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 860px;">
+  <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="h4 mb-0">{% icon "users" "me-2 text-primary" %}{% translate "Household" %}</h1>
+    <a class="btn btn-primary btn-sm" href="{% url 'accounts:household_add' %}">{% icon "user-plus" "me-1" %}{% translate "Add a member" %}</a>
+  </div>
+  <p class="text-body-secondary small">{% translate "The members of the household own the assets, alone or with a share. An adult or a child who does not log in only needs a first name; the birth date values a life usufruct." %}</p>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>{% translate "Name" %}</th>
+            <th>{% translate "Member" %}</th>
+            <th>{% translate "Birth date" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for member in members %}
+          <tr>
+            <td>{{ member.user.get_full_name|default:member.user.get_username }}</td>
+            <td>
+              {% if member.is_child %}<span class="badge bg-info-subtle text-info-emphasis">{% icon "baby" "me-1" %}{% translate "Child" %}</span>
+              {% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% icon "user" "me-1" %}{% translate "Adult" %}</span>{% endif %}
+              {% if member.can_log_in %}<span class="badge bg-success-subtle text-success-emphasis">{% icon "log-in" "me-1" %}{% translate "Logs in" %}</span>{% endif %}
+            </td>
+            <td>{{ member.birth_date|default:"—" }}</td>
+            <td class="text-end">
+              {% if member.editable %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:household_edit' member.user.pk %}" title="{% translate 'Edit' %}">{% icon "pencil" %}</a>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="small text-body-secondary mt-3 mb-0">
+    {% url 'owners' as owners_url %}
+    {% blocktranslate %}The share of each member is set on the form of each asset, or on its owners page. The part not held by a member counts as held outside the household. See the <a href="{{ owners_url }}">net worth by owner</a>.{% endblocktranslate %}
+  </p>
+</div>
+{% endblock %}
