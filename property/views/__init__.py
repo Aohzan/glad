@@ -23,7 +23,7 @@ from property.views.crud_views import (
     edit_ledger_entry_occurrence,
     edit_mandate,
 )
-from property.views.csv_views import csv_import, csv_import_confirm
+from property.views.csv_views import csv_ai_prompt, csv_import, csv_import_confirm
 from property.views.detail_views import (
     PropertyDetailView,
     property_panel_amortization,
@@ -99,6 +99,7 @@ __all__ = [
     "clear_loan_amortization",
     "create_amortization_asset",
     "create_property",
+    "csv_ai_prompt",
     "csv_import",
     "csv_import_confirm",
     "delete_amortization_asset",

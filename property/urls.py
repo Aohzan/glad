@@ -115,6 +115,11 @@ urlpatterns = [
         views.csv_import_confirm,
         name="csv_import_confirm",
     ),
+    path(
+        "<int:property_pk>/csv/ai-prompt/",
+        views.csv_ai_prompt,
+        name="csv_ai_prompt",
+    ),
     # Accounting dashboard (all LMNP réel properties)
     path("lmnp_accounting/", views.accounting_lmnp_reel, name="lmnp_accounting"),
     path("lmnp_accounting/pdf/", views.lmnp_pdf, name="lmnp_pdf"),

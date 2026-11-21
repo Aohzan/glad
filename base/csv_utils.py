@@ -1,5 +1,6 @@
 """Helpers reading the CSV files exported by banks and spreadsheets (French formats)."""
 
+import codecs
 import datetime
 import unicodedata
 from decimal import Decimal, InvalidOperation
@@ -25,16 +26,29 @@ _AMOUNT_NOISE = (" ", "\xa0", "\u202f", "€", "EUR")
 
 
 def decode_upload(data: bytes) -> str:
-    """Text of an uploaded file, in UTF-8 (with or without BOM) or Latin-1."""
-    try:
-        return data.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        return data.decode("latin-1")
+    """Text of an uploaded file.
+
+    UTF-16 is recognised by its byte order mark (exports of Windows tools),
+    then UTF-8 (with or without BOM) is tried, then Windows-1252, which holds
+    the euro sign of the French spreadsheets, and last Latin-1, which reads
+    any byte.
+    """
+    if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        return data.decode("utf-16")
+    for encoding in ("utf-8-sig", "cp1252"):
+        try:
+            return data.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return data.decode("latin-1")
 
 
 def detect_delimiter(header: str) -> str:
-    """``;`` or ``,``, whichever splits the header line the most."""
-    return ";" if header.count(";") >= header.count(",") else ","
+    """``;``, ``,`` or a tab, whichever splits the header line the most.
+
+    On a tie, ``;`` comes first, then ``,``.
+    """
+    return max((";", ",", "\t"), key=header.count)
 
 
 def normalize_column(name: str) -> str:

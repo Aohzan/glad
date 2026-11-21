@@ -140,7 +140,8 @@ income;Salaires;Salaire;42000;Alice;
 - `person` : prénom ou identifiant d'un membre, vide (ou `foyer`) pour le
   foyer.
 
-Le séparateur (`;` ou `,`) et l'encodage (UTF-8 ou Latin-1) sont détectés.
+Le séparateur (`;`, `,` ou tabulation) et l'encodage (UTF-8, UTF-16,
+Windows-1252 ou Latin-1) sont détectés.
 Un aperçu liste les lignes valides, les erreurs et les catégories à créer
 (option « créer les catégories manquantes ») avant l'import. L'export produit
 le même format.

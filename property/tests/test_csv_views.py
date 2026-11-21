@@ -80,6 +80,7 @@ class TestCSVImportPost:
         csv_file = _make_csv(
             [
                 ["2024-01-15", "800.00", "rent_collected", "January rent"],
+                ["", "", "", ""],
                 ["2024-01-20", "-150.50", "maintenance", "Plumber"],
             ]
         )
@@ -90,7 +91,8 @@ class TestCSVImportPost:
         )
         assert response.status_code == 200
         assert "preview_rows" in response.context
-        assert len(response.context["preview_rows"]) == 2
+        assert len(response.context["preview_rows"]) == 3
+        # The blank row is not counted.
         assert response.context["total_rows"] == 2
         session = user_client.session
         assert session[_SESSION_DATA_KEY] is not None
@@ -126,15 +128,26 @@ class TestCSVImportPost:
         assert response.status_code == 200
         assert response.context["form"].errors
 
-    def test_non_utf8_file_shows_error(self, user_client, property_obj):
+    def test_latin1_file_is_decoded(self, user_client, property_obj):
         raw = (
-            b"date,amount,category,description\n2024-01-15,800,rent_collected,\xff\xfe"
+            "date;montant;catégorie;libellé\n15/01/2024;800;rent_collected;Loyer été\n"
         )
-        csv_file = io.BytesIO(raw)
+        csv_file = io.BytesIO(raw.encode("latin-1"))
         response = user_client.post(self._url(property_obj), {"csv_file": csv_file})
         assert response.status_code == 200
-        msgs = [str(m) for m in get_messages(response.wsgi_request)]
-        assert any("decoded" in m.lower() or "utf" in m.lower() for m in msgs)
+        assert response.context["header"] == [
+            "date",
+            "amount",
+            "category",
+            "description",
+        ]
+        assert response.context["preview_rows"][0][3] == "Loyer été"
+
+    def test_category_label_stored_as_code(self, user_client, property_obj):
+        csv_file = _make_csv([["2024-01-15", "800", "Rent collected", "Rent"]])
+        response = user_client.post(self._url(property_obj), {"csv_file": csv_file})
+        assert user_client.session[_SESSION_DATA_KEY][0][2] == "rent_collected"
+        assert "aliases" in response.context
 
     def test_optional_columns_accepted(self, user_client, property_obj):
         csv_file = _make_csv(

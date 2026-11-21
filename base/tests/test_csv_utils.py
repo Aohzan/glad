@@ -1,5 +1,6 @@
 """Tests of the CSV reading helpers."""
 
+import codecs
 import datetime
 from decimal import Decimal
 
@@ -20,11 +21,20 @@ from base.csv_utils import (
 def test_decode_upload():
     assert decode_upload("﻿catégorie".encode()) == "catégorie"
     assert decode_upload("catégorie".encode("latin-1")) == "catégorie"
+    # Windows exports: the euro sign of Windows-1252, UTF-16 with its BOM.
+    assert decode_upload("1 234,56 €".encode("cp1252")) == "1 234,56 €"
+    assert decode_upload("catégorie;€".encode("utf-16")) == "catégorie;€"
+    assert decode_upload(codecs.BOM_UTF16_BE + "é".encode("utf-16-be")) == "é"
+    # A byte Windows-1252 leaves undefined falls back to Latin-1.
+    assert decode_upload(b"a\x81") == "a\x81"
 
 
 def test_detect_delimiter():
     assert detect_delimiter("a;b;c") == ";"
     assert detect_delimiter("a,b;c,d") == ","
+    assert detect_delimiter("date\tmontant\tlibellé") == "\t"
+    assert detect_delimiter("a;b,c") == ";"
+    assert detect_delimiter("single") == ";"
 
 
 def test_normalize_column():
