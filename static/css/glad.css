@@ -1291,4 +1291,4 @@ button.g-legend__item[aria-pressed="false"] { opacity: .45; }
 .g-budget-row--group { background: var(--g-surface); }
 .g-budget-actions { display: flex; justify-content: flex-end; gap: 4px; }
 .g-budget-actions .btn { padding: 2px 6px; line-height: 1; }
-.g-budget-prompt { white-space: pre-wrap; font-size: 1rem; max-height: 480px; overflow: auto; }
+.g-ai-prompt { white-space: pre-wrap; font-size: 1rem; max-height: 480px; overflow: auto; }

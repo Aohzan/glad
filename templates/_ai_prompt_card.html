@@ -1,0 +1,25 @@
+{% load i18n %}
+{# Prompt for an AI, with a button copying it to the clipboard. Takes `prompt`. #}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h2 class="h6 mb-0">{% translate "Prompt" %}</h2>
+    <button type="button" class="btn btn-sm btn-outline-primary" id="copy-prompt" data-copied="{% translate 'Copied' %}">{% icon "clipboard-copy" "me-1" %}<span>{% translate "Copy" %}</span></button>
+  </div>
+  <div class="card-body"><pre class="g-ai-prompt mb-0" id="prompt-text">{{ prompt }}</pre></div>
+</div>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  const button = document.getElementById('copy-prompt');
+  button.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('prompt-text').textContent);
+      button.querySelector('span').textContent = button.dataset.copied;
+    } catch (e) {
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById('prompt-text'));
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    }
+  });
+})();
+</script>
