@@ -183,8 +183,12 @@
     hasCoords ? [lat, lon] : [defaultLat, defaultLon],
     hasCoords ? 15 : 5
   );
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // The tile policy of OpenStreetMap refuses the tiles requested without a
+  // Referer, which the site-wide "same-origin" policy never sends to another
+  // site: the tiles send the origin of the site only.
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
+    referrerPolicy: 'strict-origin-when-cross-origin',
     attribution: '\u00a9 OpenStreetMap contributors'
   }).addTo(map);
 

@@ -351,7 +351,7 @@ SECURE_CSP = {
     # Bootstrap, ApexCharts and Leaflet set inline style attributes.
     "style-src": [CSP.SELF, CSP.UNSAFE_INLINE],
     # OpenStreetMap tiles for the property map.
-    "img-src": [CSP.SELF, "data:", "blob:", "https://*.tile.openstreetmap.org"],
+    "img-src": [CSP.SELF, "data:", "blob:", "https://tile.openstreetmap.org"],
     "font-src": [CSP.SELF],
     "connect-src": [CSP.SELF],
     "frame-ancestors": [CSP.NONE],
