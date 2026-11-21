@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ property.name }} – {% translate "Prompt for an AI" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 860px;">
+  {% url 'property:csv_import' property.pk as back_url %}
+  {% translate "Prompt for an AI" as new_title %}
+  {% translate "Import CSV" as back_label %}
+  {% include "finance/_edit_page_header.html" with new_title=new_title back_url=back_url back_label=back_label %}
+
+  <p>{% translate "Copy this prompt into the AI assistant of your choice with the export of the transactions of the property (accounting tool such as Matera, bank statement or spreadsheet), save its answer as a .csv file, then import it." %}</p>
+  <div class="alert alert-warning small">
+    {% icon "triangle-alert" "me-1" %}{% translate "The transactions of the property are then sent to that service. Remove what you do not want to share before sending the export." %}
+  </div>
+
+  {% include "_ai_prompt_card.html" %}
+  <a class="btn btn-primary" href="{{ back_url }}">{% icon "file-up" "me-1" %}{% translate "Import the file" %}</a>
+</div>
+{% endblock %}

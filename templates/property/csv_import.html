@@ -23,6 +23,10 @@
         {% icon "info" "me-2" %}
         {% translate 'Upload a CSV file containing your transactions. You will be able to review the data before confirming the import.' %}
       </div>
+      <p>
+        {% translate 'Coming from another tool (Matera, a bank, a spreadsheet)? An AI assistant can convert its export into this format.' %}
+        <a href="{% url 'property:csv_ai_prompt' property.pk %}">{% icon "bot" "me-1" %}{% translate 'Prompt for an AI' %}</a>
+      </p>
 
       <form method="post" action="{% url 'property:csv_import' property.pk %}" enctype="multipart/form-data">
         {% csrf_token %}
@@ -44,11 +48,13 @@
     </div>
     <div class="card-body">
       <p>{% translate 'Your CSV file must contain the following columns (first row = header):' %}</p>
+      <p class="small text-body-secondary">{% translate 'Columns are separated by ; or , and the file is encoded in UTF-8 or Latin-1. The column names may also be written in French, without accents nor case (see the other accepted names).' %}</p>
 
       <table class="table table-sm table-bordered mb-4">
         <thead class="table-light">
           <tr>
             <th>{% translate 'Column' %}</th>
+            <th>{% translate 'Also accepted' %}</th>
             <th>{% translate 'Required' %}</th>
             <th>{% translate 'Description' %}</th>
           </tr>
@@ -56,31 +62,37 @@
         <tbody>
           <tr>
             <td><code>date</code></td>
+            <td class="small">{{ aliases.date|join:", " }}</td>
             <td><span class="badge bg-danger">{% translate 'Yes' %}</span></td>
             <td>{% translate 'Transaction date (any parseable format, e.g. 2024-01-15)' %}</td>
           </tr>
           <tr>
             <td><code>amount</code></td>
+            <td class="small">{{ aliases.amount|join:", " }}</td>
             <td><span class="badge bg-danger">{% translate 'Yes' %}</span></td>
-            <td>{% translate 'Amount — positive for income, negative for expense (e.g. 800.00 or -150.50)' %}</td>
+            <td>{% translate 'Amount — positive for income, negative for expense (e.g. 800.00, -150.50 or -1 234,56 €)' %}</td>
           </tr>
           <tr>
             <td><code>category</code></td>
+            <td class="small">{{ aliases.category|join:", " }}</td>
             <td><span class="badge bg-danger">{% translate 'Yes' %}</span></td>
-            <td>{% translate 'Category identifier (see table below)' %}</td>
+            <td>{% translate 'Category value or label (see table below)' %}</td>
           </tr>
           <tr>
             <td><code>description</code></td>
+            <td class="small">{{ aliases.description|join:", " }}</td>
             <td><span class="badge bg-danger">{% translate 'Yes' %}</span></td>
             <td>{% translate 'Short description of the transaction' %}</td>
           </tr>
           <tr>
             <td><code>notes</code></td>
+            <td class="small">{{ aliases.notes|join:", " }}</td>
             <td><span class="badge bg-secondary">{% translate 'No' %}</span></td>
             <td>{% translate 'Additional notes (optional)' %}</td>
           </tr>
           <tr>
             <td><code>reference_period</code></td>
+            <td class="small">{{ aliases.reference_period|join:", " }}</td>
             <td><span class="badge bg-secondary">{% translate 'No' %}</span></td>
             <td>{% translate 'Accounting reference period date (optional)' %}</td>
           </tr>

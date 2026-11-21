@@ -898,7 +898,8 @@ class PropertyCSVImportForm(forms.Form):
     csv_file = forms.FileField(
         label=_("CSV File"),
         help_text=_(
-            "Please upload a CSV file with columns: date, amount, category, description"
+            "CSV file with the columns date, amount, category and description, "
+            "separated by ; or ,"
         ),
         widget=forms.FileInput(attrs={"class": "form-control", "accept": ".csv"}),
     )
