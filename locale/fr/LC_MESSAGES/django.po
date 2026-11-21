@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 23:08+0100\n"
+"POT-Creation-Date: 2026-11-21 23:26+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -293,7 +293,7 @@ msgstr "Import / export CSV"
 
 #: base/context_processors.py:48 base/search_views.py:75
 #: base/services/dashboard.py:47 notifications/registry.py:24
-#: property/forms.py:865 property/models/fiscal.py:34 templates/base.html:58
+#: property/forms.py:893 property/models/fiscal.py:34 templates/base.html:58
 #: templates/property/edit_manager.html:13
 #: templates/property/edit_tenant.html:13 templates/property/index.html:6
 msgid "Properties"
@@ -886,8 +886,8 @@ msgstr "Propriétaire enregistré."
 #: property/views/scpi_views.py:499 property/views/scpi_views.py:590
 #: property/views/scpi_views.py:639 rental/application_views.py:49
 #: rental/application_views.py:168 rental/inventory_views.py:75
-#: rental/inventory_views.py:141 rental/uploads.py:36 rental/views.py:201
-#: rental/views.py:316 templates/finance/_form_error_alert.html:4
+#: rental/inventory_views.py:141 rental/uploads.py:36 rental/views.py:202
+#: rental/views.py:317 templates/finance/_form_error_alert.html:4
 #: templates/property/_form_error_alert.html:4
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
@@ -1342,7 +1342,7 @@ msgid "Housing"
 msgstr "Logement"
 
 #: budget/services/categories.py:25 rental/models.py:43
-#: rental/services/payments.py:128 templates/rental/dashboard.html:50
+#: rental/services/payments.py:149 templates/rental/dashboard.html:50
 msgid "Rent"
 msgstr "Loyer"
 
@@ -1890,7 +1890,7 @@ msgstr "Épargne"
 msgid "Data type to import"
 msgstr "Type de données à importer"
 
-#: finance/forms.py:192 property/forms.py:899
+#: finance/forms.py:192 property/forms.py:927
 msgid "CSV File"
 msgstr "Fichier CSV"
 
@@ -1935,7 +1935,7 @@ msgstr ""
 msgid "An ISIN is needed to update the price automatically."
 msgstr "Un ISIN est nécessaire pour mettre à jour le cours automatiquement."
 
-#: finance/forms.py:525 property/forms.py:870 property/models/lease.py:70
+#: finance/forms.py:525 property/forms.py:898 property/models/lease.py:70
 #: property/models/management.py:46
 #: templates/property/detail_panel_amortization.html:132
 #: templates/property/detail_panel_leases.html:53
@@ -1946,7 +1946,7 @@ msgstr "Un ISIN est nécessaire pour mettre à jour le cours automatiquement."
 msgid "Start date"
 msgstr "Date de début"
 
-#: finance/forms.py:528 property/forms.py:878 property/models/lease.py:71
+#: finance/forms.py:528 property/forms.py:906 property/models/lease.py:71
 #: property/models/management.py:50 templates/property/detail.html:529
 #: templates/property/detail_panel_cashflow.html:193
 #: templates/property/detail_panel_leases.html:57
@@ -3027,23 +3027,31 @@ msgstr ""
 msgid "Columns: date, capital, interets, capital_restant"
 msgstr "Colonnes : date, capital, interets, capital_restant"
 
-#: property/forms.py:435
-msgid "For a guarantor only."
-msgstr "Pour un garant uniquement."
+#: property/forms.py:437
+msgid "For a guarantor only. Visale is added as a guarantor, without a name."
+msgstr "Pour un garant uniquement. Visale s'ajoute comme garant, sans nom."
 
-#: property/forms.py:443
+#: property/forms.py:455
+msgid ""
+"A guarantee belongs to a guarantor: add a guarantor with this guarantee "
+"(Visale needs no name)."
+msgstr ""
+"Une garantie est portée par un garant : ajoutez un garant avec cette "
+"garantie (Visale n'a pas besoin de nom)."
+
+#: property/forms.py:461
 msgid "Choose the kind of guarantee of the guarantor."
 msgstr "Choisissez le type de garantie du garant."
 
-#: property/forms.py:537
+#: property/forms.py:565
 msgid "Duration is required for depreciable assets."
 msgstr "La durée est requise pour les actifs amortissables."
 
-#: property/forms.py:564
+#: property/forms.py:592
 msgid "Acquisition fees to include"
 msgstr "Frais d'acquisition à inclure"
 
-#: property/forms.py:566
+#: property/forms.py:594
 msgid ""
 "Acquisition fees (notary, agency, loan set-up) added to the purchase price "
 "and depreciated with it. This irrevocable option is only allowed when the "
@@ -3055,39 +3063,39 @@ msgstr ""
 "le bien a été acheté l'année du début de l'activité LMNP ; sinon les frais "
 "sont perdus. Mettre 0 pour exclure."
 
-#: property/forms.py:585 property/models/asset.py:870
+#: property/forms.py:613 property/models/asset.py:870
 msgid "Land percentage (%)"
 msgstr "Pourcentage du terrain (%)"
 
-#: property/forms.py:587 property/models/asset.py:872
+#: property/forms.py:615 property/models/asset.py:872
 msgid ""
 "Non-depreciable land share as a percentage of total value. Default: 15 %."
 msgstr ""
 "Part de terrain non amortissable en pourcentage de la valeur totale. "
 "Défaut : 15 %."
 
-#: property/forms.py:816 property/models/asset.py:256
+#: property/forms.py:844 property/models/asset.py:256
 #: property/models/scpi.py:620 templates/property/_dividend_table_header.html:5
 msgid "Payment date"
 msgstr "Date de paiement"
 
-#: property/forms.py:832 templates/admin/bulk_update_date.html:27
+#: property/forms.py:860 templates/admin/bulk_update_date.html:27
 msgid "Update"
 msgstr "Mise à jour"
 
-#: property/forms.py:839 property/models/scpi.py:626
+#: property/forms.py:867 property/models/scpi.py:626
 #: templates/property/_dividend_table_header.html:6
 #: templates/property/scpi_dividend_batch.html:45
 msgid "Gross amount"
 msgstr "Montant brut"
 
-#: property/forms.py:847 property/models/scpi.py:632
+#: property/forms.py:875 property/models/scpi.py:632
 #: templates/property/_dividend_table_header.html:7
 #: templates/property/scpi_dividend_batch.html:46
 msgid "Net amount"
 msgstr "Montant net"
 
-#: property/forms.py:901
+#: property/forms.py:929
 msgid ""
 "CSV file with the columns date, amount, category and description, separated "
 "by ; or ,"
@@ -3095,27 +3103,27 @@ msgstr ""
 "Fichier CSV avec les colonnes date, amount, category et description, "
 "séparées par ; ou ,"
 
-#: property/forms.py:915 templates/property/resale_simulation.html:65
+#: property/forms.py:943 templates/property/resale_simulation.html:65
 msgid "Sale price"
 msgstr "Prix de vente"
 
-#: property/forms.py:922
+#: property/forms.py:950
 msgid "Sale date"
 msgstr "Date de vente"
 
-#: property/forms.py:928 templates/property/resale_simulation.html:66
+#: property/forms.py:956 templates/property/resale_simulation.html:66
 msgid "Fees paid by the seller"
 msgstr "Frais à la charge du vendeur"
 
-#: property/forms.py:929
+#: property/forms.py:957
 msgid "Agency fees paid by the seller, diagnostics…"
 msgstr "Frais d'agence payés par le vendeur, diagnostics…"
 
-#: property/forms.py:937
+#: property/forms.py:965
 msgid "Works not already deducted"
 msgstr "Travaux non déjà déduits"
 
-#: property/forms.py:939
+#: property/forms.py:967
 msgid ""
 "Construction, extension or improvement works with invoices, not deducted "
 "from rental income nor amortized."
@@ -3123,11 +3131,11 @@ msgstr ""
 "Travaux de construction, d'agrandissement ou d'amélioration justifiés par "
 "des factures, ni déduits des revenus locatifs ni amortis."
 
-#: property/forms.py:949
+#: property/forms.py:977
 msgid "Main residence at the time of the sale (exempt)"
 msgstr "Résidence principale au jour de la vente (exonérée)"
 
-#: property/forms.py:954
+#: property/forms.py:982
 msgid "Student, senior or care residence (no LMNP reintegration)"
 msgstr "Résidence étudiante, senior ou EHPAD (pas de réintégration LMNP)"
 
@@ -3464,7 +3472,7 @@ msgid ""
 msgstr ""
 "Zone tendue : le préavis du locataire d'un logement vide est d'un mois."
 
-#: property/models/asset.py:526 templates/rental/lease_detail.html:66
+#: property/models/asset.py:526 templates/rental/lease_detail.html:68
 msgid "Landlord"
 msgstr "Bailleur"
 
@@ -3810,7 +3818,7 @@ msgid "Charges provision"
 msgstr "Provision pour charges"
 
 #: property/models/lease.py:112 rental/models.py:44
-#: rental/services/payments.py:130 templates/dashboard/_property.html:28
+#: rental/services/payments.py:151 templates/dashboard/_property.html:28
 #: templates/rental/_lease_layout.html:23 templates/rental/lease_detail.html:53
 msgid "Charges"
 msgstr "Charges"
@@ -6083,37 +6091,37 @@ msgstr "Dépôt de garantie enregistré."
 msgid "Document added."
 msgstr "Document ajouté."
 
-#: rental/views.py:199
+#: rental/views.py:200
 #, python-format
 msgid "%(name)s saved."
 msgstr "%(name)s enregistré."
 
-#: rental/views.py:219
+#: rental/views.py:220
 #, python-format
 msgid "%(name)s removed."
 msgstr "%(name)s retiré."
 
-#: rental/views.py:247
+#: rental/views.py:248
 msgid "This lease already has a rent schedule."
 msgstr "Ce bail a déjà un échéancier."
 
-#: rental/views.py:250
+#: rental/views.py:251
 msgid "Rent schedule created."
 msgstr "Échéancier créé."
 
-#: rental/views.py:257
+#: rental/views.py:258
 msgid "Unknown period."
 msgstr "Période inconnue."
 
-#: rental/views.py:266 rental/views.py:286
+#: rental/views.py:267 rental/views.py:287
 msgid "Nothing was received for this period."
 msgstr "Rien n'a été reçu pour cette période."
 
-#: rental/views.py:278
+#: rental/views.py:279
 msgid "Unknown email."
 msgstr "Email inconnu."
 
-#: rental/views.py:314
+#: rental/views.py:315
 msgid "The email is being sent."
 msgstr "L'email est en cours d'envoi."
 
@@ -6351,7 +6359,7 @@ msgstr "Se connecte"
 #: templates/property/scpi_fund_form.html:13
 #: templates/property/scpi_theoretical_value_form.html:59
 #: templates/rental/application_detail.html:9
-#: templates/rental/lease_detail.html:28 templates/rental/lease_detail.html:67
+#: templates/rental/lease_detail.html:28 templates/rental/lease_detail.html:69
 msgid "Edit"
 msgstr "Modifier"
 
@@ -11524,7 +11532,7 @@ msgstr[1] "sur %(counter)s baux"
 msgid "This month"
 msgstr "Ce mois-ci"
 
-#: templates/rental/dashboard.html:50 templates/rental/lease_detail.html:139
+#: templates/rental/dashboard.html:50 templates/rental/lease_detail.html:141
 msgid "Checklist"
 msgstr "Checklist"
 
@@ -11533,14 +11541,14 @@ msgstr "Checklist"
 msgid "since %(date)s"
 msgstr "depuis le %(date)s"
 
-#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:140
+#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:142
 #, python-format
 msgid "%(counter)s point"
 msgid_plural "%(counter)s points"
 msgstr[0] "%(counter)s point"
 msgstr[1] "%(counter)s points"
 
-#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:140
+#: templates/rental/dashboard.html:58 templates/rental/lease_detail.html:142
 msgid "Complete"
 msgstr "Complet"
 
@@ -11553,7 +11561,7 @@ msgstr ""
 "Aucun bail à gérer. Ajoutez un bail depuis la <a "
 "href=\"%(properties_url)s\">page d'un bien</a>."
 
-#: templates/rental/dashboard.html:82 templates/rental/lease_detail.html:149
+#: templates/rental/dashboard.html:82 templates/rental/lease_detail.html:151
 msgid "Fix"
 msgstr "Corriger"
 
@@ -11809,32 +11817,32 @@ msgstr "dû le %(day)s du mois"
 msgid "maximum %(cap)s"
 msgstr "maximum %(cap)s"
 
-#: templates/rental/lease_detail.html:58
+#: templates/rental/lease_detail.html:60
 msgid "IRL reference"
 msgstr "IRL de référence"
 
-#: templates/rental/lease_detail.html:71
+#: templates/rental/lease_detail.html:73
 msgid "No postal address"
 msgstr "Pas d'adresse postale"
 
-#: templates/rental/lease_detail.html:80
+#: templates/rental/lease_detail.html:82
 msgid "Move-in"
 msgstr "Entrée dans les lieux"
 
-#: templates/rental/lease_detail.html:87
+#: templates/rental/lease_detail.html:89
 msgid "Do it"
 msgstr "Faire"
 
-#: templates/rental/lease_detail.html:91
+#: templates/rental/lease_detail.html:93
 #, python-format
 msgid "%(amount)s received"
 msgstr "%(amount)s reçus"
 
-#: templates/rental/lease_detail.html:103
+#: templates/rental/lease_detail.html:105
 msgid "Electronic signature"
 msgstr "Signature électronique"
 
-#: templates/rental/lease_detail.html:105
+#: templates/rental/lease_detail.html:107
 msgid ""
 "Send the lease to the landlord and the tenants for signature? Read the PDF "
 "first."
@@ -11842,19 +11850,19 @@ msgstr ""
 "Envoyer le bail en signature au bailleur et aux locataires ? Relisez d'abord "
 "le PDF."
 
-#: templates/rental/lease_detail.html:107
+#: templates/rental/lease_detail.html:109
 msgid "Sign the lease"
 msgstr "Signer le bail"
 
-#: templates/rental/lease_detail.html:121
+#: templates/rental/lease_detail.html:123
 msgid "Signed PDF"
 msgstr "PDF signé"
 
-#: templates/rental/lease_detail.html:125
+#: templates/rental/lease_detail.html:127
 msgid "Check now"
 msgstr "Vérifier maintenant"
 
-#: templates/rental/lease_detail.html:131
+#: templates/rental/lease_detail.html:133
 msgid ""
 "Send the lease or an inventory to be signed online by the landlord and the "
 "tenants."
@@ -11862,7 +11870,7 @@ msgstr ""
 "Envoyez le bail ou un état des lieux à signer en ligne par le bailleur et "
 "les locataires."
 
-#: templates/rental/lease_detail.html:131
+#: templates/rental/lease_detail.html:133
 msgid ""
 "Set DOCUMENSO_URL and DOCUMENSO_API_TOKEN to sign online with a Documenso "
 "instance; otherwise sign on paper and add the scan to the documents."
@@ -11928,12 +11936,14 @@ msgstr "Pas d'échéancier"
 msgid ""
 "Create the recurring rent and charges entries of the lease, from %(date)s "
 "(%(total)s per period). Check each one once received, from the entries to "
-"check. Enter a prorated first rent as a one-off entry."
+"check. A month the lease covers only in part expects the rent prorated to "
+"its days; a first rent paid before %(date)s is entered as a one-off entry."
 msgstr ""
 "Créer les écritures récurrentes de loyer et de charges du bail, à partir du "
 "%(date)s (%(total)s par échéance). Pointez chacune une fois reçue, depuis "
-"les écritures à pointer. Saisissez un premier loyer au prorata comme "
-"écriture ponctuelle."
+"les écritures à pointer. Un mois couvert en partie par le bail attend le "
+"loyer au prorata de ses jours ; un premier loyer payé avant le %(date)s se "
+"saisit comme écriture ponctuelle."
 
 #: templates/rental/lease_payments.html:16
 msgid "Create the rent schedule"
