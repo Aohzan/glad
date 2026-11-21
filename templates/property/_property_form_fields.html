@@ -111,6 +111,52 @@
   </div>
 </div>
 
+{# ── Coproperty ──────────────────────────────────────────────────────── #}
+<h6 class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Coproperty" %}</h6>
+<p class="form-text mt-0 mb-3">{% translate "For a lot in a coproperty only. The split of the property between household members is set with the owners above." %}</p>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <label for="{{ property_form.voting_tantiemes.id_for_label }}" class="form-label">
+      {{ property_form.voting_tantiemes.label }}
+    </label>
+    {{ property_form.voting_tantiemes }}
+    {% if property_form.voting_tantiemes.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.voting_tantiemes.errors.0 }}</div>
+    {% endif %}
+    <div class="form-text">{{ property_form.voting_tantiemes.help_text }}</div>
+  </div>
+  <div class="col-md-3">
+    <label for="{{ property_form.voting_tantiemes_total.id_for_label }}" class="form-label">
+      {{ property_form.voting_tantiemes_total.label }}
+    </label>
+    {{ property_form.voting_tantiemes_total }}
+    {% if property_form.voting_tantiemes_total.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.voting_tantiemes_total.errors.0 }}</div>
+    {% endif %}
+    <div class="form-text">{{ property_form.voting_tantiemes_total.help_text }}</div>
+  </div>
+  <div class="col-md-3">
+    <label for="{{ property_form.charges_tantiemes.id_for_label }}" class="form-label">
+      {{ property_form.charges_tantiemes.label }}
+    </label>
+    {{ property_form.charges_tantiemes }}
+    {% if property_form.charges_tantiemes.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.charges_tantiemes.errors.0 }}</div>
+    {% endif %}
+    <div class="form-text">{{ property_form.charges_tantiemes.help_text }}</div>
+  </div>
+  <div class="col-md-3">
+    <label for="{{ property_form.charges_tantiemes_total.id_for_label }}" class="form-label">
+      {{ property_form.charges_tantiemes_total.label }}
+    </label>
+    {{ property_form.charges_tantiemes_total }}
+    {% if property_form.charges_tantiemes_total.errors %}
+      <div class="invalid-feedback d-block">{{ property_form.charges_tantiemes_total.errors.0 }}</div>
+    {% endif %}
+    <div class="form-text">{{ property_form.charges_tantiemes_total.help_text }}</div>
+  </div>
+</div>
+
 {# ── Purchase ────────────────────────────────────────────────────────── #}
 <h6 class="text-uppercase text-body-secondary small fw-semibold mb-3 prop-label">{% translate "Purchase" %}</h6>
 <div class="row g-3 mb-4">
@@ -306,32 +352,6 @@
       <div class="invalid-feedback d-block">{{ property_form.dpe_date.errors.0 }}</div>
     {% endif %}
     <div class="form-text">{{ property_form.dpe_date.help_text }}</div>
-  </div>
-
-  <div class="col-md-4">
-    <label for="{{ property_form.coproperty_share.id_for_label }}" class="form-label">
-      {{ property_form.coproperty_share.label }}
-    </label>
-    {{ property_form.coproperty_share }}
-    {% if property_form.coproperty_share.errors %}
-      <div class="invalid-feedback d-block">{{ property_form.coproperty_share.errors.0 }}</div>
-    {% endif %}
-    {% if property_form.coproperty_share.help_text %}
-      <div class="form-text">{{ property_form.coproperty_share.help_text }}</div>
-    {% endif %}
-  </div>
-
-  <div class="col-md-4">
-    <label for="{{ property_form.shares_count.id_for_label }}" class="form-label">
-      {{ property_form.shares_count.label }}
-    </label>
-    {{ property_form.shares_count }}
-    {% if property_form.shares_count.errors %}
-      <div class="invalid-feedback d-block">{{ property_form.shares_count.errors.0 }}</div>
-    {% endif %}
-    {% if property_form.shares_count.help_text %}
-      <div class="form-text">{{ property_form.shares_count.help_text }}</div>
-    {% endif %}
   </div>
 
   <div class="col-md-4">

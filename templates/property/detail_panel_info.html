@@ -95,6 +95,17 @@
     </div>
     {% endif %}
 
+    {# ── Coproperty shares (tantièmes) ── #}
+    {% if property.voting_share is not None or property.charges_share is not None %}
+    <div class="mb-3">
+      <p class="text-uppercase text-body-secondary small fw-semibold mb-1 prop-label">{% translate "Coproperty" %}</p>
+      <p class="mb-0 small">
+        {% if property.voting_share is not None %}<span class="badge bg-secondary-subtle text-secondary-emphasis me-1">{% translate "Votes" %}: {{ property.voting_tantiemes }} / {{ property.voting_tantiemes_total }} ({{ property.voting_share|floatformat:"-2" }} %)</span>{% endif %}
+        {% if property.charges_share is not None %}<span class="badge bg-secondary-subtle text-secondary-emphasis me-1">{% translate "Common charges" %}: {{ property.charges_tantiemes }} / {{ property.charges_tantiemes_total }} ({{ property.charges_share|floatformat:"-2" }} %)</span>{% endif %}
+      </p>
+    </div>
+    {% endif %}
+
     {# ── Purchase details ── #}
     <div class="row g-3">
       <div class="col-6 col-md-3">
