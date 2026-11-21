@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 22:49+0100\n"
+"POT-Creation-Date: 2026-11-21 22:58+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -1600,7 +1600,7 @@ msgstr "- person : une personne parmi %(names)s, ou vide pour tout le foyer"
 msgid "- notes: optional"
 msgstr "- notes : facultatif"
 
-#: budget/services/csv_io.py:417
+#: budget/services/csv_io.py:417 property/services/ledger_csv.py:286
 msgid "Rules:"
 msgstr "Règles :"
 
@@ -2514,7 +2514,7 @@ msgstr ""
 "Le fichier CSV n'a pas les noms de colonnes requises pour le type "
 "sélectionné."
 
-#: finance/views/csv_views.py:314 property/views/csv_views.py:129
+#: finance/views/csv_views.py:314 property/views/csv_views.py:97
 msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
@@ -3089,32 +3089,33 @@ msgstr "Montant net"
 
 #: property/forms.py:901
 msgid ""
-"Please upload a CSV file with columns: date, amount, category, description"
+"CSV file with the columns date, amount, category and description, separated "
+"by ; or ,"
 msgstr ""
-"Veuillez télécharger un fichier CSV avec les colonnes : date, montant, "
-"catégorie, description"
+"Fichier CSV avec les colonnes date, amount, category et description, "
+"séparées par ; ou ,"
 
-#: property/forms.py:914 templates/property/resale_simulation.html:65
+#: property/forms.py:915 templates/property/resale_simulation.html:65
 msgid "Sale price"
 msgstr "Prix de vente"
 
-#: property/forms.py:921
+#: property/forms.py:922
 msgid "Sale date"
 msgstr "Date de vente"
 
-#: property/forms.py:927 templates/property/resale_simulation.html:66
+#: property/forms.py:928 templates/property/resale_simulation.html:66
 msgid "Fees paid by the seller"
 msgstr "Frais à la charge du vendeur"
 
-#: property/forms.py:928
+#: property/forms.py:929
 msgid "Agency fees paid by the seller, diagnostics…"
 msgstr "Frais d'agence payés par le vendeur, diagnostics…"
 
-#: property/forms.py:936
+#: property/forms.py:937
 msgid "Works not already deducted"
 msgstr "Travaux non déjà déduits"
 
-#: property/forms.py:938
+#: property/forms.py:939
 msgid ""
 "Construction, extension or improvement works with invoices, not deducted "
 "from rental income nor amortized."
@@ -3122,11 +3123,11 @@ msgstr ""
 "Travaux de construction, d'agrandissement ou d'amélioration justifiés par "
 "des factures, ni déduits des revenus locatifs ni amortis."
 
-#: property/forms.py:948
+#: property/forms.py:949
 msgid "Main residence at the time of the sale (exempt)"
 msgstr "Résidence principale au jour de la vente (exonérée)"
 
-#: property/forms.py:953
+#: property/forms.py:954
 msgid "Student, senior or care residence (no LMNP reintegration)"
 msgstr "Résidence étudiante, senior ou EHPAD (pas de réintégration LMNP)"
 
@@ -4598,6 +4599,133 @@ msgstr "La date réelle ne peut pas être dans le futur."
 msgid "The actual amount must be positive."
 msgstr "Le montant réel doit être positif."
 
+#: property/services/ledger_csv.py:113
+msgid "The CSV file is empty."
+msgstr "Le fichier CSV est vide."
+
+#: property/services/ledger_csv.py:124
+#, python-format
+msgid "CSV file is missing required columns: %(cols)s"
+msgstr "Le fichier CSV ne contient pas les colonnes requises : %(cols)s"
+
+#: property/services/ledger_csv.py:129
+msgid "The CSV file contains no data rows."
+msgstr "Le fichier CSV ne contient aucune ligne de données."
+
+#: property/services/ledger_csv.py:201
+#, python-format
+msgid "Invalid date: %(val)s"
+msgstr "Date invalide : %(val)s"
+
+#: property/services/ledger_csv.py:209
+#, python-format
+msgid "Invalid amount: %(val)s"
+msgstr "Montant invalide : %(val)s"
+
+#: property/services/ledger_csv.py:212
+msgid "Amount must not be zero."
+msgstr "Le montant ne doit pas être nul."
+
+#: property/services/ledger_csv.py:218
+#, python-format
+msgid "Unknown category: %(val)s"
+msgstr "Catégorie inconnue : %(val)s"
+
+#: property/services/ledger_csv.py:225
+#, python-format
+msgid "Category %(cat)s requires a positive amount."
+msgstr "La catégorie %(cat)s nécessite un montant positif."
+
+#: property/services/ledger_csv.py:234
+#, python-format
+msgid "Category %(cat)s requires a negative amount."
+msgstr "La catégorie %(cat)s nécessite un montant négatif."
+
+#: property/services/ledger_csv.py:266
+#, python-format
+msgid ""
+"I keep the accounts of my rental property \"%(name)s\". Attached is an "
+"export of its transactions (from an accounting tool such as Matera, a bank "
+"statement or a spreadsheet). Convert it and answer only with a CSV file, "
+"using ; as separator, with these columns:"
+msgstr ""
+"Je tiens la comptabilité de mon bien locatif « %(name)s ». Ci-joint l'export "
+"de ses opérations (logiciel de comptabilité comme Matera, relevé bancaire ou "
+"tableur). Convertis-le et réponds uniquement par un fichier CSV, avec ; "
+"comme séparateur, et ces colonnes :"
+
+#: property/services/ledger_csv.py:275
+msgid "- date: date of the transaction, as YYYY-MM-DD"
+msgstr "- date : date de l'opération, au format AAAA-MM-JJ"
+
+#: property/services/ledger_csv.py:277
+msgid ""
+"- amount: positive for an income, negative for an expense, with a dot as "
+"decimal separator and without currency symbol"
+msgstr ""
+"- amount : positif pour une recette, négatif pour une dépense, avec un point "
+"comme séparateur décimal et sans symbole monétaire"
+
+#: property/services/ledger_csv.py:280
+msgid "- category: one of the codes below, written exactly as listed"
+msgstr ""
+"- category : un des codes ci-dessous, écrit exactement comme dans la liste"
+
+#: property/services/ledger_csv.py:281
+msgid "- description: short description of the transaction"
+msgstr "- description : libellé court de l'opération"
+
+#: property/services/ledger_csv.py:283
+msgid ""
+"- notes: optional, for example the account or the category of the export"
+msgstr ""
+"- notes : facultatif, par exemple le compte ou la catégorie de l'export"
+
+#: property/services/ledger_csv.py:287
+msgid "- One line per transaction: do not group nor add up the transactions."
+msgstr ""
+"- Une ligne par opération : ne regroupe ni n'additionne les opérations."
+
+#: property/services/ledger_csv.py:289
+msgid ""
+"- Wrap in double quotes any value that contains a ; or a line break, so that "
+"the columns stay aligned."
+msgstr ""
+"- Mets entre guillemets doubles toute valeur qui contient un ; ou un retour "
+"à la ligne, pour que les colonnes restent alignées."
+
+#: property/services/ledger_csv.py:293
+msgid ""
+"- Leave out the transfers between my own accounts and the transactions of "
+"other properties."
+msgstr ""
+"- Écarte les virements entre mes propres comptes et les opérations des "
+"autres biens."
+
+#: property/services/ledger_csv.py:297
+msgid ""
+"- An expense refunded to me (by the tenant, the insurance...) is "
+"other_income, with a positive amount."
+msgstr ""
+"- Une dépense qui m'est remboursée (par le locataire, l'assurance…) est en "
+"other_income, avec un montant positif."
+
+#: property/services/ledger_csv.py:301
+msgid ""
+"- When no category fits, use misc_deductible for an expense or other_income "
+"for an income, and say why in the notes column."
+msgstr ""
+"- Si aucune catégorie ne convient, utilise misc_deductible pour une dépense "
+"ou other_income pour une recette, et explique pourquoi dans la colonne notes."
+
+#: property/services/ledger_csv.py:305
+msgid "Income categories (positive amount):"
+msgstr "Catégories de recettes (montant positif) :"
+
+#: property/services/ledger_csv.py:308
+msgid "Expense categories (negative amount):"
+msgstr "Catégories de dépenses (montant négatif) :"
+
 #: property/services/tax_lmnp.py:1347
 msgid "No active loan — not required."
 msgstr "Aucun prêt actif — non requis."
@@ -4857,63 +4985,17 @@ msgstr "Mandat enregistré."
 msgid "Mandate deleted successfully."
 msgstr "Mandat supprimé avec succès."
 
-#: property/views/csv_views.py:45
-msgid "The file could not be decoded. Please use UTF-8 encoding."
-msgstr "Le fichier n'a pas pu être décodé. Veuillez utiliser l'encodage UTF-8."
-
-#: property/views/csv_views.py:57
-msgid "The CSV file is empty."
-msgstr "Le fichier CSV est vide."
-
-#: property/views/csv_views.py:68
-#, python-format
-msgid "CSV file is missing required columns: %(cols)s"
-msgstr "Le fichier CSV ne contient pas les colonnes requises : %(cols)s"
-
-#: property/views/csv_views.py:79
-msgid "The CSV file contains no data rows."
-msgstr "Le fichier CSV ne contient aucune ligne de données."
-
-#: property/views/csv_views.py:160
-#, python-format
-msgid "Invalid date: %(val)s"
-msgstr "Date invalide : %(val)s"
-
-#: property/views/csv_views.py:184
-#, python-format
-msgid "Invalid amount: %(val)s"
-msgstr "Montant invalide : %(val)s"
-
-#: property/views/csv_views.py:190
-msgid "Amount must not be zero."
-msgstr "Le montant ne doit pas être nul."
-
-#: property/views/csv_views.py:205
-#, python-format
-msgid "Unknown category: %(val)s"
-msgstr "Catégorie inconnue : %(val)s"
-
-#: property/views/csv_views.py:219
-#, python-format
-msgid "Category %(cat)s requires a positive amount."
-msgstr "La catégorie %(cat)s nécessite un montant positif."
-
-#: property/views/csv_views.py:233
-#, python-format
-msgid "Category %(cat)s requires a negative amount."
-msgstr "La catégorie %(cat)s nécessite un montant négatif."
-
-#: property/views/csv_views.py:270
+#: property/views/csv_views.py:128
 #, python-format
 msgid "%(count)d entr%(plural)s imported successfully."
 msgstr "%(count)d entr%(plural)s importée(s) avec succès."
 
-#: property/views/csv_views.py:276
+#: property/views/csv_views.py:134
 #, python-format
 msgid "%(count)d row(s) could not be imported."
 msgstr "%(count)d ligne(s) n'ont pas pu être importée(s)."
 
-#: property/views/csv_views.py:281
+#: property/views/csv_views.py:139
 #, python-format
 msgid "Row %(num)d: %(reason)s"
 msgstr "Ligne %(num)d : %(reason)s"
@@ -5281,7 +5363,7 @@ msgstr "À"
 msgid "Addresses separated by commas."
 msgstr "Adresses séparées par des virgules."
 
-#: rental/forms.py:86 templates/budget/ai_prompt.html:22
+#: rental/forms.py:86 templates/_ai_prompt_card.html:6
 #: templates/budget/copy_year.html:6 templates/mcp_server/settings.html:19
 msgid "Copy"
 msgstr "Copier"
@@ -6079,6 +6161,14 @@ msgstr "Une erreur inconnue est survenue. Merci de réessayer plus tard."
 msgid "Back to Home"
 msgstr "Retour à l'accueil"
 
+#: templates/_ai_prompt_card.html:5
+msgid "Prompt"
+msgstr "Prompt"
+
+#: templates/_ai_prompt_card.html:6 templates/mcp_server/settings.html:19
+msgid "Copied"
+msgstr "Copié"
+
 #: templates/_allocation_block.html:21
 msgid "No assets yet."
 msgstr "Aucun actif pour le moment."
@@ -6814,6 +6904,9 @@ msgstr "Ajouter une ligne"
 
 #: templates/budget/ai_prompt.html:4 templates/budget/ai_prompt.html:6
 #: templates/budget/ai_prompt.html:11 templates/budget/year_detail.html:26
+#: templates/property/csv_ai_prompt.html:4
+#: templates/property/csv_ai_prompt.html:9
+#: templates/property/csv_import.html:28
 msgid "Prompt for an AI"
 msgstr "Prompt pour une IA"
 
@@ -6837,15 +6930,7 @@ msgstr ""
 "envoyés à ce service. Retirez ce que vous ne voulez pas partager avant "
 "d'envoyer l'export."
 
-#: templates/budget/ai_prompt.html:21
-msgid "Prompt"
-msgstr "Prompt"
-
-#: templates/budget/ai_prompt.html:22 templates/mcp_server/settings.html:19
-msgid "Copied"
-msgstr "Copié"
-
-#: templates/budget/ai_prompt.html:26
+#: templates/budget/ai_prompt.html:20 templates/property/csv_ai_prompt.html:19
 msgid "Import the file"
 msgstr "Importer le fichier"
 
@@ -7928,7 +8013,7 @@ msgstr ""
 "Veuillez télécharger un fichier CSV contenant vos données. Vous pourrez "
 "associer les colonnes à l'étape suivante."
 
-#: templates/finance/csv_import.html:31 templates/property/csv_import.html:34
+#: templates/finance/csv_import.html:31 templates/property/csv_import.html:38
 msgid "Next"
 msgstr "Suivant"
 
@@ -8587,14 +8672,14 @@ msgstr "Se déconnecter ?"
 msgid "Are you sure you want to logout?"
 msgstr "Voulez-vous vraiment vous déconnecter ?"
 
-#: templates/logout.html:15 templates/property/csv_import.html:59
-#: templates/property/csv_import.html:64 templates/property/csv_import.html:69
-#: templates/property/csv_import.html:74
+#: templates/logout.html:15 templates/property/csv_import.html:66
+#: templates/property/csv_import.html:72 templates/property/csv_import.html:78
+#: templates/property/csv_import.html:84
 msgid "Yes"
 msgstr "Oui"
 
-#: templates/logout.html:16 templates/property/csv_import.html:79
-#: templates/property/csv_import.html:84
+#: templates/logout.html:16 templates/property/csv_import.html:90
+#: templates/property/csv_import.html:96
 msgid "No"
 msgstr "Non"
 
@@ -9188,6 +9273,31 @@ msgstr "Ajouter une propriété"
 msgid "Create property"
 msgstr "Créer une propriété"
 
+#: templates/property/csv_ai_prompt.html:10
+#: templates/property/csv_import.html:5
+#: templates/property/detail_panel_cashflow.html:24
+#: templates/property/detail_panel_loans.html:266
+msgid "Import CSV"
+msgstr "Importer un CSV"
+
+#: templates/property/csv_ai_prompt.html:13
+msgid ""
+"Copy this prompt into the AI assistant of your choice with the export of the "
+"transactions of the property (accounting tool such as Matera, bank statement "
+"or spreadsheet), save its answer as a .csv file, then import it."
+msgstr ""
+"Copiez ce prompt dans l'assistant IA de votre choix avec l'export des "
+"opérations du bien (logiciel de comptabilité comme Matera, relevé bancaire "
+"ou tableur), enregistrez sa réponse dans un fichier .csv, puis importez-le."
+
+#: templates/property/csv_ai_prompt.html:15
+msgid ""
+"The transactions of the property are then sent to that service. Remove what "
+"you do not want to share before sending the export."
+msgstr ""
+"Les opérations du bien sont alors envoyées à ce service. Retirez ce que vous "
+"ne voulez pas partager avant d'envoyer l'export."
+
 #: templates/property/csv_confirm.html:5
 msgid "Confirm CSV Import"
 msgstr "Confirmer l'import CSV"
@@ -9213,15 +9323,10 @@ msgstr ""
 msgid "Preview (first 5 rows)"
 msgstr "Aperçu (5 premières lignes)"
 
-#: templates/property/csv_confirm.html:50 templates/property/csv_import.html:90
+#: templates/property/csv_confirm.html:50
+#: templates/property/csv_import.html:102
 msgid "Valid category values"
 msgstr "Valeurs de catégorie valides"
-
-#: templates/property/csv_import.html:5
-#: templates/property/detail_panel_cashflow.html:24
-#: templates/property/detail_panel_loans.html:266
-msgid "Import CSV"
-msgstr "Importer un CSV"
 
 #: templates/property/csv_import.html:13
 msgid "Back to property"
@@ -9239,63 +9344,87 @@ msgstr ""
 "Téléchargez un fichier CSV contenant vos transactions. Vous pourrez vérifier "
 "les données avant de confirmer l'import."
 
-#: templates/property/csv_import.html:43
+#: templates/property/csv_import.html:27
+msgid ""
+"Coming from another tool (Matera, a bank, a spreadsheet)? An AI assistant "
+"can convert its export into this format."
+msgstr ""
+"Vous venez d'un autre outil (Matera, une banque, un tableur) ? Un assistant "
+"IA peut convertir son export dans ce format."
+
+#: templates/property/csv_import.html:47
 msgid "CSV Format"
 msgstr "Format CSV"
 
-#: templates/property/csv_import.html:46
+#: templates/property/csv_import.html:50
 msgid "Your CSV file must contain the following columns (first row = header):"
 msgstr ""
 "Votre fichier CSV doit contenir les colonnes suivantes (première ligne = en-"
 "tête) :"
 
 #: templates/property/csv_import.html:51
+msgid ""
+"Columns are separated by ;, , or a tab, and the file is encoded in UTF-8, "
+"UTF-16, Windows-1252 or Latin-1. The column names may also be written in "
+"French, without accents nor case (see the other accepted names)."
+msgstr ""
+"Les colonnes sont séparées par ;, , ou une tabulation, et le fichier est "
+"encodé en UTF-8, UTF-16, Windows-1252 ou Latin-1. Les noms de colonnes "
+"peuvent aussi être écrits en français, sans tenir compte des accents ni de "
+"la casse (voir les autres noms acceptés)."
+
+#: templates/property/csv_import.html:56
 msgid "Column"
 msgstr "Colonne"
 
-#: templates/property/csv_import.html:52
+#: templates/property/csv_import.html:57
+msgid "Also accepted"
+msgstr "Autres noms acceptés"
+
+#: templates/property/csv_import.html:58
 msgid "Required"
 msgstr "Requis"
 
-#: templates/property/csv_import.html:53 templates/property/detail.html:488
+#: templates/property/csv_import.html:59 templates/property/detail.html:488
 #: templates/property/detail_panel_cashflow.html:40
 #: templates/property/detail_panel_cashflow.html:167
 #: templates/property/edit_entry_occurrence.html:50
 msgid "Description"
 msgstr "Description"
 
-#: templates/property/csv_import.html:60
+#: templates/property/csv_import.html:67
 msgid "Transaction date (any parseable format, e.g. 2024-01-15)"
 msgstr "Date de transaction (tout format reconnu, ex. 2024-01-15)"
 
-#: templates/property/csv_import.html:65
+#: templates/property/csv_import.html:73
 msgid ""
-"Amount — positive for income, negative for expense (e.g. 800.00 or -150.50)"
+"Amount — positive for income, negative for expense (e.g. 800.00, -150.50 or "
+"-1 234,56 €)"
 msgstr ""
-"Montant — positif pour un revenu, négatif pour une dépense (ex. 800.00 ou "
-"-150.50)"
+"Montant — positif pour une recette, négatif pour une dépense (ex. 800.00, "
+"-150.50 ou -1 234,56 €)"
 
-#: templates/property/csv_import.html:70
-msgid "Category identifier (see table below)"
-msgstr "Identifiant de catégorie (voir tableau ci-dessous)"
+#: templates/property/csv_import.html:79
+msgid "Category value or label (see table below)"
+msgstr "Code ou libellé de la catégorie (voir tableau ci-dessous)"
 
-#: templates/property/csv_import.html:75
+#: templates/property/csv_import.html:85
 msgid "Short description of the transaction"
 msgstr "Courte description de la transaction"
 
-#: templates/property/csv_import.html:80
+#: templates/property/csv_import.html:91
 msgid "Additional notes (optional)"
 msgstr "Notes supplémentaires (optionnel)"
 
-#: templates/property/csv_import.html:85
+#: templates/property/csv_import.html:97
 msgid "Accounting reference period date (optional)"
 msgstr "Date de période de référence comptable (optionnel)"
 
-#: templates/property/csv_import.html:91
+#: templates/property/csv_import.html:103
 msgid "Value (use in CSV)"
 msgstr "Valeur (à utiliser dans le CSV)"
 
-#: templates/property/csv_import.html:96
+#: templates/property/csv_import.html:108
 msgid ""
 "The flow type (income or expense) is automatically determined by the sign of "
 "the amount. Income categories require a positive amount; expense categories "
