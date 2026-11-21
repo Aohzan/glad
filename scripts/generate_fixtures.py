@@ -3110,8 +3110,10 @@ def generate_property() -> str:
     number_of_rooms: 2
     dpe_rating: D
     dpe_date: {ds(M24)}
-    coproperty_share: "250.00"
-    shares_count: "1000.000000"
+    voting_tantiemes: 250
+    voting_tantiemes_total: 1000
+    charges_tantiemes: 250
+    charges_tantiemes_total: 1000
     tax_regime: lmnp_reel
 - model: property.propertyvalue
   pk: 4
@@ -3417,8 +3419,10 @@ def generate_property() -> str:
     number_of_rooms: 1
     dpe_rating: F
     dpe_date: {ds(M36)}
-    coproperty_share: "75.00"
-    shares_count: "1000.000000"
+    voting_tantiemes: 75
+    voting_tantiemes_total: 1000
+    charges_tantiemes: 75
+    charges_tantiemes_total: 1000
     tax_regime: lmnp_reel
 - model: property.propertyvalue
   pk: 7

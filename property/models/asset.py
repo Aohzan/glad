@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
@@ -406,21 +407,35 @@ class Property(BaseModel):
         verbose_name=_("Credit fees"),
         help_text=_("Loan arrangement and guarantee fees (excluding interest)."),
     )
-    coproperty_share = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
+    voting_tantiemes = models.PositiveIntegerField(
         null=True,
         blank=True,
-        verbose_name=_("Coproperty share (%)"),
-        help_text=_("Share of the coproperty (in %), if applicable."),
+        verbose_name=_("Voting shares of the lot"),
+        help_text=_(
+            "Weight of the lot in the votes of the coproperty general assembly, "
+            "as written in the deed (e.g. 250 of 10,000)."
+        ),
     )
-    shares_count = models.DecimalField(
-        max_digits=10,
-        decimal_places=6,
+    voting_tantiemes_total = models.PositiveIntegerField(
         null=True,
         blank=True,
-        verbose_name=_("Shares count"),
-        help_text=_("Number of shares in the property (if applicable)"),
+        verbose_name=_("Total voting shares"),
+        help_text=_("Total voting shares of the coproperty (e.g. 10,000)."),
+    )
+    charges_tantiemes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Common charges shares of the lot"),
+        help_text=_(
+            "Share of the lot in the expenses of the common parts, as written in "
+            "the deed (e.g. 250 of 10,000)."
+        ),
+    )
+    charges_tantiemes_total = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Total common charges shares"),
+        help_text=_("Total common charges shares of the coproperty."),
     )
     buying_date = models.DateField(
         verbose_name=_("Buying Date"),
@@ -538,6 +553,48 @@ class Property(BaseModel):
     class Meta:
         verbose_name = _("property")
         verbose_name_plural = _("properties")
+
+    #: Pairs of coproperty share fields ("tantièmes"): (lot, total of the coproperty).
+    TANTIEMES_PAIRS = (
+        ("voting_tantiemes", "voting_tantiemes_total"),
+        ("charges_tantiemes", "charges_tantiemes_total"),
+    )
+
+    def clean(self):
+        """The shares of the lot go with the total, and do not exceed it."""
+        super().clean()
+        errors = {}
+        for lot_name, total_name in self.TANTIEMES_PAIRS:
+            lot, total = getattr(self, lot_name), getattr(self, total_name)
+            if lot is not None and not total:
+                errors[total_name] = _("Enter the total of the coproperty.")
+            elif total is not None and lot is None:
+                errors[lot_name] = _("Enter the shares of the lot.")
+            elif lot is not None and total and lot > total:
+                errors[lot_name] = _("The shares of the lot exceed the total.")
+        if errors:
+            raise ValidationError(errors)
+
+    @staticmethod
+    def _tantiemes_percent(lot: int | None, total: int | None) -> Decimal | None:
+        """Percentage held by the lot, None when a value is missing."""
+        if lot is None or not total:
+            return None
+        return Decimal(lot) * 100 / Decimal(total)
+
+    @property
+    def voting_share(self) -> Decimal | None:
+        """Percentage of the votes of the coproperty held by the lot."""
+        return self._tantiemes_percent(
+            self.voting_tantiemes, self.voting_tantiemes_total
+        )
+
+    @property
+    def charges_share(self) -> Decimal | None:
+        """Percentage of the common charges of the coproperty paid by the lot."""
+        return self._tantiemes_percent(
+            self.charges_tantiemes, self.charges_tantiemes_total
+        )
 
     @property
     def amortization_start_date(self) -> datetime.date:
