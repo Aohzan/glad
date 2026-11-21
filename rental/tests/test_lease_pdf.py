@@ -57,3 +57,30 @@ def test_area():
     assert _area(Decimal("22.00")) == "22"
     assert _area(Decimal("100.00")) == "100"
     assert _area(Decimal("31.50")) == "31,5"
+
+
+@pytest.mark.django_db
+def test_guarantors_paragraphs(lease, guarantor):
+    """A Visale guarantor is not named twice."""
+    from unittest.mock import patch
+
+    from base.services.pdf import BasePdf
+
+    LeaseParty.objects.create(
+        lease=lease,
+        role=LeaseParty.Role.GUARANTOR,
+        last_name="Visale",
+        guarantee_type=LeaseParty.GuaranteeType.VISALE,
+    )
+    with patch.object(
+        BasePdf, "paragraph", autospec=True, wraps=BasePdf.paragraph
+    ) as spy:
+        assert lease_pdf(lease).startswith(b"%PDF")
+    texts = [
+        str(call.args[1])
+        for call in spy.call_args_list
+        if "selon l'acte annexé" in str(call.args[1])
+    ]
+    assert len(texts) == 2
+    assert "Marc Dupont (" in texts[0]
+    assert texts[1].endswith(": Visale, selon l'acte annexé au présent contrat.")

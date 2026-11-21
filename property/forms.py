@@ -432,16 +432,44 @@ class LeasePartyForm(forms.ModelForm):
             "birth_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "address": forms.Textarea(attrs={"rows": 2}),
         }
-        help_texts = {"guarantee_type": _("For a guarantor only.")}
+        help_texts = {
+            "guarantee_type": _(
+                "For a guarantor only. Visale is added as a guarantor, without a name."
+            )
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Required except for a Visale guarantor, checked in clean().
+        self.fields["last_name"].required = False
 
     def clean(self):
         cleaned = super().clean() or {}
+        guarantee = cleaned.get("guarantee_type")
         if cleaned.get("role") == LeaseParty.Role.TENANT:
-            cleaned["guarantee_type"] = ""
-        elif not cleaned.get("guarantee_type"):
+            if guarantee:
+                # Dropping it silently looked like a lost choice.
+                self.add_error(
+                    "guarantee_type",
+                    _(
+                        "A guarantee belongs to a guarantor: add a guarantor with "
+                        "this guarantee (Visale needs no name)."
+                    ),
+                )
+        elif not guarantee:
             self.add_error(
                 "guarantee_type", _("Choose the kind of guarantee of the guarantor.")
             )
+        if not cleaned.get("last_name") and "last_name" not in self.errors:
+            if guarantee == LeaseParty.GuaranteeType.VISALE and not cleaned.get(
+                "first_name"
+            ):
+                # Visale is an organisation (Action Logement), not a person.
+                cleaned["last_name"] = "Visale"
+            else:
+                self.add_error(
+                    "last_name", forms.Field.default_error_messages["required"]
+                )
         return cleaned
 
 

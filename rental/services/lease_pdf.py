@@ -209,10 +209,13 @@ def lease_pdf(lease: Lease) -> bytes:
         )
     for guarantor in guarantors:
         guarantee = guarantor.get_guarantee_type_display()
-        pdf.paragraph(
-            f"Garant : {guarantor.name} ({guarantee}), "
-            "selon l'acte annexé au présent contrat."
+        # A Visale guarantor is named after the guarantee itself.
+        who = (
+            guarantor.name
+            if guarantor.name == guarantee
+            else f"{guarantor.name} ({guarantee})"
         )
+        pdf.paragraph(f"Garant : {who}, selon l'acte annexé au présent contrat.")
 
     if len(tenants) > 1:
         _section(pdf, "VI. Clause de solidarité")

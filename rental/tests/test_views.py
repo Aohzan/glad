@@ -167,7 +167,8 @@ def test_add_a_guarantor(user_client, lease):
 
 
 @pytest.mark.django_db
-def test_edit_a_tenant_drops_the_guarantee_type(user_client, lease):
+def test_edit_a_tenant_refuses_a_guarantee(user_client, lease):
+    """A guarantee belongs to a guarantor: it is refused, not silently dropped."""
     tenant = lease.tenants[0]
     url = reverse("rental:edit_party", args=[lease.pk, tenant.pk])
     assert user_client.get(url, {"role": "nope"}).context["form"].initial == {
@@ -181,19 +182,44 @@ def test_edit_a_tenant_drops_the_guarantee_type(user_client, lease):
         "address": "",
         "guarantee_type": "",
     }
-    response = user_client.post(
-        url,
-        {
-            "role": "tenant",
-            "first_name": "Jean",
-            "last_name": "Durand",
-            "email": "jean@example.com",
-            "guarantee_type": "joint",
-        },
-    )
+    data = {
+        "role": "tenant",
+        "first_name": "Jean",
+        "last_name": "Durand",
+        "email": "jean@example.com",
+    }
+    response = user_client.post(url, {**data, "guarantee_type": "visale"})
+    assert response.status_code == 200
+    assert "add a guarantor" in response.context["form"].errors["guarantee_type"][0]
+    response = user_client.post(url, {**data, "guarantee_type": ""})
     assert response.status_code == 302
     tenant.refresh_from_db()
     assert (tenant.last_name, tenant.guarantee_type) == ("Durand", "")
+
+
+@pytest.mark.django_db
+def test_add_a_visale_guarantor_without_name(user_client, lease):
+    """Visale is an organisation: its guarantor needs no name."""
+    url = reverse("rental:new_party", args=[lease.pk])
+    response = user_client.post(url, {"role": "guarantor", "guarantee_type": "visale"})
+    assert response.status_code == 302
+    (guarantor,) = lease.guarantors
+    assert (guarantor.name, guarantor.guarantee_type) == ("Visale", "visale")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"role": "tenant"},
+        {"role": "guarantor", "guarantee_type": "joint"},
+        {"role": "guarantor", "guarantee_type": "visale", "first_name": "Marc"},
+    ],
+)
+def test_a_person_needs_a_last_name(user_client, lease, data):
+    response = user_client.post(reverse("rental:new_party", args=[lease.pk]), data)
+    assert response.status_code == 200
+    assert response.context["form"].errors["last_name"]
 
 
 @pytest.mark.django_db
