@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 22:39+0100\n"
+"POT-Creation-Date: 2026-11-21 22:49+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -15,10 +15,72 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: accounts/admin.py:45 accounts/admin.py:74 accounts/models.py:36
-#: property/models/lease.py:246
+#: accounts/admin.py:36 accounts/forms.py:53 accounts/forms.py:84
+#: accounts/models.py:36 property/models/lease.py:246
+#: templates/accounts/household.html:22
 msgid "Birth date"
 msgstr "Date de naissance"
+
+#: accounts/forms.py:86 accounts/models.py:37
+msgid "Used to value a life usufruct (article 669 CGI)."
+msgstr "Utilisée pour valoriser un usufruit viager (article 669 du CGI)."
+
+#: accounts/forms.py:92 templates/accounts/household.html:21
+msgid "Member"
+msgstr "Membre"
+
+#: accounts/forms.py:93 templates/accounts/household.html:32
+msgid "Adult"
+msgstr "Adulte"
+
+#: accounts/forms.py:93 accounts/models.py:41 accounts/models.py:97
+#: templates/accounts/household.html:31
+msgid "Child"
+msgstr "Enfant"
+
+#: accounts/forms.py:96
+msgid "A child owns assets but never logs in."
+msgstr "Un enfant détient des actifs mais ne se connecte jamais."
+
+#: accounts/forms.py:99
+msgid "Can log in"
+msgstr "Peut se connecter"
+
+#: accounts/forms.py:104
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+#: accounts/forms.py:111 templates/accounts/settings.html:149
+msgid "Password"
+msgstr "Mot de passe"
+
+#: accounts/forms.py:119
+msgid "Password confirmation"
+msgstr "Confirmation du mot de passe"
+
+#: accounts/forms.py:166
+msgid "A user with that username already exists."
+msgstr "Un utilisateur avec ce nom existe déjà."
+
+#: accounts/forms.py:174
+msgid "A child cannot log in."
+msgstr "Un enfant ne peut pas se connecter."
+
+#: accounts/forms.py:177
+msgid "Enter the username to log in with."
+msgstr "Saisissez le nom d'utilisateur de connexion."
+
+#: accounts/forms.py:180
+msgid "Enter the password to log in with."
+msgstr "Saisissez le mot de passe de connexion."
+
+#: accounts/forms.py:182
+msgid "The two passwords do not match."
+msgstr "Les deux mots de passe ne correspondent pas."
+
+#: accounts/household_views.py:50
+msgid "Household member saved."
+msgstr "Membre du foyer enregistré."
 
 #: accounts/models.py:19
 msgid "Session timeout (minutes)"
@@ -42,14 +104,6 @@ msgstr ""
 "Récupère les données de marché en temps réel depuis Yahoo Finance pour les "
 "titres et le remplissage automatique de l'ISIN. Désactivez pour éviter les "
 "appels réseau externes."
-
-#: accounts/models.py:37
-msgid "Used to value a life usufruct (article 669 CGI)."
-msgstr "Utilisée pour valoriser un usufruit viager (article 669 du CGI)."
-
-#: accounts/models.py:41 accounts/models.py:97
-msgid "Child"
-msgstr "Enfant"
 
 #: accounts/models.py:42
 msgid "A child is a household member who cannot log in."
@@ -249,7 +303,7 @@ msgstr "Immobilier"
 #: base/services/dashboard.py:50 base/services/ownership.py:134
 #: property/models/scpi.py:38 property/models/scpi.py:39
 #: property/models/scpi.py:159 property/models/scpi.py:208
-#: property/models/scpi.py:618 templates/base.html:59 templates/base.html:118
+#: property/models/scpi.py:618 templates/base.html:59 templates/base.html:115
 #: templates/property/scpi_detail.html:12
 #: templates/property/scpi_detail.html:136
 #: templates/property/scpi_dividend_batch.html:10
@@ -298,21 +352,21 @@ msgstr "Budget"
 
 #: base/context_processors.py:56 base/search_views.py:83
 #: templates/accounts/settings.html:4 templates/accounts/settings.html:9
-#: templates/base.html:169 templates/budget/edit_year.html:6
+#: templates/base.html:166 templates/budget/edit_year.html:6
 #: templates/finance/live_prices.html:8 templates/mcp_server/settings.html:8
 #: templates/notifications/inbox.html:12
 msgid "Settings"
 msgstr "Paramètres"
 
 #: base/context_processors.py:57 notifications/apps.py:15
-#: templates/accounts/settings.html:49 templates/base.html:155
+#: templates/accounts/settings.html:68 templates/base.html:152
 #: templates/notifications/_dropdown.html:3
 #: templates/notifications/inbox.html:4 templates/notifications/inbox.html:5
 #: templates/notifications/settings.html:8
 msgid "Notifications"
 msgstr "Notifications"
 
-#: base/context_processors.py:58 templates/base.html:88 templates/base.html:171
+#: base/context_processors.py:58 templates/accounts/settings.html:231
 msgid "Administration"
 msgstr "Administration"
 
@@ -838,7 +892,7 @@ msgstr "Propriétaire enregistré."
 msgid "Please correct the errors below."
 msgstr "Veuillez corriger les erreurs ci-dessous."
 
-#: base/ownership_views.py:73
+#: base/ownership_views.py:80
 msgid "Owner removed."
 msgstr "Propriétaire retiré."
 
@@ -931,18 +985,18 @@ msgstr "Évaluation de bien"
 msgid "Dividend"
 msgstr "Dividende"
 
-#: base/services/ownership.py:127 templates/base.html:116
+#: base/services/ownership.py:127 templates/base.html:113
 msgid "Saving account"
 msgstr "Compte d'épargne"
 
-#: base/services/ownership.py:129 templates/base.html:115
+#: base/services/ownership.py:129 templates/base.html:112
 msgid "Investment account"
 msgstr "Compte d'investissement"
 
 #: base/services/ownership.py:132 property/models/asset.py:856
 #: property/models/asset.py:953 property/models/lease.py:56
 #: property/models/ledger.py:291 property/models/management.py:38
-#: rental/models.py:94 templates/base.html:117
+#: rental/models.py:94 templates/base.html:114
 #: templates/dashboard/_property.html:28 templates/property/all_loans.html:99
 #: templates/property/index.html:4 templates/property/index.html:68
 #: templates/property/occurrence_checks.html:16
@@ -951,7 +1005,7 @@ msgstr "Compte d'investissement"
 msgid "Property"
 msgstr "Propriété"
 
-#: base/services/ownership.py:136 templates/base.html:119
+#: base/services/ownership.py:136 templates/base.html:116
 msgid "Other asset"
 msgstr "Autre actif"
 
@@ -964,7 +1018,11 @@ msgid "Outside the household"
 msgstr "Hors du foyer"
 
 #: base/services/ownership.py:414 budget/services/csv_io.py:240
-#: budget/services/summary.py:266
+#: budget/services/summary.py:266 templates/accounts/household.html:4
+#: templates/accounts/household.html:5 templates/accounts/household.html:10
+#: templates/accounts/household_member.html:5
+#: templates/accounts/household_member.html:11
+#: templates/accounts/settings.html:49
 msgid "Household"
 msgstr "Foyer"
 
@@ -1126,6 +1184,7 @@ msgstr "catégories de budget"
 #: notifications/forms.py:14 notifications/models.py:35
 #: property/models/asset.py:52 property/models/asset.py:303
 #: property/models/scpi.py:42 rental/forms.py:167
+#: templates/accounts/household.html:20
 #: templates/finance/_account_table_header.html:4
 #: templates/finance/edit_investment_holding.html:48
 #: templates/finance/holding_detail.html:63
@@ -2682,7 +2741,7 @@ msgstr "Anglais"
 msgid "French"
 msgstr "Français"
 
-#: mcp_server/apps.py:12 templates/accounts/settings.html:68
+#: mcp_server/apps.py:12 templates/accounts/settings.html:87
 #: templates/mcp_server/settings.html:4 templates/mcp_server/settings.html:5
 msgid "MCP access"
 msgstr "Accès MCP"
@@ -6103,6 +6162,10 @@ msgstr "Supprimer %(title)s ?"
 msgid "Delete"
 msgstr "Supprimer"
 
+#: templates/_owners_field.html:5 templates/owners_manage.html:68
+msgid "Add a household member"
+msgstr "Ajouter un membre du foyer"
+
 #: templates/_owners_summary.html:8
 msgid "Choose the owners when editing the asset."
 msgstr "Choisissez les propriétaires en modifiant l'actif."
@@ -6156,6 +6219,94 @@ msgstr "Toutes les %(minutes)s min"
 msgid "Run now"
 msgstr "Lancer maintenant"
 
+#: templates/accounts/household.html:11
+#: templates/accounts/household_member.html:4
+#: templates/accounts/household_member.html:6
+#: templates/accounts/household_member.html:12
+msgid "Add a member"
+msgstr "Ajouter un membre"
+
+#: templates/accounts/household.html:13
+msgid ""
+"The members of the household own the assets, alone or with a share. An adult "
+"or a child who does not log in only needs a first name; the birth date "
+"values a life usufruct."
+msgstr ""
+"Les membres du foyer détiennent les actifs, seuls ou avec une quote-part. Un "
+"adulte ou un enfant qui ne se connecte pas n'a besoin que d'un prénom ; la "
+"date de naissance sert à valoriser un usufruit viager."
+
+#: templates/accounts/household.html:33
+msgid "Logs in"
+msgstr "Se connecte"
+
+#: templates/accounts/household.html:37 templates/budget/_node_rows.html:19
+#: templates/budget/categories.html:30
+#: templates/finance/_account_detail_header.html:11
+#: templates/finance/_item_actions.html:3
+#: templates/finance/edit_investment.html:9
+#: templates/finance/edit_other_asset.html:9
+#: templates/finance/edit_saving.html:9
+#: templates/finance/holding_detail.html:25
+#: templates/finance/investment_detail.html:109
+#: templates/finance/other_asset_detail.html:26 templates/owners_manage.html:40
+#: templates/property/_edit_page_header.html:17
+#: templates/property/detail.html:57
+#: templates/property/detail_panel_cashflow.html:298
+#: templates/property/detail_panel_loans.html:39 templates/property/edit.html:5
+#: templates/property/edit.html:9 templates/property/scpi_detail.html:124
+#: templates/property/scpi_detail.html:184
+#: templates/property/scpi_fund_detail.html:188
+#: templates/property/scpi_fund_detail.html:250
+#: templates/property/scpi_fund_form.html:13
+#: templates/property/scpi_theoretical_value_form.html:59
+#: templates/rental/application_detail.html:9
+#: templates/rental/lease_detail.html:28 templates/rental/lease_detail.html:67
+msgid "Edit"
+msgstr "Modifier"
+
+#: templates/accounts/household.html:47
+#, python-format
+msgid ""
+"The share of each member is set on the form of each asset, or on its owners "
+"page. The part not held by a member counts as held outside the household. "
+"See the <a href=\"%(owners_url)s\">net worth by owner</a>."
+msgstr ""
+"La quote-part de chaque membre se règle sur le formulaire de chaque actif, "
+"ou sur sa page des propriétaires. La part qui n'est détenue par aucun membre "
+"compte comme détenue hors du foyer. Voir le <a "
+"href=\"%(owners_url)s\">patrimoine par propriétaire</a>."
+
+#: templates/accounts/household_member.html:34
+msgid ""
+"Only for an adult who logs in to the application. A member who does not log "
+"in is enough to own assets."
+msgstr ""
+"Uniquement pour un adulte qui se connecte à l'application. Un membre qui ne "
+"se connecte pas suffit pour détenir des actifs."
+
+#: templates/accounts/household_member.html:42
+#: templates/accounts/settings.html:31 templates/accounts/settings.html:41
+#: templates/accounts/settings.html:212 templates/allocation.html:74
+#: templates/budget/edit_line.html:44
+#: templates/finance/_edit_form_footer.html:4
+#: templates/finance/_euro_fund_rates_panel.html:25
+#: templates/notifications/settings.html:156 templates/owners_manage.html:67
+#: templates/property/_edit_form_footer.html:6
+#: templates/property/_form_submit_buttons.html:4
+#: templates/property/detail.html:369 templates/property/detail.html:543
+#: templates/property/edit_amortization.html:174
+#: templates/property/edit_entry.html:12
+#: templates/property/edit_entry_occurrence.html:81
+#: templates/property/occurrence_checks.html:127
+#: templates/rental/edit_application.html:26
+#: templates/rental/edit_party.html:29
+#: templates/rental/inventory_detail.html:40
+#: templates/rental/lease_departure.html:128
+#: templates/rental/reconciliation_detail.html:45
+msgid "Save"
+msgstr "Enregistrer"
+
 #: templates/accounts/settings.html:13
 msgid "Profile"
 msgstr "Profil"
@@ -6174,32 +6325,26 @@ msgstr ""
 msgid "Enter your email address"
 msgstr "Saisissez votre adresse email"
 
-#: templates/accounts/settings.html:31 templates/accounts/settings.html:41
-#: templates/accounts/settings.html:193 templates/allocation.html:74
-#: templates/budget/edit_line.html:44
-#: templates/finance/_edit_form_footer.html:4
-#: templates/finance/_euro_fund_rates_panel.html:25
-#: templates/notifications/settings.html:156 templates/owners_manage.html:66
-#: templates/property/_edit_form_footer.html:6
-#: templates/property/_form_submit_buttons.html:4
-#: templates/property/detail.html:369 templates/property/detail.html:543
-#: templates/property/edit_amortization.html:174
-#: templates/property/edit_entry.html:12
-#: templates/property/edit_entry_occurrence.html:81
-#: templates/property/occurrence_checks.html:127
-#: templates/rental/edit_application.html:26
-#: templates/rental/edit_party.html:29
-#: templates/rental/inventory_detail.html:40
-#: templates/rental/lease_departure.html:128
-#: templates/rental/reconciliation_detail.html:45
-msgid "Save"
-msgstr "Enregistrer"
-
 #: templates/accounts/settings.html:54
+msgid "Household members"
+msgstr "Membres du foyer"
+
+#: templates/accounts/settings.html:56
+msgid ""
+"Add the adults and children who own assets with you, and their birth date."
+msgstr ""
+"Ajoutez les adultes et les enfants qui détiennent des actifs avec vous, et "
+"leur date de naissance."
+
+#: templates/accounts/settings.html:60
+msgid "Manage"
+msgstr "Gérer"
+
+#: templates/accounts/settings.html:73
 msgid "Alerts and reminders"
 msgstr "Alertes et rappels"
 
-#: templates/accounts/settings.html:56
+#: templates/accounts/settings.html:75
 msgid ""
 "Choose the alerts you receive (logins, deadlines, drops, taxes…) and the "
 "channels they reach you on (email, ntfy, Gotify, Telegram…)."
@@ -6208,16 +6353,16 @@ msgstr ""
 "impôts…) et les canaux par lesquels elles vous parviennent (email, ntfy, "
 "Gotify, Telegram…)."
 
-#: templates/accounts/settings.html:60 templates/accounts/settings.html:79
-#: templates/accounts/settings.html:117
+#: templates/accounts/settings.html:79 templates/accounts/settings.html:98
+#: templates/accounts/settings.html:136
 msgid "Configure"
 msgstr "Configurer"
 
-#: templates/accounts/settings.html:73
+#: templates/accounts/settings.html:92
 msgid "AI assistants"
 msgstr "Assistants IA"
 
-#: templates/accounts/settings.html:75
+#: templates/accounts/settings.html:94
 msgid ""
 "Create API keys so that an AI assistant (Claude Code, Claude Desktop, "
 "Cursor…) can analyse your data, check it and, if you allow it, enter new "
@@ -6227,15 +6372,16 @@ msgstr ""
 "Cursor…) analyse vos données, les vérifie et, si vous l'autorisez, saisisse "
 "de nouvelles valeurs."
 
-#: templates/accounts/settings.html:87
+#: templates/accounts/settings.html:106
 msgid "Data"
 msgstr "Données"
 
-#: templates/accounts/settings.html:92 templates/finance/holding_detail.html:36
+#: templates/accounts/settings.html:111
+#: templates/finance/holding_detail.html:36
 msgid "Live market data"
 msgstr "Données de marché en direct"
 
-#: templates/accounts/settings.html:94
+#: templates/accounts/settings.html:113
 msgid ""
 "Fetch real-time market data from Yahoo Finance for holdings and ISIN "
 "autofill."
@@ -6243,12 +6389,12 @@ msgstr ""
 "Récupère les données de marché en temps réel depuis Yahoo Finance pour les "
 "titres et le remplissage automatique de l'ISIN."
 
-#: templates/accounts/settings.html:107 templates/finance/live_prices.html:4
+#: templates/accounts/settings.html:126 templates/finance/live_prices.html:4
 #: templates/finance/live_prices.html:5
 msgid "Automatic price update"
 msgstr "Mise à jour automatique des cours"
 
-#: templates/accounts/settings.html:109
+#: templates/accounts/settings.html:128
 #, python-format
 msgid ""
 "%(enabled)s of the %(total)s holding with an ISIN is valued every day at the "
@@ -6263,141 +6409,157 @@ msgstr[1] ""
 "%(enabled)s sur %(total)s titres avec un ISIN sont valorisés chaque jour au "
 "cours de clôture."
 
-#: templates/accounts/settings.html:125
+#: templates/accounts/settings.html:144
 msgid "Security"
 msgstr "Sécurité"
 
-#: templates/accounts/settings.html:130
-msgid "Password"
-msgstr "Mot de passe"
-
-#: templates/accounts/settings.html:132
+#: templates/accounts/settings.html:151
 msgid "Update your password to keep your account secure."
 msgstr "Mettez à jour votre mot de passe pour garder votre compte sécurisé."
 
-#: templates/accounts/settings.html:139 templates/accounts/settings.html:150
+#: templates/accounts/settings.html:158 templates/accounts/settings.html:169
 msgid "Change Password"
 msgstr "Changer le mot de passe"
 
-#: templates/accounts/settings.html:158
+#: templates/accounts/settings.html:177
 msgid "Passkey"
 msgstr "Passkey"
 
-#: templates/accounts/settings.html:160
+#: templates/accounts/settings.html:179
 msgid ""
 "Register a passkey so you can log in with fingerprint or face recognition."
 msgstr ""
 "Enregistrer une passkey pour se connecter via empreinte ou reconnaissance "
 "faciale."
 
-#: templates/accounts/settings.html:163
+#: templates/accounts/settings.html:182
 msgid "You can replace your passkey at any time."
 msgstr "Vous pouvez remplacer votre passkey n'importe quand."
 
-#: templates/accounts/settings.html:168 templates/accounts/settings.html:335
+#: templates/accounts/settings.html:187 templates/accounts/settings.html:375
 msgid "Register passkey"
 msgstr "Enregistrer la passkey"
 
-#: templates/accounts/settings.html:171
+#: templates/accounts/settings.html:190
 msgid "Remove passkey"
 msgstr "Supprimer la passkey"
 
-#: templates/accounts/settings.html:179
+#: templates/accounts/settings.html:198
 msgid "Auto-logout"
 msgstr "Déconnexion automatique"
 
-#: templates/accounts/settings.html:181
+#: templates/accounts/settings.html:200
 msgid "Automatically log out after a period of inactivity for security."
 msgstr ""
 "Déconnecter automatiquement après une période d'inactivité pour des raisons "
 "de sécurité."
 
-#: templates/accounts/settings.html:188
+#: templates/accounts/settings.html:207
 msgid "minutes"
 msgstr "minutes"
 
-#: templates/accounts/settings.html:229
+#: templates/accounts/settings.html:226
+msgid "Advanced"
+msgstr "Avancé"
+
+#: templates/accounts/settings.html:233
+msgid ""
+"Reserved for advanced users: raw access to every record, to fix data the "
+"application cannot change (account types, users' rights). A wrong change can "
+"break the computations."
+msgstr ""
+"Réservé aux utilisateurs avancés : accès brut à toutes les données, pour "
+"corriger ce que l'application ne permet pas de modifier (types de comptes, "
+"droits des utilisateurs). Une modification erronée peut fausser les calculs."
+
+#: templates/accounts/settings.html:237
+#: templates/rental/_inventory_card.html:11
+#: templates/rental/lease_departure.html:37
+msgid "Open"
+msgstr "Ouvrir"
+
+#: templates/accounts/settings.html:269
 msgid "Please enter an email address."
 msgstr "Veuillez saisir une adresse email."
 
-#: templates/accounts/settings.html:244
+#: templates/accounts/settings.html:284
 msgid "Please enter a valid email address."
 msgstr "Veuillez saisir une adresse email valide."
 
-#: templates/accounts/settings.html:246 templates/accounts/settings.html:254
+#: templates/accounts/settings.html:286 templates/accounts/settings.html:294
 msgid "Failed to update email address."
 msgstr "Échec de la mise à jour de l'adresse email."
 
-#: templates/accounts/settings.html:251
+#: templates/accounts/settings.html:291
 msgid "Email address updated successfully."
 msgstr "Adresse email mise à jour avec succès."
 
-#: templates/accounts/settings.html:280
+#: templates/accounts/settings.html:320
 msgid "Live market data enabled."
 msgstr "Données de marché en direct activées."
 
-#: templates/accounts/settings.html:282
+#: templates/accounts/settings.html:322
 msgid "Live market data disabled."
 msgstr "Données de marché en direct désactivées."
 
-#: templates/accounts/settings.html:287
+#: templates/accounts/settings.html:327
 msgid "Failed to update live market data preference."
 msgstr ""
 "Échec de la mise à jour de la préférence de données de marché en direct."
 
-#: templates/accounts/settings.html:334
+#: templates/accounts/settings.html:374
 msgid "Replace passkey"
 msgstr "Remplacer la passkey"
 
-#: templates/accounts/settings.html:341
+#: templates/accounts/settings.html:381
 msgid "Passkey registered."
 msgstr "Passkey enregistrée."
 
-#: templates/accounts/settings.html:343
+#: templates/accounts/settings.html:383
 msgid "No passkey registered yet."
 msgstr "Pas de passkey enregistré actuellement."
 
-#: templates/accounts/settings.html:352
+#: templates/accounts/settings.html:392
 msgid "Passkeys are not supported on this browser."
 msgstr "Les passkeys ne sont pas prises en charge sur ce navigateur."
 
-#: templates/accounts/settings.html:404
+#: templates/accounts/settings.html:444
 msgid "Passkey registered successfully."
 msgstr "Passkey enregistrée avec succès."
 
-#: templates/accounts/settings.html:409
+#: templates/accounts/settings.html:449
 msgid "Passkey registration was cancelled."
 msgstr "L'enregistrement de la passkey a été annulé."
 
-#: templates/accounts/settings.html:411
+#: templates/accounts/settings.html:451
 msgid "Failed to get registration options from server."
 msgstr "Échec de récupération des options d'enregistrement depuis le serveur."
 
-#: templates/accounts/settings.html:413 templates/registration/login.html:178
+#: templates/accounts/settings.html:453 templates/registration/login.html:178
 msgid "Failed to verify passkey with server."
 msgstr "Échec de vérification de la passkey avec le serveur."
 
-#: templates/accounts/settings.html:415
+#: templates/accounts/settings.html:455
 msgid "Failed to register passkey:"
 msgstr "Échec d'enregistrement de la passkey :"
 
-#: templates/accounts/settings.html:434
+#: templates/accounts/settings.html:474
 msgid "Passkey removed."
 msgstr "Passkey supprimée."
 
-#: templates/accounts/settings.html:437
+#: templates/accounts/settings.html:477
 msgid "Failed to remove passkey."
 msgstr "Échec de suppression de la passkey."
 
-#: templates/accounts/settings.html:454
+#: templates/accounts/settings.html:494
 msgid "Please enter a value between 5 and 1440 minutes."
 msgstr "Veuillez saisir une valeur comprise entre 5 et 1440 minutes."
 
-#: templates/accounts/settings.html:467
+#: templates/accounts/settings.html:507
 msgid "Session timeout updated successfully."
 msgstr "Délai d'expiration de session mis à jour avec succès."
 
-#: templates/accounts/settings.html:470
+#: templates/accounts/settings.html:510
 msgid "Failed to update session timeout."
 msgstr "Échec de la mise à jour du délai d'expiration de session."
 
@@ -6553,86 +6715,86 @@ msgstr "Suivi"
 msgid "Tools"
 msgstr "Outils"
 
-#: templates/base.html:94
+#: templates/base.html:91
 msgid "Favorites"
 msgstr "Favoris"
 
-#: templates/base.html:111
+#: templates/base.html:108
 msgid "Add an asset"
 msgstr "Ajouter un actif"
 
-#: templates/base.html:112 templates/rental/application_detail.html:59
+#: templates/base.html:109 templates/rental/application_detail.html:59
 #: templates/rental/inventory_detail.html:29
 #: templates/rental/inventory_room.html:57
 #: templates/rental/lease_documents.html:38
 msgid "Add"
 msgstr "Ajouter"
 
-#: templates/base.html:115
+#: templates/base.html:112
 msgid "PEA, life insurance, securities account"
 msgstr "PEA, assurance vie, compte-titres"
 
-#: templates/base.html:116
+#: templates/base.html:113
 msgid "Passbook, PEL, CEL"
 msgstr "Livret, PEL, CEL"
 
-#: templates/base.html:117
+#: templates/base.html:114
 msgid "Main residence, rental, LMNP"
 msgstr "Résidence principale, locatif, LMNP"
 
-#: templates/base.html:118
+#: templates/base.html:115
 msgid "Shares in full or bare ownership"
 msgstr "Parts en pleine ou nue-propriété"
 
-#: templates/base.html:119
+#: templates/base.html:116
 msgid "Vehicle, gold, crypto, collectibles"
 msgstr "Véhicule, or, crypto, objets de collection"
 
-#: templates/base.html:122 templates/base.html:123
+#: templates/base.html:119 templates/base.html:120
 msgid "Bulk update"
 msgstr "Mise à jour groupée"
 
-#: templates/base.html:125
+#: templates/base.html:122
 msgid "Collapse or expand the menu"
 msgstr "Replier ou déplier le menu"
 
-#: templates/base.html:126
+#: templates/base.html:123
 msgid "Collapse the menu"
 msgstr "Replier le menu"
 
-#: templates/base.html:135
+#: templates/base.html:132
 msgid "Open the menu"
 msgstr "Ouvrir le menu"
 
-#: templates/base.html:138
+#: templates/base.html:135
 msgid "Breadcrumb"
 msgstr "Fil d'Ariane"
 
-#: templates/base.html:147
+#: templates/base.html:144
 msgid "Search an asset"
 msgstr "Rechercher un actif"
 
-#: templates/base.html:149
+#: templates/base.html:146
 msgid "No result"
 msgstr "Aucun résultat"
 
-#: templates/base.html:151 templates/base.html:221
+#: templates/base.html:148 templates/base.html:215
 msgid "Toggle dark mode"
 msgstr "Basculer en mode sombre"
 
-#: templates/base.html:159
+#: templates/base.html:156
 msgid "Loading…"
 msgstr "Chargement…"
 
-#: templates/base.html:163
+#: templates/base.html:160
 msgid "My account"
 msgstr "Mon compte"
 
-#: templates/base.html:177 templates/base.html:227
+#: templates/base.html:171 templates/base.html:221
 msgid "Language"
 msgstr "Langue"
 
-#: templates/base.html:185
+#: templates/base.html:179
 msgid "Logout"
 msgstr "Déconnexion"
 
@@ -6644,30 +6806,6 @@ msgstr "Calculé à partir du reste de l'application"
 #: templates/finance/_holding_update_row.html:25
 msgid "Auto"
 msgstr "Auto"
-
-#: templates/budget/_node_rows.html:19 templates/budget/categories.html:30
-#: templates/finance/_account_detail_header.html:11
-#: templates/finance/_item_actions.html:3
-#: templates/finance/edit_investment.html:9
-#: templates/finance/edit_other_asset.html:9
-#: templates/finance/edit_saving.html:9
-#: templates/finance/holding_detail.html:25
-#: templates/finance/investment_detail.html:109
-#: templates/finance/other_asset_detail.html:26
-#: templates/property/_edit_page_header.html:17
-#: templates/property/detail.html:57
-#: templates/property/detail_panel_cashflow.html:298
-#: templates/property/detail_panel_loans.html:39 templates/property/edit.html:5
-#: templates/property/edit.html:9 templates/property/scpi_detail.html:124
-#: templates/property/scpi_detail.html:184
-#: templates/property/scpi_fund_detail.html:188
-#: templates/property/scpi_fund_detail.html:250
-#: templates/property/scpi_fund_form.html:13
-#: templates/property/scpi_theoretical_value_form.html:59
-#: templates/rental/application_detail.html:9
-#: templates/rental/lease_detail.html:28 templates/rental/lease_detail.html:67
-msgid "Edit"
-msgstr "Modifier"
 
 #: templates/budget/_node_rows.html:21 templates/budget/year_detail.html:17
 #: templates/budget/year_detail.html:153
@@ -8691,22 +8829,25 @@ msgstr ""
 "la part du bien est comptée comme non attribuée."
 
 #: templates/owners.html:14
-msgid "Enter the birth date in the administration for:"
-msgstr "Renseigner la date de naissance dans l'administration pour :"
+msgid "Enter the birth date of:"
+msgstr "Renseigner la date de naissance de :"
 
-#: templates/owners.html:25
+#: templates/owners.html:26
+#, python-format
 msgid ""
 "Each asset counts for the share and the value of the right held by each "
 "owner. Assets without owner are shown as not assigned; the part held by "
-"people who are not household members is shown as outside the household. "
-"Children are added in the administration. Real estate is counted net of the "
-"remaining loans."
+"people who are not household members is shown as outside the household. The "
+"members, adults and children, are managed on the <a "
+"href=\"%(household_url)s\">household page</a>. Real estate is counted net of "
+"the remaining loans."
 msgstr ""
 "Chaque actif compte pour la quote-part et la valeur du droit détenu par "
 "chaque propriétaire. Les actifs sans propriétaire apparaissent comme non "
 "attribués ; la part détenue par des personnes qui ne sont pas membres du "
-"foyer apparaît hors du foyer. Les enfants s'ajoutent dans l'administration. "
-"L'immobilier est compté net du capital restant dû."
+"foyer apparaît hors du foyer. Les membres, adultes et enfants, se gèrent sur "
+"la <a href=\"%(household_url)s\">page du foyer</a>. L'immobilier est compté "
+"net du capital restant dû."
 
 #: templates/owners_manage.html:23
 #, python-format
@@ -8722,19 +8863,19 @@ msgstr "Valeur du droit"
 msgid "Until %(date)s"
 msgstr "Jusqu'au %(date)s"
 
-#: templates/owners_manage.html:42 templates/rental/lease_detail.html:31
+#: templates/owners_manage.html:43 templates/rental/lease_detail.html:31
 msgid "Remove"
 msgstr "Retirer"
 
-#: templates/owners_manage.html:50
+#: templates/owners_manage.html:51
 msgid "No owner assigned: the asset counts for the whole household."
 msgstr "Aucun propriétaire attribué : l'actif compte pour tout le foyer."
 
-#: templates/owners_manage.html:56
+#: templates/owners_manage.html:57
 msgid "Add or update an owner"
 msgstr "Ajouter ou modifier un propriétaire"
 
-#: templates/owners_manage.html:69
+#: templates/owners_manage.html:71
 #, python-format
 msgid ""
 "Dismembered rights are valued with article 669 CGI: a life usufruct from the "
@@ -11038,11 +11179,6 @@ msgstr "Créer un compte"
 #: templates/rental/_application_list.html:13
 msgid "No application."
 msgstr "Aucune candidature."
-
-#: templates/rental/_inventory_card.html:11
-#: templates/rental/lease_departure.html:37
-msgid "Open"
-msgstr "Ouvrir"
 
 #: templates/rental/_inventory_card.html:22
 msgid ""
