@@ -2,6 +2,22 @@
 
 <!-- version list -->
 
+## v1.13.2 (2026-11-21)
+
+### Bug Fixes
+
+- **property**: Send the site origin with the map tiles
+  ([`c0b9b6b`](https://github.com/Aohzan/glad/commit/c0b9b6b6c86bb3849b1a2ec72c38b64ac7e2c4b3))
+
+### Testing
+
+- **property**: Compare the image sources of the CSP as a whole
+  ([`1b0a22c`](https://github.com/Aohzan/glad/commit/1b0a22cab8166140978919ef469ab2d54db542dd))
+
+- **property**: Read the image sources of the CSP as a list
+  ([`440a963`](https://github.com/Aohzan/glad/commit/440a9636f90798921337a82613e39e014c012c1b))
+
+
 ## v1.13.1 (2026-11-21)
 
 ### Bug Fixes
