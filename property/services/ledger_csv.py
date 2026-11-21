@@ -142,11 +142,12 @@ def _category_keys() -> dict[str, str]:
         code for code, _name in settings.LANGUAGES if code != current
     ]
     keys: dict[str, str] = {}
-    for category in PropertyLedgerEntry.ManagementCategory:
-        keys[_key(category.value)] = category.value
+    # The labels of the choices are lazy: each language translates them anew.
+    for value, label in PropertyLedgerEntry.ManagementCategory.choices:
+        keys[_key(value)] = value
         for language in languages:
             with translation.override(language):
-                keys.setdefault(_key(category.label), category.value)
+                keys.setdefault(_key(str(label)), value)
     return keys
 
 
