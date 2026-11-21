@@ -382,3 +382,20 @@ def test_buffered_fallback_queries_commune_code(mock_get):
     assert second_call_params.get("code_insee") == "75056"
     assert result is not None
     assert result["insee_code"] == "75114"
+
+
+@patch("property.services.geocoding.httpx.get")
+def test_failures_never_log_the_address_nor_the_coordinates(mock_get, caplog):
+    """An address or coordinates locate a home: only the kind of error is logged."""
+    mock_get.side_effect = httpx.ConnectError(
+        "boom https://apicarto.ign.fr/?geom=48.8925,2.3444&q=12 rue Secrète"
+    )
+    with caplog.at_level("WARNING", logger="property.services.geocoding"):
+        assert search_addresses("12 rue Secrète") == []
+        assert lookup_cadastral_parcel(48.8925, 2.3444, insee_code="75118") is None
+    assert [r.getMessage() for r in caplog.records] == [
+        "BAN address search failed: ConnectError",
+        "APICarto cadastral lookup failed: ConnectError",
+        "APICarto buffered lookup failed: ConnectError",
+    ]
+    assert all(r.exc_info is None for r in caplog.records)

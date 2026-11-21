@@ -38,8 +38,10 @@ def search_addresses(query: str, limit: int = 5) -> list[dict]:
         )
         response.raise_for_status()
         data = response.json()
-    except httpx.HTTPError, ValueError:
-        logger.warning("BAN address search failed for query %r", query, exc_info=True)
+    except (httpx.HTTPError, ValueError) as error:
+        # The address and the coordinates locate a home, and the error message
+        # holds the URL with them: only the kind of error is logged.
+        logger.warning("BAN address search failed: %s", type(error).__name__)
         return []
 
     results = []
@@ -107,13 +109,8 @@ def _query_apicarto_parcelle(
         response = httpx.get(_APICARTO_PARCELLE_URL, params=params, timeout=_TIMEOUT)
         response.raise_for_status()
         data = response.json()
-    except httpx.HTTPError, ValueError:
-        logger.warning(
-            "APICarto cadastral lookup failed for (%s, %s)",
-            latitude,
-            longitude,
-            exc_info=True,
-        )
+    except (httpx.HTTPError, ValueError) as error:
+        logger.warning("APICarto cadastral lookup failed: %s", type(error).__name__)
         return None
 
     return _extract_parcel(data, insee_code)
@@ -147,13 +144,8 @@ def _query_apicarto_parcelle_buffered(
         response = httpx.get(_APICARTO_PARCELLE_URL, params=params, timeout=_TIMEOUT)
         response.raise_for_status()
         data = response.json()
-    except httpx.HTTPError, ValueError:
-        logger.warning(
-            "APICarto buffered lookup failed for (%s, %s)",
-            latitude,
-            longitude,
-            exc_info=True,
-        )
+    except (httpx.HTTPError, ValueError) as error:
+        logger.warning("APICarto buffered lookup failed: %s", type(error).__name__)
         return None
 
     return _extract_parcel(data, insee_code)
