@@ -234,7 +234,7 @@ class OwnersFormMixin:
         return owners
 
     def _save_m2m(self):
-        super()._save_m2m()  # ty: ignore[unresolved-attribute]
+        super()._save_m2m()  # ty: ignore[missing-attribute]
         for asset, plan in self.owners_plans:
             apply_owners(asset, plan)
 
@@ -319,5 +319,5 @@ class PeopleFilterForm(forms.Form):
         if not self.is_valid():
             return None
         chosen = {user.pk for user in self.cleaned_data["people"]}
-        members = {user.pk for user in self.fields["people"].queryset}  # ty: ignore[unresolved-attribute]
+        members = {user.pk for user in self.fields["people"].queryset}  # ty: ignore[missing-attribute]
         return chosen if chosen and chosen != members else None

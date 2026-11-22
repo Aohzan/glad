@@ -124,7 +124,7 @@ def delete_other_asset_value(
 
 def _live_data_enabled(request: HttpRequest) -> bool:
     return getattr(
-        request.user.profile,  # ty: ignore[unresolved-attribute]
+        request.user.profile,  # ty: ignore[missing-attribute]
         "live_data_enabled",
         True,
     )

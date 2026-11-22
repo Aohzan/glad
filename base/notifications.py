@@ -65,11 +65,11 @@ def stale_assets(
     for asset in OtherAsset.objects.filter(is_active=True).annotate(
         last=Max("values__value_date")
     ):
-        result.append((str(asset), _as_date(asset.last), short_limit))  # ty: ignore[unresolved-attribute]
+        result.append((str(asset), _as_date(asset.last), short_limit))  # ty: ignore[missing-attribute]
     for prop in Property.objects.filter(is_active=True).annotate(
         last=Max("property_values__valuation_date")
     ):
-        result.append((str(prop), _as_date(prop.last), long_limit))  # ty: ignore[unresolved-attribute]
+        result.append((str(prop), _as_date(prop.last), long_limit))  # ty: ignore[missing-attribute]
     return sorted(
         (name, last)
         for name, last, limit in result

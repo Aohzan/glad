@@ -224,7 +224,7 @@ def lease_payments(request: HttpRequest, pk: int) -> HttpResponse:
     """Rent due and received for each period of a lease."""
     lease = get_lease(pk)
     periods = lease_periods(lease)
-    receipts = {receipt.period_start: receipt for receipt in lease.receipts.all()}  # ty: ignore[unresolved-attribute]
+    receipts = {receipt.period_start: receipt for receipt in lease.receipts.all()}  # ty: ignore[missing-attribute]
     return render(
         request,
         "rental/lease_payments.html",

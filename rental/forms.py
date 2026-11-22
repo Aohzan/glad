@@ -66,7 +66,7 @@ class DocumentUploadForm(forms.Form):
 class EmailListField(forms.CharField):
     """Email addresses separated by commas."""
 
-    def to_python(self, value) -> list[str]:  # ty: ignore[invalid-method-override]
+    def to_python(self, value) -> list[str]:  # ty: ignore[incompatible-method-override]
         text = super().to_python(value) or ""
         return [
             part.strip() for part in text.replace(";", ",").split(",") if part.strip()
@@ -112,7 +112,7 @@ class RentalApplicationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         field = self.fields["property"]
         assert isinstance(field, forms.ModelChoiceField)
-        field.queryset = field.queryset.filter(is_active=True).order_by("name")  # ty: ignore[unresolved-attribute]
+        field.queryset = field.queryset.filter(is_active=True).order_by("name")  # ty: ignore[missing-union-attribute]
 
 
 class InventoryForm(forms.ModelForm):

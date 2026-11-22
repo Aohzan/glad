@@ -417,7 +417,7 @@ class PropertyDetailView(DetailView):
         for entry in entries_qs:
             cat_label = entry.get_management_category_display()
             base_description = entry.display_label
-            is_capitalized = entry.capitalized_as.exists()  # ty: ignore[unresolved-attribute]
+            is_capitalized = entry.capitalized_as.exists()  # ty: ignore[missing-attribute]
             for occurrence in entry.generate_occurrences():
                 is_recurring = occurrence["is_recurring"]
                 rows.append(
@@ -753,7 +753,7 @@ def property_panel_leases(request: HttpRequest, pk: int) -> HttpResponse:
         .order_by("-start_date")
     )
     for lease in property_leases:
-        lease.rent_revision = get_rent_revision(lease)  # ty: ignore[unresolved-attribute]
+        lease.rent_revision = get_rent_revision(lease)  # ty: ignore[missing-attribute]
     context = {
         "property": prop,
         "property_leases": property_leases,

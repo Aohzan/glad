@@ -78,7 +78,7 @@ def allocation(request: HttpRequest) -> HttpResponse:
     the expenses of the budget of the year (or of the latest earlier one),
     otherwise the monthly expenses typed on the page.
     """
-    profile = request.user.profile  # ty: ignore[unresolved-attribute]
+    profile = request.user.profile  # ty: ignore[missing-attribute]
     if request.method == "POST":
         form = MonthlyExpensesForm(request.POST)
         if form.is_valid():
@@ -94,7 +94,7 @@ def allocation(request: HttpRequest) -> HttpResponse:
     people = people_form.selected()
     if people is None:
         people_form = PeopleFilterForm(
-            initial={"people": list(people_form.fields["people"].queryset)}  # ty: ignore[unresolved-attribute]
+            initial={"people": list(people_form.fields["people"].queryset)}  # ty: ignore[missing-attribute]
         )
     budget = budget_monthly_expenses(
         datetime.date.today().year, settings.DEFAULT_CURRENCY

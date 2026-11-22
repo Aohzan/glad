@@ -175,7 +175,7 @@ def holding_detail(
     holding = get_object_or_404(
         InvestmentAccountHolding, pk=holding_pk, account=account
     )
-    history = holding.investmentaccountholdinghistory_set.all()  # ty: ignore[unresolved-attribute]
+    history = holding.investmentaccountholdinghistory_set.all()  # ty: ignore[missing-attribute]
     rates = list(holding.euro_fund_rates.all()) if holding.is_euro_fund else []
 
     return render(
@@ -376,7 +376,7 @@ def backfill_holding_history(
     )
 
     if not holding.isin or not getattr(
-        request.user.profile,  # ty: ignore[unresolved-attribute]
+        request.user.profile,  # ty: ignore[missing-attribute]
         "live_data_enabled",
         True,
     ):

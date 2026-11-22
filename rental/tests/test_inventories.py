@@ -33,9 +33,9 @@ def _image(fmt="JPEG", size=(1600, 1200)) -> bytes:
 @pytest.mark.django_db
 def test_entry_of_an_empty_lease(lease):
     inventory = create_entry(lease, TODAY)
-    names = [room.name for room in inventory.rooms.all()]  # ty: ignore[unresolved-attribute]
+    names = [room.name for room in inventory.rooms.all()]  # ty: ignore[missing-attribute]
     assert names == [name for name, _items in rules.DEFAULT_ROOMS]
-    kitchen = inventory.rooms.get(name="Cuisine")  # ty: ignore[unresolved-attribute]
+    kitchen = inventory.rooms.get(name="Cuisine")  # ty: ignore[missing-attribute]
     assert "Évier" in [item.name for item in kitchen.items.all()]
 
 
@@ -43,21 +43,21 @@ def test_entry_of_an_empty_lease(lease):
 def test_entry_of_a_furnished_lease(lease):
     lease.lease_type = Lease.LeaseType.FURNISHED
     inventory = create_entry(lease, TODAY)
-    furniture = inventory.rooms.get(name=rules.FURNITURE_ROOM)  # ty: ignore[unresolved-attribute]
+    furniture = inventory.rooms.get(name=rules.FURNITURE_ROOM)  # ty: ignore[missing-attribute]
     assert furniture.items.count() == len(rules.MANDATORY_FURNITURE)
 
 
 @pytest.mark.django_db
 def test_exit_copies_the_entry(lease):
     exit_without_entry = create_exit(lease, TODAY)
-    assert exit_without_entry.rooms.count() == len(rules.DEFAULT_ROOMS)  # ty: ignore[unresolved-attribute]
+    assert exit_without_entry.rooms.count() == len(rules.DEFAULT_ROOMS)  # ty: ignore[missing-attribute]
     exit_without_entry.delete()
     entry = create_entry(lease, TODAY)
-    room = entry.rooms.first()  # ty: ignore[unresolved-attribute]
+    room = entry.rooms.first()  # ty: ignore[missing-attribute]
     room.items.update(condition=InventoryItem.Condition.GOOD)
     room.items.create(name="Placard encastré")
     exit_inventory = create_exit(lease, TODAY)
-    copied = exit_inventory.rooms.get(name=room.name)  # ty: ignore[unresolved-attribute]
+    copied = exit_inventory.rooms.get(name=room.name)  # ty: ignore[missing-attribute]
     assert "Placard encastré" in [item.name for item in copied.items.all()]
     assert set(copied.items.values_list("condition", flat=True)) == {""}
 
@@ -151,7 +151,7 @@ def test_rooms_and_items(user_client, lease):
     response = user_client.post(
         reverse("rental:inventory_add_room", args=[inventory.pk]), {"name": "Cave"}
     )
-    room = inventory.rooms.get(name="Cave")  # ty: ignore[unresolved-attribute]
+    room = inventory.rooms.get(name="Cave")  # ty: ignore[missing-attribute]
     room_url = reverse("rental:inventory_room", args=[inventory.pk, room.pk])
     assert response.url == room_url
     user_client.post(
@@ -195,7 +195,7 @@ def test_rooms_and_items(user_client, lease):
     user_client.post(
         reverse("rental:inventory_delete_room", args=[inventory.pk, room.pk])
     )
-    assert not inventory.rooms.filter(name="Cave").exists()  # ty: ignore[unresolved-attribute]
+    assert not inventory.rooms.filter(name="Cave").exists()  # ty: ignore[missing-attribute]
 
 
 @pytest.mark.django_db
@@ -229,7 +229,7 @@ def test_inventory_pdf_view(user_client, lease):
 @pytest.mark.django_db
 def test_names(lease, user_client):
     inventory = create_entry(lease, TODAY)
-    room = inventory.rooms.first()  # ty: ignore[unresolved-attribute]
+    room = inventory.rooms.first()  # ty: ignore[missing-attribute]
     item = room.items.first()
     assert str(inventory) == f"Entry — {lease}"
     assert (str(room), str(item)) == (room.name, item.name)
