@@ -300,7 +300,7 @@ class AddToPreviousValueMixin:
 
     def clean(self):
         form = cast(forms.ModelForm, self)
-        cleaned_data = super().clean() or {}  # ty: ignore[unresolved-attribute]
+        cleaned_data = super().clean() or {}  # ty: ignore[missing-attribute]
         if "amount_to_add" not in form.fields:
             return cleaned_data
         amount = cleaned_data.get("amount_to_add")

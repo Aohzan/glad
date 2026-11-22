@@ -46,7 +46,7 @@ def get_amortization_context(property_obj: Property) -> dict:
     assets_qs = AmortizationAsset.objects.filter(property=property_obj)
 
     try:
-        amortization_setup = property_obj.amortization_setup  # ty: ignore[unresolved-attribute]
+        amortization_setup = property_obj.amortization_setup  # ty: ignore[missing-attribute]
     except AmortizationSetup.DoesNotExist:
         amortization_setup = None
 
@@ -132,7 +132,7 @@ def initialize_amortization(request: HttpRequest, pk: int) -> HttpResponse:
             total_value = Money(base_amount + extra_amount, currency)
 
             try:
-                setup = property_obj.amortization_setup  # ty: ignore[unresolved-attribute]
+                setup = property_obj.amortization_setup  # ty: ignore[missing-attribute]
                 setup.total_value = total_value
                 setup.land_percentage = land_percentage
                 setup.save()

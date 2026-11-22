@@ -163,17 +163,17 @@ class AbstractAccount(BaseModel):
     @property
     def current_value(self):
         """Lazily compute the current value via ``get_value()``."""
-        return self.get_value()  # ty: ignore[unresolved-attribute]
+        return self.get_value()  # ty: ignore[missing-attribute]
 
     def __str__(self) -> str:
         """String representation shared by all concrete account models."""
         account_name: str = ""
-        if self.name and self.name in [self.account_type.name, self.account_type.code]:  # ty: ignore[unresolved-attribute]
+        if self.name and self.name in [self.account_type.name, self.account_type.code]:  # ty: ignore[missing-attribute]
             account_name = str(self.name)
         elif self.name:
-            account_name = f"{self.account_type} {self.name}"  # ty: ignore[unresolved-attribute]
+            account_name = f"{self.account_type} {self.name}"  # ty: ignore[missing-attribute]
         else:
-            account_name = str(self.account_type)  # ty: ignore[unresolved-attribute]
+            account_name = str(self.account_type)  # ty: ignore[missing-attribute]
         return account_name + self._account_name_suffix()
 
     def _account_name_suffix(self) -> str:
@@ -198,7 +198,7 @@ class AbstractAccount(BaseModel):
     @property
     def envelope_rule(self) -> EnvelopeRule:
         """Regulatory rules of the account envelope (ceiling, milestones…)."""
-        return get_rule(self.account_type.code)  # ty: ignore[unresolved-attribute]
+        return get_rule(self.account_type.code)  # ty: ignore[missing-attribute]
 
     @property
     def liquidity(self) -> str:
@@ -223,14 +223,14 @@ class AbstractAccount(BaseModel):
         rule = self.envelope_rule
         if rule.deposit_ceiling is None:
             return None
-        deposits = self.deposits  # ty: ignore[unresolved-attribute]
+        deposits = self.deposits  # ty: ignore[missing-attribute]
         if not rule.withdrawals_free_ceiling:
             deposits = deposits.filter(Q(amount__gt=0))
         total = deposits.aggregate(total=Sum("amount"))["total"] or 0
         return CeilingUsage(
             ceiling=rule.deposit_ceiling,
             contributed=min(self.opening_amount.amount, rule.deposit_ceiling) + total,
-            currency=self.currency,  # ty: ignore[unresolved-attribute]
+            currency=self.currency,  # ty: ignore[missing-attribute]
         )
 
     @property
@@ -248,13 +248,13 @@ class AbstractAccount(BaseModel):
         from moneyed import Money
 
         total_deposits_amount = (
-            self.deposits.aggregate(total=Sum("amount"))["total"] or 0  # ty: ignore[unresolved-attribute]
+            self.deposits.aggregate(total=Sum("amount"))["total"] or 0  # ty: ignore[missing-attribute]
         )
-        total_deposits = Money(total_deposits_amount, self.currency)  # ty: ignore[unresolved-attribute]
+        total_deposits = Money(total_deposits_amount, self.currency)  # ty: ignore[missing-attribute]
         current_value = self.current_value
         capital_gain = Money(
             current_value.amount - self.opening_amount.amount - total_deposits_amount,
-            self.currency,  # ty: ignore[unresolved-attribute]
+            self.currency,  # ty: ignore[missing-attribute]
         )
         return total_deposits, capital_gain
 
@@ -268,10 +268,10 @@ class AbstractAccount(BaseModel):
         from moneyed import Money
 
         x_days_ago = datetime.datetime.now() - datetime.timedelta(days=days)
-        current_value = self.get_value()  # ty: ignore[unresolved-attribute]
-        old_value = self.get_value(max_date=x_days_ago)  # ty: ignore[unresolved-attribute]
+        current_value = self.get_value()  # ty: ignore[missing-attribute]
+        old_value = self.get_value(max_date=x_days_ago)  # ty: ignore[missing-attribute]
 
-        deposits_sum = self.deposits.filter(  # ty: ignore[unresolved-attribute]
+        deposits_sum = self.deposits.filter(  # ty: ignore[missing-attribute]
             deposit_date__gte=x_days_ago.date(),
             deposit_date__lte=datetime.date.today(),
         ).aggregate(total=Sum("amount"))["total"]

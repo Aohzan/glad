@@ -215,7 +215,7 @@ class HouseholdMemberForm(forms.ModelForm):
         return member
 
     def _save_m2m(self):
-        super()._save_m2m()  # ty: ignore[unresolved-attribute]
+        super()._save_m2m()  # ty: ignore[missing-attribute]
         profile, _created = UserProfile.objects.get_or_create(user=self.instance)
         if self._created:
             profile.is_child = self.is_new_child

@@ -213,7 +213,7 @@ def _make_admin_request(admin_user):
         request.user = admin_user
         request.session = SessionStore()
         messages = FallbackStorage(request)
-        request._messages = messages  # ty: ignore[unresolved-attribute]
+        request._messages = messages  # ty: ignore[missing-attribute]
         return request
 
     return _build

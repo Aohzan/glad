@@ -119,7 +119,7 @@ reportUnknownArgumentType = false
 include = ["**/models.py", "**/models/**"]
 
 [tool.ty.overrides.rules]
-invalid-attribute-override = "ignore"
+incompatible-attribute-override = "ignore"
 
 [tool.ruff]
 extend-exclude = ["*/migrations/*"]
