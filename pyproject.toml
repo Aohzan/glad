@@ -45,7 +45,7 @@ dev = [
     "pytest-picked>=0.5.0",
     "ruff>=0.17.5",
     "ty>=0.0.104",
-    "types-python-dateutil>=2.9.0.20261104",
+    "types-python-dateutil>=2.9.0.20261116",
 ]
 
 [tool.semantic_release]
