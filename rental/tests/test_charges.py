@@ -75,10 +75,13 @@ def test_default_period():
     )
 
 
-def test_occupancy_ratio():
+def test_covered_share():
     lease = Lease(start_date=D(2025, 7, 1))
-    ratio = charges.occupancy_ratio(lease, D(2025, 1, 1), D(2025, 12, 31))
+    ratio = lease.covered_share(D(2025, 1, 1), D(2025, 12, 31))
     assert ratio == Decimal(184) / Decimal(365)
+    lease.end_date = D(2025, 7, 10)
+    assert lease.covered_share(D(2025, 7, 1), D(2025, 7, 31)) == Decimal(10) / 31
+    assert lease.covered_share(D(2025, 8, 1), D(2025, 8, 31)) == 0
 
 
 @pytest.mark.django_db
