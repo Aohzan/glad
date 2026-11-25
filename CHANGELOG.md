@@ -2,6 +2,90 @@
 
 <!-- version list -->
 
+## v1.14.0 (2026-11-25)
+
+### Bug Fixes
+
+- Neutralize spreadsheet formulas in the CSV exports
+  ([`3bd68ae`](https://github.com/Aohzan/glad/commit/3bd68aedb43770c902af7183f09da16b5fa7a2f3))
+
+- Read the client address from the connection, not forwarded headers
+  ([`5fb2e39`](https://github.com/Aohzan/glad/commit/5fb2e39248ae0bc8cedb1a53300432d41feae974))
+
+- **accounts**: Lock out password logins after repeated failures
+  ([`bfb008e`](https://github.com/Aohzan/glad/commit/bfb008e20c6f12daa316937c7cfcb315d6a348aa))
+
+- **notifications**: Refuse Apprise URLs that target the server itself
+  ([`af7bb1e`](https://github.com/Aohzan/glad/commit/af7bb1e358134ec8e81ab990ca1f87dc855c1e5b))
+
+- **property**: Escape the address in the map popup
+  ([`51c0c08`](https://github.com/Aohzan/glad/commit/51c0c08d76cd626f06963ba8554ee11abfec65e0))
+
+### Build System
+
+- **deps**: Bump @wernfried/daterangepicker from 5.10.1 to 5.10.2
+  ([#123](https://github.com/Aohzan/glad/pull/123),
+  [`53f6b20`](https://github.com/Aohzan/glad/commit/53f6b202b996fa23f3ba2a7d70efc19ce4e270ae))
+
+- **deps**: Bump @wernfried/daterangepicker from 5.5.1 to 5.10.1
+  ([`65fdc0d`](https://github.com/Aohzan/glad/commit/65fdc0da5612e1defcf54f2159d891c50c0c8433))
+
+- **deps**: Bump apexcharts from 8.8.1 to 8.8.2
+  ([`6a8a55c`](https://github.com/Aohzan/glad/commit/6a8a55c69e335b5f690a556451c920002379232a))
+
+- **deps**: Bump bootstrap from 5.3.8 to 5.3.9
+  ([`5226206`](https://github.com/Aohzan/glad/commit/5226206ab158bb471949cde1bce358d517682d19))
+
+- **deps**: Bump lucide-static from 1.70.0 to 1.73.0
+  ([`e714a82`](https://github.com/Aohzan/glad/commit/e714a823cc03a291abe3b430441927204fdb653c))
+
+- **deps**: Bump py-cov-action/python-coverage-comment-action
+  ([`6ee5bc1`](https://github.com/Aohzan/glad/commit/6ee5bc15f6210ce3848f9f9839bade723148df5f))
+
+- **deps**: Bump servestatic from 4.4.0 to 4.4.1
+  ([`7d685bd`](https://github.com/Aohzan/glad/commit/7d685bd028b148ef40a37f9d46287aa0f50eede3))
+
+- **deps**: Bump yfinance from 1.7.0 to 1.8.0
+  ([`4a90505`](https://github.com/Aohzan/glad/commit/4a905057699e40a207db79e478b833ebd8fb522c))
+
+- **deps**: Update psycopg[binary] requirement from >=3.3.6 to >=3.3.9
+  ([`8c411ca`](https://github.com/Aohzan/glad/commit/8c411ca44945fe9a86d19abe672431e8c727cf20))
+
+- **deps-dev**: Bump ruff from 0.17.4 to 0.17.5
+  ([`fa8e9ae`](https://github.com/Aohzan/glad/commit/fa8e9ae6c0a9b34ce9decd7615cab5ca80fad9de))
+
+- **deps-dev**: Bump ty from 0.0.96 to 0.0.104
+  ([`a135778`](https://github.com/Aohzan/glad/commit/a135778d7915c6e4095a2299984fb2c4d4d4b847))
+
+- **deps-dev**: Bump types-python-dateutil ([#124](https://github.com/Aohzan/glad/pull/124),
+  [`4986371`](https://github.com/Aohzan/glad/commit/4986371c1b41506d33a52d2909f2fc16643dc73c))
+
+- **deps-dev**: Use the rule names of ty 0.0.104
+  ([`2d53c51`](https://github.com/Aohzan/glad/commit/2d53c51eb6384a351b304eb16b770a49afc38c13))
+
+### Chores
+
+- **i18n**: Translate the security fixes
+  ([`da887c1`](https://github.com/Aohzan/glad/commit/da887c10d11be8aeec4a33adba115a00920530d5))
+
+### Continuous Integration
+
+- Merge Dependabot updates from the CI with RELEASE_TOKEN
+  ([#122](https://github.com/Aohzan/glad/pull/122),
+  [`500c5f5`](https://github.com/Aohzan/glad/commit/500c5f507d195d15b505b207c8fc39e6e025f3c6))
+
+- **codeql**: Pin init and analyze to v4.39.3
+  ([`3ca7962`](https://github.com/Aohzan/glad/commit/3ca7962f1428a27480b7e13a8f07a010f5664b97))
+
+- **dependabot**: Bump the codeql-action actions together
+  ([`219d292`](https://github.com/Aohzan/glad/commit/219d292a09ea529a631c502f11e77fa5b1397b2c))
+
+### Features
+
+- **settings**: Make the HSTS settings configurable
+  ([`c666f64`](https://github.com/Aohzan/glad/commit/c666f6419f48338ff48fba789f36d7e8ecf4a0f4))
+
+
 ## v1.13.2 (2026-11-21)
 
 ### Bug Fixes
