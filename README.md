@@ -144,7 +144,7 @@ When `APP_URL` uses `https`, the secure defaults below (SSL redirect, secure coo
 | `WEBAUTHN_ORIGIN`       | No          | `APP_URL`               | Override the WebAuthn origin (passkey authentication)                            |
 | `WEBAUTHN_RP_ID`        | No          | hostname of `APP_URL`   | Override the WebAuthn relying party ID                                           |
 | `SUB_PATH`              | No          | —                       | URL sub-path prefix if the app is served under a sub-path (e.g. `/glad`)         |
-| `UVICORN_OPTIONS`       | No          | —                       | Extra options for the ASGI server (e.g. `--proxy-headers --forwarded-allow-ips='*'`) |
+| `UVICORN_OPTIONS`       | No          | —                       | Extra options for the ASGI server (e.g. `--forwarded-allow-ips=172.18.0.0/16`, see below) |
 | `ENVIRONMENT`           | No          | `production`            | `development` or `production`, used for warnings only                            |
 | `DEBUG`                 | No          | `false`                 | Set to `true` for development only                                               |
 | `DB`                    | No          | SQLite                  | Set to `postgres` to use PostgreSQL                                              |
@@ -170,6 +170,15 @@ When `APP_URL` uses `https`, the secure defaults below (SSL redirect, secure coo
 | `MEDIA_ROOT`            | No          | `data/media`            | Folder of the uploaded documents                                                 |
 | `DOCUMENSO_URL`         | No          | —                       | URL of a Documenso instance, to sign the leases and inventories online           |
 | `DOCUMENSO_API_TOKEN`   | No          | —                       | API token of the Documenso instance                                              |
+
+### Reverse proxy and client address
+
+The client address shown in the login notifications and used by the
+brute-force lockout is the one uvicorn receives. Behind a reverse proxy, let
+uvicorn read the `X-Forwarded-For` header of the proxy only:
+`UVICORN_OPTIONS="--forwarded-allow-ips=<address or network of the proxy>"`.
+Do not use `'*'` when the container port is reachable without the proxy: any
+client could then pick the address the application sees.
 
 ### Database
 
