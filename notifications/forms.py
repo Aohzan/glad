@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 lazy import apprise
 
 from notifications.registry import NotificationType
+from notifications.services import targets_internal_host
 
 
 class ChannelForm(forms.Form):
@@ -23,8 +24,13 @@ class ChannelForm(forms.Form):
 
     def clean_url(self) -> str:
         url = self.cleaned_data["url"].strip()
-        if not apprise.Apprise().add(url):
+        sender = apprise.Apprise()
+        if not sender.add(url):
             raise ValidationError(_("This is not a valid Apprise URL."))
+        if targets_internal_host(sender):
+            raise ValidationError(
+                _("This URL targets the server itself: it is not allowed.")
+            )
         return url
 
 
