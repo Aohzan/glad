@@ -35,9 +35,9 @@ from rental.services.payments import (
     Period,
     arrears,
     create_rent_schedule,
-    first_due_date,
     has_schedule,
     lease_periods,
+    schedule_start,
     summarize,
 )
 from rental.services.receipts import receipt_for, receipt_pdf
@@ -234,7 +234,7 @@ def lease_payments(request: HttpRequest, pk: int) -> HttpResponse:
             "rows": [(period, receipts.get(period.start)) for period in periods],
             "arrears": arrears(periods),
             "has_schedule": has_schedule(lease),
-            "first_due_date": first_due_date(lease),
+            "schedule_start": schedule_start(lease),
             "checks_url": reverse("property:checks") + f"?property={lease.property.pk}",
         },
     )

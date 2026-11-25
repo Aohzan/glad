@@ -20,6 +20,7 @@ from rental.services.payments import (
     has_schedule,
     lease_periods,
     period_of_month,
+    schedule_start,
     summarize,
 )
 
@@ -40,6 +41,14 @@ def test_first_due_date():
     assert first_due_date(lease) == datetime.date(2026, 8, 5)
     lease.payment_day = 20
     assert first_due_date(lease) == datetime.date(2026, 7, 20)
+
+
+def test_schedule_start():
+    """The schedule starts in the start month, even before the lease starts."""
+    lease = Lease(start_date=datetime.date(2026, 7, 15), payment_day=5)
+    assert schedule_start(lease) == datetime.date(2026, 7, 5)
+    lease.payment_day = 20
+    assert schedule_start(lease) == datetime.date(2026, 7, 20)
 
 
 @pytest.mark.django_db
@@ -231,3 +240,28 @@ def test_last_month_is_prorated(lease):
     )
     assert april is not None
     assert (april.rent, april.charges) == (Decimal(400), Decimal(25))
+
+
+@pytest.fixture
+def mid_month_lease(lease):
+    """A lease starting on 15 July, after its payment day."""
+    lease.start_date = datetime.date(2026, 7, 15)
+    lease.payment_day = 5
+    lease.save()
+    return lease, *create_rent_schedule(lease)
+
+
+@pytest.mark.django_db
+def test_first_rent_due_on_moving_in(mid_month_lease):
+    """A lease starting after its payment day expects a prorated first rent."""
+    lease, rent, _charges = mid_month_lease
+    assert rent.entry_date == datetime.date(2026, 7, 5)
+
+    july = period_of_month(
+        lease_periods(lease, datetime.date(2026, 7, 10)), datetime.date(2026, 7, 1)
+    )
+    assert july is not None
+    # 17 of the 31 days of July, due on moving in.
+    assert (july.rent, july.charges) == (Decimal("438.71"), Decimal("27.42"))
+    assert july.due_date == datetime.date(2026, 7, 15)
+    assert july.status == UPCOMING
