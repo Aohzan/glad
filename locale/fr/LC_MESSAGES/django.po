@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 22:25+0100\n"
+"POT-Creation-Date: 2026-11-25 22:44+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -4164,54 +4164,54 @@ msgstr ""
 "La catégorie '%(cat)s' n'est pas valide pour une écriture DÉPENSE. Utiliser "
 "une catégorie de dépense ou définir flow_type sur REVENU."
 
-#: property/models/ledger.py:556
+#: property/models/ledger.py:560
 msgid "Parent entry"
 msgstr "Écriture parente"
 
-#: property/models/ledger.py:558
+#: property/models/ledger.py:562
 msgid "Occurrence date"
 msgstr "Date d'occurrence"
 
-#: property/models/ledger.py:559
+#: property/models/ledger.py:563
 msgid "Is deleted"
 msgstr "Est supprimé"
 
-#: property/models/ledger.py:565
+#: property/models/ledger.py:569
 msgid "Amount override"
 msgstr "Montant personnalisé"
 
-#: property/models/ledger.py:571
+#: property/models/ledger.py:575
 msgid "Description override"
 msgstr "Description personnalisée"
 
-#: property/models/ledger.py:576
+#: property/models/ledger.py:580
 msgid "Notes override"
 msgstr "Notes personnalisées"
 
-#: property/models/ledger.py:580
+#: property/models/ledger.py:584
 msgid "Is checked"
 msgstr "Pointée"
 
-#: property/models/ledger.py:581
+#: property/models/ledger.py:585
 msgid "The planned transfer has been verified on the bank account."
 msgstr "Le virement prévu a été vérifié sur le compte bancaire."
 
-#: property/models/ledger.py:586
+#: property/models/ledger.py:590
 #: templates/property/detail_panel_cashflow.html:259
 #: templates/property/occurrence_checks.html:64
 #: templates/property/occurrence_checks.html:98
 msgid "Actual date"
 msgstr "Date réelle"
 
-#: property/models/ledger.py:587
+#: property/models/ledger.py:591
 msgid "Actual transfer date, when it differs from the planned date."
 msgstr "Date réelle du virement, lorsqu'elle diffère de la date prévue."
 
-#: property/models/ledger.py:591
+#: property/models/ledger.py:595
 msgid "ledger entry exception"
 msgstr "exception d'écriture comptable"
 
-#: property/models/ledger.py:592
+#: property/models/ledger.py:596
 msgid "ledger entry exceptions"
 msgstr "exceptions d'écritures comptables"
 
@@ -4599,11 +4599,11 @@ msgstr "Date limite de la CFE (MM-JJ)"
 msgid "Loan principal repayment"
 msgstr "Remboursement du capital"
 
-#: property/services/checks.py:190
+#: property/services/checks.py:191
 msgid "The actual date cannot be in the future."
 msgstr "La date réelle ne peut pas être dans le futur."
 
-#: property/services/checks.py:192 property/views/check_views.py:61
+#: property/services/checks.py:193 property/views/check_views.py:61
 msgid "The actual amount must be positive."
 msgstr "Le montant réel doit être positif."
 
@@ -5893,7 +5893,7 @@ msgstr "Eau froide"
 msgid "Hot water"
 msgstr "Eau chaude"
 
-#: rental/services/charges.py:135
+#: rental/services/charges.py:145
 #, python-format
 msgid "Charges reconciliation %(start)s – %(end)s"
 msgstr "Régularisation des charges du %(start)s au %(end)s"

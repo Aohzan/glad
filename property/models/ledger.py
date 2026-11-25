@@ -516,6 +516,15 @@ class PropertyLedgerEntry(BaseModel):
             result.append(updated)
         return result
 
+    def is_lease_rent(self) -> bool:
+        """True for the recurring rent or charges a lease collects."""
+        return (
+            self.lease_id is not None
+            and self.recurrence_type != self.NONE
+            and self.flow_type == self.FlowType.INCOME
+            and self.management_category in LEASE_RENT_CATEGORIES
+        )
+
     def planned_amount(self, occurrence_date: datetime.date) -> Money:
         """Amount planned for the occurrence of the entry on *occurrence_date*.
 
@@ -523,12 +532,7 @@ class PropertyLedgerEntry(BaseModel):
         month of the occurrence: a period the lease starts or ends in expects
         only the days it covers.
         """
-        if (
-            self.lease_id is None
-            or self.recurrence_type == self.NONE
-            or self.flow_type != self.FlowType.INCOME
-            or self.management_category not in LEASE_RENT_CATEGORIES
-        ):
+        if not self.is_lease_rent():
             return self.amount
         prorated = self.lease.prorate(self.amount.amount, occurrence_date)
         return Money(prorated, self.amount.currency)

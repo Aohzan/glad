@@ -223,26 +223,21 @@ def close_lease(lease: Lease, end_date: datetime.date) -> int:
     lease.status = Lease.Status.ENDED
     lease.end_date = end_date
     lease.save(update_fields=["status", "end_date", "updated_at"])
-    series = (
-        PropertyLedgerEntry.objects.filter(lease=lease)
-        .exclude(recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE)
-        .filter(
-            Q(recurrence_end_date__isnull=True) | Q(recurrence_end_date__gte=end_date)
-        )
+    series = PropertyLedgerEntry.objects.filter(lease=lease).exclude(
+        recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE
     )
     rent = Q(
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
         management_category__in=LEASE_RENT_CATEGORIES,
     )
-    rent_end = lease.rent_schedule_end()
-    ended = (
-        series.filter(rent)
-        .exclude(recurrence_end_date=rent_end)
-        .update(recurrence_end_date=rent_end)
+    # Series are only shortened: one ended earlier (split by a rent revision)
+    # is followed by another that takes over.
+    return sum(
+        series.filter(kind)
+        .filter(Q(recurrence_end_date__isnull=True) | Q(recurrence_end_date__gt=last))
+        .update(recurrence_end_date=last)
+        for kind, last in ((rent, lease.rent_schedule_end()), (~rent, end_date))
     )
-    return ended + series.exclude(rent).filter(
-        Q(recurrence_end_date__isnull=True) | Q(recurrence_end_date__gt=end_date)
-    ).update(recurrence_end_date=end_date)
 
 
 def _date(day: datetime.date) -> str:

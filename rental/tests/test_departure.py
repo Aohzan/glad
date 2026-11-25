@@ -335,3 +335,14 @@ def test_no_landlord_deadlines_under_a_mandate(lease):
         start_date=datetime.date(2020, 1, 1),
     )
     assert deadlines_of(kinds, datetime.date.today()) == []
+
+
+@pytest.mark.django_db
+def test_close_keeps_a_series_ended_earlier(lease, rent_schedule):
+    """A series split before the end is not extended over the next one."""
+    rent, _charges = rent_schedule
+    rent.recurrence_end_date = D(2026, 12, 4)
+    rent.save()
+    departure.close_lease(lease, D(2026, 12, 3))
+    rent.refresh_from_db()
+    assert rent.recurrence_end_date == D(2026, 12, 4)

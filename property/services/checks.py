@@ -35,13 +35,14 @@ class PendingOccurrence:
     @property
     def due_date(self) -> datetime.date:
         """Planned date, within the lease for a rent (see ``Lease.rent_due_date``)."""
-        lease = self.entry.lease
-        return lease.rent_due_date(self.planned_date) if lease else self.planned_date
+        if self.entry.is_lease_rent():
+            return self.entry.lease.rent_due_date(self.planned_date)
+        return self.planned_date
 
     @property
     def is_upcoming(self) -> bool:
-        """Scheduled after today: only checkable when paid early."""
-        return self.planned_date > datetime.date.today()
+        """Not due yet: only checked when paid early."""
+        return self.due_date > datetime.date.today()
 
     @property
     def key(self) -> str:

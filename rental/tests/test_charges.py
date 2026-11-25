@@ -332,3 +332,20 @@ def test_edge_cases(user_client, year_lease):
     provisions.recurrence_end_date = D(2025, 6, 30)
     provisions.save()
     assert charges.update_provision(lease, Decimal(70), D(2026, 1, 1)) == 0
+
+
+@pytest.mark.django_db
+def test_provisions_scheduled_outside_the_lease(lease):
+    """The first and last provisions, paid on the 12th, count in full."""
+    from rental.services.payments import create_rent_schedule
+
+    lease.start_date = D(2025, 7, 15)
+    lease.end_date = D(2025, 12, 10)
+    lease.payment_day = 12
+    lease.save()
+    _rent, provisions = create_rent_schedule(lease)
+    for month in range(7, 13):
+        check_occurrence(provisions, D(2025, month, 12))
+    reconciliation = charges.create(lease, lease.start_date, lease.end_date)
+    # 17/31 of July, August to November, 10/31 of December.
+    assert reconciliation.provisions == Decimal("27.42") + 200 + Decimal("16.13")
