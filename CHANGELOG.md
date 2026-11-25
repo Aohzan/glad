@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v1.15.1 (2026-11-25)
+
+### Bug Fixes
+
+- **rental**: Expect the rent of a last month ending before the payment day
+  ([`41ae03c`](https://github.com/Aohzan/glad/commit/41ae03ca2b80918d27a76b6ae053786f4be0864d))
+
+- **rental**: Keep split rent series and edge provisions when closing a lease
+  ([`415432c`](https://github.com/Aohzan/glad/commit/415432cbb5d7bede61df1f33d5e103ebe49e4003))
+
+
 ## v1.15.0 (2026-11-25)
 
 
