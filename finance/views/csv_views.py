@@ -14,7 +14,11 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from moneyed import Money
 
-from base.csv_utils import parse_datetime
+from base.csv_utils import (
+    parse_datetime,
+    spreadsheet_safe,
+    strip_spreadsheet_guard,
+)
 from base.services.ownership import HolderResolver
 from finance.forms import CSVAccountMappingForm, CSVExportForm, CSVImportForm
 from finance.models.base import same_day_values, set_day_value
@@ -90,7 +94,7 @@ def csv_export(request):
                         ).order_by("-value_date"):
                             writer.writerow(
                                 [
-                                    str(account),
+                                    spreadsheet_safe(str(account)),
                                     str(value.value),
                                     value.value_date.strftime("%Y-%m-%d %H:%M:%S"),
                                 ]
@@ -105,7 +109,7 @@ def csv_export(request):
                         ).order_by("-value_date"):
                             writer.writerow(
                                 [
-                                    str(account),
+                                    spreadsheet_safe(str(account)),
                                     str(cash.value),
                                     cash.value_date.strftime("%Y-%m-%d %H:%M:%S"),
                                 ]
@@ -133,8 +137,8 @@ def csv_export(request):
                             ).order_by("-valuation_date"):
                                 writer.writerow(
                                     [
-                                        str(account),
-                                        holding.short_name,
+                                        spreadsheet_safe(str(account)),
+                                        spreadsheet_safe(holding.short_name),
                                         str(history.value),
                                         history.quantity,
                                         history.valuation_date.strftime(
@@ -213,7 +217,8 @@ def csv_import(request):
                 # Use appropriate header names
                 account_header = "account" if has_required else "account_name"
                 unique_account_names = {
-                    row[header.index(account_header)] for row in csv_data_list
+                    strip_spreadsheet_guard(row[header.index(account_header)])
+                    for row in csv_data_list
                 }
 
             elif csv_type == "investment_holding":
@@ -232,7 +237,9 @@ def csv_import(request):
                     )
                     return render(request, "finance/csv_import.html", {"form": form})
                 unique_account_names = {
-                    row[header.index("account")] + " - " + row[header.index("holding")]
+                    strip_spreadsheet_guard(row[header.index("account")])
+                    + " - "
+                    + strip_spreadsheet_guard(row[header.index("holding")])
                     for row in csv_data_list
                 }
                 app_account_choices = [
@@ -357,7 +364,9 @@ def csv_import_confirm(request):
                         date_col = "date"
 
                         # Get the account name from the CSV row
-                        csv_account_name = data[csv_header.index(account_col)]
+                        csv_account_name = strip_spreadsheet_guard(
+                            data[csv_header.index(account_col)]
+                        )
                         app_account_id = account_mapping.get(csv_account_name)
                         # get value
                         new_value = data[csv_header.index(value_col)]
@@ -402,8 +411,12 @@ def csv_import_confirm(request):
 
                     elif csv_type == "investment_holding":
                         # For holdings, the mapping key is "account - holding"
-                        csv_account_name = data[csv_header.index("account")]
-                        holding_name = data[csv_header.index("holding")]
+                        csv_account_name = strip_spreadsheet_guard(
+                            data[csv_header.index("account")]
+                        )
+                        holding_name = strip_spreadsheet_guard(
+                            data[csv_header.index("holding")]
+                        )
                         mapping_key = f"{csv_account_name} - {holding_name}"
                         holding_id = account_mapping.get(mapping_key)
 
@@ -543,8 +556,8 @@ def csv_export_synthesis(request):
         writer.writerow(
             [
                 str(account.account_type),
-                holders.label(account),
-                account.institution or "",
+                spreadsheet_safe(holders.label(account)),
+                spreadsheet_safe(account.institution or ""),
                 str(value.amount),
             ]
         )
@@ -557,8 +570,8 @@ def csv_export_synthesis(request):
         writer.writerow(
             [
                 str(account.account_type),
-                holders.label(account),
-                account.institution or "",
+                spreadsheet_safe(holders.label(account)),
+                spreadsheet_safe(account.institution or ""),
                 str(value.amount),
             ]
         )

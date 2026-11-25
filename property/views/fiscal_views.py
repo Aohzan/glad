@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from base.csv_utils import spreadsheet_safe
 from property.forms import (
     AmortizationAssetForm,
     AmortizationInitForm,
@@ -418,11 +419,11 @@ def report_view(request: HttpRequest) -> HttpResponse:
                 writer.writerow(
                     [
                         entry.entry_date.isoformat(),
-                        entry.property.name,
+                        spreadsheet_safe(entry.property.name),
                         entry.flow_type,
                         entry.management_category,
                         entry.amount.amount,
-                        entry.description or "",
+                        spreadsheet_safe(entry.description or ""),
                     ]
                 )
             return response
