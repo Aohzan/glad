@@ -145,6 +145,8 @@ When `APP_URL` uses `https`, the secure defaults below (SSL redirect, secure coo
 | `WEBAUTHN_RP_ID`        | No          | hostname of `APP_URL`   | Override the WebAuthn relying party ID                                           |
 | `SUB_PATH`              | No          | —                       | URL sub-path prefix if the app is served under a sub-path (e.g. `/glad`)         |
 | `UVICORN_OPTIONS`       | No          | —                       | Extra options for the ASGI server (e.g. `--forwarded-allow-ips=172.18.0.0/16`, see below) |
+| `AXES_FAILURE_LIMIT`    | No          | `10`                    | Failed password logins before a username or an address is locked out            |
+| `AXES_COOLOFF_MINUTES`  | No          | `15`                    | Duration of the lockout, in minutes (the passkey login stays available)          |
 | `ENVIRONMENT`           | No          | `production`            | `development` or `production`, used for warnings only                            |
 | `DEBUG`                 | No          | `false`                 | Set to `true` for development only                                               |
 | `DB`                    | No          | SQLite                  | Set to `postgres` to use PostgreSQL                                              |

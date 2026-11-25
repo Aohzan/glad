@@ -427,6 +427,19 @@ wheels = [
 ]
 
 [[package]]
+name = "django-axes"
+version = "9.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "asgiref" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/be/99/5c830ecc3933a1b8ce2edbd9570dee7399a8c0fd001e496733a7bddf3ac9/django_axes-9.0.0.tar.gz", hash = "sha256:863aef4563673c1e77bb3d21be1ba1d2612b0cf9d5365c27c9af9ae1c614c3c0", size = 265598, upload-time = "2026-10-30T20:54:52.763Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2d/a0/da4e8cb4c43c8aa5266a5fcde1394fe68b2e86b43fc2a0df2b282b18962b/django_axes-9.0.0-py3-none-any.whl", hash = "sha256:fb7b0322a09d8f090d5a980690cb5468dc1903d3d950f1968c4e067348d58059", size = 79432, upload-time = "2026-10-30T20:54:51.056Z" },
+]
+
+[[package]]
 name = "django-money"
 version = "3.6.2"
 source = { registry = "https://pypi.org/simple" }
@@ -586,6 +599,7 @@ dependencies = [
     { name = "cryptography" },
     { name = "dateparser" },
     { name = "django" },
+    { name = "django-axes" },
     { name = "django-money" },
     { name = "django-tasks-db" },
     { name = "fpdf2" },
@@ -627,6 +641,7 @@ requires-dist = [
     { name = "cryptography", specifier = ">=50.0.2" },
     { name = "dateparser", specifier = ">=1.5.0" },
     { name = "django", specifier = ">=6.1.3" },
+    { name = "django-axes", specifier = ">=9.0.0" },
     { name = "django-money", specifier = ">=3.6.2" },
     { name = "django-tasks-db", specifier = ">=0.13.0" },
     { name = "fpdf2", specifier = ">=2.9.0" },

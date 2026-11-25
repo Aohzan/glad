@@ -10,10 +10,11 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_not_required, login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db.models import Count, Q
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -73,6 +74,27 @@ class LoginView(auth_views.LoginView):
         response = super().form_valid(form)
         response.delete_cookie(LOGIN_METHOD_COOKIE, samesite="Lax")
         return response
+
+
+#: Delay before another password reset email goes to the same address.
+PASSWORD_RESET_COOLDOWN = 15 * 60  # seconds
+
+
+class PasswordResetView(auth_views.PasswordResetView):
+    """Password reset sending at most one email per address and cooldown.
+
+    A repeated request answers as usual without sending anything, so that the
+    form can neither flood a mailbox nor tell which addresses are known.
+    """
+
+    def form_valid(self, form):
+        email = form.cleaned_data["email"].strip().lower()
+        if not cache.add(
+            f"password-reset:{email}", True, timeout=PASSWORD_RESET_COOLDOWN
+        ):
+            _LOGGER.warning("Password reset throttled for an address")
+            return HttpResponseRedirect(self.get_success_url())
+        return super().form_valid(form)
 
 
 class LogoutConfirmView(TemplateView):
@@ -284,7 +306,9 @@ def passkey_auth_complete(request):
         stored.save(update_fields=["sign_count"])
 
         request.session.pop("passkey_auth_challenge", None)
-        login(request, stored.user)
+        # The passkey replaces the password check: no backend authenticated
+        # the user, so name the one that loads them from the session.
+        login(request, stored.user, backend="accounts.backends.HouseholdModelBackend")
         response = JsonResponse({"success": True})
         response.set_cookie(
             LOGIN_METHOD_COOKIE,

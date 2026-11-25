@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import datetime
 import logging
 import os
 from pathlib import Path
@@ -117,6 +118,7 @@ INSTALLED_APPS = [
     "djmoney",
     "servestatic",
     "django_tasks_db",
+    "axes",
 ]
 
 MIDDLEWARE = [
@@ -132,6 +134,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Last, as its documentation asks: answers the locked out login attempts.
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "glad.urls"
@@ -208,7 +212,28 @@ else:
         }
     }
 
-AUTHENTICATION_BACKENDS = ["accounts.backends.HouseholdModelBackend"]
+AUTHENTICATION_BACKENDS = [
+    # First, to refuse the attempts of a locked out user or address.
+    "axes.backends.AxesStandaloneBackend",
+    "accounts.backends.HouseholdModelBackend",
+]
+
+# Brute-force protection of the password logins (login page and admin): after
+# AXES_FAILURE_LIMIT failures, the username, and the client address, are locked
+# out for AXES_COOLOFF_TIME. The passkey login does not check a password and
+# stays available.
+# https://django-axes.readthedocs.io/en/latest/4_configuration.html
+AXES_FAILURE_LIMIT = int(os.getenv("AXES_FAILURE_LIMIT", "10"))
+AXES_COOLOFF_TIME = datetime.timedelta(
+    minutes=int(os.getenv("AXES_COOLOFF_MINUTES", "15"))
+)
+AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
+AXES_RESET_ON_SUCCESS = True
+AXES_CLIENT_IP_CALLABLE = "base.services.network.request_client_ip"
+AXES_LOCKOUT_TEMPLATE = "registration/locked_out.html"
+# Successful logins are already notified (accounts.signals): only the failures
+# are recorded.
+AXES_DISABLE_ACCESS_LOG = True
 
 AUTH_PASSWORD_VALIDATORS = [
     {

@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-from accounts.views import LoginView
+from accounts.views import LoginView, PasswordResetView
 
 handler400 = "base.views.error_400"
 handler403 = "base.views.error_403"
@@ -21,7 +21,7 @@ urlpatterns = [
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path(
         "accounts/password_reset/",
-        auth_views.PasswordResetView.as_view(),
+        PasswordResetView.as_view(),
         name="password_reset",
     ),
     path(
