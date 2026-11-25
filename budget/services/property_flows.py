@@ -96,7 +96,9 @@ def property_year_flows(
         .prefetch_related(
             Prefetch(
                 "ledger_entries",
-                queryset=PropertyLedgerEntry.objects.prefetch_related("exceptions"),
+                queryset=PropertyLedgerEntry.objects.select_related(
+                    "lease"
+                ).prefetch_related("exceptions"),
             ),
             "loans__amortization_entries",
         )

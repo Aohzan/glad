@@ -26,6 +26,11 @@ def month_start(value: datetime.date) -> datetime.date:
     return value.replace(day=1)
 
 
+def day_count(start: datetime.date, end: datetime.date) -> int:
+    """Number of days from *start* to *end*, both included (0 when reversed)."""
+    return max((end - start).days + 1, 0)
+
+
 def month_end(value: datetime.date) -> datetime.date:
     """Return the last day of the month for a date."""
     last_day = calendar.monthrange(value.year, value.month)[1]

@@ -2,7 +2,7 @@
 
 import builtins
 import datetime
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -12,6 +12,7 @@ from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 
 from base.models import BaseModel
+from property.utils.date_utils import add_months_safe, day_count, month_start
 
 _property = builtins.property
 
@@ -36,6 +37,9 @@ class Lease(BaseModel):
     class Periodicity(models.TextChoices):
         MONTHLY = "monthly", _("Monthly")
         QUARTERLY = "quarterly", _("Quarterly")
+
+    #: Months covered by one rent payment of each periodicity.
+    PERIOD_MONTHS = {Periodicity.MONTHLY: 1, Periodicity.QUARTERLY: 3}
 
     class ChargesMode(models.TextChoices):
         PROVISION = "provision", _("Provision, reconciled every year")
@@ -204,6 +208,32 @@ class Lease(BaseModel):
         if self.start_date > date:
             return False
         return not (self.end_date and self.end_date < date)
+
+    @_property
+    def period_months(self) -> int:
+        """Months covered by one rent payment."""
+        return self.PERIOD_MONTHS.get(self.periodicity, 1)
+
+    def rent_period(self, day: datetime.date) -> tuple[datetime.date, datetime.date]:
+        """First and last day of the rent period starting in the month of *day*."""
+        start = month_start(day)
+        end = add_months_safe(start, self.period_months) - datetime.timedelta(days=1)
+        return start, end
+
+    def covered_share(self, start: datetime.date, end: datetime.date) -> Decimal:
+        """Share of the calendar days from *start* to *end* the lease covers."""
+        covered = day_count(max(start, self.start_date), min(end, self.end_date or end))
+        return Decimal(covered) / Decimal(day_count(start, end))
+
+    def prorate(self, amount: Decimal, day: datetime.date) -> Decimal:
+        """*amount* due for the rent period of *day*, for the days the lease covers.
+
+        A period the lease starts or ends in expects its covered days only.
+        """
+        share = self.covered_share(*self.rent_period(day))
+        if share == 1:
+            return amount
+        return (amount * share).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
     def total_rent(self) -> Money:
         """Return rent + charges as a single Money amount."""

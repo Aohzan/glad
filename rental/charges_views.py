@@ -82,8 +82,8 @@ def reconciliation_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "balance_abs": abs(reconciliation.balance),
             "editable": reconciliation.status == ChargesReconciliation.Status.DRAFT,
             "empty_rows": range(EMPTY_ADJUSTMENTS),
-            "ratio": charges.occupancy_ratio(
-                lease, reconciliation.period_start, reconciliation.period_end
+            "ratio": lease.covered_share(
+                reconciliation.period_start, reconciliation.period_end
             ),
             "suggested": charges.suggested_provision(reconciliation),
             "effective_date": max(first_due_date(lease), today.replace(day=1)),

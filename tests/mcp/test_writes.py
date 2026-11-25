@@ -25,7 +25,12 @@ from finance.models.saving_account import (
 from mcp_server.models import McpCallLog
 from mcp_server.server import current_key, mcp
 from mcp_server.tests.conftest import ToolFailed, call_tool
-from property.models import Property, PropertyLedgerEntry, PropertyValue
+from property.models import (
+    Property,
+    PropertyLedgerEntry,
+    PropertyLedgerEntryException,
+    PropertyValue,
+)
 from property.services.checks import pending_occurrences
 
 TODAY = datetime.date.today()
@@ -299,6 +304,23 @@ def test_check_ledger_occurrence(write_key):
     assert result["amount"]["amount"] == "10"
     remaining = {(p.entry.pk, p.planned_date) for p in pending_occurrences(up_to=TODAY)}
     assert (pending.entry.pk, pending.planned_date) not in remaining
+
+
+@pytest.mark.django_db
+def test_check_ledger_occurrence_keeps_the_amount_set(write_key):
+    pending = pending_occurrences(up_to=TODAY)[0]
+    PropertyLedgerEntryException.objects.update_or_create(
+        parent_entry=pending.entry,
+        occurrence_date=pending.planned_date,
+        defaults={"amount_override": Money(Decimal(30), pending.entry.amount.currency)},
+    )
+    result = call_tool(
+        write_key,
+        "check_ledger_occurrence",
+        entry_id=pending.entry.pk,
+        occurrence_date=pending.planned_date.isoformat(),
+    )
+    assert Decimal(result["amount"]["amount"]) == 30
 
 
 @pytest.mark.django_db

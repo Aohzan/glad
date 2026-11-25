@@ -33,6 +33,12 @@ class PendingOccurrence:
     planned_amount: Money
 
     @property
+    def due_date(self) -> datetime.date:
+        """Planned date, or the lease start for a first rent due on moving in."""
+        lease = self.entry.lease
+        return max(self.planned_date, lease.start_date) if lease else self.planned_date
+
+    @property
     def is_upcoming(self) -> bool:
         """Scheduled after today: only checkable when paid early."""
         return self.planned_date > datetime.date.today()
@@ -117,10 +123,10 @@ def pending_checks_summary() -> dict:
     """
     today = datetime.date.today()
     pending = pending_occurrences(up_to=today)
-    overdue = [p for p in pending if (today - p.planned_date).days > WARNING_AFTER_DAYS]
+    overdue = [p for p in pending if (today - p.due_date).days > WARNING_AFTER_DAYS]
     if not overdue:
         return {"count": 0, "oldest_days": 0, "level": None}
-    oldest_days = (today - overdue[0].planned_date).days
+    oldest_days = max((today - p.due_date).days for p in overdue)
     level = "danger" if oldest_days > DANGER_AFTER_DAYS else "warning"
     return {"count": len(overdue), "oldest_days": oldest_days, "level": level}
 
@@ -197,7 +203,8 @@ def check_occurrence(
 
     The actual date is only stored when it differs from the scheduled date, and
     the amount override only when the amount differs from the entry amount.
-    An existing amount override is kept when no amount is given.
+    Without an amount, an existing override is kept, otherwise the planned
+    amount (a prorated rent) is recorded.
     """
     exc, _created = PropertyLedgerEntryException.objects.get_or_create(
         parent_entry=entry, occurrence_date=occurrence_date
@@ -207,6 +214,8 @@ def check_occurrence(
     exc.actual_date = (
         actual_date if actual_date and actual_date != occurrence_date else None
     )
+    if actual_amount is None and exc.amount_override is None:
+        actual_amount = entry.planned_amount(occurrence_date)
     if actual_amount is not None:
         exc.amount_override = actual_amount if actual_amount != entry.amount else None
     exc.save()
@@ -243,7 +252,8 @@ def delete_occurrence(
 def check_all_up_to(up_to: datetime.date, property_obj: Property | None = None) -> int:
     """Mark every pending occurrence scheduled up to ``up_to`` as checked.
 
-    Existing exceptions keep their overrides; returns the number of occurrences checked.
+    Each is checked for its planned amount (a prorated rent included), which an
+    existing override already is; returns the number of occurrences checked.
     """
     pending = pending_occurrences(property_obj=property_obj, up_to=up_to)
     if not pending:
@@ -255,11 +265,14 @@ def check_all_up_to(up_to: datetime.date, property_obj: Property | None = None) 
                     parent_entry=p.entry,
                     occurrence_date=p.planned_date,
                     is_checked=True,
+                    amount_override=(
+                        p.planned_amount if p.planned_amount != p.entry.amount else None
+                    ),
                 )
                 for p in pending
             ],
             update_conflicts=True,
             unique_fields=["parent_entry", "occurrence_date"],
-            update_fields=["is_checked"],
+            update_fields=["is_checked", "amount_override"],
         )
     return len(pending)

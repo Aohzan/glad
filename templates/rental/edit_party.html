@@ -13,10 +13,10 @@
       {% include "_form_non_field_errors.html" %}
       <div class="row g-3">
         {% for field in form %}
-        <div class="{% if field.name == 'address' %}col-12{% else %}col-md-6{% endif %}">
+        <div class="{% if field.name == 'address' %}col-12{% else %}col-md-6{% endif %}" id="field-{{ field.name }}">
           <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
             {{ field.label }}
-            {% if not field.field.required and field.name != 'guarantee_type' %}<span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>{% endif %}
+            {% if not field.field.required and field.name != 'guarantee_type' and field.name != 'last_name' %}<span class="text-body-secondary fw-normal small ms-1">({% translate "optional" %})</span>{% endif %}
           </label>
           {{ field }}
           {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
@@ -31,4 +31,23 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  // The guarantee is the one of a guarantor: hidden for a tenant, unless an
+  // error has to be shown on it.
+  const role = document.getElementById('{{ form.role.id_for_label }}');
+  const guarantee = document.getElementById('field-guarantee_type');
+  if (!role || !guarantee || guarantee.querySelector('.invalid-feedback')) return;
+  const select = guarantee.querySelector('select');
+  const toggle = () => {
+    guarantee.hidden = role.value === 'tenant';
+    if (guarantee.hidden && select) select.value = '';
+  };
+  role.addEventListener('change', toggle);
+  toggle();
+})();
+</script>
 {% endblock %}

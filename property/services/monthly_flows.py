@@ -50,9 +50,13 @@ def monthly_flows(
     end_month = month_start(today)
     start_month = month_start(datetime.date(today.year - 1, today.month, 1))
 
-    entries_qs = without_loan_entries(
-        PropertyLedgerEntry.objects.filter(property=property_obj), property_obj
-    ).prefetch_related("exceptions")
+    entries_qs = (
+        without_loan_entries(
+            PropertyLedgerEntry.objects.filter(property=property_obj), property_obj
+        )
+        .select_related("lease")
+        .prefetch_related("exceptions")
+    )
     revenue_by_month = occurrences_by_month(
         entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME), end_month
     )

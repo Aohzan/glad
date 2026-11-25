@@ -3,6 +3,7 @@
 from property.utils.date_utils import (
     add_months_safe,
     add_years_safe,
+    day_count,
     days360,
     iter_month_starts,
     month_end,
@@ -35,6 +36,7 @@ __all__ = [
     # loan math
     "calculate_monthly_payment",
     "count_installments",
+    "day_count",
     "days360",
     "due_date",
     # recurrence

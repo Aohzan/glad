@@ -4,6 +4,12 @@ The rent and charges are recurring ledger entries linked to the lease: an
 occurrence is paid once it is checked (``property.services.checks``), for the
 amount actually received. A one-off rent or charges entry linked to the lease
 (a catch-up payment, a prorated first rent) counts as paid in its month.
+
+A period the lease covers only in part (it starts or ends during it) expects
+the rent and charges prorated to the calendar days covered, as the charges
+reconciliation does. The schedule starts on the payment day of the month the
+lease starts in: when the lease starts after that day, this first prorated rent
+is due on moving in.
 """
 
 import datetime
@@ -16,13 +22,11 @@ from django.db import transaction
 from django.utils.translation import gettext as _
 
 from property.models import Lease, PropertyLedgerEntry
-from property.models.ledger import ManagementCategory
+from property.models.ledger import LEASE_RENT_CATEGORIES, ManagementCategory
 
 RENT = ManagementCategory.RENT_COLLECTED.value
 CHARGES = ManagementCategory.CHARGES_COLLECTED.value
 
-#: Months covered by one payment of each lease periodicity.
-PERIOD_MONTHS = {Lease.Periodicity.MONTHLY: 1, Lease.Periodicity.QUARTERLY: 3}
 _RECURRENCE = {
     Lease.Periodicity.MONTHLY: PropertyLedgerEntry.RecurrenceType.MONTHLY,
     Lease.Periodicity.QUARTERLY: PropertyLedgerEntry.RecurrenceType.QUARTERLY,
@@ -91,10 +95,10 @@ class Period:
 
 def rent_entries(lease: Lease):
     """Rent and charges entries of *lease*."""
-    return PropertyLedgerEntry.objects.filter(
+    return PropertyLedgerEntry.objects.select_related("lease").filter(
         lease=lease,
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
-        management_category__in=(RENT, CHARGES),
+        management_category__in=LEASE_RENT_CATEGORIES,
     )
 
 
@@ -114,13 +118,22 @@ def first_due_date(lease: Lease) -> datetime.date:
     return due
 
 
+def schedule_start(lease: Lease) -> datetime.date:
+    """First occurrence of the rent schedule: the payment day of the start month.
+
+    It precedes the start of *lease* when the lease starts after its payment
+    day: that occurrence is then the prorated rent of the first month.
+    """
+    return lease.start_date.replace(day=lease.payment_day)
+
+
 def create_rent_schedule(lease: Lease) -> list[PropertyLedgerEntry]:
-    """Recurring rent and charges entries of *lease*, from its first due date."""
+    """Recurring rent and charges entries of *lease*, from its schedule start."""
     common = {
         "property": lease.property,
         "lease": lease,
         "flow_type": PropertyLedgerEntry.FlowType.INCOME,
-        "entry_date": first_due_date(lease),
+        "entry_date": schedule_start(lease),
         "recurrence_type": _RECURRENCE[lease.periodicity],
         "recurrence_end_date": lease.end_date,
         "third_party": lease.name,
@@ -143,7 +156,7 @@ def create_rent_schedule(lease: Lease) -> list[PropertyLedgerEntry]:
 def lease_periods(lease: Lease, today: datetime.date | None = None) -> list[Period]:
     """Every period of *lease* up to the next due date, newest first."""
     today = today or datetime.date.today()
-    months = PERIOD_MONTHS.get(lease.periodicity, 1)
+    months = lease.period_months
     periods: dict[datetime.date, Period] = {}
 
     def period_of(day: datetime.date) -> Period:
@@ -167,9 +180,13 @@ def lease_periods(lease: Lease, today: datetime.date | None = None) -> list[Peri
                 continue
             scheduled = occurrence["occurrence_date"]
             period = period_of(scheduled)
-            period.due_date = min(filter(None, (period.due_date, scheduled)))
+            # A rent scheduled before the lease starts is due on moving in.
+            due = max(scheduled, lease.start_date)
+            period.due_date = min(filter(None, (period.due_date, due)))
             planned = (
-                entry.amount if occurrence["is_checked"] else occurrence["amount"]
+                entry.planned_amount(scheduled)
+                if occurrence["is_checked"]
+                else occurrence["amount"]
             ).amount
             if entry.management_category == CHARGES:
                 period.charges += planned

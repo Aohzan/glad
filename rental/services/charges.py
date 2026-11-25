@@ -19,9 +19,10 @@ from base.services.pdf import BasePdf, money
 from property.models import Lease, PropertyLedgerEntry
 from property.models.ledger import ManagementCategory
 from property.services.rent_revision import split_series
+from property.utils.date_utils import day_count
 from rental.models import ChargesReconciliation
 from rental.services.landlord import landlord_of
-from rental.services.payments import CHARGES, PERIOD_MONTHS
+from rental.services.payments import CHARGES
 
 CENT = Decimal("0.01")
 #: Average number of days in a month, to turn a period into months.
@@ -42,16 +43,6 @@ def default_period(
     return start, end
 
 
-def _days(start: datetime.date, end: datetime.date) -> int:
-    return max((end - start).days + 1, 0)
-
-
-def occupancy_ratio(lease: Lease, start: datetime.date, end: datetime.date) -> Decimal:
-    """Share of the period the lease covered."""
-    covered = _days(max(start, lease.start_date), min(end, lease.end_date or end))
-    return Decimal(covered) / Decimal(_days(start, end))
-
-
 def _provisions(lease: Lease, start: datetime.date, end: datetime.date) -> Decimal:
     reconciled = ChargesReconciliation.objects.exclude(ledger_entry=None).values(
         "ledger_entry"
@@ -63,6 +54,7 @@ def _provisions(lease: Lease, start: datetime.date, end: datetime.date) -> Decim
             management_category=CHARGES,
         )
         .exclude(pk__in=reconciled)
+        .select_related("lease")
         .prefetch_related("exceptions")
     )
     total = Decimal(0)
@@ -76,7 +68,7 @@ def _provisions(lease: Lease, start: datetime.date, end: datetime.date) -> Decim
 
 
 def _expenses(lease: Lease, start: datetime.date, end: datetime.date) -> list[dict]:
-    ratio = occupancy_ratio(lease, start, end)
+    ratio = lease.covered_share(start, end)
     entries = PropertyLedgerEntry.objects.filter(
         property=lease.property,
         flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
@@ -153,13 +145,11 @@ def suggested_provision(reconciliation: ChargesReconciliation) -> Decimal | None
     lease = reconciliation.lease
     start = max(reconciliation.period_start, lease.start_date)
     end = min(reconciliation.period_end, lease.end_date or reconciliation.period_end)
-    months = Decimal(_days(start, end)) / MONTH_DAYS
+    months = Decimal(day_count(start, end)) / MONTH_DAYS
     if months <= 0:
         return None
     per_month = reconciliation.actual / months
-    return (per_month * PERIOD_MONTHS.get(lease.periodicity, 1)).quantize(
-        Decimal(1), ROUND_HALF_UP
-    )
+    return (per_month * lease.period_months).quantize(Decimal(1), ROUND_HALF_UP)
 
 
 @transaction.atomic
@@ -190,9 +180,7 @@ def statement_pdf(reconciliation: ChargesReconciliation) -> bytes:
     """The statement of the reconciliation sent to the tenant."""
     lease = reconciliation.lease
     landlord = landlord_of(lease.property)
-    ratio = occupancy_ratio(
-        lease, reconciliation.period_start, reconciliation.period_end
-    )
+    ratio = lease.covered_share(reconciliation.period_start, reconciliation.period_end)
     pdf = BasePdf()
     pdf.add_page()
     pdf.heading("Régularisation des charges locatives")
