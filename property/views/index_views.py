@@ -69,7 +69,7 @@ def index(request: HttpRequest) -> HttpResponse:
                 "remaining": remaining,
                 "cashflow": cashflow,
                 "lease": _current_lease(prop, today),
-                "loans_count": prop.loans_count,  # ty: ignore[unresolved-attribute]
+                "loans_count": prop.loans_count,  # ty: ignore[missing-attribute]
                 "progression": prop.get_progression(),
             }
         )

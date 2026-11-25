@@ -24,6 +24,10 @@ settings.STORAGES = {
     },
 }
 
+# The test client logs in without a request, which django-axes refuses: the
+# lockout tests enable it again (accounts/tests/test_lockout.py).
+settings.AXES_ENABLED = False
+
 # Uploads land in a throwaway directory (background tasks run inline through
 # TASKS_BACKEND=immediate in .env.dev).
 settings.MEDIA_ROOT = tempfile.mkdtemp(prefix="glad-test-media-")

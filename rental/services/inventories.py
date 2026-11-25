@@ -76,7 +76,7 @@ def create_exit(lease: Lease, date: datetime.date) -> Inventory:
         inventory,
         [
             (room.name, [item.name for item in room.items.all()])
-            for room in entry.rooms.all()  # ty: ignore[unresolved-attribute]
+            for room in entry.rooms.all()  # ty: ignore[missing-attribute]
         ],
     )
     return inventory
@@ -156,7 +156,7 @@ def inventory_pdf(inventory: Inventory) -> bytes:
     if inventory.keys:
         pdf.subheading("Clés remises")
         pdf.paragraph(inventory.keys)
-    rooms = inventory.rooms.prefetch_related("items")  # ty: ignore[unresolved-attribute]
+    rooms = inventory.rooms.prefetch_related("items")  # ty: ignore[missing-attribute]
     for room in rooms:
         pdf.subheading(room.name)
         items = list(room.items.all())

@@ -24,9 +24,9 @@ def _member(response):
 class TestList:
     def test_lists_adults_and_children(self, user_client, user):
         child = User.objects.create_user(username="child-zoe", first_name="Zoé")
-        child.profile.is_child = True  # ty: ignore[unresolved-attribute]
-        child.profile.birth_date = datetime.date(2015, 3, 1)  # ty: ignore[unresolved-attribute]
-        child.profile.save()  # ty: ignore[unresolved-attribute]
+        child.profile.is_child = True  # ty: ignore[missing-attribute]
+        child.profile.birth_date = datetime.date(2015, 3, 1)  # ty: ignore[missing-attribute]
+        child.profile.save()  # ty: ignore[missing-attribute]
 
         response = user_client.get(reverse("accounts:household"))
 
@@ -159,8 +159,8 @@ class TestAdd:
 class TestEdit:
     def test_birth_date_and_names(self, user_client):
         child = User.objects.create_user(username="child-zoe", first_name="Zoé")
-        child.profile.is_child = True  # ty: ignore[unresolved-attribute]
-        child.profile.save()  # ty: ignore[unresolved-attribute]
+        child.profile.is_child = True  # ty: ignore[missing-attribute]
+        child.profile.save()  # ty: ignore[missing-attribute]
         url = reverse("accounts:household_edit", args=[child.pk])
 
         response = user_client.get(url)
@@ -173,11 +173,11 @@ class TestEdit:
         )
         assert response.status_code == 302
         child.refresh_from_db()
-        child.profile.refresh_from_db()  # ty: ignore[unresolved-attribute]
+        child.profile.refresh_from_db()  # ty: ignore[missing-attribute]
         assert child.last_name == "Martin"
         assert child.username == "child-zoe"
         assert is_child(child)
-        assert child.profile.birth_date == datetime.date(2015, 3, 1)  # ty: ignore[unresolved-attribute]
+        assert child.profile.birth_date == datetime.date(2015, 3, 1)  # ty: ignore[missing-attribute]
 
     def test_a_member_who_logs_in_is_edited_by_themselves_or_a_superuser(
         self, user_client, user, admin_user

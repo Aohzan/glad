@@ -184,15 +184,15 @@ msgstr ""
 msgid "New login to your Glad account"
 msgstr "Nouvelle connexion à votre compte Glad"
 
-#: accounts/views.py:99
+#: accounts/views.py:121
 msgid "Password updated successfully."
 msgstr "Mise à jour du mot de passe réussie"
 
-#: accounts/views.py:325
+#: accounts/views.py:349
 msgid "Passkey removed successfully."
 msgstr "Passkey supprimé avec succès."
 
-#: accounts/views.py:435
+#: accounts/views.py:459
 msgid "Postal address saved."
 msgstr "Adresse postale enregistrée."
 
@@ -494,7 +494,7 @@ msgstr ""
 "Les autres droits ne laissent aucune part aux nouveaux propriétaires : "
 "définissez les quotes-parts sur la page des propriétaires."
 
-#: base/forms.py:247 base/models.py:183 finance/views/csv_views.py:525
+#: base/forms.py:247 base/models.py:183 finance/views/csv_views.py:538
 #: templates/owners_manage.html:22
 msgid "Owner"
 msgstr "Propriétaire"
@@ -677,7 +677,7 @@ msgstr "document"
 msgid "documents"
 msgstr "documents"
 
-#: base/models.py:281 finance/views/csv_views.py:524 rental/forms.py:43
+#: base/models.py:281 finance/views/csv_views.py:537 rental/forms.py:43
 #: rental/models.py:200 templates/finance/_account_detail_common_info.html:3
 #: templates/property/detail.html:393
 #: templates/property/detail_panel_cashflow.html:75
@@ -873,7 +873,7 @@ msgstr "Propriétaire enregistré."
 
 #: base/ownership_views.py:50 budget/views.py:139 budget/views.py:226
 #: budget/views.py:283 finance/views/crud_views.py:45
-#: finance/views/csv_views.py:327 finance/views/euro_fund_views.py:35
+#: finance/views/csv_views.py:334 finance/views/euro_fund_views.py:35
 #: finance/views/investment_views.py:75 finance/views/investment_views.py:101
 #: finance/views/investment_views.py:309 finance/views/investment_views.py:449
 #: finance/views/other_asset_views.py:62 finance/views/saving_views.py:62
@@ -1181,7 +1181,7 @@ msgstr "catégories de budget"
 
 #: budget/models.py:69 finance/models/other_asset.py:70 mcp_server/forms.py:11
 #: mcp_server/models.py:39 mcp_server/tests/test_serializers.py:62
-#: notifications/forms.py:14 notifications/models.py:35
+#: notifications/forms.py:15 notifications/models.py:35
 #: property/models/asset.py:52 property/models/asset.py:303
 #: property/models/scpi.py:42 rental/forms.py:167
 #: templates/accounts/household.html:20
@@ -2496,81 +2496,81 @@ msgstr "Une erreur s'est produite lors du chargement des données de graphique"
 msgid "Invalid request method."
 msgstr "Méthode de requête invalide."
 
-#: finance/views/csv_views.py:61 finance/views/csv_views.py:73
+#: finance/views/csv_views.py:65 finance/views/csv_views.py:77
 msgid "Some accounts could not be found."
 msgstr "Certains comptes n'ont pas été trouvés."
 
-#: finance/views/csv_views.py:76
+#: finance/views/csv_views.py:80
 msgid "No account selected or found for export."
 msgstr "Aucun compte sélectionné ou trouvé pour l'export"
 
-#: finance/views/csv_views.py:149
+#: finance/views/csv_views.py:153
 msgid "No data to export for selected accounts."
 msgstr "Aucune donnée à exporter pour les comptes sélectionnés."
 
-#: finance/views/csv_views.py:197 finance/views/csv_views.py:230
+#: finance/views/csv_views.py:201 finance/views/csv_views.py:235
 msgid "CSV file is missing required columns for the selected type."
 msgstr ""
 "Le fichier CSV n'a pas les noms de colonnes requises pour le type "
 "sélectionné."
 
-#: finance/views/csv_views.py:314 property/views/csv_views.py:97
+#: finance/views/csv_views.py:321 property/views/csv_views.py:97
 msgid "CSV import session expired. Please try again."
 msgstr "Session d'import de CSV expirée, merci de réessayer"
 
-#: finance/views/csv_views.py:375
+#: finance/views/csv_views.py:384
 msgid "No mapping found for account"
 msgstr "Aucune correspondance trouvée pour le compte"
 
-#: finance/views/csv_views.py:379 property/views/check_views.py:177
+#: finance/views/csv_views.py:388 property/views/check_views.py:177
 msgid "Invalid date."
 msgstr "Date invalide."
 
-#: finance/views/csv_views.py:438
+#: finance/views/csv_views.py:451
 msgid "No mapping found for holding"
 msgstr "Aucune correspondance trouvée pour le titre"
 
-#: finance/views/csv_views.py:476
+#: finance/views/csv_views.py:489
 msgid "An error occurred during import: "
 msgstr "Une erreur s'est produite pendant l'import : "
 
-#: finance/views/csv_views.py:491
+#: finance/views/csv_views.py:504
 #, python-brace-format
 msgid "Successfully imported {} records. {} duplicate records were ignored."
 msgstr "{} enregistrements importés avec succès. {} doublons ignorés."
 
-#: finance/views/csv_views.py:497
+#: finance/views/csv_views.py:510
 #, python-brace-format
 msgid "Successfully imported {} records."
 msgstr "Enregistrements {} importés avec succès."
 
-#: finance/views/csv_views.py:502
+#: finance/views/csv_views.py:515
 #, python-brace-format
 msgid "No new records imported. {} duplicate records were ignored."
 msgstr "Pas de nouvelle données importées. {} données existantes ignorées."
 
-#: finance/views/csv_views.py:508
+#: finance/views/csv_views.py:521
 msgid "Errors in rows: "
 msgstr "Erreurs dans les lignes : "
 
-#: finance/views/csv_views.py:512
+#: finance/views/csv_views.py:525
 #, python-brace-format
 msgid " and {} more errors"
 msgstr " et {} erreurs supplémentaires"
 
-#: finance/views/csv_views.py:526
+#: finance/views/csv_views.py:539
 #: templates/finance/_account_detail_common_info.html:12
 #: templates/finance/_accounts_head.html:1
 #: templates/finance/_edit_account_info_card.html:24
 msgid "Institution"
 msgstr "Établissement"
 
-#: finance/views/csv_views.py:527
+#: finance/views/csv_views.py:540
 #, python-format
 msgid "Value at %(date)s"
 msgstr "Valeur au %(date)s"
 
-#: finance/views/csv_views.py:568 templates/dashboard/_property.html:39
+#: finance/views/csv_views.py:581 templates/dashboard/_property.html:39
 #: templates/dashboard/_registry.html:39
 #: templates/finance/_account_chart_script.html:247
 #: templates/finance/_account_chart_script.html:273
@@ -2733,11 +2733,11 @@ msgstr ""
 msgid "No changes were made."
 msgstr "Aucun changement n'a été effectué."
 
-#: glad/settings.py:265
+#: glad/settings.py:290
 msgid "English"
 msgstr "Anglais"
 
-#: glad/settings.py:266
+#: glad/settings.py:291
 msgid "French"
 msgstr "Français"
 
@@ -2828,17 +2828,21 @@ msgstr[1] "il y a %(days)d jours"
 msgid "On %(date)s (%(relative)s)"
 msgstr "Le %(date)s (%(relative)s)"
 
-#: notifications/forms.py:16 notifications/models.py:22
+#: notifications/forms.py:17 notifications/models.py:22
 msgid "Apprise URL"
 msgstr "URL Apprise"
 
-#: notifications/forms.py:20
+#: notifications/forms.py:21
 msgid "For example ntfy://, gotify://, tgram://, discord:// or mailto://."
 msgstr "Par exemple ntfy://, gotify://, tgram://, discord:// ou mailto://."
 
-#: notifications/forms.py:27
+#: notifications/forms.py:29
 msgid "This is not a valid Apprise URL."
 msgstr "Ce n'est pas une URL Apprise valide."
+
+#: notifications/forms.py:32
+msgid "This URL targets the server itself: it is not allowed."
+msgstr "Cette URL cible le serveur lui-même : elle n'est pas autorisée."
 
 #: notifications/models.py:23
 msgid "Email of the account"
@@ -2929,26 +2933,30 @@ msgstr "Saisissez une date au format MM-JJ."
 msgid "Select a valid choice."
 msgstr "Sélectionnez un choix valide."
 
-#: notifications/services.py:204
+#: notifications/services.py:237
 #, python-format
 msgid "%(count)d new notification"
 msgid_plural "%(count)d new notifications"
 msgstr[0] "%(count)d nouvelle notification"
 msgstr[1] "%(count)d nouvelles notifications"
 
-#: notifications/services.py:221
+#: notifications/services.py:254
 msgid "The account has no email address."
 msgstr "Le compte n'a pas d'adresse email."
 
-#: notifications/services.py:241
+#: notifications/services.py:274
 msgid "The URL cannot be read anymore: enter it again."
 msgstr "L'URL ne peut plus être lue : saisissez-la à nouveau."
 
-#: notifications/services.py:245
+#: notifications/services.py:278
 msgid "The URL is not a valid Apprise URL."
 msgstr "L'URL n'est pas une URL Apprise valide."
 
-#: notifications/services.py:249
+#: notifications/services.py:280
+msgid "The URL targets the server itself: it is not allowed."
+msgstr "L'URL cible le serveur lui-même : elle n'est pas autorisée."
+
+#: notifications/services.py:284
 msgid "The service refused the message."
 msgstr "Le service a refusé le message."
 
@@ -3317,7 +3325,7 @@ msgstr "Valeur d'achat"
 msgid "Purchase price of the property, excluding fees."
 msgstr "Prix d'achat du bien, hors frais."
 
-#: property/models/asset.py:383 property/views/fiscal_views.py:61
+#: property/models/asset.py:383 property/views/fiscal_views.py:62
 msgid "Notary fees"
 msgstr "Frais de notaire"
 
@@ -3325,7 +3333,7 @@ msgstr "Frais de notaire"
 msgid "Notary fees paid at the time of purchase."
 msgstr "Frais de notaire payés lors de l'acquisition."
 
-#: property/models/asset.py:391 property/views/fiscal_views.py:62
+#: property/models/asset.py:391 property/views/fiscal_views.py:63
 msgid "Agency fees"
 msgstr "Frais d'agence"
 
@@ -3333,7 +3341,7 @@ msgstr "Frais d'agence"
 msgid "Intermediary fees (agencies, headhunters, etc.)."
 msgstr "Frais d'intermediaires (agences, chasseurs…)"
 
-#: property/models/asset.py:399 property/views/fiscal_views.py:63
+#: property/models/asset.py:399 property/views/fiscal_views.py:64
 msgid "Other fees"
 msgstr "Autres frais"
 
@@ -5113,32 +5121,32 @@ msgstr "%(n)d entrée(s) générée(s)."
 msgid "%(n)d entries cleared."
 msgstr "%(n)d entrée(s) effacée(s)."
 
-#: property/views/fiscal_views.py:148
+#: property/views/fiscal_views.py:149
 msgid "Default amortization components initialized."
 msgstr "Composants d'amortissement par défaut initialisés."
 
-#: property/views/fiscal_views.py:150
+#: property/views/fiscal_views.py:151
 msgid "Invalid form data. Please check the values."
 msgstr "Données invalides. Vérifiez les valeurs."
 
-#: property/views/fiscal_views.py:171
+#: property/views/fiscal_views.py:172
 msgid "Immobilisation created successfully."
 msgstr "Immobilisation créée avec succès."
 
-#: property/views/fiscal_views.py:199
+#: property/views/fiscal_views.py:200
 msgid "Immobilisation updated successfully."
 msgstr "Immobilisation mise à jour avec succès."
 
-#: property/views/fiscal_views.py:223
+#: property/views/fiscal_views.py:224
 msgid "Immobilisation deleted."
 msgstr "Immobilisation supprimée."
 
-#: property/views/fiscal_views.py:310
+#: property/views/fiscal_views.py:311
 #, python-format
 msgid "No active LMNP réel property for fiscal year %(year)s."
 msgstr "Aucun bien actif au régime LMNP réel sur l'exercice %(year)s."
 
-#: property/views/fiscal_views.py:323
+#: property/views/fiscal_views.py:324
 #, python-format
 msgid ""
 "Fiscal year %(year)s frozen. The figures are kept even if the ledger changes."
@@ -5146,7 +5154,7 @@ msgstr ""
 "Exercice %(year)s figé. Les chiffres sont conservés même si les écritures "
 "changent."
 
-#: property/views/fiscal_views.py:365
+#: property/views/fiscal_views.py:366
 msgid "Frozen declaration deleted."
 msgstr "Liasse figée supprimée."
 
@@ -11235,6 +11243,24 @@ msgstr "Valeurs théoriques existantes"
 msgid "Delete this theoretical value?"
 msgstr "Supprimer cette valeur théorique ?"
 
+#: templates/registration/locked_out.html:4
+#: templates/registration/locked_out.html:9
+msgid "Too many login attempts"
+msgstr "Trop de tentatives de connexion"
+
+#: templates/registration/locked_out.html:10
+msgid ""
+"The password login is locked for a while after too many failed attempts. Try "
+"again later, or log in with your passkey."
+msgstr ""
+"La connexion par mot de passe est bloquée un moment après trop de tentatives "
+"échouées. Réessayez plus tard, ou connectez-vous avec votre passkey."
+
+#: templates/registration/locked_out.html:11
+#: templates/registration/password_reset_done.html:10
+msgid "Return to Login"
+msgstr "Retour à la connexion"
+
 #: templates/registration/login.html:11
 msgid "Log In"
 msgstr "Connexion"
@@ -11292,10 +11318,6 @@ msgstr "Réinitialisation du mot de passe terminée"
 #: templates/registration/password_reset_done.html:7
 msgid "Password Reset Successful"
 msgstr "Réinitialisation du mot de passe réussie"
-
-#: templates/registration/password_reset_done.html:10
-msgid "Return to Login"
-msgstr "Retour à la connexion"
 
 #: templates/registration/password_reset_form.html:6
 msgid "Reset Your Password"

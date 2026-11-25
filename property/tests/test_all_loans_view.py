@@ -1,6 +1,8 @@
 """Tests for property/views/loans_views.py (all loans dashboard)."""
 
+import csv
 import datetime
+import io
 from decimal import Decimal
 
 import pytest
@@ -105,6 +107,13 @@ class TestAllLoansView:
         assert "capital_paid,interest_paid,insurance_paid" in content
         assert "My House" in content
         assert "Test Loan" in content
+
+    def test_csv_export_neutralizes_formulas(self, user_client):
+        prop = _make_property('=HYPERLINK("https://evil.example")')
+        _make_loan(prop, name="+cmd", lender="@SUM(A1)")
+        response = user_client.get(reverse("property:all_loans"), {"format": "csv"})
+        row = list(csv.reader(io.StringIO(response.content.decode())))[1]
+        assert row[:3] == ['\'=HYPERLINK("https://evil.example")', "'+cmd", "'@SUM(A1)"]
 
     def test_redirect_unauthenticated(self, client):
         response = client.get(reverse("property:all_loans"))

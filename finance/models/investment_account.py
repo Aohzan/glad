@@ -107,7 +107,7 @@ class InvestmentAccount(AbstractAccount):
 
     def euro_fund_split(self) -> EuroFundSplit | None:
         """Euro funds versus units of account, None without euro fund holding."""
-        holdings = list(self.investmentaccountholding_set.filter(is_active=True))  # ty: ignore[unresolved-attribute]
+        holdings = list(self.investmentaccountholding_set.filter(is_active=True))  # ty: ignore[missing-attribute]
         if not any(h.is_euro_fund for h in holdings):
             return None
         zero = Money(0, self.currency)

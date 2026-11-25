@@ -101,7 +101,7 @@ def update_accounts(request):
                     "isin": holding.isin,  # For the live-fetch button, not a form field
                     "account_id": account.id,  # For the live-fetch button URL
                     "auto_update_price": holding.auto_update_price,  # Badge only
-                    "last_valuation": holding.last_valuation,  # ty: ignore[unresolved-attribute]
+                    "last_valuation": holding.last_valuation,  # ty: ignore[missing-attribute]
                 }
             )
         investment_accounts_initial_data[str(account)]["holdings"] = holding_data

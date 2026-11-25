@@ -88,28 +88,15 @@ def test_get_client_ip_no_forwarded():
     assert _get_client_ip(request) == "1.2.3.4"
 
 
-def test_get_client_ip_with_forwarded():
-    request = RequestFactory().get(
-        "/", REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR="9.8.7.6, 10.0.0.1"
-    )
-    assert _get_client_ip(request) == "9.8.7.6"
-
-
-def test_get_client_ip_with_x_real_ip():
-    request = RequestFactory().get(
-        "/", REMOTE_ADDR="172.22.1.1", HTTP_X_REAL_IP="203.0.113.50"
-    )
-    assert _get_client_ip(request) == "203.0.113.50"
-
-
-def test_get_client_ip_x_forwarded_for_takes_priority_over_x_real_ip():
+def test_get_client_ip_ignores_the_forwarded_headers():
+    """Any client can send them: uvicorn applies those of a trusted proxy."""
     request = RequestFactory().get(
         "/",
         REMOTE_ADDR="172.22.1.1",
         HTTP_X_FORWARDED_FOR="9.8.7.6",
         HTTP_X_REAL_IP="203.0.113.50",
     )
-    assert _get_client_ip(request) == "9.8.7.6"
+    assert _get_client_ip(request) == "172.22.1.1"
 
 
 def test_get_client_ip_empty():

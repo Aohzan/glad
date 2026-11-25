@@ -171,7 +171,7 @@ class Lease(BaseModel):
         """Tenants of the lease, from the prefetched parties when available."""
         if self.pk is None:
             return []
-        parties = self.parties.all()  # ty: ignore[unresolved-attribute]
+        parties = self.parties.all()  # ty: ignore[missing-attribute]
         return [p for p in parties if p.role == LeaseParty.Role.TENANT]
 
     @_property
@@ -179,7 +179,7 @@ class Lease(BaseModel):
         """Guarantors of the lease, from the prefetched parties when available."""
         if self.pk is None:
             return []
-        parties = self.parties.all()  # ty: ignore[unresolved-attribute]
+        parties = self.parties.all()  # ty: ignore[missing-attribute]
         return [p for p in parties if p.role == LeaseParty.Role.GUARANTOR]
 
     @_property

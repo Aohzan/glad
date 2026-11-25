@@ -103,11 +103,11 @@ def compare(lease: Lease) -> list[Comparison]:
     if entry is None or exit_ is None:
         return []
     before = {}
-    for room in entry.rooms.all():  # ty: ignore[unresolved-attribute]
+    for room in entry.rooms.all():  # ty: ignore[missing-attribute]
         for item in room.items.all():
             before[room.name, item.name] = item.condition
     rows = []
-    for room in exit_.rooms.all():  # ty: ignore[unresolved-attribute]
+    for room in exit_.rooms.all():  # ty: ignore[missing-attribute]
         for item in room.items.all():
             rows.append(
                 Comparison(

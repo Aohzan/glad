@@ -1,6 +1,8 @@
 """Tests for the income & expenses report view and service."""
 
+import csv
 import datetime
+import io
 from decimal import Decimal
 
 import pytest
@@ -413,6 +415,27 @@ class TestReportView:
             "date,property,flow_type,management_category,amount,description" in content
         )
         assert "750" in content
+
+    def test_csv_export_neutralizes_formulas(self, user_client):
+        prop = _make_property("-2+3")
+        entry = _make_entry(
+            prop,
+            PropertyLedgerEntry.FlowType.EXPENSE,
+            PropertyLedgerEntry.ManagementCategory.INSURANCE,
+            Decimal(-200),
+            datetime.date(2025, 7, 15),
+        )
+        entry.description = "=1+1"
+        entry.save()
+        response = user_client.get(
+            reverse("property:report"),
+            {"start_date": "2025-01-01", "end_date": "2025-12-31", "format": "csv"},
+        )
+        row = list(csv.reader(io.StringIO(response.content.decode())))[1]
+        assert row[1] == "'-2+3"
+        assert row[5] == "'=1+1"
+        # Amounts stay numbers, negative ones included.
+        assert not row[4].startswith("'")
 
     def test_csv_export_includes_correct_fields(self, user_client):
         prop = _make_property("My House")

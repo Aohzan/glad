@@ -114,7 +114,7 @@ def index(request):
     investment_accounts = []
     for account in investment_accounts_qs:
         # The related manager sets holding.account without querying it again.
-        holdings = account.investmentaccountholding_set.filter(is_active=True)  # ty: ignore[unresolved-attribute]
+        holdings = account.investmentaccountholding_set.filter(is_active=True)  # ty: ignore[missing-attribute]
         val = account.current_value
         if total_investment_value is None:
             total_investment_value = val
