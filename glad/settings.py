@@ -361,9 +361,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Security Headers
 # https://docs.djangoproject.com/en/6.0/ref/middleware/#http-strict-transport-security
 if not DEBUG:
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000"))  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", True)
+    SECURE_HSTS_PRELOAD = _env_bool("SECURE_HSTS_PRELOAD", True)
 X_FRAME_OPTIONS = "DENY"
 SECURE_REFERRER_POLICY = "same-origin"
 
