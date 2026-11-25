@@ -17,8 +17,8 @@ def _child(first_name="Zoé", **kwargs):
     user = User.objects.create_user(
         username=child_username(first_name), first_name=first_name, **kwargs
     )
-    user.profile.is_child = True  # ty: ignore[unresolved-attribute]
-    user.profile.save()  # ty: ignore[unresolved-attribute]
+    user.profile.is_child = True  # ty: ignore[missing-attribute]
+    user.profile.save()  # ty: ignore[missing-attribute]
     return user
 
 

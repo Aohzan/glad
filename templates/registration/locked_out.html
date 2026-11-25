@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n icons %}
+
+{% block title %}{% translate "Too many login attempts" %}{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-body p-4 text-center">
+    <h1 class="h3 mb-3">{% icon "lock" "me-2" %}{% translate "Too many login attempts" %}</h1>
+    <p>{% translate "The password login is locked for a while after too many failed attempts. Try again later, or log in with your passkey." %}</p>
+    <a href="{% url 'login' %}" class="btn btn-primary">{% translate "Return to Login" %}</a>
+  </div>
+</div>
+{% endblock %}

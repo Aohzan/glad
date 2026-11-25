@@ -177,7 +177,7 @@ class TestOwnersForm:
             ("alice", FULL): Decimal(50),
             ("bob", FULL): Decimal(50),
         }
-        assert form.fields["owners"].label_from_instance(alice) == "Alice"  # ty: ignore[unresolved-attribute]
+        assert form.fields["owners"].label_from_instance(alice) == "Alice"  # ty: ignore[missing-attribute]
 
     def test_edit_keeps_custom_shares(self):
         alice, bob = _user("alice"), _user("bob")

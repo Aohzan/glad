@@ -13,6 +13,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -24,6 +25,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 lazy import apprise
 
+from base.services.network import is_internal_host
 from notifications.models import (
     Notification,
     NotificationChannel,
@@ -42,6 +44,37 @@ class Subscription:
     params: dict[str, Any]
     #: Channels chosen for the type; empty means every enabled channel.
     channel_ids: list[int]
+
+
+def _plugin_hosts(plugin) -> set[str]:
+    """Every host an Apprise *plugin* may connect to.
+
+    Besides ``host``, some plugins take another destination from the URL: the
+    SMTP server of ``mailto://…?smtp=``, an API or webhook URL…
+    """
+    hosts = set()
+    for name, value in vars(plugin).items():
+        if not isinstance(value, str) or not value:
+            continue
+        if name.lstrip("_").endswith(("host", "hostname")):
+            hosts.add(value)
+        elif "://" in value and (hostname := urlsplit(value).hostname):
+            hosts.add(hostname)
+    return hosts
+
+
+def targets_internal_host(sender: apprise.Apprise) -> bool:
+    """True when an Apprise *sender* sends to the server itself (see
+    ``is_internal_host``), which would let a user probe its local services.
+
+    Apprise reads several URLs from one string: each of its plugins is checked. The
+    hosts are resolved again before each sending: they may change after the
+    channel was saved. A redirection, or a DNS answer changing between the
+    check and the connection, is not covered.
+    """
+    return any(
+        is_internal_host(host) for plugin in sender for host in _plugin_hosts(plugin)
+    )
 
 
 def household_users():
@@ -243,6 +276,8 @@ def send_to_channel(channel: NotificationChannel, title: str, body: str) -> bool
         sender = apprise.Apprise()
         if not sender.add(url):
             error = _("The URL is not a valid Apprise URL.")
+        elif targets_internal_host(sender):
+            error = _("The URL targets the server itself: it is not allowed.")
         else:
             try:
                 if not sender.notify(title=title, body=body):

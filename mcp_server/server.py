@@ -163,11 +163,7 @@ class ApiKeyMiddleware:
         scheme, _sep, raw = headers.get("authorization", "").partition(" ")
         key = None
         if scheme.lower() == "bearer" and raw.strip():
-            meta = {
-                "HTTP_X_FORWARDED_FOR": headers.get("x-forwarded-for", ""),
-                "HTTP_X_REAL_IP": headers.get("x-real-ip", ""),
-                "REMOTE_ADDR": (scope.get("client") or ("",))[0],
-            }
+            meta = {"REMOTE_ADDR": (scope.get("client") or ("",))[0]}
             key = await sync_to_async(authenticate, thread_sensitive=True)(
                 raw.strip(), meta
             )

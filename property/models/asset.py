@@ -787,7 +787,7 @@ class Property(BaseModel):
 
     def mandate_on(self, date: datetime.date):
         """Management mandate covering *date*, from the prefetched mandates."""
-        for mandate in self.mandates.all():  # ty: ignore[unresolved-attribute]
+        for mandate in self.mandates.all():  # ty: ignore[missing-attribute]
             if mandate.start_date <= date and (
                 mandate.end_date is None or mandate.end_date >= date
             ):

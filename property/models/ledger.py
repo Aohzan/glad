@@ -468,7 +468,7 @@ class PropertyLedgerEntry(BaseModel):
         if not is_recurring_entry:
             return raw
 
-        exceptions_qs = self.exceptions.all()  # ty: ignore[unresolved-attribute]  # uses prefetch cache if available
+        exceptions_qs = self.exceptions.all()  # ty: ignore[missing-attribute]  # uses prefetch cache if available
         exc_map = {exc.occurrence_date: exc for exc in exceptions_qs}
         assert covered_until is not None
         if raw[0]["date"] > covered_until:

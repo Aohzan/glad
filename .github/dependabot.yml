@@ -5,6 +5,11 @@ updates:
     cooldown:
       default-days: 7
     directory: "/"
+    groups:
+      # init and analyze must run the same version, or the analysis fails
+      codeql-action:
+        patterns:
+          - "github/codeql-action/*"
     schedule:
       interval: "weekly"
   - package-ecosystem: "uv"

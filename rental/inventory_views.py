@@ -81,7 +81,7 @@ def inventory_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "count": len(room.items.all()),
             "done": sum(bool(item.condition) for item in room.items.all()),
         }
-        for room in inventory.rooms.all()  # ty: ignore[unresolved-attribute]
+        for room in inventory.rooms.all()  # ty: ignore[missing-attribute]
     ]
     return render(
         request,
@@ -110,7 +110,7 @@ def add_room(request: HttpRequest, pk: int) -> HttpResponse:
     inventory = get_object_or_404(Inventory, pk=pk)
     form = NameForm(request.POST)
     if form.is_valid():
-        last = inventory.rooms.order_by("-position").first()  # ty: ignore[unresolved-attribute]
+        last = inventory.rooms.order_by("-position").first()  # ty: ignore[missing-attribute]
         room = InventoryRoom.objects.create(
             inventory=inventory,
             name=form.cleaned_data["name"],
@@ -131,7 +131,7 @@ def _room(pk: int, room_pk: int) -> InventoryRoom:
 def inventory_room(request: HttpRequest, pk: int, room_pk: int) -> HttpResponse:
     """The elements of a room: condition, comment and photos."""
     room = _room(pk, room_pk)
-    items = room.items.all()  # ty: ignore[unresolved-attribute]
+    items = room.items.all()  # ty: ignore[missing-attribute]
     if request.method == "POST":
         formset = InventoryItemFormSet(request.POST, queryset=items)
         if formset.is_valid():

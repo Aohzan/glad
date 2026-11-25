@@ -167,7 +167,7 @@ class PersonFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.members = {user.pk: user for user in household_members()}
-        self.fields["person"].choices = [("", _("Whole household"))] + [  # ty: ignore[unresolved-attribute]
+        self.fields["person"].choices = [("", _("Whole household"))] + [  # ty: ignore[missing-attribute]
             (pk, display_name(user)) for pk, user in self.members.items()
         ]
 

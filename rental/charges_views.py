@@ -28,7 +28,7 @@ def lease_charges(request: HttpRequest, pk: int) -> HttpResponse:
         "rental/lease_charges.html",
         {
             **lease_context(lease, "charges"),
-            "reconciliations": lease.charges_reconciliations.all(),  # ty: ignore[unresolved-attribute]
+            "reconciliations": lease.charges_reconciliations.all(),  # ty: ignore[missing-attribute]
             "default_start": start,
             "default_end": end,
             "is_provision": lease.charges_mode == Lease.ChargesMode.PROVISION,
