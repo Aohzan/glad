@@ -193,7 +193,8 @@
   }).addTo(map);
 
   if (hasCoords) {
-    L.marker([lat, lon]).addTo(map).bindPopup('{{ property.full_address|escapejs }}').openPopup();
+    // Leaflet renders the popup content as HTML: escape the address for it.
+    L.marker([lat, lon]).addTo(map).bindPopup('{{ property.full_address|force_escape|escapejs }}').openPopup();
   }
   // Force Leaflet to recalculate size after panel is revealed
   setTimeout(function() { map.invalidateSize(); }, 100);

@@ -1019,6 +1019,23 @@ def test_panel_info_map_coordinates_unlocalized(user_client):
 
 
 @pytest.mark.django_db
+def test_panel_info_map_popup_escapes_the_address(user_client):
+    """Leaflet renders the popup as HTML: the address reaches it escaped."""
+    prop = _make_property()
+    prop.street_name = '<img src=x onerror="alert(1)">'
+    prop.latitude = Decimal("48.856600")
+    prop.longitude = Decimal("2.352200")
+    prop.save()
+    response = user_client.get(reverse("property:panel_info", args=[prop.pk]))
+    content = response.content.decode()
+    popup = content.split(".bindPopup('", 1)[1].split("')", 1)[0]
+    # escapejs writes < as <, which JavaScript turns back into <: the
+    # address must be HTML-escaped first.
+    assert "\\u003Cimg" not in popup
+    assert "\\u0026lt\\u003Bimg" in popup
+
+
+@pytest.mark.django_db
 def test_panel_info_map_without_coordinates(user_client):
     """A property without coordinates renders null coordinates for the map."""
     prop = _make_property()
