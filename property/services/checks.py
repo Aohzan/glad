@@ -34,9 +34,9 @@ class PendingOccurrence:
 
     @property
     def due_date(self) -> datetime.date:
-        """Planned date, or the lease start for a first rent due on moving in."""
+        """Planned date, within the lease for a rent (see ``Lease.rent_due_date``)."""
         lease = self.entry.lease
-        return max(self.planned_date, lease.start_date) if lease else self.planned_date
+        return lease.rent_due_date(self.planned_date) if lease else self.planned_date
 
     @property
     def is_upcoming(self) -> bool:

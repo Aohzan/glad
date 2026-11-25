@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 22:06+0100\n"
+"POT-Creation-Date: 2026-11-25 22:25+0100\n"
 "PO-Revision-Date: 2025-06-23 12:00+0200\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: accounts/admin.py:36 accounts/forms.py:53 accounts/forms.py:84
-#: accounts/models.py:36 property/models/lease.py:276
+#: accounts/models.py:36 property/models/lease.py:292
 #: templates/accounts/household.html:22
 msgid "Birth date"
 msgstr "Date de naissance"
@@ -617,7 +617,7 @@ msgstr "tâche planifiée"
 msgid "scheduled jobs"
 msgstr "tâches planifiées"
 
-#: base/models.py:258 property/models/lease.py:195 property/models/lease.py:262
+#: base/models.py:258 property/models/lease.py:195 property/models/lease.py:278
 #: property/models/ledger.py:306 rental/models.py:39 rental/models.py:151
 #: rental/models.py:198 rental/models.py:328 rental/models.py:385
 #: rental/notifications.py:37 templates/property/detail.html:437
@@ -648,7 +648,7 @@ msgstr "Pièce d'identité"
 msgid "Proof of income"
 msgstr "Justificatif de revenus"
 
-#: base/models.py:264 property/models/lease.py:289 rental/models.py:135
+#: base/models.py:264 property/models/lease.py:305 rental/models.py:135
 #: rental/services/compliance.py:282
 msgid "Guarantee"
 msgstr "Garantie"
@@ -1342,7 +1342,7 @@ msgid "Housing"
 msgstr "Logement"
 
 #: budget/services/categories.py:25 rental/models.py:43
-#: rental/services/payments.py:141 templates/rental/dashboard.html:50
+#: rental/services/payments.py:142 templates/rental/dashboard.html:50
 msgid "Rent"
 msgstr "Loyer"
 
@@ -2969,7 +2969,7 @@ msgstr "Canal « %(name)s » ajouté."
 msgid "Enter an email address in your settings first."
 msgstr "Saisissez d'abord une adresse email dans vos paramètres."
 
-#: notifications/views.py:179 property/models/lease.py:274
+#: notifications/views.py:179 property/models/lease.py:290
 #: property/models/management.py:45 rental/models.py:106
 #: templates/property/_contact_card.html:11
 #: templates/property/edit_mandate.html:45
@@ -3818,7 +3818,7 @@ msgid "Charges provision"
 msgstr "Provision pour charges"
 
 #: property/models/lease.py:116 rental/models.py:44
-#: rental/services/payments.py:143 templates/dashboard/_property.html:28
+#: rental/services/payments.py:144 templates/dashboard/_property.html:28
 #: templates/rental/_lease_layout.html:23 templates/rental/lease_detail.html:53
 msgid "Charges"
 msgstr "Charges"
@@ -3894,63 +3894,63 @@ msgid ""
 "received."
 msgstr "Envoyer la quittance aux locataires le lendemain du pointage du loyer."
 
-#: property/models/lease.py:247 templates/property/edit_lease.html:31
+#: property/models/lease.py:263 templates/property/edit_lease.html:31
 #: templates/rental/lease_detail.html:12
 msgid "Tenant"
 msgstr "Locataire"
 
-#: property/models/lease.py:248 rental/models.py:125
+#: property/models/lease.py:264 rental/models.py:125
 #: templates/rental/application_detail.html:42
 #: templates/rental/lease_detail.html:13
 msgid "Guarantor"
 msgstr "Garant"
 
-#: property/models/lease.py:251 rental/models.py:130
+#: property/models/lease.py:267 rental/models.py:130
 msgid "Joint and several guarantee"
 msgstr "Caution solidaire"
 
-#: property/models/lease.py:252 rental/models.py:131
+#: property/models/lease.py:268 rental/models.py:131
 msgid "Visale"
 msgstr "Visale"
 
-#: property/models/lease.py:253 rental/models.py:132
+#: property/models/lease.py:269 rental/models.py:132
 msgid "Other guarantee"
 msgstr "Autre garantie"
 
-#: property/models/lease.py:256
+#: property/models/lease.py:272
 msgid "lease party"
 msgstr "partie au bail"
 
-#: property/models/lease.py:257
+#: property/models/lease.py:273
 msgid "lease parties"
 msgstr "parties au bail"
 
-#: property/models/lease.py:268
+#: property/models/lease.py:284
 msgid "Role"
 msgstr "Rôle"
 
-#: property/models/lease.py:271 rental/models.py:103
+#: property/models/lease.py:287 rental/models.py:103
 #: templates/property/edit_tenant.html:31
 msgid "First name"
 msgstr "Prénom"
 
-#: property/models/lease.py:273 rental/models.py:105
+#: property/models/lease.py:289 rental/models.py:105
 #: templates/property/edit_tenant.html:42
 msgid "Last name"
 msgstr "Nom"
 
-#: property/models/lease.py:275 property/models/management.py:44
+#: property/models/lease.py:291 property/models/management.py:44
 #: rental/models.py:107 templates/property/_contact_card.html:22
 #: templates/property/edit_mandate.html:37
 #: templates/rental/application_detail.html:37
 msgid "Phone"
 msgstr "Téléphone"
 
-#: property/models/lease.py:278
+#: property/models/lease.py:294
 msgid "Birth place"
 msgstr "Lieu de naissance"
 
-#: property/models/lease.py:282 property/models/management.py:43
+#: property/models/lease.py:298 property/models/management.py:43
 #: templates/property/_contact_card.html:35
 #: templates/property/_property_form_fields.html:31
 #: templates/property/detail_panel_info.html:81
@@ -3958,7 +3958,7 @@ msgstr "Lieu de naissance"
 msgid "Address"
 msgstr "Adresse"
 
-#: property/models/lease.py:283
+#: property/models/lease.py:299
 msgid "Postal address, when it is not the rented dwelling."
 msgstr "Adresse postale, si ce n'est pas le logement loué."
 

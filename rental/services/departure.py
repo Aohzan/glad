@@ -15,7 +15,7 @@ from django.utils.translation import gettext as _
 from djmoney.money import Money
 
 from property.models import Lease, PropertyLedgerEntry
-from property.models.ledger import ManagementCategory
+from property.models.ledger import LEASE_RENT_CATEGORIES, ManagementCategory
 from rental import rules
 from rental.models import DepositSettlement, Inventory, InventoryItem
 from rental.services.landlord import landlord_of
@@ -215,18 +215,34 @@ def settle(settlement: DepositSettlement, returned_date: datetime.date) -> None:
 
 @transaction.atomic
 def close_lease(lease: Lease, end_date: datetime.date) -> int:
-    """End the lease and its recurring entries; the number of series ended."""
+    """End the lease and its recurring entries; the number of series ended.
+
+    The rent and charges run up to the payment day of the last month when
+    later (``Lease.rent_schedule_end``), for its prorated rent.
+    """
     lease.status = Lease.Status.ENDED
     lease.end_date = end_date
     lease.save(update_fields=["status", "end_date", "updated_at"])
-    return (
+    series = (
         PropertyLedgerEntry.objects.filter(lease=lease)
         .exclude(recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE)
         .filter(
-            Q(recurrence_end_date__isnull=True) | Q(recurrence_end_date__gt=end_date)
+            Q(recurrence_end_date__isnull=True) | Q(recurrence_end_date__gte=end_date)
         )
-        .update(recurrence_end_date=end_date)
     )
+    rent = Q(
+        flow_type=PropertyLedgerEntry.FlowType.INCOME,
+        management_category__in=LEASE_RENT_CATEGORIES,
+    )
+    rent_end = lease.rent_schedule_end()
+    ended = (
+        series.filter(rent)
+        .exclude(recurrence_end_date=rent_end)
+        .update(recurrence_end_date=rent_end)
+    )
+    return ended + series.exclude(rent).filter(
+        Q(recurrence_end_date__isnull=True) | Q(recurrence_end_date__gt=end_date)
+    ).update(recurrence_end_date=end_date)
 
 
 def _date(day: datetime.date) -> str:

@@ -9,7 +9,8 @@ A period the lease covers only in part (it starts or ends during it) expects
 the rent and charges prorated to the calendar days covered, as the charges
 reconciliation does. The schedule starts on the payment day of the month the
 lease starts in: when the lease starts after that day, this first prorated rent
-is due on moving in.
+is due on moving in. Likewise, it ends on the payment day of the last month
+when the lease ends before it, for a last prorated rent due on leaving.
 """
 
 import datetime
@@ -135,7 +136,7 @@ def create_rent_schedule(lease: Lease) -> list[PropertyLedgerEntry]:
         "flow_type": PropertyLedgerEntry.FlowType.INCOME,
         "entry_date": schedule_start(lease),
         "recurrence_type": _RECURRENCE[lease.periodicity],
-        "recurrence_end_date": lease.end_date,
+        "recurrence_end_date": lease.rent_schedule_end(),
         "third_party": lease.name,
     }
     amounts = [(RENT, lease.rent_amount, _("Rent"))]
@@ -180,8 +181,7 @@ def lease_periods(lease: Lease, today: datetime.date | None = None) -> list[Peri
                 continue
             scheduled = occurrence["occurrence_date"]
             period = period_of(scheduled)
-            # A rent scheduled before the lease starts is due on moving in.
-            due = max(scheduled, lease.start_date)
+            due = lease.rent_due_date(scheduled)
             period.due_date = min(filter(None, (period.due_date, due)))
             planned = (
                 entry.planned_amount(scheduled)

@@ -81,6 +81,29 @@ def test_give_notice_and_close(lease, rent_schedule):
 
 
 @pytest.mark.django_db
+def test_close_before_the_payment_day(lease, rent_schedule):
+    """The rent runs to the last payment day, other series to the end."""
+    insurance = PropertyLedgerEntry.objects.create(
+        property=lease.property,
+        lease=lease,
+        flow_type=PropertyLedgerEntry.FlowType.EXPENSE,
+        management_category="insurance",
+        amount=Money(20, "EUR"),
+        entry_date=D(2026, 7, 1),
+        recurrence_type=PropertyLedgerEntry.RecurrenceType.MONTHLY,
+    )
+    assert departure.close_lease(lease, D(2026, 12, 3)) == 3
+    rent, charges = rent_schedule
+    for entry in (rent, charges, insurance):
+        entry.refresh_from_db()
+    assert (rent.recurrence_end_date, charges.recurrence_end_date) == (
+        D(2026, 12, 5),
+        D(2026, 12, 5),
+    )
+    assert insurance.recurrence_end_date == D(2026, 12, 3)
+
+
+@pytest.mark.django_db
 def test_compare(lease):
     assert departure.compare(lease) == []
     entry = create_entry(lease, D(2025, 1, 1))
