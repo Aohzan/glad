@@ -1,6 +1,8 @@
 """Fixtures of the notifications tests."""
 
 import datetime
+import ipaddress
+import socket
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -75,3 +77,23 @@ def apprise_mock():
 
 
 TODAY = datetime.date(2026, 10, 28)
+
+
+@pytest.fixture(autouse=True)
+def offline_resolver(monkeypatch):
+    """Resolve the IP addresses and ``localhost`` only, without DNS queries.
+
+    The channel URLs are checked against the internal addresses
+    (``base.services.network.is_internal_host``).
+    """
+    resolve = socket.getaddrinfo
+
+    def getaddrinfo(host, *args, **kwargs):
+        if host != "localhost":
+            try:
+                ipaddress.ip_address(host)
+            except ValueError:
+                raise socket.gaierror(socket.EAI_NONAME, "Name not known") from None
+        return resolve(host, *args, **kwargs)
+
+    monkeypatch.setattr("base.services.network.socket.getaddrinfo", getaddrinfo)

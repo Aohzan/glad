@@ -205,6 +205,40 @@ def test_add_channel_rejects_an_invalid_url(user_client, user):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "url",
+    [
+        "json://127.0.0.1:8000/admin/",
+        "json://localhost/",
+        "form://169.254.169.254/latest/meta-data/",
+        "json://[::1]/",
+        "mailto://user:secret@localhost",
+        # Apprise reads several URLs from one string.
+        "ntfy://ntfy.sh/topic, json://127.0.0.1/",
+        # The SMTP server comes from a parameter, not from the host.
+        "mailto://user:secret@gmail.com?smtp=127.0.0.1",
+    ],
+)
+def test_add_channel_rejects_an_internal_host(user_client, user, url):
+    response = user_client.post(
+        reverse("notifications:add_channel"), {"name": "Probe", "url": url}
+    )
+    assert response.status_code == 400
+    assert "targets the server itself" in response.content.decode()
+    assert not NotificationChannel.objects.exists()
+
+
+@pytest.mark.django_db
+def test_add_channel_accepts_a_local_network_host(user_client, user):
+    response = user_client.post(
+        reverse("notifications:add_channel"),
+        {"name": "Home", "url": "gotify://192.168.1.10/token"},
+    )
+    assert response.status_code == 302
+    assert NotificationChannel.objects.filter(user=user).exists()
+
+
+@pytest.mark.django_db
 def test_test_channel(user_client, user, apprise_mock):
     channel = _channel(user)
     response = user_client.post(

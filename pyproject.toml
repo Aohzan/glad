@@ -28,6 +28,7 @@ dependencies = [
     "cryptography>=50.0.2",
     "apprise>=2.2.0",
     "mcp>=2.3.0", # MCP server of the AI assistants
+    "django-axes>=9.0.0", # Lockout after repeated failed logins
 ]
 
 [project.optional-dependencies]

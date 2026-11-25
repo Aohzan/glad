@@ -16,5 +16,10 @@ acknowledgement within a week.
 - Set a long random `SECRET_KEY` and keep it out of version control.
 - Serve the app behind a reverse proxy over HTTPS and set `APP_URL` to the
   public `https://` URL: secure cookies, HSTS and the HTTPS redirect follow from it.
+- Set `--forwarded-allow-ips` to the address of the reverse proxy in
+  `UVICORN_OPTIONS`, so that the login lockout and notifications see the real
+  client address (see the README).
+- Password logins are locked out after repeated failures (`AXES_*` variables);
+  register a passkey to keep a way in during a lockout.
 - Keep the container image up to date; Dependabot and CodeQL run on this repository.
 - Back up the `/app/data` volume (SQLite) or your PostgreSQL database regularly.

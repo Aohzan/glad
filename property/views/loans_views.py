@@ -7,6 +7,7 @@ from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 
+from base.csv_utils import spreadsheet_safe
 from property.models import PropertyLoan
 from property.services.loans import (
     LoanRow,
@@ -44,9 +45,9 @@ def _export_loans_csv(rows: list[LoanRow]) -> HttpResponse:
         loan = row.loan
         writer.writerow(
             [
-                loan.property.name,
-                loan.name or "",
-                loan.lender or "",
+                spreadsheet_safe(loan.property.name),
+                spreadsheet_safe(loan.name or ""),
+                spreadsheet_safe(loan.lender or ""),
                 loan.start_date.isoformat() if loan.start_date else "",
                 loan.end_date.isoformat() if loan.end_date else "",
                 loan.original_amount.amount,

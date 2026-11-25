@@ -178,6 +178,16 @@ def test_format_a_single_notification(settings):
 
 
 @pytest.mark.django_db
+def test_send_to_channel_refuses_an_internal_host(user):
+    """A host is checked again when sending: its address may have changed."""
+    channel = _channel(user, url="json://127.0.0.1:8000/")
+    with patch("apprise.Apprise.notify") as notify_mock:
+        assert not send_to_channel(channel, "T", "B")
+    notify_mock.assert_not_called()
+    assert "targets the server itself" in channel.last_error
+
+
+@pytest.mark.django_db
 def test_send_to_channel_failures(user):
     channel = _channel(user)
     with patch("apprise.Apprise") as cls:
