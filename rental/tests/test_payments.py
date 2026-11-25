@@ -6,9 +6,12 @@ from decimal import Decimal
 import pytest
 from moneyed import Money
 
-from property.models import Lease, PropertyLedgerEntry
-from property.services.checks import check_occurrence
-from rental.services import payments
+from property.models import Lease, PropertyLedgerEntry, PropertyLedgerEntryException
+from property.services.checks import (
+    check_all_up_to,
+    check_occurrence,
+    pending_occurrences,
+)
 from rental.services.payments import (
     PAID,
     PARTIAL,
@@ -172,7 +175,7 @@ def test_summarize(scheduled):
 
 
 def test_period_months_cover_the_periodicities():
-    assert set(payments.PERIOD_MONTHS) == set(Lease.Periodicity.values)
+    assert set(Lease.PERIOD_MONTHS) == set(Lease.Periodicity.values)
 
 
 @pytest.mark.django_db
@@ -265,3 +268,98 @@ def test_first_rent_due_on_moving_in(mid_month_lease):
     assert (july.rent, july.charges) == (Decimal("438.71"), Decimal("27.42"))
     assert july.due_date == datetime.date(2026, 7, 15)
     assert july.status == UPCOMING
+
+
+@pytest.mark.django_db
+def test_checks_propose_the_prorated_rent(mid_month_lease):
+    """The entries to check propose the prorated amount of a partial month."""
+    lease, rent, charges = mid_month_lease
+    PropertyLedgerEntryException.objects.create(
+        parent_entry=charges,
+        occurrence_date=datetime.date(2026, 7, 5),
+        amount_override=Money(Decimal(30), "EUR"),
+    )
+
+    pending = pending_occurrences(
+        property_obj=lease.property, up_to=datetime.date(2026, 8, 31)
+    )
+    amounts = {(p.entry.pk, p.planned_date): p.planned_amount.amount for p in pending}
+    assert amounts == {
+        (rent.pk, datetime.date(2026, 7, 5)): Decimal("438.71"),
+        # An amount set on the occurrence is kept.
+        (charges.pk, datetime.date(2026, 7, 5)): Decimal(30),
+        (rent.pk, datetime.date(2026, 8, 5)): Decimal(800),
+        (charges.pk, datetime.date(2026, 8, 5)): Decimal(50),
+    }
+
+
+@pytest.mark.django_db
+def test_check_all_records_the_prorated_rent(mid_month_lease):
+    lease, rent, _charges = mid_month_lease
+    assert rent.planned_amount(datetime.date(2026, 7, 5)).amount == Decimal("438.71")
+    assert rent.planned_amount(datetime.date(2026, 8, 5)) == rent.amount
+
+    check_all_up_to(datetime.date(2026, 7, 31), property_obj=lease.property)
+    july = period_of_month(
+        lease_periods(lease, datetime.date(2026, 8, 1)), datetime.date(2026, 7, 1)
+    )
+    assert july is not None
+    assert (july.status, july.paid, july.balance) == (
+        PAID,
+        Decimal("466.13"),
+        Decimal(0),
+    )
+
+
+@pytest.mark.django_db
+def test_full_rent_received_for_a_partial_month(mid_month_lease):
+    """A full rent checked on a partial month is kept as received."""
+    lease, rent, _charges = mid_month_lease
+    check_occurrence(
+        rent, datetime.date(2026, 7, 5), actual_amount=Money(Decimal(800), "EUR")
+    )
+    # The full amount needs no override: a checked occurrence keeps it.
+    assert rent.exceptions.get().amount_override is None
+    july = period_of_month(
+        lease_periods(lease, datetime.date(2026, 8, 1)), datetime.date(2026, 7, 1)
+    )
+    assert july is not None
+    assert (july.paid, july.expected) == (Decimal(800), Decimal("466.13"))
+
+
+@pytest.mark.django_db
+def test_check_without_amount_records_the_prorated_rent(mid_month_lease):
+    _lease, rent, _charges = mid_month_lease
+    check_occurrence(rent, datetime.date(2026, 7, 5))
+    assert rent.exceptions.get().amount_override == Money(Decimal("438.71"), "EUR")
+    # The next one, a full month, needs no override.
+    check_occurrence(rent, datetime.date(2026, 8, 5))
+    assert rent.exceptions.get(occurrence_date="2026-08-05").amount_override is None
+
+
+@pytest.mark.django_db
+def test_first_rent_to_check_is_due_on_moving_in(mid_month_lease):
+    lease, rent, _charges = mid_month_lease
+    pending = pending_occurrences(
+        property_obj=lease.property, up_to=datetime.date(2026, 8, 31)
+    )
+    due = {p.planned_date: p.due_date for p in pending if p.entry == rent}
+    assert due == {
+        datetime.date(2026, 7, 5): datetime.date(2026, 7, 15),
+        datetime.date(2026, 8, 5): datetime.date(2026, 8, 5),
+    }
+
+
+@pytest.mark.django_db
+def test_no_rent_after_the_lease_ends(lease):
+    """A notice ends the lease, not its schedule: nothing is due after it."""
+    lease.start_date = datetime.date(2026, 1, 1)
+    lease.payment_day = 1
+    lease.save()
+    rent, _charges = create_rent_schedule(lease)
+    lease.end_date = datetime.date(2026, 4, 15)
+    lease.save()
+    rent.refresh_from_db()
+    occurrences = rent.generate_occurrences(end_date=datetime.date(2026, 7, 31))
+    assert [o["date"].month for o in occurrences] == [1, 2, 3, 4]
+    assert occurrences[-1]["amount"] == Money(Decimal(400), "EUR")

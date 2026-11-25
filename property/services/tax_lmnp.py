@@ -422,6 +422,7 @@ def get_category_totals_for_year(property_id: int, year: int) -> dict[str, Decim
         .filter(
             Q(recurrence_end_date__gte=year_start) | Q(recurrence_end_date__isnull=True)
         )
+        .select_related("lease")
         .prefetch_related("exceptions")
     )
 

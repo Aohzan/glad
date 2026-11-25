@@ -78,7 +78,9 @@ def get_income_expense_report(
 
     # Expand recurring entries into individual occurrences within [start, end]
     expanded_occurrences: list[_OccurrenceEntry] = []
-    for entry in recurring_qs.select_related("property").prefetch_related("exceptions"):
+    for entry in recurring_qs.select_related("property", "lease").prefetch_related(
+        "exceptions"
+    ):
         occurrences = entry.generate_occurrences(end_date=end_date)
         for occ in occurrences:
             occ_date: datetime.date = occ["date"]

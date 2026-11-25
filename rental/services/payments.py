@@ -15,27 +15,24 @@ is due on moving in.
 import datetime
 from collections import defaultdict
 from dataclasses import dataclass, field
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.utils.translation import gettext as _
 
 from property.models import Lease, PropertyLedgerEntry
-from property.models.ledger import ManagementCategory
+from property.models.ledger import LEASE_RENT_CATEGORIES, ManagementCategory
 
 RENT = ManagementCategory.RENT_COLLECTED.value
 CHARGES = ManagementCategory.CHARGES_COLLECTED.value
 
-#: Months covered by one payment of each lease periodicity.
-PERIOD_MONTHS = {Lease.Periodicity.MONTHLY: 1, Lease.Periodicity.QUARTERLY: 3}
 _RECURRENCE = {
     Lease.Periodicity.MONTHLY: PropertyLedgerEntry.RecurrenceType.MONTHLY,
     Lease.Periodicity.QUARTERLY: PropertyLedgerEntry.RecurrenceType.QUARTERLY,
 }
 #: The periods due within this many days are shown as upcoming.
 AHEAD_DAYS = 40
-CENT = Decimal("0.01")
 
 PAID = "paid"
 PARTIAL = "partial"
@@ -96,28 +93,12 @@ class Period:
         return (self.today - self.due_date).days
 
 
-def covered_ratio(lease: Lease, period: Period) -> Decimal:
-    """Share of the calendar days of *period* that *lease* covers."""
-    first = max(period.start, lease.start_date)
-    last = min(period.end, lease.end_date) if lease.end_date else period.end
-    covered = max((last - first).days + 1, 0)
-    return Decimal(covered) / Decimal((period.end - period.start).days + 1)
-
-
-def _prorate(lease: Lease, period: Period) -> None:
-    """Prorate what *period* expects when the lease covers it only in part."""
-    ratio = covered_ratio(lease, period)
-    if ratio < 1:
-        period.rent = (period.rent * ratio).quantize(CENT, rounding=ROUND_HALF_UP)
-        period.charges = (period.charges * ratio).quantize(CENT, rounding=ROUND_HALF_UP)
-
-
 def rent_entries(lease: Lease):
     """Rent and charges entries of *lease*."""
-    return PropertyLedgerEntry.objects.filter(
+    return PropertyLedgerEntry.objects.select_related("lease").filter(
         lease=lease,
         flow_type=PropertyLedgerEntry.FlowType.INCOME,
-        management_category__in=(RENT, CHARGES),
+        management_category__in=LEASE_RENT_CATEGORIES,
     )
 
 
@@ -175,7 +156,7 @@ def create_rent_schedule(lease: Lease) -> list[PropertyLedgerEntry]:
 def lease_periods(lease: Lease, today: datetime.date | None = None) -> list[Period]:
     """Every period of *lease* up to the next due date, newest first."""
     today = today or datetime.date.today()
-    months = PERIOD_MONTHS.get(lease.periodicity, 1)
+    months = lease.period_months
     periods: dict[datetime.date, Period] = {}
 
     def period_of(day: datetime.date) -> Period:
@@ -203,7 +184,9 @@ def lease_periods(lease: Lease, today: datetime.date | None = None) -> list[Peri
             due = max(scheduled, lease.start_date)
             period.due_date = min(filter(None, (period.due_date, due)))
             planned = (
-                entry.amount if occurrence["is_checked"] else occurrence["amount"]
+                entry.planned_amount(scheduled)
+                if occurrence["is_checked"]
+                else occurrence["amount"]
             ).amount
             if entry.management_category == CHARGES:
                 period.charges += planned
@@ -216,8 +199,6 @@ def lease_periods(lease: Lease, today: datetime.date | None = None) -> list[Peri
                 )
             else:
                 period.unchecked.append((entry, scheduled))
-    for period in periods.values():
-        _prorate(lease, period)
     return sorted(periods.values(), key=lambda p: p.start, reverse=True)
 
 

@@ -102,7 +102,7 @@ def _build_rows(
     for p in pending:
         row = _CheckRow(
             pending=p,
-            actual_date=min(p.planned_date, today).isoformat(),
+            actual_date=min(p.due_date, today).isoformat(),
             actual_amount=f"{p.planned_amount.amount:.2f}",
         )
         if data is not None:

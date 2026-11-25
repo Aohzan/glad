@@ -513,7 +513,9 @@ def check_ledger_occurrence(
     *actual_amount* when they differ from the schedule (a partial rent, a late
     payment). The next occurrence after today can be checked too when it was
     paid early, with an actual date of today or earlier."""
-    entry = PropertyLedgerEntry.objects.select_related("property").get(pk=entry_id)
+    entry = PropertyLedgerEntry.objects.select_related("property", "lease").get(
+        pk=entry_id
+    )
     if not is_checkable_occurrence(entry, occurrence_date):
         raise ToolInputError(
             f"{occurrence_date} is not a scheduled occurrence of entry {entry_id}"
@@ -521,15 +523,23 @@ def check_ledger_occurrence(
             " it was paid early."
         )
     actual_date = actual_date or occurrence_date
-    amount = actual_amount if actual_amount is not None else entry.amount.amount
+    amount = (
+        actual_amount
+        if actual_amount is not None
+        else entry.planned_amount(occurrence_date).amount
+    )
     if error := actual_values_error(actual_date, amount):
         raise ToolInputError(error)
-    check_occurrence(
+    # Without an amount, an amount already set on the occurrence is kept.
+    exception = check_occurrence(
         entry,
         occurrence_date,
         actual_date,
-        Money(amount.quantize(Decimal("0.01")), entry.amount.currency),
+        Money(amount.quantize(Decimal("0.01")), entry.amount.currency)
+        if actual_amount is not None
+        else None,
     )
+    amount = (exception.amount_override or entry.amount).amount
     return {
         "entry_id": entry.pk,
         "property": ref(entry.property),

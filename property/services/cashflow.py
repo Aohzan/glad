@@ -66,7 +66,7 @@ def ledger_totals_by_category(
 
     entries = property_obj.ledger_entries.all()
     if "ledger_entries" not in getattr(property_obj, "_prefetched_objects_cache", {}):
-        entries = entries.prefetch_related("exceptions")
+        entries = entries.select_related("lease").prefetch_related("exceptions")
     if property_obj.loans.all():
         entries = [
             entry

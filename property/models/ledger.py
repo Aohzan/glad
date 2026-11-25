@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
+from djmoney.money import Money
 
 from base.models import BaseModel
 from property.utils import generate_recurring_occurrences
@@ -229,6 +230,12 @@ class ManagementCategory(str, enum.Enum):
 
 # Django-compatible choices list: [(value, label), ...]
 ManagementCategory.choices = [(m.value, m._label_) for m in ManagementCategory]
+
+#: Categories of the rent and charges a lease collects.
+LEASE_RENT_CATEGORIES = (
+    ManagementCategory.RENT_COLLECTED.value,
+    ManagementCategory.CHARGES_COLLECTED.value,
+)
 
 
 class PropertyLedgerEntry(BaseModel):
@@ -490,6 +497,14 @@ class PropertyLedgerEntry(BaseModel):
                     updated["actual_date"] = exc.actual_date
                 updated["is_checked"] = exc.is_checked
                 updated["has_exception"] = True
+            if not updated["is_checked"] and (
+                exc is None or exc.amount_override is None
+            ):
+                # Only planned amounts are prorated: checked without an
+                # override, an occurrence keeps the full amount it always had.
+                updated["amount"] = self.planned_amount(occurrence["date"])
+                if updated["amount"].amount == 0 and self.amount.amount != 0:
+                    continue  # A rent due after the end of its lease.
             if (
                 occurrence["is_recurring"]
                 and occurrence["date"] > covered_until
@@ -500,6 +515,23 @@ class PropertyLedgerEntry(BaseModel):
                 continue
             result.append(updated)
         return result
+
+    def planned_amount(self, occurrence_date: datetime.date) -> Money:
+        """Amount planned for the occurrence of the entry on *occurrence_date*.
+
+        The rent and charges of a lease are due for the period starting in the
+        month of the occurrence: a period the lease starts or ends in expects
+        only the days it covers.
+        """
+        if (
+            self.lease_id is None
+            or self.recurrence_type == self.NONE
+            or self.flow_type != self.FlowType.INCOME
+            or self.management_category not in LEASE_RENT_CATEGORIES
+        ):
+            return self.amount
+        prorated = self.lease.prorate(self.amount.amount, occurrence_date)
+        return Money(prorated, self.amount.currency)
 
     def get_lmnp_line(self) -> str | None:
         """Return the cerfa 2033-B line number for this entry's category."""

@@ -310,9 +310,13 @@ class PropertyDetailView(DetailView):
         list[dict],
     ]:
         """Build monthly cashflow series from ledger entries and loans."""
-        entries_qs = without_loan_entries(
-            PropertyLedgerEntry.objects.filter(property=property_obj), property_obj
-        ).prefetch_related("exceptions")
+        entries_qs = (
+            without_loan_entries(
+                PropertyLedgerEntry.objects.filter(property=property_obj), property_obj
+            )
+            .select_related("lease")
+            .prefetch_related("exceptions")
+        )
         revenues_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.INCOME)
         expenses_qs = entries_qs.filter(flow_type=PropertyLedgerEntry.FlowType.EXPENSE)
         loans_qs = PropertyLoan.objects.filter(property=property_obj)
@@ -433,7 +437,11 @@ class PropertyDetailView(DetailView):
                         "occurrence_date": occurrence["occurrence_date"].isoformat()
                         if is_recurring
                         else None,
-                        "planned_amount": float(entry.amount.amount),
+                        "planned_amount": float(
+                            entry.planned_amount(occurrence["occurrence_date"]).amount
+                            if "occurrence_date" in occurrence
+                            else entry.amount.amount
+                        ),
                         "is_checked": occurrence.get("is_checked", False),
                         "is_moved": occurrence.get("actual_date") is not None,
                         "has_exception": occurrence.get("has_exception", False),
