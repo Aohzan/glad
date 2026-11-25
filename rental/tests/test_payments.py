@@ -363,3 +363,22 @@ def test_no_rent_after_the_lease_ends(lease):
     occurrences = rent.generate_occurrences(end_date=datetime.date(2026, 7, 31))
     assert [o["date"].month for o in occurrences] == [1, 2, 3, 4]
     assert occurrences[-1]["amount"] == Money(Decimal(400), "EUR")
+
+
+@pytest.mark.django_db
+def test_last_month_before_the_payment_day(lease):
+    """A lease ending on 10 April, paid on the 15th, expects 10/30 of April."""
+    lease.start_date = datetime.date(2026, 1, 1)
+    lease.end_date = datetime.date(2026, 4, 10)
+    lease.payment_day = 15
+    lease.save()
+    rent, _charges = create_rent_schedule(lease)
+    assert rent.recurrence_end_date == datetime.date(2026, 4, 15)
+
+    april = period_of_month(
+        lease_periods(lease, datetime.date(2026, 5, 1)), datetime.date(2026, 4, 1)
+    )
+    assert april is not None
+    assert (april.rent, april.charges) == (Decimal("266.67"), Decimal("16.67"))
+    # Due on leaving, not after the lease ended.
+    assert april.due_date == datetime.date(2026, 4, 10)

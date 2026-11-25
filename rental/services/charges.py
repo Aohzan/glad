@@ -19,7 +19,7 @@ from base.services.pdf import BasePdf, money
 from property.models import Lease, PropertyLedgerEntry
 from property.models.ledger import ManagementCategory
 from property.services.rent_revision import split_series
-from property.utils.date_utils import day_count
+from property.utils.date_utils import day_count, month_start
 from rental.models import ChargesReconciliation
 from rental.services.landlord import landlord_of
 from rental.services.payments import CHARGES
@@ -44,6 +44,16 @@ def default_period(
 
 
 def _provisions(lease: Lease, start: datetime.date, end: datetime.date) -> Decimal:
+    """Charges provisions received for the period from *start* to *end*.
+
+    The first and last provisions of the lease may be scheduled just outside
+    it, on the payment day of its first or last month: they count too.
+    """
+    if start <= lease.start_date:
+        start = month_start(lease.start_date)
+    schedule_end = lease.rent_schedule_end()
+    if schedule_end and lease.end_date and end >= lease.end_date:
+        end = max(end, schedule_end)
     reconciled = ChargesReconciliation.objects.exclude(ledger_entry=None).values(
         "ledger_entry"
     )

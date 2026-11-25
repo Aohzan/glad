@@ -235,6 +235,22 @@ class Lease(BaseModel):
             return amount
         return (amount * share).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
+    def rent_due_date(self, scheduled: datetime.date) -> datetime.date:
+        """Due date of a rent scheduled on *scheduled*, within the lease.
+
+        A first rent scheduled before the lease starts is due on moving in, a
+        last one scheduled after it ends on leaving.
+        """
+        due = max(scheduled, self.start_date)
+        return min(due, self.end_date) if self.end_date else due
+
+    def rent_schedule_end(self) -> datetime.date | None:
+        """End of the rent schedule: the end of the lease, or the payment day
+        of its last month when later, for the prorated rent of that month."""
+        if self.end_date is None:
+            return None
+        return max(self.end_date, self.end_date.replace(day=self.payment_day))
+
     def total_rent(self) -> Money:
         """Return rent + charges as a single Money amount."""
         return self.rent_amount + self.charges_amount

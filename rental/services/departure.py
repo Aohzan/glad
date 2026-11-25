@@ -15,7 +15,7 @@ from django.utils.translation import gettext as _
 from djmoney.money import Money
 
 from property.models import Lease, PropertyLedgerEntry
-from property.models.ledger import ManagementCategory
+from property.models.ledger import LEASE_RENT_CATEGORIES, ManagementCategory
 from rental import rules
 from rental.models import DepositSettlement, Inventory, InventoryItem
 from rental.services.landlord import landlord_of
@@ -215,17 +215,28 @@ def settle(settlement: DepositSettlement, returned_date: datetime.date) -> None:
 
 @transaction.atomic
 def close_lease(lease: Lease, end_date: datetime.date) -> int:
-    """End the lease and its recurring entries; the number of series ended."""
+    """End the lease and its recurring entries; the number of series ended.
+
+    The rent and charges run up to the payment day of the last month when
+    later (``Lease.rent_schedule_end``), for its prorated rent.
+    """
     lease.status = Lease.Status.ENDED
     lease.end_date = end_date
     lease.save(update_fields=["status", "end_date", "updated_at"])
-    return (
-        PropertyLedgerEntry.objects.filter(lease=lease)
-        .exclude(recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE)
-        .filter(
-            Q(recurrence_end_date__isnull=True) | Q(recurrence_end_date__gt=end_date)
-        )
-        .update(recurrence_end_date=end_date)
+    series = PropertyLedgerEntry.objects.filter(lease=lease).exclude(
+        recurrence_type=PropertyLedgerEntry.RecurrenceType.NONE
+    )
+    rent = Q(
+        flow_type=PropertyLedgerEntry.FlowType.INCOME,
+        management_category__in=LEASE_RENT_CATEGORIES,
+    )
+    # Series are only shortened: one ended earlier (split by a rent revision)
+    # is followed by another that takes over.
+    return sum(
+        series.filter(kind)
+        .filter(Q(recurrence_end_date__isnull=True) | Q(recurrence_end_date__gt=last))
+        .update(recurrence_end_date=last)
+        for kind, last in ((rent, lease.rent_schedule_end()), (~rent, end_date))
     )
 
 
