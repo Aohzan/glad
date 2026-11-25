@@ -41,7 +41,11 @@
   const role = document.getElementById('{{ form.role.id_for_label }}');
   const guarantee = document.getElementById('field-guarantee_type');
   if (!role || !guarantee || guarantee.querySelector('.invalid-feedback')) return;
-  const toggle = () => { guarantee.hidden = role.value === 'tenant'; };
+  const select = guarantee.querySelector('select');
+  const toggle = () => {
+    guarantee.hidden = role.value === 'tenant';
+    if (guarantee.hidden && select) select.value = '';
+  };
   role.addEventListener('change', toggle);
   toggle();
 })();
